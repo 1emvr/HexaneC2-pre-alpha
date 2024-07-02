@@ -22,9 +22,8 @@ namespace Message {
 
         if (x_memcmp(&Ctx->Session.PeerId, &Pid, 4) == 0) {
             return TRUE;
-        } else {
-            return FALSE;
         }
+        return FALSE;
     }
 
     VOID AddMessage(PSTREAM Outbound) {
@@ -75,7 +74,6 @@ namespace Message {
         }
 
         defer:
-        return;
     }
 
     VOID QueueSegments(PBYTE Buffer, ULONG Length) {
@@ -131,28 +129,28 @@ namespace Message {
 #else
             return_defer(ERROR_SUCCESS);
 #endif
-        } else {
-            __debugbreak();
-            Head = Ctx->Transport.OutboundQueue;
-
-            while (Head) {
-                if ((Head->Length + Outbound->Length) > MESSAGE_MAX) {
-                    break;
-                }
-
-                if (Head->Buffer) {
-                    PackBytes(Outbound, B_PTR(Head->Buffer), Head->Length);
-
-                    Outbound->Length += Head->Length;
-                    Head->Ready = TRUE;
-
-                } else {
-                    return_defer(ERROR_NO_DATA);
-                }
-
-                Head = Head->Next;
-            }
         }
+        __debugbreak();
+        Head = Ctx->Transport.OutboundQueue;
+
+        while (Head) {
+            if ((Head->Length + Outbound->Length) > MESSAGE_MAX) {
+                break;
+            }
+
+            if (Head->Buffer) {
+                PackBytes(Outbound, B_PTR(Head->Buffer), Head->Length);
+
+                Outbound->Length += Head->Length;
+                Head->Ready = TRUE;
+            }
+            else {
+                return_defer(ERROR_NO_DATA);
+            }
+
+            Head = Head->Next;
+        }
+
 #ifdef TRANSPORT_HTTP
         HttpCallback(Outbound, &Inbound);
 #endif
@@ -195,7 +193,6 @@ namespace Message {
         }
 
         defer:
-        return;
     }
 
     VOID CommandDispatch (PSTREAM Inbound) {

