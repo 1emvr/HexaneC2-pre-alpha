@@ -7,10 +7,7 @@ enable_language(ASM_NASM)
 set(SOURCE "C:/Users/lemur/CLionProjects/HexaneC2")
 set(META "C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um")
 
-set(MODS "${SOURCE}/mods")
-set(CORE "${SOURCE}/core")
-
-include_directories(include ${SOURCE} ${CORE} ${MODS} ${META})
+include_directories(include ${SOURCE} ${META})
 
 set(INCLUDE_FILES
         core/include/monolith.hpp
@@ -45,5 +42,10 @@ set(MAIN_FILES
         core/src/context.cpp
         core/src/parser.cpp
         core/src/cipher.cpp
+        loader/DllMain.cpp
+        loader/loaders.cpp
+        core/src/stream.cpp
+        core/src/commands.cpp
+        implant/MainExe.cpp
 )
 add_executable(useful_modules ${INCLUDE_FILES} ${MAIN_FILES})

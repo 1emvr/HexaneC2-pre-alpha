@@ -52,107 +52,142 @@ build cmake_object_order_depends_target_useful_modules: phony || CMakeFiles/usef
 build CMakeFiles/useful_modules.dir/mods/src/EnumDotNetProcesses.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/mods/src/EnumDotNetProcesses.cpp || cmake_object_order_depends_target_useful_modules
   DEP_FILE = CMakeFiles\useful_modules.dir\mods\src\EnumDotNetProcesses.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\mods\src
 
 build CMakeFiles/useful_modules.dir/mods/src/RegDisableDefender.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/mods/src/RegDisableDefender.cpp || cmake_object_order_depends_target_useful_modules
   DEP_FILE = CMakeFiles\useful_modules.dir\mods\src\RegDisableDefender.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\mods\src
 
 build CMakeFiles/useful_modules.dir/mods/src/Impersonate.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/mods/src/Impersonate.cpp || cmake_object_order_depends_target_useful_modules
   DEP_FILE = CMakeFiles\useful_modules.dir\mods\src\Impersonate.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\mods\src
 
 build CMakeFiles/useful_modules.dir/core/src/process.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/process.cpp || cmake_object_order_depends_target_useful_modules
   DEP_FILE = CMakeFiles\useful_modules.dir\core\src\process.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
 
 build CMakeFiles/useful_modules.dir/core/src/memory.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/memory.cpp || cmake_object_order_depends_target_useful_modules
   DEP_FILE = CMakeFiles\useful_modules.dir\core\src\memory.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
 
 build CMakeFiles/useful_modules.dir/core/src/cruntime.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/cruntime.cpp || cmake_object_order_depends_target_useful_modules
   DEP_FILE = CMakeFiles\useful_modules.dir\core\src\cruntime.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
 
 build CMakeFiles/useful_modules.dir/core/src/network.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/network.cpp || cmake_object_order_depends_target_useful_modules
   DEP_FILE = CMakeFiles\useful_modules.dir\core\src\network.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
 
 build CMakeFiles/useful_modules.dir/core/src/hash.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/hash.cpp || cmake_object_order_depends_target_useful_modules
   DEP_FILE = CMakeFiles\useful_modules.dir\core\src\hash.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
 
 build CMakeFiles/useful_modules.dir/core/src/utils.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/utils.cpp || cmake_object_order_depends_target_useful_modules
   DEP_FILE = CMakeFiles\useful_modules.dir\core\src\utils.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
 
 build CMakeFiles/useful_modules.dir/core/src/opsec.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/opsec.cpp || cmake_object_order_depends_target_useful_modules
   DEP_FILE = CMakeFiles\useful_modules.dir\core\src\opsec.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
 
 build CMakeFiles/useful_modules.dir/core/src/core.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/core.cpp || cmake_object_order_depends_target_useful_modules
   DEP_FILE = CMakeFiles\useful_modules.dir\core\src\core.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
 
 build CMakeFiles/useful_modules.dir/core/src/message.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/message.cpp || cmake_object_order_depends_target_useful_modules
   DEP_FILE = CMakeFiles\useful_modules.dir\core\src\message.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
 
 build CMakeFiles/useful_modules.dir/core/src/context.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/context.cpp || cmake_object_order_depends_target_useful_modules
   DEP_FILE = CMakeFiles\useful_modules.dir\core\src\context.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
 
 build CMakeFiles/useful_modules.dir/core/src/parser.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/parser.cpp || cmake_object_order_depends_target_useful_modules
   DEP_FILE = CMakeFiles\useful_modules.dir\core\src\parser.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
 
 build CMakeFiles/useful_modules.dir/core/src/cipher.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/cipher.cpp || cmake_object_order_depends_target_useful_modules
   DEP_FILE = CMakeFiles\useful_modules.dir\core\src\cipher.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
+
+build CMakeFiles/useful_modules.dir/loader/DllMain.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/loader/DllMain.cpp || cmake_object_order_depends_target_useful_modules
+  DEP_FILE = CMakeFiles\useful_modules.dir\loader\DllMain.cpp.obj.d
+  FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  OBJECT_DIR = CMakeFiles\useful_modules.dir
+  OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\loader
+
+build CMakeFiles/useful_modules.dir/loader/loaders.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/loader/loaders.cpp || cmake_object_order_depends_target_useful_modules
+  DEP_FILE = CMakeFiles\useful_modules.dir\loader\loaders.cpp.obj.d
+  FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  OBJECT_DIR = CMakeFiles\useful_modules.dir
+  OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\loader
+
+build CMakeFiles/useful_modules.dir/core/src/stream.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/stream.cpp || cmake_object_order_depends_target_useful_modules
+  DEP_FILE = CMakeFiles\useful_modules.dir\core\src\stream.cpp.obj.d
+  FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  OBJECT_DIR = CMakeFiles\useful_modules.dir
+  OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
+
+build CMakeFiles/useful_modules.dir/core/src/commands.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/commands.cpp || cmake_object_order_depends_target_useful_modules
+  DEP_FILE = CMakeFiles\useful_modules.dir\core\src\commands.cpp.obj.d
+  FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  OBJECT_DIR = CMakeFiles\useful_modules.dir
+  OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
+
+build CMakeFiles/useful_modules.dir/implant/MainExe.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/implant/MainExe.cpp || cmake_object_order_depends_target_useful_modules
+  DEP_FILE = CMakeFiles\useful_modules.dir\implant\MainExe.cpp.obj.d
+  FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  OBJECT_DIR = CMakeFiles\useful_modules.dir
+  OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\implant
 
 
 # =============================================================================
@@ -162,7 +197,7 @@ build CMakeFiles/useful_modules.dir/core/src/cipher.cpp.obj: CXX_COMPILER__usefu
 #############################################
 # Link the executable useful_modules.exe
 
-build useful_modules.exe: CXX_EXECUTABLE_LINKER__useful_modules_Debug CMakeFiles/useful_modules.dir/mods/src/EnumDotNetProcesses.cpp.obj CMakeFiles/useful_modules.dir/mods/src/RegDisableDefender.cpp.obj CMakeFiles/useful_modules.dir/mods/src/Impersonate.cpp.obj CMakeFiles/useful_modules.dir/core/src/process.cpp.obj CMakeFiles/useful_modules.dir/core/src/memory.cpp.obj CMakeFiles/useful_modules.dir/core/src/cruntime.cpp.obj CMakeFiles/useful_modules.dir/core/src/network.cpp.obj CMakeFiles/useful_modules.dir/core/src/hash.cpp.obj CMakeFiles/useful_modules.dir/core/src/utils.cpp.obj CMakeFiles/useful_modules.dir/core/src/opsec.cpp.obj CMakeFiles/useful_modules.dir/core/src/core.cpp.obj CMakeFiles/useful_modules.dir/core/src/message.cpp.obj CMakeFiles/useful_modules.dir/core/src/context.cpp.obj CMakeFiles/useful_modules.dir/core/src/parser.cpp.obj CMakeFiles/useful_modules.dir/core/src/cipher.cpp.obj
+build useful_modules.exe: CXX_EXECUTABLE_LINKER__useful_modules_Debug CMakeFiles/useful_modules.dir/mods/src/EnumDotNetProcesses.cpp.obj CMakeFiles/useful_modules.dir/mods/src/RegDisableDefender.cpp.obj CMakeFiles/useful_modules.dir/mods/src/Impersonate.cpp.obj CMakeFiles/useful_modules.dir/core/src/process.cpp.obj CMakeFiles/useful_modules.dir/core/src/memory.cpp.obj CMakeFiles/useful_modules.dir/core/src/cruntime.cpp.obj CMakeFiles/useful_modules.dir/core/src/network.cpp.obj CMakeFiles/useful_modules.dir/core/src/hash.cpp.obj CMakeFiles/useful_modules.dir/core/src/utils.cpp.obj CMakeFiles/useful_modules.dir/core/src/opsec.cpp.obj CMakeFiles/useful_modules.dir/core/src/core.cpp.obj CMakeFiles/useful_modules.dir/core/src/message.cpp.obj CMakeFiles/useful_modules.dir/core/src/context.cpp.obj CMakeFiles/useful_modules.dir/core/src/parser.cpp.obj CMakeFiles/useful_modules.dir/core/src/cipher.cpp.obj CMakeFiles/useful_modules.dir/loader/DllMain.cpp.obj CMakeFiles/useful_modules.dir/loader/loaders.cpp.obj CMakeFiles/useful_modules.dir/core/src/stream.cpp.obj CMakeFiles/useful_modules.dir/core/src/commands.cpp.obj CMakeFiles/useful_modules.dir/implant/MainExe.cpp.obj
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\useful_modules.dir

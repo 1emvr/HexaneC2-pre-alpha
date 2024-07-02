@@ -1,12 +1,14 @@
 #ifndef _HEXANE_BASE_HPP
 #define _HEXANE_BASE_HPP
-#include <include/monolith.hpp>
-#include <include/cruntime.hpp>
-#include <include/memory.hpp>
-#include <include/message.hpp>
-#include <include/opsec.hpp>
-#include <include/names.hpp>
-#include <include/utils.hpp>
+#include <core/include/monolith.hpp>
+#include <core/include/cruntime.hpp>
+#include <core/include/network.hpp>
+#include <core/include/memory.hpp>
+#include <core/include/message.hpp>
+#include <core/include/cipher.hpp>
+#include <core/include/opsec.hpp>
+#include <core/include/names.hpp>
+#include <core/include/utils.hpp>
 
 namespace Core {
     FUNCTION VOID HandleTask(DWORD msgType);

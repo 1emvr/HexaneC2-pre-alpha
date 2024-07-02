@@ -1,17 +1,12 @@
 #ifndef HEXANE_CIPHER_HPP
 #define HEXANE_CIPHER_HPP
-#include <include/monolith.hpp>
+#include <core/include/monolith.hpp>
+#include <core/include/cruntime.hpp>
 
 #define FNV_OFFSET  (const unsigned int) 2166136261
 #define FNV_PRIME	(const unsigned int) 16777619
 #define XTEA_DELTA  (const unsigned int) 0x9E3779B9
 #define NROUNDS     (const unsigned int) 64
-
-#define MODULES                             \
-    unsigned char crypt32[] = CRYPT32;      \
-    unsigned char winhttp[] = WINHTTP;      \
-    unsigned char advapi32[] = ADVAPI32;    \
-    unsigned char iphlpapi[] = IPHLPAPI;    \
 
 struct U32_BLOCK {
     uint32_t v0;

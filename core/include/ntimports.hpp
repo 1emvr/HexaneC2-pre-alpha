@@ -10,6 +10,7 @@
 #include <winhttp.h>
 #include <iphlpapi.h>
 #include <tlhelp32.h>
+#include <aclapi.h>
 #include <stdio.h>
 #include <float.h>
 #include <math.h>

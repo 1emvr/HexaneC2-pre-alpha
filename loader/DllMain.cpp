@@ -1,5 +1,5 @@
-#include <monolith.hpp>
-#include "loaders.hpp"
+#include <core/include/monolith.hpp>
+#include <loader/loaders.hpp>
 
 using namespace Loaders::Memory;
 using namespace Loaders::Injection;

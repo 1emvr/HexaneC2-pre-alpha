@@ -1,6 +1,9 @@
-#include <include/opsec.hpp>
+#include <core/include/opsec.hpp>
 using namespace Utils;
+using namespace Stream;
 using namespace Random;
+using namespace Message;
+using namespace Commands;
 
 BOOL CheckTime () {
     HEXANE

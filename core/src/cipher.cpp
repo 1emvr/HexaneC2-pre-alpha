@@ -1,4 +1,4 @@
-#include <include/cipher.hpp>
+#include <core/include/cipher.hpp>
 namespace Xtea {
 
     U32_BLOCK BlockToUint32 (const byte *src) {

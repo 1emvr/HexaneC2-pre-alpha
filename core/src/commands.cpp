@@ -1,7 +1,8 @@
-#include <include/commands.hpp>
+#include <core/include/commands.hpp>
 using namespace Stream;
 using namespace Parser;
-using namespace Messages;
+using namespace Process;
+using namespace Message;
 
 namespace Commands {
 

@@ -1,10 +1,12 @@
 #ifndef _HEXANE_COMMANDS_HPP
 #define _HEXANE_COMMANDS_HPP
-#include <include/monolith.hpp>
-#include <include/cruntime.hpp>
-#include <include/process.hpp>
-#include <include/message.hpp>
-#include <include/stream.hpp>
+#include <core/include/monolith.hpp>
+#include <core/include/cruntime.hpp>
+#include <core/include/commands.hpp>
+#include <core/include/process.hpp>
+#include <core/include/message.hpp>
+#include <core/include/stream.hpp>
+#include <core/include/hash.hpp>
 
 namespace Commands {
 	FUNCTION VOID DirectoryList (PPARSER Parser);

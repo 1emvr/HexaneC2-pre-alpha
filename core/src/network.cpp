@@ -1,4 +1,4 @@
-#include <include/network.hpp>
+#include <core/include/network.hpp>
 namespace Http {
     using namespace Random;
 
@@ -273,7 +273,7 @@ namespace Smb {
         }
 
         defer:
-        if (ntstatus == STATUS_SUCCESS) {
+        if (ntstatus == ERROR_SUCCESS) {
             SecAttr->lpSecurityDescriptor = SmbSecAttr->SecDesc;
             SecAttr->nLength = sizeof(SECURITY_ATTRIBUTES);
             SecAttr->bInheritHandle = FALSE;

@@ -1,4 +1,4 @@
-#include <include/process.hpp>
+#include <core/include/process.hpp>
 namespace Process {
 
 	DWORD GetProcessIdByName (LPSTR proc) {

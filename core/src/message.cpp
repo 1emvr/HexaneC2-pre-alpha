@@ -1,8 +1,9 @@
-#include <include/message.hpp>
+#include <core/include/message.hpp>
 namespace Message {
     using namespace Commands;
     using namespace Stream;
     using namespace Parser;
+    using namespace Http;
     using namespace Smb;
 
     RDATA_SECTION COMMAND_MAP CmdMap[] = {

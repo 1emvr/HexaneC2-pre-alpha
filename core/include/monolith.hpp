@@ -1,7 +1,6 @@
 #ifndef HEXANE_MONOLITH_HPP
 #define HEXANE_MONOLITH_HPP
-#include <include/ntimports.hpp>
-#include <aclapi.h>
+#include <core/include/ntimports.hpp>
 
 #define WIN_VERSION_UNKNOWN                     0
 #define WIN_VERSION_XP                          1

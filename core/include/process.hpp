@@ -1,7 +1,7 @@
 #ifndef _HEXANE_PROCESS_HPP
 #define _HEXANE_PROCESS_HPP
-#include <include/monolith.hpp>
-#include <include/cruntime.hpp>
+#include <core/include/monolith.hpp>
+#include <core/include/cruntime.hpp>
 
 namespace Process {
 	FUNCTION DWORD GetProcessIdByName(LPSTR proc);

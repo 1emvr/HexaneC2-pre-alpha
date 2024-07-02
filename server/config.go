@@ -23,7 +23,7 @@ const (
 	LoadersCpp  = "../loader/loaders.cpp"
 	LoaderDll   = "../loader/DllMain.cpp"
 	MainExe     = "../core/implant/MainExe.cpp"
-	Ld          = "../core/implant/linker.implant.ld"
+	Ld          = "../implant/linker.implant.ld"
 )
 
 var RequiredMods = map[string][]byte{
@@ -74,12 +74,11 @@ func (h *HexaneConfig) CreateConfig(jsn JsonConfig) error {
 
 	h.Compiler.IncludeDirs = []string{
 		"../core/include",
-		"../loaders",
 	}
 
 	h.Compiler.ComponentDirs = []string{
 		"../core/src",
-		"../loaders",
+		"../implant",
 	}
 
 	h.Implant.LoadedModules = []string{

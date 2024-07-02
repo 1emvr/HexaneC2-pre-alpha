@@ -329,11 +329,11 @@ func (h *HexaneConfig) GenerateObjects() error {
 			ObjFile := fmt.Sprintf(" %s/%s.o ", h.Compiler.BuildDirectory, file.Name())
 
 			if path.Ext(file.Name()) == ".cpp" {
-				if err = h.CompileObject(fmt.Sprintf("%s -c", h.Compiler.Mingw), []string{FilePath}, h.Compiler.Flags, h.Compiler.IncludeDirs, RequiredMods, ObjFile); err != nil {
+				if err = h.CompileObject(h.Compiler.Mingw + " -c ", []string{FilePath}, h.Compiler.Flags, []string{"../"}, RequiredMods, ObjFile); err != nil {
 					return err
 				}
 			} else if path.Ext(file.Name()) == ".asm" {
-				if err = h.CompileObject(fmt.Sprintf("%s -f win64", h.Compiler.Assembler), []string{FilePath}, nil, nil, nil, ObjFile); err != nil {
+				if err = h.CompileObject(h.Compiler.Assembler + " -f win64 ", []string{FilePath}, nil, nil, nil, ObjFile); err != nil {
 					return err
 				}
 			} else {
@@ -358,6 +358,8 @@ func (h *HexaneConfig) RunCommand(cmd, cwd string) error {
 		Command        *exec.Cmd
 		err            error
 	)
+
+	fmt.Printf("running command: %s\n", cmd)
 
 	Command = exec.Command("cmd.exe", "/c", cmd)
 	Command.Stdout = &Stdout

@@ -1,8 +1,8 @@
 #ifndef MODULES_MEMORY_HPP
 #define MODULES_MEMORY_HPP
-#include <include/monolith.hpp>
-#include <include/cruntime.hpp>
-#include <include/hash.hpp>
+#include <core/include/monolith.hpp>
+#include <core/include/cruntime.hpp>
+#include <core/include/hash.hpp>
 
 namespace Memory {
     HMODULE LdrGetModuleAddress(DWORD hash);

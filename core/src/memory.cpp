@@ -1,4 +1,4 @@
-#include <include/memory.hpp>
+#include <core/include/memory.hpp>
 namespace Memory {
 
     HMODULE LdrGetModuleAddress (DWORD Hash) {

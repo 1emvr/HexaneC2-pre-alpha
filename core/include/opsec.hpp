@@ -1,7 +1,8 @@
 #ifndef HEXANE_OPSEC_HPP
 #define HEXANE_OPSEC_HPP
-#include <include/monolith.hpp>
-#include <include/utils.hpp>
+#include <core/include/monolith.hpp>
+#include <core/include/commands.hpp>
+#include <core/include/utils.hpp>
 
 BOOL CheckTime ();
 VOID SeCheckDebugger();

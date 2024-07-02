@@ -1,8 +1,9 @@
-#include <include/core.hpp>
+#include <core/include/core.hpp>
 using namespace Memory;
 using namespace Message;
 using namespace Parser;
 using namespace Random;
+using namespace Xtea;
 
 CFG_SECTION BYTE Config[] = CONFIG_BYTES;
 namespace Core {

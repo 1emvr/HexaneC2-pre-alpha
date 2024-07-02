@@ -1,8 +1,8 @@
 #ifndef _HEXANE_STREAM_HPP
 #define _HEXANE_STREAM_HPP
-#include <include/monolith.hpp>
-#include <include/cruntime.hpp>
-#include <include/memory.hpp>
+#include <core/include/monolith.hpp>
+#include <core/include/cruntime.hpp>
+#include <core/include/memory.hpp>
 
 namespace Stream {
 
