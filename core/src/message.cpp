@@ -161,13 +161,13 @@ namespace Message {
 
         } else {
             // Implants that receive messages from peers must parse the header themselves.
-            // Pid, Tid and Type need to be saved and the remaining buffer can be re-packaged with new header
+            // Pid, Tid and Type need to be saved and the remaining buffer can be re-packaged with a new header
 
             Outbound = Stream::CreateStream();
             Head = Ctx->Transport.OutboundQueue;
 
             while (Head) {
-                if (Head->Length + Outbound->Length > MESSAGE_MAX) {
+                if (Head->Length + MESSAGE_HEADER_SIZE + Outbound->Length > MESSAGE_MAX) {
                     break;
                 }
 
