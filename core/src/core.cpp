@@ -6,6 +6,7 @@ TXT_SECTION(G) BYTE Strings[256]    = { };
 namespace Core {
 
     VOID MainRoutine() {
+
         HEXANE
 
         ResolveApi();
@@ -46,9 +47,8 @@ namespace Core {
     }
 
     VOID ResolveApi () {
-        HEXANE
-        Ctx->LE = TRUE;
 
+        HEXANE
         PARSER Parser               = { };
         ULONG Kernel32              = { };
         OSVERSIONINFOW OSVersionW   = { };
@@ -254,10 +254,16 @@ namespace Core {
     }
 
     VOID ReadConfig() {
-        HEXANE
-        Ctx->LE = TRUE;
 
+        HEXANE
         PARSER Parser = { };
+
+        BOOL Root = TRUE;
+        BOOL Little = TRUE;
+
+        x_memcpy(&Ctx->LE, &Little, 4);
+        x_memcpy(&Ctx->Root, &Root, 4);
+
 
         Parser::CreateParser(&Parser, Config, sizeof(Config));
         x_memset(Config, 0, sizeof(Config));

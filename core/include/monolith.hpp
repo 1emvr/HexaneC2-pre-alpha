@@ -276,6 +276,7 @@ typedef struct {
 
 	LPVOID 	Heap;
 	PTEB 	Teb;
+	BOOL	Root;
     BOOL    LE;
 
 	struct {
@@ -315,7 +316,6 @@ typedef struct {
 		WORD	    Architecture;
 		ULONG	    OSVersion;
 		ULONG	    CurrentTaskId;
-        PPEER_DATA 	Peers;
         ULONG		PeerId;
 	} Session;
 

