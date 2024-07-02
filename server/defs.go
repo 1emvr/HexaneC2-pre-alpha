@@ -5,6 +5,22 @@ import (
 	"sync"
 )
 
+const (
+	CommandDir        uint32 = 1
+	CommandMods       uint32 = 2
+	CommandNoJob      uint32 = 3
+	CommandShutdown   uint32 = 4
+	CommandUpdatePeer uint32 = 5
+)
+
+const (
+	TypeCheckin  = 1
+	TypeTasking  = 2
+	TypeResponse = 3
+	TypeDelegate = 4
+	TypeSegment  = 5
+)
+
 type Packet struct {
 	nPackets uint32
 	PacketId uint32
@@ -15,6 +31,11 @@ type MsgSegments struct {
 	nPackets uint32
 	Packets  map[uint32][]byte
 	Count    uint32
+}
+
+type Stream struct {
+	Buffer []byte
+	Length int
 }
 
 type Config struct {

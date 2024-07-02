@@ -9,14 +9,6 @@ import (
 	"strconv"
 )
 
-const (
-	CommandDir        uint32 = 0x7FFFFFFF
-	CommandMods       uint32 = 0x7FFFFFFE
-	CommandNoJob      uint32 = 0x7FFFFFFD
-	CommandShutdown   uint32 = 0x7FFFFFFC
-	CommandUpdatePeer uint32 = 0x7FFFFFFB
-)
-
 var CommandMap = map[string]uint32{
 	"dir":      CommandDir,
 	"mods":     CommandMods,

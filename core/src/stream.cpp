@@ -90,7 +90,7 @@ namespace Stream {
         HEXANE
 
         if (stream) {
-            stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(UINT64));
+            stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(ULONG64));
 
             PackInt64(B_PTR(stream->Buffer) + stream->Length, data);
             stream->Length += sizeof(UINT64);
@@ -123,14 +123,14 @@ namespace Stream {
         HEXANE
 
         if (stream) {
-            PackDword(stream, U32(size));
-
             if (size) {
-                stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + size);
-
-                x_memcpy(B_PTR(stream->Buffer) + stream->Length, data, size);
-                stream->Length += size;
+                PackDword(stream, size);
             }
+
+            stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + size);
+
+            x_memcpy(B_PTR(stream->Buffer) + stream->Length, data, size);
+            stream->Length += size;
         }
     }
 

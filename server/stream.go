@@ -9,11 +9,6 @@ import (
 	"unicode/utf8"
 )
 
-type Stream struct {
-	Buffer []byte
-	Length int
-}
-
 func EncodeUTF8(s string) []byte {
 
 	if !strings.HasSuffix(s, "\x00") {

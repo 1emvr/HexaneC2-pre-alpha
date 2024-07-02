@@ -5,15 +5,6 @@ import (
 	"strings"
 )
 
-const (
-	TypeCheckin  uint32 = 0x00000001
-	TypeTasking  uint32 = 0x00000002
-	TypeResponse uint32 = 0x00000003
-	TypeDelegate uint32 = 0x00000004
-	TypeSegment  uint32 = 0x00000005
-	TypeError    uint32 = 0x7FFFFFFF
-)
-
 func (m *Message) DispatchCommand(h *HexaneConfig, s *Stream, UserInput string) {
 	var (
 		Buffer      []string
@@ -86,7 +77,6 @@ func (h *HexaneConfig) HandleCommand(Parser *Message, Stream *Stream) {
 func ParseMessage(body []byte) ([]byte, error) {
 	var (
 		err     error
-		Offset  uint32
 		Parser  *Message
 		implant *HexaneConfig
 		stream  = new(Stream)
@@ -101,9 +91,9 @@ func ParseMessage(body []byte) ([]byte, error) {
 		Parser.PeerId = Parser.ParseDword()
 		Parser.TaskId = Parser.ParseDword()
 		Parser.MsgType = Parser.ParseDword()
-		Parser.Length = Parser.ParseDword()
+		Length := Parser.ParseDword()
 
-		Parser.Buffer = body[Parser.Length:]
+		fmt.Println("parsing buffer")
 
 		if implant = GetConfigByPeerId(Parser.PeerId); implant != nil {
 
@@ -145,9 +135,8 @@ func ParseMessage(body []byte) ([]byte, error) {
 			stream.Buffer = []byte("ok")
 		}
 
-		if len(body) >= int(Parser.Length) {
-			Offset += Parser.Length + 16
-			body = body[Offset:]
+		if len(body) >= int(Length) {
+			body = body[Length:]
 		} else {
 			body = nil
 		}
