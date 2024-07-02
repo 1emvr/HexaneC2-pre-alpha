@@ -158,8 +158,6 @@ namespace Message {
 
             if (Head->Buffer) {
                 PackBytes(Outbound, B_PTR(Head->Buffer), Head->Length);
-
-                Outbound->Length += Head->Length;
                 Head->Ready = TRUE;
             }
             else {
