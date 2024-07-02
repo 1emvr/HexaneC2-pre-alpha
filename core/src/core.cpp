@@ -47,11 +47,6 @@ namespace Core {
     VOID ResolveApi () {
         HEXANE
 
-        //UCHAR crypt32[24]   = { CRYPT32 };
-        //UCHAR winhttp[24]   = { WINHTTP };
-        //UCHAR advapi32[24]  = { ADVAPI32 };
-        //UCHAR iphlpapi[24]  = { IPHLPAPI };
-
         PARSER Parser = { };
         CreateParser(&Parser, Strings, 256);
         x_memset(Strings, 0, 256);
@@ -204,6 +199,7 @@ namespace Core {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
 
+        __debugbreak();
         if ((FPTR(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
             if (
                 !(Ctx->Modules.crypt32 = Ctx->win32.LoadLibraryA(UnpackString(&Parser, nullptr))) ||
