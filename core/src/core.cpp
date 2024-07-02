@@ -53,6 +53,12 @@ namespace Core {
         ULONG Kernel32              = { };
         OSVERSIONINFOW OSVersionW   = { };
 
+        BOOL Root = TRUE;
+        BOOL Little = TRUE;
+
+        x_memcpy(&Ctx->LE, &Little, 4);
+        x_memcpy(&Ctx->Root, &Root, 4);
+
         Parser::CreateParser(&Parser, Strings, sizeof(Strings));
         Parser::ParserMemcpy(&Parser, &Ctx->Config.Key);
 
@@ -257,13 +263,6 @@ namespace Core {
 
         HEXANE
         PARSER Parser = { };
-
-        BOOL Root = TRUE;
-        BOOL Little = TRUE;
-
-        x_memcpy(&Ctx->LE, &Little, 4);
-        x_memcpy(&Ctx->Root, &Root, 4);
-
 
         Parser::CreateParser(&Parser, Config, sizeof(Config));
         x_memset(Config, 0, sizeof(Config));

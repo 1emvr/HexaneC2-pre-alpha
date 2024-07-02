@@ -181,11 +181,10 @@ func (m *Message) ParserPrintData(CmdId uint32) bool {
 
 	if CmdId == TypeCheckin {
 		if tMap, ok = TableMap[TypeCheckin]; ok {
-			tMap.Values[0] = strconv.Itoa(int(m.PeerId))
+			tMap.Values[0] = m.ParseString()
 			tMap.Values[1] = m.ParseString()
 			tMap.Values[2] = m.ParseString()
 			tMap.Values[3] = m.ParseString()
-			tMap.Values[4] = m.ParseString()
 		}
 	}
 	if CmdId == CommandDir {
