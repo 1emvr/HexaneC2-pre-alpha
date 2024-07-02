@@ -1,5 +1,9 @@
 #include <include/message.hpp>
-namespace Messages {
+namespace Message {
+    using namespace Commands;
+    using namespace Stream;
+    using namespace Parser;
+    using namespace Smb;
 
     RDATA_SECTION COMMAND_MAP CmdMap[] = {
         { .Id = CommandDir,         .Function = DirectoryList },

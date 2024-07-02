@@ -25,6 +25,7 @@ set(INCLUDE_FILES
         core/include/names.hpp
         core/include/message.hpp
         core/include/stream.hpp
+        core/include/parser.hpp
 )
 set(MAIN_FILES
         mods/src/EnumDotNetProcesses.cpp
@@ -40,5 +41,9 @@ set(MAIN_FILES
         core/src/opsec.cpp
         core/src/core.cpp
         core/src/message.cpp
+        core/include/context.hpp
+        core/src/context.cpp
+        core/src/parser.cpp
+        core/src/cipher.cpp
 )
 add_executable(useful_modules ${INCLUDE_FILES} ${MAIN_FILES})

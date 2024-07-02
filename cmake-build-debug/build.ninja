@@ -133,6 +133,27 @@ build CMakeFiles/useful_modules.dir/core/src/message.cpp.obj: CXX_COMPILER__usef
   OBJECT_DIR = CMakeFiles\useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
 
+build CMakeFiles/useful_modules.dir/core/src/context.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/context.cpp || cmake_object_order_depends_target_useful_modules
+  DEP_FILE = CMakeFiles\useful_modules.dir\core\src\context.cpp.obj.d
+  FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  OBJECT_DIR = CMakeFiles\useful_modules.dir
+  OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
+
+build CMakeFiles/useful_modules.dir/core/src/parser.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/parser.cpp || cmake_object_order_depends_target_useful_modules
+  DEP_FILE = CMakeFiles\useful_modules.dir\core\src\parser.cpp.obj.d
+  FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  OBJECT_DIR = CMakeFiles\useful_modules.dir
+  OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
+
+build CMakeFiles/useful_modules.dir/core/src/cipher.cpp.obj: CXX_COMPILER__useful_modules_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/cipher.cpp || cmake_object_order_depends_target_useful_modules
+  DEP_FILE = CMakeFiles\useful_modules.dir\core\src\cipher.cpp.obj.d
+  FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -IC:/Users/lemur/CLionProjects/HexaneC2/core -IC:/Users/lemur/CLionProjects/HexaneC2/mods -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  OBJECT_DIR = CMakeFiles\useful_modules.dir
+  OBJECT_FILE_DIR = CMakeFiles\useful_modules.dir\core\src
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target useful_modules
@@ -141,7 +162,7 @@ build CMakeFiles/useful_modules.dir/core/src/message.cpp.obj: CXX_COMPILER__usef
 #############################################
 # Link the executable useful_modules.exe
 
-build useful_modules.exe: CXX_EXECUTABLE_LINKER__useful_modules_Debug CMakeFiles/useful_modules.dir/mods/src/EnumDotNetProcesses.cpp.obj CMakeFiles/useful_modules.dir/mods/src/RegDisableDefender.cpp.obj CMakeFiles/useful_modules.dir/mods/src/Impersonate.cpp.obj CMakeFiles/useful_modules.dir/core/src/process.cpp.obj CMakeFiles/useful_modules.dir/core/src/memory.cpp.obj CMakeFiles/useful_modules.dir/core/src/cruntime.cpp.obj CMakeFiles/useful_modules.dir/core/src/network.cpp.obj CMakeFiles/useful_modules.dir/core/src/hash.cpp.obj CMakeFiles/useful_modules.dir/core/src/utils.cpp.obj CMakeFiles/useful_modules.dir/core/src/opsec.cpp.obj CMakeFiles/useful_modules.dir/core/src/core.cpp.obj CMakeFiles/useful_modules.dir/core/src/message.cpp.obj
+build useful_modules.exe: CXX_EXECUTABLE_LINKER__useful_modules_Debug CMakeFiles/useful_modules.dir/mods/src/EnumDotNetProcesses.cpp.obj CMakeFiles/useful_modules.dir/mods/src/RegDisableDefender.cpp.obj CMakeFiles/useful_modules.dir/mods/src/Impersonate.cpp.obj CMakeFiles/useful_modules.dir/core/src/process.cpp.obj CMakeFiles/useful_modules.dir/core/src/memory.cpp.obj CMakeFiles/useful_modules.dir/core/src/cruntime.cpp.obj CMakeFiles/useful_modules.dir/core/src/network.cpp.obj CMakeFiles/useful_modules.dir/core/src/hash.cpp.obj CMakeFiles/useful_modules.dir/core/src/utils.cpp.obj CMakeFiles/useful_modules.dir/core/src/opsec.cpp.obj CMakeFiles/useful_modules.dir/core/src/core.cpp.obj CMakeFiles/useful_modules.dir/core/src/message.cpp.obj CMakeFiles/useful_modules.dir/core/src/context.cpp.obj CMakeFiles/useful_modules.dir/core/src/parser.cpp.obj CMakeFiles/useful_modules.dir/core/src/cipher.cpp.obj
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\useful_modules.dir

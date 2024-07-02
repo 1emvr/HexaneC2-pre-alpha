@@ -1,9 +1,12 @@
 #ifndef HEXANE_MESSAGE_HPP
 #define HEXANE_MESSAGE_HPP
 #include <include/monolith.hpp>
+#include <include/commands.hpp>
 #include <include/network.hpp>
+#include <include/stream.hpp>
+#include <include/parser.hpp>
 
-namespace Messages {
+namespace Message {
     FUNCTION BOOL PeekPID(PSTREAM Stream);
     FUNCTION VOID CommandDispatch (PSTREAM Inbound);
     FUNCTION VOID AddMessage(PSTREAM Outbound);
