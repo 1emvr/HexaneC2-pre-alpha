@@ -95,7 +95,7 @@ namespace Message {
             Queue->TaskId   = Parser::UnpackDword(&Parser);
             Queue->MsgType  = Parser::UnpackDword(&Parser);
 
-            Queue->Length   = __bswapd(Parser.Length);
+            Queue->Length   = Parser.Length;
             Queue->Buffer   = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Queue->Buffer, Parser.Length);
 
             x_memcpy(Queue->Buffer, Parser.Buffer, Parser.Length);
