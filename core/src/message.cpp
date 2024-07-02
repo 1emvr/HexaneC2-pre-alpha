@@ -205,6 +205,8 @@ namespace Message {
         Stream::DestroyStream(Outbound);
         Outbound = nullptr;
 
+        // task is not getting properly parsed
+        __debugbreak();
         if (Inbound) {
             ClearQueue();
 
