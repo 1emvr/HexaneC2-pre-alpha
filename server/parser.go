@@ -117,6 +117,7 @@ func (p *Parser) ParseDword() uint32 {
 	if p.BigEndian {
 		WrapMessage("DBG", fmt.Sprintf("parsing uint32 big endian: %d", binary.BigEndian.Uint32(buffer)))
 		return binary.BigEndian.Uint32(buffer)
+
 	} else {
 		WrapMessage("DBG", fmt.Sprintf("parsing uint32 little endian: %d", binary.LittleEndian.Uint32(buffer)))
 		return binary.LittleEndian.Uint32(buffer)
@@ -143,12 +144,12 @@ func (p *Parser) ParseDword64() uint64 {
 	}
 
 	if p.BigEndian {
-		WrapMessage("DBG", fmt.Sprintf("ParseDword64: %d\n", binary.LittleEndian.Uint64(buffer)))
-		return binary.LittleEndian.Uint64(buffer)
-
-	} else {
 		WrapMessage("DBG", fmt.Sprintf("ParseDword64: %d\n", binary.BigEndian.Uint64(buffer)))
 		return binary.BigEndian.Uint64(buffer)
+
+	} else {
+		WrapMessage("DBG", fmt.Sprintf("ParseDword64: %d\n", binary.LittleEndian.Uint64(buffer)))
+		return binary.LittleEndian.Uint64(buffer)
 	}
 }
 
@@ -159,15 +160,15 @@ func (p *Parser) ParseBytes() []byte {
 		size := p.ParseDword()
 
 		if size != 0 {
+			buffer = make([]byte, size)
 
+			copy(buffer, p.Buffer[:size])
 			p.Length -= size
-			if p.Length == 0 {
 
-				buffer = p.Buffer[:p.Length]
+			if p.Length == 0 {
 				p.Buffer = []byte{}
 
 			} else {
-				buffer = p.Buffer[:size]
 				p.Buffer = p.Buffer[size:]
 			}
 		}

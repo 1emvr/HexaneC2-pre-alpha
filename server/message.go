@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func (m *Message) DispatchCommand(h *HexaneConfig, s *Stream, UserInput string) {
+func (m *Parser) DispatchCommand(h *HexaneConfig, s *Stream, UserInput string) {
 	var (
 		Buffer      []string
 		Arguments   []string
@@ -34,14 +34,14 @@ func (m *Message) DispatchCommand(h *HexaneConfig, s *Stream, UserInput string) 
 	s.AddString(Args)
 }
 
-func (s *Stream) CreateHeader(Parser *Message, msgType uint32, taskId uint32) {
+func (s *Stream) CreateHeader(Parser *Parser, msgType uint32, taskId uint32) {
 
 	s.AddDword(Parser.PeerId)
 	s.AddDword(taskId)
 	s.AddDword(msgType)
 }
 
-func (h *HexaneConfig) HandleCheckin(Parser *Message, Stream *Stream) {
+func (h *HexaneConfig) HandleCheckin(Parser *Parser, Stream *Stream) {
 
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -58,7 +58,7 @@ func (h *HexaneConfig) HandleCheckin(Parser *Message, Stream *Stream) {
 	WrapMessage("INF", fmt.Sprintf("%s checkin received from %s", Parser.Method, Parser.Address))
 }
 
-func (h *HexaneConfig) HandleCommand(Parser *Message, Stream *Stream) {
+func (h *HexaneConfig) HandleCommand(Parser *Parser, Stream *Stream) {
 
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -77,7 +77,7 @@ func (h *HexaneConfig) HandleCommand(Parser *Message, Stream *Stream) {
 func ParseMessage(body []byte) ([]byte, error) {
 	var (
 		err     error
-		Parser  *Message
+		Parser  *Parser
 		implant *HexaneConfig
 		stream  = new(Stream)
 	)
@@ -91,8 +91,8 @@ func ParseMessage(body []byte) ([]byte, error) {
 		Parser.PeerId = Parser.ParseDword()
 		Parser.TaskId = Parser.ParseDword()
 		Parser.MsgType = Parser.ParseDword()
-		Length := Parser.ParseDword()
 
+		Length := Parser.ParseDword()
 		fmt.Printf("parsing buffer of %d\n", Length)
 
 		if implant = GetConfigByPeerId(Parser.PeerId); implant != nil {
