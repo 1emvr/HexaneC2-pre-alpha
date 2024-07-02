@@ -145,6 +145,7 @@ func (p *Parser) ParseDword64() uint64 {
 	if p.BigEndian {
 		WrapMessage("DBG", fmt.Sprintf("ParseDword64: %d\n", binary.LittleEndian.Uint64(buffer)))
 		return binary.LittleEndian.Uint64(buffer)
+
 	} else {
 		WrapMessage("DBG", fmt.Sprintf("ParseDword64: %d\n", binary.BigEndian.Uint64(buffer)))
 		return binary.BigEndian.Uint64(buffer)
