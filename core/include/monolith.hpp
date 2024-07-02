@@ -32,7 +32,7 @@
 #define U_PTR(x)                               	((UINT_PTR)(x))
 #define C_DREF(x) 								(*(LPVOID*)(x))
 #define ROUTINE(x)                               ((LPTHREAD_START_ROUTINE)(x))
-#define NT_SUCCESS(status)						((status) >= 0)
+#define NT_SUCCESS(status)						(ntstatus = (status) >= 0)
 
 #define U32(x)                                  ((uint32_t)(x))
 #define U64(x)									((uint64_t)(x))
@@ -518,6 +518,7 @@ EXTERN_C LPVOID InstEnd();
 
 #define FPTR(Fn, mod, sym) 	\
 	Fn = (__typeof__(Fn)) Memory::LdrGetSymbolAddress(mod, sym)
+
 
 #define FPTR2(Fn, mod, sym) \
 	Fn = (__typeof__(Fn)) Memory::LdrGetSymbolAddress(Memory::LdrGetModuleAddress(mod), sym)
