@@ -2,7 +2,6 @@
 #define HEXANE_LOADERS_HPP
 #include <core/include/monolith.hpp>
 #include <core/include/names.hpp>
-#include <core/include/hash.hpp>
 #include <loader/resource.hpp>
 
 BYTE Opcode[5]   = { 0xE8, 0x00, 0x00, 0x00, 0x00 };

