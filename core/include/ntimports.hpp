@@ -21,7 +21,6 @@
 #define STATIC static
 typedef long 			NTSTATUS;
 typedef long 			KPRIORITY;
-typedef unsigned long 	ULONG;
 typedef unsigned long 	LOGICAL;
 typedef unsigned short 	USHORT;
 typedef unsigned short 	WORD;

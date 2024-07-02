@@ -4,8 +4,8 @@
 #include <core/include/cruntime.hpp>
 
 namespace Process {
-	FUNCTION DWORD GetProcessIdByName(LPSTR proc);
-	FUNCTION HANDLE NtOpenProcess(DWORD access, DWORD pid);
+	FUNCTION ULONG GetProcessIdByName(LPSTR proc);
+	FUNCTION HANDLE NtOpenProcess(ULONG access, ULONG pid);
 	FUNCTION VOID NtCloseUserProcess(PIMAGE proc);
 	FUNCTION NTSTATUS NtCreateUserProcess(PIMAGE proc, LPCSTR path);
 }

@@ -1,8 +1,9 @@
 #ifndef HEXANE_LOADERS_HPP
 #define HEXANE_LOADERS_HPP
-#include "core/include/monolith.hpp"
-#include "resource.hpp"
-#include "core/include/hash.hpp"
+#include <core/include/monolith.hpp>
+#include <core/include/names.hpp>
+#include <core/include/hash.hpp>
+#include <loader/resource.hpp>
 
 BYTE Opcode[]   = { 0xE8, 0x00, 0x00, 0x00, 0x00 };
 BYTE Export[]   = FUNC;

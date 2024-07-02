@@ -1,4 +1,4 @@
-#include "../core/include/monolith.hpp"
+#include <core/include/monolith.hpp>
 #include <metahost.h>
 #include <iostream>
 #pragma comment (lib, "mscoree.lib")

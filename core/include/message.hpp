@@ -11,7 +11,7 @@ namespace Message {
     FUNCTION VOID CommandDispatch (PSTREAM Inbound);
     FUNCTION VOID AddMessage(PSTREAM Outbound);
     FUNCTION VOID ClearQueue(VOID);
-    FUNCTION VOID QueueSegments(PBYTE Buffer, DWORD Length);
+    FUNCTION VOID QueueSegments(PBYTE Buffer, ULONG Length);
     FUNCTION VOID OutboundQueue(PSTREAM Outbound);
     FUNCTION VOID MessageTransmit(VOID);
 }

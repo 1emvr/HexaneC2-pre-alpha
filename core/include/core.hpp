@@ -11,7 +11,7 @@
 #include <core/include/utils.hpp>
 
 namespace Core {
-    FUNCTION VOID HandleTask(DWORD msgType);
+    FUNCTION VOID HandleTask(ULONG msgType);
     FUNCTION VOID ResolveApi();
     FUNCTION VOID ReadConfig();
     FUNCTION VOID MainRoutine();

@@ -4,7 +4,7 @@ namespace Parser {
     VOID ParserStrcpy(PPARSER Parser, LPSTR *Dst) {
         HEXANE
 
-        DWORD Length  = 0;
+        ULONG Length  = 0;
         LPSTR Buffer  = UnpackString(Parser, &Length);
 
         *Dst = (LPSTR) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length);
@@ -16,7 +16,7 @@ namespace Parser {
     VOID ParserWcscpy(PPARSER Parser, LPWSTR *Dst) {
         HEXANE
 
-        DWORD Length  = 0;
+        ULONG Length  = 0;
         LPWSTR Buffer  = UnpackWString(Parser, &Length);
 
         *Dst = (LPWSTR) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (Length * sizeof(WCHAR)) + sizeof(WCHAR));
@@ -28,7 +28,7 @@ namespace Parser {
     VOID ParserMemcpy(PPARSER Parser, PBYTE *Dst) {
         HEXANE
 
-        DWORD Length = 0;
+        ULONG Length = 0;
         PBYTE Buffer = UnpackBytes(Parser, &Length);
 
         *Dst = (PBYTE) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length);
@@ -37,7 +37,7 @@ namespace Parser {
         }
     }
 
-    VOID CreateParser (PPARSER Parser, PBYTE Buffer, DWORD Length) {
+    VOID CreateParser (PPARSER Parser, PBYTE Buffer, ULONG Length) {
         HEXANE
 
         if (!(Parser->Handle = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length))) {
@@ -92,9 +92,9 @@ namespace Parser {
         return intBytes;
     }
 
-    DWORD UnpackDword (PPARSER Parser) {
+    ULONG UnpackDword (PPARSER Parser) {
 
-        DWORD intBytes = 0;
+        ULONG intBytes = 0;
 
         if (!Parser || Parser->Length < 4) {
             return 0;
@@ -105,13 +105,13 @@ namespace Parser {
         Parser->Length -= 4;
 
         return (Parser->Little)
-               ?(DWORD) intBytes
-               :(DWORD) __builtin_bswap32(intBytes);
+               ?(ULONG) intBytes
+               :(ULONG) __bswapd(intBytes);
     }
 
-    DWORD64 UnpackDword64 (PPARSER Parser) {
+    ULONG64 UnpackDword64 (PPARSER Parser) {
 
-        DWORD64 intBytes = 0;
+        ULONG64 intBytes = 0;
 
         if (!Parser || Parser->Length < 8) {
             return 0;
@@ -122,8 +122,8 @@ namespace Parser {
         Parser->Length -= 8;
 
         return (Parser->Little)
-               ?(DWORD64) intBytes
-               :(DWORD64) __builtin_bswap64(intBytes);
+               ?(ULONG64) intBytes
+               :(ULONG64) __bswapq(intBytes);
     }
 
     BOOL UnpackBool (PPARSER Parser) {
@@ -140,12 +140,12 @@ namespace Parser {
 
         return (Parser->Little)
                ?(BOOL) intBytes != 0
-               :(BOOL) __builtin_bswap32(intBytes) != 0;
+               :(BOOL) __bswapd(intBytes) != 0;
     }
 
-    PBYTE UnpackBytes (PPARSER Parser, PDWORD cbOut) {
+    PBYTE UnpackBytes (PPARSER Parser, PULONG cbOut) {
 
-        DWORD length = 0;
+        ULONG length = 0;
         PBYTE output = { };
 
         if (!Parser || Parser->Length < 4) {
@@ -158,7 +158,7 @@ namespace Parser {
         Parser->Length -= 4;
 
         if (!Parser->Little) {
-            length = __builtin_bswap32(length);
+            length = __bswapd(length);
         }
         if (cbOut) {
             *cbOut = length;
@@ -175,11 +175,11 @@ namespace Parser {
         return output;
     }
 
-    LPSTR UnpackString(PPARSER Parser, PDWORD cbOut) {
+    LPSTR UnpackString(PPARSER Parser, PULONG cbOut) {
         return (LPSTR) UnpackBytes(Parser, cbOut);
     }
 
-    LPWSTR UnpackWString(PPARSER Parser, PDWORD cbOut) {
+    LPWSTR UnpackWString(PPARSER Parser, PULONG cbOut) {
         return (LPWSTR) UnpackBytes(Parser, cbOut);
     }
 }

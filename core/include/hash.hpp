@@ -11,7 +11,7 @@
 #define BSLASH      0x5C
 #define ASTER       0x2A
 
-DWORD GetHashFromStringA(PCHAR string, SIZE_T length);
-DWORD GetHashFromStringW(PWCHAR string, SIZE_T length);
+FUNCTION ULONG GetHashFromStringA(PCHAR string, SIZE_T length);
+FUNCTION ULONG GetHashFromStringW(PWCHAR string, SIZE_T length);
 
 #endif // HEXANE_HASH_HPP

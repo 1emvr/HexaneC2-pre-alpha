@@ -1,7 +1,7 @@
 #include <core/include/memory.hpp>
 namespace Memory {
 
-    HMODULE LdrGetModuleAddress (DWORD Hash) {
+    HMODULE LdrGetModuleAddress (ULONG Hash) {
 
         HMODULE Base    = { };
         auto Head       = IN_MEMORY_ORDER_MODULE_LIST;
@@ -21,7 +21,7 @@ namespace Memory {
         return Base;
     }
 
-    FARPROC LdrGetSymbolAddress (HMODULE Base, DWORD Hash) {
+    FARPROC LdrGetSymbolAddress (HMODULE Base, ULONG Hash) {
 
         FARPROC Export = nullptr;
 
@@ -35,10 +35,10 @@ namespace Memory {
 
         if ( Exports->AddressOfNames ) {
             auto Ords 	= RVA(PWORD, Base, (long) Exports->AddressOfNameOrdinals);
-            auto Fns 	= RVA(PDWORD, Base, (long) Exports->AddressOfFunctions);
-            auto Names 	= RVA(PDWORD, Base, (long) Exports->AddressOfNames);
+            auto Fns 	= RVA(PULONG, Base, (long) Exports->AddressOfFunctions);
+            auto Names 	= RVA(PULONG, Base, (long) Exports->AddressOfNames);
 
-            for (DWORD i = 0; i < Exports->NumberOfNames; i++) {
+            for (ULONG i = 0; i < Exports->NumberOfNames; i++) {
                 auto Name = RVA(LPSTR, Base, (long) Names[i]);
 
                 if (Hash - GetHashFromStringA(Name, x_strlen(Name)) == 0) {

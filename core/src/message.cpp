@@ -78,16 +78,16 @@ namespace Message {
         return;
     }
 
-    VOID QueueSegments(PBYTE Buffer, DWORD Length) {
+    VOID QueueSegments(PBYTE Buffer, ULONG Length) {
         HEXANE
 
         PSTREAM Swap    = { };
-        DWORD Index     = 1;
-        DWORD Offset    = 0;
-        DWORD PeerId    = 0;
-        DWORD TaskId    = 0;
-        DWORD cbSeg     = 0;
-        DWORD nSegs     = (Length + MESSAGE_MAX - 1) / MESSAGE_MAX;
+        ULONG Index     = 1;
+        ULONG Offset    = 0;
+        ULONG PeerId    = 0;
+        ULONG TaskId    = 0;
+        ULONG cbSeg     = 0;
+        ULONG nSegs     = (Length + MESSAGE_MAX - 1) / MESSAGE_MAX;
 
         while (Length > 0) {
             cbSeg   = (Length > MESSAGE_MAX - SEGMENT_HEADER_SIZE) ? MESSAGE_MAX - SEGMENT_HEADER_SIZE : Length;
@@ -202,8 +202,8 @@ namespace Message {
         HEXANE
 
         PARSER Parser   = { };
-        DWORD MsgType   = 0;
-        DWORD CmdId     = 0;
+        ULONG MsgType   = 0;
+        ULONG CmdId     = 0;
 
         CreateParser(&Parser, B_PTR(Inbound->Buffer), Inbound->Length);
 

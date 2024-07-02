@@ -1,7 +1,7 @@
 #include <core/include/utils.hpp>
 namespace Utils {
 
-    DWORD64 GetTimeNow() {
+    ULONG64 GetTimeNow() {
         HEXANE
 
         FILETIME fileTime;
@@ -19,7 +19,7 @@ namespace Utils {
         HEXANE
 
         SYSTEMTIME SystemTime 	= {0};
-        DWORD WorkingHours 		= Ctx->Config.WorkingHours;
+        ULONG WorkingHours 		= Ctx->Config.WorkingHours;
         WORD StartHour 			= 0;
         WORD StartMinute 		= 0;
         WORD EndHour 			= 0;
@@ -49,14 +49,14 @@ namespace Utils {
 namespace Random {
     using namespace Utils;
 
-    DWORD RandomSleepTime() {
+    ULONG RandomSleepTime() {
         HEXANE
 
         SYSTEMTIME SystemTime 	= {0};
-        DWORD WorkingHours 		= Ctx->Config.WorkingHours;
-        DWORD Sleeptime 		= Ctx->Config.Sleeptime * 1000;
-        DWORD Variation 		= (Ctx->Config.Jitter * Sleeptime) / 100;
-        DWORD Random 			= 0;
+        ULONG WorkingHours 		= Ctx->Config.WorkingHours;
+        ULONG Sleeptime 		= Ctx->Config.Sleeptime * 1000;
+        ULONG Variation 		= (Ctx->Config.Jitter * Sleeptime) / 100;
+        ULONG Random 			= 0;
         WORD StartHour 			= 0;
         WORD StartMinute 		= 0;
         WORD EndHour 			= 0;
@@ -113,16 +113,16 @@ namespace Random {
         const size_t UNIX_TIME_START = 0x019DB1DED53E8000;
         const size_t TICKS_PER_MILLISECOND = 1000;
 
-        time.u.LowPart = *((DWORD*) (0x7FFE0000 + 0x14));
+        time.u.LowPart = *((ULONG*) (0x7FFE0000 + 0x14));
         time.u.HighPart = *((LONG*) (0x7FFE0000 + 0x1c));
 
         return (UINT_PTR) ((time.QuadPart - UNIX_TIME_START) / TICKS_PER_MILLISECOND);
     }
 
-    DWORD RandomNumber32() {
+    ULONG RandomNumber32() {
         HEXANE
 
-        auto seed = (DWORD) RandomSeed();
+        auto seed = (ULONG) RandomSeed();
 
         seed = Ctx->Nt.RtlRandomEx(&seed);
         seed = Ctx->Nt.RtlRandomEx(&seed);
@@ -136,7 +136,7 @@ namespace Random {
     BOOL RandomBool() {
         HEXANE
 
-        auto seed = (DWORD) RandomSeed();
+        auto seed = (ULONG) RandomSeed();
 
         seed = RandomSeed();
         seed = Ctx->Nt.RtlRandomEx(&seed);
@@ -151,7 +151,7 @@ namespace Random {
         HEXANE
 
         constexpr int defaultseed = RandomSeed();
-        auto seed = Ctx->Nt.RtlRandomEx((DWORD*)&defaultseed);
+        auto seed = Ctx->Nt.RtlRandomEx((ULONG*)&defaultseed);
 
         volatile size_t x = INTERVAL(seed);
         const unsigned long long end = Timestamp() + (x * ms);

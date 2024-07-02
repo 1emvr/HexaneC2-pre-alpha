@@ -1,7 +1,8 @@
-#include "../../core/include/monolith.hpp"
-#include <memory.hpp>
+#include <core/include/monolith.hpp>
+#include <core/include/cruntime.hpp>
+#include <core/include/memory.hpp>
 
-using namespace Memory::CoreUtils;
+using namespace Memory;
 
 NTSTATUS ImpersonateProcess(LPCWSTR lpszCmd, LPWSTR lpszCmdLine, DWORD pid) {
 
@@ -18,8 +19,8 @@ NTSTATUS ImpersonateProcess(LPCWSTR lpszCmd, LPWSTR lpszCmdLine, DWORD pid) {
 	SIZE_T piSize = sizeof(pi);
 	SIZE_T suiSize = sizeof(sui);
 
-	MmSecureZero(&sui, suiSize);
-	MmSecureZero(&pi, piSize);
+	x_memset(&sui, 0, suiSize);
+	x_memset(&pi, 0, piSize);
 
 	if (
 		!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken) ||

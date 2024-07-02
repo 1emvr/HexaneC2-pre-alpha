@@ -25,7 +25,7 @@ namespace Stream {
         return Buffer[0] | (Buffer[1] << 8) | (Buffer[2] << 16) | (Buffer[3] <<24);
     }
 
-    PSTREAM CreateStreamWithHeaders(DWORD MsgType) {
+    PSTREAM CreateStreamWithHeaders(ULONG MsgType) {
         HEXANE
 
         PSTREAM Stream = CreateStream();
@@ -83,7 +83,7 @@ namespace Stream {
         }
     }
 
-    VOID PackDword64 (PSTREAM stream, DWORD64 data) {
+    VOID PackDword64 (PSTREAM stream, ULONG64 data) {
         HEXANE
 
         if (stream) {
@@ -94,14 +94,14 @@ namespace Stream {
         }
     }
 
-    VOID PackDword (PSTREAM stream, DWORD data) {
+    VOID PackDword (PSTREAM stream, ULONG data) {
         HEXANE
 
         if (stream) {
-            stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(DWORD));
+            stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(ULONG));
 
             PackInt32(B_PTR(stream->Buffer) + stream->Length, data);
-            stream->Length += sizeof(DWORD);
+            stream->Length += sizeof(ULONG);
         }
     }
 

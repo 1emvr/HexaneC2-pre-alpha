@@ -1,5 +1,5 @@
-#include "core/include/hash.hpp"
-DWORD GetHashFromStringA(PCHAR string, SIZE_T length) {
+#include <core/include/hash.hpp>
+ULONG GetHashFromStringA(PCHAR string, SIZE_T length) {
 
     auto hash = FNV_OFFSET;
 
@@ -12,7 +12,7 @@ DWORD GetHashFromStringA(PCHAR string, SIZE_T length) {
     return hash;
 }
 
-DWORD GetHashFromStringW(PWCHAR string, SIZE_T length) {
+ULONG GetHashFromStringW(PWCHAR string, SIZE_T length) {
 
     auto hash = FNV_OFFSET;
 

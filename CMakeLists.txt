@@ -4,8 +4,8 @@ project(useful_modules)
 set(CMAKE_CXX_STANDARD 23)
 enable_language(ASM_NASM)
 
-set(SOURCE "C:/Users/lemur/CLionProjects/HexaneC2")
-set(META "C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um")
+set(SOURCE "/home/lemur/Github/HexaneC2")
+set(META "/usr/share/mingw-w64/include")
 
 include_directories(include ${SOURCE} ${META})
 

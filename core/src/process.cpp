@@ -1,7 +1,7 @@
 #include <core/include/process.hpp>
 namespace Process {
 
-	DWORD GetProcessIdByName (LPSTR proc) {
+	ULONG GetProcessIdByName (LPSTR proc) {
 		HEXANE
 
 		HANDLE hSnap 			= { };
@@ -28,7 +28,7 @@ namespace Process {
 		return 0;
 	}
 
-	HANDLE NtOpenProcess (DWORD access, DWORD pid) {
+	HANDLE NtOpenProcess (ULONG access, ULONG pid) {
 		HEXANE
 
 		HANDLE handle			= { };

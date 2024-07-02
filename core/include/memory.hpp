@@ -5,7 +5,7 @@
 #include <core/include/hash.hpp>
 
 namespace Memory {
-    HMODULE LdrGetModuleAddress(DWORD hash);
-    FARPROC LdrGetSymbolAddress(HMODULE base, DWORD hash);
+    FUNCTION HMODULE LdrGetModuleAddress(ULONG hash);
+    FUNCTION FARPROC LdrGetSymbolAddress(HMODULE base, ULONG hash);
 }
 #endif //MODULES_MEMORY_HPP

@@ -10,7 +10,7 @@ namespace Commands {
         HEXANE
 
         PSTREAM Outbound          = CreateStreamWithHeaders(TypeTasking);
-        DWORD PathSize          = { };
+        ULONG PathSize          = { };
         CHAR Path[MAX_PATH]     = { };
 
         INT Counter             = { };
@@ -84,7 +84,7 @@ namespace Commands {
         PPEB_LDR_DATA LdrData           = { };
         PROCESS_BASIC_INFORMATION pbi   = { };
         HANDLE Process                  = { };
-        DWORD Pid                       = { };
+        ULONG Pid                       = { };
 
         PLIST_ENTRY Head 	            = { };
         PLIST_ENTRY Entry               = { };

