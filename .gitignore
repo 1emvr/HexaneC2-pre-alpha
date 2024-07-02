@@ -1,0 +1,7 @@
+*.exe
+*.obj
+*.o
+*.log
+*.dll
+.idea
+.vs

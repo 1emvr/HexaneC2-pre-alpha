@@ -1,0 +1,2 @@
+#include "resource.hpp"
+IDR_RSRC_BIN1 RCDATA BUILDPATH
