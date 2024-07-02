@@ -247,7 +247,6 @@ namespace Core {
         }
 
         ReadConfig();
-
         defer:
     }
 
