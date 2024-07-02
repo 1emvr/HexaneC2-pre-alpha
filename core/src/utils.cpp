@@ -46,20 +46,32 @@ namespace Utils {
         return TRUE;
     }
 
-    template <typename T>
-    ULONG GetHashFromString(T string, SIZE_T length) {
+    ULONG GetHashFromStringA(LPSTR String, SIZE_T Length) {
 
         auto hash = FNV_OFFSET;
 
-        if (string) {
-            for (auto i = 0; i < length; i++) {
-                hash ^= string[i];
+        if (String) {
+            for (auto i = 0; i < Length; i++) {
+                hash ^= String[i];
                 hash *= FNV_PRIME;
             }
         }
         return hash;
     }
-};
+
+    ULONG GetHashFromStringW(LPWSTR String, SIZE_T Length) {
+
+        auto hash = FNV_OFFSET;
+
+        if (String) {
+            for (auto i = 0; i < Length; i++) {
+                hash ^= String[i];
+                hash *= FNV_PRIME;
+            }
+        }
+        return hash;
+    }
+}
 
 namespace Random {
     using namespace Utils;

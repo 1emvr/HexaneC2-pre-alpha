@@ -12,7 +12,7 @@ namespace Memory {
             auto Name = MODULE_NAME(Mod);
 
             if (Name) {
-                if (Hash - Utils::GetHashFromString(Name, x_wcslen(Name)) == 0) {
+                if (Hash - Utils::GetHashFromStringW(Name, x_wcslen(Name)) == 0) {
                     Base = (HMODULE) Mod->BaseAddress;
                 }
             }
@@ -41,7 +41,7 @@ namespace Memory {
             for (ULONG i = 0; i < Exports->NumberOfNames; i++) {
                 auto Name = RVA(LPSTR, Base, (long) Names[i]);
 
-                if (Hash - Utils::GetHashFromString(Name, x_strlen(Name)) == 0) {
+                if (Hash - Utils::GetHashFromStringA(Name, x_strlen(Name)) == 0) {
                     Export = (FARPROC) RVA(PULONG, Base, (long) Fns[Ords[i]]);
                 }
             }

@@ -1,0 +1,348 @@
+
+cipher.cpp.o:     file format pe-x86-64
+
+
+Disassembly of section .text$B:
+
+0000000000000000 <_ZN4Xtea13BlockToUint32EPKh>:
+   0:	8b 01                	mov    eax,DWORD PTR [rcx]
+   2:	8b 51 04             	mov    edx,DWORD PTR [rcx+0x4]
+   5:	0f c8                	bswap  eax
+   7:	0f ca                	bswap  edx
+   9:	89 c0                	mov    eax,eax
+   b:	48 c1 e2 20          	shl    rdx,0x20
+   f:	48 09 d0             	or     rax,rdx
+  12:	c3                   	ret
+
+0000000000000013 <_ZN4Xtea13Uint32ToBlockEjjPh>:
+  13:	0f c9                	bswap  ecx
+  15:	0f ca                	bswap  edx
+  17:	41 89 08             	mov    DWORD PTR [r8],ecx
+  1a:	41 89 50 04          	mov    DWORD PTR [r8+0x4],edx
+  1e:	c3                   	ret
+
+000000000000001f <_ZN4Xtea10InitCipherEP9CipherTxtPKh>:
+  1f:	48 83 ec 18          	sub    rsp,0x18
+  23:	31 c0                	xor    eax,eax
+  25:	45 31 c0             	xor    r8d,r8d
+  28:	48 89 04 24          	mov    QWORD PTR [rsp],rax
+  2c:	48 89 44 24 08       	mov    QWORD PTR [rsp+0x8],rax
+  31:	42 0f b6 04 02       	movzx  eax,BYTE PTR [rdx+r8*1]
+  36:	46 0f b6 4c 02 01    	movzx  r9d,BYTE PTR [rdx+r8*1+0x1]
+  3c:	c1 e0 18             	shl    eax,0x18
+  3f:	41 c1 e1 10          	shl    r9d,0x10
+  43:	44 09 c8             	or     eax,r9d
+  46:	46 0f b6 4c 02 03    	movzx  r9d,BYTE PTR [rdx+r8*1+0x3]
+  4c:	44 09 c8             	or     eax,r9d
+  4f:	46 0f b6 4c 02 02    	movzx  r9d,BYTE PTR [rdx+r8*1+0x2]
+  55:	41 c1 e1 08          	shl    r9d,0x8
+  59:	44 09 c8             	or     eax,r9d
+  5c:	42 89 04 04          	mov    DWORD PTR [rsp+r8*1],eax
+  60:	49 83 c0 04          	add    r8,0x4
+  64:	49 83 f8 10          	cmp    r8,0x10
+  68:	75 c7                	jne    31 <_ZN4Xtea10InitCipherEP9CipherTxtPKh+0x12>
+  6a:	31 c0                	xor    eax,eax
+  6c:	89 c2                	mov    edx,eax
+  6e:	48 83 c1 08          	add    rcx,0x8
+  72:	83 e2 03             	and    edx,0x3
+  75:	44 8b 14 94          	mov    r10d,DWORD PTR [rsp+rdx*4]
+  79:	41 01 c2             	add    r10d,eax
+  7c:	2d 47 86 c8 61       	sub    eax,0x61c88647
+  81:	89 c2                	mov    edx,eax
+  83:	44 89 51 f8          	mov    DWORD PTR [rcx-0x8],r10d
+  87:	c1 ea 0b             	shr    edx,0xb
+  8a:	83 e2 03             	and    edx,0x3
+  8d:	44 8b 1c 94          	mov    r11d,DWORD PTR [rsp+rdx*4]
+  91:	41 01 c3             	add    r11d,eax
+  94:	44 89 59 fc          	mov    DWORD PTR [rcx-0x4],r11d
+  98:	3d 20 37 ef c6       	cmp    eax,0xc6ef3720
+  9d:	75 cd                	jne    6c <_ZN4Xtea10InitCipherEP9CipherTxtPKh+0x4d>
+  9f:	48 83 c4 18          	add    rsp,0x18
+  a3:	c3                   	ret
+
+00000000000000a4 <_ZN4Xtea11XteaEncryptEP9CipherTxtPhS2_>:
+  a4:	48 83 ec 28          	sub    rsp,0x28
+  a8:	49 89 c9             	mov    r9,rcx
+  ab:	4c 89 c1             	mov    rcx,r8
+  ae:	49 89 d2             	mov    r10,rdx
+  b1:	e8 4a ff ff ff       	call   0 <_ZN4Xtea13BlockToUint32EPKh>
+  b6:	45 31 c0             	xor    r8d,r8d
+  b9:	48 89 c2             	mov    rdx,rax
+  bc:	89 c1                	mov    ecx,eax
+  be:	48 c1 ea 20          	shr    rdx,0x20
+  c2:	89 d0                	mov    eax,edx
+  c4:	41 89 d3             	mov    r11d,edx
+  c7:	41 c1 eb 05          	shr    r11d,0x5
+  cb:	c1 e0 04             	shl    eax,0x4
+  ce:	44 31 d8             	xor    eax,r11d
+  d1:	01 d0                	add    eax,edx
+  d3:	43 33 04 01          	xor    eax,DWORD PTR [r9+r8*1]
+  d7:	01 c1                	add    ecx,eax
+  d9:	89 c8                	mov    eax,ecx
+  db:	41 89 cb             	mov    r11d,ecx
+  de:	c1 e0 04             	shl    eax,0x4
+  e1:	41 c1 eb 05          	shr    r11d,0x5
+  e5:	44 31 d8             	xor    eax,r11d
+  e8:	01 c8                	add    eax,ecx
+  ea:	43 33 44 01 04       	xor    eax,DWORD PTR [r9+r8*1+0x4]
+  ef:	49 83 c0 08          	add    r8,0x8
+  f3:	01 c2                	add    edx,eax
+  f5:	49 81 f8 00 01 00 00 	cmp    r8,0x100
+  fc:	75 c4                	jne    c2 <_ZN4Xtea11XteaEncryptEP9CipherTxtPhS2_+0x1e>
+  fe:	4d 89 d0             	mov    r8,r10
+ 101:	48 83 c4 28          	add    rsp,0x28
+ 105:	e9 09 ff ff ff       	jmp    13 <_ZN4Xtea13Uint32ToBlockEjjPh>
+
+000000000000010a <_ZN4Xtea11XteaDecryptEP9CipherTxtPhS2_>:
+ 10a:	48 83 ec 28          	sub    rsp,0x28
+ 10e:	49 89 c9             	mov    r9,rcx
+ 111:	4c 89 c1             	mov    rcx,r8
+ 114:	49 89 d2             	mov    r10,rdx
+ 117:	e8 e4 fe ff ff       	call   0 <_ZN4Xtea13BlockToUint32EPKh>
+ 11c:	41 b8 40 00 00 00    	mov    r8d,0x40
+ 122:	48 89 c2             	mov    rdx,rax
+ 125:	89 c1                	mov    ecx,eax
+ 127:	48 c1 ea 20          	shr    rdx,0x20
+ 12b:	89 c8                	mov    eax,ecx
+ 12d:	41 89 cb             	mov    r11d,ecx
+ 130:	41 c1 eb 05          	shr    r11d,0x5
+ 134:	c1 e0 04             	shl    eax,0x4
+ 137:	44 31 d8             	xor    eax,r11d
+ 13a:	45 8d 58 ff          	lea    r11d,[r8-0x1]
+ 13e:	41 83 e8 02          	sub    r8d,0x2
+ 142:	01 c8                	add    eax,ecx
+ 144:	43 33 04 99          	xor    eax,DWORD PTR [r9+r11*4]
+ 148:	29 c2                	sub    edx,eax
+ 14a:	89 d0                	mov    eax,edx
+ 14c:	41 89 d3             	mov    r11d,edx
+ 14f:	41 c1 eb 05          	shr    r11d,0x5
+ 153:	c1 e0 04             	shl    eax,0x4
+ 156:	44 31 d8             	xor    eax,r11d
+ 159:	45 89 c3             	mov    r11d,r8d
+ 15c:	01 d0                	add    eax,edx
+ 15e:	43 33 04 99          	xor    eax,DWORD PTR [r9+r11*4]
+ 162:	29 c1                	sub    ecx,eax
+ 164:	45 85 c0             	test   r8d,r8d
+ 167:	75 c2                	jne    12b <_ZN4Xtea11XteaDecryptEP9CipherTxtPhS2_+0x21>
+ 169:	4d 89 d0             	mov    r8,r10
+ 16c:	48 83 c4 28          	add    rsp,0x28
+ 170:	e9 9e fe ff ff       	jmp    13 <_ZN4Xtea13Uint32ToBlockEjjPh>
+
+0000000000000175 <_ZN4Xtea10XteaDivideEPhyPy>:
+ 175:	41 57                	push   r15
+ 177:	41 56                	push   r14
+ 179:	41 55                	push   r13
+ 17b:	49 89 cd             	mov    r13,rcx
+ 17e:	41 54                	push   r12
+ 180:	55                   	push   rbp
+ 181:	48 89 d5             	mov    rbp,rdx
+ 184:	57                   	push   rdi
+ 185:	56                   	push   rsi
+ 186:	53                   	push   rbx
+ 187:	4c 89 c3             	mov    rbx,r8
+ 18a:	48 83 ec 38          	sub    rsp,0x38
+ 18e:	e8 00 00 00 00       	call   193 <_ZN4Xtea10XteaDivideEPhyPy+0x1e>
+ 193:	48 8b 15 00 00 00 00 	mov    rdx,QWORD PTR [rip+0x0]        # 19a <_ZN4Xtea10XteaDivideEPhyPy+0x25>
+ 19a:	4c 8d 45 07          	lea    r8,[rbp+0x7]
+ 19e:	4d 89 c6             	mov    r14,r8
+ 1a1:	49 83 e0 f8          	and    r8,0xfffffffffffffff8
+ 1a5:	48 8b 34 10          	mov    rsi,QWORD PTR [rax+rdx*1]
+ 1a9:	49 c1 ee 03          	shr    r14,0x3
+ 1ad:	31 d2                	xor    edx,edx
+ 1af:	4c 89 33             	mov    QWORD PTR [rbx],r14
+ 1b2:	48 8b 0e             	mov    rcx,QWORD PTR [rsi]
+ 1b5:	ff 96 98 01 00 00    	call   QWORD PTR [rsi+0x198]
+ 1bb:	48 89 c3             	mov    rbx,rax
+ 1be:	48 85 c0             	test   rax,rax
+ 1c1:	0f 84 b0 00 00 00    	je     277 <_ZN4Xtea10XteaDivideEPhyPy+0x102>
+ 1c7:	31 ff                	xor    edi,edi
+ 1c9:	45 31 e4             	xor    r12d,r12d
+ 1cc:	4d 39 f4             	cmp    r12,r14
+ 1cf:	0f 84 a2 00 00 00    	je     277 <_ZN4Xtea10XteaDivideEPhyPy+0x102>
+ 1d5:	48 8b 0e             	mov    rcx,QWORD PTR [rsi]
+ 1d8:	41 b8 08 00 00 00    	mov    r8d,0x8
+ 1de:	31 d2                	xor    edx,edx
+ 1e0:	ff 96 98 01 00 00    	call   QWORD PTR [rsi+0x198]
+ 1e6:	48 89 04 3b          	mov    QWORD PTR [rbx+rdi*1],rax
+ 1ea:	48 89 c1             	mov    rcx,rax
+ 1ed:	48 85 c0             	test   rax,rax
+ 1f0:	75 32                	jne    224 <_ZN4Xtea10XteaDivideEPhyPy+0xaf>
+ 1f2:	31 ff                	xor    edi,edi
+ 1f4:	48 8b 86 a8 01 00 00 	mov    rax,QWORD PTR [rsi+0x1a8]
+ 1fb:	48 8b 0e             	mov    rcx,QWORD PTR [rsi]
+ 1fe:	49 39 fc             	cmp    r12,rdi
+ 201:	74 0d                	je     210 <_ZN4Xtea10XteaDivideEPhyPy+0x9b>
+ 203:	4c 8b 04 fb          	mov    r8,QWORD PTR [rbx+rdi*8]
+ 207:	31 d2                	xor    edx,edx
+ 209:	48 ff c7             	inc    rdi
+ 20c:	ff d0                	call   rax
+ 20e:	eb e4                	jmp    1f4 <_ZN4Xtea10XteaDivideEPhyPy+0x7f>
+ 210:	49 89 d8             	mov    r8,rbx
+ 213:	31 d2                	xor    edx,edx
+ 215:	ff d0                	call   rax
+ 217:	48 8b 46 08          	mov    rax,QWORD PTR [rsi+0x8]
+ 21b:	c7 40 68 08 00 00 00 	mov    DWORD PTR [rax+0x68],0x8
+ 222:	eb 53                	jmp    277 <_ZN4Xtea10XteaDivideEPhyPy+0x102>
+ 224:	4c 8d 7f 08          	lea    r15,[rdi+0x8]
+ 228:	49 ff c4             	inc    r12
+ 22b:	41 b8 08 00 00 00    	mov    r8d,0x8
+ 231:	4c 39 fd             	cmp    rbp,r15
+ 234:	73 06                	jae    23c <_ZN4Xtea10XteaDivideEPhyPy+0xc7>
+ 236:	49 89 e8             	mov    r8,rbp
+ 239:	49 29 f8             	sub    r8,rdi
+ 23c:	49 8d 54 3d 00       	lea    rdx,[r13+rdi*1+0x0]
+ 241:	4c 89 44 24 28       	mov    QWORD PTR [rsp+0x28],r8
+ 246:	e8 00 00 00 00       	call   24b <_ZN4Xtea10XteaDivideEPhyPy+0xd6>
+ 24b:	4c 8b 44 24 28       	mov    r8,QWORD PTR [rsp+0x28]
+ 250:	49 83 f8 07          	cmp    r8,0x7
+ 254:	77 19                	ja     26f <_ZN4Xtea10XteaDivideEPhyPy+0xfa>
+ 256:	48 8b 0c 3b          	mov    rcx,QWORD PTR [rbx+rdi*1]
+ 25a:	b8 08 00 00 00       	mov    eax,0x8
+ 25f:	31 d2                	xor    edx,edx
+ 261:	4c 29 c0             	sub    rax,r8
+ 264:	4c 01 c1             	add    rcx,r8
+ 267:	49 89 c0             	mov    r8,rax
+ 26a:	e8 00 00 00 00       	call   26f <_ZN4Xtea10XteaDivideEPhyPy+0xfa>
+ 26f:	4c 89 ff             	mov    rdi,r15
+ 272:	e9 55 ff ff ff       	jmp    1cc <_ZN4Xtea10XteaDivideEPhyPy+0x57>
+ 277:	48 83 c4 38          	add    rsp,0x38
+ 27b:	48 89 d8             	mov    rax,rbx
+ 27e:	5b                   	pop    rbx
+ 27f:	5e                   	pop    rsi
+ 280:	5f                   	pop    rdi
+ 281:	5d                   	pop    rbp
+ 282:	41 5c                	pop    r12
+ 284:	41 5d                	pop    r13
+ 286:	41 5e                	pop    r14
+ 288:	41 5f                	pop    r15
+ 28a:	c3                   	ret
+
+000000000000028b <_ZN4Xtea9XteaCryptEPhyS0_i>:
+ 28b:	41 57                	push   r15
+ 28d:	45 89 cf             	mov    r15d,r9d
+ 290:	41 56                	push   r14
+ 292:	41 55                	push   r13
+ 294:	41 54                	push   r12
+ 296:	49 89 cc             	mov    r12,rcx
+ 299:	55                   	push   rbp
+ 29a:	48 89 d5             	mov    rbp,rdx
+ 29d:	57                   	push   rdi
+ 29e:	4c 89 c7             	mov    rdi,r8
+ 2a1:	56                   	push   rsi
+ 2a2:	53                   	push   rbx
+ 2a3:	48 83 ec 48          	sub    rsp,0x48
+ 2a7:	e8 00 00 00 00       	call   2ac <_ZN4Xtea9XteaCryptEPhyS0_i+0x21>
+ 2ac:	48 8b 15 00 00 00 00 	mov    rdx,QWORD PTR [rip+0x0]        # 2b3 <_ZN4Xtea9XteaCryptEPhyS0_i+0x28>
+ 2b3:	48 8b 1c 10          	mov    rbx,QWORD PTR [rax+rdx*1]
+ 2b7:	31 c0                	xor    eax,eax
+ 2b9:	48 89 44 24 38       	mov    QWORD PTR [rsp+0x38],rax
+ 2be:	48 85 ff             	test   rdi,rdi
+ 2c1:	75 04                	jne    2c7 <_ZN4Xtea9XteaCryptEPhyS0_i+0x3c>
+ 2c3:	48 8b 7b 58          	mov    rdi,QWORD PTR [rbx+0x58]
+ 2c7:	48 8b 0b             	mov    rcx,QWORD PTR [rbx]
+ 2ca:	41 b8 00 01 00 00    	mov    r8d,0x100
+ 2d0:	31 d2                	xor    edx,edx
+ 2d2:	ff 93 98 01 00 00    	call   QWORD PTR [rbx+0x198]
+ 2d8:	48 89 c6             	mov    rsi,rax
+ 2db:	48 85 c0             	test   rax,rax
+ 2de:	0f 84 00 01 00 00    	je     3e4 <_ZN4Xtea9XteaCryptEPhyS0_i+0x159>
+ 2e4:	48 89 fa             	mov    rdx,rdi
+ 2e7:	48 89 c1             	mov    rcx,rax
+ 2ea:	e8 30 fd ff ff       	call   1f <_ZN4Xtea10InitCipherEP9CipherTxtPKh>
+ 2ef:	4c 8d 44 24 38       	lea    r8,[rsp+0x38]
+ 2f4:	48 89 ea             	mov    rdx,rbp
+ 2f7:	4c 89 e1             	mov    rcx,r12
+ 2fa:	e8 76 fe ff ff       	call   175 <_ZN4Xtea10XteaDivideEPhyPy>
+ 2ff:	48 89 c7             	mov    rdi,rax
+ 302:	48 85 c0             	test   rax,rax
+ 305:	0f 84 d9 00 00 00    	je     3e4 <_ZN4Xtea9XteaCryptEPhyS0_i+0x159>
+ 30b:	49 89 e8             	mov    r8,rbp
+ 30e:	31 d2                	xor    edx,edx
+ 310:	4c 89 e1             	mov    rcx,r12
+ 313:	45 31 ed             	xor    r13d,r13d
+ 316:	e8 00 00 00 00       	call   31b <_ZN4Xtea9XteaCryptEPhyS0_i+0x90>
+ 31b:	45 31 f6             	xor    r14d,r14d
+ 31e:	4c 8b 4c 24 38       	mov    r9,QWORD PTR [rsp+0x38]
+ 323:	45 89 ea             	mov    r10d,r13d
+ 326:	48 8b 0b             	mov    rcx,QWORD PTR [rbx]
+ 329:	4d 39 ca             	cmp    r10,r9
+ 32c:	73 66                	jae    394 <_ZN4Xtea9XteaCryptEPhyS0_i+0x109>
+ 32e:	4c 89 54 24 28       	mov    QWORD PTR [rsp+0x28],r10
+ 333:	41 b8 08 00 00 00    	mov    r8d,0x8
+ 339:	31 d2                	xor    edx,edx
+ 33b:	ff 93 98 01 00 00    	call   QWORD PTR [rbx+0x198]
+ 341:	4c 8b 54 24 28       	mov    r10,QWORD PTR [rsp+0x28]
+ 346:	48 89 f1             	mov    rcx,rsi
+ 349:	48 89 c5             	mov    rbp,rax
+ 34c:	4a 8d 04 d7          	lea    rax,[rdi+r10*8]
+ 350:	48 89 ea             	mov    rdx,rbp
+ 353:	4c 8b 00             	mov    r8,QWORD PTR [rax]
+ 356:	45 85 ff             	test   r15d,r15d
+ 359:	74 07                	je     362 <_ZN4Xtea9XteaCryptEPhyS0_i+0xd7>
+ 35b:	e8 44 fd ff ff       	call   a4 <_ZN4Xtea11XteaEncryptEP9CipherTxtPhS2_>
+ 360:	eb 05                	jmp    367 <_ZN4Xtea9XteaCryptEPhyS0_i+0xdc>
+ 362:	e8 a3 fd ff ff       	call   10a <_ZN4Xtea11XteaDecryptEP9CipherTxtPhS2_>
+ 367:	31 c0                	xor    eax,eax
+ 369:	4b 8d 14 34          	lea    rdx,[r12+r14*1]
+ 36d:	8a 4c 05 00          	mov    cl,BYTE PTR [rbp+rax*1+0x0]
+ 371:	88 0c 02             	mov    BYTE PTR [rdx+rax*1],cl
+ 374:	48 ff c0             	inc    rax
+ 377:	48 83 f8 08          	cmp    rax,0x8
+ 37b:	75 f0                	jne    36d <_ZN4Xtea9XteaCryptEPhyS0_i+0xe2>
+ 37d:	48 8b 0b             	mov    rcx,QWORD PTR [rbx]
+ 380:	49 89 e8             	mov    r8,rbp
+ 383:	31 d2                	xor    edx,edx
+ 385:	49 83 c6 08          	add    r14,0x8
+ 389:	ff 93 a8 01 00 00    	call   QWORD PTR [rbx+0x1a8]
+ 38f:	41 ff c5             	inc    r13d
+ 392:	eb 8a                	jmp    31e <_ZN4Xtea9XteaCryptEPhyS0_i+0x93>
+ 394:	31 ed                	xor    ebp,ebp
+ 396:	48 8b 83 a8 01 00 00 	mov    rax,QWORD PTR [rbx+0x1a8]
+ 39d:	48 8b 0b             	mov    rcx,QWORD PTR [rbx]
+ 3a0:	49 39 e9             	cmp    r9,rbp
+ 3a3:	74 17                	je     3bc <_ZN4Xtea9XteaCryptEPhyS0_i+0x131>
+ 3a5:	4c 89 4c 24 28       	mov    QWORD PTR [rsp+0x28],r9
+ 3aa:	4c 8b 04 ef          	mov    r8,QWORD PTR [rdi+rbp*8]
+ 3ae:	31 d2                	xor    edx,edx
+ 3b0:	48 ff c5             	inc    rbp
+ 3b3:	ff d0                	call   rax
+ 3b5:	4c 8b 4c 24 28       	mov    r9,QWORD PTR [rsp+0x28]
+ 3ba:	eb da                	jmp    396 <_ZN4Xtea9XteaCryptEPhyS0_i+0x10b>
+ 3bc:	49 89 f8             	mov    r8,rdi
+ 3bf:	31 d2                	xor    edx,edx
+ 3c1:	ff d0                	call   rax
+ 3c3:	48 8b 83 a8 01 00 00 	mov    rax,QWORD PTR [rbx+0x1a8]
+ 3ca:	48 8b 0b             	mov    rcx,QWORD PTR [rbx]
+ 3cd:	48 83 c4 48          	add    rsp,0x48
+ 3d1:	5b                   	pop    rbx
+ 3d2:	49 89 f0             	mov    r8,rsi
+ 3d5:	31 d2                	xor    edx,edx
+ 3d7:	5e                   	pop    rsi
+ 3d8:	5f                   	pop    rdi
+ 3d9:	5d                   	pop    rbp
+ 3da:	41 5c                	pop    r12
+ 3dc:	41 5d                	pop    r13
+ 3de:	41 5e                	pop    r14
+ 3e0:	41 5f                	pop    r15
+ 3e2:	ff e0                	jmp    rax
+ 3e4:	48 83 c4 48          	add    rsp,0x48
+ 3e8:	5b                   	pop    rbx
+ 3e9:	5e                   	pop    rsi
+ 3ea:	5f                   	pop    rdi
+ 3eb:	5d                   	pop    rbp
+ 3ec:	41 5c                	pop    r12
+ 3ee:	41 5d                	pop    r13
+ 3f0:	41 5e                	pop    r14
+ 3f2:	41 5f                	pop    r15
+ 3f4:	c3                   	ret
+ 3f5:	90                   	nop
+ 3f6:	90                   	nop
+ 3f7:	90                   	nop
+ 3f8:	90                   	nop
+ 3f9:	90                   	nop
+ 3fa:	90                   	nop
+ 3fb:	90                   	nop
+ 3fc:	90                   	nop
+ 3fd:	90                   	nop
+ 3fe:	90                   	nop
+ 3ff:	90                   	nop

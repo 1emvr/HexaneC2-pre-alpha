@@ -40,10 +40,10 @@ set(MAIN_FILES
         core/src/context.cpp
         core/src/parser.cpp
         core/src/cipher.cpp
-        loader/DllMain.cpp
-        loader/loaders.cpp
         core/src/stream.cpp
         core/src/commands.cpp
         implant/MainExe.cpp
+        loader/loaders.cpp
+        loader/DllMain.cpp
 )
 add_executable(useful_modules ${INCLUDE_FILES} ${MAIN_FILES})

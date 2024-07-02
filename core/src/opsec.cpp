@@ -81,7 +81,7 @@ namespace Opsec {
             buffer = (PCHAR) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length);
 
             if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, buffer, &length)) {
-                if (Utils::GetHashFromString(Ctx->Config.Hostname, x_strlen(Ctx->Config.Hostname)) != Utils::GetHashFromString(buffer, x_strlen(buffer))) {
+                if (Utils::GetHashFromStringA(Ctx->Config.Hostname, x_strlen(Ctx->Config.Hostname)) != Utils::GetHashFromStringA(buffer, x_strlen(buffer))) {
                     return_defer(ERROR_BAD_ENVIRONMENT);
                 }
 
@@ -99,7 +99,7 @@ namespace Opsec {
                 buffer = (PCHAR) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length);
 
                 if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, buffer, &length)) {
-                    if (Utils::GetHashFromString(Ctx->Config.Domain, x_strlen(Ctx->Config.Domain)) != Utils::GetHashFromString(buffer, x_strlen(buffer))) {
+                    if (Utils::GetHashFromStringA(Ctx->Config.Domain, x_strlen(Ctx->Config.Domain)) != Utils::GetHashFromStringA(buffer, x_strlen(buffer))) {
                         return_defer(ERROR_BAD_ENVIRONMENT);
                     }
 
