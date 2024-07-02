@@ -39,7 +39,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "useful_modules::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-useful_modules-Debug-ff7b1148119b476f74c3.json",
+					"jsonFile" : "target-useful_modules-Debug-0ca05be82983560138c1.json",
 					"name" : "useful_modules",
 					"projectIndex" : 0
 				}
@@ -49,8 +49,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "C:/Users/lemur/CLionProjects/useful_mods/cmake-build-debug",
-		"source" : "C:/Users/lemur/CLionProjects/useful_mods"
+		"build" : "C:/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug",
+		"source" : "C:/Users/lemur/CLionProjects/HexaneC2"
 	},
 	"version" : 
 	{

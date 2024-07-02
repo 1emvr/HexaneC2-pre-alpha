@@ -510,7 +510,7 @@ EXTERN_C LPVOID InstEnd();
 
 
 #define ZeroFreePtr(x, n) 						\
-	MmSecureZero(x, n); 						\
+	x_memset(x, 0, n); 							\
 	Ctx->Nt.RtlFreeHeap(LocalHeap, 0, x);		\
 	x = nullptr
 

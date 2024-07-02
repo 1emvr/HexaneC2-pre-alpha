@@ -278,7 +278,7 @@ namespace Core {
         Ctx->LE = TRUE;
 
         CreateParser(&Parser, Config, sizeof(Config));
-        MmSecureZero(Config, sizeof(Config));
+        x_memset(Config, 0, sizeof(Config));
 
         XteaCrypt(B_PTR(Parser.Handle), Parser.Length, InitKey, FALSE);
 

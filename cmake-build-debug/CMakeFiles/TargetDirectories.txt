@@ -1,3 +1,3 @@
-C:/Users/lemur/CLionProjects/useful_mods/cmake-build-debug/CMakeFiles/useful_modules.dir
-C:/Users/lemur/CLionProjects/useful_mods/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/lemur/CLionProjects/useful_mods/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+C:/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/useful_modules.dir
+C:/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/rebuild_cache.dir

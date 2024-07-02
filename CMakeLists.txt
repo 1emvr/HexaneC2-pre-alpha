@@ -4,7 +4,7 @@ project(useful_modules)
 set(CMAKE_CXX_STANDARD 23)
 enable_language(ASM_NASM)
 
-set(SOURCE "C:/Users/lemur/CLionProjects/useful_mods")
+set(SOURCE "C:/Users/lemur/CLionProjects/HexaneC2")
 set(META "C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um")
 
 set(MODS "${SOURCE}/mods")
@@ -23,6 +23,8 @@ set(INCLUDE_FILES
         core/include/utils.hpp
         core/include/opsec.hpp
         core/include/names.hpp
+        core/include/message.hpp
+        core/include/stream.hpp
 )
 set(MAIN_FILES
         mods/src/EnumDotNetProcesses.cpp
@@ -37,5 +39,6 @@ set(MAIN_FILES
         core/src/utils.cpp
         core/src/opsec.cpp
         core/src/core.cpp
+        core/src/message.cpp
 )
 add_executable(useful_modules ${INCLUDE_FILES} ${MAIN_FILES})

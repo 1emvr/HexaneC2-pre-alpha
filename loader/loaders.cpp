@@ -337,16 +337,6 @@ namespace Loaders {
         using namespace Loaders::Cipher;
         using namespace Loaders::Utils;
 
-        VOID MmSecureZero(LPVOID Ptr, SIZE_T n) {
-
-            if (Ptr) {
-                volatile char *p = (volatile char *) Ptr;
-                while (n--) {
-                    *p++ = 0;
-                }
-            }
-        }
-
         HANDLE LdrGetParentHandle(HEXANE_CTX &Ctx, PBYTE Parent) {
 
             HANDLE Proc 			= nullptr;
@@ -606,7 +596,7 @@ namespace Loaders {
                 Ctx->Nt.NtClose(Proc);
             }
             if (Payload) {
-                MmSecureZero(Payload, Rsrc->Size);
+                x_memset(Payload, 0, Rsrc->Size);
             }
 
             Execute();
