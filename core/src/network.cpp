@@ -1,6 +1,5 @@
 #include <core/include/network.hpp>
 namespace Http {
-    using namespace Random;
 
     // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/TransportHttp.c#L21
     VOID HttpCallback(PSTREAM Outbound, PSTREAM *Inbound) {
@@ -40,7 +39,7 @@ namespace Http {
             return_defer(ntstatus);
         }
 
-        nEndpoint   = RandomNumber32();
+        nEndpoint   = Random::RandomNumber32();
         Endpoint    = Ctx->Transport.http->Endpoints[nEndpoint % Ctx->Transport.http->nEndpoints];
         Flags       = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
 
@@ -368,7 +367,6 @@ namespace Smb {
         }
 
         defer:
-        return;
     }
 
     VOID PeerConnectEgress(PSTREAM Outbound, PSTREAM *Inbound) {
@@ -403,6 +401,5 @@ namespace Smb {
         }
 
         defer:
-        return;
     }
 }

