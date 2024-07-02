@@ -1,0 +1,5 @@
+crypt32
+winhttp
+advapi32
+iphlpapi
+.reloc
