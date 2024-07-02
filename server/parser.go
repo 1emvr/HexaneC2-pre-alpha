@@ -48,10 +48,13 @@ func (p *Parser) ParseByte() []byte {
 	}
 
 	if p.Length >= 1 {
-		copy(buffer, p.Buffer[:1])
 
-		if p.Length == 1 {
+		copy(buffer, p.Buffer[:1])
+		p.Length -= 1
+
+		if p.Length == 0 {
 			p.Buffer = []byte{}
+
 		} else {
 			p.Buffer = p.Buffer[1:]
 		}
@@ -69,10 +72,13 @@ func (p *Parser) ParseBool() bool {
 	}
 
 	if p.Length >= 4 {
-		copy(integer, p.Buffer[:4])
 
-		if p.Length == 4 {
+		copy(integer, p.Buffer[:4])
+		p.Length -= 4
+
+		if p.Length == 0 {
 			p.Buffer = []byte{}
+
 		} else {
 			p.Buffer = p.Buffer[4:]
 		}
@@ -96,10 +102,13 @@ func (p *Parser) ParseDword() uint32 {
 	}
 
 	if p.Length >= 4 {
-		copy(buffer, p.Buffer[:4])
 
-		if p.Length == 4 {
+		copy(buffer, p.Buffer[:4])
+		p.Length -= 4
+
+		if p.Length == 0 {
 			p.Buffer = []byte{}
+
 		} else {
 			p.Buffer = p.Buffer[4:]
 		}
@@ -122,9 +131,11 @@ func (p *Parser) ParseDword64() uint64 {
 	}
 
 	if p.Length >= 8 {
-		copy(buffer, p.Buffer[:8])
 
-		if p.Length == 8 {
+		copy(buffer, p.Buffer[:8])
+		p.Length -= 8
+
+		if p.Length == 0 {
 			p.Buffer = []byte{}
 		} else {
 			p.Buffer = p.Buffer[8:]
@@ -146,11 +157,13 @@ func (p *Parser) ParseBytes() []byte {
 	if p.Length >= 4 {
 		size := p.ParseDword()
 
-		if p.Length != 0 {
-			if size == p.Length {
+		if size != 0 {
+
+			p.Length -= size
+			if p.Length == 0 {
 
 				buffer = p.Buffer[:p.Length]
-				p.Buffer = p.Buffer[p.Length:]
+				p.Buffer = []byte{}
 
 			} else {
 				buffer = p.Buffer[:size]
