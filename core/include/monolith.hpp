@@ -242,11 +242,11 @@ typedef struct {
 } HTTP_CONTEXT, *PHTTP_CONTEXT;
 
 
-typedef struct _stream {
+typedef struct stream {
 	LPVOID	Buffer;
 	ULONG	Length;
 	BOOL 	Ready;
-	struct _stream *Next;
+	stream  *Next;
 } STREAM, *PSTREAM;
 
 

@@ -18,7 +18,6 @@ namespace Core {
         }
 
         do {
-            __debugbreak();
             SleepObf();
 
             if (!CheckTime()) {
@@ -41,8 +40,7 @@ namespace Core {
                 if (Ctx->Session.Retry == 3) {
                     break;
                 }
-            }
-            else {
+            } else {
                 Ctx->Session.Retry = 0;
             }
         }

