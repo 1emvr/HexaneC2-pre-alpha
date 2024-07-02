@@ -15,11 +15,6 @@ var CommandMap = map[string]uint32{
 	"shutdown": CommandShutdown,
 }
 
-type TableHeaders struct {
-	Headers []string
-	Values  []string
-}
-
 var TableMap = map[uint32]TableHeaders{
 	TypeCheckin: {
 		Headers: []string{"pid", "host", "domain", "username", "ipconfig"},
@@ -35,8 +30,8 @@ var TableMap = map[uint32]TableHeaders{
 	},
 }
 
-func CreateParser(buffer []byte) *Message {
-	var parser = new(Message)
+func CreateParser(buffer []byte) *Parser {
+	var parser = new(Parser)
 
 	parser.Buffer = buffer
 	parser.BigEndian = false
@@ -45,68 +40,72 @@ func CreateParser(buffer []byte) *Message {
 	return parser
 }
 
-func (m *Message) ParseByte() []byte {
+func (p *Parser) ParseByte() []byte {
 	var buffer = make([]byte, 1)
 
 	for i := range buffer {
 		buffer[i] = 0
 	}
 
-	if m.Length >= 1 {
-		if m.Length == 1 {
-			copy(buffer, m.Buffer[:m.Length])
-			m.Buffer = []byte{}
+	if p.Length >= 1 {
+		copy(buffer, p.Buffer[:1])
+
+		if p.Length == 1 {
+			p.Buffer = []byte{}
 		} else {
-			copy(buffer, m.Buffer[:m.Length-1])
-			m.Buffer = m.Buffer[1:]
+			p.Buffer = p.Buffer[1:]
 		}
 	}
+
 	WrapMessage("DBG", fmt.Sprintf("parsing byte: %s", string(buffer)))
 	return buffer
 }
 
-func (m *Message) ParseBool() bool {
+func (p *Parser) ParseBool() bool {
 	var integer = make([]byte, 4)
 
 	for i := range integer {
 		integer[i] = 0
 	}
 
-	if m.Length >= 4 {
-		if m.Length == 4 {
-			copy(integer, m.Buffer[:m.Length])
-			m.Buffer = []byte{}
+	if p.Length >= 4 {
+		copy(integer, p.Buffer[:4])
+
+		if p.Length == 4 {
+			p.Buffer = []byte{}
 		} else {
-			copy(integer, m.Buffer[:m.Length-4])
-			m.Buffer = m.Buffer[4:]
+			p.Buffer = p.Buffer[4:]
 		}
 	}
 
-	if m.BigEndian {
+	if p.BigEndian {
+		WrapMessage("DBG", fmt.Sprintf("parsing bool: %b", binary.BigEndian.Uint32(integer)))
 		return int(binary.BigEndian.Uint32(integer)) != 0
+
 	} else {
+		WrapMessage("DBG", fmt.Sprintf("parsing bool: %b", binary.LittleEndian.Uint32(integer)))
 		return int(binary.LittleEndian.Uint32(integer)) != 0
 	}
 }
 
-func (m *Message) ParseDword() uint32 {
+func (p *Parser) ParseDword() uint32 {
 	var buffer = make([]byte, 4)
 
 	for i := range buffer {
 		buffer[i] = 0
 	}
 
-	if m.Length >= 4 {
-		if m.Length == 4 {
-			copy(buffer, m.Buffer[:m.Length])
-			m.Buffer = []byte{}
+	if p.Length >= 4 {
+		copy(buffer, p.Buffer[:4])
+
+		if p.Length == 4 {
+			p.Buffer = []byte{}
 		} else {
-			copy(buffer, m.Buffer[:m.Length-4])
-			m.Buffer = m.Buffer[4:]
+			p.Buffer = p.Buffer[4:]
 		}
 	}
 
-	if m.BigEndian {
+	if p.BigEndian {
 		WrapMessage("DBG", fmt.Sprintf("parsing uint32 big endian: %d", binary.BigEndian.Uint32(buffer)))
 		return binary.BigEndian.Uint32(buffer)
 	} else {
@@ -115,24 +114,24 @@ func (m *Message) ParseDword() uint32 {
 	}
 }
 
-func (m *Message) ParseDword64() uint64 {
+func (p *Parser) ParseDword64() uint64 {
 	var buffer = make([]byte, 8)
 
 	for i := range buffer {
 		buffer[i] = 0
 	}
 
-	if m.Length >= 8 {
-		if m.Length == 8 {
-			copy(buffer, m.Buffer[:m.Length])
-			m.Buffer = []byte{}
+	if p.Length >= 8 {
+		copy(buffer, p.Buffer[:8])
+
+		if p.Length == 8 {
+			p.Buffer = []byte{}
 		} else {
-			copy(buffer, m.Buffer[:m.Length-8])
-			m.Buffer = m.Buffer[8:]
+			p.Buffer = p.Buffer[8:]
 		}
 	}
 
-	if m.BigEndian {
+	if p.BigEndian {
 		WrapMessage("DBG", fmt.Sprintf("ParseDword64: %d\n", binary.LittleEndian.Uint64(buffer)))
 		return binary.LittleEndian.Uint64(buffer)
 	} else {
@@ -141,31 +140,38 @@ func (m *Message) ParseDword64() uint64 {
 	}
 }
 
-func (m *Message) ParseBytes() []byte {
+func (p *Parser) ParseBytes() []byte {
 	var buffer []byte
 
-	if m.Length >= 4 {
-		size := m.ParseDword()
+	if p.Length >= 4 {
+		size := p.ParseDword()
 
-		if m.Length != 0 {
-			if size == m.Length {
-				buffer, m.Buffer = m.Buffer[:m.Length], m.Buffer[m.Length:]
+		if p.Length != 0 {
+			if size == p.Length {
+
+				buffer = p.Buffer[:p.Length]
+				p.Buffer = p.Buffer[p.Length:]
+
 			} else {
-				buffer, m.Buffer = m.Buffer[:size], m.Buffer[size:]
+				buffer = p.Buffer[:size]
+				p.Buffer = p.Buffer[size:]
 			}
 		}
 	}
 
-	WrapMessage("DBG", fmt.Sprintf("ParseBytes: buffer: %s\n", string(buffer)))
+	WrapMessage("DBG", fmt.Sprintf("parsing bytes: %s\n", string(buffer)))
 	return buffer
 }
 
-func (m *Message) ParseWString() string {
-	return string(bytes.Trim([]byte(DecodeUTF16(m.ParseBytes())), "\x00"))
+func (p *Parser) ParseWString() string {
+	return string(bytes.Trim([]byte(DecodeUTF16(p.ParseBytes())), "\x00"))
 }
-func (m *Message) ParseString() string { return string(m.ParseBytes()) }
 
-func (m *Message) ParserPrintData(CmdId uint32) bool {
+func (p *Parser) ParseString() string {
+	return string(p.ParseBytes())
+}
+
+func (p *Parser) ParserPrintData(CmdId uint32) bool {
 	var (
 		tMap TableHeaders
 		ok   bool
@@ -173,46 +179,48 @@ func (m *Message) ParserPrintData(CmdId uint32) bool {
 
 	if CmdId == TypeCheckin {
 		if tMap, ok = TableMap[TypeCheckin]; ok {
-			tMap.Values[0] = m.ParseString()
-			tMap.Values[1] = m.ParseString()
-			tMap.Values[2] = m.ParseString()
-			tMap.Values[3] = m.ParseString()
+			tMap.Values[0] = p.ParseString()
+			tMap.Values[1] = p.ParseString()
+			tMap.Values[2] = p.ParseString()
+			tMap.Values[3] = p.ParseString()
 		}
 	}
 	if CmdId == CommandDir {
 		if tMap, ok = TableMap[CommandDir]; ok {
-			IsDir := strconv.FormatBool(m.ParseBool())
+			IsDir := strconv.FormatBool(p.ParseBool())
 
 			if IsDir == "true" {
 				tMap.Values[0] = "dir"
 				tMap.Values[1] = "n/a"
 			} else {
 				tMap.Values[0] = ""
-				tMap.Values[1] = strconv.Itoa(int(m.ParseDword64()))
+				tMap.Values[1] = strconv.Itoa(int(p.ParseDword64()))
 			}
 
-			Day := m.ParseDword()
-			Month := m.ParseDword()
-			Year := m.ParseDword()
+			Day := p.ParseDword()
+			Month := p.ParseDword()
+			Year := p.ParseDword()
 			tMap.Values[2] = fmt.Sprintf("%02d/%02d/%d", Day, Month, Year)
 
-			Hour := m.ParseDword()
-			Minute := m.ParseDword()
-			Second := m.ParseDword()
+			Hour := p.ParseDword()
+			Minute := p.ParseDword()
+			Second := p.ParseDword()
 			tMap.Values[3] = fmt.Sprintf("%02d:%02d:%d", Hour, Minute, Second)
-			tMap.Values[4] = m.ParseString()
+			tMap.Values[4] = p.ParseString()
 		}
 	}
+
 	if CmdId == CommandMods {
 		if tMap, ok = TableMap[CommandMods]; ok {
-			tMap.Values[0] = m.ParseString()
-			tMap.Values[1] = fmt.Sprintf("0x%X", m.ParseDword64())
+			tMap.Values[0] = p.ParseString()
+			tMap.Values[1] = fmt.Sprintf("0x%X", p.ParseDword64())
 		}
 	}
-	return m.ParseTable(tMap)
+
+	return ParseTable(tMap)
 }
 
-func (m *Message) ParseTable(tmap TableHeaders) bool {
+func ParseTable(tmap TableHeaders) bool {
 
 	hdrs := tmap.Headers
 	vals := tmap.Values

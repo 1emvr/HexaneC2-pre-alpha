@@ -17,6 +17,11 @@ var TypeResponse uint32 = 3
 var TypeDelegate uint32 = 4
 var TypeSegment uint32 = 5
 
+type TableHeaders struct {
+	Headers []string
+	Values  []string
+}
+
 type Stream struct {
 	Buffer []byte
 	Length int
@@ -172,7 +177,7 @@ type JsonConfig struct {
 	Injection   *Injection
 }
 
-type Message struct {
+type Parser struct {
 	PeerId    uint32
 	TaskId    uint32
 	MsgType   uint32
