@@ -5,4 +5,4 @@
 *.dll
 .idea
 .vs
-*/cmake-build-debug
+cmake-build-debug
