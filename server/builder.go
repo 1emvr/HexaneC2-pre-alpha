@@ -172,9 +172,7 @@ func (h *HexaneConfig) GenerateConfig() error {
 		return err
 	}
 
-	if Xtea, err = CryptXtea(Patch[16:], h.Key, true); err != nil {
-		return err
-	}
+	Xtea = Patch
 
 	h.Config = Xtea
 	return nil
@@ -420,7 +418,7 @@ func (h *HexaneConfig) GenerateObjects() error {
 	)
 
 	WrapMessage("DBG", "generating core object files")
-	var RequiredMods = []string{
+	var EmbededStrings = []string{
 		string(h.Key),
 		"crypt32",
 		"winhttp",
@@ -449,7 +447,7 @@ func (h *HexaneConfig) GenerateObjects() error {
 					if err = h.EmbedConfigBytes(ObjFile, ".text$F", h.Config); err != nil {
 						return err
 					}
-					if err = h.EmbedConfigStrings(ObjFile, ".text$G", RequiredMods); err != nil {
+					if err = h.EmbedConfigStrings(ObjFile, ".text$G", EmbededStrings); err != nil {
 						return err
 					}
 				}

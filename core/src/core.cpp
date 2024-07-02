@@ -261,7 +261,7 @@ namespace Core {
         CreateParser(&Parser, Config, sizeof(Config));
         x_memset(Config, 0, sizeof(Config));
 
-        XteaCrypt(B_PTR(Parser.Handle), Parser.Length, Ctx->Config.Key, FALSE);
+        //XteaCrypt(B_PTR(Parser.Handle), Parser.Length, Ctx->Config.Key, FALSE);
 
         __debugbreak();
         ParserStrcpy(&Parser, &Ctx->Config.Hostname);

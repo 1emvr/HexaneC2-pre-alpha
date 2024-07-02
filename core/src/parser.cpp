@@ -7,9 +7,10 @@ namespace Parser {
         ULONG Length  = 0;
         LPSTR Buffer  = UnpackString(Parser, &Length);
 
-        *Dst = (LPSTR) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length);
-        if (*Dst) {
-            x_memcpy(*Dst, Buffer, Length);
+        if (Length) {
+            if ((*Dst = (LPSTR)Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length))) {
+                x_memcpy(*Dst, Buffer, Length);
+            }
         }
     }
 
@@ -19,9 +20,10 @@ namespace Parser {
         ULONG Length  = 0;
         LPWSTR Buffer  = UnpackWString(Parser, &Length);
 
-        *Dst = (LPWSTR) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (Length * sizeof(WCHAR)) + sizeof(WCHAR));
-        if (*Dst) {
-            x_memcpy(*Dst, Buffer, Length * sizeof(WCHAR));
+        if (Length) {
+            if ((*Dst = (LPWSTR)Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (Length * sizeof(WCHAR)) + sizeof(WCHAR)))) {
+                x_memcpy(*Dst, Buffer, Length * sizeof(WCHAR));
+            }
         }
     }
 
@@ -31,9 +33,10 @@ namespace Parser {
         ULONG Length = 0;
         PBYTE Buffer = UnpackBytes(Parser, &Length);
 
-        *Dst = (PBYTE) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length);
-        if (*Dst) {
-            x_memcpy(*Dst, Buffer, Length);
+        if (Length) {
+            if ((*Dst = (PBYTE) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length))) {
+                x_memcpy(*Dst, Buffer, Length);
+            }
         }
     }
 
@@ -152,14 +155,7 @@ namespace Parser {
             return nullptr;
         }
 
-        x_memcpy(&length, Parser->Buffer, 4);
-
-        Parser->Buffer = B_PTR(Parser->Buffer) + 4;
-        Parser->Length -= 4;
-
-        if (!Parser->Little) {
-            length = __bswapd(length);
-        }
+        length = UnpackDword(Parser);
         if (cbOut) {
             *cbOut = length;
         }

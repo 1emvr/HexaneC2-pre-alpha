@@ -1,10 +1,6 @@
 #include <core/include/context.hpp>
 using namespace Memory;
 
-VOID Main() {
-    Core::MainRoutine();
-}
-
 VOID ContextInit () {
     // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
 
@@ -41,5 +37,5 @@ VOID ContextInit () {
     x_memset(&Instance, 0, sizeof(HEXANE_CTX));
     x_memset(C_PTR(U_PTR(MmAddr) + sizeof(LPVOID)), 0, 0xE);
 
-    Main();
+    Core::MainRoutine();
 }
