@@ -324,11 +324,11 @@ func (h *HexaneConfig) GenerateObjects() error {
 				continue
 			}
 
-			FilePath := cwd + "/" + dir + file.Name()
-			ObjFile := cwd + "/" + h.Compiler.BuildDirectory + file.Name() + ".o"
+			FilePath := cwd + "/" + dir + "/" + file.Name()
+			ObjFile := cwd + "/" + h.Compiler.BuildDirectory + "/" + file.Name() + ".o"
 
 			if path.Ext(file.Name()) == ".cpp" {
-				if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{FilePath}, h.Compiler.Flags, []string{"../"}, RequiredMods, ObjFile); err != nil {
+				if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{FilePath}, h.Compiler.Flags, []string{cwd + "/../"}, RequiredMods, ObjFile); err != nil {
 					return err
 				}
 			} else if path.Ext(file.Name()) == ".asm" {
@@ -368,7 +368,7 @@ func (h *HexaneConfig) RunCommand(cmd string) error {
 
 	defer Log.Close()
 
-	Command = exec.Command("bash", "-c", "\""+cmd+"\"")
+	Command = exec.Command("bash", "-c", cmd)
 	Command.Stdout = Log
 	Command.Stderr = Log
 

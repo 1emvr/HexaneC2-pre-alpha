@@ -60,17 +60,17 @@ func (h *HexaneConfig) CreateConfig(jsn JsonConfig) error {
 		err = fmt.Errorf("unkown build type. Exiting")
 	}
 
-	h.Compiler.BuildDirectory = fmt.Sprintf("../payload/%s/", strings.TrimSuffix(h.ImplantName, h.Compiler.FileExtension))
+	h.Compiler.BuildDirectory = fmt.Sprintf("../payload/%s", strings.TrimSuffix(h.ImplantName, h.Compiler.FileExtension))
 	WrapMessage("INF", fmt.Sprintf("generating config for %s", h.Compiler.FileExtension))
 
 	h.Compiler.Debug = jsn.Config.Debug
 	h.Compiler.Arch = jsn.Config.Arch
-	h.Compiler.Mingw = "x86_64-w64-mingw32-g++"
-	h.Compiler.Linker = "x86_64-w64-mingw32-ld"
-	h.Compiler.Objcopy = "x86_64-w64-mingw32-objcopy"
-	h.Compiler.RsrcCompiler = "x86_64-w64-mingw32-windres"
-	h.Compiler.Strip = "x86_64-w64-mingw32-strip"
-	h.Compiler.Assembler = "nasm"
+	h.Compiler.Mingw = "/usr/bin/x86_64-w64-mingw32-g++"
+	h.Compiler.Linker = "/usr/bin/x86_64-w64-mingw32-ld"
+	h.Compiler.Objcopy = "/usr/bin/x86_64-w64-mingw32-objcopy"
+	h.Compiler.RsrcCompiler = "/usr/bin/x86_64-w64-mingw32-windres"
+	h.Compiler.Strip = "/usr/bin/x86_64-w64-mingw32-strip"
+	h.Compiler.Assembler = "/usr/bin/nasm"
 
 	h.Compiler.IncludeDirs = []string{
 		"../core/include",

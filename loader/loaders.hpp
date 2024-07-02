@@ -5,12 +5,12 @@
 #include <core/include/hash.hpp>
 #include <loader/resource.hpp>
 
-BYTE Opcode[]   = { 0xE8, 0x00, 0x00, 0x00, 0x00 };
-BYTE Export[]   = FUNC;
-BYTE Parent[]   = PARENT;
-BYTE Module[]   = MODULE;
-BYTE Loader[]   = LOADER;
-BYTE m_key[]    = OBF_KEY;
+BYTE Opcode[5]   = { 0xE8, 0x00, 0x00, 0x00, 0x00 };
+BYTE Export[24]   = { FUNC };
+BYTE Parent[24]   = { PARENT };
+BYTE Module[24]   = { MODULE };
+BYTE Loader[24]   = { LOADER };
+BYTE m_key[16]    = { OBF_KEY };
 
 EXTERN_C VOID Execute();
 
