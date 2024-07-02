@@ -26,12 +26,12 @@ const (
 	Ld          = "../implant/linker.implant.ld"
 )
 
-var RequiredMods = map[string][]byte{
-	"IPHLPAPI": []byte("iphlpapi" + string(0x00)),
-	"ADVAPI32": []byte("advapi32" + string(0x00)),
-	"WINHTTP":  []byte("winhttp" + string(0x00)),
-	"CRYPT32":  []byte("crypt32" + string(0x00)),
-	"RELOC":    []byte(".reloc" + string(0x00)),
+var RequiredMods = []string{
+	"iphlpapi",
+	"advapi32",
+	"winhttp",
+	"crypt32",
+	".reloc",
 }
 
 func (h *HexaneConfig) CreateConfig(jsn JsonConfig) error {

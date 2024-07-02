@@ -1,7 +1,6 @@
 # ~/.zshrc file for zsh interactive shells.
 # see /usr/share/doc/zsh/examples/zshrc for examples
 export hexane='/home/kali/Github/HexaneC2'
-tmux
 
 setopt autocd              # change directory just by typing its name
 #setopt correct            # auto correct mistakes
