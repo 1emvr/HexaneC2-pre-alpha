@@ -8,15 +8,15 @@
 #define MINUTES(x)      (x * SECONDS(64))
 
 namespace Utils {
-    ULONG64 GetTimeNow();
-    BOOL    InWorkingHours();
+    FUNCTION ULONG64 GetTimeNow();
+    FUNCTION BOOL    InWorkingHours();
 }
 
 namespace Random {
-    VOID        Timeout(size_t ms);
-    UINT_PTR    Timestamp();
-    ULONG       RandomNumber32();
-    ULONG       RandomSleepTime();
-    BOOL        RandomBool();
+    FUNCTION VOID        Timeout(size_t ms);
+    FUNCTION UINT_PTR    Timestamp();
+    FUNCTION ULONG       RandomNumber32();
+    FUNCTION ULONG       RandomSleepTime();
+    FUNCTION BOOL        RandomBool();
 }
 #endif //HEXANE_UTILS_HPP

