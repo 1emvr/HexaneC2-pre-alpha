@@ -125,7 +125,8 @@ namespace Stream {
         if (stream) {
             if (size) {
                 PackDword(stream, size);
-                stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + size);
+                stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer,
+                                                           stream->Length + size);
 
                 x_memcpy(B_PTR(stream->Buffer) + stream->Length, data, size);
                 stream->Length += size;

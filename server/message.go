@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/bits"
 	"strings"
 )
 
@@ -92,7 +93,7 @@ func ParseMessage(body []byte) ([]byte, error) {
 		Parser.TaskId = Parser.ParseDword()
 		Parser.MsgType = Parser.ParseDword()
 
-		Length := Parser.ParseDword()
+		Length := bits.ReverseBytes32(Parser.ParseDword())
 		fmt.Printf("parsing buffer of %d\n", Length)
 
 		if implant = GetConfigByPeerId(Parser.PeerId); implant != nil {

@@ -14,7 +14,7 @@ namespace Core {
             return_defer(ntstatus);
         }
 
-        Opsec::SeCheckEnvironment();
+        //Opsec::SeCheckEnvironment();
         if (ntstatus == ERROR_BAD_ENVIRONMENT) {
             return_defer(ntstatus);
         }

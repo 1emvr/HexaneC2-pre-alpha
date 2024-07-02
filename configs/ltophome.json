@@ -5,7 +5,7 @@
     "Arch": "amd64",
     "Debug": false,
     "BuildType": "bin",
-    "Hostname": "DESKTOP-S61P06K",
+    "Hostname": "LENOVO-WRKSTN-L",
     "Sleeptime": 3,
     "Jitter": 24
   },

