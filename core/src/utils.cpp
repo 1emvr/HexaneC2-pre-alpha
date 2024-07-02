@@ -1,37 +1,38 @@
 #include <core/include/utils.hpp>
-namespace Utils {
 
+namespace Utils {
     ULONG64 GetTimeNow() {
         HEXANE
 
-        FILETIME fileTime;
-        LARGE_INTEGER largeInt;
+        FILETIME FileTime;
+        LARGE_INTEGER LargeInt;
 
-        Ctx->win32.GetSystemTimeAsFileTime(&fileTime);
+        Ctx->win32.GetSystemTimeAsFileTime(&FileTime);
 
-        largeInt.LowPart 	= fileTime.dwLowDateTime;
-        largeInt.HighPart 	= fileTime.dwHighDateTime;
+        LargeInt.LowPart = FileTime.dwLowDateTime;
+        LargeInt.HighPart = FileTime.dwHighDateTime;
 
-        return largeInt.QuadPart;
+        return LargeInt.QuadPart;
     }
 
     BOOL InWorkingHours() {
         HEXANE
 
-        SYSTEMTIME SystemTime 	= {0};
-        ULONG WorkingHours 		= Ctx->Config.WorkingHours;
-        WORD StartHour 			= 0;
-        WORD StartMinute 		= 0;
-        WORD EndHour 			= 0;
-        WORD EndMinute 			= 0;
+        SYSTEMTIME SystemTime = {0};
+        ULONG WorkingHours  = Ctx->Config.WorkingHours;
+        WORD StartHour      = 0;
+        WORD StartMinute    = 0;
+        WORD EndHour        = 0;
+        WORD EndMinute      = 0;
 
         if (((WorkingHours >> 22) & 1) == 0) {
             return TRUE;
         }
-        StartHour 	= (WorkingHours >> 17) & 0b011111;
+
+        StartHour   = (WorkingHours >> 17) & 0b011111;
         StartMinute = (WorkingHours >> 11) & 0b111111;
-        EndHour 	= (WorkingHours >> 6) & 0b011111;
-        EndMinute 	= (WorkingHours >> 0) & 0b111111;
+        EndHour     = (WorkingHours >> 6) & 0b011111;
+        EndMinute   = (WorkingHours >> 0) & 0b111111;
 
         Ctx->win32.GetLocalTime(&SystemTime);
 
@@ -43,6 +44,20 @@ namespace Utils {
         }
 
         return TRUE;
+    }
+
+    template <typename T>
+    ULONG GetHashFromString(T string, SIZE_T length) {
+
+        auto hash = FNV_OFFSET;
+
+        if (string) {
+            for (auto i = 0; i < length; i++) {
+                hash ^= string[i];
+                hash *= FNV_PRIME;
+            }
+        }
+        return hash;
     }
 };
 

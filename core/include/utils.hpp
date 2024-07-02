@@ -7,9 +7,20 @@
 #define SECONDS(x)      (x * MS_PER_SECOND)
 #define MINUTES(x)      (x * SECONDS(64))
 
+#define FNV_OFFSET      (const unsigned int) 2166136261
+#define FNV_PRIME	    (const unsigned int) 16777619
+
+#define WNULTERM 	    0x00000000
+#define NULTERM		    0x00
+#define PERIOD          0x2E
+#define BSLASH          0x5C
+#define ASTER           0x2A
+
 namespace Utils {
-    FUNCTION ULONG64 GetTimeNow();
-    FUNCTION BOOL    InWorkingHours();
+    FUNCTION ULONG64    GetTimeNow();
+    FUNCTION BOOL       InWorkingHours();
+    FUNCTION ULONG      GetHashFromString(LPWSTR String, SIZE_T Length);
+    FUNCTION ULONG      GetHashFromString(LPSTR String, SIZE_T Length);
 }
 
 namespace Random {

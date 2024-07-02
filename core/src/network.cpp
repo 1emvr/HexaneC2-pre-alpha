@@ -261,7 +261,7 @@ namespace Smb {
             return_defer(ERROR_NO_ACE_CONDITION);
         }
 
-        if (!(SmbSecAttr->SecDesc = (PSECURITY_DESCRIPTOR) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, SECURITY_DESCRIPTOR_MIN_LENGTH))) {
+        if (!(SmbSecAttr->SecDesc = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, SECURITY_DESCRIPTOR_MIN_LENGTH))) {
             return_defer(ERROR_INVALID_SECURITY_DESCR);
         }
 
