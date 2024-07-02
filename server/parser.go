@@ -34,7 +34,7 @@ func CreateParser(buffer []byte) *Parser {
 	var parser = new(Parser)
 
 	parser.Buffer = buffer
-	parser.BigEndian = false
+	parser.BigEndian = true
 	parser.Length = uint32(len(buffer))
 
 	return parser

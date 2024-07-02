@@ -227,8 +227,7 @@ namespace Message {
 
                 Stream::DestroyStream(Outbound);
             }
-        }
-        else {
+        } else {
             Head = Ctx->Transport.OutboundQueue;
 
             while (Head) {

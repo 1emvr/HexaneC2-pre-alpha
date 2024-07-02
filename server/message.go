@@ -51,12 +51,9 @@ func (h *HexaneConfig) HandleCheckin(Parser *Parser, Stream *Stream) {
 		Stream.CreateHeader(Parser, TypeCheckin, uint32(h.TaskCounter))
 
 		if debug {
-			WrapMessage("DBG", "outgoing response: ")
 			PrintBytes(Stream.Buffer)
 		}
 	}
-
-	WrapMessage("INF", fmt.Sprintf("%s checkin received from %s", Parser.Method, Parser.Address))
 }
 
 func (h *HexaneConfig) HandleCommand(Parser *Parser, Stream *Stream) {
@@ -68,11 +65,8 @@ func (h *HexaneConfig) HandleCommand(Parser *Parser, Stream *Stream) {
 	Parser.DispatchCommand(h, Stream, "dir C:/Users/lemur") // user command interface
 
 	if debug {
-		WrapMessage("DBG", "outgoing response: ")
 		PrintBytes(Stream.Buffer)
 	}
-
-	WrapMessage("DBG", fmt.Sprintf("task request: %d", Parser.PeerId))
 }
 
 func ParseMessage(body []byte) ([]byte, error) {
@@ -94,8 +88,9 @@ func ParseMessage(body []byte) ([]byte, error) {
 		Parser.MsgType = Parser.ParseDword()
 
 		Length := bits.ReverseBytes32(Parser.ParseDword())
-		fmt.Printf("parsing buffer of %d\n", Length)
+		Length += 16
 
+		fmt.Printf("parsing buffer of %d\n", Length)
 		if implant = GetConfigByPeerId(Parser.PeerId); implant != nil {
 
 			WrapMessage("DBG", fmt.Sprintf("found peer %d. Parsing message...", Parser.PeerId))

