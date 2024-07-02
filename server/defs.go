@@ -5,17 +5,16 @@ import (
 	"sync"
 )
 
-var CommandDir uint32 = 1
-var CommandMods uint32 = 2
-var CommandNoJob uint32 = 3
-var CommandShutdown uint32 = 4
-var CommandUpdatePeer uint32 = 5
+var CommandDir uint32 = 0x00000001
+var CommandMods uint32 = 0x00000002
+var CommandNoJob uint32 = 0x00000003
+var CommandShutdown uint32 = 0x00000004
+var CommandUpdatePeer uint32 = 0x00000005
 
-var TypeCheckin uint32 = 1
-var TypeTasking uint32 = 2
-var TypeResponse uint32 = 3
-var TypeDelegate uint32 = 4
-var TypeSegment uint32 = 5
+var TypeCheckin uint32 = 0x7FFFFFFF
+var TypeTasking uint32 = 0x7FFFFFFE
+var TypeResponse uint32 = 0x7FFFFFFD
+var TypeSegment uint32 = 0x7FFFFFFC
 
 type TableHeaders struct {
 	Headers []string

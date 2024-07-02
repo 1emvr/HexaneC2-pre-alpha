@@ -108,8 +108,8 @@ namespace Parser {
         Parser->Length -= 4;
 
         return (Parser->Little)
-               ?(ULONG) intBytes
-               :(ULONG) __bswapd(intBytes);
+               ? intBytes
+               : __builtin_bswap32(intBytes);
     }
 
     ULONG64 UnpackDword64 (PPARSER Parser) {
@@ -125,8 +125,8 @@ namespace Parser {
         Parser->Length -= 8;
 
         return (Parser->Little)
-               ?(ULONG64) intBytes
-               :(ULONG64) __bswapq(intBytes);
+               ? intBytes
+               : __builtin_bswap64(intBytes);
     }
 
     BOOL UnpackBool (PPARSER Parser) {
@@ -142,8 +142,8 @@ namespace Parser {
         Parser->Length -= 4;
 
         return (Parser->Little)
-               ?(BOOL) intBytes != 0
-               :(BOOL) __bswapd(intBytes) != 0;
+               ? intBytes != 0
+               : __builtin_bswap32(intBytes) != 0;
     }
 
     PBYTE UnpackBytes (PPARSER Parser, PULONG cbOut) {

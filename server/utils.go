@@ -1,10 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
-	"io"
+	"math/bits"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -49,27 +48,6 @@ func WriteFile(name string, data []byte) error {
 	return nil
 }
 
-func StdReader(Stdout, Stderr io.ReadCloser, logName string) {
-	var err error
-
-	if err = os.MkdirAll(Logs, os.ModePerm); err != nil {
-		WrapMessage("ERR", err.Error())
-	}
-
-	go func() {
-		merged := io.MultiReader(Stdout, Stderr)
-		scanner := bufio.NewScanner(merged)
-
-		for scanner.Scan() {
-			msg := scanner.Text()
-
-			if err = WriteFile(logName, []byte(msg)); err != nil {
-				WrapMessage("ERR", err.Error())
-			}
-		}
-	}()
-}
-
 func PrintBytes(buffer []byte) {
 
 	for i := range buffer {
@@ -80,7 +58,7 @@ func PrintBytes(buffer []byte) {
 }
 
 func GeneratePeerId() uint32 {
-	return rand.Uint32()
+	return bits.Reverse32(rand.Uint32())
 }
 
 func GenerateUuid(n int) string {

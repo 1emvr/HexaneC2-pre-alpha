@@ -26,8 +26,8 @@ namespace Stream {
     }
 
     PSTREAM CreateStreamWithHeaders(ULONG MsgType) {
-        HEXANE
 
+        HEXANE
         PSTREAM Stream = CreateStream();
 
         PackDword(Stream, Ctx->Session.PeerId);
@@ -38,8 +38,8 @@ namespace Stream {
     }
 
     PSTREAM CreateStream () {
-        HEXANE
 
+        HEXANE
         PSTREAM stream = { };
 
         if (
@@ -56,6 +56,7 @@ namespace Stream {
     }
 
     VOID DestroyStream (PSTREAM Stream) {
+
         HEXANE
 
         if (Stream) {
@@ -76,6 +77,7 @@ namespace Stream {
     }
 
     VOID PackByte (PSTREAM stream, BYTE data) {
+
         HEXANE
 
         if (stream) {
@@ -87,6 +89,7 @@ namespace Stream {
     }
 
     VOID PackDword64 (PSTREAM stream, ULONG64 data) {
+
         HEXANE
 
         if (stream) {
@@ -98,6 +101,7 @@ namespace Stream {
     }
 
     VOID PackDword (PSTREAM stream, ULONG data) {
+
         HEXANE
 
         if (stream) {
@@ -109,24 +113,25 @@ namespace Stream {
     }
 
     VOID PackBool (PSTREAM stream, BOOL data) {
+
         HEXANE
 
         if (stream) {
             stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(BOOL));
 
-            PackInt32(B_PTR(stream->Buffer) + stream->Length, data ? TRUE : FALSE);
+            PackDword(stream, data ? TRUE : FALSE);
             stream->Length += sizeof(BOOL);
         }
     }
 
     VOID PackBytes (PSTREAM stream, PBYTE data, SIZE_T size) {
+
         HEXANE
 
         if (stream) {
             if (size) {
                 PackDword(stream, size);
-                stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer,
-                                                           stream->Length + size);
+                stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + size);
 
                 x_memcpy(B_PTR(stream->Buffer) + stream->Length, data, size);
                 stream->Length += size;
@@ -135,7 +140,11 @@ namespace Stream {
     }
 
     VOID PackPointer (PSTREAM stream, PVOID pointer) {
+#ifdef _M_X64
         PackDword64(stream, U64(pointer));
+#elif _M_IX86
+        PackDword(stream, U32(pointer));
+#endif
     }
 
     VOID PackString (PSTREAM stream, PCHAR data) {

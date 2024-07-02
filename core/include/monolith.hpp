@@ -23,6 +23,8 @@
 #define FUNCTION                                TXT_SECTION(B)
 #define CFG_SECTION 							TXT_SECTION(F)
 #define CMD_SIGNATURE(x) 						(CmdSignature)(x)
+#define __builtin_bswap32(x)					__bswapd(x)
+#define __builtin_bswap64(x)					__bswapq(x)
 
 #define S_PTR(x)                                ((LPSTR)(x))
 #define W_PTR(x)								((LPWSTR)(x))
@@ -170,19 +172,18 @@ typedef VOID (WINAPI* TpPostWork_t)(PTP_WORK ptpWork);
 typedef VOID (WINAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
 
 enum MessageType {
-	TypeCheckin 	= 1,
-	TypeTasking 	= 2,
-	TypeResponse 	= 3,
-	TypeDelegate 	= 4,
-	TypeSegment 	= 5,
+	TypeCheckin 	= 0x7FFFFFFF,
+	TypeTasking 	= 0x7FFFFFFE,
+	TypeResponse 	= 0x7FFFFFFD,
+	TypeSegment 	= 0x7FFFFFFC,
 };
 
 enum CommandType {
-	CommandDir      	= 1,
-	CommandMods     	= 2,
-	CommandNoJob    	= 3,
-	CommandShutdown 	= 4,
-	CommandUpdatePeer 	= 5,
+	CommandDir      	= 0x00000001,
+	CommandMods     	= 0x00000002,
+	CommandNoJob    	= 0x00000003,
+	CommandShutdown 	= 0x00000004,
+	CommandUpdatePeer 	= 0x00000005,
 };
 
 typedef struct {

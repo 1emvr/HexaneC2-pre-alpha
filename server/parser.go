@@ -60,7 +60,6 @@ func (p *Parser) ParseByte() []byte {
 		}
 	}
 
-	WrapMessage("DBG", fmt.Sprintf("parsing byte: %s", string(buffer)))
 	return buffer
 }
 
@@ -85,11 +84,9 @@ func (p *Parser) ParseBool() bool {
 	}
 
 	if p.BigEndian {
-		WrapMessage("DBG", fmt.Sprintf("parsing bool: %b", binary.BigEndian.Uint32(integer)))
 		return int(binary.BigEndian.Uint32(integer)) != 0
 
 	} else {
-		WrapMessage("DBG", fmt.Sprintf("parsing bool: %b", binary.LittleEndian.Uint32(integer)))
 		return int(binary.LittleEndian.Uint32(integer)) != 0
 	}
 }
@@ -115,11 +112,9 @@ func (p *Parser) ParseDword() uint32 {
 	}
 
 	if p.BigEndian {
-		WrapMessage("DBG", fmt.Sprintf("parsing uint32 big endian: %d", binary.BigEndian.Uint32(buffer)))
 		return binary.BigEndian.Uint32(buffer)
 
 	} else {
-		WrapMessage("DBG", fmt.Sprintf("parsing uint32 little endian: %d", binary.LittleEndian.Uint32(buffer)))
 		return binary.LittleEndian.Uint32(buffer)
 	}
 }
@@ -144,11 +139,9 @@ func (p *Parser) ParseDword64() uint64 {
 	}
 
 	if p.BigEndian {
-		WrapMessage("DBG", fmt.Sprintf("ParseDword64: %d\n", binary.BigEndian.Uint64(buffer)))
 		return binary.BigEndian.Uint64(buffer)
 
 	} else {
-		WrapMessage("DBG", fmt.Sprintf("ParseDword64: %d\n", binary.LittleEndian.Uint64(buffer)))
 		return binary.LittleEndian.Uint64(buffer)
 	}
 }
@@ -174,7 +167,6 @@ func (p *Parser) ParseBytes() []byte {
 		}
 	}
 
-	WrapMessage("DBG", fmt.Sprintf("parsing bytes: %s\n", string(buffer)))
 	return buffer
 }
 
@@ -186,49 +178,63 @@ func (p *Parser) ParseString() string {
 	return string(p.ParseBytes())
 }
 
-func (p *Parser) ParserPrintData(CmdId uint32) bool {
+func (p *Parser) ParserPrintData(TypeId uint32) bool {
 	var (
 		tMap TableHeaders
 		ok   bool
 	)
 
-	if CmdId == TypeCheckin {
+	if TypeId == TypeCheckin {
 		if tMap, ok = TableMap[TypeCheckin]; ok {
-			tMap.Values[0] = p.ParseString()
+
+			WrapMessage("INF", "======== CHECKIN ========")
+
+			tMap.Values[0] = strconv.Itoa(int(p.PeerId))
 			tMap.Values[1] = p.ParseString()
 			tMap.Values[2] = p.ParseString()
 			tMap.Values[3] = p.ParseString()
-		}
-	}
-	if CmdId == CommandDir {
-		if tMap, ok = TableMap[CommandDir]; ok {
-			IsDir := strconv.FormatBool(p.ParseBool())
-
-			if IsDir == "true" {
-				tMap.Values[0] = "dir"
-				tMap.Values[1] = "n/a"
-			} else {
-				tMap.Values[0] = ""
-				tMap.Values[1] = strconv.Itoa(int(p.ParseDword64()))
-			}
-
-			Day := p.ParseDword()
-			Month := p.ParseDword()
-			Year := p.ParseDword()
-			tMap.Values[2] = fmt.Sprintf("%02d/%02d/%d", Day, Month, Year)
-
-			Hour := p.ParseDword()
-			Minute := p.ParseDword()
-			Second := p.ParseDword()
-			tMap.Values[3] = fmt.Sprintf("%02d:%02d:%d", Hour, Minute, Second)
 			tMap.Values[4] = p.ParseString()
 		}
 	}
 
-	if CmdId == CommandMods {
-		if tMap, ok = TableMap[CommandMods]; ok {
-			tMap.Values[0] = p.ParseString()
-			tMap.Values[1] = fmt.Sprintf("0x%X", p.ParseDword64())
+	if TypeId == TypeTasking {
+
+		CmdId := p.ParseDword()
+		if CmdId == CommandDir {
+			if tMap, ok = TableMap[CommandDir]; ok {
+
+				WrapMessage("INF", "======== DIRECTORY ========")
+
+				IsDir := strconv.FormatBool(p.ParseBool())
+				if IsDir == "true" {
+					tMap.Values[0] = "dir"
+					tMap.Values[1] = "n/a"
+				} else {
+					tMap.Values[0] = ""
+					tMap.Values[1] = strconv.Itoa(int(p.ParseDword64()))
+				}
+
+				Day := p.ParseDword()
+				Month := p.ParseDword()
+				Year := p.ParseDword()
+				tMap.Values[2] = fmt.Sprintf("%02d/%02d/%d", Day, Month, Year)
+
+				Hour := p.ParseDword()
+				Minute := p.ParseDword()
+				Second := p.ParseDword()
+				tMap.Values[3] = fmt.Sprintf("%02d:%02d:%d", Hour, Minute, Second)
+				tMap.Values[4] = p.ParseString()
+			}
+		}
+
+		if CmdId == CommandMods {
+			if tMap, ok = TableMap[CommandMods]; ok {
+
+				WrapMessage("INF", "======== MODULES ========")
+
+				tMap.Values[0] = p.ParseString()
+				tMap.Values[1] = fmt.Sprintf("0x%X", p.ParseDword64())
+			}
 		}
 	}
 

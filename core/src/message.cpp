@@ -146,7 +146,7 @@ namespace Message {
     VOID MessageTransmit() {
         HEXANE
 
-        PSTREAM Outbound    = Stream::CreateStream();
+        PSTREAM Outbound    = { };
         PSTREAM Inbound     = { };
         PSTREAM Head        = { };
         PSTREAM Swap        = { };
@@ -156,11 +156,9 @@ namespace Message {
 #ifdef TRANSPORT_SMB
             return_defer(ERROR_SUCCESS);
 #endif
-            Stream::PackDword(Outbound, Ctx->Session.PeerId);
-            Stream::PackDword(Outbound, Ctx->Session.CurrentTaskId);
-            Stream::PackDword(Outbound, TypeTasking);
-
+            Outbound = Stream::CreateStreamWithHeaders(TypeTasking);
         } else {
+            Outbound = Stream::CreateStream();
             Head = Ctx->Transport.OutboundQueue;
 
             while (Head) {
@@ -206,7 +204,6 @@ namespace Message {
         Outbound = nullptr;
 
         // task is not getting properly parsed
-        __debugbreak();
         if (Inbound) {
             ClearQueue();
 
@@ -249,10 +246,10 @@ namespace Message {
         ULONG MsgType   = 0;
 
         Parser::CreateParser(&Parser, B_PTR(Inbound->Buffer), Inbound->Length);
+        Parser::UnpackDword(&Parser);
 
-        Ctx->Session.PeerId         = Parser::UnpackDword(&Parser);
         Ctx->Session.CurrentTaskId  = Parser::UnpackDword(&Parser);
-        MsgType                     = Parser::UnpackByte(&Parser);
+        MsgType                     = Parser::UnpackDword(&Parser);
 
         switch (MsgType) {
 
@@ -262,7 +259,7 @@ namespace Message {
             }
 
             case TypeTasking: {
-                auto CmdId = Parser::UnpackByte(&Parser);
+                auto CmdId = Parser::UnpackDword(&Parser);
                 if (CmdId == CommandNoJob) {
                     break;
                 }
