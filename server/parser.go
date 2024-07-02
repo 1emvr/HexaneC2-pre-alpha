@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	CommandDir      	uint32 = 0x7FFFFFFF
-	CommandMods     	uint32 = 0x7FFFFFFE
-	CommandNoJob    	uint32 = 0x7FFFFFFD
-	CommandShutdown 	uint32 = 0x7FFFFFFC
-	CommandUpdatePeer 	uint32 = 0x7FFFFFFB
+	CommandDir        uint32 = 0x7FFFFFFF
+	CommandMods       uint32 = 0x7FFFFFFE
+	CommandNoJob      uint32 = 0x7FFFFFFD
+	CommandShutdown   uint32 = 0x7FFFFFFC
+	CommandUpdatePeer uint32 = 0x7FFFFFFB
 )
 
 var CommandMap = map[string]uint32{
@@ -48,11 +48,7 @@ func CreateParser(buffer []byte) *Message {
 
 	parser.Buffer = buffer
 	parser.BigEndian = false
-	parser.Length = uint32(len(parser.Buffer))
-
-	parser.PeerId = parser.ParseDword()
-	parser.TaskId = parser.ParseDword()
-	parser.MsgType = parser.ParseDword()
+	parser.Length = uint32(len(buffer))
 
 	return parser
 }
@@ -73,7 +69,7 @@ func (m *Message) ParseByte() []byte {
 			m.Buffer = m.Buffer[1:]
 		}
 	}
-	WrapMessage("DBG", fmt.Sprintf("ParseByte: buffer: %s", string(buffer)))
+	WrapMessage("DBG", fmt.Sprintf("parsing byte: %s", string(buffer)))
 	return buffer
 }
 
@@ -108,20 +104,22 @@ func (m *Message) ParseDword() uint32 {
 		buffer[i] = 0
 	}
 
-	if m.Length == 4 {
-		copy(buffer, m.Buffer[:4])
-		m.Buffer = []byte{}
-	} else {
-		copy(buffer, m.Buffer[:m.Length-4])
-		m.Buffer = m.Buffer[4:]
+	if m.Length >= 4 {
+		if m.Length == 4 {
+			copy(buffer, m.Buffer[:m.Length])
+			m.Buffer = []byte{}
+		} else {
+			copy(buffer, m.Buffer[:m.Length-4])
+			m.Buffer = m.Buffer[4:]
+		}
 	}
 
 	if m.BigEndian {
-		WrapMessage("DBG", fmt.Sprintf("ParseDword: %d", binary.LittleEndian.Uint32(buffer)))
-		return binary.LittleEndian.Uint32(buffer)
-	} else {
-		WrapMessage("DBG", fmt.Sprintf("ParseDword: %d", binary.BigEndian.Uint32(buffer)))
+		WrapMessage("DBG", fmt.Sprintf("parsing uint32 big endian: %d", binary.BigEndian.Uint32(buffer)))
 		return binary.BigEndian.Uint32(buffer)
+	} else {
+		WrapMessage("DBG", fmt.Sprintf("parsing uint32 little endian: %d", binary.LittleEndian.Uint32(buffer)))
+		return binary.LittleEndian.Uint32(buffer)
 	}
 }
 
@@ -157,12 +155,15 @@ func (m *Message) ParseBytes() []byte {
 	if m.Length >= 4 {
 		size := m.ParseDword()
 
-		if size == m.Length {
-			buffer, m.Buffer = m.Buffer[:m.Length], m.Buffer[m.Length:]
-		} else {
-			buffer, m.Buffer = m.Buffer[:size], m.Buffer[size:]
+		if m.Length != 0 {
+			if size == m.Length {
+				buffer, m.Buffer = m.Buffer[:m.Length], m.Buffer[m.Length:]
+			} else {
+				buffer, m.Buffer = m.Buffer[:size], m.Buffer[size:]
+			}
 		}
 	}
+
 	WrapMessage("DBG", fmt.Sprintf("ParseBytes: buffer: %s\n", string(buffer)))
 	return buffer
 }

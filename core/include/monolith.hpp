@@ -239,8 +239,11 @@ typedef struct {
 
 
 typedef struct stream {
-	LPVOID	Buffer;
+	ULONG   PeerId;
+	ULONG   TaskId;
+	ULONG   MsgType;
 	ULONG	Length;
+	LPVOID	Buffer;
 	BOOL 	Ready;
 	stream  *Next;
 } STREAM, *PSTREAM;
@@ -252,14 +255,6 @@ typedef struct {
 	ULONG 	Length;
 	BOOL 	Little;
 } PARSER, *PPARSER;
-
-
-typedef struct _PEER_DATA {
-	HANDLE 		Handle;
-	ULONG 		PeerId;
-	BUFFER 		Pipename;
-	_PEER_DATA 	*Next;
-} PEER_DATA, *PPEER_DATA;
 
 
 typedef struct {
