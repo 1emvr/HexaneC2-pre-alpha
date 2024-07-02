@@ -16,9 +16,9 @@ func GetLoaderComponents(h *HexaneConfig) []string {
 
 	return []string{
 		LoaderDll,
-		h.Compiler.BuildDirectory + "loader.asm.o",
-		h.Compiler.BuildDirectory + "resource.res",
-		h.Compiler.BuildDirectory + "loaders.cpp.o",
+		h.Compiler.BuildDirectory + "/loader.asm.o",
+		h.Compiler.BuildDirectory + "/resource.res",
+		h.Compiler.BuildDirectory + "/loaders.cpp.o",
 	}
 }
 
@@ -198,15 +198,15 @@ func (h *HexaneConfig) GenerateLoader() error {
 	}
 
 	WrapMessage("DBG", "generating resource loader")
-	Resource := h.Compiler.BuildDirectory + "resource.res"
-	RsrcFile := "\\\"" + h.Compiler.BuildDirectory + "shellcode.bin" + "\\\""
+	Resource := h.Compiler.BuildDirectory + "/resource.res"
+	RsrcFile := "\\\"" + h.Compiler.BuildDirectory + "/shellcode.bin" + "\\\""
 
 	if err = h.RunCommand(h.Compiler.RsrcCompiler + " -O coff " + RsrcScript + " -DBUILDPATH=\"" + RsrcFile + "\" -o " + Resource); err != nil {
 		return err
 	}
 
-	Loader := h.Compiler.BuildDirectory + "loader.bin"
-	LoaderObject := h.Compiler.BuildDirectory + "loader.asm.o"
+	Loader := h.Compiler.BuildDirectory + "/loader.bin"
+	LoaderObject := h.Compiler.BuildDirectory + "/loader.asm.o"
 
 	if err = h.RunCommand(h.Compiler.Objcopy + " -j .text -O binary " + LoaderObject + " " + Loader); err == nil {
 		if InjectConfig["LOADER"], err = os.ReadFile(Loader); err != nil {
@@ -216,7 +216,7 @@ func (h *HexaneConfig) GenerateLoader() error {
 		return err
 	}
 
-	InjectObject := h.Compiler.BuildDirectory + filepath.Base(InjectMethod) + ".o"
+	InjectObject := h.Compiler.BuildDirectory + "/" + filepath.Base(InjectMethod) + ".o"
 	LoaderComponents := GetLoaderComponents(h)
 	LoaderComponents = append(LoaderComponents, InjectObject)
 
@@ -225,12 +225,12 @@ func (h *HexaneConfig) GenerateLoader() error {
 		return err
 	}
 
-	LoaderObjects := h.Compiler.BuildDirectory + "loaders.cpp.o"
+	LoaderObjects := h.Compiler.BuildDirectory + "/loaders.cpp.o"
 	if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{LoadersCpp, InjectObject}, nil, h.Compiler.IncludeDirs, InjectConfig, LoaderObjects); err != nil {
 		return err
 	}
 
-	RsrcLoader := h.Compiler.BuildDirectory + h.ImplantName + h.Compiler.FileExtension
+	RsrcLoader := h.Compiler.BuildDirectory + "/" + h.ImplantName + h.Compiler.FileExtension
 
 	WrapMessage("INF", "generating dll rsrc loader")
 	if err = h.CompileObject(h.Compiler.Mingw, LoaderComponents, []string{"-shared"}, h.Compiler.IncludeDirs, InjectConfig, RsrcLoader); err != nil {
@@ -255,7 +255,7 @@ func (h *HexaneConfig) GenerateShellcode() error {
 	)
 
 	WrapMessage("INF", "generating shellcode")
-	if data, err = os.Open(h.Compiler.BuildDirectory + "interm.exe"); err != nil {
+	if data, err = os.Open(h.Compiler.BuildDirectory + "/interm.exe"); err != nil {
 		return err
 	}
 	defer data.Close()
@@ -275,7 +275,7 @@ func (h *HexaneConfig) GenerateShellcode() error {
 		return fmt.Errorf(" .text section was not found")
 	}
 
-	Shellcode := h.Compiler.BuildDirectory + "shellcode.bin"
+	Shellcode := h.Compiler.BuildDirectory + "/shellcode.bin"
 	outData := make([]byte, text.Size)
 
 	if _, err = data.ReadAt(outData, int64(text.Offset)); err != nil {
@@ -295,6 +295,7 @@ func (h *HexaneConfig) GenerateShellcode() error {
 		return err
 	}
 
+	WrapMessage("DBG", "shellcode generated at "+Shellcode)
 	return nil
 }
 
@@ -344,7 +345,7 @@ func (h *HexaneConfig) GenerateObjects() error {
 		}
 	}
 
-	Intermediate := h.Compiler.BuildDirectory + "interm.exe"
+	Intermediate := h.Compiler.BuildDirectory + "/interm.exe"
 	if err = h.CompileObject(h.Compiler.Linker+" -T "+Ld, h.Components, nil, h.Compiler.IncludeDirs, nil, Intermediate); err != nil {
 		return err
 	}
