@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -45,6 +47,27 @@ func WriteFile(name string, data []byte) error {
 		return err
 	}
 	return nil
+}
+
+func StdReader(Stdout, Stderr io.ReadCloser, logName string) {
+	var err error
+
+	if err = os.MkdirAll(Logs, os.ModePerm); err != nil {
+		WrapMessage("ERR", err.Error())
+	}
+
+	go func() {
+		merged := io.MultiReader(Stdout, Stderr)
+		scanner := bufio.NewScanner(merged)
+
+		for scanner.Scan() {
+			msg := scanner.Text()
+
+			if err = WriteFile(logName, []byte(msg)); err != nil {
+				WrapMessage("ERR", err.Error())
+			}
+		}
+	}()
 }
 
 func PrintBytes(buffer []byte) {

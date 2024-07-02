@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -50,14 +51,21 @@ func CallbackListener(cb chan Callback) {
 
 func main() {
 	var (
-		err     error
 		scanner *bufio.Scanner
+		ex      string
+		err     error
 	)
 
 	fmt.Println(banner)
 	go CallbackListener(cb)
 	defer close(cb)
 
+	if ex, err = os.Executable(); err != nil {
+		WrapMessage("ERR", "could not get executable path: "+err.Error())
+		return
+	}
+
+	cwd = filepath.Dir(ex)
 	scanner = bufio.NewScanner(os.Stdin)
 
 	for {
@@ -92,7 +100,7 @@ func main() {
 									continue
 
 								} else {
-									if err = ReadConfig(cwd, args[2]); err != nil {
+									if err = ReadConfig(args[2]); err != nil {
 										WrapMessage("ERR", fmt.Sprintf("implant load error: %s\n", err))
 									}
 									continue

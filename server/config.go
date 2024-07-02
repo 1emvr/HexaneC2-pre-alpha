@@ -16,7 +16,7 @@ const (
 	Fstat = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 
 	Logs        = "../logs/"
-	PayloadPath = "../build"
+	PayloadPath = "../payload"
 	StringsFile = "../configs/strings.txt"
 	HashHeader  = "../core/include/names.hpp"
 	RsrcScript  = "../loader/resource.rc"
@@ -65,12 +65,12 @@ func (h *HexaneConfig) CreateConfig(jsn JsonConfig) error {
 
 	h.Compiler.Debug = jsn.Config.Debug
 	h.Compiler.Arch = jsn.Config.Arch
-	h.Compiler.Mingw = "x86_64-w64-mingw32-g++.exe"
-	h.Compiler.Linker = "ld.exe"
-	h.Compiler.Objcopy = "objcopy.exe"
-	h.Compiler.RsrcCompiler = "windres.exe"
-	h.Compiler.Strip = "strip.exe"
-	h.Compiler.Assembler = "nasm.exe"
+	h.Compiler.Mingw = "x86_64-w64-mingw32-g++"
+	h.Compiler.Linker = "x86_64-w64-mingw32-ld"
+	h.Compiler.Objcopy = "x86_64-w64-mingw32-objcopy"
+	h.Compiler.RsrcCompiler = "x86_64-w64-mingw32-windres"
+	h.Compiler.Strip = "x86_64-w64-mingw32-strip"
+	h.Compiler.Assembler = "nasm"
 
 	h.Compiler.IncludeDirs = []string{
 		"../core/include",
@@ -114,7 +114,7 @@ func (h *HexaneConfig) CreateConfig(jsn JsonConfig) error {
 	return err
 }
 
-func ReadConfig(cwd string, file string) error {
+func ReadConfig(file string) error {
 	var (
 		h, peer *HexaneConfig
 		jsn     JsonConfig
@@ -125,7 +125,7 @@ func ReadConfig(cwd string, file string) error {
 	WrapMessage("INF", fmt.Sprintf("loading %s.json", file))
 	h = new(HexaneConfig)
 
-	if buf, err = os.ReadFile(cwd + "../configs/" + file + ".json"); err != nil {
+	if buf, err = os.ReadFile(cwd + "/../configs/" + file + ".json"); err != nil {
 		return err
 	}
 	if err = json.Unmarshal(buf, &jsn); err != nil {

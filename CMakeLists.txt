@@ -4,7 +4,7 @@ project(useful_modules)
 set(CMAKE_CXX_STANDARD 23)
 enable_language(ASM_NASM)
 
-set(SOURCE "/home/lemur/Github/HexaneC2")
+set(SOURCE "/home/kali/Github/HexaneC2")
 set(META "/usr/share/mingw-w64/include")
 
 include_directories(include ${SOURCE} ${META})

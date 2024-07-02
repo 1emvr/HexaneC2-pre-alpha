@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"debug/pe"
 	"fmt"
 	"os"
@@ -105,7 +104,7 @@ func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []
 
 	Command += fmt.Sprintf(" -o %s ", output)
 
-	if err = h.RunCommand(Command, PayloadPath); err != nil {
+	if err = h.RunCommand(Command); err != nil {
 		return err
 	}
 	return nil
@@ -202,14 +201,14 @@ func (h *HexaneConfig) GenerateLoader() error {
 	Resource := h.Compiler.BuildDirectory + "resource.res"
 	RsrcFile := "\\\"" + h.Compiler.BuildDirectory + "shellcode.bin" + "\\\""
 
-	if err = h.RunCommand(h.Compiler.RsrcCompiler+fmt.Sprintf(" -O coff %s -DBUILDPATH=\"%s\" -o %s", RsrcScript, RsrcFile, Resource), "."); err != nil {
+	if err = h.RunCommand(h.Compiler.RsrcCompiler + " -O coff " + RsrcScript + " -DBUILDPATH=\"" + RsrcFile + "\" -o " + Resource); err != nil {
 		return err
 	}
 
 	Loader := h.Compiler.BuildDirectory + "loader.bin"
 	LoaderObject := h.Compiler.BuildDirectory + "loader.asm.o"
 
-	if err = h.RunCommand(h.Compiler.Objcopy+fmt.Sprintf(" -j .text -O binary %s %s", LoaderObject, Loader), "."); err == nil {
+	if err = h.RunCommand(h.Compiler.Objcopy + " -j .text -O binary " + LoaderObject + " " + Loader); err == nil {
 		if InjectConfig["LOADER"], err = os.ReadFile(Loader); err != nil {
 			return err
 		}
@@ -239,7 +238,7 @@ func (h *HexaneConfig) GenerateLoader() error {
 	}
 
 	if !h.Compiler.Debug {
-		if err = h.RunCommand(h.Compiler.Strip+" "+RsrcLoader, cwd); err != nil {
+		if err = h.RunCommand(h.Compiler.Strip + " " + RsrcLoader); err != nil {
 			return err
 		}
 	}
@@ -325,18 +324,19 @@ func (h *HexaneConfig) GenerateObjects() error {
 				continue
 			}
 
-			FilePath := fmt.Sprintf("%s/%s ", dir, file.Name())
-			ObjFile := fmt.Sprintf(" %s/%s.o ", h.Compiler.BuildDirectory, file.Name())
+			FilePath := cwd + "/" + dir + file.Name()
+			ObjFile := cwd + "/" + h.Compiler.BuildDirectory + file.Name() + ".o"
 
 			if path.Ext(file.Name()) == ".cpp" {
-				if err = h.CompileObject(h.Compiler.Mingw + " -c ", []string{FilePath}, h.Compiler.Flags, []string{"../"}, RequiredMods, ObjFile); err != nil {
+				if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{FilePath}, h.Compiler.Flags, []string{"../"}, RequiredMods, ObjFile); err != nil {
 					return err
 				}
 			} else if path.Ext(file.Name()) == ".asm" {
-				if err = h.CompileObject(h.Compiler.Assembler + " -f win64 ", []string{FilePath}, nil, nil, nil, ObjFile); err != nil {
+				if err = h.CompileObject(h.Compiler.Assembler+" -f win64 ", []string{FilePath}, nil, nil, nil, ObjFile); err != nil {
 					return err
 				}
 			} else {
+				WrapMessage("DBG", "error building "+file.Name())
 				continue
 			}
 
@@ -345,42 +345,36 @@ func (h *HexaneConfig) GenerateObjects() error {
 	}
 
 	Intermediate := h.Compiler.BuildDirectory + "interm.exe"
-	if err = h.CompileObject(fmt.Sprintf("%s -T %s", h.Compiler.Linker, Ld), h.Components, nil, h.Compiler.IncludeDirs, nil, Intermediate); err != nil {
+	if err = h.CompileObject(h.Compiler.Linker+" -T "+Ld, h.Components, nil, h.Compiler.IncludeDirs, nil, Intermediate); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (h *HexaneConfig) RunCommand(cmd, cwd string) error {
+func (h *HexaneConfig) RunCommand(cmd string) error {
 	var (
-		Stdout, Stderr bytes.Buffer
-		Command        *exec.Cmd
-		err            error
+		Command *exec.Cmd
+		Log     *os.File
+		LogName string
+		err     error
 	)
 
-	fmt.Printf("running command: %s\n", cmd)
+	LogName = "../logs/" + strconv.Itoa(int(h.Implant.PeerId)) + "-build-error.log"
 
-	Command = exec.Command("cmd.exe", "/c", cmd)
-	Command.Stdout = &Stdout
-	Command.Stderr = &Stderr
-	Command.Dir = cwd
+	if Log, err = os.Create(LogName); err != nil {
+		return err
+	}
 
-	errLog := fmt.Sprintf("..\\logs\\%s-build.error.log", strconv.Itoa(int(h.Implant.PeerId)))
+	defer Log.Close()
+
+	Command = exec.Command("bash", "-c", "\""+cmd+"\"")
+	Command.Stdout = Log
+	Command.Stderr = Log
 
 	if err = Command.Run(); err != nil {
-		if err = os.MkdirAll(Logs, os.ModePerm); err != nil {
-			return err
-		}
-
-		if err = WriteFile(errLog, Stdout.Bytes()); err != nil {
-			return err
-		}
-		if err = WriteFile(errLog, Stderr.Bytes()); err != nil {
-			return err
-		}
-
-		return fmt.Errorf("compilation error. Check %s for details", errLog)
+		WrapMessage("ERR", err.Error())
+		return fmt.Errorf("compilation error. Check %s for details", LogName)
 	}
 
 	return nil
@@ -416,21 +410,6 @@ func (h *HexaneConfig) BuildUpdate() error {
 	if h.BuildType == "dll" {
 		if err = h.GenerateLoader(); err != nil {
 			return err
-		}
-	} else if h.BuildType == "exe" {
-
-		h.Components = []string{h.Compiler.BuildDirectory + "interm.exe"}
-		h.Components = append(h.Components, MainExe)
-
-		WrapMessage("INF", "generating exe")
-		if err = h.CompileObject(h.Compiler.Mingw, h.Components, nil, h.Compiler.IncludeDirs, nil, "C:\\Users\\lemur\\Desktop\\main.exe"); err != nil {
-			return err
-		}
-
-		if !h.Compiler.Debug {
-			if err = h.RunCommand(h.Compiler.Strip+" C:\\Users\\lemur\\Desktop\\main.exe", cwd); err != nil {
-				return err
-			}
 		}
 	}
 
