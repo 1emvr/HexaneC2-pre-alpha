@@ -1,12 +1,12 @@
 #include <core/include/core.hpp>
+using namespace Random;
 using namespace Memory;
 using namespace Message;
 using namespace Parser;
-using namespace Random;
 using namespace Xtea;
 
-TXT_SECTION(F) BYTE Config[512] = { 0x00 };
-TXT_SECTION(G) BYTE Strings[256] = { 0x00 };
+TXT_SECTION(F) BYTE Config[512]     = { };
+TXT_SECTION(G) BYTE Strings[256]    = { };
 
 namespace Core {
     VOID MainRoutine() {

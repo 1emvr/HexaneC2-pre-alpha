@@ -82,11 +82,13 @@ namespace Xtea {
     PBYTE *XteaDivide (byte *data, size_t cbData, size_t *cbOut) {
         HEXANE
 
-        size_t sectionSize = 8;
+
+        size_t sectionSize  = 8;
         size_t n = (cbData + sectionSize - 1) / sectionSize;
+
+        byte **sections = { };
         *cbOut = n;
 
-        PBYTE* sections = { };
         if (!(sections = (PBYTE*) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (n * sizeof(PBYTE))))) {
             return nullptr;
         }

@@ -1,6 +1,6 @@
 #include <core/include/utils.hpp>
-
 namespace Utils {
+
     ULONG64 GetTimeNow() {
         HEXANE
 
@@ -108,6 +108,7 @@ namespace Random {
                 Sleeptime -= Random;
             }
         }
+
         return Sleeptime;
     }
 
