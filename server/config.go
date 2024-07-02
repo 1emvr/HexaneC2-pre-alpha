@@ -27,11 +27,10 @@ const (
 )
 
 var RequiredMods = []string{
-	"iphlpapi",
-	"advapi32",
-	"winhttp",
 	"crypt32",
-	".reloc",
+	"winhttp",
+	"advapi32",
+	"iphlpapi",
 }
 
 func (h *HexaneConfig) CreateConfig(jsn JsonConfig) error {

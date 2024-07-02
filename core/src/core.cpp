@@ -46,8 +46,11 @@ namespace Core {
 
     VOID ResolveApi () {
         HEXANE
+        Ctx->LE = TRUE;
 
         PARSER Parser = { };
+
+        __debugbreak();
         CreateParser(&Parser, Strings, 256);
         x_memset(Strings, 0, 256);
 
@@ -255,8 +258,6 @@ namespace Core {
 
         PARSER Parser       = { };
         BYTE InitKey[16]    = { OBF_KEY };
-
-        Ctx->LE = TRUE;
 
         CreateParser(&Parser, Config, sizeof(Config));
         x_memset(Config, 0, 512);
