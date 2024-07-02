@@ -67,8 +67,8 @@ func (h *HexaneConfig) HandleCommand(Parser *Parser, Stream *Stream) {
 func ParseMessage(body []byte) ([]byte, error) {
 	var (
 		err     error
-		Offset  uint32
-		Parser  *Parser
+		offset  uint32
+		parser  *Parser
 		implant *HexaneConfig
 		stream  = new(Stream)
 	)
@@ -78,41 +78,40 @@ func ParseMessage(body []byte) ([]byte, error) {
 			break
 		}
 
-		Parser = CreateParser(body)
+		parser = CreateParser(body)
 
-		Parser.PeerId = bits.ReverseBytes32(Parser.ParseDword())
-		Parser.TaskId = bits.ReverseBytes32(Parser.ParseDword())
-		Parser.MsgType = bits.ReverseBytes32(Parser.ParseDword())
+		parser.PeerId = bits.ReverseBytes32(parser.ParseDword())
+		parser.TaskId = bits.ReverseBytes32(parser.ParseDword())
+		parser.MsgType = bits.ReverseBytes32(parser.ParseDword())
 
 		if len(body) >= HeaderLength+4 {
-
-			Offset = Parser.ParseDword()
-			Offset += HeaderLength + 4
+			offset = parser.ParseDword()
+			offset += HeaderLength + 4
 
 		} else {
-			Offset = HeaderLength
+			offset = HeaderLength
 		}
 
-		if Offset > uint32(len(body)) {
+		if offset > uint32(len(body)) {
 			break
 		}
 
-		if implant = GetConfigByPeerId(Parser.PeerId); implant != nil {
+		if implant = GetConfigByPeerId(parser.PeerId); implant != nil {
 
-			WrapMessage("DBG", fmt.Sprintf("found peer %d. Parsing message...", Parser.PeerId))
+			WrapMessage("DBG", fmt.Sprintf("found peer %d. Parsing message...", parser.PeerId))
 			implant.TaskCounter++
 
-			switch Parser.MsgType {
+			switch parser.MsgType {
 			case TypeCheckin:
 				{
 					WrapMessage("DBG", "incoming message is a checkin")
-					implant.HandleCheckin(Parser, stream)
+					implant.HandleCheckin(parser, stream)
 					break
 				}
 			case TypeTasking:
 				{
 					WrapMessage("DBG", "incoming message is a task request")
-					implant.HandleCommand(Parser, stream)
+					implant.HandleCommand(parser, stream)
 					break
 				}
 			case TypeResponse:
@@ -127,7 +126,7 @@ func ParseMessage(body []byte) ([]byte, error) {
 				}
 			default:
 				{
-					WrapMessage("ERR", fmt.Sprintf("unknown message type: 0x%X", Parser.MsgType))
+					WrapMessage("ERR", fmt.Sprintf("unknown message type: 0x%X", parser.MsgType))
 					stream.Buffer = []byte("200 ok")
 					break
 				}
@@ -137,9 +136,8 @@ func ParseMessage(body []byte) ([]byte, error) {
 			stream.Buffer = []byte("ok")
 		}
 
-		body = body[Offset:]
+		body = body[offset:]
 	}
 
-	fmt.Println("!! BREAK !!")
 	return stream.Buffer, err
 }
