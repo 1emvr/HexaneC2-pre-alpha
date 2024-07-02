@@ -158,7 +158,7 @@ namespace Message {
 #endif
             Stream::PackDword(Outbound, Ctx->Session.PeerId);
             Stream::PackDword(Outbound, Ctx->Session.CurrentTaskId);
-            Stream::PackByte(Outbound, TypeTasking);
+            Stream::PackDword(Outbound, TypeTasking);
 
         } else {
 
@@ -175,7 +175,7 @@ namespace Message {
 
                     Stream::PackDword(Outbound, Head->PeerId);
                     Stream::PackDword(Outbound, Head->TaskId);
-                    Stream::PackByte(Outbound, Head->MsgType);
+                    Stream::PackDword(Outbound, Head->MsgType);
 
                     if (Ctx->Root) {
                         Stream::PackBytes(Outbound, B_PTR(Head->Buffer), Head->Length);
@@ -188,6 +188,7 @@ namespace Message {
                     }
 
                     Head->Ready = TRUE;
+
                 } else {
                     return_defer(ERROR_NO_DATA);
                 }

@@ -93,7 +93,7 @@ func ParseMessage(body []byte) ([]byte, error) {
 		Parser.MsgType = Parser.ParseDword()
 		Length := Parser.ParseDword()
 
-		fmt.Println("parsing buffer")
+		fmt.Printf("parsing buffer of %d\n", Length)
 
 		if implant = GetConfigByPeerId(Parser.PeerId); implant != nil {
 
