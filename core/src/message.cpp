@@ -129,26 +129,28 @@ namespace Message {
 #else
             return_defer(ERROR_SUCCESS);
 #endif
+        } else {
+
+            Head = Ctx->Transport.OutboundQueue;
+            while (Head) {
+                if ((Head->Length + Outbound->Length) > MESSAGE_MAX) {
+                    break;
+                }
+
+                if (Head->Buffer) {
+                    PackBytes(Outbound, B_PTR(Head->Buffer), Head->Length);
+
+                    Outbound->Length += Head->Length;
+                    Head->Ready = TRUE;
+                }
+                else {
+                    return_defer(ERROR_NO_DATA);
+                }
+
+                Head = Head->Next;
+            }
         }
-        Head = Ctx->Transport.OutboundQueue;
 
-        while (Head) {
-            if ((Head->Length + Outbound->Length) > MESSAGE_MAX) {
-                break;
-            }
-
-            if (Head->Buffer) {
-                PackBytes(Outbound, B_PTR(Head->Buffer), Head->Length);
-
-                Outbound->Length += Head->Length;
-                Head->Ready = TRUE;
-            }
-            else {
-                return_defer(ERROR_NO_DATA);
-            }
-
-            Head = Head->Next;
-        }
 
 #ifdef TRANSPORT_HTTP
         HttpCallback(Outbound, &Inbound);

