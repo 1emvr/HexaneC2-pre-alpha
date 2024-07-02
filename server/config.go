@@ -26,13 +26,6 @@ const (
 	Ld          = "../implant/linker.implant.ld"
 )
 
-var RequiredMods = []string{
-	"crypt32",
-	"winhttp",
-	"advapi32",
-	"iphlpapi",
-}
-
 func (h *HexaneConfig) CreateConfig(jsn JsonConfig) error {
 	var err error
 
@@ -217,7 +210,6 @@ func (h *HexaneConfig) PePatchConfig() ([]byte, error) {
 		return nil, err
 	}
 
-	hStream.AddBytes(h.Key)
 	hStream.AddString(h.Implant.Hostname)
 	hStream.AddString(h.Implant.Domain)
 	hStream.AddWString(h.Implant.IngressPipe)

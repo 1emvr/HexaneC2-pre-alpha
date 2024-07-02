@@ -172,7 +172,7 @@ func (h *HexaneConfig) GenerateConfig() error {
 		return err
 	}
 
-	if Xtea, err = CryptXtea(Patch, h.Key, true); err != nil {
+	if Xtea, err = CryptXtea(Patch[16:], h.Key, true); err != nil {
 		return err
 	}
 
@@ -420,6 +420,13 @@ func (h *HexaneConfig) GenerateObjects() error {
 	)
 
 	WrapMessage("DBG", "generating core object files")
+	var RequiredMods = []string{
+		string(h.Key),
+		"crypt32",
+		"winhttp",
+		"advapi32",
+		"iphlpapi",
+	}
 
 	for _, dir = range h.Compiler.ComponentDirs {
 		if files, err = os.ReadDir(dir); err != nil {
