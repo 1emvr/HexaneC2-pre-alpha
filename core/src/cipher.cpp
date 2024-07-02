@@ -32,11 +32,8 @@ namespace Xtea {
 
         for (uint32_t i = 0; i < ARRAY_LEN(key); i++) {
             uint32_t j = i << 2;
-            key[i] =
-                U32(m_key[j+0]) << 24 |
-                U32(m_key[j+1]) << 16 |
-                U32(m_key[j+2]) << 8  |
-                U32(m_key[j+3]);
+
+            key[i] = U32(m_key[j+0]) << 24 | U32(m_key[j+1]) << 16 | U32(m_key[j+2]) << 8  | U32(m_key[j+3]);
         }
 
         for (uint32_t i = 0; i < NROUNDS;) {
@@ -82,19 +79,18 @@ namespace Xtea {
     PBYTE *XteaDivide (byte *data, size_t cbData, size_t *cbOut) {
         HEXANE
 
-
         size_t sectionSize  = 8;
         size_t n = (cbData + sectionSize - 1) / sectionSize;
 
         byte **sections = { };
         *cbOut = n;
 
-        if (!(sections = (PBYTE*) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (n * sizeof(PBYTE))))) {
+        if (!(sections = (byte**) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (n * sizeof(PBYTE))))) {
             return nullptr;
         }
 
         for (size_t i = 0; i < n; i++) {
-            if (!(sections[i] = (PBYTE) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sectionSize))) {
+            if (!(sections[i] = (byte*) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sectionSize))) {
 
                 for (size_t j = 0; j < i; j++) {
                     Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, sections[j]);
@@ -105,9 +101,7 @@ namespace Xtea {
             }
 
             size_t end = (i + 1) * sectionSize;
-            size_t copySize = (end > cbData)
-                              ? cbData - i * sectionSize
-                              : sectionSize;
+            size_t copySize = (end > cbData) ? cbData - i * sectionSize : sectionSize;
 
             x_memcpy(sections[i], data + i * sectionSize, copySize);
 
@@ -133,6 +127,7 @@ namespace Xtea {
         if (!key) {
             key = Ctx->Config.Key;
         }
+
         if (!(cx = (CipherTxt*) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(CipherTxt)))) {
             return;
         }

@@ -16,7 +16,6 @@ set(INCLUDE_FILES
         core/include/process.hpp
         core/include/cruntime.hpp
         core/include/network.hpp
-        core/include/hash.hpp
         core/include/utils.hpp
         core/include/opsec.hpp
         core/include/names.hpp
@@ -33,7 +32,6 @@ set(MAIN_FILES
         core/src/memory.cpp
         core/src/cruntime.cpp
         core/src/network.cpp
-        core/src/hash.cpp
         core/src/utils.cpp
         core/src/opsec.cpp
         core/src/core.cpp
