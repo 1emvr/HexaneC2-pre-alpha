@@ -156,9 +156,9 @@ namespace Message {
 #ifdef TRANSPORT_SMB
             return_defer(ERROR_SUCCESS);
 #endif
-            Stream::PackDword(Outbound, __builtin_bswap32(Ctx->Session.PeerId));
-            Stream::PackDword(Outbound, __builtin_bswap32(Ctx->Session.CurrentTaskId));
-            Stream::PackDword(Outbound, __builtin_bswap32(TypeTasking));
+            Stream::PackDword(Outbound, __bswapd(Ctx->Session.PeerId));
+            Stream::PackDword(Outbound, __bswapd(Ctx->Session.CurrentTaskId));
+            Stream::PackDword(Outbound, __bswapd(TypeTasking));
 
         } else {
 

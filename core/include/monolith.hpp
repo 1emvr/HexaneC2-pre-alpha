@@ -23,8 +23,6 @@
 #define FUNCTION                                TXT_SECTION(B)
 #define CFG_SECTION 							TXT_SECTION(F)
 #define CMD_SIGNATURE(x) 						(CmdSignature)(x)
-#define __builtin_bswap32(x)					__bswapd(x)
-#define __builtin_bswap64(x)					__bswapq(x)
 
 #define S_PTR(x)                                ((LPSTR)(x))
 #define W_PTR(x)								((LPWSTR)(x))
