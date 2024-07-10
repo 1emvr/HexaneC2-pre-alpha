@@ -48,13 +48,16 @@ func WriteFile(name string, data []byte) error {
 	return nil
 }
 
-func PrintBytes(buffer []byte) {
+func DbgPrintBytes(tag string, buffer []byte) string {
+	var str string
 
+	str = fmt.Sprintf(tag + " ")
 	for i := range buffer {
-		fmt.Printf("%x ", buffer[i])
+		str += fmt.Sprintf("%x ", buffer[i])
 	}
-	fmt.Println()
-	fmt.Println()
+
+	str += fmt.Sprintf("\n")
+	return str
 }
 
 func GeneratePeerId() uint32 {

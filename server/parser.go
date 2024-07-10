@@ -17,15 +17,15 @@ var CommandMap = map[string]uint32{
 
 var TableMap = map[uint32]TableHeaders{
 	TypeCheckin: {
-		Headers: []string{"pid", "host", "domain", "username", "ipconfig"},
+		Headers: []string{"PeerId", "Hostname", "Domain", "Username", "Interfaces"},
 		Values:  make([]string, 5),
 	},
 	CommandDir: {
-		Headers: []string{"directory", "size", "creation date", "creation time", "name"},
-		Values:  make([]string, 5),
+		Headers: []string{"Mode", "Length", "LastWriteTime", "Name"},
+		Values:  make([]string, 4),
 	},
 	CommandMods: {
-		Headers: []string{"module", "base address"},
+		Headers: []string{"ModName", "BaseAddress"},
 		Values:  make([]string, 2),
 	},
 }
@@ -150,12 +150,14 @@ func (p *Parser) ParseBytes() []byte {
 	var buffer []byte
 
 	if p.Length >= 4 {
+
 		size := p.ParseDword()
+		fmt.Printf("length of bytes: %d\n", size)
 
 		if size != 0 {
 			buffer = make([]byte, size)
-
 			copy(buffer, p.Buffer[:size])
+
 			p.Length -= size
 
 			if p.Length == 0 {
@@ -187,8 +189,6 @@ func (p *Parser) ParserPrintData(TypeId uint32) bool {
 	if TypeId == TypeCheckin {
 		if tMap, ok = TableMap[TypeCheckin]; ok {
 
-			WrapMessage("INF", "======== CHECKIN ========")
-
 			tMap.Values[0] = strconv.Itoa(int(p.PeerId))
 			tMap.Values[1] = p.ParseString()
 			tMap.Values[2] = p.ParseString()
@@ -198,39 +198,48 @@ func (p *Parser) ParserPrintData(TypeId uint32) bool {
 	}
 
 	if TypeId == TypeTasking {
-
 		CmdId := p.ParseDword()
+
 		if CmdId == CommandDir {
+			fmt.Println("================ CommandDir ================")
+
 			if tMap, ok = TableMap[CommandDir]; ok {
 
-				WrapMessage("INF", "======== DIRECTORY ========")
+				for p.Length != 0 {
+					IsDir := p.ParseBool()
 
-				IsDir := strconv.FormatBool(p.ParseBool())
-				if IsDir == "true" {
-					tMap.Values[0] = "dir"
-					tMap.Values[1] = "n/a"
-				} else {
-					tMap.Values[0] = ""
-					tMap.Values[1] = strconv.Itoa(int(p.ParseDword64()))
+					if IsDir == true {
+						fmt.Println("entry is a directory...")
+						tMap.Values[0] = "dir"
+						tMap.Values[1] = "n/a"
+
+					} else {
+						fmt.Println("entry is a file. parsing size...")
+						tMap.Values[0] = ""
+						tMap.Values[1] = strconv.Itoa(int(p.ParseDword64()))
+						fmt.Printf("file size: %s\n", tMap.Values[1])
+					}
+
+					Day := p.ParseDword()
+					Month := p.ParseDword()
+					Year := p.ParseDword()
+
+					Second := p.ParseDword()
+					Minute := p.ParseDword()
+					Hour := p.ParseDword()
+
+					tMap.Values[2] = fmt.Sprintf("%d/%d/%d %d:%d:%d", Day, Month, Year, Hour, Minute, Second)
+
+					fmt.Println(tMap.Values[2])
+
+					tMap.Values[3] = p.ParseString()
+					fmt.Printf("name: %s\n", tMap.Values[3])
 				}
-
-				Day := p.ParseDword()
-				Month := p.ParseDword()
-				Year := p.ParseDword()
-				tMap.Values[2] = fmt.Sprintf("%02d/%02d/%d", Day, Month, Year)
-
-				Hour := p.ParseDword()
-				Minute := p.ParseDword()
-				Second := p.ParseDword()
-				tMap.Values[3] = fmt.Sprintf("%02d:%02d:%d", Hour, Minute, Second)
-				tMap.Values[4] = p.ParseString()
 			}
 		}
 
 		if CmdId == CommandMods {
 			if tMap, ok = TableMap[CommandMods]; ok {
-
-				WrapMessage("INF", "======== MODULES ========")
 
 				tMap.Values[0] = p.ParseString()
 				tMap.Values[1] = fmt.Sprintf("0x%X", p.ParseDword64())
@@ -254,21 +263,27 @@ func ParseTable(tmap TableHeaders) bool {
 
 	headersInterface := make([]interface{}, len(hdrs))
 	for i, header := range hdrs {
+		fmt.Printf("creating interface for header \"%s\"\n", header)
 		headersInterface[i] = header
 	}
 
 	valuesInterface := make([]interface{}, len(vals))
 	for i, val := range vals {
+		fmt.Printf("creating interface for value \"%s\"\n", val)
 		valuesInterface[i] = val
 	}
 
+	fmt.Println("creating new table")
 	tbl := table.New(headersInterface...)
 	format := color.New(color.FgCyan).SprintfFunc()
 
+	fmt.Println("setting table formatter")
 	tbl.WithHeaderFormatter(format)
+	fmt.Printf("adding row %s\n", valuesInterface)
 	tbl.AddRow(valuesInterface...)
 
 	fmt.Println()
+	fmt.Println("printing...")
 	tbl.Print()
 	fmt.Println()
 

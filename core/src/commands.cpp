@@ -94,7 +94,7 @@ namespace Commands {
         Stream::PackDword(Outbound, CommandMods);
 
         if (
-            !(Pid       = Process::GetProcessIdByName(S_PTR(Parser->Handle))) ||
+            !(Pid       = Process::GetProcessIdByName(Parser::UnpackString(Parser, nullptr))) ||
             !(Process   = Process::NtOpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, Pid))) {
             return_defer(ERROR_PROCESS_IS_PROTECTED);
         }
@@ -112,7 +112,8 @@ namespace Commands {
 
                 if (
                     !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(Process, CONTAINING_RECORD(Entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &cMod, sizeof(LDR_DATA_TABLE_ENTRY), nullptr)) ||
-                    !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(Process, cMod.FullDllName.Buffer, &ModNameW, cMod.FullDllName.Length, &size)) || size != cMod.FullDllName.Length) {
+                    !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(Process, cMod.FullDllName.Buffer, &ModNameW, cMod.FullDllName.Length, &size)) ||
+                    size != cMod.FullDllName.Length) {
                     return_defer(ntstatus);
                 }
 

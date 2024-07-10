@@ -38,7 +38,6 @@ func (m *Parser) DispatchCommand(s *Stream, UserInput string) {
 
 func (s *Stream) CreateHeader(Parser *Parser, msgType uint32, taskId uint32) {
 
-	WrapMessage("DBG", "Creating response header")
 	s.AddDword(Parser.PeerId)
 	s.AddDword(taskId)
 	s.AddDword(msgType)
@@ -70,7 +69,7 @@ func (h *HexaneConfig) HandleCommand(Parser *Parser, Stream *Stream) {
 	defer h.mu.Unlock()
 
 	Stream.CreateHeader(Parser, TypeTasking, uint32(h.TaskCounter))
-	Parser.DispatchCommand(Stream, "dir C:/Users/lemur") // user command interface
+	Parser.DispatchCommand(Stream, "mods flameshot.exe") // user command interface
 }
 
 func ParseMessage(body []byte) ([]byte, error) {
