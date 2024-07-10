@@ -28,7 +28,6 @@ func (m *Parser) DispatchCommand(s *Stream, UserInput string) {
 			break
 		}
 		if strings.EqualFold(k, Command) {
-			fmt.Printf("command to send is %s\n", k)
 			CommandType = v
 		}
 	}
