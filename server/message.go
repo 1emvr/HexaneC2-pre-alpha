@@ -54,6 +54,16 @@ func (h *HexaneConfig) HandleCheckin(Parser *Parser, Stream *Stream) {
 	}
 }
 
+func (h *HexaneConfig) HandleResponse(Parser *Parser, Stream *Stream) {
+
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	if Parser.ParserPrintData(TypeTasking) {
+		Stream.CreateHeader(Parser, TypeCheckin, uint32(h.TaskCounter))
+	}
+}
+
 func (h *HexaneConfig) HandleCommand(Parser *Parser, Stream *Stream) {
 
 	h.mu.Lock()
@@ -116,6 +126,8 @@ func ParseMessage(body []byte) ([]byte, error) {
 			case TypeResponse:
 				{
 					WrapMessage("DBG", "incoming message is a response with data")
+					implant.HandleResponse(parser, stream)
+					break
 					// print response
 				}
 			case TypeSegment:
