@@ -16,7 +16,6 @@ namespace Stream {
 	FUNCTION VOID PackByte (PSTREAM stream, BYTE data);
 	FUNCTION VOID PackDword64(PSTREAM stream, ULONG64 data);
 	FUNCTION VOID PackDword(PSTREAM stream, ULONG data);
-	FUNCTION VOID PackBool(PSTREAM stream, BOOL data);
 	FUNCTION VOID PackBytes(PSTREAM stream, PBYTE data, SIZE_T size);
 	FUNCTION VOID PackPointer(PSTREAM stream, PVOID pointer);
 	FUNCTION VOID PackString(PSTREAM stream, PCHAR data);

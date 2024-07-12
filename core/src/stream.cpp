@@ -112,18 +112,6 @@ namespace Stream {
         }
     }
 
-    VOID PackBool (PSTREAM stream, BOOL data) {
-
-        HEXANE
-
-        if (stream) {
-            stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(BOOL));
-
-            PackDword(stream, data ? TRUE : FALSE);
-            stream->Length += sizeof(BOOL);
-        }
-    }
-
     VOID PackBytes (PSTREAM stream, PBYTE data, SIZE_T size) {
 
         HEXANE
