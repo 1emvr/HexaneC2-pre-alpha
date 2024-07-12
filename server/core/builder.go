@@ -342,8 +342,7 @@ func (h *HexaneConfig) GenerateLoader() error {
 	}
 
 	if !h.Compiler.Debug {
-		if err = RunCommand(h.Compiler.Strip + " " + RsrcLoader); err != nil {
-			LogName = "../logs/" + strconv.Itoa(int(h.Implant.PeerId)) + "-build-error.log"
+		if err = h.RunCommand(h.Compiler.Strip + " " + RsrcLoader); err != nil {
 			return err
 		}
 	}
