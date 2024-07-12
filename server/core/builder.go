@@ -229,6 +229,7 @@ func (h *HexaneConfig) EmbedConfigStrings(path string, targetSection string, str
 		file   *os.File
 		peFile *pe.File
 		stream Stream
+		section *pe.Section
 		data   []byte
 		err    error
 	)
@@ -247,23 +248,22 @@ func (h *HexaneConfig) EmbedConfigStrings(path string, targetSection string, str
 	}
 	defer peFile.Close()
 
-	var Section *pe.Section
 	for _, s := range peFile.Sections {
 		if s.Name == targetSection {
-			Section = s
+			section = s
 			break
 		}
 	}
 
-	if Section == nil {
+	if section == nil {
 		return fmt.Errorf("section %s not found", targetSection)
 	}
 
-	if uint32(stream.Length) > Section.Size {
+	if uint32(stream.Length) > section.Size {
 		return fmt.Errorf("section %s is not large enough", targetSection)
 	}
 
-	if data, err = Section.Data(); err != nil {
+	if data, err = section.Data(); err != nil {
 		return err
 	}
 
@@ -271,7 +271,7 @@ func (h *HexaneConfig) EmbedConfigStrings(path string, targetSection string, str
 	copy(newSection, data)
 	copy(newSection, stream.Buffer)
 
-	if _, err = file.Seek(int64(Section.Offset), os.SEEK_SET); err != nil {
+	if _, err = file.Seek(int64(section.Offset), os.SEEK_SET); err != nil {
 		return err
 	}
 
@@ -279,6 +279,57 @@ func (h *HexaneConfig) EmbedConfigStrings(path string, targetSection string, str
 		return err
 	}
 
+	return nil
+}
+
+func (h *HexaneConfig) GenerateShellcode(encrypt bool) error {
+	var (
+		data   	*os.File
+		peFile 	*pe.File
+		section *pe.Section
+		err    	error
+	)
+
+	WrapMessage("INF", "generating shellcode")
+	if data, err = os.Open(h.Compiler.BuildDirectory + "/interm.exe"); err != nil {
+		return err
+	}
+	defer data.Close()
+
+	if peFile, err = pe.NewFile(data); err != nil {
+		return err
+	}
+
+	for _, s := range peFile.Sections {
+		if s.Name == ".text" {
+			section = s
+			break
+		}
+	}
+
+	if section == nil {
+		return fmt.Errorf(" .text section was not found")
+	}
+
+	Shellcode := h.Compiler.BuildDirectory + "/shellcode.bin"
+	outData := make([]byte, section.Size)
+
+	if _, err = data.ReadAt(outData, int64(section.Offset)); err != nil {
+		return err
+	}
+
+	if encrypt {
+		h.Key = CryptCreateKey(16)
+		if outData, err = CryptXtea(outData, h.Key, true); err != nil {
+			return err
+		}
+	}
+
+	if err = WriteFile(Shellcode, outData); err != nil {
+		return err
+	}
+
+	WrapMessage("DBG", "shellcode generated at "+Shellcode)
 	return nil
 }
 
@@ -347,59 +398,6 @@ func (h *HexaneConfig) GenerateLoader() error {
 		}
 	}
 
-	return nil
-}
-
-func (h *HexaneConfig) GenerateShellcode() error {
-	var (
-		data   *os.File
-		peFile *pe.File
-		text   *pe.Section
-		err    error
-	)
-
-	WrapMessage("INF", "generating shellcode")
-	if data, err = os.Open(h.Compiler.BuildDirectory + "/interm.exe"); err != nil {
-		return err
-	}
-	defer data.Close()
-
-	if peFile, err = pe.NewFile(data); err != nil {
-		return err
-	}
-
-	for _, section := range peFile.Sections {
-		if section.Name == ".text" {
-			text = section
-			break
-		}
-	}
-
-	if text == nil {
-		return fmt.Errorf(" .text section was not found")
-	}
-
-	Shellcode := h.Compiler.BuildDirectory + "/shellcode.bin"
-	outData := make([]byte, text.Size)
-
-	if _, err = data.ReadAt(outData, int64(text.Offset)); err != nil {
-		return err
-	}
-
-	if h.BuildType == "dll" {
-		WrapMessage("INF", "encrypting shellcode with XTEA")
-
-		h.Key = CryptCreateKey(16)
-		if outData, err = CryptXtea(outData, h.Key, true); err != nil {
-			return err
-		}
-	}
-
-	if err = WriteFile(Shellcode, outData); err != nil {
-		return err
-	}
-
-	WrapMessage("DBG", "shellcode generated at "+Shellcode)
 	return nil
 }
 
