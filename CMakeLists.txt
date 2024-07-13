@@ -43,7 +43,7 @@ set(MAIN_FILES
         core/src/stream.cpp
         core/src/commands.cpp
         implant/MainExe.cpp
-        loader/loaders.cpp
-        loader/DllMain.cpp
+        loader/ldrcore.cpp
+        loader/dllmain.cpp
 )
 add_executable(useful_modules ${INCLUDE_FILES} ${MAIN_FILES})

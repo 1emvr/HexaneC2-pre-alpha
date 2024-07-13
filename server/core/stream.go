@@ -62,7 +62,7 @@ func CreateStream() *Stream {
 	return stream
 }
 
-func (s *Stream) AddDword64(data int64) {
+func (s *Stream) PackDword64(data int64) {
 	var buffer = make([]byte, 8)
 
 	binary.LittleEndian.PutUint64(buffer, uint64(data))
@@ -71,7 +71,7 @@ func (s *Stream) AddDword64(data int64) {
 	s.Length += 8
 }
 
-func (s *Stream) AddDword(data uint32) {
+func (s *Stream) PackDword(data uint32) {
 	var buffer = make([]byte, 4)
 
 	binary.LittleEndian.PutUint32(buffer, data)
@@ -80,7 +80,7 @@ func (s *Stream) AddDword(data uint32) {
 	s.Length += 4
 }
 
-func (s *Stream) AddInt32(data int32) {
+func (s *Stream) PackInt32(data int32) {
 	var buffer = make([]byte, 4)
 
 	binary.LittleEndian.PutUint32(buffer, uint32(data))
@@ -89,7 +89,7 @@ func (s *Stream) AddInt32(data int32) {
 	s.Length += 4
 }
 
-func (s *Stream) AddBytes(data []byte) {
+func (s *Stream) PackBytes(data []byte) {
 	var buffer = make([]byte, 4)
 
 	binary.LittleEndian.PutUint32(buffer, uint32(len(data)))
@@ -101,10 +101,10 @@ func (s *Stream) AddBytes(data []byte) {
 	s.Length += len(data)
 }
 
-func (s *Stream) AddString(data string) {
-	s.AddBytes(EncodeUTF8(data))
+func (s *Stream) PackString(data string) {
+	s.PackBytes(EncodeUTF8(data))
 }
 
-func (s *Stream) AddWString(data string) {
-	s.AddBytes(EncodeUTF16(data))
+func (s *Stream) PackWString(data string) {
+	s.PackBytes(EncodeUTF16(data))
 }

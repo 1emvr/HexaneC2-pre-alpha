@@ -62,6 +62,11 @@ type Injection struct {
 	Threadpool *Threadpool
 }
 
+type InjectConfig struct {
+	InjectConfig map[string][]byte
+	InjectMethod string
+}
+
 type Proxy struct {
 	Enabled bool
 	Address string
@@ -129,20 +134,20 @@ type ServerConfig struct {
 }
 
 type CompilerConfig struct {
-	Debug          bool
-	Arch           string
-	Mingw          string
-	Linker         string
-	Objcopy        string
-	Assembler      string
-	RsrcCompiler   string
-	Strip          string
-	FileExtension  string
-	BuildDirectory string
-	IncludeDirs    []string
-	ComponentDirs  []string
-	Flags          []string
-	Definitions    map[string][]byte
+	Debug          	bool
+	Arch           	string
+	Mingw          	string
+	Linker         	string
+	Objcopy        	string
+	Assembler      	string
+	Windres   		string
+	Strip          	string
+	FileExtension  	string
+	BuildDirectory 	string
+	IncludeDirs    	[]string
+	ComponentDirs  	[]string
+	Flags          	[]string
+	Definitions    	map[string][]byte
 }
 
 type HexaneConfig struct {

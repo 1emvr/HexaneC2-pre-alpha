@@ -57,7 +57,7 @@ namespace Core {
         x_memcpy(&Ctx->Root, &Root, 4);
 
         Parser::CreateParser(&Parser, Strings, sizeof(Strings));
-        Parser::ParserMemcpy(&Parser, &Ctx->Config.Key);
+        Parser::ParserStrcpy(&Parser, (LPSTR*)&Ctx->Config.Key);
 
         x_memset(Strings, 0, sizeof(Strings));
 

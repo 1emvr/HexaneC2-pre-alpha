@@ -31,25 +31,16 @@ var (
 	Ld          = RootDirectory + "implant/linker.implant.ld"
 )
 
-func (h *HexaneConfig) GetEmbededStrings() []string {
-	var EmbededStrings = []string{
-		string(h.Key),
-	}
+func (h *HexaneConfig) GetEmbededStrings() []byte {
+	var stream = new(Stream)
+
+	stream.PackString(string(h.Key))
 
 	for _, str := range StringsList {
-		EmbededStrings = append(EmbededStrings, str)
+		stream.PackString(str)
 	}
 
-	return EmbededStrings
-}
-
-func (h *HexaneConfig) GetLoaderComponents() []string {
-	return []string{
-		LoaderDll,
-		h.Compiler.BuildDirectory + "/loader.asm.o",
-		h.Compiler.BuildDirectory + "/loaders.cpp.o",
-		h.Compiler.BuildDirectory + "/resource.res",
-	}
+	return stream.Buffer
 }
 
 func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
@@ -87,7 +78,7 @@ func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
 	h.Compiler.Mingw = "/usr/bin/x86_64-w64-mingw32-g++"
 	h.Compiler.Linker = "/usr/bin/x86_64-w64-mingw32-ld"
 	h.Compiler.Objcopy = "/usr/bin/x86_64-w64-mingw32-objcopy"
-	h.Compiler.RsrcCompiler = "/usr/bin/x86_64-w64-mingw32-windres"
+	h.Compiler.Windres = "/usr/bin/x86_64-w64-mingw32-windres"
 	h.Compiler.Strip = "/usr/bin/x86_64-w64-mingw32-strip"
 	h.Compiler.Assembler = "/usr/bin/nasm"
 
