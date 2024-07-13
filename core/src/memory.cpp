@@ -13,6 +13,8 @@ namespace Memory {
             auto Mod = MODULE_ENTRY(Next);
             auto Name = MODULE_NAME(Mod);
 
+            x_memset(wcsName, 0, MAX_PATH);
+
             for (auto i = 0; i < x_wcslen(Name); i ++) {
                 wcsName[i] = x_toLowerW(Name[i]);
             }
@@ -47,6 +49,8 @@ namespace Memory {
 
             for (ULONG i = 0; i < Exports->NumberOfNames; i++) {
                 auto Name = RVA(LPSTR, Base, (long) Names[i]);
+
+                x_memset(mbsName, 0, MAX_PATH);
 
                 for (auto i = 0; i < x_strlen(Name); i++) {
                    mbsName[i] = x_toLowerA(Name[i]);

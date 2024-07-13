@@ -86,7 +86,6 @@ func GenerateHashes(stringsFile string, outFile string) error {
 		strFile  *os.File
 	)
 
-	fmt.Println("opening strings file: ", stringsFile)
 	if strFile, err = os.Open(stringsFile); err != nil {
 		return err
 	}
@@ -97,7 +96,6 @@ func GenerateHashes(stringsFile string, outFile string) error {
 		}
 	}()
 
-	fmt.Println("opening hash file: ", outFile)
 	if hashFile, err = os.OpenFile(outFile, FstatWrite, 0644); err != nil {
 		return err
 	}
@@ -117,12 +115,10 @@ func GenerateHashes(stringsFile string, outFile string) error {
 		}
 	}()
 
-	fmt.Println("reading scanner...")
 	for scanner.Scan() {
 		line := scanner.Text()
 		hash := GetHashFromString(line)
 
-		fmt.Println("writing hash: ", hash)
 		if _, err = writer.WriteString(hash + "\n"); err != nil {
 			return err
 		}

