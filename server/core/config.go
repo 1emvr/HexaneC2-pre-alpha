@@ -25,7 +25,7 @@ var (
 	StringsFile = RootDirectory + "configs/strings.txt"
 	HashHeader  = RootDirectory + "core/include/names.hpp"
 	RsrcScript  = RootDirectory + "loader/resource.rc"
-	LoadersCpp  = RootDirectory + "loader/loaders.cpp"
+	LoadersCpp  = RootDirectory + "loader/ldrcore.cpp"
 	LoaderDll   = RootDirectory + "loader/DllMain.cpp"
 	MainExe     = RootDirectory + "core/implant/MainExe.cpp"
 	Ld          = RootDirectory + "implant/linker.implant.ld"

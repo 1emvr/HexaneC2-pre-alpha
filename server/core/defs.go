@@ -47,10 +47,10 @@ type Config struct {
 }
 
 type Threadless struct {
-	ProcName   string
-	ModuleName string
-	FuncName   string
-	LdrExecute string
+	ProcName   	string
+	ModuleName 	string
+	FuncName   	string
+	Execute 	string
 }
 
 type Threadpool struct {
@@ -65,6 +65,7 @@ type Injection struct {
 type InjectConfig struct {
 	InjectConfig map[string][]byte
 	InjectMethod string
+	InjectObject string
 }
 
 type Proxy struct {

