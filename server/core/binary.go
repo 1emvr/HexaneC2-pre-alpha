@@ -1,7 +1,6 @@
 package core
 
 import (
-	"bufio"
 	"debug/pe"
 	"fmt"
 	"os"
@@ -16,11 +15,13 @@ func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, d
 		err    		error
 	)
 
+	fmt.Println("open readFile")
 	if readFile, err = os.Open(readPath); err != nil {
 		return err
 	}
 	defer readFile.Close()
 
+	fmt.Println("pe.NewFile")
 	if peFile, err = pe.NewFile(readFile); err != nil {
 		return err
 	}
@@ -28,6 +29,7 @@ func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, d
 
 	for _, s := range peFile.Sections {
 		if s.Name == targetSection {
+			fmt.Println("found section")
 			section = s
 			break
 		}
@@ -41,22 +43,26 @@ func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, d
 		return fmt.Errorf("section %s is not large enough", targetSection)
 	}
 
+	fmt.Println("read section data")
 	if secData, err = section.Data(); err != nil {
 		return err
 	}
 
+	fmt.Println("copy section data")
 	newSection := make([]byte, len(data))
 	copy(newSection, secData)
 	copy(newSection, data)
 
+	fmt.Println("readFile.Seek")
 	if _, err = readFile.Seek(int64(section.Offset), os.SEEK_SET); err != nil {
 		return err
 	}
 
+	fmt.Println("readFile.Write")
 	if _, err = readFile.Write(newSection); err != nil {
 		return err
 	}
-
+	fmt.Println("exit")
 	return nil
 }
 
@@ -101,49 +107,6 @@ func (h *HexaneConfig) CopySectionData(readPath string, outPath string, targetSe
 	return nil
 }
 
-func GenerateHashes(stringsFile string, outFile string) error {
-	var (
-		err      error
-		hashFile *os.File
-		strFile  *os.File
-	)
-
-	if strFile, err = os.Open(stringsFile); err != nil {
-		return err
-	}
-
-	defer strFile.Close()
-
-	if hashFile, err = os.Create(outFile); err != nil {
-		return err
-	}
-
-	scanner := bufio.NewScanner(strFile)
-	writer := bufio.NewWriter(hashFile)
-	names := make([]string, 0)
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		names = append(names, line)
-	}
-
-	hashes := make([]string, 0)
-	for _, str := range names {
-		hashes = append(hashes, GetHashFromString(str))
-	}
-
-	for _, hash := range hashes {
-		if _, err = writer.WriteString(hash + "\n"); err != nil {
-			return err
-		}
-	}
-
-	if err = writer.Flush(); err != nil {
-		return err
-	}
-
-	return nil
-}
 
 func (h *HexaneConfig) GetEmbededStrings(strList []string) []byte {
 	var stream = new(Stream)

@@ -9,26 +9,6 @@ import (
 	"strings"
 )
 
-var ModuleStrings = []string{
-	"crypt32",
-	"winhttp",
-	"advapi32",
-	"iphlpapi",
-}
-
-var (
-	ConfigsPath 	= RootDirectory + "/configs"
-	CorePath 		= RootDirectory + "/core"
-	ImplantPath 	= RootDirectory + "/implant"
-	InjectPath 		= RootDirectory + "/inject"
-	LoaderPath 		= RootDirectory + "/loader"
-	LogsPath 		= RootDirectory + "/logs"
-	ModsPath 		= RootDirectory + "/mods"
-	PayloadPath 	= RootDirectory + "/payload"
-
-)
-var Fstat = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
-
 var (
 	Debug    bool
 	Cb       = make(chan Callback)
@@ -39,6 +19,31 @@ var (
 		Admin:    true,
 	}
 )
+
+var (
+	ConfigsPath 	= RootDirectory + "/configs/"
+	CorePath 		= RootDirectory + "/core/"
+	ImplantPath 	= RootDirectory + "/implant/"
+	InjectPath 		= RootDirectory + "/inject/"
+	LoaderPath 		= RootDirectory + "/loader/"
+	LogsPath 		= RootDirectory + "/logs/"
+	ModsPath 		= RootDirectory + "/mods/"
+	PayloadPath 	= RootDirectory + "/payload/"
+	IncludePath 	= CorePath + "/include/"
+
+)
+
+var (
+	FstatCreate = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+	FstatWrite = os.O_WRONLY | os.O_APPEND
+)
+
+var ModuleStrings = []string{
+	"crypt32",
+	"winhttp",
+	"advapi32",
+	"iphlpapi",
+}
 
 func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
 	var err error

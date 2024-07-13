@@ -175,6 +175,10 @@ wchar_t x_toLowerW (wchar_t c) {
     return c > 0x40 && c < 0x5B ? c | 0x60 : c;
 }
 
+char x_toLowerA(char c) {
+    return c >= 0x41 && c <= 0x5A ? c | 0x20 : c;
+}
+
 size_t x_mbstowcs (wchar_t *dst, char *src, size_t size) {
 
     int count = (int)size;

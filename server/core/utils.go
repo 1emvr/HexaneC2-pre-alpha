@@ -55,7 +55,7 @@ func WriteFile(name string, data []byte) error {
 		outFile *os.File
 	)
 
-	if outFile, err = os.OpenFile(name, Fstat, 0644); err != nil {
+	if outFile, err = os.OpenFile(name, FstatCreate, 0644); err != nil {
 		return err
 	}
 	defer outFile.Close()

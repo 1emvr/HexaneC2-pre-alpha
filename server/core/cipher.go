@@ -40,23 +40,16 @@ func GetHashFromString(str string) string {
 	)
 
 	hash := sum32
+	name := strings.ToLower(str)
 
 	for i := 0; i < len(str); i++ {
-		hash ^= uint32(str[i])
+		hash ^= uint32(name[i])
 		hash *= prime32
 	}
 
-	name := strings.TrimRight(str, "\n")
+	trim := strings.TrimRight(str, "\n")
 
-	if name == "KERNEL32.DLL" {
-		name = "KERNEL10"
-	} else if name == "KERNEL32.dll" {
-		name = "KERNEL7"
-	} else {
-		name = str
-	}
-
-	return fmt.Sprintf("#define %s 0x%x", strings.ToUpper(strings.Split(name, ".")[0]), hash)
+	return fmt.Sprintf("#define %s 0x%x", strings.ToUpper(strings.Split(trim, ".")[0]), hash)
 }
 
 func NewCipher(key []byte) (*Cipher, error) {

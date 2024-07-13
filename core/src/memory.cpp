@@ -4,6 +4,8 @@ namespace Memory {
     HMODULE LdrGetModuleAddress(ULONG Hash) {
 
         HMODULE Base = {};
+        WCHAR wcsName[MAX_PATH];
+
         auto Head = IN_MEMORY_ORDER_MODULE_LIST;
         auto Next = Head->Flink;
 
@@ -11,8 +13,12 @@ namespace Memory {
             auto Mod = MODULE_ENTRY(Next);
             auto Name = MODULE_NAME(Mod);
 
+            for (auto i = 0; i < x_wcslen(Name); i ++) {
+                wcsName[i] = x_toLowerW(Name[i]);
+            }
+
             if (Name) {
-                if (Hash - Utils::GetHashFromStringW(Name, x_wcslen(Name)) == 0) {
+                if (Hash - Utils::GetHashFromStringW(wcsName, x_wcslen(wcsName)) == 0) {
                     Base = (HMODULE)Mod->BaseAddress;
                 }
             }
@@ -24,6 +30,7 @@ namespace Memory {
     FARPROC LdrGetSymbolAddress(HMODULE Base, ULONG Hash) {
 
         FARPROC Export = {};
+        CHAR mbsName[MAX_PATH];
 
         if (!Base) {
             return nullptr;
@@ -41,7 +48,11 @@ namespace Memory {
             for (ULONG i = 0; i < Exports->NumberOfNames; i++) {
                 auto Name = RVA(LPSTR, Base, (long) Names[i]);
 
-                if (Hash - Utils::GetHashFromStringA(Name, x_strlen(Name)) == 0) {
+                for (auto i = 0; i < x_strlen(Name); i++) {
+                   mbsName[i] = x_toLowerA(Name[i]);
+                }
+
+                if (Hash - Utils::GetHashFromStringA(mbsName, x_strlen(Name)) == 0) {
                     Export = (FARPROC)RVA(PULONG, Base, (long) Fns[Ords[i]]);
                 }
             }

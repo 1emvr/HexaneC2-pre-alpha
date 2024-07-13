@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
@@ -13,8 +14,9 @@ var (
 	LinkerLoader 	= LoaderPath + "/linker.loader.ld"
 	LinkerImplant 	= ImplantPath + "/linker.implant.ld"
 	HashStrings 	= ConfigsPath + "/strings.txt"
-	DllMain   		= LoaderPath + "dllmain.cpp"
+	DllMain   		= LoaderPath + "/dllmain.cpp"
 	RsrcScript  	= LoaderPath + "/resource.rc"
+	HashHedaer 		= IncludePath + "/names.hpp"
 )
 
 func (h *HexaneConfig) RunBuild() error {
@@ -75,6 +77,62 @@ func (h *HexaneConfig) CreateDefinitions(defs map[string][]byte) string {
 		}
 	}
 	return list
+}
+
+func GenerateHashes(stringsFile string, outFile string) error {
+	var (
+		err      error
+		hashFile *os.File
+		strFile  *os.File
+	)
+
+	fmt.Println("opening strings file: ", stringsFile)
+	if strFile, err = os.Open(stringsFile); err != nil {
+		return err
+	}
+
+	defer func() {
+		if err = strFile.Close(); err != nil {
+			WrapMessage("ERR", err.Error())
+		}
+	}()
+
+	fmt.Println("opening hash file: ", outFile)
+	if hashFile, err = os.OpenFile(outFile, FstatWrite, 0644); err != nil {
+		return err
+	}
+
+	defer func() {
+		if err = hashFile.Close(); err != nil {
+			WrapMessage("ERR", err.Error())
+		}
+	}()
+
+	scanner := bufio.NewScanner(strFile)
+	writer := bufio.NewWriter(hashFile)
+
+	defer func() {
+		if err = writer.Flush(); err != nil {
+			WrapMessage("ERR", err.Error())
+		}
+	}()
+
+	fmt.Println("reading scanner...")
+	for scanner.Scan() {
+		line := scanner.Text()
+		hash := GetHashFromString(line)
+
+		fmt.Println("writing hash: ", hash)
+		if _, err = writer.WriteString(hash + "\n"); err != nil {
+			return err
+		}
+	}
+
+	if err = scanner.Err(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []string, output string) error {
@@ -188,6 +246,7 @@ func (h *HexaneConfig) GenerateObjects() error {
 		err   error
 	)
 
+	WrapMessage("DBG", "generating strings config")
 	var embedStrings = h.GetEmbededStrings(ModuleStrings)
 
 	for _, dir = range h.Compiler.ComponentDirs {
@@ -200,8 +259,8 @@ func (h *HexaneConfig) GenerateObjects() error {
 				continue
 			}
 
-			FilePath := RootDirectory + dir + "/" + file.Name()
-			ObjFile := RootDirectory + h.Compiler.BuildDirectory + "/" + file.Name() + ".o"
+			FilePath := dir + "/" + file.Name()
+			ObjFile := h.Compiler.BuildDirectory + "/" + file.Name() + ".o"
 
 			if path.Ext(file.Name()) == ".cpp" {
 				if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{FilePath}, h.Compiler.Flags, []string{RootDirectory}, ObjFile); err != nil {
@@ -250,7 +309,7 @@ func (h *HexaneConfig) RunCommand(cmd string) error {
 		err     error
 	)
 
-	WrapMessage("DBG", fmt.Sprintf("running command: %s", cmd))
+	WrapMessage("DBG", fmt.Sprintf("running command: %s\n", cmd))
 	LogName = LogsPath + strconv.Itoa(int(h.Implant.PeerId)) + "-build-error.log"
 
 	if Log, err = os.Create(LogName); err != nil {
@@ -286,8 +345,7 @@ func (h *HexaneConfig) BuildUpdate() error {
 	}
 
 	WrapMessage("INF", "generating hashes")
-	if err = GenerateHashes(RootDirectory + HashStrings, RootDirectory + "/src/include/names.hpp"); err != nil {
-
+	if err = GenerateHashes(HashStrings, HashHedaer); err != nil {
 		return err
 	}
 

@@ -55,8 +55,6 @@ func Execute() {
 		core.Debug = true
 		core.WrapMessage("INF", "launching in debug mode")
 
-	} else {
-		core.WrapMessage("ERR", fmt.Sprintf("unknown flag '%s'", os.Args[1]))
 	}
 
 	if err = rootCmd.ParseFlags(os.Args[1:]); err != nil {
