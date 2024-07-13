@@ -57,6 +57,10 @@ namespace Core {
 
         x_memset(Strings, 0, sizeof(Strings));
 
+        /*
+         ntdll.dll
+
+         */
         if (!(FPTR2(Ctx->Nt.RtlGetVersion, NTDLL, RTLGETVERSION))) {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
