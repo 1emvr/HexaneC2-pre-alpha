@@ -16,7 +16,7 @@ func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, d
 	)
 
 	fmt.Println("open readFile")
-	if readFile, err = os.Open(readPath); err != nil {
+	if readFile, err = os.OpenFile(readPath, FstatWrite, 0644); err != nil {
 		return err
 	}
 	defer readFile.Close()
