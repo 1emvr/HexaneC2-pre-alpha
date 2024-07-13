@@ -15,13 +15,11 @@ func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, d
 		err    		error
 	)
 
-	fmt.Println("open readFile")
 	if readFile, err = os.OpenFile(readPath, FstatWrite, 0644); err != nil {
 		return err
 	}
 	defer readFile.Close()
 
-	fmt.Println("pe.NewFile")
 	if peFile, err = pe.NewFile(readFile); err != nil {
 		return err
 	}
@@ -29,7 +27,6 @@ func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, d
 
 	for _, s := range peFile.Sections {
 		if s.Name == targetSection {
-			fmt.Println("found section")
 			section = s
 			break
 		}
@@ -43,26 +40,22 @@ func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, d
 		return fmt.Errorf("section %s is not large enough", targetSection)
 	}
 
-	fmt.Println("read section data")
 	if secData, err = section.Data(); err != nil {
 		return err
 	}
 
-	fmt.Println("copy section data")
 	newSection := make([]byte, len(data))
 	copy(newSection, secData)
 	copy(newSection, data)
 
-	fmt.Println("readFile.Seek")
 	if _, err = readFile.Seek(int64(section.Offset), os.SEEK_SET); err != nil {
 		return err
 	}
 
-	fmt.Println("readFile.Write")
 	if _, err = readFile.Write(newSection); err != nil {
 		return err
 	}
-	fmt.Println("exit")
+
 	return nil
 }
 
