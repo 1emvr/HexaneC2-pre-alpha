@@ -63,9 +63,9 @@ type Injection struct {
 }
 
 type InjectConfig struct {
-	InjectConfig map[string][]byte
-	InjectMethod string
-	InjectObject string
+	InjectConfig 	[]byte
+	ExecuteObj 		string
+	Strings 		[]string
 }
 
 type Proxy struct {

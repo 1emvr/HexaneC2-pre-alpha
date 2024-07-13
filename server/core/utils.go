@@ -3,7 +3,6 @@ package core
 import (
 	"errors"
 	"fmt"
-	"hexane_server/cmd"
 	"math/bits"
 	"math/rand"
 	"os"
@@ -19,7 +18,7 @@ var Characters = "abcdef0123456789"
 var RootDirectory = GetCwd() + "/../"
 
 func WrapMessage(typ, msg string) {
-	cmd.Cb <- Callback{MsgType: typ, Msg: msg}
+	Cb <- Callback{MsgType: typ, Msg: msg}
 }
 
 func GeneratePeerId() uint32 {

@@ -2,11 +2,7 @@ package core
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"github.com/gin-gonic/gin"
-	"github.com/rodaine/table"
-	"hexane_server/cmd"
-	"strings"
 )
 
 func (h *HexaneConfig) AddServer(engine *gin.Engine, profile *HttpConfig) {
@@ -50,7 +46,7 @@ func AddConfig(h *HexaneConfig) {
 			Sleeptime:     h.Implant.Sleeptime,
 			Jitter:        h.Implant.Jitter,
 			Killdate:      h.Implant.Killdate,
-			bProxy:        h.Implant.bProxy,
+			ProxyBool:     h.Implant.ProxyBool,
 		},
 		Proxy: &ProxyConfig{
 			Address:  h.Proxy.Address,
@@ -64,8 +60,8 @@ func AddConfig(h *HexaneConfig) {
 			FileExtension: h.Compiler.FileExtension,
 		},
 		UserSession: &HexaneSession{
-			username: h.UserSession.username,
-			admin:    h.UserSession.admin,
+			Username: h.UserSession.Username,
+			Admin:    h.UserSession.Admin,
 		},
 	}
 
@@ -74,37 +70,6 @@ func AddConfig(h *HexaneConfig) {
 	}
 
 	Payloads.Head = c
-}
-
-func RemoveImplantByName(name string) error {
-
-	var Prev *HexaneConfig
-	var Head = Payloads.Head
-
-	for Head != nil {
-		if strings.EqualFold(Head.ImplantName, name) {
-
-			if Head.Next == nil {
-				if Head.Server != nil && Head.Server.SigTerm != nil {
-					Head.Server.SigTerm <- true
-				} else {
-					WrapMessage("WRN", "A server/channel was not found for this implant. Implant will still be removed")
-				}
-			}
-			if Prev == nil {
-				Payloads.Head = Head.Next
-			} else {
-				Prev.Next = Head.Next
-			}
-			break
-
-		}
-		Prev = Head
-		Head = Head.Next
-	}
-
-	WrapMessage("INF", "implant removed")
-	return nil
 }
 
 func GetImplantByName(name string) *HexaneConfig {
@@ -149,7 +114,7 @@ func GetConfigByPeerId(pid uint32) *HexaneConfig {
 }
 
 func GetGIDByPeerName(name string) int {
-	var Head = cmd.Payloads.Head
+	var Head = Payloads.Head
 
 	for Head != nil {
 		WrapMessage("DBG", fmt.Sprintf("checking %s against %s", name, Head.ImplantName))
@@ -176,52 +141,4 @@ func GetPeerNameByGID(gid int) *HexaneConfig {
 
 	WrapMessage("ERR", "requested config was not found by name")
 	return nil
-}
-
-func CallbackList() {
-	var (
-		address,
-		domain,
-		profile,
-		proxy string
-	)
-
-	var Head = Payloads.Head
-
-	hFmt := color.New(color.FgCyan).SprintfFunc()
-	tbl := table.New("gid", "pid", "name", "debug", "type", "address", "hostname", "domain", "proxy", "user", "active")
-
-	tbl.WithHeaderFormatter(hFmt)
-
-	if Head == nil {
-		WrapMessage("INF", "no active implants available")
-		return
-
-	} else {
-		fmt.Print(`
-			-- IMPLANTS -- 
-`)
-		for Head != nil {
-			if Head.Implant.ProfileTypeId == TRANSPORT_HTTP {
-
-				address = fmt.Sprintf("%s:%d", Head.Implant.Profile.(*HttpConfig).Address, Head.Implant.Profile.(*HttpConfig).Port)
-				profile = "http"
-
-				if Head.Implant.bProxy {
-					proxy = fmt.Sprintf("%s%s:%s", Head.Proxy.Proto, Head.Proxy.Address, Head.Proxy.Port)
-				} else {
-					proxy = "null"
-				}
-				if Head.Implant.Domain != "" {
-					domain = Head.Implant.Domain
-				} else {
-					domain = "null"
-				}
-			}
-			tbl.AddRow(Head.GroupId, Head.Implant.PeerId, Head.ImplantName, Head.Compiler.Debug, profile, address, Head.Implant.Hostname, domain, proxy, Head.UserSession.username, Head.Active)
-			Head = Head.Next
-		}
-	}
-	tbl.Print()
-	fmt.Println()
 }

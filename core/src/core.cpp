@@ -50,14 +50,10 @@ namespace Core {
         ULONG Kernel32              = { };
         OSVERSIONINFOW OSVersionW   = { };
 
-        BOOL Root = TRUE;
-        BOOL Little = TRUE;
-
-        x_memcpy(&Ctx->LE, &Little, 4);
-        x_memcpy(&Ctx->Root, &Root, 4);
-
         Parser::CreateParser(&Parser, Strings, sizeof(Strings));
         Parser::ParserStrcpy(&Parser, (LPSTR*)&Ctx->Config.Key);
+        Parser::ParserMemcpy(&Parser, (PBYTE*)&Ctx->Root);
+        Parser::ParserMemcpy(&Parser, (PBYTE*)&Ctx->LE);
 
         x_memset(Strings, 0, sizeof(Strings));
 

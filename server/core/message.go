@@ -32,21 +32,21 @@ func (m *Parser) DispatchCommand(s *Stream, UserInput string) {
 		}
 	}
 
-	s.AddDword(CommandType)
-	s.AddString(Args)
+	s.PackDword(CommandType)
+	s.PackString(Args)
 }
 
 func (s *Stream) CreateHeader(Parser *Parser, msgType uint32, taskId uint32) {
 
-	s.AddDword(Parser.PeerId)
-	s.AddDword(taskId)
-	s.AddDword(msgType)
+	s.PackDword(Parser.PeerId)
+	s.PackDword(taskId)
+	s.PackDword(msgType)
 }
 
 func (h *HexaneConfig) HandleCheckin(Parser *Parser, Stream *Stream) {
 
-	h.mu.Lock()
-	defer h.mu.Unlock()
+	h.Mu.Lock()
+	defer h.Mu.Unlock()
 
 	if Parser.ParserPrintData(TypeCheckin) {
 		Stream.CreateHeader(Parser, TypeCheckin, uint32(h.TaskCounter))
@@ -55,8 +55,8 @@ func (h *HexaneConfig) HandleCheckin(Parser *Parser, Stream *Stream) {
 
 func (h *HexaneConfig) HandleResponse(Parser *Parser, Stream *Stream) {
 
-	h.mu.Lock()
-	defer h.mu.Unlock()
+	h.Mu.Lock()
+	defer h.Mu.Unlock()
 
 	if Parser.ParserPrintData(TypeTasking) {
 		Stream.CreateHeader(Parser, TypeCheckin, uint32(h.TaskCounter))
@@ -65,8 +65,8 @@ func (h *HexaneConfig) HandleResponse(Parser *Parser, Stream *Stream) {
 
 func (h *HexaneConfig) HandleCommand(Parser *Parser, Stream *Stream) {
 
-	h.mu.Lock()
-	defer h.mu.Unlock()
+	h.Mu.Lock()
+	defer h.Mu.Unlock()
 
 	Stream.CreateHeader(Parser, TypeTasking, uint32(h.TaskCounter))
 	Parser.DispatchCommand(Stream, "mods flameshot.exe") // user command interface

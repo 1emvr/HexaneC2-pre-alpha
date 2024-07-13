@@ -221,6 +221,13 @@ typedef struct {
 
 
 typedef struct {
+    LPVOID  ResLock;
+    HGLOBAL hGlobal;
+    SIZE_T  Size;
+} RSRC, *ORSRC;
+
+
+typedef struct {
 	LPWSTR  Useragent;
 	LPWSTR  Method;
 	LPWSTR	Address;

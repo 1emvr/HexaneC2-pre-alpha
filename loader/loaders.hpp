@@ -1,15 +1,11 @@
 #ifndef HEXANE_LOADERS_HPP
 #define HEXANE_LOADERS_HPP
 #include <core/include/monolith.hpp>
+#include <core/include/cipher.hpp>
 #include <core/include/names.hpp>
+#include <core/include/utils.hpp>
+#include <core/include/core.hpp>
 #include <loader/resource.hpp>
-
-BYTE Opcode[5]   = { 0xE8, 0x00, 0x00, 0x00, 0x00 };
-BYTE Export[24]   = { FUNC };
-BYTE Parent[24]   = { PARENT };
-BYTE Module[24]   = { MODULE };
-BYTE Loader[24]   = { LOADER };
-BYTE m_key[16]    = { OBF_KEY };
 
 EXTERN_C VOID Execute();
 
@@ -22,11 +18,6 @@ EXTERN_C VOID Execute();
 #define MS_PER_SECOND	1000
 #define INTERVAL(x) 	(x % 21)
 
-typedef struct {
-    LPVOID  ResLock;
-    HGLOBAL hGlobal;
-    SIZE_T  Size;
-} RSRC, *ORSRC;
 
 struct u32Block {
     uint32_t v0;

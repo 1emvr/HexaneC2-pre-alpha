@@ -42,7 +42,7 @@ set(MAIN_FILES
         core/src/cipher.cpp
         core/src/stream.cpp
         core/src/commands.cpp
-        implant/MainExe.cpp
+        implant/mainexe.cpp
         loader/ldrcore.cpp
         loader/dllmain.cpp
 )

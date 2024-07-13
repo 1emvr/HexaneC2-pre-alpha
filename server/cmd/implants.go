@@ -74,7 +74,7 @@ func InteractImplant(name string) error {
 func RemoveImplantByName(name string) error {
 	var (
 		Prev *core.HexaneConfig
-		Head = Payloads.Head
+		Head = core.Payloads.Head
 	)
 
 	for Head != nil {
@@ -90,7 +90,7 @@ func RemoveImplantByName(name string) error {
 			}
 
 			if Prev == nil {
-				Payloads.Head = Head.Next
+				core.Payloads.Head = Head.Next
 			} else {
 				Prev.Next = Head.Next
 			}
@@ -108,11 +108,11 @@ func RemoveImplantByName(name string) error {
 
 func ListImplants() error {
 	var (
+		Head = core.Payloads.Head
 		address string
 		domain 	string
 		profile	string
 		proxy 	string
-		Head = Payloads.Head
 	)
 
 	formatter := color.New(color.FgCyan).SprintfFunc()

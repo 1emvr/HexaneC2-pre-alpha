@@ -1,8 +1,5 @@
 LINK_BASE = 0x0000;
 ENTRY(Start)
-MEMORY {
-    m_writable (rw) : ORIGIN = ., LENGTH = 0xFFFFFFFF
-}
 SECTIONS {
     . = LINK_BASE;
 
@@ -17,8 +14,7 @@ SECTIONS {
         __InstanceOffset = .;
 
         *(.global);
-        *(.text$E);
-        *(.text$F);
+        *(.text$G);
     }
 
     .eh_frame : {

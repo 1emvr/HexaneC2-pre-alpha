@@ -145,3 +145,23 @@ func GenerateHashes(stringsFile string, outFile string) error {
 	return nil
 }
 
+func (h *HexaneConfig) GetEmbededStrings(strList []string) []byte {
+	var stream = new(Stream)
+
+	stream.PackString(string(h.Key))
+
+	if h.Implant.ProfileTypeId == TRANSPORT_HTTP {
+		stream.PackDword(1)
+	} else if h.Implant.ProfileTypeId == TRANSPORT_PIPE {
+		stream.PackDword(0)
+	}
+
+	stream.PackDword(1) // Ctx->LE == TRUE
+
+	for _, str := range strList {
+		stream.PackString(str)
+	}
+
+	return stream.Buffer
+}
+
