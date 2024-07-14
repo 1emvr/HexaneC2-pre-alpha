@@ -3,6 +3,10 @@
 TXT_SECTION(F) BYTE Config[512]     = { };
 TXT_SECTION(G) BYTE Strings[256]    = { };
 
+// todo: make config separate translation unit and compile core as static lib
+// todo: test smb pipeline and message streaming/parsing
+// todo: fix builder script
+
 namespace Core {
 
     VOID MainRoutine() {

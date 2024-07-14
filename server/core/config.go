@@ -36,6 +36,7 @@ var (
 var (
 	FstatCreate = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 	FstatWrite = os.O_WRONLY | os.O_APPEND
+	FstatRW = os.O_RDWR | os.O_APPEND
 )
 
 var ModuleStrings = []string{

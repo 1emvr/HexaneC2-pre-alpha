@@ -4,7 +4,7 @@
   "Config": {
     "Arch": "amd64",
     "Debug": false,
-    "BuildType": "bin",
+    "BuildType": "dll",
     "Hostname": "LENOVO-WRKSTN-L",
     "Sleeptime": 3,
     "Jitter": 24

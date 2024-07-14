@@ -305,9 +305,7 @@ func (h *HexaneConfig) RunCommand(cmd string) error {
 		err     error
 	)
 
-	WrapMessage("DBG", fmt.Sprintf("running command: %s\n", cmd))
 	LogName = LogsPath + strconv.Itoa(int(h.Implant.PeerId)) + "-build-error.log"
-
 	if Log, err = os.Create(LogName); err != nil {
 		return err
 	}
