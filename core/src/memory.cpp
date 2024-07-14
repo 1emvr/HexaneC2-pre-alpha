@@ -31,7 +31,7 @@ namespace Memory {
 
     FARPROC LdrGetSymbolAddress(HMODULE Base, ULONG Hash) {
 
-        FARPROC Export = {};
+        FARPROC Export = { };
         CHAR mbsName[MAX_PATH];
 
         if (!Base) {

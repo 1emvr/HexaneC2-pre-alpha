@@ -5,9 +5,9 @@
 
 namespace Parser {
 
-    FUNCTION VOID ParserStrcpy(PPARSER Parser, LPSTR *Dst);
-    FUNCTION VOID ParserWcscpy(PPARSER Parser, LPWSTR *Dst);
-    FUNCTION VOID ParserMemcpy(PPARSER Parser, PBYTE *Dst);
+    FUNCTION VOID ParserStrcpy(PPARSER Parser, LPSTR *Dst, ULONG *cbOut);
+    FUNCTION VOID ParserWcscpy(PPARSER Parser, LPWSTR *Dst, ULONG *cbOut);
+    FUNCTION VOID ParserMemcpy(PPARSER Parser, PBYTE *Dst, ULONG *cbOut);
     FUNCTION VOID CreateParser(PPARSER Parser, PBYTE buffer, ULONG size);
     FUNCTION VOID DestroyParser(PPARSER Parser);
     FUNCTION BYTE UnpackByte(PPARSER parser);

@@ -1,14 +1,14 @@
 #include <core/include/monolith.hpp>
-#include <loader/loaders.hpp>
+#include <core/include/context.hpp>
+using namespace Memory;
 
-using namespace Loaders::Memory;
-using namespace Loaders::Injection;
+EXTERN_C VOID Start();
 
 DLL_EXPORT BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID reserved) {
 
     switch(reason) {
         case DLL_PROCESS_ATTACH:
-            CreateThread(nullptr, 0, ROUTINE(Threadless), module, 0, nullptr);
+            CreateThread(nullptr, 0, ROUTINE(Start), nullptr, 0, nullptr);
             break;
         case DLL_THREAD_ATTACH:
         case DLL_THREAD_DETACH:

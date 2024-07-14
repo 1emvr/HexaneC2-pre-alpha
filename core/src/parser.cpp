@@ -1,39 +1,45 @@
 #include <core/include/parser.hpp>
 namespace Parser {
 
-    VOID ParserStrcpy(PPARSER Parser, LPSTR *Dst) {
+    VOID ParserStrcpy(PPARSER Parser, LPSTR *Dst, ULONG *cbOut) {
         HEXANE
 
         ULONG Length  = 0;
         LPSTR Buffer  = UnpackString(Parser, &Length);
 
         if (Length) {
+            *cbOut = Length;
+
             if ((*Dst = (LPSTR)Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length))) {
                 x_memcpy(*Dst, Buffer, Length);
             }
         }
     }
 
-    VOID ParserWcscpy(PPARSER Parser, LPWSTR *Dst) {
+    VOID ParserWcscpy(PPARSER Parser, LPWSTR *Dst, ULONG *cbOut) {
         HEXANE
 
         ULONG Length  = 0;
         LPWSTR Buffer  = UnpackWString(Parser, &Length);
 
         if (Length) {
+            *cbOut = Length;
+
             if ((*Dst = (LPWSTR)Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (Length * sizeof(WCHAR)) + sizeof(WCHAR)))) {
                 x_memcpy(*Dst, Buffer, Length * sizeof(WCHAR));
             }
         }
     }
 
-    VOID ParserMemcpy(PPARSER Parser, PBYTE *Dst) {
+    VOID ParserMemcpy(PPARSER Parser, PBYTE *Dst, ULONG *cbOut) {
         HEXANE
 
         ULONG Length = 0;
         PBYTE Buffer = UnpackBytes(Parser, &Length);
 
         if (Length) {
+            *cbOut = Length;
+
             if ((*Dst = (PBYTE) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length))) {
                 x_memcpy(*Dst, Buffer, Length);
             }

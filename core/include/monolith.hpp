@@ -28,7 +28,9 @@
 #define W_PTR(x)								((LPWSTR)(x))
 #define B_PTR(x)     							((PBYTE)(x))
 #define C_PTR(x)                               	((LPVOID)(x))
-#define C_PPTR(x) 								((LPVOID*)(x))
+#define CP_PTR(x) 								((LPVOID*)(x))
+#define LP_BPTR(x)								((PBYTE*)(x))
+#define LP_SPTR(x)								((LPSTR*)(x))
 #define U_PTR(x)                               	((UINT_PTR)(x))
 #define C_DREF(x) 								(*(LPVOID*)(x))
 #define ROUTINE(x)                               ((LPTHREAD_START_ROUTINE)(x))
@@ -215,10 +217,14 @@ typedef struct {
 
 
 typedef struct {
+	LPSTR 	Buffer;
+	ULONG 	Length;
+} ABUFFER, *PABUFFER;
+
+typedef struct {
 	LPWSTR 	Buffer;
 	ULONG 	Length;
-} BUFFER, *PBUFFER;
-
+} WBUFFER, *PWBUFFER;
 
 typedef struct {
     LPVOID  ResLock;

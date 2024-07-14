@@ -7,7 +7,7 @@
     push    r9
     push    r10
     push    r11
-    mov     rcx, 0xDEADBEEFDEADBEEF
+    mov     rcx, 0xBAADF00DBAADF00D
     mov     [rax], rcx
     sub     rsp, 0x40
     call    Payload

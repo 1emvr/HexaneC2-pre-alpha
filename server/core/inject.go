@@ -49,8 +49,8 @@ func (h *HexaneConfig) GetInjectConfig() (*InjectConfig, error) {
 			h.Implant.Injection.Threadless.ProcName,
 			h.Implant.Injection.Threadless.ModuleName,
 			h.Implant.Injection.Threadless.FuncName,
-			string(loader),
 			string(opcode),
+			string(loader),
 		}
 	} else if h.Implant.Injection.Threadpool != nil {
 		// TP

@@ -22,6 +22,7 @@ set(INCLUDE_FILES
         core/include/message.hpp
         core/include/stream.hpp
         core/include/parser.hpp
+        inject/inject.hpp
 )
 set(MAIN_FILES
         mods/src/EnumDotNetProcesses.cpp
@@ -42,8 +43,9 @@ set(MAIN_FILES
         core/src/cipher.cpp
         core/src/stream.cpp
         core/src/commands.cpp
-        implant/mainexe.cpp
-        loader/ldrcore.cpp
+        loader/mainexe.cpp
         loader/dllmain.cpp
+        inject/inject.cpp
+        inject/threadless/OpenFileExecute.cpp
 )
 add_executable(useful_modules ${INCLUDE_FILES} ${MAIN_FILES})
