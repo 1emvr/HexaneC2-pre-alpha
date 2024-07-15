@@ -16,7 +16,8 @@
 #define INTERNET_FLAG_IGNORE_CERT_DATE_INVALID		0x00002000
 #define ERROR_HTTP_HEADER_NOT_FOUND			(INTERNET_ERROR_BASE + 150)
 
-#include <core/include/monolith.hpp>
+#include <monolith.hpp>
+#include <core/include/corelib.hpp>
 #include <core/include/cruntime.hpp>
 #include <core/include/utils.hpp>
 

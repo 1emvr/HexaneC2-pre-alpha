@@ -1,6 +1,7 @@
 #ifndef HEXANE_OPSEC_HPP
 #define HEXANE_OPSEC_HPP
-#include <core/include/monolith.hpp>
+#include <monolith.hpp>
+#include <core/include/corelib.hpp>
 #include <core/include/commands.hpp>
 #include <core/include/utils.hpp>
 

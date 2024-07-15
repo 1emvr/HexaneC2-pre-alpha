@@ -1,7 +1,7 @@
 global Start
 global InstStart
 global InstEnd
-extern ContextInit
+extern Entrypoint
 
 section .text$A
     Start:
@@ -9,7 +9,7 @@ section .text$A
         mov     rsi, rsp
         and     rsp, 0xFFFFFFFFFFFFFFF0
         sub     rsp, 0x20
-        call    ContextInit
+        call    Entrypoint
         mov     rsp, rsi
         pop     rsi
         ret

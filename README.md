@@ -1,0 +1,2 @@
+- anything that uses ContextInit() must include start.asm + xxx.ld
+- corelib does not need any context. It only references Ctx-> and the main module should be the one that provides it

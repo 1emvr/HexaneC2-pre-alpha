@@ -1,6 +1,7 @@
 #ifndef HEXANE_CIPHER_HPP
 #define HEXANE_CIPHER_HPP
-#include <core/include/monolith.hpp>
+#include <monolith.hpp>
+#include <core/include/corelib.hpp>
 #include <core/include/cruntime.hpp>
 
 #define FNV_OFFSET  (const unsigned int) 2166136261

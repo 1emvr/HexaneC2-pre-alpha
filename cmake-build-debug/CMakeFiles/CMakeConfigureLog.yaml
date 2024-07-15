@@ -61,8 +61,8 @@ events:
     checks:
       - "Detecting C compiler ABI info"
     directories:
-      source: "/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-OAN9mH"
-      binary: "/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-OAN9mH"
+      source: "/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-c9IJjj"
+      binary: "/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-c9IJjj"
     cmakeVariables:
       CMAKE_C_FLAGS: ""
       CMAKE_C_FLAGS_DEBUG: "-g"
@@ -71,10 +71,10 @@ events:
       variable: "CMAKE_C_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-OAN9mH'
+        Change Dir: '/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-c9IJjj'
         
-        Run Build Command(s): /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -v cmTC_089a2
-        [1/2] /usr/bin/x86_64-w64-mingw32-gcc   -fdiagnostics-color=always   -v -o CMakeFiles/cmTC_089a2.dir/CMakeCCompilerABI.c.o -c /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCCompilerABI.c
+        Run Build Command(s): /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -v cmTC_bfe02
+        [1/2] /usr/bin/x86_64-w64-mingw32-gcc   -fdiagnostics-color=always   -v -o CMakeFiles/cmTC_bfe02.dir/CMakeCCompilerABI.c.o -c /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCCompilerABI.c
         Using built-in specs.
         COLLECT_GCC=/usr/bin/x86_64-w64-mingw32-gcc
         Target: x86_64-w64-mingw32
@@ -82,8 +82,8 @@ events:
         Thread model: win32
         Supported LTO compression algorithms: zlib zstd
         gcc version 13-win32 (GCC) 
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_089a2.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_089a2.dir/'
-         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/cc1 -quiet -v /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCCompilerABI.c -quiet -dumpdir CMakeFiles/cmTC_089a2.dir/ -dumpbase CMakeCCompilerABI.c.c -dumpbase-ext .c -mtune=generic -march=x86-64 -version -fdiagnostics-color=always -o /tmp/cc14FGrB.s
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_bfe02.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_bfe02.dir/'
+         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/cc1 -quiet -v /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCCompilerABI.c -quiet -dumpdir CMakeFiles/cmTC_bfe02.dir/ -dumpbase CMakeCCompilerABI.c.c -dumpbase-ext .c -mtune=generic -march=x86-64 -version -fdiagnostics-color=always -o /tmp/ccG8j7tw.s
         GNU C17 (GCC) version 13-win32 (x86_64-w64-mingw32)
         	compiled by GNU C version 13.2.0, GMP version 6.3.0, MPFR version 4.2.1, MPC version 1.3.1, isl version isl-0.26-GMP
         
@@ -96,13 +96,13 @@ events:
          /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/include
         End of search list.
         Compiler executable checksum: e14c887f05a54c28d8876a005411f636
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_089a2.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_089a2.dir/'
-         /usr/bin/x86_64-w64-mingw32-as -v -o CMakeFiles/cmTC_089a2.dir/CMakeCCompilerABI.c.o /tmp/cc14FGrB.s
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_bfe02.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_bfe02.dir/'
+         /usr/bin/x86_64-w64-mingw32-as -v -o CMakeFiles/cmTC_bfe02.dir/CMakeCCompilerABI.c.o /tmp/ccG8j7tw.s
         GNU assembler version 2.42 (x86_64-w64-mingw32) using BFD version (GNU Binutils) 2.42
         COMPILER_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/bin/
         LIBRARY_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_089a2.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_089a2.dir/CMakeCCompilerABI.c.'
-        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc  -v CMakeFiles/cmTC_089a2.dir/CMakeCCompilerABI.c.o -o cmTC_089a2   && :
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_bfe02.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_bfe02.dir/CMakeCCompilerABI.c.'
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc  -v CMakeFiles/cmTC_bfe02.dir/CMakeCCompilerABI.c.o -o cmTC_bfe02   && :
         Using built-in specs.
         COLLECT_GCC=/usr/bin/x86_64-w64-mingw32-gcc
         COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper
@@ -113,9 +113,9 @@ events:
         gcc version 13-win32 (GCC) 
         COMPILER_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/bin/
         LIBRARY_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_089a2.exe' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_089a2.'
-         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/collect2 -plugin /usr/lib/gcc/x86_64-w64-mingw32/13-win32/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper -plugin-opt=-fresolution=/tmp/cc8qyyQq.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_089a2.exe /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/crt2.o /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtbegin.o -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32 -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib CMakeFiles/cmTC_089a2.dir/CMakeCCompilerABI.c.o -lmingw32 -lgcc -lgcc_eh -lmoldname -lmingwex -lmsvcrt -lkernel32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc -lgcc_eh -lmoldname -lmingwex -lmsvcrt -lkernel32 /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtend.o
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_089a2.exe' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_089a2.'
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_bfe02.exe' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_bfe02.'
+         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/collect2 -plugin /usr/lib/gcc/x86_64-w64-mingw32/13-win32/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper -plugin-opt=-fresolution=/tmp/ccT42tkg.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_bfe02.exe /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/crt2.o /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtbegin.o -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32 -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib CMakeFiles/cmTC_bfe02.dir/CMakeCCompilerABI.c.o -lmingw32 -lgcc -lgcc_eh -lmoldname -lmingwex -lmsvcrt -lkernel32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc -lgcc_eh -lmoldname -lmingwex -lmsvcrt -lkernel32 /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtend.o
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_bfe02.exe' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_bfe02.'
         
       exitCode: 0
   -
@@ -126,8 +126,8 @@ events:
     checks:
       - "Check for working C compiler: /usr/bin/x86_64-w64-mingw32-gcc"
     directories:
-      source: "/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-HvebSD"
-      binary: "/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-HvebSD"
+      source: "/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mbt1IM"
+      binary: "/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mbt1IM"
     cmakeVariables:
       CMAKE_C_FLAGS: ""
       CMAKE_C_FLAGS_DEBUG: "-g"
@@ -136,11 +136,11 @@ events:
       variable: "CMAKE_C_COMPILER_WORKS"
       cached: true
       stdout: |
-        Change Dir: '/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-HvebSD'
+        Change Dir: '/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mbt1IM'
         
-        Run Build Command(s): /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -v cmTC_89bc6
-        [1/2] /usr/bin/x86_64-w64-mingw32-gcc   -fdiagnostics-color=always -o CMakeFiles/cmTC_89bc6.dir/testCCompiler.c.o -c /home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-HvebSD/testCCompiler.c
-        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc   CMakeFiles/cmTC_89bc6.dir/testCCompiler.c.o -o cmTC_89bc6   && :
+        Run Build Command(s): /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -v cmTC_ba964
+        [1/2] /usr/bin/x86_64-w64-mingw32-gcc   -fdiagnostics-color=always -o CMakeFiles/cmTC_ba964.dir/testCCompiler.c.o -c /home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mbt1IM/testCCompiler.c
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc   CMakeFiles/cmTC_ba964.dir/testCCompiler.c.o -o cmTC_ba964   && :
         
       exitCode: 0
   -
@@ -152,8 +152,8 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-54VF9z"
-      binary: "/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-54VF9z"
+      source: "/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-HOeJeW"
+      binary: "/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-HOeJeW"
     cmakeVariables:
       CMAKE_CXX_FLAGS: ""
       CMAKE_CXX_FLAGS_DEBUG: "-g"
@@ -162,10 +162,10 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-54VF9z'
+        Change Dir: '/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-HOeJeW'
         
-        Run Build Command(s): /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -v cmTC_1e239
-        [1/2] /usr/bin/x86_64-w64-mingw32-g++   -fdiagnostics-color=always   -v -o CMakeFiles/cmTC_1e239.dir/CMakeCXXCompilerABI.cpp.o -c /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp
+        Run Build Command(s): /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -v cmTC_c6e60
+        [1/2] /usr/bin/x86_64-w64-mingw32-g++   -fdiagnostics-color=always   -v -o CMakeFiles/cmTC_c6e60.dir/CMakeCXXCompilerABI.cpp.o -c /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp
         Using built-in specs.
         COLLECT_GCC=/usr/bin/x86_64-w64-mingw32-g++
         Target: x86_64-w64-mingw32
@@ -173,8 +173,8 @@ events:
         Thread model: win32
         Supported LTO compression algorithms: zlib zstd
         gcc version 13-win32 (GCC) 
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_1e239.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_1e239.dir/'
-         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/cc1plus -quiet -v /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_1e239.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -fdiagnostics-color=always -o /tmp/ccFhdkVe.s
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_c6e60.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_c6e60.dir/'
+         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/cc1plus -quiet -v /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_c6e60.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -fdiagnostics-color=always -o /tmp/ccNd6RQc.s
         GNU C++17 (GCC) version 13-win32 (x86_64-w64-mingw32)
         	compiled by GNU C version 13.2.0, GMP version 6.3.0, MPFR version 4.2.1, MPC version 1.3.1, isl version isl-0.26-GMP
         
@@ -190,13 +190,13 @@ events:
          /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/include
         End of search list.
         Compiler executable checksum: 1aa5aef1072e84d4d47f5a211bac94fa
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_1e239.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_1e239.dir/'
-         /usr/bin/x86_64-w64-mingw32-as -v -o CMakeFiles/cmTC_1e239.dir/CMakeCXXCompilerABI.cpp.o /tmp/ccFhdkVe.s
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_c6e60.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_c6e60.dir/'
+         /usr/bin/x86_64-w64-mingw32-as -v -o CMakeFiles/cmTC_c6e60.dir/CMakeCXXCompilerABI.cpp.o /tmp/ccNd6RQc.s
         GNU assembler version 2.42 (x86_64-w64-mingw32) using BFD version (GNU Binutils) 2.42
         COMPILER_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/bin/
         LIBRARY_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_1e239.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_1e239.dir/CMakeCXXCompilerABI.cpp.'
-        [2/2] : && /usr/bin/x86_64-w64-mingw32-g++  -v CMakeFiles/cmTC_1e239.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_1e239   && :
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_c6e60.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_c6e60.dir/CMakeCXXCompilerABI.cpp.'
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-g++  -v CMakeFiles/cmTC_c6e60.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_c6e60   && :
         Using built-in specs.
         COLLECT_GCC=/usr/bin/x86_64-w64-mingw32-g++
         COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper
@@ -207,9 +207,9 @@ events:
         gcc version 13-win32 (GCC) 
         COMPILER_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/bin/
         LIBRARY_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_1e239.exe' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_1e239.'
-         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/collect2 -plugin /usr/lib/gcc/x86_64-w64-mingw32/13-win32/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper -plugin-opt=-fresolution=/tmp/ccHa2WJJ.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_1e239.exe /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/crt2.o /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtbegin.o -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32 -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib CMakeFiles/cmTC_1e239.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lmingw32 -lgcc_s -lgcc -lmoldname -lmingwex -lmsvcrt -lkernel32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc_s -lgcc -lmoldname -lmingwex -lmsvcrt -lkernel32 /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtend.o
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_1e239.exe' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_1e239.'
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_c6e60.exe' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_c6e60.'
+         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/collect2 -plugin /usr/lib/gcc/x86_64-w64-mingw32/13-win32/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper -plugin-opt=-fresolution=/tmp/ccEdBz8j.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_c6e60.exe /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/crt2.o /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtbegin.o -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32 -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib CMakeFiles/cmTC_c6e60.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lmingw32 -lgcc_s -lgcc -lmoldname -lmingwex -lmsvcrt -lkernel32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc_s -lgcc -lmoldname -lmingwex -lmsvcrt -lkernel32 /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtend.o
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_c6e60.exe' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_c6e60.'
         
       exitCode: 0
   -
@@ -220,8 +220,8 @@ events:
     checks:
       - "Check for working CXX compiler: /usr/bin/x86_64-w64-mingw32-g++"
     directories:
-      source: "/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-87IDFB"
-      binary: "/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-87IDFB"
+      source: "/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-CvlwGt"
+      binary: "/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-CvlwGt"
     cmakeVariables:
       CMAKE_CXX_FLAGS: ""
       CMAKE_CXX_FLAGS_DEBUG: "-g"
@@ -230,11 +230,11 @@ events:
       variable: "CMAKE_CXX_COMPILER_WORKS"
       cached: true
       stdout: |
-        Change Dir: '/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-87IDFB'
+        Change Dir: '/home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-CvlwGt'
         
-        Run Build Command(s): /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -v cmTC_24dfc
-        [1/2] /usr/bin/x86_64-w64-mingw32-g++   -fdiagnostics-color=always -o CMakeFiles/cmTC_24dfc.dir/testCXXCompiler.cxx.o -c /home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-87IDFB/testCXXCompiler.cxx
-        [2/2] : && /usr/bin/x86_64-w64-mingw32-g++   CMakeFiles/cmTC_24dfc.dir/testCXXCompiler.cxx.o -o cmTC_24dfc   && :
+        Run Build Command(s): /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -v cmTC_ffe47
+        [1/2] /usr/bin/x86_64-w64-mingw32-g++   -fdiagnostics-color=always -o CMakeFiles/cmTC_ffe47.dir/testCXXCompiler.cxx.o -c /home/kali/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-CvlwGt/testCXXCompiler.cxx
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-g++   CMakeFiles/cmTC_ffe47.dir/testCXXCompiler.cxx.o -o cmTC_ffe47   && :
         
       exitCode: 0
   -

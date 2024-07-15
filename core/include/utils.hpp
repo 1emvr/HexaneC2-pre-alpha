@@ -1,6 +1,7 @@
 #ifndef HEXANE_UTILS_HPP
 #define HEXANE_UTILS_HPP
-#include <core/include/monolith.hpp>
+#include <monolith.hpp>
+#include <core/include/corelib.hpp>
 
 #define MS_PER_SECOND	1000
 #define INTERVAL(x)     (x % 26)

@@ -1,6 +1,7 @@
 #ifndef _HEXANE_PROCESS_HPP
 #define _HEXANE_PROCESS_HPP
-#include <core/include/monolith.hpp>
+#include <monolith.hpp>
+#include <core/include/corelib.hpp>
 #include <core/include/cruntime.hpp>
 
 namespace Process {

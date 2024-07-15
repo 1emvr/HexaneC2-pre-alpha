@@ -1,6 +1,7 @@
 #ifndef HEXANE_PARSER_HPP
 #define HEXANE_PARSER_HPP
-#include <core/include/monolith.hpp>
+#include <monolith.hpp>
+#include <core/include/corelib.hpp>
 #include <core/include/cruntime.hpp>
 
 namespace Parser {

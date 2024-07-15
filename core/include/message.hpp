@@ -1,6 +1,7 @@
 #ifndef HEXANE_MESSAGE_HPP
 #define HEXANE_MESSAGE_HPP
-#include <core/include/monolith.hpp>
+#include <monolith.hpp>
+#include <core/include/corelib.hpp>
 #include <core/include/commands.hpp>
 #include <core/include/network.hpp>
 #include <core/include/stream.hpp>

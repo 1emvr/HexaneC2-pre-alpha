@@ -1,4 +1,4 @@
-#include <../core/include/monolith.hpp>
+#include <../monolith.hpp>
 #include <../core/include/context.hpp>
 #include <../core/include/core.hpp>
 

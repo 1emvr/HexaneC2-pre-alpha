@@ -1,6 +1,7 @@
 #ifndef _HEXANE_BASE_HPP
 #define _HEXANE_BASE_HPP
-#include <core/include/monolith.hpp>
+#include <monolith.hpp>
+#include <core/include/corelib.hpp>
 #include <core/include/cruntime.hpp>
 #include <core/include/network.hpp>
 #include <core/include/memory.hpp>
@@ -10,10 +11,9 @@
 #include <core/include/names.hpp>
 #include <core/include/utils.hpp>
 
-namespace Core {
-    FUNCTION VOID HandleTask();
-    FUNCTION VOID ResolveApi();
-    FUNCTION VOID ReadConfig();
+
+namespace Implant {
+    EXTERN_C FUNCTION VOID Entrypoint(HMODULE Base);
     FUNCTION VOID MainRoutine();
 }
 

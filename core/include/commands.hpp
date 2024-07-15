@@ -1,6 +1,7 @@
 #ifndef _HEXANE_COMMANDS_HPP
 #define _HEXANE_COMMANDS_HPP
-#include <core/include/monolith.hpp>
+#include <monolith.hpp>
+#include <core/include/corelib.hpp>
 #include <core/include/cruntime.hpp>
 #include <core/include/process.hpp>
 #include <core/include/message.hpp>

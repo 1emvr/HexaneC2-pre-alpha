@@ -1,6 +1,7 @@
 #ifndef _HEXANE_MULTITOOL_HPP
 #define _HEXANE_MULTITOOL_HPP
-#include <core/include/monolith.hpp>
+#include <monolith.hpp>
+#include <core/include/corelib.hpp>
 
 FUNCTION void x_memcpy (void *dst, const void *src, size_t n);
 FUNCTION void *x_memset (void *dst, int val, size_t len);

@@ -1,4 +1,4 @@
-#include "../core/include/monolith.hpp"
+#include "../../monolith.hpp"
 #include <stdio.h>
 #pragma comment(lib, "advapi32")
 

@@ -1,6 +1,9 @@
 #ifndef HEXANE_MONOLITH_HPP
 #define HEXANE_MONOLITH_HPP
-#include <core/include/ntimports.hpp>
+#include <ntimports.hpp>
+
+EXTERN_C LPVOID InstStart();
+EXTERN_C LPVOID InstEnd();
 
 #define WIN_VERSION_UNKNOWN                     0
 #define WIN_VERSION_XP                          1
@@ -17,11 +20,9 @@
 
 #define Prototype(x)                            __typeof__(x) *x
 #define DLL_EXPORT 								__declspec(dllexport)
-#define TXT_SECTION(x) 							__attribute__((used, section(".text$" #x "")))
+#define TXT_SECTION(x, y) 						__attribute__((used, section("." #x "lib.text$" #y "")))
 #define DATA_SECTION  							__attribute__((used, section(".data")))
 #define RDATA_SECTION  							__attribute__((used, section(".rdata")))
-#define FUNCTION                                TXT_SECTION(B)
-#define CFG_SECTION 							TXT_SECTION(F)
 #define CMD_SIGNATURE(x) 						(CmdSignature)(x)
 
 #define S_PTR(x)                                ((LPSTR)(x))
@@ -247,7 +248,7 @@ typedef struct {
 	HINTERNET	Handle;
 	ULONG 	nEndpoints;
 	LPWSTR	*Endpoints;
-	PBUFFER	*Headers;
+	WBUFFER	*Headers;
 } HTTP_CONTEXT, *PHTTP_CONTEXT;
 
 
@@ -475,27 +476,8 @@ typedef struct {
 
 } HEXANE_CTX, *PHEXANE_CTX;
 
-EXTERN_C ULONG __InstanceOffset;
-EXTERN_C ULONG __FnsBase;
-EXTERN_C LPVOID __Instance;
 
-EXTERN_C LPVOID InstStart();
-EXTERN_C LPVOID InstEnd();
-
-#define Ctx 			__LocalInstance
-#define InstOffset()   	(U_PTR(&__InstanceOffset))
-#define GLOBAL_OFFSET   (U_PTR(InstStart()) + InstOffset())
-#define InstancePtr()	((HEXANE_CTX*) C_DREF(C_PTR(GLOBAL_OFFSET)))
-#define HEXANE 		HEXANE_CTX* __LocalInstance = InstancePtr();
-
-#ifdef DEBUG
-#define BreakOnError()  __debugbreak(); Ctx->win32.GetLastError();
-#else
-#define BreakOnError()
-#endif
-#define return_defer(x) BreakOnError(); ntstatus = x; goto defer
-#endif
-
+#define return_defer(x) ntstatus = x; goto defer
 #define InitializeObjectAttributes(ptr, name, attr, root, sec )	\
     (ptr)->Length = sizeof( OBJECT_ATTRIBUTES );				\
     (ptr)->RootDirectory = root;								\

