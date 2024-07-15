@@ -10,12 +10,12 @@
 #include <core/include/opsec.hpp>
 #include <core/include/names.hpp>
 #include <core/include/utils.hpp>
-#include <core/include/config.hpp>
 
 EXTERN_C FUNCTION VOID Entrypoint(HMODULE Base);
 
 namespace Implant {
     FUNCTION VOID MainRoutine();
+    FUNCTION VOID ReadConfig();
 }
 
 #endif //HEXANE_CORELIB_BASE_HPP

@@ -1,10 +1,10 @@
-global Start
-global InstStart
-global InstEnd
-extern Entrypoint
+global inj_Start
+global inj_InstStart
+global inj_InstEnd
+extern inj_Entrypoint
 
-section .corelib.text$A
-    Start:
+section .text$A
+    inj_Start:
         push    rsi
         mov     rsi, rsp
         and     rsp, 0xFFFFFFFFFFFFFFF0
@@ -14,21 +14,21 @@ section .corelib.text$A
         pop     rsi
         ret
 
-    InstStart:
+    inj_InstStart:
         call    RetStartPtr
         ret
 
-    RetStartPtr:
+    inj_RetStartPtr:
         mov     rax, [rsp]
         sub     rax, 0x1B
         ret
 
-section .corelib.text$E
-    InstEnd:
+section .text$E
+    inj_InstEnd:
         call    RetEndPtr
         ret
 
-    RetEndPtr:
+    inj_RetEndPtr:
         mov     rax, [rsp]
         add     rax, 0x0A
         ret

@@ -20,10 +20,11 @@ EXTERN_C LPVOID InstEnd();
 
 #define Prototype(x)                            __typeof__(x) *x
 #define DLL_EXPORT 								__declspec(dllexport)
-#define TXT_SECTION(x, y) 						__attribute__((used, section("." #x "lib.text$" #y "")))
+#define TXT_SECTION(x) 							__attribute__((used, section(".text$" #x "")))
 #define DATA_SECTION  							__attribute__((used, section(".data")))
 #define RDATA_SECTION  							__attribute__((used, section(".rdata")))
 #define CMD_SIGNATURE(x) 						(CmdSignature)(x)
+#define FUNCTION								TXT_SECTION(B)
 
 #define S_PTR(x)                                ((LPSTR)(x))
 #define W_PTR(x)								((LPWSTR)(x))
@@ -476,6 +477,16 @@ typedef struct {
 
 } HEXANE_CTX, *PHEXANE_CTX;
 
+#define INSTANCE __InstanceOffset
+
+EXTERN_C ULONG __InstanceOffset;
+EXTERN_C LPVOID __Instance;
+
+#define Ctx 			    __LocalInstance
+#define InstanceOffset()    (U_PTR(&INSTANCE))
+#define GLOBAL_OFFSET       (U_PTR(InstStart()) + InstanceOffset())
+#define InstancePtr()	    ((HEXANE_CTX*) C_DREF(C_PTR(GLOBAL_OFFSET)))
+#define HEXANE 		        HEXANE_CTX* __LocalInstance = InstancePtr();
 
 #define return_defer(x) ntstatus = x; goto defer
 #define InitializeObjectAttributes(ptr, name, attr, root, sec )	\

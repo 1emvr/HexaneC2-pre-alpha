@@ -3,7 +3,7 @@ global InstStart
 global InstEnd
 extern Entrypoint
 
-section .injectlib.text$A
+section .text$A
     Start:
         push    rsi
         mov     rsi, rsp
@@ -23,7 +23,7 @@ section .injectlib.text$A
         sub     rax, 0x1B
         ret
 
-section .injectlib.text$E
+section .text$E
     InstEnd:
         call    RetEndPtr
         ret

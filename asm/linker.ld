@@ -5,17 +5,17 @@ SECTIONS {
 
     .text : {
         . = LINK_BASE;
-        *(.corelib.text$A);
-        *(.corelib.text$B);
-        *(.corelib.rdata*);
+        *(.text$A);
+        *(.text$B);
+        *(.rdata*);
 
         FILL(0X00);
         . = ALIGN(0x1000);
-        __CoreInstance = .;
+        __InstanceOffset = .;
 
-        *(.corelib.global);
-        *(.corelib.text$E);
-        *(.corelib.text$F);
+        *(.global);
+        *(.text$E);
+        *(.text$F);
     }
 
     .eh_frame : {

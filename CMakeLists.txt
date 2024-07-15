@@ -27,8 +27,7 @@ set(INCLUDE_FILES
         core/include/stream.hpp
         core/include/parser.hpp
         inject/include/injectlib.hpp
-        core/include/config.hpp
-        core/include/implant.hpp
+        core/implant/implant.hpp
         core/include/corelib.hpp
 )
 set(MAIN_FILES
@@ -42,7 +41,7 @@ set(MAIN_FILES
         core/src/network.cpp
         core/src/utils.cpp
         core/src/opsec.cpp
-        core/src/implant.cpp
+        core/implant/implant.cpp
         core/src/message.cpp
         core/src/parser.cpp
         core/src/cipher.cpp
@@ -52,8 +51,6 @@ set(MAIN_FILES
         inject/loader/dllmain.cpp
         inject/src/injectlib.cpp
         inject/threadless/OpenFileExecute.cpp
-        core/src/config.cpp
-        inject/src/config.cpp
         inject/include/config.hpp
 )
 add_executable(useful_modules ${INCLUDE_FILES} ${MAIN_FILES})

