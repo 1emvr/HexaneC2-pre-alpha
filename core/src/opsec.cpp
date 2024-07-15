@@ -1,7 +1,7 @@
 #include <core/include/opsec.hpp>
 namespace Opsec {
 
-    VOID RuntimeSecurityCheck() {
+    VOID SeRuntimeCheck() {
 
         HEXANE
         do {

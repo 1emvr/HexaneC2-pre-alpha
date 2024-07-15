@@ -19,10 +19,11 @@ namespace Implant {
             return_defer(ntstatus);
         }
 
-        Memory::ReadConfig();
+        Config::ReadConfig();
+
         do {
             Opsec::SleepObf();
-            Opsec::RuntimeSecurityCheck();
+            Opsec::SeRuntimeCheck();
 
             if (!Opsec::CheckTime()) {
                 continue;

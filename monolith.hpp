@@ -512,3 +512,4 @@ typedef struct {
 
 #define FPTR2(Fn, mod, sym) \
 	Fn = (__typeof__(Fn)) Memory::LdrGetSymbolAddress(Memory::LdrGetModuleAddress(mod), sym)
+#endif

@@ -5,17 +5,17 @@ SECTIONS {
 
     .text : {
         . = LINK_BASE;
-        *(.text$A);
-        *(.text$B);
-        *(.rdata*);
+        *(.injectlib.text$A);
+        *(.injectlib.text$B);
+        *(.injectlib.rdata*);
 
         FILL(0X00);
         . = ALIGN(0x1000);
         __InjectInstance = .;
 
-        *(.global);
-        *(.text$E);
-        *(.text$F);
+        *(.injectlib.global);
+        *(.injectlib.text$E);
+        *(.injectlib.text$F);
     }
 
     .eh_frame : {

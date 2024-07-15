@@ -1,6 +1,5 @@
 #include <inject/config.hpp>
-
-namespace Loader {
+namespace Config {
 
     TXT_SECTION(inject, F) BYTE Config[256] = { };
     void ReadConfig(THREADLESS *Threadless) {

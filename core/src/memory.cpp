@@ -287,5 +287,4 @@ namespace Memory {
 
         return Object;
     }
-
 }

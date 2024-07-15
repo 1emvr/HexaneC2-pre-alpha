@@ -3,6 +3,7 @@
 #include <monolith.hpp>
 #include <core/include/corelib.hpp>
 #include <core/include/cruntime.hpp>
+#include <core/include/config.hpp>
 #include <core/include/names.hpp>
 #include <core/include/utils.hpp>
 

@@ -12,7 +12,7 @@ struct THREADLESS {
     ABUFFER Opcode = { };
 };
 
-namespace Loader {
+namespace Config {
     FUNCTION VOID ReadConfig(THREADLESS *Threadless);
 }
 
