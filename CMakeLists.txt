@@ -7,6 +7,10 @@ enable_language(ASM_NASM)
 set(SOURCE "/home/kali/Github/HexaneC2")
 set(META "/usr/share/mingw-w64/include")
 
+set(MODS "${SROUCE}/mods")
+set(CORE "${SROUCE}/core")
+set(INJ "${SROUCE}/inject")
+
 include_directories(include ${SOURCE} ${META})
 
 set(INCLUDE_FILES
