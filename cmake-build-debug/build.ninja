@@ -154,26 +154,26 @@ build CMakeFiles/useful_modules.dir/core/corelib/src/commands.cpp.o: CXX_COMPILE
   OBJECT_DIR = CMakeFiles/useful_modules.dir
   OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/core/corelib/src
 
-build CMakeFiles/useful_modules.dir/inject/loader/mainexe.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/kali/Github/HexaneC2/inject/loader/mainexe.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/inject/loader/mainexe.cpp.o.d
+build CMakeFiles/useful_modules.dir/loader/mainexe.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/kali/Github/HexaneC2/loader/mainexe.cpp || cmake_object_order_depends_target_useful_modules
+  DEP_FILE = CMakeFiles/useful_modules.dir/loader/mainexe.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
   INCLUDES = -I/home/kali/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
   OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/inject/loader
+  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/loader
 
-build CMakeFiles/useful_modules.dir/inject/loader/dllmain.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/kali/Github/HexaneC2/inject/loader/dllmain.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/inject/loader/dllmain.cpp.o.d
+build CMakeFiles/useful_modules.dir/loader/dllmain.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/kali/Github/HexaneC2/loader/dllmain.cpp || cmake_object_order_depends_target_useful_modules
+  DEP_FILE = CMakeFiles/useful_modules.dir/loader/dllmain.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
   INCLUDES = -I/home/kali/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
   OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/inject/loader
+  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/loader
 
-build CMakeFiles/useful_modules.dir/inject/src/injectlib.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/kali/Github/HexaneC2/inject/src/injectlib.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/inject/src/injectlib.cpp.o.d
+build CMakeFiles/useful_modules.dir/inject/injectlib/injectlib.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/kali/Github/HexaneC2/inject/injectlib/injectlib.cpp || cmake_object_order_depends_target_useful_modules
+  DEP_FILE = CMakeFiles/useful_modules.dir/inject/injectlib/injectlib.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
   INCLUDES = -I/home/kali/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
   OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/inject/src
+  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/inject/injectlib
 
 build CMakeFiles/useful_modules.dir/inject/threadless/OpenFileExecute.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/kali/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp || cmake_object_order_depends_target_useful_modules
   DEP_FILE = CMakeFiles/useful_modules.dir/inject/threadless/OpenFileExecute.cpp.o.d
@@ -190,7 +190,7 @@ build CMakeFiles/useful_modules.dir/inject/threadless/OpenFileExecute.cpp.o: CXX
 #############################################
 # Link the executable useful_modules
 
-build useful_modules: CXX_EXECUTABLE_LINKER__useful_modules_Debug CMakeFiles/useful_modules.dir/mods/src/EnumDotNetProcesses.cpp.o CMakeFiles/useful_modules.dir/mods/src/RegDisableDefender.cpp.o CMakeFiles/useful_modules.dir/mods/src/Impersonate.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/process.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/memory.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/cruntime.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/network.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/utils.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/opsec.cpp.o CMakeFiles/useful_modules.dir/core/implant/implant.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/message.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/parser.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/cipher.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/stream.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/commands.cpp.o CMakeFiles/useful_modules.dir/inject/loader/mainexe.cpp.o CMakeFiles/useful_modules.dir/inject/loader/dllmain.cpp.o CMakeFiles/useful_modules.dir/inject/src/injectlib.cpp.o CMakeFiles/useful_modules.dir/inject/threadless/OpenFileExecute.cpp.o
+build useful_modules: CXX_EXECUTABLE_LINKER__useful_modules_Debug CMakeFiles/useful_modules.dir/mods/src/EnumDotNetProcesses.cpp.o CMakeFiles/useful_modules.dir/mods/src/RegDisableDefender.cpp.o CMakeFiles/useful_modules.dir/mods/src/Impersonate.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/process.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/memory.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/cruntime.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/network.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/utils.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/opsec.cpp.o CMakeFiles/useful_modules.dir/core/implant/implant.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/message.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/parser.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/cipher.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/stream.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/commands.cpp.o CMakeFiles/useful_modules.dir/loader/mainexe.cpp.o CMakeFiles/useful_modules.dir/loader/dllmain.cpp.o CMakeFiles/useful_modules.dir/inject/injectlib/injectlib.cpp.o CMakeFiles/useful_modules.dir/inject/threadless/OpenFileExecute.cpp.o
   FLAGS = -g
   OBJECT_DIR = CMakeFiles/useful_modules.dir
   POST_BUILD = :

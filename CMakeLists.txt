@@ -26,7 +26,7 @@ set(INCLUDE_FILES
         core/corelib/include/message.hpp
         core/corelib/include/stream.hpp
         core/corelib/include/parser.hpp
-        inject/include/injectlib.hpp
+        inject/injectlib/injectlib.hpp
         core/implant/implant.hpp
         core/corelib/corelib.hpp
 )
@@ -49,8 +49,7 @@ set(MAIN_FILES
         core/corelib/src/commands.cpp
         loader/mainexe.cpp
         loader/dllmain.cpp
-        inject/src/injectlib.cpp
+        inject/injectlib/injectlib.cpp
         inject/threadless/OpenFileExecute.cpp
-        inject/include/config.hpp
 )
 add_executable(useful_modules ${INCLUDE_FILES} ${MAIN_FILES})
