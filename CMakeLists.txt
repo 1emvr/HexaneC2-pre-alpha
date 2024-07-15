@@ -16,39 +16,39 @@ include_directories(include ${SOURCE} ${META})
 set(INCLUDE_FILES
         monolith.hpp
         ntimports.hpp
-        core/include/memory.hpp
-        core/include/process.hpp
-        core/include/cruntime.hpp
-        core/include/network.hpp
-        core/include/utils.hpp
-        core/include/opsec.hpp
-        core/include/names.hpp
-        core/include/message.hpp
-        core/include/stream.hpp
-        core/include/parser.hpp
+        core/corelib/include/memory.hpp
+        core/corelib/include/process.hpp
+        core/corelib/include/cruntime.hpp
+        core/corelib/include/network.hpp
+        core/corelib/include/utils.hpp
+        core/corelib/include/opsec.hpp
+        core/corelib/include/names.hpp
+        core/corelib/include/message.hpp
+        core/corelib/include/stream.hpp
+        core/corelib/include/parser.hpp
         inject/include/injectlib.hpp
         core/implant/implant.hpp
-        core/include/corelib.hpp
+        core/corelib/corelib.hpp
 )
 set(MAIN_FILES
         mods/src/EnumDotNetProcesses.cpp
         mods/src/RegDisableDefender.cpp
         mods/src/Impersonate.cpp
 
-        core/src/process.cpp
-        core/src/memory.cpp
-        core/src/cruntime.cpp
-        core/src/network.cpp
-        core/src/utils.cpp
-        core/src/opsec.cpp
+        core/corelib/src/process.cpp
+        core/corelib/src/memory.cpp
+        core/corelib/src/cruntime.cpp
+        core/corelib/src/network.cpp
+        core/corelib/src/utils.cpp
+        core/corelib/src/opsec.cpp
         core/implant/implant.cpp
-        core/src/message.cpp
-        core/src/parser.cpp
-        core/src/cipher.cpp
-        core/src/stream.cpp
-        core/src/commands.cpp
-        inject/loader/mainexe.cpp
-        inject/loader/dllmain.cpp
+        core/corelib/src/message.cpp
+        core/corelib/src/parser.cpp
+        core/corelib/src/cipher.cpp
+        core/corelib/src/stream.cpp
+        core/corelib/src/commands.cpp
+        loader/mainexe.cpp
+        loader/dllmain.cpp
         inject/src/injectlib.cpp
         inject/threadless/OpenFileExecute.cpp
         inject/include/config.hpp

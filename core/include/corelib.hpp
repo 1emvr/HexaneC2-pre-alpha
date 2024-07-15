@@ -1,5 +1,0 @@
-#ifndef HEXANE_CORELIB_CONFIG_HPP
-#define HEXANE_CORELIB_CONFIG_HPP
-#include <monolith.hpp>
-
-#endif //HEXANE_CORELIB_CONFIG_HPP

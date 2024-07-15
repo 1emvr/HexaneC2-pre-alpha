@@ -1,8 +1,7 @@
 #ifndef LOADERCFG_HPP
 #define LOADERCFG_HPP
 #include <monolith.hpp>
-#include <core/include/cruntime.hpp>
-#include <core/include/parser.hpp>
+#include <core/corelib/corelib.hpp>
 
 struct THREADLESS {
     ABUFFER Parent = { };

