@@ -22,7 +22,7 @@ set(INCLUDE_FILES
         core/include/message.hpp
         core/include/stream.hpp
         core/include/parser.hpp
-        inject/injectlib.hpp
+        inject/include/injectlib.hpp
         core/include/config.hpp
         core/include/implant.hpp
         core/include/corelib.hpp
@@ -44,12 +44,12 @@ set(MAIN_FILES
         core/src/cipher.cpp
         core/src/stream.cpp
         core/src/commands.cpp
-        loader/mainexe.cpp
-        loader/dllmain.cpp
-        inject/injectlib.cpp
+        inject/loader/mainexe.cpp
+        inject/loader/dllmain.cpp
+        inject/src/injectlib.cpp
         inject/threadless/OpenFileExecute.cpp
         core/src/config.cpp
-        inject/config.cpp
-        inject/config.hpp
+        inject/src/config.cpp
+        inject/include/config.hpp
 )
 add_executable(useful_modules ${INCLUDE_FILES} ${MAIN_FILES})

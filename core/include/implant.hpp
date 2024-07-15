@@ -1,5 +1,5 @@
-#ifndef _HEXANE_BASE_HPP
-#define _HEXANE_BASE_HPP
+#ifndef HEXANE_CORELIB_BASE_HPP
+#define HEXANE_CORELIB_BASE_HPP
 #include <monolith.hpp>
 #include <core/include/corelib.hpp>
 #include <core/include/cruntime.hpp>
@@ -10,11 +10,12 @@
 #include <core/include/opsec.hpp>
 #include <core/include/names.hpp>
 #include <core/include/utils.hpp>
+#include <core/include/config.hpp>
 
+EXTERN_C FUNCTION VOID Entrypoint(HMODULE Base);
 
 namespace Implant {
-    EXTERN_C FUNCTION VOID Entrypoint(HMODULE Base);
     FUNCTION VOID MainRoutine();
 }
 
-#endif //_HEXANE_BASE_HPP
+#endif //HEXANE_CORELIB_BASE_HPP

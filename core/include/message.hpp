@@ -1,5 +1,5 @@
-#ifndef HEXANE_MESSAGE_HPP
-#define HEXANE_MESSAGE_HPP
+#ifndef HEXANE_CORELIB_MESSAGE_HPP
+#define HEXANE_CORELIB_MESSAGE_HPP
 #include <monolith.hpp>
 #include <core/include/corelib.hpp>
 #include <core/include/commands.hpp>
@@ -16,5 +16,5 @@ namespace Message {
     FUNCTION VOID OutboundQueue(PSTREAM Outbound);
     FUNCTION VOID MessageTransmit(VOID);
 }
-#endif //HEXANE_MESSAGE_HPP
+#endif //HEXANE_CORELIB_MESSAGE_HPP
 

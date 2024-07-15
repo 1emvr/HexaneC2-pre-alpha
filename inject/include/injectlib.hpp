@@ -6,8 +6,8 @@
 #include <core/include/utils.hpp>
 #include <core/include/memory.hpp>
 #include <core/include/process.hpp>
-#include <loader/resource.hpp>
-#include <inject/config.hpp>
+#include <inject/loader/resource.hpp>
+#include <inject/include/config.hpp>
 
 #define FUNCTION TXT_SECTION(inject, B)
 #define instance __InjectInstance

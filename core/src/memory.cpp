@@ -2,6 +2,7 @@
 namespace Memory {
 
     VOID ResolveApi() {
+        // load basic dependent api's. does not include winhttp, iphlpapi, advapi32 or crypt32
 
         HEXANE
         OSVERSIONINFOW OSVersionW = {};

@@ -1,5 +1,5 @@
-#ifndef _HEXANE_CORELIB_CONFIG_HPP
-#define _HEXANE_CORELIB_CONFIG_HPP
+#ifndef HEXANE_CORELIB_CONFIG_HPP
+#define HEXANE_CORELIB_CONFIG_HPP
 #include <monolith.hpp>
 
 #define FUNCTION TXT_SECTION(core, B)
@@ -14,4 +14,4 @@ EXTERN_C LPVOID __Instance;
 #define InstancePtr()	    ((HEXANE_CTX*) C_DREF(C_PTR(GLOBAL_OFFSET)))
 #define HEXANE 		        HEXANE_CTX* __LocalInstance = InstancePtr();
 
-#endif //_HEXANE_CORELIB_CONFIG_HPP
+#endif //HEXANE_CORELIB_CONFIG_HPP

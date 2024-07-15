@@ -1,5 +1,5 @@
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
+#ifndef _HEXANE_CORELIB_CONFIG_HPP
+#define _HEXANE_CORELIB_CONFIG_HPP
 #include <monolith.hpp>
 #include <core/include/cruntime.hpp>
 #include <core/include/memory.hpp>
@@ -10,4 +10,4 @@
 namespace Config {
     FUNCTION VOID ReadConfig();
 }
-#endif //CONFIG_HPP
+#endif _HEXANE_CORELIB_CONFIG_HPP

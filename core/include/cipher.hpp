@@ -1,5 +1,5 @@
-#ifndef HEXANE_CIPHER_HPP
-#define HEXANE_CIPHER_HPP
+#ifndef HEXANE_CORELIB_CIPHER_HPP
+#define HEXANE_CORELIB_CIPHER_HPP
 #include <monolith.hpp>
 #include <core/include/corelib.hpp>
 #include <core/include/cruntime.hpp>
@@ -27,4 +27,4 @@ namespace Xtea {
     FUNCTION PBYTE      *XteaDivide (byte *data, size_t cbData, size_t *cbOut);
     FUNCTION VOID       XteaCrypt(PBYTE data, SIZE_T cbData, PBYTE key, BOOL encrypt);
 }
-#endif //HEXANE_CIPHER_HPP
+#endif //HEXANE_CORELIB_CIPHER_HPP

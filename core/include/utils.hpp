@@ -1,5 +1,5 @@
-#ifndef HEXANE_UTILS_HPP
-#define HEXANE_UTILS_HPP
+#ifndef HEXANE_CORELIB_UTILS_HPP
+#define HEXANE_CORELIB_UTILS_HPP
 #include <monolith.hpp>
 #include <core/include/corelib.hpp>
 
@@ -31,4 +31,4 @@ namespace Random {
     FUNCTION ULONG       RandomSleepTime();
     FUNCTION BOOL        RandomBool();
 }
-#endif //HEXANE_UTILS_HPP
+#endif //HEXANE_CORELIB_UTILS_HPP

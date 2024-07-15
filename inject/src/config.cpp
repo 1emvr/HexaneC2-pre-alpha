@@ -1,4 +1,4 @@
-#include <inject/config.hpp>
+#include <inject/include/config.hpp>
 namespace Config {
 
     TXT_SECTION(inject, F) BYTE Config[256] = { };

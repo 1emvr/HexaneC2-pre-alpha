@@ -1,6 +1,6 @@
 #include <core/include/process.hpp>
-
 namespace Process {
+
 	ULONG GetProcessIdByName(LPSTR proc) {
 
 		HEXANE

@@ -248,7 +248,7 @@ typedef struct {
 	HINTERNET	Handle;
 	ULONG 	nEndpoints;
 	LPWSTR	*Endpoints;
-	WBUFFER	*Headers;
+	LPWSTR	*Headers;
 } HTTP_CONTEXT, *PHTTP_CONTEXT;
 
 

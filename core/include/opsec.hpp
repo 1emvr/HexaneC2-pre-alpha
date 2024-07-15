@@ -1,5 +1,5 @@
-#ifndef HEXANE_OPSEC_HPP
-#define HEXANE_OPSEC_HPP
+#ifndef HEXANE_CORELIB_OPSEC_HPP
+#define HEXANE_CORELIB_OPSEC_HPP
 #include <monolith.hpp>
 #include <core/include/corelib.hpp>
 #include <core/include/commands.hpp>
@@ -15,4 +15,4 @@ namespace Opsec {
     FUNCTION VOID SleepObf();
 }
 
-#endif //HEXANE_OPSEC_HPP
+#endif //HEXANE_CORELIB_OPSEC_HPP

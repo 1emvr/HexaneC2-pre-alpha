@@ -4,12 +4,12 @@
 // todo: test smb pipeline and message streaming/parsing
 // todo: fix builder script
 
-namespace Implant {
+VOID Entrypoint(HMODULE Base) {
+    Memory::ContextInit();
+    Implant::MainRoutine();
+}
 
-    VOID Entrypoint(HMODULE Base) {
-        Memory::ContextInit();
-        MainRoutine();
-    }
+namespace Implant {
 
     VOID MainRoutine() {
         HEXANE

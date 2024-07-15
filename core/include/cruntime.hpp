@@ -1,5 +1,5 @@
-#ifndef _HEXANE_MULTITOOL_HPP
-#define _HEXANE_MULTITOOL_HPP
+#ifndef HEXANE_CORELIB_MULTITOOL_HPP
+#define HEXANE_CORELIB_MULTITOOL_HPP
 #include <monolith.hpp>
 #include <core/include/corelib.hpp>
 
@@ -21,4 +21,5 @@ FUNCTION size_t x_mbstowcs (wchar_t *dst, char *src, size_t size);
 FUNCTION size_t x_wcstombs (char *str, wchar_t *wcs, size_t size);
 FUNCTION int x_mbs_endswith (char *string, char *end);
 FUNCTION int x_wcs_endswith (wchar_t *string, wchar_t *end);
-#endif // _HEXANE_MULTITOOL_HPP
+
+#endif // HEXANE_CORELIB_MULTITOOL_HPP

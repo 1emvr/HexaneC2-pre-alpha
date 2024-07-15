@@ -1,4 +1,4 @@
-#include <inject/injectlib.hpp>
+#include <inject/include/injectlib.hpp>
 namespace Injection {
 
     VOID Entrypoint(HMODULE Base) {

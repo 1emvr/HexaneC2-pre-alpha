@@ -1,5 +1,5 @@
-#ifndef _HEXANE_COMMANDS_HPP
-#define _HEXANE_COMMANDS_HPP
+#ifndef HEXANE_CORELIB_COMMANDS_HPP
+#define HEXANE_CORELIB_COMMANDS_HPP
 #include <monolith.hpp>
 #include <core/include/corelib.hpp>
 #include <core/include/cruntime.hpp>
@@ -13,4 +13,4 @@ namespace Commands {
     FUNCTION VOID Shutdown(PPARSER Parser);
 	FUNCTION VOID UpdatePeer(PPARSER Parser);
 }
-#endif //_HEXANE_COMMANDS_HPP
+#endif //HEXANE_CORELIB_COMMANDS_HPP
