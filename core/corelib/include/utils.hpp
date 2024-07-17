@@ -21,7 +21,7 @@ namespace Utils {
     FUNCTION ULONG64    GetTimeNow();
     FUNCTION BOOL       InWorkingHours();
     FUNCTION ULONG      GetHashFromStringW(LPWSTR String, SIZE_T Length);
-    FUNCTION ULONG      GetHashFromStringA(LPSTR String, SIZE_T Length);
+    FUNCTION ULONG      GetHashFromStringA(const LPSTR String, SIZE_T Length);
 
 }
 

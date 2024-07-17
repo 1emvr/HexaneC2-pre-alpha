@@ -27,6 +27,10 @@ EXTERN_C LPVOID InstEnd();
 #define WEAK									__attribute__((weak))
 #define FUNCTION								TXT_SECTION(B)
 
+#define C_PTR(x) ((LPVOID)(x))
+#define U_PTR(x) ((UINT_PTR)(x))
+#define C_DREF(x) (*(VOID**)(x))
+
 #define NT_SUCCESS(status)						((status) >= 0)
 #define LocalHeap								NtCurrentTeb()->ProcessEnvironmentBlock->ProcessHeap
 #define ntstatus 								Ctx->Teb->LastErrorValue
@@ -541,5 +545,5 @@ DEFINE_CAST_FUNCTION(dynamic)
 DEFINE_CAST_FUNCTION(const)
 DEFINE_CAST_FUNCTION(reinterpret)
 
-#define fast(cast_type, T, value) ret_##cast_type<T>(value)
+#define FAST(cast_type, T, value) impl_##cast_type##_cast<T>(value)
 #endif
