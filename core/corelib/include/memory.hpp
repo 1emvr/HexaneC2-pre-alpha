@@ -1,10 +1,7 @@
 #ifndef HEXANE_CORELIB_MEMORY_HPP
 #define HEXANE_CORELIB_MEMORY_HPP
 #include <monolith.hpp>
-#include <core/include/corelib.hpp>
-#include <core/include/cruntime.hpp>
-#include <core/include/names.hpp>
-#include <core/include/utils.hpp>
+#include <core/corelib/corelib.hpp>
 
 namespace Memory {
     FUNCTION VOID       ResolveApi();

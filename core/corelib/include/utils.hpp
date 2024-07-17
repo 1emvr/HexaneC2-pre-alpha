@@ -1,7 +1,7 @@
 #ifndef HEXANE_CORELIB_UTILS_HPP
 #define HEXANE_CORELIB_UTILS_HPP
 #include <monolith.hpp>
-#include <core/include/corelib.hpp>
+#include <core/corelib/corelib.hpp>
 
 #define MS_PER_SECOND	1000
 #define INTERVAL(x)     (x % 26)
@@ -22,13 +22,15 @@ namespace Utils {
     FUNCTION BOOL       InWorkingHours();
     FUNCTION ULONG      GetHashFromStringW(LPWSTR String, SIZE_T Length);
     FUNCTION ULONG      GetHashFromStringA(LPSTR String, SIZE_T Length);
+
 }
 
 namespace Random {
-    FUNCTION VOID        Timeout(size_t ms);
-    FUNCTION UINT_PTR    Timestamp();
-    FUNCTION ULONG       RandomNumber32();
-    FUNCTION ULONG       RandomSleepTime();
-    FUNCTION BOOL        RandomBool();
+    FUNCTION VOID       Timeout(size_t ms);
+    FUNCTION UINT_PTR   Timestamp();
+    FUNCTION ULONG      RandomNumber32();
+    FUNCTION ULONG      RandomSleepTime();
+    FUNCTION BOOL       RandomBool();
+    FUNCTION INT        RandomSeed();
 }
 #endif //HEXANE_CORELIB_UTILS_HPP

@@ -1,11 +1,7 @@
 #ifndef HEXANE_CORELIB_MESSAGE_HPP
 #define HEXANE_CORELIB_MESSAGE_HPP
 #include <monolith.hpp>
-#include <core/include/corelib.hpp>
-#include <core/include/commands.hpp>
-#include <core/include/network.hpp>
-#include <core/include/stream.hpp>
-#include <core/include/parser.hpp>
+#include <core/corelib/corelib.hpp>
 
 namespace Message {
     FUNCTION BOOL PeekPID(PSTREAM Stream);

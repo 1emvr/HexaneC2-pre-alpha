@@ -23,6 +23,8 @@ var (
 var (
 	ConfigsPath 	= RootDirectory + "/configs/"
 	CorePath 		= RootDirectory + "/core/"
+	Corelib 		= RootDirectory + "/core/corelib"
+	Injectlib 		= RootDirectory + "/inject/injectlib"
 	ImplantPath 	= RootDirectory + "/implant/"
 	InjectPath 		= RootDirectory + "/inject/"
 	LoaderPath 		= RootDirectory + "/loader/"

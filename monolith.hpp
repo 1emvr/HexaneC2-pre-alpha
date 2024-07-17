@@ -23,6 +23,7 @@ EXTERN_C LPVOID InstEnd();
 #define TXT_SECTION(x) 							__attribute__((used, section(".text$" #x "")))
 #define DATA_SECTION  							__attribute__((used, section(".data")))
 #define RDATA_SECTION  							__attribute__((used, section(".rdata")))
+#define WEAK									__attribute__((weak))
 #define CMD_SIGNATURE(x) 						(CmdSignature)(x)
 #define FUNCTION								TXT_SECTION(B)
 
@@ -477,13 +478,11 @@ typedef struct {
 
 } HEXANE_CTX, *PHEXANE_CTX;
 
-#define INSTANCE __InstanceOffset
-
-EXTERN_C ULONG __InstanceOffset;
-EXTERN_C LPVOID __Instance;
+EXTERN_C WEAK ULONG  __InstanceOffset;
+EXTERN_C WEAK LPVOID __Instance;
 
 #define Ctx 			    __LocalInstance
-#define InstanceOffset()    (U_PTR(&INSTANCE))
+#define InstanceOffset()    (U_PTR(&__InstanceOffset))
 #define GLOBAL_OFFSET       (U_PTR(InstStart()) + InstanceOffset())
 #define InstancePtr()	    ((HEXANE_CTX*) C_DREF(C_PTR(GLOBAL_OFFSET)))
 #define HEXANE 		        HEXANE_CTX* __LocalInstance = InstancePtr();

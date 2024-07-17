@@ -1,4 +1,4 @@
-#include <core/include/memory.hpp>
+#include <core/corelib/include/memory.hpp>
 namespace Memory {
 
     VOID ResolveApi() {

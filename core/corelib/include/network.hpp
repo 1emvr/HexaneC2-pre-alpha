@@ -17,9 +17,7 @@
 #define ERROR_HTTP_HEADER_NOT_FOUND			    (INTERNET_ERROR_BASE + 150)
 
 #include <monolith.hpp>
-#include <core/include/corelib.hpp>
-#include <core/include/cruntime.hpp>
-#include <core/include/utils.hpp>
+#include <core/corelib/corelib.hpp>
 
 namespace Http {
     FUNCTION VOID HttpCallback(PSTREAM Outbound, PSTREAM *Inbound);

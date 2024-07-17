@@ -67,6 +67,88 @@ func WriteFile(name string, data []byte) error {
 	return nil
 }
 
+func FindFiles(name string) ([]os.DirEntry, error) {
+	var (
+		files 		[]os.DirEntry
+		dir   		*os.File
+		err   		error
+	)
+
+	if dir, err = os.Open(name); err != nil {
+		return nil, err
+
+	}
+	defer func () {
+		if err = dir.Close(); err != nil {
+			WrapMessage("ERR", err.Error())
+		}
+	}()
+
+	if files, err = dir.ReadDir(-1); err != nil {
+		return nil, err
+	}
+
+	return files, nil
+}
+
+func SearchFile(rootPath string, fileName string) bool {
+	var (
+		files 		[]os.DirEntry
+		err   		error
+	)
+
+	if files, err = FindFiles(rootPath); err != nil {
+		WrapMessage("ERR", err.Error())
+		return true
+	}
+
+	for _, file := range files {
+		if file.Name() == fileName {
+			return true
+		}
+	}
+
+	return false
+}
+
+func CreateTemp(tmpPath string) error {
+	var err error
+
+	if _, err = os.Stat(tmpPath); err != nil {
+		if os.IsNotExist(err) {
+			if err = os.MkdirAll(tmpPath, os.ModePerm); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func GetCwd() string {
+	var (
+		err error
+		exe string
+	)
+
+	if exe, err = os.Executable(); err != nil {
+		return ""
+	} else {
+		return filepath.Dir(exe)
+	}
+}
+
+func Clear() {
+	command := exec.Command("bash", "-c", "clear")
+	command.Stdout = os.Stdout
+
+	if err := command.Run(); err != nil {
+		panic(err)
+	}
+}
+
 func CreateCppArray(buffer []byte, length int) []byte {
 
 	array := "{"
@@ -155,25 +237,4 @@ func FormatSize(size uint64) string {
 	}
 }
 
-func GetCwd() string {
-	var (
-		err error
-		exe string
-	)
-
-	if exe, err = os.Executable(); err != nil {
-		return ""
-	} else {
-		return filepath.Dir(exe)
-	}
-}
-
-func Clear() {
-	command := exec.Command("cmd", "/c", "cls")
-	command.Stdout = os.Stdout
-
-	if err := command.Run(); err != nil {
-		panic(err)
-	}
-}
 

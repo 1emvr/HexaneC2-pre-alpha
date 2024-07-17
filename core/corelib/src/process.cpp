@@ -1,4 +1,4 @@
-#include <core/include/process.hpp>
+#include <core/corelib/include/process.hpp>
 namespace Process {
 
 	ULONG GetProcessIdByName(LPSTR proc) {
