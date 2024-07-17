@@ -1,6 +1,6 @@
 #ifndef HEXANE_CORELIB_CONFIG_HPP
 #define HEXANE_CORELIB_CONFIG_HPP
-#include <monolith.hpp>
+#include <core/monolith.hpp>
 #include <core/corelib/include/cipher.hpp>
 #include <core/corelib/include/commands.hpp>
 #include <core/corelib/include/cruntime.hpp>

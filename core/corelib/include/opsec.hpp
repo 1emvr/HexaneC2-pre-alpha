@@ -1,6 +1,6 @@
 #ifndef HEXANE_CORELIB_OPSEC_HPP
 #define HEXANE_CORELIB_OPSEC_HPP
-#include <monolith.hpp>
+#include <core/monolith.hpp>
 #include <core/corelib/corelib.hpp>
 
 namespace Opsec {

@@ -6,7 +6,7 @@
 # It is included in the main 'build.ninja'.
 
 # =============================================================================
-# Project: useful_modules
+# Project: Hexane-Implant
 # Configurations: Debug
 # =============================================================================
 # =============================================================================
@@ -14,7 +14,7 @@
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__useful_modules_unscanned_Debug
+rule CXX_COMPILER__Hexane-Implant_unscanned_Debug
   depfile = $DEP_FILE
   deps = gcc
   command = ${LAUNCHER}${CODE_CHECK}/usr/bin/x86_64-w64-mingw32-g++ $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -24,7 +24,7 @@ rule CXX_COMPILER__useful_modules_unscanned_Debug
 #############################################
 # Rule for linking CXX executable.
 
-rule CXX_EXECUTABLE_LINKER__useful_modules_Debug
+rule CXX_EXECUTABLE_LINKER__Hexane-Implant_Debug
   command = $PRE_LINK && /usr/bin/x86_64-w64-mingw32-g++ $FLAGS $LINK_FLAGS $in -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
   description = Linking CXX executable $TARGET_FILE
   restat = $RESTAT

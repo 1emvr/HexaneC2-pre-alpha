@@ -1,6 +1,6 @@
 #ifndef HEXANE_CORELIB_MESSAGE_HPP
 #define HEXANE_CORELIB_MESSAGE_HPP
-#include <monolith.hpp>
+#include <core/monolith.hpp>
 #include <core/corelib/corelib.hpp>
 
 namespace Message {

@@ -11,7 +11,7 @@
 # =============================================================================
 
 # =============================================================================
-# Project: useful_modules
+# Project: Hexane-Implant
 # Configurations: Debug
 # =============================================================================
 
@@ -41,201 +41,141 @@ include CMakeFiles/rules.ninja
 
 cmake_ninja_workdir = /home/lemur/Github/HexaneC2/cmake-build-debug/
 # =============================================================================
-# Object build statements for EXECUTABLE target useful_modules
+# Object build statements for EXECUTABLE target Hexane-Implant
 
 
 #############################################
-# Order-only phony target for useful_modules
+# Order-only phony target for Hexane-Implant
 
-build cmake_object_order_depends_target_useful_modules: phony || CMakeFiles/useful_modules.dir
+build cmake_object_order_depends_target_Hexane-Implant: phony || CMakeFiles/Hexane-Implant.dir
 
-build CMakeFiles/useful_modules.dir/mods/src/EnumDotNetProcesses.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/mods/src/EnumDotNetProcesses.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/mods/src/EnumDotNetProcesses.cpp.o.d
+build CMakeFiles/Hexane-Implant.dir/core/corelib/src/process.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/process.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/process.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/mods/src
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
+  OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
-build CMakeFiles/useful_modules.dir/mods/src/RegDisableDefender.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/mods/src/RegDisableDefender.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/mods/src/RegDisableDefender.cpp.o.d
+build CMakeFiles/Hexane-Implant.dir/core/corelib/src/memory.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/memory.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/memory.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/mods/src
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
+  OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
-build CMakeFiles/useful_modules.dir/mods/src/Impersonate.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/mods/src/Impersonate.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/mods/src/Impersonate.cpp.o.d
+build CMakeFiles/Hexane-Implant.dir/core/corelib/src/cruntime.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/cruntime.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/cruntime.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/mods/src
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
+  OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
-build CMakeFiles/useful_modules.dir/core/corelib/src/process.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/process.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/core/corelib/src/process.cpp.o.d
+build CMakeFiles/Hexane-Implant.dir/core/corelib/src/network.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/network.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/network.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/core/corelib/src
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
+  OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
-build CMakeFiles/useful_modules.dir/core/corelib/src/memory.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/memory.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/core/corelib/src/memory.cpp.o.d
+build CMakeFiles/Hexane-Implant.dir/core/corelib/src/utils.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/utils.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/utils.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/core/corelib/src
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
+  OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
-build CMakeFiles/useful_modules.dir/core/corelib/src/cruntime.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/cruntime.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/core/corelib/src/cruntime.cpp.o.d
+build CMakeFiles/Hexane-Implant.dir/core/corelib/src/opsec.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/opsec.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/opsec.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/core/corelib/src
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
+  OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
-build CMakeFiles/useful_modules.dir/core/corelib/src/network.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/network.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/core/corelib/src/network.cpp.o.d
+build CMakeFiles/Hexane-Implant.dir/core/corelib/src/message.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/message.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/message.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/core/corelib/src
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
+  OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
-build CMakeFiles/useful_modules.dir/core/corelib/src/utils.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/utils.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/core/corelib/src/utils.cpp.o.d
+build CMakeFiles/Hexane-Implant.dir/core/corelib/src/parser.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/parser.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/parser.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/core/corelib/src
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
+  OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
-build CMakeFiles/useful_modules.dir/core/corelib/src/opsec.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/opsec.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/core/corelib/src/opsec.cpp.o.d
+build CMakeFiles/Hexane-Implant.dir/core/corelib/src/cipher.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/cipher.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/cipher.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/core/corelib/src
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
+  OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
-build CMakeFiles/useful_modules.dir/core/implant/implant.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/core/implant/implant.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/core/implant/implant.cpp.o.d
+build CMakeFiles/Hexane-Implant.dir/core/corelib/src/stream.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/stream.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/stream.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/core/implant
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
+  OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
-build CMakeFiles/useful_modules.dir/core/corelib/src/message.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/message.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/core/corelib/src/message.cpp.o.d
+build CMakeFiles/Hexane-Implant.dir/core/corelib/src/commands.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/commands.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/commands.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/core/corelib/src
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
+  OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
-build CMakeFiles/useful_modules.dir/core/corelib/src/parser.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/parser.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/core/corelib/src/parser.cpp.o.d
+build CMakeFiles/Hexane-Implant.dir/loader/mainexe.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/loader/mainexe.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles/Hexane-Implant.dir/loader/mainexe.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/core/corelib/src
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
+  OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/loader
 
-build CMakeFiles/useful_modules.dir/core/corelib/src/cipher.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/cipher.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/core/corelib/src/cipher.cpp.o.d
+build CMakeFiles/Hexane-Implant.dir/loader/dllmain.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/loader/dllmain.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles/Hexane-Implant.dir/loader/dllmain.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/core/corelib/src
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
+  OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/loader
 
-build CMakeFiles/useful_modules.dir/core/corelib/src/stream.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/stream.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/core/corelib/src/stream.cpp.o.d
+build CMakeFiles/Hexane-Implant.dir/inject/injectlib/injectlib.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/inject/injectlib/injectlib.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles/Hexane-Implant.dir/inject/injectlib/injectlib.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/core/corelib/src
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
+  OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/inject/injectlib
 
-build CMakeFiles/useful_modules.dir/core/corelib/src/commands.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/commands.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/core/corelib/src/commands.cpp.o.d
+build CMakeFiles/Hexane-Implant.dir/inject/threadless/OpenFileExecute.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles/Hexane-Implant.dir/inject/threadless/OpenFileExecute.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/core/corelib/src
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
+  OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/inject/threadless
 
-build CMakeFiles/useful_modules.dir/loader/mainexe.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/loader/mainexe.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/loader/mainexe.cpp.o.d
+build CMakeFiles/Hexane-Implant.dir/core/implant/implant.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/implant/implant.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/implant/implant.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/loader
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
-
-build CMakeFiles/useful_modules.dir/loader/dllmain.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/loader/dllmain.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/loader/dllmain.cpp.o.d
-  FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/loader
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
-
-build CMakeFiles/useful_modules.dir/inject/injectlib/injectlib.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/inject/injectlib/injectlib.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/inject/injectlib/injectlib.cpp.o.d
-  FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/inject/injectlib
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
-
-build CMakeFiles/useful_modules.dir/inject/threadless/OpenFileExecute.cpp.o: CXX_COMPILER__useful_modules_unscanned_Debug /home/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp || cmake_object_order_depends_target_useful_modules
-  DEP_FILE = CMakeFiles/useful_modules.dir/inject/threadless/OpenFileExecute.cpp.o.d
-  FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/kali/Github/HexaneC2 -I/usr/share/mingw-w64/include
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
-  OBJECT_FILE_DIR = CMakeFiles/useful_modules.dir/inject/threadless
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_PDB = useful_modules.pdb
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
+  OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/implant
 
 
 # =============================================================================
-# Link build statements for EXECUTABLE target useful_modules
+# Link build statements for EXECUTABLE target Hexane-Implant
 
 
 #############################################
-# Link the executable useful_modules
+# Link the executable Hexane-Implant
 
-build useful_modules: CXX_EXECUTABLE_LINKER__useful_modules_Debug CMakeFiles/useful_modules.dir/mods/src/EnumDotNetProcesses.cpp.o CMakeFiles/useful_modules.dir/mods/src/RegDisableDefender.cpp.o CMakeFiles/useful_modules.dir/mods/src/Impersonate.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/process.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/memory.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/cruntime.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/network.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/utils.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/opsec.cpp.o CMakeFiles/useful_modules.dir/core/implant/implant.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/message.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/parser.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/cipher.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/stream.cpp.o CMakeFiles/useful_modules.dir/core/corelib/src/commands.cpp.o CMakeFiles/useful_modules.dir/loader/mainexe.cpp.o CMakeFiles/useful_modules.dir/loader/dllmain.cpp.o CMakeFiles/useful_modules.dir/inject/injectlib/injectlib.cpp.o CMakeFiles/useful_modules.dir/inject/threadless/OpenFileExecute.cpp.o
+build Hexane-Implant: CXX_EXECUTABLE_LINKER__Hexane-Implant_Debug CMakeFiles/Hexane-Implant.dir/core/corelib/src/process.cpp.o CMakeFiles/Hexane-Implant.dir/core/corelib/src/memory.cpp.o CMakeFiles/Hexane-Implant.dir/core/corelib/src/cruntime.cpp.o CMakeFiles/Hexane-Implant.dir/core/corelib/src/network.cpp.o CMakeFiles/Hexane-Implant.dir/core/corelib/src/utils.cpp.o CMakeFiles/Hexane-Implant.dir/core/corelib/src/opsec.cpp.o CMakeFiles/Hexane-Implant.dir/core/corelib/src/message.cpp.o CMakeFiles/Hexane-Implant.dir/core/corelib/src/parser.cpp.o CMakeFiles/Hexane-Implant.dir/core/corelib/src/cipher.cpp.o CMakeFiles/Hexane-Implant.dir/core/corelib/src/stream.cpp.o CMakeFiles/Hexane-Implant.dir/core/corelib/src/commands.cpp.o CMakeFiles/Hexane-Implant.dir/loader/mainexe.cpp.o CMakeFiles/Hexane-Implant.dir/loader/dllmain.cpp.o CMakeFiles/Hexane-Implant.dir/inject/injectlib/injectlib.cpp.o CMakeFiles/Hexane-Implant.dir/inject/threadless/OpenFileExecute.cpp.o CMakeFiles/Hexane-Implant.dir/core/implant/implant.cpp.o
   FLAGS = -g
-  OBJECT_DIR = CMakeFiles/useful_modules.dir
+  OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   POST_BUILD = :
   PRE_LINK = :
-  TARGET_COMPILE_PDB = CMakeFiles/useful_modules.dir/
-  TARGET_FILE = useful_modules
-  TARGET_PDB = useful_modules.pdb
+  TARGET_FILE = Hexane-Implant
+  TARGET_PDB = Hexane-Implant.dbg
 
 
 #############################################
@@ -271,7 +211,7 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 #############################################
 # Folder: /home/lemur/Github/HexaneC2/cmake-build-debug
 
-build all: phony useful_modules
+build all: phony Hexane-Implant
 
 # =============================================================================
 # Built-in targets
@@ -280,14 +220,14 @@ build all: phony useful_modules
 #############################################
 # Re-run CMake if any of its inputs changed.
 
-build build.ninja: RERUN_CMAKE | /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeASMCompiler.cmake.in /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeASMInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeASM_NASMInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCCompiler.cmake.in /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCCompilerABI.c /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCXXCompiler.cmake.in /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCXXInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCompilerIdDetection.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCXXCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCompileFeatures.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCompilerABI.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineSystem.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeFindBinUtils.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeGenericSystem.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeInitializeConfigs.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeParseImplicitIncludeInfo.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeParseImplicitLinkInfo.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeParseLibraryArchitecture.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeSystem.cmake.in /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeTestASMCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeTestASM_NASMCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeTestCCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeTestCXXCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeTestCompilerCommon.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/ADSP-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/ARMCC-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/ARMClang-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/AppleClang-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Borland-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Bruce-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Clang-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Clang-DetermineCompilerInternal.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Comeau-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Compaq-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Compaq-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Cray-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/CrayClang-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Embarcadero-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Fujitsu-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/FujitsuClang-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GHS-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU-C.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU-FindBinUtils.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/HP-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/HP-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/IAR-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/IBMCPP-C-DetermineVersionInternal.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/IBMCPP-CXX-DetermineVersionInternal.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/IBMClang-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/IBMClang-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Intel-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/IntelLLVM-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/LCC-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/LCC-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/MSVC-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/NVHPC-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/NVIDIA-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/OpenWatcom-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/OrangeC-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/PGI-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/PathScale-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/SCO-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/SDCC-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/SunPro-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/SunPro-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/TI-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Tasking-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/TinyCC-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/VisualAge-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/VisualAge-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Watcom-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/XL-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/XL-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/XLClang-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/XLClang-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/zOS-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/zOS-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Internal/FeatureTesting.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-Determine-CXX.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-GNU-C.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-GNU-CXX.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-GNU.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-Initialize.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/UnixPaths.cmake /home/lemur/Github/HexaneC2/CMakeLists.txt CMakeCache.txt CMakeFiles/3.28.1/CMakeASM_NASMCompiler.cmake CMakeFiles/3.28.1/CMakeCCompiler.cmake CMakeFiles/3.28.1/CMakeCXXCompiler.cmake CMakeFiles/3.28.1/CMakeSystem.cmake
+build build.ninja: RERUN_CMAKE | /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeASMInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeASM_NASMInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCXXInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeGenericSystem.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeInitializeConfigs.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU-C.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-GNU-C.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-GNU-CXX.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-GNU.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-Initialize.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/UnixPaths.cmake /home/lemur/Github/HexaneC2/CMakeLists.txt CMakeCache.txt CMakeFiles/3.28.1/CMakeASM_NASMCompiler.cmake CMakeFiles/3.28.1/CMakeCCompiler.cmake CMakeFiles/3.28.1/CMakeCXXCompiler.cmake CMakeFiles/3.28.1/CMakeSystem.cmake
   pool = console
 
 
 #############################################
 # A missing CMake input file is not an error.
 
-build /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeASMCompiler.cmake.in /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeASMInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeASM_NASMInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCCompiler.cmake.in /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCCompilerABI.c /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCXXCompiler.cmake.in /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCXXInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCompilerIdDetection.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCXXCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCompileFeatures.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCompilerABI.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeDetermineSystem.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeFindBinUtils.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeGenericSystem.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeInitializeConfigs.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeParseImplicitIncludeInfo.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeParseImplicitLinkInfo.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeParseLibraryArchitecture.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeSystem.cmake.in /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeTestASMCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeTestASM_NASMCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeTestCCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeTestCXXCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeTestCompilerCommon.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/ADSP-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/ARMCC-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/ARMClang-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/AppleClang-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Borland-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Bruce-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Clang-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Clang-DetermineCompilerInternal.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Comeau-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Compaq-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Compaq-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Cray-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/CrayClang-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Embarcadero-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Fujitsu-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/FujitsuClang-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GHS-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU-C.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU-FindBinUtils.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/HP-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/HP-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/IAR-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/IBMCPP-C-DetermineVersionInternal.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/IBMCPP-CXX-DetermineVersionInternal.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/IBMClang-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/IBMClang-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Intel-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/IntelLLVM-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/LCC-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/LCC-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/MSVC-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/NVHPC-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/NVIDIA-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/OpenWatcom-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/OrangeC-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/PGI-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/PathScale-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/SCO-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/SDCC-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/SunPro-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/SunPro-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/TI-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Tasking-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/TinyCC-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/VisualAge-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/VisualAge-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/Watcom-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/XL-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/XL-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/XLClang-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/XLClang-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/zOS-C-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/zOS-CXX-DetermineCompiler.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Internal/FeatureTesting.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-Determine-CXX.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-GNU-C.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-GNU-CXX.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-GNU.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-Initialize.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/UnixPaths.cmake /home/lemur/Github/HexaneC2/CMakeLists.txt CMakeCache.txt CMakeFiles/3.28.1/CMakeASM_NASMCompiler.cmake CMakeFiles/3.28.1/CMakeCCompiler.cmake CMakeFiles/3.28.1/CMakeCXXCompiler.cmake CMakeFiles/3.28.1/CMakeSystem.cmake: phony
+build /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeASMInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeASM_NASMInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCXXInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeGenericSystem.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeInitializeConfigs.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU-C.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Compiler/GNU.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-GNU-C.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-GNU-CXX.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-GNU.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux-Initialize.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/Linux.cmake /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/share/cmake-3.28/Modules/Platform/UnixPaths.cmake /home/lemur/Github/HexaneC2/CMakeLists.txt CMakeCache.txt CMakeFiles/3.28.1/CMakeASM_NASMCompiler.cmake CMakeFiles/3.28.1/CMakeCCompiler.cmake CMakeFiles/3.28.1/CMakeCXXCompiler.cmake CMakeFiles/3.28.1/CMakeSystem.cmake: phony
 
 
 #############################################

@@ -1,10 +1,9 @@
 #ifndef HEXANE_PARSER_HPP
 #define HEXANE_PARSER_HPP
-#include <monolith.hpp>
+#include <core/monolith.hpp>
 #include <core/corelib/corelib.hpp>
 
 namespace Parser {
-
     FUNCTION VOID ParserStrcpy(PPARSER Parser, LPSTR *Dst, ULONG *cbOut);
     FUNCTION VOID ParserWcscpy(PPARSER Parser, LPWSTR *Dst, ULONG *cbOut);
     FUNCTION VOID ParserMemcpy(PPARSER Parser, PBYTE *Dst, ULONG *cbOut);

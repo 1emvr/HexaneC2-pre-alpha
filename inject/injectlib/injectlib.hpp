@@ -1,6 +1,6 @@
 #ifndef _HEXANE_INJECTLIB_CONFIG_HPP
 #define _HEXANE_INJECTLIB_CONFIG_HPP
-#include <monolith.hpp>
+#include <core/monolith.hpp>
 #include <core/corelib/corelib.hpp>
 #include <inject/injectlib/resource.hpp>
 
