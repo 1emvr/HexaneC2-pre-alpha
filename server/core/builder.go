@@ -15,19 +15,6 @@ var (
 	HashHedaer   = CorelibInc + "/names.hpp"
 )
 
-func (h *HexaneConfig) RunBuild() error {
-	var err error
-
-	if err = h.BuildUpdate(); err != nil {
-		return err
-	}
-
-	go h.HttpServerHandler()
-	time.Sleep(time.Millisecond * 500)
-
-	return nil
-}
-
 func (h *HexaneConfig) GenerateConfig() error {
 	var (
 		Patch []byte
@@ -168,7 +155,7 @@ func (h *HexaneConfig) GenerateObjects(srcPath string, dstPath string, linker st
 	return nil
 }
 
-func (h *HexaneConfig) BuildUpdate() error {
+func (h *HexaneConfig) RunBuild() error {
 	var err error
 
 	WrapMessage("INF", "starting build...")
@@ -219,6 +206,9 @@ func (h *HexaneConfig) BuildUpdate() error {
 	}
 
 	AddConfig(h)
+	go h.HttpServerHandler()
+
+	time.Sleep(time.Millisecond * 500)
 	WrapMessage("INF", fmt.Sprintf("%s ready!", h.ImplantName))
 
 	return nil
