@@ -67,13 +67,13 @@ func WriteFile(name string, data []byte) error {
 	return nil
 }
 
-func FindFiles(name string) ([]os.DirEntry, error) {
+func FindFiles(path string) ([]os.DirEntry, error) {
 	var (
 		files []os.DirEntry
 		err   error
 	)
 
-	if files, err = os.ReadDir(name); err != nil {
+	if files, err = os.ReadDir(path); err != nil {
 		return nil, err
 
 	}
@@ -89,7 +89,7 @@ func SearchFile(rootPath string, fileName string) bool {
 
 	if files, err = FindFiles(rootPath); err != nil {
 		WrapMessage("ERR", err.Error())
-		return true
+		return false
 	}
 
 	for _, file := range files {
