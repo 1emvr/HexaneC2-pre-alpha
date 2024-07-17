@@ -1,9 +1,7 @@
 package main
 
-import (
-	"hexane_server/cmd"
-)
+import "hexane_server/cmd"
 
 func main() {
-	cmd.Execute()
+	cmd.Run()
 }

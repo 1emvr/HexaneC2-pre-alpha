@@ -9,7 +9,6 @@ import (
 	"strconv"
 )
 
-
 func (h *HexaneConfig) GenerateIncludes(incs []string) string {
 	var list string
 
@@ -100,11 +99,11 @@ func GenerateHashes(stringsFile string, outFile string) error {
 
 func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, data []byte) error {
 	var (
-		readFile   	*os.File
-		peFile 		*pe.File
-		section 	*pe.Section
-		secData   	[]byte
-		err    		error
+		readFile *os.File
+		peFile   *pe.File
+		section  *pe.Section
+		secData  []byte
+		err      error
 	)
 
 	if readFile, err = os.OpenFile(readPath, FstatRW, 0644); err != nil {
@@ -153,10 +152,10 @@ func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, d
 
 func (h *HexaneConfig) CopySectionData(readPath string, outPath string, targetSection string) error {
 	var (
-		readFile   	*os.File
-		peFile 		*pe.File
-		section 	*pe.Section
-		err    		error
+		readFile *os.File
+		peFile   *pe.File
+		section  *pe.Section
+		err      error
 	)
 
 	if readFile, err = os.Open(readPath); err != nil {
@@ -192,7 +191,6 @@ func (h *HexaneConfig) CopySectionData(readPath string, outPath string, targetSe
 	return nil
 }
 
-
 func (h *HexaneConfig) GetEmbededStrings(strList []string) []byte {
 	var stream = new(Stream)
 
@@ -221,16 +219,24 @@ func (h *HexaneConfig) RunCommand(cmd string) error {
 		err     error
 	)
 
-	LogName = LogsPath + strconv.Itoa(int(h.Implant.PeerId)) + "-error.log"
+	LogName = LogsPath + "/" + strconv.Itoa(int(h.Implant.PeerId)) + "-error.log"
 	if Log, err = os.Create(LogName); err != nil {
 		return err
 	}
 
-	defer Log.Close()
+	defer func() {
+		if err = Log.Close(); err != nil {
+			WrapMessage("ERR", err.Error())
+		}
+	}()
 
 	Command = exec.Command("bash", "-c", cmd)
 	Command.Stdout = Log
 	Command.Stderr = Log
+
+	if ShowCommands {
+		WrapMessage("DBG", "running command : "+Command.String()+"\n")
+	}
 
 	if err = Command.Run(); err != nil {
 		return fmt.Errorf("compilation error. Check %s for details", LogName)
@@ -247,11 +253,13 @@ func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []
 
 	Command += command
 
-	if h.Implant.ProfileTypeId == TRANSPORT_HTTP {
-		definitions = append(definitions, map[string][]byte{"TRANSPORT_HTTP": nil})
+	if command != h.Compiler.Ar {
+		if h.Implant.ProfileTypeId == TRANSPORT_HTTP {
+			definitions = append(definitions, map[string][]byte{"TRANSPORT_HTTP": nil})
 
-	} else if h.Implant.ProfileTypeId == TRANSPORT_PIPE {
-		definitions = append(definitions, map[string][]byte{"TRANSPORT_PIPE": nil})
+		} else if h.Implant.ProfileTypeId == TRANSPORT_PIPE {
+			definitions = append(definitions, map[string][]byte{"TRANSPORT_PIPE": nil})
+		}
 	}
 
 	if h.Compiler.Debug {
@@ -283,4 +291,3 @@ func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []
 	}
 	return nil
 }
-

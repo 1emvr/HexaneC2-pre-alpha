@@ -7,30 +7,30 @@ import (
 
 func (h *HexaneConfig) GetInjectConfig() (*InjectConfig, error) {
 	var (
-		InjectCfg 	= new(InjectConfig)
-		err 		error
+		InjectCfg = new(InjectConfig)
+		err       error
 	)
 
 	if h.Implant.Injection.Threadless != nil {
 		var (
 			loader []byte
-			opcode = []byte{0xE8, 0X00, 0X00, 0X00, 0X00}
+			opcode = []byte{0xE8, 0x00, 0x00, 0x00, 0x00}
 		)
-
-		Execute := h.Implant.Injection.Threadless.Execute
-		InjectCfg.ExecuteObj = Execute + ".o"
 
 		LoaderAsm := h.Compiler.BuildDirectory + "/threadless.asm"
 		LoaderObj := h.Compiler.BuildDirectory + "/threadless.asm.o"
 		LoaderData := h.Compiler.BuildDirectory + "/threadless.bin"
 
+		Execute := h.Implant.Injection.Threadless.Execute
+		InjectCfg.ExecuteObj = Execute + ".o"
+
 		WrapMessage("DBG", fmt.Sprintf("generating execute object %s", Execute))
-		if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{Execute}, nil, h.Compiler.IncludeDirs, InjectCfg.ExecuteObj); err != nil {
+		if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{Execute}, h.Compiler.Flags, h.Compiler.IncludeDirs, nil, InjectCfg.ExecuteObj); err != nil {
 			return nil, err
 		}
 
 		WrapMessage("DBG", "generating Threadless loader object")
-		if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{LoaderAsm}, nil, h.Compiler.IncludeDirs, LoaderObj); err != nil {
+		if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{LoaderAsm}, nil, h.Compiler.IncludeDirs, nil, LoaderObj); err != nil {
 			return nil, err
 		}
 

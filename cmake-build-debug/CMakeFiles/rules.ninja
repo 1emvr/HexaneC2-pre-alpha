@@ -42,7 +42,7 @@ rule CUSTOM_COMMAND
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/bin/cmake --regenerate-during-build -S/home/kali/Github/HexaneC2 -B/home/kali/Github/HexaneC2/cmake-build-debug
+  command = /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/bin/cmake --regenerate-during-build -S/home/lemur/Github/HexaneC2 -B/home/lemur/Github/HexaneC2/cmake-build-debug
   description = Re-running CMake...
   generator = 1
 
@@ -51,7 +51,7 @@ rule RERUN_CMAKE
 # Rule for cleaning all built files.
 
 rule CLEAN
-  command = /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja $FILE_ARG -t clean $TARGETS
+  command = /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja $FILE_ARG -t clean $TARGETS
   description = Cleaning all built files...
 
 
@@ -59,6 +59,6 @@ rule CLEAN
 # Rule for printing all primary targets available.
 
 rule HELP
-  command = /home/kali/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -t targets
+  command = /home/lemur/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -t targets
   description = All primary targets available:
 

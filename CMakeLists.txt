@@ -14,8 +14,8 @@ set(INJ "${SROUCE}/inject")
 include_directories(include ${SOURCE} ${META})
 
 set(INCLUDE_FILES
-        monolith.hpp
-        ntimports.hpp
+        core/monolith.hpp
+        core/ntimports.hpp
         core/corelib/include/memory.hpp
         core/corelib/include/process.hpp
         core/corelib/include/cruntime.hpp

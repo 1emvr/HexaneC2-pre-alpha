@@ -1,4 +1,3 @@
-
 package cmd
 
 import (
@@ -9,6 +8,8 @@ import (
 	"os"
 	"strings"
 )
+
+var ()
 
 var banner = `
 ██╗  ██╗███████╗██╗  ██╗ █████╗ ███╗   ██╗███████╗     ██████╗██████╗ 
@@ -22,6 +23,12 @@ var rootCmd = &cobra.Command{
 	Use:   "HexaneC2",
 	Short: "Minimal command & control framework",
 	Long:  "Minimal command & control framework",
+}
+
+func init() {
+	rootCmd.PersistentFlags().BoolVarP(&core.Debug, "debug", "d", false, "debug mode")
+	rootCmd.PersistentFlags().BoolVarP(&core.ShowCommands, "show_commands", "c", false, "debug command mode")
+	rootCmd.AddCommand(Implants)
 }
 
 func CallbackListener(cb chan core.Callback) {
@@ -39,7 +46,7 @@ func CallbackListener(cb chan core.Callback) {
 	}
 }
 
-func Execute() {
+func Run() {
 	var (
 		err    error
 		input  string
@@ -52,15 +59,16 @@ func Execute() {
 	go CallbackListener(core.Cb)
 	defer close(core.Cb)
 
-	if len(os.Args) > 1 && os.Args[1] == "DEBUG" {
-		core.Debug = true
-		core.WrapMessage("INF", "launching in debug mode")
-
-	}
-
 	if err = rootCmd.ParseFlags(os.Args[1:]); err != nil {
 		core.WrapMessage("ERR", err.Error())
 		return
+	}
+
+	if core.Debug {
+		core.WrapMessage("INF", "running in debug mode")
+	}
+	if core.ShowCommands {
+		core.WrapMessage("INF", "running with command output")
 	}
 
 	for {
@@ -78,14 +86,7 @@ func Execute() {
 
 		if err = rootCmd.Execute(); err != nil {
 			core.WrapMessage("ERR", err.Error())
-			os.Exit(1)
+			continue
 		}
 	}
 }
-
-
-func init() {
-	rootCmd.PersistentFlags().BoolVarP(&core.Debug, "debug", "d", false, "debug mode")
-	rootCmd.AddCommand(Implants)
-}
-

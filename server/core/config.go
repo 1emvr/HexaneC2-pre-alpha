@@ -10,7 +10,9 @@ import (
 )
 
 var (
-	Debug    bool
+	Debug        = false
+	ShowCommands = false
+
 	Cb       = make(chan Callback)
 	Payloads = new(HexanePayloads)
 	Servers  = new(ServerList)
@@ -21,24 +23,33 @@ var (
 )
 
 var (
-	ConfigsPath 	= RootDirectory + "/configs/"
-	CorePath 		= RootDirectory + "/core/"
-	Corelib 		= RootDirectory + "/core/corelib"
-	Injectlib 		= RootDirectory + "/inject/injectlib"
-	ImplantPath 	= RootDirectory + "/implant/"
-	InjectPath 		= RootDirectory + "/inject/"
-	LoaderPath 		= RootDirectory + "/loader/"
-	LogsPath 		= RootDirectory + "/logs/"
-	ModsPath 		= RootDirectory + "/mods/"
-	PayloadPath 	= RootDirectory + "/payload/"
-	IncludePath 	= CorePath + "/include/"
+	ConfigsPath = RootDirectory + "configs"
+	CorePath    = RootDirectory + "core"
+	InjectPath  = RootDirectory + "inject"
+	LogsPath    = RootDirectory + "logs"
+	ModsPath    = RootDirectory + "mods"
+	PayloadPath = RootDirectory + "payload"
+	LoaderPath  = RootDirectory + "loader"
 
+	IncludePath = CorePath + "/include"
+	ImplantPath = CorePath + "/implant"
+	ImplantLd   = ImplantPath + "/implant.ld"
+
+	Corelib    = CorePath + "/corelib"
+	CorelibSrc = Corelib + "/src"
+	CorelibInc = Corelib + "/include"
+	CorelibLd  = Corelib + "/corelib.ld"
+
+	Injectlib   = InjectPath + "/injectlib"
+	InjectSrc   = Injectlib + "/src"
+	InjectInc   = Injectlib + "/include"
+	InjectlibLd = Injectlib + "/injectlib.ld"
 )
 
 var (
 	FstatCreate = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
-	FstatWrite = os.O_WRONLY | os.O_APPEND
-	FstatRW = os.O_RDWR | os.O_APPEND
+	FstatWrite  = os.O_WRONLY | os.O_APPEND
+	FstatRW     = os.O_RDWR | os.O_APPEND
 )
 
 var ModuleStrings = []string{
@@ -85,6 +96,7 @@ func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
 	h.Compiler.Objcopy = "/usr/bin/x86_64-w64-mingw32-objcopy"
 	h.Compiler.Windres = "/usr/bin/x86_64-w64-mingw32-windres"
 	h.Compiler.Strip = "/usr/bin/x86_64-w64-mingw32-strip"
+	h.Compiler.Ar = "/usr/bin/x86_64-w64-mingw32-ar"
 	h.Compiler.Assembler = "/usr/bin/nasm"
 
 	h.Compiler.IncludeDirs = []string{
@@ -131,15 +143,15 @@ func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
 
 func ReadConfig(cfgName string) error {
 	var (
-		hexane   = new(HexaneConfig)
+		hexane  = new(HexaneConfig)
 		jsonCfg JsonConfig
-		buffer []byte
-		err error
+		buffer  []byte
+		err     error
 	)
 
 	WrapMessage("INF", fmt.Sprintf("loading %s", cfgName))
 
-	if buffer, err = os.ReadFile(RootDirectory + "configs/" + cfgName); err != nil {
+	if buffer, err = os.ReadFile(RootDirectory + "json/" + cfgName); err != nil {
 		return err
 	}
 
@@ -221,8 +233,8 @@ func ReadConfig(cfgName string) error {
 func (h *HexaneConfig) PePatchConfig() ([]byte, error) {
 	var (
 		stream = CreateStream()
-		Hours   int32
-		err     error
+		Hours  int32
+		err    error
 	)
 
 	if Hours, err = ParseWorkingHours(h.Implant.WorkingHours); err != nil {

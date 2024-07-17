@@ -8,11 +8,11 @@ import (
 )
 
 var (
-	LinkerLoader 	= LoaderPath + "/linker.loader.ld"
-	HashStrings 	= ConfigsPath + "/strings.txt"
-	DllMain   		= LoaderPath + "/dllmain.cpp"
-	RsrcScript  	= LoaderPath + "/resource.rc"
-	HashHedaer 		= IncludePath + "/names.hpp"
+	LinkerLoader = LoaderPath + "/linker.loader.ld"
+	HashStrings  = ConfigsPath + "/strings.txt"
+	DllMain      = LoaderPath + "/dllmain.cpp"
+	RsrcScript   = LoaderPath + "/resource.rc"
+	HashHedaer   = CorelibInc + "/names.hpp"
 )
 
 func (h *HexaneConfig) RunBuild() error {
@@ -51,7 +51,7 @@ func (h *HexaneConfig) GenerateConfig() error {
 
 func (h *HexaneConfig) GenerateLoader() error {
 	var (
-		err error
+		err       error
 		injectCfg *InjectConfig
 	)
 
@@ -60,7 +60,6 @@ func (h *HexaneConfig) GenerateLoader() error {
 	CoreCpp := h.Compiler.BuildDirectory + "/ldrcore.cpp"
 	CoreComponents := h.Compiler.BuildDirectory + "/ldrcore.cpp.o"
 	Output := h.Compiler.BuildDirectory + "/" + h.ImplantName + h.Compiler.FileExtension
-
 
 	WrapMessage("DBG", "generating loader config")
 	if injectCfg, err = h.GetInjectConfig(); err != nil {
@@ -105,17 +104,15 @@ func (h *HexaneConfig) GenerateLoader() error {
 	return nil
 }
 
-
-func (h *HexaneConfig) GenerateLibs(rootPath string, srcPath string, incPath string, tmpPath string, linker string, libName string) error {
+func (h *HexaneConfig) GenerateObjects(srcPath string, dstPath string, linker string, outName string, staticLib bool) error {
 	var (
-		buildFiles 	[]string
-		flags 		[]string
-		files 		[]os.DirEntry
-		err   		error
+		buildFiles []string
+		flags      []string
+		files      []os.DirEntry
+		err        error
 	)
 
-
-	if err = CreateTemp(tmpPath); err != nil {
+	if err = CreateTemp(dstPath); err != nil {
 		return err
 	}
 
@@ -124,19 +121,19 @@ func (h *HexaneConfig) GenerateLibs(rootPath string, srcPath string, incPath str
 	}
 
 	if linker != "" {
-		flags = append(h.Compiler.Flags, " -T ",linker)
+		flags = append(h.Compiler.Flags, " -T ", linker)
 	} else {
 		flags = h.Compiler.Flags
 	}
 
 	for _, file := range files {
 
-		objFile := tmpPath + "/" + file.Name() + ".o"
 		Append := false
-
+		srcFile := srcPath + "/" + file.Name()
+		objFile := dstPath + "/" + file.Name() + ".o"
 
 		if path.Ext(file.Name()) == ".cpp" {
-			if err = h.CompileObject(h.Compiler.Mingw + " -c ", []string{file.Name()}, flags, []string{incPath}, nil, objFile); err != nil {
+			if err = h.CompileObject(h.Compiler.Mingw+" -c ", []string{srcFile}, flags, []string{RootDirectory}, nil, objFile); err != nil {
 				return err
 			}
 
@@ -144,7 +141,7 @@ func (h *HexaneConfig) GenerateLibs(rootPath string, srcPath string, incPath str
 		}
 
 		if path.Ext(file.Name()) == ".asm" {
-			if err = h.CompileObject(h.Compiler.Assembler+" -f win64 ", []string{file.Name()}, nil, nil, nil, objFile); err != nil {
+			if err = h.CompileObject(h.Compiler.Assembler+" -f win64 ", []string{srcFile}, nil, nil, nil, objFile); err != nil {
 				return err
 			}
 
@@ -156,17 +153,23 @@ func (h *HexaneConfig) GenerateLibs(rootPath string, srcPath string, incPath str
 		}
 	}
 
-	if err = h.CompileObject("ar", buildFiles, []string{"rcs"}, []string{incPath}, nil, rootPath + "/" + libName); err != nil {
-		return err
+	outFile := dstPath + "/" + outName
+
+	if staticLib {
+		if err = h.CompileObject(h.Compiler.Ar, buildFiles, []string{"rcs"}, nil, nil, outFile); err != nil {
+			return err
+		}
+	} else {
+		if err = h.CompileObject(h.Compiler.Mingw+" -c ", buildFiles, flags, []string{RootDirectory}, nil, outFile); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 func (h *HexaneConfig) BuildUpdate() error {
-	var (
-		err error
-	)
+	var err error
 
 	WrapMessage("INF", "starting build...")
 	if err = os.MkdirAll(h.Compiler.BuildDirectory, os.ModePerm); err != nil {
@@ -183,21 +186,28 @@ func (h *HexaneConfig) BuildUpdate() error {
 		return err
 	}
 
-	WrapMessage("INF", "generating core components")
 	if !SearchFile(Corelib, "corelib.a") {
-		if err = h.GenerateLibs(Corelib, Corelib+"/src", Corelib+"/include", Corelib, Corelib+"/corelib.ld", "corelib.a"); err != nil {
+		WrapMessage("INF", "generating corelib")
+
+		if err = h.GenerateObjects(Corelib, Corelib, CorelibLd, "/corelib.a", true); err != nil {
 			return err
 		}
 	}
 
 	if h.Implant.Injection != nil {
-		if err = h.GenerateLibs(Injectlib, Injectlib+"/src", Injectlib+"/include", h.Compiler.BuildDirectory+"/build", Injectlib+"/injectlib.ld", h.Compiler.BuildDirectory+"injectlib.a"); err != nil {
+		WrapMessage("INF", "generating injectlib")
+
+		if err = h.GenerateObjects(Injectlib, h.Compiler.BuildDirectory+"/build", InjectlibLd, "injectlib.a", true); err != nil {
 			return err
 		}
 	}
 
+	if err = h.GenerateObjects(ImplantPath, h.Compiler.BuildDirectory+"/build", ImplantLd, "implant.o", false); err != nil {
+		return err
+	}
+
 	WrapMessage("INF", "generating shellcode")
-	if err = h.CopySectionData(h.Compiler.BuildDirectory + "/interm.exe", h.Compiler.BuildDirectory + "/shellcode.bin", ".text"); err != nil {
+	if err = h.CopySectionData(h.Compiler.BuildDirectory+"/interm.exe", h.Compiler.BuildDirectory+"/shellcode.bin", ".text"); err != nil {
 		return err
 	}
 

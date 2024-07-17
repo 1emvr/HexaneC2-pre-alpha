@@ -6,24 +6,24 @@ import (
 )
 
 var (
-	TRANSPORT_HTTP 		uint32 = 0x00000001
-	TRANSPORT_PIPE 		uint32 = 0x00000002
+	TRANSPORT_HTTP uint32 = 0x00000001
+	TRANSPORT_PIPE uint32 = 0x00000002
 
-	TypeCheckin  		uint32 = 0x7FFFFFFF
-	TypeTasking  		uint32 = 0x7FFFFFFE
-	TypeResponse 		uint32 = 0x7FFFFFFD
-	TypeSegment  		uint32 = 0x7FFFFFFC
+	TypeCheckin  uint32 = 0x7FFFFFFF
+	TypeTasking  uint32 = 0x7FFFFFFE
+	TypeResponse uint32 = 0x7FFFFFFD
+	TypeSegment  uint32 = 0x7FFFFFFC
 
-	CommandDir        	uint32 = 0x00000001
-	CommandMods       	uint32 = 0x00000002
-	CommandNoJob      	uint32 = 0x00000003
-	CommandShutdown   	uint32 = 0x00000004
-	CommandUpdatePeer 	uint32 = 0x00000005
+	CommandDir        uint32 = 0x00000001
+	CommandMods       uint32 = 0x00000002
+	CommandNoJob      uint32 = 0x00000003
+	CommandShutdown   uint32 = 0x00000004
+	CommandUpdatePeer uint32 = 0x00000005
 )
 
 type Callback struct {
 	MsgType string
-	Msg string
+	Msg     string
 }
 
 type Stream struct {
@@ -37,20 +37,20 @@ type TableMap struct {
 }
 
 type Config struct {
-	Arch      	string
-	Debug     	bool
-	BuildType 	string
-	Hostname  	string
-	EgressPeer  string
-	Sleeptime 	int
-	Jitter    	int
+	Arch       string
+	Debug      bool
+	BuildType  string
+	Hostname   string
+	EgressPeer string
+	Sleeptime  int
+	Jitter     int
 }
 
 type Threadless struct {
-	ProcName   	string
-	ModuleName 	string
-	FuncName   	string
-	Execute 	string
+	ProcName   string
+	ModuleName string
+	FuncName   string
+	Execute    string
 }
 
 type Threadpool struct {
@@ -63,9 +63,9 @@ type Injection struct {
 }
 
 type InjectConfig struct {
-	InjectConfig 	[]byte
-	ExecuteObj 		string
-	Strings 		[]string
+	InjectConfig []byte
+	ExecuteObj   string
+	Strings      []string
 }
 
 type Proxy struct {
@@ -101,26 +101,26 @@ type ProxyConfig struct {
 }
 
 type ImplantConfig struct {
-	Profile       	any
-	ProfileTypeId 	uint32
-	CurrentTaskId 	uint32
-	PeerId        	uint32
-	IngressPipe   	string
-	EgressPeer      string
-	EgressPipe    	string
-	ConfigBytes   	[]byte
-	LoadedModules 	[]string
-	Shellcode     	[]byte
-	Loader        	[]byte
+	Profile       any
+	ProfileTypeId uint32
+	CurrentTaskId uint32
+	PeerId        uint32
+	IngressPipe   string
+	EgressPeer    string
+	EgressPipe    string
+	ConfigBytes   []byte
+	LoadedModules []string
+	Shellcode     []byte
+	Loader        []byte
 
-	Injection    	*Injection
-	Hostname     	string
-	Domain       	string
-	WorkingHours 	string
-	Sleeptime    	uint32
-	Jitter       	uint32
-	Killdate     	int64
-	ProxyBool   	bool
+	Injection    *Injection
+	Hostname     string
+	Domain       string
+	WorkingHours string
+	Sleeptime    uint32
+	Jitter       uint32
+	Killdate     int64
+	ProxyBool    bool
 }
 
 type ServerConfig struct {
@@ -135,20 +135,21 @@ type ServerConfig struct {
 }
 
 type CompilerConfig struct {
-	Debug          	bool
-	Arch           	string
-	Mingw          	string
-	Linker         	string
-	Objcopy        	string
-	Assembler      	string
-	Windres   		string
-	Strip          	string
-	FileExtension  	string
-	BuildDirectory 	string
-	IncludeDirs    	[]string
-	ComponentDirs  	[]string
-	Flags          	[]string
-	Definitions    	map[string][]byte
+	Debug          bool
+	Arch           string
+	Mingw          string
+	Linker         string
+	Objcopy        string
+	Assembler      string
+	Windres        string
+	Strip          string
+	Ar             string
+	FileExtension  string
+	BuildDirectory string
+	IncludeDirs    []string
+	ComponentDirs  []string
+	Flags          []string
+	Definitions    map[string][]byte
 }
 
 type HexaneConfig struct {
@@ -159,13 +160,13 @@ type HexaneConfig struct {
 	TaskCounter int
 	Mu          sync.Mutex
 
-	Key        	[]byte
+	Key         []byte
 	ConfigBytes []byte
-	Components 	[]string
-	Shellcode  	string
-	Main       	string
-	Active     	bool
-	BuildType  	string
+	Components  []string
+	Shellcode   string
+	Main        string
+	Active      bool
+	BuildType   string
 
 	Implant     *ImplantConfig
 	Proxy       *ProxyConfig

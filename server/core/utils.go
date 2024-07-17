@@ -69,23 +69,13 @@ func WriteFile(name string, data []byte) error {
 
 func FindFiles(name string) ([]os.DirEntry, error) {
 	var (
-		files 		[]os.DirEntry
-		dir   		*os.File
-		err   		error
+		files []os.DirEntry
+		err   error
 	)
 
-	if dir, err = os.Open(name); err != nil {
+	if files, err = os.ReadDir(name); err != nil {
 		return nil, err
 
-	}
-	defer func () {
-		if err = dir.Close(); err != nil {
-			WrapMessage("ERR", err.Error())
-		}
-	}()
-
-	if files, err = dir.ReadDir(-1); err != nil {
-		return nil, err
 	}
 
 	return files, nil
@@ -93,8 +83,8 @@ func FindFiles(name string) ([]os.DirEntry, error) {
 
 func SearchFile(rootPath string, fileName string) bool {
 	var (
-		files 		[]os.DirEntry
-		err   		error
+		files []os.DirEntry
+		err   error
 	)
 
 	if files, err = FindFiles(rootPath); err != nil {
@@ -236,5 +226,3 @@ func FormatSize(size uint64) string {
 		return "null"
 	}
 }
-
-
