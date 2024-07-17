@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -143,7 +144,9 @@ func (h *HexaneConfig) GenerateObjects(srcPath string, dstPath string, linker st
 	outFile := dstPath + "/" + outName
 
 	if staticLib {
-		if err = h.CompileObject(h.Compiler.Ar, buildFiles, []string{"rcs"}, nil, nil, outFile); err != nil {
+		libFiles := strings.Join(buildFiles, " ")
+
+		if err = h.RunCommand(h.Compiler.Ar + " pe-x86-64 rcs " + dstPath + "/" + outName + libFiles); err != nil {
 			return err
 		}
 	} else {
@@ -176,7 +179,7 @@ func (h *HexaneConfig) RunBuild() error {
 	if !SearchFile(Corelib, "corelib.a") {
 		WrapMessage("INF", "generating corelib")
 
-		if err = h.GenerateObjects(CorelibSrc, Corelib, CorelibLd, "/corelib.a", true); err != nil {
+		if err = h.GenerateObjects(CorelibSrc, Corelib, CorelibLd, "corelib.a", true); err != nil {
 			return err
 		}
 	}
@@ -194,7 +197,7 @@ func (h *HexaneConfig) RunBuild() error {
 	}
 
 	WrapMessage("INF", "generating shellcode")
-	if err = h.CopySectionData(h.Compiler.BuildDirectory+"/interm.exe", h.Compiler.BuildDirectory+"/shellcode.bin", ".text"); err != nil {
+	if err = h.CopySectionData(h.Compiler.BuildDirectory+"/interm.exe", h.Compiler.BuildDirectory+"shellcode.bin", ".text"); err != nil {
 		return err
 	}
 

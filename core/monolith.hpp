@@ -1,6 +1,6 @@
 #ifndef HEXANE_MONOLITH_HPP
 #define HEXANE_MONOLITH_HPP
-#include <ntimports.hpp>
+#include <core/ntimports.hpp>
 
 EXTERN_C LPVOID InstStart();
 EXTERN_C LPVOID InstEnd();

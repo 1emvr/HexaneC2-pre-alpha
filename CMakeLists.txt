@@ -15,6 +15,22 @@ set(IMPLANT "${CORE}/implant")
 
 include_directories(include ${CORE} ${CORELIB} ${IMPLANT} ${LOADER} ${META})
 
+set(INCLUDES
+        "${CORELIB}/include/process.hpp"
+        "${CORELIB}/include/memory.hpp"
+        "${CORELIB}/include/cruntime.hpp"
+        "${CORELIB}/include/network.hpp"
+        "${CORELIB}/include/utils.hpp"
+        "${CORELIB}/include/opsec.hpp"
+        "${CORELIB}/include/message.hpp"
+        "${CORELIB}/include/parser.hpp"
+        "${CORELIB}/include/cipher.hpp"
+        "${CORELIB}/include/stream.hpp"
+        "${CORELIB}/include/commands.hpp"
+        "${CORE}/monolith.hpp"
+        "${CORE}/ntimports.hpp"
+        core/corelib/corelib.hpp
+)
 set(MAIN_FILES
         "${CORELIB}/src/process.cpp"
         "${CORELIB}/src/memory.cpp"
@@ -33,4 +49,4 @@ set(MAIN_FILES
         "${INJECT}/threadless/OpenFileExecute.cpp"
         "${IMPLANT}/implant.cpp"
 )
-add_executable(Hexane-Implant ${MAIN_FILES})
+add_executable(Hexane-Implant ${MAIN_FILES} ${INCLUDES})
