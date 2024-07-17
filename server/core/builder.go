@@ -176,7 +176,7 @@ func (h *HexaneConfig) RunBuild() error {
 		return err
 	}
 
-	if !SearchFile(Corelib, "corelib.a") {
+	if !SearchFile(Corelib+"/build", "corelib.a") {
 		WrapMessage("INF", "generating corelib")
 
 		if err = h.GenerateObjects(CorelibSrc, Corelib+"/build", CorelibLd, "corelib.a", true); err != nil {

@@ -52,112 +52,112 @@ build cmake_object_order_depends_target_Hexane-Implant: phony || CMakeFiles/Hexa
 build CMakeFiles/Hexane-Implant.dir/core/corelib/src/process.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/process.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/process.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
 build CMakeFiles/Hexane-Implant.dir/core/corelib/src/memory.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/memory.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/memory.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
 build CMakeFiles/Hexane-Implant.dir/core/corelib/src/cruntime.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/cruntime.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/cruntime.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
 build CMakeFiles/Hexane-Implant.dir/core/corelib/src/network.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/network.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/network.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
 build CMakeFiles/Hexane-Implant.dir/core/corelib/src/utils.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/utils.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/utils.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
 build CMakeFiles/Hexane-Implant.dir/core/corelib/src/opsec.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/opsec.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/opsec.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
 build CMakeFiles/Hexane-Implant.dir/core/corelib/src/message.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/message.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/message.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
 build CMakeFiles/Hexane-Implant.dir/core/corelib/src/parser.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/parser.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/parser.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
 build CMakeFiles/Hexane-Implant.dir/core/corelib/src/cipher.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/cipher.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/cipher.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
 build CMakeFiles/Hexane-Implant.dir/core/corelib/src/stream.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/stream.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/stream.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
 build CMakeFiles/Hexane-Implant.dir/core/corelib/src/commands.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/corelib/src/commands.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/corelib/src/commands.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/corelib/src
 
 build CMakeFiles/Hexane-Implant.dir/loader/mainexe.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/loader/mainexe.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles/Hexane-Implant.dir/loader/mainexe.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/loader
 
 build CMakeFiles/Hexane-Implant.dir/loader/dllmain.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/loader/dllmain.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles/Hexane-Implant.dir/loader/dllmain.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/loader
 
 build CMakeFiles/Hexane-Implant.dir/inject/injectlib/injectlib.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/inject/injectlib/injectlib.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles/Hexane-Implant.dir/inject/injectlib/injectlib.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/inject/injectlib
 
 build CMakeFiles/Hexane-Implant.dir/inject/threadless/OpenFileExecute.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles/Hexane-Implant.dir/inject/threadless/OpenFileExecute.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/inject/threadless
 
 build CMakeFiles/Hexane-Implant.dir/core/implant/implant.cpp.o: CXX_COMPILER__Hexane-Implant_unscanned_Debug /home/lemur/Github/HexaneC2/core/implant/implant.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles/Hexane-Implant.dir/core/implant/implant.cpp.o.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2/core -I/home/lemur/Github/HexaneC2/core/corelib -I/home/lemur/Github/HexaneC2/core/implant -I/home/lemur/Github/HexaneC2/loader -I/usr/share/mingw-w64/include
+  INCLUDES = -I/home/lemur/Github/HexaneC2/include -I/home/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles/Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles/Hexane-Implant.dir/core/implant
 

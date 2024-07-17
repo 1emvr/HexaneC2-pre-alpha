@@ -5,7 +5,7 @@
 
 void x_memcpy (void *dst, const void *src, size_t n) {
 
-    auto* a = (uint8_t*)dst;
+    auto a = fast(reinterpret, uint8_t*, dst);
     const auto* b = (const uint8_t*)src;
 
     for (size_t i = 0; i < n; i++) {
@@ -15,7 +15,7 @@ void x_memcpy (void *dst, const void *src, size_t n) {
 
 void *x_memset (void *dst, int val, size_t len) {
 
-    auto *ptr = (uint8_t*)dst;
+    auto *ptr = fast(reinterpret, uint8_t*, dst);
     while (len-- > 0) {
         *ptr++ = val;
     }
@@ -30,35 +30,33 @@ void x_strcpy (char *dst, char const *src) {
     }
 }
 
-int x_strncmp (char *str1, char *str2, size_t len) {
+size_t x_strncmp (char *str1, char *str2, size_t len) {
 
     while ( len && *str1 && (*str1 == *str2) ) {
         len--;
         str1++;
         str2++;
 
-        if ( len == 0 ) {
+        if (len == 0) {
             return  0;
-        } else {
-            return *(char*)str1 - *(char*)str2;
         }
+        return *str1 - *str2;
     }
     return len;
 }
 
 int x_strcmp (char *str1, char *str2) {
 
-    for ( ; *str1 == *str2; str1++, str2++ ) {
+    for (; *str1 == *str2; str1++, str2++) {
         if (*str1 == NULTERM) {
             return 0;
         }
-    }
-    return ((*(char*)str1 < *(char*)str2) ? -1 : +1);
+    } return *str1 < *str2 ? -1 : +1;
 }
 
 int x_memcmp (const void *str1, const void *str2, size_t count) {
 
-    const uint8_t *s1 = (unsigned char*)str1;
+    const uint8_t *s1 = fast(reinterpret, uint8_t*, str1);
     const uint8_t *s2 = (unsigned char*)str2;
 
     while (count-- > 0) {

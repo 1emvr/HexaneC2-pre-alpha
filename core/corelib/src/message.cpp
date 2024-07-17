@@ -121,7 +121,7 @@ namespace Message {
 
         while (Length > 0) {
             cbSeg   = (Length > MESSAGE_MAX - SEGMENT_HEADER_SIZE) ? MESSAGE_MAX - SEGMENT_HEADER_SIZE : Length;
-            Queue    = (PSTREAM) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, cbSeg + SEGMENT_HEADER_SIZE);
+            Queue    = pstream_cast(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, cbSeg + SEGMENT_HEADER_SIZE));
 
             x_memcpy(&PeerId, Buffer, 4);
             x_memcpy(&TaskId, Buffer + 4, 4);

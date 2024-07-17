@@ -31,6 +31,6 @@ namespace Random {
     FUNCTION ULONG      RandomNumber32();
     FUNCTION ULONG      RandomSleepTime();
     FUNCTION BOOL       RandomBool();
-    FUNCTION INT        RandomSeed();
+    FUNCTION ULONG      RandomSeed();
 }
 #endif //HEXANE_CORELIB_UTILS_HPP

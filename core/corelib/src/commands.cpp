@@ -17,7 +17,7 @@ namespace Commands {
 
         Stream::PackDword(Outbound, CommandDir);
 
-        Path    = (LPSTR) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, MAX_PATH);
+        Path    = S_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, MAX_PATH));
         Target  = Parser::UnpackString(Parser, nullptr);
 
         if (Target[0] == PERIOD) {

@@ -13,9 +13,12 @@ set(LOADER "${SOURCE}/loader")
 set(CORELIB "${CORE}/corelib")
 set(IMPLANT "${CORE}/implant")
 
-include_directories(include ${CORE} ${CORELIB} ${IMPLANT} ${LOADER} ${META})
+include_directories(include ${SOURCE})
 
 set(INCLUDES
+        "${CORE}/monolith.hpp"
+        "${CORE}/ntimports.hpp"
+        "${CORELIB}/corelib.hpp"
         "${CORELIB}/include/process.hpp"
         "${CORELIB}/include/memory.hpp"
         "${CORELIB}/include/cruntime.hpp"
@@ -27,9 +30,6 @@ set(INCLUDES
         "${CORELIB}/include/cipher.hpp"
         "${CORELIB}/include/stream.hpp"
         "${CORELIB}/include/commands.hpp"
-        "${CORE}/monolith.hpp"
-        "${CORE}/ntimports.hpp"
-        core/corelib/corelib.hpp
 )
 set(MAIN_FILES
         "${CORELIB}/src/process.cpp"

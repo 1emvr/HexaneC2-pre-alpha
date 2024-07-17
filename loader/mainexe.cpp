@@ -1,8 +1,7 @@
-#include <../core/monolith.hpp>
-#include <../core/include/context.hpp>
-#include <../core/include/core.hpp>
+#include <core/monolith.hpp>
+#include <core/corelib/corelib.hpp>
 
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, INT nCmdShow) {
-    ContextInit();
+    //ContextInit();
     return 0;
 }

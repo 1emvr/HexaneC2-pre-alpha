@@ -124,7 +124,7 @@ namespace Random {
         return Sleeptime;
     }
 
-    INT RandomSeed() {
+    ULONG RandomSeed() {
 
         return 'A2' * -40271 +
                __TIME__[7] * 1 +
@@ -141,8 +141,8 @@ namespace Random {
         const size_t UNIX_TIME_START = 0x019DB1DED53E8000;
         const size_t TICKS_PER_MILLISECOND = 1000;
 
-        time.u.LowPart = *((ULONG*) (0x7FFE0000 + 0x14));
-        time.u.HighPart = *((LONG*) (0x7FFE0000 + 0x1c));
+        time.u.LowPart = *UL_PPTR(0x7FFE0000 + 0x14);
+        time.u.HighPart = *I32_PTR(0x7FFE0000 + 0x1c);
 
         return (time.QuadPart - UNIX_TIME_START) / TICKS_PER_MILLISECOND;
     }
@@ -150,11 +150,11 @@ namespace Random {
     ULONG RandomNumber32() {
         HEXANE
 
-        auto seed = (ULONG) RandomSeed();
+        auto seed = RandomSeed();
 
         seed = Ctx->Nt.RtlRandomEx(&seed);
         seed = Ctx->Nt.RtlRandomEx(&seed);
-        seed = (seed % (LONG_MAX - 2 + 1)) + 2;
+        seed = seed % (LONG_MAX - 2 + 1) + 2;
 
         return seed % 2 == 0
                ? seed
@@ -164,7 +164,7 @@ namespace Random {
     BOOL RandomBool() {
         HEXANE
 
-        auto seed = (ULONG) RandomSeed();
+        auto seed = RandomSeed();
 
         seed = RandomSeed();
         seed = Ctx->Nt.RtlRandomEx(&seed);
@@ -178,11 +178,11 @@ namespace Random {
 
         HEXANE
 
-        int defaultseed = RandomSeed();
-        auto seed = Ctx->Nt.RtlRandomEx((ULONG*)&defaultseed);
+        auto defaultseed = RandomSeed();
+        auto seed = Ctx->Nt.RtlRandomEx(ULPTR(&defaultseed));
 
         volatile size_t x = INTERVAL(seed);
-        const unsigned long long end = Timestamp() + (x * ms);
+        const uintptr_t end = Timestamp() + (x * ms);
 
         while (Timestamp() < end) { x += 1; }
         if (Timestamp() - end > 2000) {

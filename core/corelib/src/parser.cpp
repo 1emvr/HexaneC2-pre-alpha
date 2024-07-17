@@ -10,7 +10,7 @@ namespace Parser {
         if (Length) {
             *cbOut = Length;
 
-            if ((*Dst = (LPSTR)Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length))) {
+            if ((*Dst = S_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
                 x_memcpy(*Dst, Buffer, Length);
             }
         }
@@ -25,7 +25,7 @@ namespace Parser {
         if (Length) {
             *cbOut = Length;
 
-            if ((*Dst = (LPWSTR)Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (Length * sizeof(WCHAR)) + sizeof(WCHAR)))) {
+            if ((*Dst = W_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (Length * sizeof(WCHAR)) + sizeof(WCHAR))))) {
                 x_memcpy(*Dst, Buffer, Length * sizeof(WCHAR));
             }
         }
@@ -40,7 +40,7 @@ namespace Parser {
         if (Length) {
             *cbOut = Length;
 
-            if ((*Dst = (PBYTE) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length))) {
+            if ((*Dst = B_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
                 x_memcpy(*Dst, Buffer, Length);
             }
         }
@@ -178,10 +178,10 @@ namespace Parser {
     }
 
     LPSTR UnpackString(PPARSER Parser, PULONG cbOut) {
-        return (LPSTR) UnpackBytes(Parser, cbOut);
+        return S_PTR(UnpackBytes(Parser, cbOut));
     }
 
     LPWSTR UnpackWString(PPARSER Parser, PULONG cbOut) {
-        return (LPWSTR) UnpackBytes(Parser, cbOut);
+        return W_PTR(UnpackBytes(Parser, cbOut));
     }
 }

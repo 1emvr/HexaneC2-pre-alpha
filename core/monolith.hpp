@@ -1,6 +1,7 @@
 #ifndef HEXANE_MONOLITH_HPP
 #define HEXANE_MONOLITH_HPP
 #include <core/ntimports.hpp>
+#include <type_traits>
 
 EXTERN_C LPVOID InstStart();
 EXTERN_C LPVOID InstEnd();
@@ -24,24 +25,9 @@ EXTERN_C LPVOID InstEnd();
 #define DATA_SECTION  							__attribute__((used, section(".data")))
 #define RDATA_SECTION  							__attribute__((used, section(".rdata")))
 #define WEAK									__attribute__((weak))
-#define CMD_SIGNATURE(x) 						(CmdSignature)(x)
 #define FUNCTION								TXT_SECTION(B)
 
-#define S_PTR(x)                                ((LPSTR)(x))
-#define W_PTR(x)								((LPWSTR)(x))
-#define B_PTR(x)     							((PBYTE)(x))
-#define C_PTR(x)                               	((LPVOID)(x))
-#define CP_PTR(x) 								((LPVOID*)(x))
-#define LP_BPTR(x)								((PBYTE*)(x))
-#define LP_SPTR(x)								((LPSTR*)(x))
-#define U_PTR(x)                               	((UINT_PTR)(x))
-#define C_DREF(x) 								(*(LPVOID*)(x))
-#define ROUTINE(x)                               ((LPTHREAD_START_ROUTINE)(x))
 #define NT_SUCCESS(status)						((status) >= 0)
-
-#define U32(x)                                  ((uint32_t)(x))
-#define U64(x)									((uint64_t)(x))
-
 #define LocalHeap								NtCurrentTeb()->ProcessEnvironmentBlock->ProcessHeap
 #define ntstatus 								Ctx->Teb->LastErrorValue
 
@@ -522,4 +508,38 @@ EXTERN_C WEAK LPVOID __Instance;
 
 #define FPTR2(Fn, mod, sym) \
 	Fn = (__typeof__(Fn)) Memory::LdrGetSymbolAddress(Memory::LdrGetModuleAddress(mod), sym)
+
+
+template <typename T, typename U>
+T impl_static_cast(U value) {
+	return static_cast<T>(value);
+}
+
+template <typename T, typename U>
+T impl_dynamic_cast(U value) {
+	return dynamic_cast<T>(value);
+}
+
+template <typename T, typename U>
+T impl_const_cast(U value) {
+	return const_cast<T>(value);
+}
+
+template <typename T, typename U>
+T impl_reinterpret_cast(U value) {
+	return reinterpret_cast<T>(value);
+}
+
+#define DEFINE_CAST_FUNCTION(cast_type)		        \
+	template <typename T, typename U>		        \
+	T ret_##cast_type(U value) {			        \
+		return impl_##cast_type##_cast<T>(value);	\
+	}
+
+DEFINE_CAST_FUNCTION(static)
+DEFINE_CAST_FUNCTION(dynamic)
+DEFINE_CAST_FUNCTION(const)
+DEFINE_CAST_FUNCTION(reinterpret)
+
+#define fast(cast_type, T, value) ret_##cast_type<T>(value)
 #endif

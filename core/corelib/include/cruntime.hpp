@@ -6,7 +6,7 @@
 FUNCTION void x_memcpy (void *dst, const void *src, size_t n);
 FUNCTION void *x_memset (void *dst, int val, size_t len);
 FUNCTION void x_strcpy (char *dst, char const *src);
-FUNCTION int x_strncmp (char *str1, char *str2, size_t len);
+FUNCTION size_t x_strncmp (char *str1, char *str2, size_t len);
 FUNCTION int x_strcmp (char *str1, char *str2);
 FUNCTION int x_memcmp (const void *str1, const void *str2, size_t count);
 FUNCTION size_t x_strlen (const char *str);
