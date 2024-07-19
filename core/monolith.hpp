@@ -27,14 +27,14 @@ EXTERN_C LPVOID InstEnd();
 #define WEAK									__attribute__((weak))
 #define FUNCTION								TXT_SECTION(B)
 
-#define REINTERPRET(T, x)                       reinterpret_cast<T>(x)
-#define DYNAMIC(T, x)                           dynamic_cast<T>(x)
-#define STATIC(T, x)                            static_cast<T>(x)
-#define CONST(T, x)                             const_cast<T>(x)
-
 #define C_PTR(x)                                ((LPVOID)(x))
 #define U_PTR(x)                                ((UINT_PTR)(x))
 #define C_DREF(x)                               (*(VOID**)(x))
+
+#define CCONST(T,x)								const_cast<T>(x)
+#define CDYNAMIC(T,x)							dynamic_cast<T>(x)
+#define CSTATIC(T,x)							static_cast<T>(x)
+#define CREINTERPRET(T,x)						reinterpret_cast<T>(x)
 
 #define NT_SUCCESS(status)						((status) >= 0)
 #define LocalHeap								NtCurrentTeb()->ProcessEnvironmentBlock->ProcessHeap

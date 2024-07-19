@@ -33,7 +33,11 @@ namespace Xtea {
         for (uint32_t i = 0; i < ARRAY_LEN(key); i++) {
             uint32_t j = i << 2;
 
-            key[i] = U32(m_key[j+0]) << 24 | U32(m_key[j+1]) << 16 | U32(m_key[j+2]) << 8  | U32(m_key[j+3]);
+            key[i] =
+                CSTATIC(uint32_t, m_key[j+0]) << 24 |
+                CSTATIC(uint32_t, m_key[j+1]) << 16 |
+                CSTATIC(uint32_t, m_key[j+2]) << 8  |
+                CSTATIC(uint32_t, m_key[j+3]);
         }
 
         for (uint32_t i = 0; i < NROUNDS;) {
@@ -85,12 +89,12 @@ namespace Xtea {
         byte **sections = { };
         *cbOut = n;
 
-        if (!(sections = B_PPTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (n * sizeof(PBYTE)))))) {
+        if (!(sections = reinterpret_cast<PBYTE*>(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, n * sizeof(PBYTE))))) {
             return nullptr;
         }
 
         for (size_t i = 0; i < n; i++) {
-            if (!(sections[i] = B_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sectionSize)))) {
+            if (!(sections[i] = reinterpret_cast<PBYTE>(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sectionSize)))) {
 
                 for (size_t j = 0; j < i; j++) {
                     Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, sections[j]);
@@ -128,7 +132,7 @@ namespace Xtea {
             key = Ctx->Config.Key;
         }
 
-        if (!(cx = CIPHER(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(CipherTxt))))) {
+        if (!(cx = reinterpret_cast<CipherTxt*>(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(CipherTxt))))) {
             return;
         }
 
@@ -140,7 +144,7 @@ namespace Xtea {
         x_memset(data, 0, cbData);
 
         for (uint32_t i = 0; i < nSections; i++) {
-            buffer = B_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, 8));
+            buffer = reinterpret_cast<PBYTE*>(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, 8));
 
             if (encrypt) {
                 XteaEncrypt(cx, buffer, sections[i]);

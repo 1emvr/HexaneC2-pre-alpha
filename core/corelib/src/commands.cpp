@@ -17,7 +17,7 @@ namespace Commands {
 
         Stream::PackDword(Outbound, CommandDir);
 
-        Path    = S_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, MAX_PATH));
+        Path    = reinterpret_cast<LPSTR>(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, MAX_PATH));
         Target  = Parser::UnpackString(Parser, nullptr);
 
         if (Target[0] == PERIOD) {
@@ -128,7 +128,7 @@ namespace Commands {
                     size = x_wcstombs(ModNameA, ModNameW, cMod.FullDllName.Length);
 
                     Stream::PackString(Outbound, ModNameA);
-                    Stream::PackDword64(Outbound, U64(cMod.DllBase));
+                    Stream::PackDword64(Outbound, reinterpret_cast<UINT64>(cMod.DllBase));
                     counter++;
                 }
 

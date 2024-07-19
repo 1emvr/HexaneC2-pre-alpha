@@ -5,8 +5,8 @@
 
 void x_memcpy (void *dst, const void *src, size_t n) {
 
-    auto a = fast(reinterpret, uint8_t*, dst);
-    const auto* b = (const uint8_t*)src;
+    auto a          = reinterpret_cast<uint8_t*>(dst);
+    const auto* b   = reinterpret_cast<const uint8_t*>(src);
 
     for (size_t i = 0; i < n; i++) {
         a[i] = b[i];
@@ -15,7 +15,7 @@ void x_memcpy (void *dst, const void *src, size_t n) {
 
 void *x_memset (void *dst, int val, size_t len) {
 
-    auto *ptr = fast(reinterpret, uint8_t*, dst);
+    auto *ptr = reinterpret_cast<uint8_t*>(dst);
     while (len-- > 0) {
         *ptr++ = val;
     }
@@ -56,8 +56,8 @@ int x_strcmp (char *str1, char *str2) {
 
 int x_memcmp (const void *str1, const void *str2, size_t count) {
 
-    const uint8_t *s1 = fast(reinterpret, uint8_t*, str1);
-    const uint8_t *s2 = (unsigned char*)str2;
+    const auto *s1 = reinterpret_cast<const uint8_t*>(str1);
+    const auto *s2 = reinterpret_cast<const uint8_t*>(str2);
 
     while (count-- > 0) {
 
@@ -70,7 +70,7 @@ int x_memcmp (const void *str1, const void *str2, size_t count) {
 }
 
 
-size_t x_strlen (CONST CHAR* str) {
+size_t x_strlen (const CHAR* str) {
 
     const char* char_ptr    = { };
     const uint32_t* u32ptr  = { };
