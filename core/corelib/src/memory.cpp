@@ -233,8 +233,8 @@ namespace Memory {
     }
 
     UINT_PTR MmCaveHunter(HANDLE Proc, UINT_PTR Export, SIZE_T Size) {
-
         HEXANE
+
         UINT_PTR Region = 0;
 
         for (Region = (Export & 0xFFFFFFFFFFF70000) - 0x70000000;
@@ -272,6 +272,7 @@ namespace Memory {
 
     ORSRC LdrGetIntResource(HMODULE Base, INT RsrcId) {
         HEXANE
+
         HRSRC hResInfo  = { };
         ORSRC Object    = { };
 
