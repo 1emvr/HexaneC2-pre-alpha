@@ -27,9 +27,14 @@ EXTERN_C LPVOID InstEnd();
 #define WEAK									__attribute__((weak))
 #define FUNCTION								TXT_SECTION(B)
 
-#define C_PTR(x) ((LPVOID)(x))
-#define U_PTR(x) ((UINT_PTR)(x))
-#define C_DREF(x) (*(VOID**)(x))
+#define REINTERPRET(T, x)                       reinterpret_cast<T>(x)
+#define DYNAMIC(T, x)                           dynamic_cast<T>(x)
+#define STATIC(T, x)                            static_cast<T>(x)
+#define CONST(T, x)                             const_cast<T>(x)
+
+#define C_PTR(x)                                ((LPVOID)(x))
+#define U_PTR(x)                                ((UINT_PTR)(x))
+#define C_DREF(x)                               (*(VOID**)(x))
 
 #define NT_SUCCESS(status)						((status) >= 0)
 #define LocalHeap								NtCurrentTeb()->ProcessEnvironmentBlock->ProcessHeap
@@ -514,36 +519,4 @@ EXTERN_C WEAK LPVOID __Instance;
 	Fn = (__typeof__(Fn)) Memory::LdrGetSymbolAddress(Memory::LdrGetModuleAddress(mod), sym)
 
 
-template <typename T, typename U>
-T impl_static_cast(U value) {
-	return static_cast<T>(value);
-}
-
-template <typename T, typename U>
-T impl_dynamic_cast(U value) {
-	return dynamic_cast<T>(value);
-}
-
-template <typename T, typename U>
-T impl_const_cast(U value) {
-	return const_cast<T>(value);
-}
-
-template <typename T, typename U>
-T impl_reinterpret_cast(U value) {
-	return reinterpret_cast<T>(value);
-}
-
-#define DEFINE_CAST_FUNCTION(cast_type)		        \
-	template <typename T, typename U>		        \
-	T ret_##cast_type(U value) {			        \
-		return impl_##cast_type##_cast<T>(value);	\
-	}
-
-DEFINE_CAST_FUNCTION(static)
-DEFINE_CAST_FUNCTION(dynamic)
-DEFINE_CAST_FUNCTION(const)
-DEFINE_CAST_FUNCTION(reinterpret)
-
-#define FAST(cast_type, T, value) impl_##cast_type##_cast<T>(value)
 #endif
