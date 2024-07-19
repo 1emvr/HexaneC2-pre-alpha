@@ -16,7 +16,7 @@ FUNCTION void x_wcscpy (wchar_t *dest, wchar_t const *src);
 FUNCTION int x_wcscmp (wchar_t *str1, wchar_t *str2);
 FUNCTION wchar_t *x_wcscat (wchar_t *str1, wchar_t *str2);
 FUNCTION wchar_t x_toLowerW (wchar_t c);
-FUNCTION char x_toLowerA (char c);
+FUNCTION unsigned char x_toLowerA (unsigned char c);
 FUNCTION size_t x_mbstowcs (wchar_t *dst, char *src, size_t size);
 FUNCTION size_t x_wcstombs (char *str, wchar_t *wcs, size_t size);
 FUNCTION int x_mbs_endswith (char *string, char *end);

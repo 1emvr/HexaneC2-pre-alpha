@@ -5,8 +5,8 @@
 
 void x_memcpy (void *dst, const void *src, size_t n) {
 
-    auto a          = REINTC(uint8_t*, dst);
-    const auto* b   = REINTC(const uint8_t*, src);
+    auto a = SCAST(uint8_t*, dst);
+    auto b = SCAST(const uint8_t*, src);
 
     for (size_t i = 0; i < n; i++) {
         a[i] = b[i];
@@ -15,7 +15,7 @@ void x_memcpy (void *dst, const void *src, size_t n) {
 
 void *x_memset (void *dst, int val, size_t len) {
 
-    auto *ptr = REINTC(uint8_t*, dst);
+    auto *ptr = SCAST(uint8_t*, dst);
     while (len-- > 0) {
         *ptr++ = val;
     }
@@ -56,8 +56,8 @@ int x_strcmp (char *str1, char *str2) {
 
 int x_memcmp (const void *str1, const void *str2, size_t count) {
 
-    const auto *s1 = REINTC(const uint8_t*, str1);
-    const auto *s2 = REINTC(const uint8_t*, str2);
+    const auto *s1 = SCAST(const uint8_t*, str1);
+    const auto *s2 = SCAST(const uint8_t*, str2);
 
     while (count-- > 0) {
 
@@ -77,7 +77,7 @@ size_t x_strlen (const char* str) {
 
     uint32_t longword = 0, himagic = 0, lomagic = 0;
 
-    for (char_ptr = str; (REINTC(unsigned long long, char_ptr) & (sizeof(longword) - 1)) != NULTERM; ++char_ptr ) {
+    for (char_ptr = str; (RCAST(UINT_PTR, char_ptr) & (sizeof(longword) - 1)) != NULTERM; ++char_ptr ) {
         if ( *char_ptr == NULTERM ) {
             return char_ptr - str;
         }
@@ -160,7 +160,7 @@ int x_wcscmp (wchar_t *str1, wchar_t *str2) {
             return 0;
         }
     }
-    return *REINTC(wchar_t*, str1) < *REINTC(wchar_t*, str2) ? -1 : +1;
+    return *SCAST(wchar_t*, str1) < *SCAST(wchar_t*, str2) ? -1 : +1;
 }
 
 wchar_t *x_wcscat (wchar_t *str1, wchar_t *str2) {
@@ -173,7 +173,7 @@ wchar_t x_toLowerW (wchar_t c) {
     return c > 0x40 && c < 0x5B ? c | 0x60 : c;
 }
 
-char x_toLowerA(char c) {
+unsigned char x_toLowerA(unsigned char c) {
     return c >= 0x41 && c <= 0x5A ? c | 0x20 : c;
 }
 

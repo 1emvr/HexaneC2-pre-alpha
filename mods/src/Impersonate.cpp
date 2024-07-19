@@ -1,6 +1,6 @@
-#include <../../monolith.hpp>
-#include <core/include/cruntime.hpp>
-#include <core/include/memory.hpp>
+#include <core/monolith.hpp>
+#include <core/corelib/include/cruntime.hpp>
+#include <core/corelib/include/memory.hpp>
 
 using namespace Memory;
 

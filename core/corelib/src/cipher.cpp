@@ -34,10 +34,10 @@ namespace Xtea {
             uint32_t j = i << 2;
 
             key[i] =
-                CSTATIC(uint32_t, m_key[j+0]) << 24 |
-                CSTATIC(uint32_t, m_key[j+1]) << 16 |
-                CSTATIC(uint32_t, m_key[j+2]) << 8  |
-                CSTATIC(uint32_t, m_key[j+3]);
+                SCAST(uint32_t, m_key[j+0]) << 24 |
+                SCAST(uint32_t, m_key[j+1]) << 16 |
+                SCAST(uint32_t, m_key[j+2]) << 8  |
+                SCAST(uint32_t, m_key[j+3]);
         }
 
         for (uint32_t i = 0; i < NROUNDS;) {
@@ -89,12 +89,12 @@ namespace Xtea {
         byte **sections = { };
         *cbOut = n;
 
-        if (!(sections = REINTC(PBYTE*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, n * sizeof(PBYTE))))) {
+        if (!(sections = SCAST(PBYTE*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, n * sizeof(PBYTE))))) {
             return nullptr;
         }
 
         for (size_t i = 0; i < n; i++) {
-            if (!(sections[i] = REINTC(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sectionSize)))) {
+            if (!(sections[i] = SCAST(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sectionSize)))) {
 
                 for (size_t j = 0; j < i; j++) {
                     Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, sections[j]);
@@ -119,7 +119,7 @@ namespace Xtea {
     }
 
     VOID XteaCrypt(PBYTE data, SIZE_T cbData, PBYTE key, BOOL encrypt) {
-        HEXANE;
+        HEXANE
 
         CipherTxt *cx       = { };
         uint64_t ofs        = 0;
@@ -132,7 +132,7 @@ namespace Xtea {
             key = Ctx->Config.Key;
         }
 
-        if (!(cx = REINTC(CipherTxt*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(CipherTxt))))) {
+        if (!(cx = SCAST(CipherTxt*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(CipherTxt))))) {
             return;
         }
 
@@ -144,7 +144,7 @@ namespace Xtea {
         x_memset(data, 0, cbData);
 
         for (uint32_t i = 0; i < nSections; i++) {
-            if (!(buffer = REINTC(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, 8)))) {
+            if (!(buffer = SCAST(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, 8)))) {
                 return;
             }
 

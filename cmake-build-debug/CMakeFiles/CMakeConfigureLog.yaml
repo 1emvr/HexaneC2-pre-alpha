@@ -4,16 +4,16 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineSystem.cmake:233 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineSystem.cmake:233 (message)"
       - "CMakeLists.txt:2 (project)"
     message: |
       The system is: Linux - 5.15.153.1-microsoft-standard-WSL2 - x86_64
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCCompiler.cmake:123 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCCompiler.cmake:123 (CMAKE_DETERMINE_COMPILER_ID)"
       - "CMakeLists.txt:2 (project)"
     message: |
       Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
@@ -28,14 +28,14 @@ events:
       Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.exe"
       
       The C compiler identification is GNU, found in:
-        /home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/3.28.6/CompilerIdC/a.exe
+        /home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/3.28.5/CompilerIdC/a.exe
       
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
       - "CMakeLists.txt:2 (project)"
     message: |
       Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
@@ -50,19 +50,19 @@ events:
       Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.exe"
       
       The CXX compiler identification is GNU, found in:
-        /home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/3.28.6/CompilerIdCXX/a.exe
+        /home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/3.28.5/CompilerIdCXX/a.exe
       
   -
     kind: "try_compile-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerABI.cmake:60 (try_compile)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerABI.cmake:60 (try_compile)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
       - "CMakeLists.txt:2 (project)"
     checks:
       - "Detecting C compiler ABI info"
     directories:
-      source: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mIRKDJ"
-      binary: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mIRKDJ"
+      source: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mFYCGu"
+      binary: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mFYCGu"
     cmakeVariables:
       CMAKE_C_FLAGS: ""
       CMAKE_C_FLAGS_DEBUG: "-g"
@@ -71,13 +71,13 @@ events:
       variable: "CMAKE_C_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mIRKDJ'
+        Change Dir: '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mFYCGu'
         
-        Run Build Command(s): /home/lemur/cmake-3.28.6-linux-x86_64/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_295a0/fast
-        /usr/bin/gmake  -f CMakeFiles/cmTC_295a0.dir/build.make CMakeFiles/cmTC_295a0.dir/build
-        gmake[1]: Entering directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mIRKDJ'
-        Building C object CMakeFiles/cmTC_295a0.dir/CMakeCCompilerABI.c.o
-        /usr/bin/x86_64-w64-mingw32-gcc   -fdiagnostics-color=always   -v -o CMakeFiles/cmTC_295a0.dir/CMakeCCompilerABI.c.o -c /home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeCCompilerABI.c
+        Run Build Command(s): /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_42784/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_42784.dir/build.make CMakeFiles/cmTC_42784.dir/build
+        gmake[1]: Entering directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mFYCGu'
+        Building C object CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.o
+        /usr/bin/x86_64-w64-mingw32-gcc   -fdiagnostics-color=always   -v -o CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.o -c /home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeCCompilerABI.c
         Using built-in specs.
         COLLECT_GCC=/usr/bin/x86_64-w64-mingw32-gcc
         Target: x86_64-w64-mingw32
@@ -85,8 +85,8 @@ events:
         Thread model: win32
         Supported LTO compression algorithms: zlib zstd
         gcc version 13-win32 (GCC) 
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_295a0.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_295a0.dir/'
-         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/cc1 -quiet -v /home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeCCompilerABI.c -quiet -dumpdir CMakeFiles/cmTC_295a0.dir/ -dumpbase CMakeCCompilerABI.c.c -dumpbase-ext .c -mtune=generic -march=x86-64 -version -fdiagnostics-color=always -o /tmp/ccyMlHuj.s
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_42784.dir/'
+         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/cc1 -quiet -v /home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeCCompilerABI.c -quiet -dumpdir CMakeFiles/cmTC_42784.dir/ -dumpbase CMakeCCompilerABI.c.c -dumpbase-ext .c -mtune=generic -march=x86-64 -version -fdiagnostics-color=always -o /tmp/ccO3HsWU.s
         GNU C17 (GCC) version 13-win32 (x86_64-w64-mingw32)
         	compiled by GNU C version 13.2.0, GMP version 6.3.0, MPFR version 4.2.1, MPC version 1.3.1, isl version isl-0.26-GMP
         
@@ -99,15 +99,15 @@ events:
          /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/include
         End of search list.
         Compiler executable checksum: e14c887f05a54c28d8876a005411f636
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_295a0.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_295a0.dir/'
-         /usr/bin/x86_64-w64-mingw32-as -v -o CMakeFiles/cmTC_295a0.dir/CMakeCCompilerABI.c.o /tmp/ccyMlHuj.s
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_42784.dir/'
+         /usr/bin/x86_64-w64-mingw32-as -v -o CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.o /tmp/ccO3HsWU.s
         GNU assembler version 2.42 (x86_64-w64-mingw32) using BFD version (GNU Binutils) 2.42
         COMPILER_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/bin/
         LIBRARY_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_295a0.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_295a0.dir/CMakeCCompilerABI.c.'
-        Linking C executable cmTC_295a0
-        /home/lemur/cmake-3.28.6-linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_295a0.dir/link.txt --verbose=1
-        /usr/bin/x86_64-w64-mingw32-gcc  -v CMakeFiles/cmTC_295a0.dir/CMakeCCompilerABI.c.o -o cmTC_295a0 
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.'
+        Linking C executable cmTC_42784
+        /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_42784.dir/link.txt --verbose=1
+        /usr/bin/x86_64-w64-mingw32-gcc  -v CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.o -o cmTC_42784 
         Using built-in specs.
         COLLECT_GCC=/usr/bin/x86_64-w64-mingw32-gcc
         COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper
@@ -118,22 +118,22 @@ events:
         gcc version 13-win32 (GCC) 
         COMPILER_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/bin/
         LIBRARY_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_295a0.exe' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_295a0.'
-         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/collect2 -plugin /usr/lib/gcc/x86_64-w64-mingw32/13-win32/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper -plugin-opt=-fresolution=/tmp/ccRh02mV.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_295a0.exe /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/crt2.o /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtbegin.o -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32 -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib CMakeFiles/cmTC_295a0.dir/CMakeCCompilerABI.c.o -lmingw32 -lgcc -lgcc_eh -lmoldname -lmingwex -lmsvcrt -lkernel32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc -lgcc_eh -lmoldname -lmingwex -lmsvcrt -lkernel32 /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtend.o
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_295a0.exe' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_295a0.'
-        gmake[1]: Leaving directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mIRKDJ'
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_42784.exe' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_42784.'
+         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/collect2 -plugin /usr/lib/gcc/x86_64-w64-mingw32/13-win32/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper -plugin-opt=-fresolution=/tmp/ccbdNmMF.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_42784.exe /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/crt2.o /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtbegin.o -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32 -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.o -lmingw32 -lgcc -lgcc_eh -lmoldname -lmingwex -lmsvcrt -lkernel32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc -lgcc_eh -lmoldname -lmingwex -lmsvcrt -lkernel32 /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtend.o
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_42784.exe' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_42784.'
+        gmake[1]: Leaving directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mFYCGu'
         
       exitCode: 0
   -
     kind: "try_compile-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeTestCCompiler.cmake:56 (try_compile)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeTestCCompiler.cmake:56 (try_compile)"
       - "CMakeLists.txt:2 (project)"
     checks:
       - "Check for working C compiler: /usr/bin/x86_64-w64-mingw32-gcc"
     directories:
-      source: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-pvmW7Q"
-      binary: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-pvmW7Q"
+      source: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-DANIgt"
+      binary: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-DANIgt"
     cmakeVariables:
       CMAKE_C_FLAGS: ""
       CMAKE_C_FLAGS_DEBUG: "-g"
@@ -142,30 +142,30 @@ events:
       variable: "CMAKE_C_COMPILER_WORKS"
       cached: true
       stdout: |
-        Change Dir: '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-pvmW7Q'
+        Change Dir: '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-DANIgt'
         
-        Run Build Command(s): /home/lemur/cmake-3.28.6-linux-x86_64/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_07e45/fast
-        /usr/bin/gmake  -f CMakeFiles/cmTC_07e45.dir/build.make CMakeFiles/cmTC_07e45.dir/build
-        gmake[1]: Entering directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-pvmW7Q'
-        Building C object CMakeFiles/cmTC_07e45.dir/testCCompiler.c.o
-        /usr/bin/x86_64-w64-mingw32-gcc   -fdiagnostics-color=always -o CMakeFiles/cmTC_07e45.dir/testCCompiler.c.o -c /home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-pvmW7Q/testCCompiler.c
-        Linking C executable cmTC_07e45
-        /home/lemur/cmake-3.28.6-linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_07e45.dir/link.txt --verbose=1
-        /usr/bin/x86_64-w64-mingw32-gcc CMakeFiles/cmTC_07e45.dir/testCCompiler.c.o -o cmTC_07e45 
-        gmake[1]: Leaving directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-pvmW7Q'
+        Run Build Command(s): /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_119f5/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_119f5.dir/build.make CMakeFiles/cmTC_119f5.dir/build
+        gmake[1]: Entering directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-DANIgt'
+        Building C object CMakeFiles/cmTC_119f5.dir/testCCompiler.c.o
+        /usr/bin/x86_64-w64-mingw32-gcc   -fdiagnostics-color=always -o CMakeFiles/cmTC_119f5.dir/testCCompiler.c.o -c /home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-DANIgt/testCCompiler.c
+        Linking C executable cmTC_119f5
+        /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_119f5.dir/link.txt --verbose=1
+        /usr/bin/x86_64-w64-mingw32-gcc CMakeFiles/cmTC_119f5.dir/testCCompiler.c.o -o cmTC_119f5 
+        gmake[1]: Leaving directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-DANIgt'
         
       exitCode: 0
   -
     kind: "try_compile-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerABI.cmake:60 (try_compile)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerABI.cmake:60 (try_compile)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
       - "CMakeLists.txt:2 (project)"
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-6Ymceu"
-      binary: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-6Ymceu"
+      source: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bi8MkL"
+      binary: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bi8MkL"
     cmakeVariables:
       CMAKE_CXX_FLAGS: ""
       CMAKE_CXX_FLAGS_DEBUG: "-g"
@@ -175,13 +175,13 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-6Ymceu'
+        Change Dir: '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bi8MkL'
         
-        Run Build Command(s): /home/lemur/cmake-3.28.6-linux-x86_64/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_75203/fast
-        /usr/bin/gmake  -f CMakeFiles/cmTC_75203.dir/build.make CMakeFiles/cmTC_75203.dir/build
-        gmake[1]: Entering directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-6Ymceu'
-        Building CXX object CMakeFiles/cmTC_75203.dir/CMakeCXXCompilerABI.cpp.o
-        /usr/bin/x86_64-w64-mingw32-g++   -fdiagnostics-color=always   -v -o CMakeFiles/cmTC_75203.dir/CMakeCXXCompilerABI.cpp.o -c /home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp
+        Run Build Command(s): /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_1f5ae/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_1f5ae.dir/build.make CMakeFiles/cmTC_1f5ae.dir/build
+        gmake[1]: Entering directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bi8MkL'
+        Building CXX object CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.o
+        /usr/bin/x86_64-w64-mingw32-g++   -fdiagnostics-color=always   -v -o CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.o -c /home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp
         Using built-in specs.
         COLLECT_GCC=/usr/bin/x86_64-w64-mingw32-g++
         Target: x86_64-w64-mingw32
@@ -189,8 +189,8 @@ events:
         Thread model: win32
         Supported LTO compression algorithms: zlib zstd
         gcc version 13-win32 (GCC) 
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_75203.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_75203.dir/'
-         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/cc1plus -quiet -v /home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_75203.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -fdiagnostics-color=always -o /tmp/ccP8LLIJ.s
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_1f5ae.dir/'
+         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/cc1plus -quiet -v /home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_1f5ae.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -fdiagnostics-color=always -o /tmp/cc7X7tFc.s
         GNU C++17 (GCC) version 13-win32 (x86_64-w64-mingw32)
         	compiled by GNU C version 13.2.0, GMP version 6.3.0, MPFR version 4.2.1, MPC version 1.3.1, isl version isl-0.26-GMP
         
@@ -206,15 +206,15 @@ events:
          /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/include
         End of search list.
         Compiler executable checksum: 1aa5aef1072e84d4d47f5a211bac94fa
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_75203.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_75203.dir/'
-         /usr/bin/x86_64-w64-mingw32-as -v -o CMakeFiles/cmTC_75203.dir/CMakeCXXCompilerABI.cpp.o /tmp/ccP8LLIJ.s
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_1f5ae.dir/'
+         /usr/bin/x86_64-w64-mingw32-as -v -o CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.o /tmp/cc7X7tFc.s
         GNU assembler version 2.42 (x86_64-w64-mingw32) using BFD version (GNU Binutils) 2.42
         COMPILER_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/bin/
         LIBRARY_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_75203.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_75203.dir/CMakeCXXCompilerABI.cpp.'
-        Linking CXX executable cmTC_75203
-        /home/lemur/cmake-3.28.6-linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_75203.dir/link.txt --verbose=1
-        /usr/bin/x86_64-w64-mingw32-g++  -v CMakeFiles/cmTC_75203.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_75203 
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.'
+        Linking CXX executable cmTC_1f5ae
+        /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1f5ae.dir/link.txt --verbose=1
+        /usr/bin/x86_64-w64-mingw32-g++  -v CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_1f5ae 
         Using built-in specs.
         COLLECT_GCC=/usr/bin/x86_64-w64-mingw32-g++
         COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper
@@ -225,22 +225,22 @@ events:
         gcc version 13-win32 (GCC) 
         COMPILER_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/bin/
         LIBRARY_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_75203.exe' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_75203.'
-         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/collect2 -plugin /usr/lib/gcc/x86_64-w64-mingw32/13-win32/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper -plugin-opt=-fresolution=/tmp/ccBgOWIJ.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_75203.exe /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/crt2.o /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtbegin.o -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32 -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib CMakeFiles/cmTC_75203.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lmingw32 -lgcc_s -lgcc -lmoldname -lmingwex -lmsvcrt -lkernel32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc_s -lgcc -lmoldname -lmingwex -lmsvcrt -lkernel32 /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtend.o
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_75203.exe' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_75203.'
-        gmake[1]: Leaving directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-6Ymceu'
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_1f5ae.exe' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_1f5ae.'
+         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/collect2 -plugin /usr/lib/gcc/x86_64-w64-mingw32/13-win32/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper -plugin-opt=-fresolution=/tmp/ccoRObKi.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_1f5ae.exe /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/crt2.o /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtbegin.o -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32 -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lmingw32 -lgcc_s -lgcc -lmoldname -lmingwex -lmsvcrt -lkernel32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc_s -lgcc -lmoldname -lmingwex -lmsvcrt -lkernel32 /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtend.o
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_1f5ae.exe' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_1f5ae.'
+        gmake[1]: Leaving directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bi8MkL'
         
       exitCode: 0
   -
     kind: "try_compile-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeTestCXXCompiler.cmake:56 (try_compile)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeTestCXXCompiler.cmake:56 (try_compile)"
       - "CMakeLists.txt:2 (project)"
     checks:
       - "Check for working CXX compiler: /usr/bin/x86_64-w64-mingw32-g++"
     directories:
-      source: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-vBuPFC"
-      binary: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-vBuPFC"
+      source: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fi93SU"
+      binary: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fi93SU"
     cmakeVariables:
       CMAKE_CXX_FLAGS: ""
       CMAKE_CXX_FLAGS_DEBUG: "-g"
@@ -250,25 +250,25 @@ events:
       variable: "CMAKE_CXX_COMPILER_WORKS"
       cached: true
       stdout: |
-        Change Dir: '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-vBuPFC'
+        Change Dir: '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fi93SU'
         
-        Run Build Command(s): /home/lemur/cmake-3.28.6-linux-x86_64/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_bb486/fast
-        /usr/bin/gmake  -f CMakeFiles/cmTC_bb486.dir/build.make CMakeFiles/cmTC_bb486.dir/build
-        gmake[1]: Entering directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-vBuPFC'
-        Building CXX object CMakeFiles/cmTC_bb486.dir/testCXXCompiler.cxx.o
-        /usr/bin/x86_64-w64-mingw32-g++   -fdiagnostics-color=always -o CMakeFiles/cmTC_bb486.dir/testCXXCompiler.cxx.o -c /home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-vBuPFC/testCXXCompiler.cxx
-        Linking CXX executable cmTC_bb486
-        /home/lemur/cmake-3.28.6-linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_bb486.dir/link.txt --verbose=1
-        /usr/bin/x86_64-w64-mingw32-g++ CMakeFiles/cmTC_bb486.dir/testCXXCompiler.cxx.o -o cmTC_bb486 
-        gmake[1]: Leaving directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-vBuPFC'
+        Run Build Command(s): /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_1216f/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_1216f.dir/build.make CMakeFiles/cmTC_1216f.dir/build
+        gmake[1]: Entering directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fi93SU'
+        Building CXX object CMakeFiles/cmTC_1216f.dir/testCXXCompiler.cxx.o
+        /usr/bin/x86_64-w64-mingw32-g++   -fdiagnostics-color=always -o CMakeFiles/cmTC_1216f.dir/testCXXCompiler.cxx.o -c /home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fi93SU/testCXXCompiler.cxx
+        Linking CXX executable cmTC_1216f
+        /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1216f.dir/link.txt --verbose=1
+        /usr/bin/x86_64-w64-mingw32-g++ CMakeFiles/cmTC_1216f.dir/testCXXCompiler.cxx.o -o cmTC_1216f 
+        gmake[1]: Leaving directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fi93SU'
         
       exitCode: 0
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
       - "CMakeLists.txt:5 (enable_language)"
     message: |
       Checking whether the ASM_NASM compiler is GNU using "--version" did not match "(GNU assembler)|(GCC)|(Free Software Foundation)":
@@ -276,9 +276,9 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
       - "CMakeLists.txt:5 (enable_language)"
     message: |
       Checking whether the ASM_NASM compiler is AppleClang using "--version" did not match "(Apple (clang|LLVM) version)":
@@ -286,9 +286,9 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
       - "CMakeLists.txt:5 (enable_language)"
     message: |
       Checking whether the ASM_NASM compiler is Clang using "--version" did not match "(clang version)":
@@ -296,9 +296,9 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
       - "CMakeLists.txt:5 (enable_language)"
     message: |
       Checking whether the ASM_NASM compiler is ARMClang using "--version" did not match "armclang":
@@ -306,9 +306,9 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
       - "CMakeLists.txt:5 (enable_language)"
     message: |
       Checking whether the ASM_NASM compiler is OrangeC using "--version" did not match "occ \\(OrangeC\\) Version":
@@ -316,9 +316,9 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
       - "CMakeLists.txt:5 (enable_language)"
     message: |
       Checking whether the ASM_NASM compiler is HP using "-V" did not match "HP C":
@@ -326,9 +326,9 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
       - "CMakeLists.txt:5 (enable_language)"
     message: |
       Checking whether the ASM_NASM compiler is Intel using "--version" did not match "(ICC)":
@@ -336,9 +336,9 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
       - "CMakeLists.txt:5 (enable_language)"
     message: |
       Checking whether the ASM_NASM compiler is IntelLLVM using "--version" did not match "(Intel[^
@@ -347,9 +347,9 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
       - "CMakeLists.txt:5 (enable_language)"
     message: |
       Checking whether the ASM_NASM compiler is SunPro using "-V" did not match "Sun C":
@@ -357,9 +357,9 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
       - "CMakeLists.txt:5 (enable_language)"
     message: |
       Checking whether the ASM_NASM compiler is XL using "-qversion" did not match "XL C":
@@ -367,9 +367,9 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
       - "CMakeLists.txt:5 (enable_language)"
     message: |
       Checking whether the ASM_NASM compiler is MSVC using "-?" did not match "Microsoft":
@@ -377,9 +377,9 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
       - "CMakeLists.txt:5 (enable_language)"
     message: |
       Checking whether the ASM_NASM compiler is TI using "-h" did not match "Texas Instruments":
@@ -565,9 +565,9 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
       - "CMakeLists.txt:5 (enable_language)"
     message: |
       Checking whether the ASM_NASM compiler is IAR using "" did not match "IAR Assembler":
@@ -576,9 +576,9 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1168 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
       - "CMakeLists.txt:5 (enable_language)"
     message: |
       Checking whether the ASM_NASM compiler is ARMCC using "" did not match "(ARM Compiler)|(ARM Assembler)|(Arm Compiler)":
@@ -587,9 +587,9 @@ events:
   -
     kind: "message-v1"
     backtrace:
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1155 (message)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
-      - "/home/lemur/cmake-3.28.6-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake:1155 (message)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "/home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake:29 (include)"
       - "CMakeLists.txt:5 (enable_language)"
     message: |
       Checking whether the ASM_NASM compiler is NASM using "-v" matched "(NASM version)":

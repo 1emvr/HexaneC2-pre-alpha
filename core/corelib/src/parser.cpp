@@ -10,7 +10,7 @@ namespace Parser {
         if (Length) {
             *cbOut = Length;
 
-            if ((*Dst = REINTC(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
+            if ((*Dst = SCAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
                 x_memcpy(*Dst, Buffer, Length);
             }
         }
@@ -25,7 +25,7 @@ namespace Parser {
         if (Length) {
             *cbOut = Length;
 
-            if ((*Dst = REINTC(LPWSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (Length * sizeof(WCHAR)) + sizeof(WCHAR))))) {
+            if ((*Dst = SCAST(LPWSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (Length * sizeof(WCHAR)) + sizeof(WCHAR))))) {
                 x_memcpy(*Dst, Buffer, Length * sizeof(WCHAR));
             }
         }
@@ -40,7 +40,7 @@ namespace Parser {
         if (Length) {
             *cbOut = Length;
 
-            if ((*Dst = REINTC(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
+            if ((*Dst = SCAST(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
                 x_memcpy(*Dst, Buffer, Length);
             }
         }
@@ -81,7 +81,7 @@ namespace Parser {
         if (Parser->Length >= 1) {
             x_memcpy(&intBytes, Parser->Buffer, 1);
 
-            Parser->Buffer = REINTC(PBYTE, Parser->Buffer) + 1;
+            Parser->Buffer = SCAST(PBYTE, Parser->Buffer) + 1;
             Parser->Length -= 1;
         }
 
@@ -95,7 +95,7 @@ namespace Parser {
         if (Parser->Length >= 2) {
             x_memcpy(&intBytes, Parser->Buffer, 2);
 
-            Parser->Buffer = REINTC(PBYTE, Parser->Buffer) + 2;
+            Parser->Buffer = SCAST(PBYTE, Parser->Buffer) + 2;
             Parser->Length -= 2;
         }
         return intBytes;
@@ -110,7 +110,7 @@ namespace Parser {
         }
         x_memcpy(&intBytes, Parser->Buffer, 4);
 
-        Parser->Buffer = REINTC(PBYTE, Parser->Buffer) + 4;
+        Parser->Buffer = SCAST(PBYTE, Parser->Buffer) + 4;
         Parser->Length -= 4;
 
         return (Parser->Little)
@@ -127,7 +127,7 @@ namespace Parser {
         }
         x_memcpy(&intBytes, Parser->Buffer, 4);
 
-        Parser->Buffer = REINTC(PBYTE, Parser->Buffer) + 8;
+        Parser->Buffer = SCAST(PBYTE, Parser->Buffer) + 8;
         Parser->Length -= 8;
 
         return (Parser->Little)
@@ -144,7 +144,7 @@ namespace Parser {
         }
         x_memcpy(&intBytes, Parser->Buffer, 4);
 
-        Parser->Buffer = REINTC(PBYTE, Parser->Buffer) + 4;
+        Parser->Buffer = SCAST(PBYTE, Parser->Buffer) + 4;
         Parser->Length -= 4;
 
         return (Parser->Little)
@@ -166,22 +166,22 @@ namespace Parser {
             *cbOut = length;
         }
 
-        output = REINTC(PBYTE, Parser->Buffer);
+        output = SCAST(PBYTE, Parser->Buffer);
         if (output == nullptr) {
             return nullptr;
         }
 
         Parser->Length -= length;
-        Parser->Buffer = REINTC(PBYTE, Parser->Buffer) + length;
+        Parser->Buffer = SCAST(PBYTE, Parser->Buffer) + length;
 
         return output;
     }
 
     LPSTR UnpackString(PPARSER Parser, PULONG cbOut) {
-        return REINTC(LPSTR, UnpackBytes(Parser, cbOut));
+        return RCAST(LPSTR, UnpackBytes(Parser, cbOut));
     }
 
     LPWSTR UnpackWString(PPARSER Parser, PULONG cbOut) {
-        return REINTC(LPWSTR, UnpackBytes(Parser, cbOut));
+        return RCAST(LPWSTR, UnpackBytes(Parser, cbOut));
     }
 }

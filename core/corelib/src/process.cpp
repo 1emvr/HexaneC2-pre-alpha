@@ -47,9 +47,9 @@ namespace Process {
 		if (Ctx->win32.Process32First(Snap, &Entry) == TRUE) {
 			while (Ctx->win32.Process32Next(Snap, &Entry) == TRUE) {
 
-				if (x_strcmp(Entry.szExeFile, REINTC(LPSTR, Parent)) == 0) {
+				if (x_strcmp(Entry.szExeFile, RCAST(LPSTR, Parent)) == 0) {
 					Cid.UniqueThread = nullptr;
-					Cid.UniqueProcess = REINTC(HANDLE, Entry.th32ProcessID);
+					Cid.UniqueProcess = RCAST(HANDLE, Entry.th32ProcessID);
 
 					InitializeObjectAttributes(&Attr, nullptr, 0, nullptr, nullptr);
 					if (!NT_SUCCESS(Ctx->Nt.NtOpenProcess(&Proc, PROCESS_ALL_ACCESS, &Attr, &Cid))) {
@@ -76,7 +76,7 @@ namespace Process {
 		OBJECT_ATTRIBUTES attrs     = { };
 
 		InitializeObjectAttributes(&attrs, nullptr, 0, nullptr, nullptr);
-		client.UniqueProcess = REINTC(HANDLE, pid);
+		client.UniqueProcess = RCAST(HANDLE, pid);
 		client.UniqueThread = nullptr;
 
 		if (!NT_SUCCESS(Ctx->Nt.NtOpenProcess(&handle, access, &attrs, &client))) {
@@ -131,13 +131,13 @@ namespace Process {
 		}
 		if (
 			!(proc->lpHeap = Ctx->Nt.RtlCreateHeap(HEAP_GROWABLE, HEAP_NO_COMMIT)) ||
-			!(proc->Attrs = REINTC(PPS_ATTRIBUTE_LIST, Ctx->Nt.RtlAllocateHeap(proc->lpHeap, HEAP_ZERO_MEMORY, PS_ATTR_LIST_SIZE(1))))) {
+			!(proc->Attrs = SCAST(PPS_ATTRIBUTE_LIST, Ctx->Nt.RtlAllocateHeap(proc->lpHeap, HEAP_ZERO_MEMORY, PS_ATTR_LIST_SIZE(1))))) {
 			return_defer(ERROR_NOT_ENOUGH_MEMORY);
 		}
 
 		proc->Attrs->TotalLength = PS_ATTR_LIST_SIZE(1);
 		proc->Attrs->Attributes[0].Attribute = PS_ATTRIBUTE_IMAGE_NAME;
-		proc->Attrs->Attributes[0].Value = REINTC(ULONG_PTR, uName.Buffer);
+		proc->Attrs->Attributes[0].Value = RCAST(ULONG_PTR, uName.Buffer);
 		proc->Attrs->Attributes[0].Size = uName.Length;
 
 		ntstatus = Ctx->Nt.NtCreateUserProcess(&proc->pHandle, &proc->pThread, PROCESS_CREATE_ALL_ACCESS_SUSPEND, proc->Params, &proc->Create, proc->Attrs);

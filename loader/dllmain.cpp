@@ -6,7 +6,7 @@ DLL_EXPORT BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID reserved) {
 
     switch(reason) {
         case DLL_PROCESS_ATTACH:
-            CreateThread(nullptr, 0, REINTC(PTHREAD_START_ROUTINE, Start), module, 0, nullptr);
+            CreateThread(nullptr, 0, RCAST(PTHREAD_START_ROUTINE, Start), module, 0, nullptr);
             break;
         case DLL_THREAD_ATTACH:
         case DLL_THREAD_DETACH:

