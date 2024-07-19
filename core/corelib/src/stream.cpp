@@ -43,7 +43,7 @@ namespace Stream {
         PSTREAM stream = { };
 
         if (
-            !(stream            = CREINTERPRET(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, sizeof(STREAM)))) ||
+            !(stream            = REINTC(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, sizeof(STREAM)))) ||
             !(stream->Buffer    = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, sizeof(BYTE)))) {
             return_defer(ntstatus);
         }
