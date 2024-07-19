@@ -20,9 +20,8 @@
 namespace Utils {
     FUNCTION ULONG64    GetTimeNow();
     FUNCTION BOOL       InWorkingHours();
-    FUNCTION ULONG      GetHashFromStringW(LPWSTR String, SIZE_T Length);
-    FUNCTION ULONG      GetHashFromStringA(LPSTR String, SIZE_T Length);
-
+    FUNCTION ULONG      GetHashFromStringW(WCHAR CONST *String, SIZE_T Length);
+    FUNCTION ULONG      GetHashFromStringA(CHAR CONST *String, SIZE_T Length);
 }
 
 namespace Random {

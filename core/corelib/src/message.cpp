@@ -272,7 +272,7 @@ namespace Message {
                     }
 
                     if (CmdMap[FnCounter].Id == CmdId) {
-                        auto Cmd = RCAST(CmdSignature*, Ctx->Base.Address + U_PTR(CmdMap[FnCounter].Function));
+                        auto Cmd = RCAST(CmdSignature, Ctx->Base.Address + RCAST(UINT_PTR, CmdMap[FnCounter].Function));
                         Cmd(&Parser);
                         break;
                     }

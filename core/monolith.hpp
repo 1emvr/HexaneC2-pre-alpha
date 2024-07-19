@@ -217,18 +217,18 @@ typedef struct {
 typedef struct {
 	LPSTR 	Buffer;
 	ULONG 	Length;
-} ABUFFER, *PABUFFER;
+} A_BUFFER;
 
 typedef struct {
 	LPWSTR 	Buffer;
 	ULONG 	Length;
-} WBUFFER, *PWBUFFER;
+} W_BUFFER;
 
 typedef struct {
     LPVOID  ResLock;
     HGLOBAL hGlobal;
     SIZE_T  Size;
-} RSRC, *ORSRC;
+} RSRC, *PRSRC;
 
 
 typedef struct {

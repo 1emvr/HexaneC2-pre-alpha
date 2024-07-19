@@ -46,7 +46,7 @@ namespace Utils {
         return TRUE;
     }
 
-    ULONG GetHashFromStringA(CONST LPSTR String, SIZE_T Length) {
+    ULONG GetHashFromStringA(CHAR CONST *String, SIZE_T Length) {
 
         auto hash = FNV_OFFSET;
 
@@ -59,7 +59,7 @@ namespace Utils {
         return hash;
     }
 
-    ULONG GetHashFromStringW(CONST LPWSTR String, SIZE_T Length) {
+    ULONG GetHashFromStringW(WCHAR CONST *String, SIZE_T Length) {
 
         auto hash = FNV_OFFSET;
 

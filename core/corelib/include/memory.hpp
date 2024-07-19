@@ -8,8 +8,8 @@ namespace Memory {
     FUNCTION VOID       ContextInit();
     FUNCTION HMODULE    LdrGetModuleAddress(ULONG hash);
     FUNCTION FARPROC    LdrGetSymbolAddress(HMODULE base, ULONG hash);
-    FUNCTION UINT_PTR   LdrGetExport(PBYTE Module, PBYTE Export);
-    FUNCTION ORSRC      LdrGetIntResource(HMODULE Base, INT RsrcId);
+    FUNCTION PRSRC      LdrGetIntResource(HMODULE Base, INT RsrcId);
+    FUNCTION UINT_PTR   LdrGetExport(LPSTR Module, LPSTR Export);
     FUNCTION UINT_PTR   MmCaveHunter(HANDLE Proc, UINT_PTR Export, SIZE_T Size);
 }
 #endif //HEXANE_CORELIB_MEMORY_HPP
