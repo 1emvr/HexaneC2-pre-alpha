@@ -18,6 +18,8 @@
 #include <cstdint>
 #include <string>
 
+typedef LONG KPRIORITY;
+typedef ULONG LOGICAL;
 #define STATIC static
 #define EXTERN_C extern "C"
 #define PROCESSOR_FEATURE_MAX 64
@@ -67,7 +69,6 @@
 #endif
 
 	typedef enum _PS_ATTRIBUTE_NUM {
-
 		PsAttributeParentProcess,
 		PsAttributeDebugObject,
 		PsAttributeToken,
@@ -100,7 +101,6 @@
 		PsAttributeComponentFilter,
 		PsAttributeEnableOptionalXStateFeatures,
 		PsAttributeMax
-
 	} PS_ATTRIBUTE_NUM;
 
 #define RTL_USER_PROCESS_PARAMETERS_NORMALIZED	0x01

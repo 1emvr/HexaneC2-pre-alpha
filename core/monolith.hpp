@@ -19,7 +19,7 @@ EXTERN_C LPVOID InstEnd();
 #define WIN_VERSION_10                          10
 #define WIN_VERSION_2016_X                      11
 
-#define Prototype(x)                            __typeof__(x) *x
+#define PROTOTYPE(x)                            __typeof__(x) *x
 #define DLL_EXPORT 								__declspec(dllexport)
 #define TXT_SECTION(x) 							__attribute__((used, section(".text$" #x "")))
 #define DATA_SECTION  							__attribute__((used, section(".data")))
@@ -31,10 +31,10 @@ EXTERN_C LPVOID InstEnd();
 #define U_PTR(x)                                ((UINT_PTR)(x))
 #define C_DREF(x)                               (*(VOID**)(x))
 
-#define CCONST(T,x)								const_cast<T>(x)
-#define CDYNAMIC(T,x)							dynamic_cast<T>(x)
-#define CSTATIC(T,x)							static_cast<T>(x)
-#define CREINTERPRET(T,x)						reinterpret_cast<T>(x)
+#define CONSTC(T,x)								const_cast<T>(x)
+#define DYNAMICC(T,x)							dynamic_cast<T>(x)
+#define STATICC(T,x)							static_cast<T>(x)
+#define REINTC(T,x)								reinterpret_cast<T>(x)
 
 #define NT_SUCCESS(status)						((status) >= 0)
 #define LocalHeap								NtCurrentTeb()->ProcessEnvironmentBlock->ProcessHeap
@@ -384,91 +384,91 @@ typedef struct {
 	} Nt;
 
 	struct {
-		Prototype(LoadLibraryA);
-		Prototype(FreeLibrary);
-		Prototype(GetProcessHeap);
-		Prototype(GetProcAddress);
-		Prototype(GetModuleHandleA);
+		PROTOTYPE(LoadLibraryA);
+		PROTOTYPE(FreeLibrary);
+		PROTOTYPE(GetProcessHeap);
+		PROTOTYPE(GetProcAddress);
+		PROTOTYPE(GetModuleHandleA);
 
-		Prototype(IsWow64Process);
-        Prototype(OpenProcess);
-		Prototype(CreateToolhelp32Snapshot);
-		Prototype(Process32First);
-		Prototype(Process32Next);
-        Prototype(Module32First);
-        Prototype(Module32Next);
-		Prototype(GetCurrentProcessId);
-		Prototype(GetProcessId);
+		PROTOTYPE(IsWow64Process);
+        PROTOTYPE(OpenProcess);
+		PROTOTYPE(CreateToolhelp32Snapshot);
+		PROTOTYPE(Process32First);
+		PROTOTYPE(Process32Next);
+        PROTOTYPE(Module32First);
+        PROTOTYPE(Module32Next);
+		PROTOTYPE(GetCurrentProcessId);
+		PROTOTYPE(GetProcessId);
 
-		Prototype(GlobalMemoryStatusEx);
-		Prototype(GetComputerNameExA);
-		Prototype(SetLastError);
-		Prototype(GetLastError);
+		PROTOTYPE(GlobalMemoryStatusEx);
+		PROTOTYPE(GetComputerNameExA);
+		PROTOTYPE(SetLastError);
+		PROTOTYPE(GetLastError);
 
-		Prototype(ReadFile);
-		Prototype(WriteFile);
-		Prototype(CreateFileW);
-		Prototype(GetFileSizeEx);
-		Prototype(GetFullPathNameA);
-		Prototype(FindFirstFileA);
-		Prototype(FindClose);
-		Prototype(FindNextFileA);
-		Prototype(GetCurrentDirectoryA);
-		Prototype(FileTimeToSystemTime);
-		Prototype(SystemTimeToTzSpecificLocalTime);
-		Prototype(GetLocalTime);
-		Prototype(GetSystemTimeAsFileTime);
+		PROTOTYPE(ReadFile);
+		PROTOTYPE(WriteFile);
+		PROTOTYPE(CreateFileW);
+		PROTOTYPE(GetFileSizeEx);
+		PROTOTYPE(GetFullPathNameA);
+		PROTOTYPE(FindFirstFileA);
+		PROTOTYPE(FindClose);
+		PROTOTYPE(FindNextFileA);
+		PROTOTYPE(GetCurrentDirectoryA);
+		PROTOTYPE(FileTimeToSystemTime);
+		PROTOTYPE(SystemTimeToTzSpecificLocalTime);
+		PROTOTYPE(GetLocalTime);
+		PROTOTYPE(GetSystemTimeAsFileTime);
 
-		Prototype(FormatMessageA);
-		Prototype(CreateRemoteThread);
-		Prototype(CreateThread);
-		Prototype(QueueUserAPC);
-		Prototype(GetThreadLocale);
-		Prototype(SleepEx);
+		PROTOTYPE(FormatMessageA);
+		PROTOTYPE(CreateRemoteThread);
+		PROTOTYPE(CreateThread);
+		PROTOTYPE(QueueUserAPC);
+		PROTOTYPE(GetThreadLocale);
+		PROTOTYPE(SleepEx);
 
-		Prototype(WinHttpOpen);
-		Prototype(WinHttpConnect);
-		Prototype(WinHttpOpenRequest);
-		Prototype(WinHttpAddRequestHeaders);
-		Prototype(WinHttpSetOption);
-		Prototype(WinHttpGetProxyForUrl);
-		Prototype(WinHttpGetIEProxyConfigForCurrentUser);
-		Prototype(WinHttpSendRequest);
-		Prototype(WinHttpReceiveResponse);
-		Prototype(WinHttpReadData);
-		Prototype(WinHttpQueryHeaders);
-		Prototype(WinHttpQueryDataAvailable);
-		Prototype(WinHttpCloseHandle);
-		Prototype(GetAdaptersInfo);
+		PROTOTYPE(WinHttpOpen);
+		PROTOTYPE(WinHttpConnect);
+		PROTOTYPE(WinHttpOpenRequest);
+		PROTOTYPE(WinHttpAddRequestHeaders);
+		PROTOTYPE(WinHttpSetOption);
+		PROTOTYPE(WinHttpGetProxyForUrl);
+		PROTOTYPE(WinHttpGetIEProxyConfigForCurrentUser);
+		PROTOTYPE(WinHttpSendRequest);
+		PROTOTYPE(WinHttpReceiveResponse);
+		PROTOTYPE(WinHttpReadData);
+		PROTOTYPE(WinHttpQueryHeaders);
+		PROTOTYPE(WinHttpQueryDataAvailable);
+		PROTOTYPE(WinHttpCloseHandle);
+		PROTOTYPE(GetAdaptersInfo);
 
-		Prototype(CryptStringToBinaryA);
-		Prototype(CryptBinaryToStringA);
-		Prototype(FindResourceA);
-		Prototype(LoadResource);
-		Prototype(LockResource);
-		Prototype(SizeofResource);
-		Prototype(FreeResource);
+		PROTOTYPE(CryptStringToBinaryA);
+		PROTOTYPE(CryptBinaryToStringA);
+		PROTOTYPE(FindResourceA);
+		PROTOTYPE(LoadResource);
+		PROTOTYPE(LockResource);
+		PROTOTYPE(SizeofResource);
+		PROTOTYPE(FreeResource);
 
-		Prototype(CallNamedPipeW);
-		Prototype(CreateNamedPipeW);
-		Prototype(WaitNamedPipeW);
-		Prototype(SetNamedPipeHandleState);
-		Prototype(ConnectNamedPipe);
-		Prototype(TransactNamedPipe);
-		Prototype(DisconnectNamedPipe);
-		Prototype(PeekNamedPipe);
+		PROTOTYPE(CallNamedPipeW);
+		PROTOTYPE(CreateNamedPipeW);
+		PROTOTYPE(WaitNamedPipeW);
+		PROTOTYPE(SetNamedPipeHandleState);
+		PROTOTYPE(ConnectNamedPipe);
+		PROTOTYPE(TransactNamedPipe);
+		PROTOTYPE(DisconnectNamedPipe);
+		PROTOTYPE(PeekNamedPipe);
 
-		Prototype(GetUserNameA);
-		Prototype(LookupAccountSidW);
-		Prototype(LookupPrivilegeValueA);
-		Prototype(SetEntriesInAclA);
-		Prototype(AllocateAndInitializeSid);
-		Prototype(AddMandatoryAce);
-		Prototype(InitializeSecurityDescriptor);
-		Prototype(SetSecurityDescriptorDacl);
-		Prototype(SetSecurityDescriptorSacl);
-		Prototype(InitializeAcl);
-		Prototype(FreeSid);
+		PROTOTYPE(GetUserNameA);
+		PROTOTYPE(LookupAccountSidW);
+		PROTOTYPE(LookupPrivilegeValueA);
+		PROTOTYPE(SetEntriesInAclA);
+		PROTOTYPE(AllocateAndInitializeSid);
+		PROTOTYPE(AddMandatoryAce);
+		PROTOTYPE(InitializeSecurityDescriptor);
+		PROTOTYPE(SetSecurityDescriptorDacl);
+		PROTOTYPE(SetSecurityDescriptorSacl);
+		PROTOTYPE(InitializeAcl);
+		PROTOTYPE(FreeSid);
 	} win32;
 
 } HEXANE_CTX, *PHEXANE_CTX;

@@ -13,7 +13,7 @@ set(LOADER "${SOURCE}/loader")
 set(CORELIB "${CORE}/corelib")
 set(IMPLANT "${CORE}/implant")
 
-include_directories(include ${SOURCE})
+include_directories(include ${SOURCE} ${META})
 
 set(INCLUDES
         "${CORE}/monolith.hpp"

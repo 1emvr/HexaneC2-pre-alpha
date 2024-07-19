@@ -10,7 +10,7 @@ namespace Parser {
         if (Length) {
             *cbOut = Length;
 
-            if ((*Dst = S_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
+            if ((*Dst = CREINTERPRET(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
                 x_memcpy(*Dst, Buffer, Length);
             }
         }
@@ -25,7 +25,7 @@ namespace Parser {
         if (Length) {
             *cbOut = Length;
 
-            if ((*Dst = W_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (Length * sizeof(WCHAR)) + sizeof(WCHAR))))) {
+            if ((*Dst = CREINTERPRET(LPWSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (Length * sizeof(WCHAR)) + sizeof(WCHAR))))) {
                 x_memcpy(*Dst, Buffer, Length * sizeof(WCHAR));
             }
         }
@@ -40,7 +40,7 @@ namespace Parser {
         if (Length) {
             *cbOut = Length;
 
-            if ((*Dst = B_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
+            if ((*Dst = CREINTERPRET(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
                 x_memcpy(*Dst, Buffer, Length);
             }
         }
@@ -81,7 +81,7 @@ namespace Parser {
         if (Parser->Length >= 1) {
             x_memcpy(&intBytes, Parser->Buffer, 1);
 
-            Parser->Buffer = B_PTR(Parser->Buffer) + 1;
+            Parser->Buffer = CREINTERPRET(PBYTE, Parser->Buffer) + 1;
             Parser->Length -= 1;
         }
 
@@ -95,7 +95,7 @@ namespace Parser {
         if (Parser->Length >= 2) {
             x_memcpy(&intBytes, Parser->Buffer, 2);
 
-            Parser->Buffer = B_PTR(Parser->Buffer) + 2;
+            Parser->Buffer = CREINTERPRET(PBYTE, Parser->Buffer) + 2;
             Parser->Length -= 2;
         }
         return intBytes;
@@ -110,7 +110,7 @@ namespace Parser {
         }
         x_memcpy(&intBytes, Parser->Buffer, 4);
 
-        Parser->Buffer = B_PTR(Parser->Buffer) + 4;
+        Parser->Buffer = CREINTERPRET(PBYTE, Parser->Buffer) + 4;
         Parser->Length -= 4;
 
         return (Parser->Little)
@@ -127,7 +127,7 @@ namespace Parser {
         }
         x_memcpy(&intBytes, Parser->Buffer, 4);
 
-        Parser->Buffer = B_PTR(Parser->Buffer) + 8;
+        Parser->Buffer = CREINTERPRET(PBYTE, Parser->Buffer) + 8;
         Parser->Length -= 8;
 
         return (Parser->Little)
@@ -144,7 +144,7 @@ namespace Parser {
         }
         x_memcpy(&intBytes, Parser->Buffer, 4);
 
-        Parser->Buffer = B_PTR(Parser->Buffer) + 4;
+        Parser->Buffer = CREINTERPRET(PBYTE, Parser->Buffer) + 4;
         Parser->Length -= 4;
 
         return (Parser->Little)
@@ -166,22 +166,22 @@ namespace Parser {
             *cbOut = length;
         }
 
-        output = B_PTR(Parser->Buffer);
+        output = CREINTERPRET(PBYTE, Parser->Buffer);
         if (output == nullptr) {
             return nullptr;
         }
 
         Parser->Length -= length;
-        Parser->Buffer = B_PTR(Parser->Buffer) + length;
+        Parser->Buffer = CREINTERPRET(PBYTE, Parser->Buffer) + length;
 
         return output;
     }
 
     LPSTR UnpackString(PPARSER Parser, PULONG cbOut) {
-        return S_PTR(UnpackBytes(Parser, cbOut));
+        return CREINTERPRET(LPSTR, UnpackBytes(Parser, cbOut));
     }
 
     LPWSTR UnpackWString(PPARSER Parser, PULONG cbOut) {
-        return W_PTR(UnpackBytes(Parser, cbOut));
+        return CREINTERPRET(LPWSTR, UnpackBytes(Parser, cbOut));
     }
 }

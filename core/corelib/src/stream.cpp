@@ -43,7 +43,7 @@ namespace Stream {
         PSTREAM stream = { };
 
         if (
-            !(stream            = PSTREAM_CAST(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, sizeof(STREAM)))) ||
+            !(stream            = CREINTERPRET(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, sizeof(STREAM)))) ||
             !(stream->Buffer    = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, sizeof(BYTE)))) {
             return_defer(ntstatus);
         }
@@ -83,7 +83,7 @@ namespace Stream {
         if (stream) {
             stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(BYTE));
 
-            x_memcpy(B_PTR(stream->Buffer) + stream->Length, &data, sizeof(BYTE));
+            x_memcpy(REINTC(PBYTE, stream->Buffer) + stream->Length, &data, sizeof(BYTE));
             stream->Length += sizeof(BYTE);
         }
     }
@@ -95,7 +95,7 @@ namespace Stream {
         if (stream) {
             stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(ULONG64));
 
-            PackInt64(B_PTR(stream->Buffer) + stream->Length, data);
+            PackInt64(REINTC(PBYTE, stream->Buffer) + stream->Length, data);
             stream->Length += sizeof(UINT64);
         }
     }
@@ -107,7 +107,7 @@ namespace Stream {
         if (stream) {
             stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(ULONG));
 
-            PackInt32(B_PTR(stream->Buffer) + stream->Length, data);
+            PackInt32(REINTC(PBYTE, stream->Buffer) + stream->Length, data);
             stream->Length += sizeof(ULONG);
         }
     }
@@ -121,7 +121,7 @@ namespace Stream {
                 PackDword(stream, size);
                 stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + size);
 
-                x_memcpy(B_PTR(stream->Buffer) + stream->Length, data, size);
+                x_memcpy(REINTC(PBYTE, stream->Buffer) + stream->Length, data, size);
                 stream->Length += size;
             }
         }
@@ -129,18 +129,18 @@ namespace Stream {
 
     VOID PackPointer (PSTREAM stream, PVOID pointer) {
 #ifdef _M_X64
-        PackDword64(stream, U64(pointer));
+        PackDword64(stream, REINTC(UINT_PTR, pointer));
 #elif _M_IX86
-        PackDword(stream, U32(pointer));
+        PackDword(stream, REINTC(UINT_PTR, pointer));
 #endif
     }
 
-    VOID PackString (PSTREAM stream, PCHAR data) {
-        PackBytes(stream, B_PTR(data), x_strlen(S_PTR(data)));
+    VOID PackString (PSTREAM stream, LPSTR data) {
+        PackBytes(stream, REINTC(PBYTE, data), x_strlen(data));
     }
 
-    VOID PackWString (PSTREAM stream, PWCHAR data) {
-        PackBytes(stream, B_PTR(data), x_wcslen(W_PTR(data)));
+    VOID PackWString (PSTREAM stream, LPWSTR data) {
+        PackBytes(stream, REINTC(PBYTE, data), x_wcslen(data));
     }
 }
 

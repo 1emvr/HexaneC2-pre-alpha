@@ -240,7 +240,7 @@ namespace Memory {
         for (Region = (Export & 0xFFFFFFFFFFF70000) - 0x70000000;
              Region < Export + 0x70000000;
              Region += 0x10000) {
-            if ((Ctx->Nt.NtAllocateVirtualMemory(Proc, CP_PTR(&Region), 0, &Size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ)) >= 0) {
+            if ((Ctx->Nt.NtAllocateVirtualMemory(Proc, CREINTERPRET(LPVOID*, &Region), 0, &Size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ)) >= 0) {
                 return Region;
             }
         }

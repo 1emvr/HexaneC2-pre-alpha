@@ -5,8 +5,8 @@
 
 void x_memcpy (void *dst, const void *src, size_t n) {
 
-    auto a          = reinterpret_cast<uint8_t*>(dst);
-    const auto* b   = reinterpret_cast<const uint8_t*>(src);
+    auto a          = CREINTERPRET(uint8_t*, dst);
+    const auto* b   = CREINTERPRET(const uint8_t*, src);
 
     for (size_t i = 0; i < n; i++) {
         a[i] = b[i];
@@ -15,7 +15,7 @@ void x_memcpy (void *dst, const void *src, size_t n) {
 
 void *x_memset (void *dst, int val, size_t len) {
 
-    auto *ptr = reinterpret_cast<uint8_t*>(dst);
+    auto *ptr = CREINTERPRET(uint8_t*, dst);
     while (len-- > 0) {
         *ptr++ = val;
     }
@@ -56,8 +56,8 @@ int x_strcmp (char *str1, char *str2) {
 
 int x_memcmp (const void *str1, const void *str2, size_t count) {
 
-    const auto *s1 = reinterpret_cast<const uint8_t*>(str1);
-    const auto *s2 = reinterpret_cast<const uint8_t*>(str2);
+    const auto *s1 = CREINTERPRET(const uint8_t*, str1);
+    const auto *s2 = CREINTERPRET(const uint8_t*, str2);
 
     while (count-- > 0) {
 
@@ -70,14 +70,14 @@ int x_memcmp (const void *str1, const void *str2, size_t count) {
 }
 
 
-size_t x_strlen (const CHAR* str) {
+size_t x_strlen (const char* str) {
 
     const char* char_ptr    = { };
     const uint32_t* u32ptr  = { };
 
     uint32_t longword = 0, himagic = 0, lomagic = 0;
 
-    for (char_ptr = str; ((unsigned long long)char_ptr & (sizeof(longword) - 1)) != NULTERM; ++char_ptr ) {
+    for (char_ptr = str; (CREINTERPRET(unsigned long long, char_ptr) & (sizeof(longword) - 1)) != NULTERM; ++char_ptr ) {
         if ( *char_ptr == NULTERM ) {
             return char_ptr - str;
         }
@@ -88,8 +88,8 @@ size_t x_strlen (const CHAR* str) {
     lomagic 		= 0x01010101L;
 
     if (sizeof(longword) > 4) {
-        himagic = ((himagic << 16) << 16) | himagic;
-        lomagic = ((lomagic << 16) << 16) | lomagic;
+        himagic = himagic << 16 << 16 | himagic;
+        lomagic = lomagic << 16 << 16 | lomagic;
     }
     if ( sizeof(longword) > 8 ) {
         return 0;
@@ -98,9 +98,9 @@ size_t x_strlen (const CHAR* str) {
     for (;;) {
 
         longword = *u32ptr++;
-        if (( (longword - lomagic) & ~longword & himagic) != 0 ) {
+        if ((longword - lomagic & ~longword & himagic) != 0 ) {
 
-            auto* cp = (char*)(u32ptr - 1);
+            auto cp = (char*)u32ptr - 1;
             if (cp[0] == 0)
                 return cp - str;
             if (cp[1] == 0)
@@ -160,7 +160,7 @@ int x_wcscmp (wchar_t *str1, wchar_t *str2) {
             return 0;
         }
     }
-    return ((*(wchar_t*)str1 < *(wchar_t*)str2) ? -1 : +1);
+    return *CREINTERPRET(wchar_t*, str1) < *CREINTERPRET(wchar_t*, str2) ? -1 : +1;
 }
 
 wchar_t *x_wcscat (wchar_t *str1, wchar_t *str2) {

