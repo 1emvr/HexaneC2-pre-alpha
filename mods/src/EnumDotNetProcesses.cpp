@@ -1,16 +1,15 @@
 #include <core/monolith.hpp>
+#include <core/corelib/include/stream.hpp>
 #include <metahost.h>
 #include <iostream>
 #pragma comment (lib, "mscoree.lib")
 
-#define write(x) std::cout << x << std::endl
-#define error(x) std::cerr << x << GetLastError() << std::endl
-#define process(p, n, b) std::wcout << L"Process ID: " <<  p << L", Name: " << n << L", .NET Version: " << b << std::endl
+VOID EnumDotNetProcesses(PPARSER Parser) {
 
-VOID EnumDotNetProcesses() {
-
+    PSTREAM Stream  = Stream::CreateStreamWithHeaders(TypeResponse);
     HANDLE Snapshot = { };
     HANDLE hProcess = { };
+    PROCESSENTRY32 Entries = { };
 
     DWORD Size = 0;
     BOOL Loaded = FALSE;
@@ -20,24 +19,19 @@ VOID EnumDotNetProcesses() {
     ICLRMetaHost *pMetaHost = { };
     ICLRRuntimeInfo *pRuntime = { };
 
-    PROCESSENTRY32 Entries = { };
-
-    if ((Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)) == INVALID_HANDLE_VALUE) {
-        error("Tlhelp32Snapshot failed: ");
-        return;
-    }
     Entries.dwSize = sizeof(PROCESSENTRY32);
 
-    if (!Process32First(Snapshot, &Entries)) {
-        error("Process32First failed: ");
+    if (
+        (Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)) == INVALID_HANDLE_VALUE ||
+        !Process32First(Snapshot, &Entries)) {
         return;
     }
 
-    write("Eunumerating processes...");
     do {
         if (!(hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, Entries.th32ProcessID))) {
             continue;
         }
+
         Size = ARRAY_LEN(Buffer);
 
         if (SUCCEEDED(CLRCreateInstance(CLSID_CLRMetaHost, IID_PPV_ARGS(&pMetaHost)))) {
@@ -46,7 +40,10 @@ VOID EnumDotNetProcesses() {
 
                     if (pRuntime->IsLoaded(hProcess, &Loaded) == S_OK && Loaded == TRUE) {
                         if (SUCCEEDED(pRuntime->GetVersionString(Buffer, &Size))) {
-                            process(Entries.th32ProcessID, Entries.szExeFile, Buffer);
+
+                            Stream::PackDword(Stream, Entries.th32ProcessID);
+                            Stream::PackString(Stream, Entries.szExeFile);
+                            Stream::PackWString(Stream, Buffer);
                         }
                     }
                     pRuntime->Release();
@@ -61,11 +58,5 @@ VOID EnumDotNetProcesses() {
         CloseHandle(hProcess);
     } while (Process32Next(Snapshot, &Entries));
 
-    write("finished...");
     CloseHandle(Snapshot);
-}
-
-int main() {
-    EnumDotNetProcesses();
-    write("Exiting...");
 }

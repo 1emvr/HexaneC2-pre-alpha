@@ -5,7 +5,8 @@ set(CMAKE_CXX_STANDARD 23)
 enable_language(ASM_NASM)
 
 set(SOURCE "/home/lemur/Github/HexaneC2")
-set(META "/usr/share/mingw-w64/include")
+set(MINGW "/usr/share/mingw-w64/include")
+set(META "/mnt/c/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um")
 
 set(CORE "${SOURCE}/core")
 set(INJECT "${SOURCE}/inject")
@@ -13,7 +14,7 @@ set(LOADER "${SOURCE}/loader")
 set(CORELIB "${CORE}/corelib")
 set(IMPLANT "${CORE}/implant")
 
-include_directories(include ${SOURCE} ${META})
+include_directories(include ${SOURCE} ${MINGW} ${META})
 
 set(INCLUDES
         "${CORE}/monolith.hpp"
@@ -48,5 +49,6 @@ set(MAIN_FILES
         "${INJECT}/injectlib/injectlib.cpp"
         "${INJECT}/threadless/OpenFileExecute.cpp"
         "${IMPLANT}/implant.cpp"
+        mods/src/EnumDotNetProcesses.cpp
 )
 add_executable(Hexane-Implant ${MAIN_FILES} ${INCLUDES})
