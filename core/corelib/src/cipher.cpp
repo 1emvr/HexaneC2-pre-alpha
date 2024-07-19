@@ -5,22 +5,22 @@ namespace Xtea {
 
         U32_BLOCK block = { };
 
-        block.v0 = (src[0]) << 24 | (src[1]) << 16 | (src[2]) << 8 | src[3];
-        block.v1 = (src[4]) << 24 | (src[5]) << 16 | (src[6]) << 8 | src[7];
+        block.v0 = src[0] << 24 | src[1] << 16 | src[2] << 8 | src[3];
+        block.v1 = src[4] << 24 | src[5] << 16 | src[6] << 8 | src[7];
 
         return block;
     }
 
     VOID Uint32ToBlock (uint32_t v0, uint32_t v1, byte *dst)  {
 
-        dst[0] = (v0 >> 24);
-        dst[1] = (v0 >> 16);
-        dst[2] = (v0 >> 8);
-        dst[3] = (v0);
-        dst[4] = (v1 >> 24);
-        dst[5] = (v1 >> 16);
-        dst[6] = (v1 >> 8);
-        dst[7] = (v1);
+        dst[0] = v0 >> 24;
+        dst[1] = v0 >> 16;
+        dst[2] = v0 >> 8;
+        dst[3] = v0;
+        dst[4] = v1 >> 24;
+        dst[5] = v1 >> 16;
+        dst[6] = v1 >> 8;
+        dst[7] = v1;
     }
 
     VOID InitCipher (CipherTxt *c, const byte *m_key) {
@@ -45,7 +45,7 @@ namespace Xtea {
             i++;
 
             sum += delta;
-            c->table[i] = sum + key[(sum >> 11) & 3];
+            c->table[i] = sum + key[sum >> 11 & 3];
             i++;
         }
     }
@@ -55,10 +55,10 @@ namespace Xtea {
         U32_BLOCK block = BlockToUint32(src);
 
         for (auto i = 0; i < NROUNDS;) {
-            block.v0 += (((block.v1 << 4) ^ (block.v1 >> 5)) + block.v1) ^ (c->table[i]);
+            block.v0 += (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ c->table[i];
             i++;
 
-            block.v1 += (((block.v0 << 4) ^ (block.v0 >> 5)) + block.v0) ^ (c->table[i]);
+            block.v1 += (block.v0 << 4 ^ block.v0 >> 5) + block.v0 ^ c->table[i];
             i++;
         }
 
@@ -71,10 +71,10 @@ namespace Xtea {
 
         for (auto i = NROUNDS; i > 0;) {
             i--;
-            block.v1 -= (((block.v0 << 4) ^ (block.v0 >> 5)) + block.v0) ^ (c->table[i]);
+            block.v1 -= (block.v0 << 4 ^ block.v0 >> 5) + block.v0 ^ c->table[i];
 
             i--;
-            block.v0 -= (((block.v1 << 4) ^ (block.v1 >> 5)) + block.v1) ^ (c->table[i]);
+            block.v0 -= (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ c->table[i];
         }
 
         Uint32ToBlock(block.v0, block.v1, dst);
@@ -83,12 +83,11 @@ namespace Xtea {
     PBYTE *XteaDivide (byte *data, size_t cbData, size_t *cbOut) {
         HEXANE
 
+        byte **sections = { };
         size_t sectionSize  = 8;
         size_t n = (cbData + sectionSize - 1) / sectionSize;
 
-        byte **sections = { };
         *cbOut = n;
-
         if (!(sections = SCAST(PBYTE*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, n * sizeof(PBYTE))))) {
             return nullptr;
         }
@@ -121,9 +120,9 @@ namespace Xtea {
     VOID XteaCrypt(PBYTE data, SIZE_T cbData, PBYTE key, BOOL encrypt) {
         HEXANE
 
-        CipherTxt *cx       = { };
-        uint64_t ofs        = 0;
+        CipherTxt *text     = { };
         size_t nSections    = { };
+        uint64_t offset     = 0;
 
         byte *buffer    = { };
         byte **sections = { };
@@ -132,11 +131,11 @@ namespace Xtea {
             key = Ctx->Config.Key;
         }
 
-        if (!(cx = SCAST(CipherTxt*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(CipherTxt))))) {
+        if (!(text = SCAST(CipherTxt*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(CipherTxt))))) {
             return;
         }
 
-        InitCipher(cx, key);
+        InitCipher(text, key);
         if (!(sections = XteaDivide(data, cbData, &nSections))) {
             return;
         }
@@ -149,15 +148,15 @@ namespace Xtea {
             }
 
             if (encrypt) {
-                XteaEncrypt(cx, buffer, sections[i]);
+                XteaEncrypt(text, buffer, sections[i]);
             } else {
-                XteaDecrypt(cx, buffer, sections[i]);
+                XteaDecrypt(text, buffer, sections[i]);
             }
 
-            MmPatchData(j, data, (j + ofs), buffer, (j), sizeof(uint64_t));
+            MmPatchData(j, data, (j + offset), buffer, (j), sizeof(uint64_t));
             Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, buffer);
 
-            ofs += sizeof(uint64_t);
+            offset += sizeof(uint64_t);
         }
 
         for (uint64_t i = 0; i < nSections; i++) {
@@ -165,6 +164,6 @@ namespace Xtea {
         }
 
         Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, sections);
-        Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, cx);
+        Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, text);
     }
 }
