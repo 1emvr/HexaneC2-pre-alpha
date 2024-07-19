@@ -95,6 +95,14 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 		jsonCfg.OutputDir = h.Compiler.BuildDirectory
 	}
 
+	if jsonCfg.PreBuildDependencies != nil {
+		for _, dep := range jsonCfg.PreBuildDependencies {
+			if err = h.BuildModule(dep); err != nil {
+				return err
+			}
+		}
+	}
+
 	if jsonCfg.Directories != nil {
 		for _, dir := range jsonCfg.Directories {
 			searchPath := path.Join(jsonCfg.RootDir, dir)
@@ -232,9 +240,9 @@ func (h *HexaneConfig) CompileFile(srcFile, outFile, linker string) error {
 
 	switch path.Ext(srcFile) {
 	case ".cpp":
-		return h.CompileObject(h.Compiler.Mingw+" -c ", []string{srcFile}, flags, []string{RootDirectory}, nil, outFile)
+		return h.CompileObject(h.Compiler.Mingw, []string{srcFile}, []string{"-c"}, []string{RootDirectory}, nil, outFile)
 	case ".asm":
-		return h.CompileObject(h.Compiler.Assembler+" -f win64 ", []string{srcFile}, nil, nil, nil, outFile)
+		return h.CompileObject(h.Compiler.Assembler, []string{srcFile}, []string{"-f win64"}, nil, nil, outFile)
 	default:
 		WrapMessage("DBG", "cannot compile "+path.Ext(srcFile)+" files")
 		return nil

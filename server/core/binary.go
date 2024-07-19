@@ -265,7 +265,7 @@ func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []
 
 	Command += command
 
-	if command != h.Compiler.Ar && command != h.Compiler.Linker {
+	if command != h.Compiler.Ar && command != h.Compiler.Linker && command != h.Compiler.Assembler {
 		if h.Implant.ProfileTypeId == TRANSPORT_HTTP {
 			definitions = append(definitions, map[string][]byte{"TRANSPORT_HTTP": nil})
 

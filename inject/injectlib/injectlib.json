@@ -1,5 +1,5 @@
 {
-  "Type": "executable",
+  "Type": "object",
   "RootDir": "/home/lemur/Github/HexaneC2/inject/injectlib",
   "OutputName": "injectlib",
   "Linker": "injectlib.ld",
@@ -11,5 +11,8 @@
   "Dependencies": [
 	"/home/lemur/Github/HexaneC2/core/corelib/build/corelib.a",
 	"/home/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp.o"
+  ],
+  "PreBuildDependencies": [
+    "/home/lemur/Github/HexaneC2/inject/threadless/threadless.json"
   ]
 }
