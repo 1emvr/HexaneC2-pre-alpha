@@ -18,18 +18,6 @@ var (
 	HashHeader   = CorelibInc + "/names.hpp"
 )
 
-func (h *HexaneConfig) GenerateConfig() error {
-	key := CryptCreateKey(16)
-	patch, err := h.PePatchConfig()
-	if err != nil {
-		return err
-	}
-
-	h.Key = key
-	h.ConfigBytes = patch // Assuming XteaCrypt(patch) if needed.
-	return nil
-}
-
 func (h *HexaneConfig) GenerateLoader() error {
 	injectCfg, err := h.GetInjectConfig()
 	if err != nil {
@@ -170,7 +158,7 @@ func (h *HexaneConfig) RunBuild() error {
 	}
 
 	WrapMessage("DBG", "generating config")
-	if err := h.GenerateConfig(); err != nil {
+	if err := h.GenerateConfigBytes(); err != nil {
 		return err
 	}
 

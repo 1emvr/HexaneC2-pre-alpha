@@ -60,6 +60,18 @@ var ModuleStrings = []string{
 	"iphlpapi",
 }
 
+func (h *HexaneConfig) GenerateConfigBytes() error {
+	key := CryptCreateKey(16)
+	patch, err := h.PePatchConfig()
+	if err != nil {
+		return err
+	}
+
+	h.Key = key
+	h.ConfigBytes = patch // Assuming XteaCrypt(patch) if needed.
+	return nil
+}
+
 func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
 	var err error
 
