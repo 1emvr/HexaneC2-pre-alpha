@@ -7,9 +7,9 @@
 VOID EnumDotNetProcesses(PPARSER Parser) {
 
     PSTREAM Stream  = Stream::CreateStreamWithHeaders(TypeResponse);
+    PROCESSENTRY32 Entries = { };
     HANDLE Snapshot = { };
     HANDLE hProcess = { };
-    PROCESSENTRY32 Entries = { };
 
     DWORD Size = 0;
     BOOL Loaded = FALSE;
