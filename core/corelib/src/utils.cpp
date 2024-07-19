@@ -141,8 +141,8 @@ namespace Random {
         const size_t UNIX_TIME_START = 0x019DB1DED53E8000;
         const size_t TICKS_PER_MILLISECOND = 1000;
 
-        time.u.LowPart = *FAST(static, uint32_t*, 0x7FFE0000 + 0x14);
-        time.u.HighPart = *FAST(static, int32_t*, 0x7FFE0000 + 0x1c);
+        time.u.LowPart = *REINTC(uint32_t*, 0x7FFE0000 + 0x14);
+        time.u.HighPart = *REINTC(int32_t*, 0x7FFE0000 + 0x1c);
 
         return (time.QuadPart - UNIX_TIME_START) / TICKS_PER_MILLISECOND;
     }
@@ -179,7 +179,7 @@ namespace Random {
         HEXANE
 
         auto defaultseed = RandomSeed();
-        auto seed = Ctx->Nt.RtlRandomEx(FAST(static, PULONG, &defaultseed));
+        auto seed = Ctx->Nt.RtlRandomEx(REINTC(PULONG, &defaultseed));
 
         volatile size_t x = INTERVAL(seed);
         const uintptr_t end = Timestamp() + (x * ms);
