@@ -182,7 +182,9 @@ func (h *HexaneConfig) RunBuild() error {
 			return err
 		}
 
-		if err := h.EmbedSectionData(path.Join(h.Compiler.BuildDirectory, "injectlib.a"), ".text$F", h.ConfigBytes); err != nil {
+		WrapMessage("DBG", "embedding inject config")
+
+		if err := h.EmbedSectionData(path.Join(h.Compiler.BuildDirectory, "injectlib.cpp.o"), ".text$F", h.ConfigBytes); err != nil {
 			return err
 		}
 	}
