@@ -110,6 +110,7 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 
 		}
 	} else {
+
 		for _, src := range jsonCfg.Sources {
 			srcFile := path.Join(jsonCfg.RootDir, src)
 
