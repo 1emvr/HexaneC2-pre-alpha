@@ -19,17 +19,6 @@
 #include <string>
 
 #define STATIC static
-typedef long 			NTSTATUS;
-typedef long 			KPRIORITY;
-typedef unsigned long 	LOGICAL;
-typedef unsigned short 	USHORT;
-typedef unsigned short 	WORD;
-typedef unsigned char 	UCHAR;
-typedef unsigned char 	BYTE;
-typedef unsigned char* 	PUCHAR;
-typedef unsigned char* 	PBYTE;
-
-
 #define EXTERN_C extern "C"
 #define PROCESSOR_FEATURE_MAX 64
 #define MAX_WOW64_SHARED_ENTRIES 16
@@ -50,7 +39,7 @@ typedef unsigned char* 	PBYTE;
 	// Extended processor state configuration
 	//
 #if defined(_WINNT_) && defined(_MSC_VER) && _MSC_VER < 1300
-	typedef struct _XSTATE_FEATURE {gg
+	typedef struct _XSTATE_FEATURE {
 		DWORD Offset;
 		DWORD Size;
 	} XSTATE_FEATURE, * PXSTATE_FEATURE;
