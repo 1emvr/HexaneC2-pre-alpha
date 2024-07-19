@@ -1,7 +1,7 @@
 #include <inject/injectlib/injectlib.hpp>
 
 namespace Injection {
-    TXT_SECTION(F) BYTE Config[256] = { };
+    TXT_SECTION(F) BYTE Config[512] = { };
 
     VOID Entrypoint(HMODULE Base) {
         Memory::ContextInit();

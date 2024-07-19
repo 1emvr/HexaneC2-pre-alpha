@@ -140,6 +140,11 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 		return h.CompileObject(h.Compiler.Linker, components, nil, h.Compiler.IncludeDirs, nil, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".exe"))
 	case "object":
 		for _, obj := range components {
+			for _, dep := range jsonCfg.PreBuildDependencies {
+				if obj == dep {
+					continue
+				}
+			}
 			if err = MoveFile(obj, jsonCfg.OutputDir); err != nil {
 				return err
 			}
