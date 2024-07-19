@@ -26,7 +26,6 @@ VOID EnumDotNetProcesses(PPARSER Parser) {
         !Process32First(Snapshot, &Entries)) {
         return;
     }
-
     do {
         if (!(hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, Entries.th32ProcessID))) {
             continue;
