@@ -221,7 +221,7 @@ namespace Memory {
                 x_memset(mbsName, 0, MAX_PATH);
 
                 for (auto j = 0; j < x_strlen(Name); j++) {
-                    mbsName[j] = x_toLowerA(Name[j]);
+                    mbsName[j] = SCAST(CHAR, x_toLowerA(Name[j]));
                 }
 
                 if (Hash - Utils::GetHashFromStringA(mbsName, x_strlen(Name)) == 0) {

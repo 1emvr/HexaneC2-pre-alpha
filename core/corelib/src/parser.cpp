@@ -115,7 +115,7 @@ namespace Parser {
 
         return (Parser->Little)
                ? intBytes
-               : __bswapd(intBytes);
+               : __bswapd(SCAST(ULONG, intBytes));
     }
 
     ULONG64 UnpackDword64 (PPARSER Parser) {
@@ -132,7 +132,7 @@ namespace Parser {
 
         return (Parser->Little)
                ? intBytes
-               : __bswapq(intBytes);
+               : __bswapq(SCAST(ULONG64, intBytes));
     }
 
     BOOL UnpackBool (PPARSER Parser) {
