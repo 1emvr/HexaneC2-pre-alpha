@@ -101,6 +101,23 @@ func SearchFile(rootPath string, fileName string) bool {
 	return false
 }
 
+func MoveFile(srcPath, dstPath string) error {
+	var err error
+
+	fileName := filepath.Base(srcPath)
+	dstFile := filepath.Join(dstPath, fileName)
+
+	if err = os.MkdirAll(dstPath, os.ModePerm); err != nil {
+		return err
+	}
+
+	if err = os.Rename(srcPath, dstFile); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func CreateTemp(tmpPath string) error {
 	var err error
 

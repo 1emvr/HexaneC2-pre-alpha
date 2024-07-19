@@ -9,6 +9,7 @@
     "start.asm"
   ],
   "Dependencies": [
-	"/home/lemur/Github/HexaneC2/core/corelib/build/corelib.a"
+	"/home/lemur/Github/HexaneC2/core/corelib/build/corelib.a",
+	"/home/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp.o"
   ]
 }

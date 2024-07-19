@@ -1,0 +1,10 @@
+{
+  "Type": "object",
+  "RootDir": "/home/lemur/Github/HexaneC2/inject/threadless",
+  "OutputDir": "/home/lemur/Github/HexaneC2/inject/threadless",
+  "OutputName": "execute",
+
+  "Sources": [
+    "OpenFileExecute.cpp"
+  ]
+}

@@ -72,10 +72,11 @@ func (h *HexaneConfig) GenerateLoader() error {
 
 func (h *HexaneConfig) BuildModule(cfgName string) error {
 	var (
-		err     error
-		buffer  []byte
-		files   []string
-		jsonCfg Module
+		err        error
+		buffer     []byte
+		files      []string
+		components []string
+		jsonCfg    Module
 	)
 
 	if buffer, err = os.ReadFile(cfgName); err != nil {
@@ -127,21 +128,27 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 			return err
 		}
 
-		h.Components = append(h.Components, objFile)
+		components = append(components, objFile)
 	}
 
 	if jsonCfg.Dependencies != nil {
-		h.Components = append(h.Components, jsonCfg.Dependencies...)
+		components = append(components, jsonCfg.Dependencies...)
 	}
 
 	switch jsonCfg.Type {
 	case "static":
-		return h.RunCommand(h.Compiler.Ar + " crf " + path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".a") + " " + strings.Join(h.Components, " "))
+		return h.RunCommand(h.Compiler.Ar + " crf " + path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".a") + " " + strings.Join(components, " "))
 	case "dynamic":
-		return h.CompileObject(h.Compiler.Linker+" -shared", h.Components, nil, h.Compiler.IncludeDirs, nil, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".dll"))
+		return h.CompileObject(h.Compiler.Linker+" -shared", components, nil, h.Compiler.IncludeDirs, nil, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".dll"))
 	case "executable":
-		return h.CompileObject(h.Compiler.Linker, h.Components, nil, h.Compiler.IncludeDirs, nil, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".exe"))
-
+		return h.CompileObject(h.Compiler.Linker, components, nil, h.Compiler.IncludeDirs, nil, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".exe"))
+	case "object":
+		for _, obj := range components {
+			if err = MoveFile(obj, jsonCfg.OutputDir); err != nil {
+				return err
+			}
+		}
+		return nil
 	default:
 		return fmt.Errorf("unknown build type: %s", jsonCfg.Type)
 	}
