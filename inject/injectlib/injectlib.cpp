@@ -15,7 +15,7 @@ namespace Injection {
         PARSER Parser       = { };
         LPVOID Shellcode    = { };
         HANDLE Proc         = { };
-        ORSRC Rsrc          = { };
+        PRSRC Rsrc          = { };
 
         ULONG Protect       = 0;
         UINT_PTR pExport    = 0;

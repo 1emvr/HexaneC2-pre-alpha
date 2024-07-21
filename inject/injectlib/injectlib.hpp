@@ -5,11 +5,11 @@
 #include <inject/injectlib/resource.hpp>
 
 struct THREADLESS {
-    ABUFFER Parent = { };
-    ABUFFER Module = { };
-    ABUFFER Export = { };
-    ABUFFER Loader = { };
-    ABUFFER Opcode = { };
+    A_BUFFER Parent = { };
+    A_BUFFER Module = { };
+    A_BUFFER Export = { };
+    A_BUFFER Loader = { };
+    A_BUFFER Opcode = { };
 };
 
 EXTERN_C VOID Execute();
