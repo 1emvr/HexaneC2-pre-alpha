@@ -1,0 +1,17 @@
+{
+  "Type": "static",
+  "Root": "/home/lemur/Github/HexaneC2/core/corelib",
+  "Linker": "/home/lemur/Github/HexaneC2/core/corelib/corelib.ld",
+
+  "Directories": [
+    "src",
+    "include"
+  ],
+
+  "Sources": [
+    "cipher.cpp", "commands.cpp", "cruntime.cpp",
+    "memory.cpp", "network.cpp", "opsec.cpp",
+    "parser.cpp", "process.cpp", "stream.cpp",
+    "utils.cpp"
+  ]
+}

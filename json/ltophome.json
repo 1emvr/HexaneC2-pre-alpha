@@ -28,15 +28,5 @@
     "Proxy":{
       "Enabled": false
     }
-  },
-
-  "Injection": {
-    "Threadless": {
-
-      "ProcName": "flameshot.exe",
-      "ModuleName": "KERNEL32.DLL",
-      "FuncName": "OpenFile",
-      "LdrExecute": "C:\\Users\\lemur\\CLionProjects\\hexane-server\\src\\inject\\threadless\\OpenFileExecute.cpp"
-    }
   }
 }

@@ -182,13 +182,16 @@ func ReadConfig(cfgName string) error {
 		return fmt.Errorf("a hostname must be provided")
 	}
 
-	hexane.Implant.Injection = new(Injection)
-	if jsonCfg.Injection.Threadless != nil {
-		hexane.Implant.Injection.Threadless = new(Threadless)
-		hexane.Implant.Injection.Threadless.ModuleName = jsonCfg.Injection.Threadless.ModuleName + string(byte(0x00))
-		hexane.Implant.Injection.Threadless.ProcName = jsonCfg.Injection.Threadless.ProcName + string(byte(0x00))
-		hexane.Implant.Injection.Threadless.FuncName = jsonCfg.Injection.Threadless.FuncName + string(byte(0x00))
-		hexane.Implant.Injection.Threadless.Execute = jsonCfg.Injection.Threadless.Execute
+	if jsonCfg.Injection != nil {
+		hexane.Implant.Injection = new(Injection)
+
+		if jsonCfg.Injection.Threadless != nil {
+			hexane.Implant.Injection.Threadless = new(Threadless)
+			hexane.Implant.Injection.Threadless.ModuleName = jsonCfg.Injection.Threadless.ModuleName + string(byte(0x00))
+			hexane.Implant.Injection.Threadless.ProcName = jsonCfg.Injection.Threadless.ProcName + string(byte(0x00))
+			hexane.Implant.Injection.Threadless.FuncName = jsonCfg.Injection.Threadless.FuncName + string(byte(0x00))
+			hexane.Implant.Injection.Threadless.Execute = jsonCfg.Injection.Threadless.Execute
+		}
 	}
 
 	if jsonCfg.Network.ProfileType == "http" {

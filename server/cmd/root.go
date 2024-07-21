@@ -27,7 +27,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&core.Debug, "debug", "d", false, "debug mode")
-	rootCmd.PersistentFlags().BoolVarP(&core.ShowCommands, "show_commands", "c", false, "debug command mode")
+	rootCmd.PersistentFlags().BoolVarP(&core.ShowCommands, "show-commands", "c", false, "debug command mode")
 	rootCmd.AddCommand(Implants)
 }
 

@@ -25,8 +25,6 @@ namespace Injection {
         SIZE_T Read, Write  = 0;
         SIZE_T cbShellcode  = 0;
 
-        __debugbreak();
-
         Memory::ResolveApi();
         Parser::CreateParser(&Parser, Config, sizeof(Config));
         x_memset(Config, 0, sizeof(Config));
