@@ -36,6 +36,16 @@ type TableMap struct {
 	Values  [][]string
 }
 
+type Module struct {
+	Type        string
+	RootDir     string
+	OutputDir   string
+	OutputName  string
+	Linker      string
+	Directories []string
+	Sources     []string
+}
+
 type Config struct {
 	Arch       string
 	Debug      bool

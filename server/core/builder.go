@@ -1,9 +1,11 @@
 package core
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -68,30 +70,81 @@ func (h *HexaneConfig) GenerateLoader() error {
 	return nil
 }
 
-func (h *HexaneConfig) GenerateObjects(srcPath, dstPath, linker, outName string, staticLib bool) error {
-	if err := CreateTemp(dstPath); err != nil {
+func (h *HexaneConfig) BuildModule(cfgName string) error {
+	var (
+		err     error
+		buffer  []byte
+		files   []string
+		jsonCfg Module
+	)
+
+	if buffer, err = os.ReadFile(cfgName); err != nil {
 		return err
 	}
 
-	files, err := FindFiles(srcPath)
-	if err != nil {
+	if err = json.Unmarshal(buffer, &jsonCfg); err != nil {
 		return err
+	}
+
+	if jsonCfg.OutputDir != "" {
+		if err := CreateTemp(jsonCfg.OutputDir); err != nil {
+			return err
+		}
+	} else {
+		return fmt.Errorf("cannot find output directory")
+	}
+
+	if jsonCfg.Directories != nil {
+		for _, dir := range jsonCfg.Directories {
+			var src string
+
+			searchPath := path.Join(jsonCfg.RootDir, dir)
+			if !SearchFile(searchPath, src) {
+
+				WrapMessage("ERR", "unable to find "+src+" in directory "+searchPath)
+				continue
+			}
+
+			filename := path.Join(dir, src)
+			files = append(files, filename)
+		}
+	} else {
+		return fmt.Errorf("cannot find source directories")
 	}
 
 	for _, file := range files {
-		srcFile := path.Join(srcPath, file.Name())
-		objFile := path.Join(dstPath, file.Name()+".o")
+		var (
+			srcFile string
+			objFile string
+		)
 
-		if err := h.CompileFile(srcFile, objFile, linker); err != nil {
+		srcFile = file
+		objFile = path.Join(jsonCfg.OutputDir, filepath.Base(file)+".o")
+
+		if err := h.CompileFile(srcFile, objFile, jsonCfg.Linker); err != nil {
 			return err
 		}
 
 		h.Components = append(h.Components, objFile)
 	}
 
-	if staticLib {
-		return h.BuildStaticLibrary(dstPath, outName)
+	libFiles := strings.Join(h.Components, " ")
+	libName := path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+" "+libFiles)
+
+	if jsonCfg.Linker != "" {
+		h.Compiler.Flags = strings.Join(h.Compiler.Flags, " ")
 	}
+
+	if jsonCfg.Type == "static" {
+		return h.RunCommand(h.Compiler.Ar + " crf " + libName)
+
+	} else if jsonCfg.Type == "dyanmic" {
+		return h.RunCommand(h.Compiler.Mingw + " -dynamic " + libFiles + " -o " + libName)
+
+	} else if jsonCfg.Type == "executable" {
+
+	}
+
 	return h.FinalBuild(dstPath, outName)
 }
 
@@ -100,30 +153,35 @@ func (h *HexaneConfig) RunBuild() error {
 	if err := os.MkdirAll(h.Compiler.BuildDirectory, os.ModePerm); err != nil {
 		return err
 	}
+
 	if err := h.GenerateConfig(); err != nil {
 		return err
 	}
+
 	if err := GenerateHashes(HashStrings, HashHeader); err != nil {
 		return err
 	}
 
 	if !SearchFile(Corelib+"/build", "corelib.a") {
-		if err := h.GenerateObjects(CorelibSrc, Corelib+"/build", CorelibLd, "corelib.a", true); err != nil {
+		if err := h.BuildModule("../core/corelib/corelib.json"); err != nil {
 			return err
 		}
 	}
-
-	h.Components = append(h.Components, Corelib+"/build/corelib.a")
 
 	if h.Implant.Injection != nil {
-		if err := h.GenerateObjects(Injectlib, path.Join(h.Compiler.BuildDirectory, "build"), InjectlibLd, "injectlib.a", true); err != nil {
+		if err := h.BuildModule("../inject/injectlib/injectlib.json"); err != nil {
 			return err
 		}
 	}
 
-	if err := h.GenerateObjects(ImplantPath, path.Join(h.Compiler.BuildDirectory, "build"), ImplantLd, "implant.o", true); err != nil {
+	if err := h.BuildModule("../core/implant/implant.json"); err != nil {
 		return err
 	}
+
+	if err := h.EmbedSectionData(path.Join(h.Compiler.BuildDirectory, "/build/implant.o"), ".text$F", h.ConfigBytes); err != nil {
+		return err
+	}
+
 	if err := h.CopySectionData(path.Join(h.Compiler.BuildDirectory, "build/implant.o"), path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
 		return err
 	}
@@ -143,17 +201,18 @@ func (h *HexaneConfig) RunBuild() error {
 	return nil
 }
 
-func (h *HexaneConfig) CompileFile(srcFile, objFile, linker string) error {
+func (h *HexaneConfig) CompileFile(srcFile, outFile, linker string) error {
 	var flags = h.Compiler.Flags
+
 	if linker != "" {
 		flags = append(flags, "-T", linker)
 	}
 
 	switch path.Ext(srcFile) {
 	case ".cpp":
-		return h.CompileObject(h.Compiler.Mingw+" -c ", []string{srcFile}, flags, []string{RootDirectory}, nil, objFile)
+		return h.CompileObject(h.Compiler.Mingw+" -c ", []string{srcFile}, flags, []string{RootDirectory}, nil, outFile)
 	case ".asm":
-		return h.CompileObject(h.Compiler.Assembler+" -f win64 ", []string{srcFile}, nil, nil, nil, objFile)
+		return h.CompileObject(h.Compiler.Assembler+" -f win64 ", []string{srcFile}, nil, nil, nil, outFile)
 	default:
 		return nil
 	}
@@ -170,12 +229,6 @@ func (h *HexaneConfig) CompileExecuteObject(coreCpp, executeObj, coreComponents 
 
 func (h *HexaneConfig) CompileFinalDLL(components []string, output string) error {
 	return h.CompileObject(h.Compiler.Linker+" -T "+LinkerLoader, components, []string{"-shared"}, h.Compiler.IncludeDirs, nil, output)
-}
-
-func (h *HexaneConfig) BuildStaticLibrary(dstPath, outName string) error {
-	libFiles := strings.Join(h.Components, " ")
-	libName := path.Join(dstPath, outName+" "+libFiles)
-	return h.RunCommand(h.Compiler.Ar + " crf " + libName)
 }
 
 func (h *HexaneConfig) FinalBuild(dstPath, outName string) error {
