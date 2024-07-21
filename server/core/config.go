@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 )
@@ -23,27 +24,27 @@ var (
 )
 
 var (
-	ConfigsPath = RootDirectory + "configs"
-	CorePath    = RootDirectory + "core"
-	InjectPath  = RootDirectory + "inject"
-	LogsPath    = RootDirectory + "logs"
-	ModsPath    = RootDirectory + "mods"
-	PayloadPath = RootDirectory + "payload"
-	LoaderPath  = RootDirectory + "loader"
+	ConfigsPath = path.Join(RootDirectory, "configs")
+	CorePath    = path.Join(RootDirectory, "core")
+	InjectPath  = path.Join(RootDirectory, "inject")
+	LogsPath    = path.Join(RootDirectory, "logs")
+	ModsPath    = path.Join(RootDirectory, "mods")
+	PayloadPath = path.Join(RootDirectory, "payload")
+	LoaderPath  = path.Join(RootDirectory, "loader")
 
-	IncludePath = CorePath + "/include"
-	ImplantPath = CorePath + "/implant"
-	ImplantLd   = ImplantPath + "/implant.ld"
+	IncludePath = path.Join(CorePath, "include")
+	ImplantPath = path.Join(CorePath, "implant")
+	ImplantLd   = path.Join(ImplantPath, "implant.ld")
 
-	Corelib    = CorePath + "/corelib"
-	CorelibSrc = Corelib + "/src"
-	CorelibInc = Corelib + "/include"
-	CorelibLd  = Corelib + "/corelib.ld"
+	Corelib    = path.Join(CorePath, "corelib")
+	CorelibSrc = path.Join(Corelib, "src")
+	CorelibInc = path.Join(Corelib, "include")
+	CorelibLd  = path.Join(Corelib, "corelib.ld")
 
-	Injectlib   = InjectPath + "/injectlib"
-	InjectSrc   = Injectlib + "/src"
-	InjectInc   = Injectlib + "/include"
-	InjectlibLd = Injectlib + "/injectlib.ld"
+	Injectlib   = path.Join(InjectPath, "injectlib")
+	InjectSrc   = path.Join(Injectlib, "src")
+	InjectInc   = path.Join(Injectlib, "include")
+	InjectlibLd = path.Join(Injectlib, "injectlib.ld")
 )
 
 var (

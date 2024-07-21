@@ -1,0 +1,14 @@
+{
+  "Type": "executable",
+  "RootDir": "/home/lemur/Github/HexaneC2/core/implant",
+  "OutputName": "implant",
+  "Linker": "implant.ld",
+
+  "Directories": [
+    "implant"
+  ],
+  "Sources": [
+    "implant.cpp",
+    "start.asm"
+  ]
+}
