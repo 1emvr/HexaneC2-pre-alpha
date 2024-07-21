@@ -1,10 +1,10 @@
-global inj_Start
-global inj_InstStart
-global inj_InstEnd
-extern inj_Entrypoint
+global Start
+global InstStart
+global InstEnd
+extern Entrypoint
 
 section .text$A
-    inj_Start:
+    Start:
         push    rsi
         mov     rsi, rsp
         and     rsp, 0xFFFFFFFFFFFFFFF0
@@ -14,21 +14,21 @@ section .text$A
         pop     rsi
         ret
 
-    inj_InstStart:
+    InstStart:
         call    RetStartPtr
         ret
 
-    inj_RetStartPtr:
+    RetStartPtr:
         mov     rax, [rsp]
         sub     rax, 0x1B
         ret
 
 section .text$E
-    inj_InstEnd:
+    InstEnd:
         call    RetEndPtr
         ret
 
-    inj_RetEndPtr:
+    RetEndPtr:
         mov     rax, [rsp]
         add     rax, 0x0A
         ret

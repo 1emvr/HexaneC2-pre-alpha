@@ -113,8 +113,8 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 		for _, src := range jsonCfg.Sources {
 			srcFile := path.Join(jsonCfg.RootDir, src)
 
-			if !SearchFile(jsonCfg.RootDir, srcFile) {
-				WrapMessage("ERR", "unable to find "+src+" in directory "+jsonCfg.RootDir)
+			if !SearchFile(jsonCfg.RootDir, filepath.Base(srcFile)) {
+				WrapMessage("ERR", "unable to find "+srcFile+" in directory "+jsonCfg.RootDir)
 				continue
 			}
 			files = append(files, srcFile)
