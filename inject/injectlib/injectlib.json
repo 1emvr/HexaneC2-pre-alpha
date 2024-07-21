@@ -1,0 +1,12 @@
+{
+  "Type": "executable",
+  "RootDir": "/home/lemur/Github/HexaneC2/inject/injectlib",
+  "OutputName": "injectlib",
+  "Linker": "injectlib.ld",
+
+  "Directories": [],
+  "Sources": [
+    "injectlib.cpp",
+    "start.asm"
+  ]
+}

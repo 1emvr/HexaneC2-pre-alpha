@@ -178,6 +178,10 @@ func (h *HexaneConfig) RunBuild() error {
 		if err := h.BuildModule(path.Join(Injectlib, "injectlib.json")); err != nil {
 			return err
 		}
+
+		if err := h.EmbedSectionData(path.Join(h.Compiler.BuildDirectory, "injectlib.a"), ".text$F", h.ConfigBytes); err != nil {
+			return err
+		}
 	}
 
 	WrapMessage("DBG", "generating implant")
