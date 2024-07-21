@@ -109,12 +109,20 @@ func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, d
 	if readFile, err = os.OpenFile(readPath, FstatRW, 0644); err != nil {
 		return err
 	}
-	defer readFile.Close()
+	defer func() {
+		if err = readFile.Close(); err != nil {
+			WrapMessage("ERR", err.Error())
+		}
+	}()
 
 	if peFile, err = pe.NewFile(readFile); err != nil {
 		return err
 	}
-	defer peFile.Close()
+	defer func() {
+		if err = peFile.Close(); err != nil {
+			WrapMessage("ERR", err.Error())
+		}
+	}()
 
 	for _, s := range peFile.Sections {
 		if s.Name == targetSection {
@@ -161,7 +169,11 @@ func (h *HexaneConfig) CopySectionData(readPath string, outPath string, targetSe
 	if readFile, err = os.Open(readPath); err != nil {
 		return err
 	}
-	defer readFile.Close()
+	defer func() {
+		if err = readFile.Close(); err != nil {
+			WrapMessage("ERR", err.Error())
+		}
+	}()
 
 	if peFile, err = pe.NewFile(readFile); err != nil {
 		return err
@@ -253,7 +265,7 @@ func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []
 
 	Command += command
 
-	if command != h.Compiler.Ar {
+	if command != h.Compiler.Ar && command != h.Compiler.Linker {
 		if h.Implant.ProfileTypeId == TRANSPORT_HTTP {
 			definitions = append(definitions, map[string][]byte{"TRANSPORT_HTTP": nil})
 

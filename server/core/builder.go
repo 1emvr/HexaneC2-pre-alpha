@@ -101,8 +101,8 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 			for _, src := range jsonCfg.Sources {
 				srcFile := path.Join(searchPath, src)
 
-				if !SearchFile(searchPath, srcFile) {
-					WrapMessage("ERR", "unable to find "+src+" in directory "+searchPath)
+				if !SearchFile(searchPath, filepath.Base(srcFile)) {
+					WrapMessage("ERR", "unable to find "+srcFile+" in directory "+searchPath)
 					continue
 				}
 				files = append(files, srcFile)
@@ -130,6 +130,10 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 		h.Components = append(h.Components, objFile)
 	}
 
+	if jsonCfg.Dependencies != nil {
+		h.Components = append(h.Components, jsonCfg.Dependencies...)
+	}
+
 	switch jsonCfg.Type {
 	case "static":
 		return h.RunCommand(h.Compiler.Ar + " crf " + path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".a") + " " + strings.Join(h.Components, " "))
@@ -145,43 +149,55 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 
 func (h *HexaneConfig) RunBuild() error {
 
+	WrapMessage("DBG", "creating payload directory")
 	if err := os.MkdirAll(h.Compiler.BuildDirectory, os.ModePerm); err != nil {
 		return err
 	}
 
+	WrapMessage("DBG", "generating config")
 	if err := h.GenerateConfig(); err != nil {
 		return err
 	}
 
+	WrapMessage("DBG", "generating hashes")
 	if err := GenerateHashes(HashStrings, HashHeader); err != nil {
 		return err
 	}
 
 	if !SearchFile(path.Join(Corelib, "build"), "corelib.a") {
+		WrapMessage("DBG", "generating corelib")
+
 		if err := h.BuildModule(path.Join(Corelib, "corelib.json")); err != nil {
 			return err
 		}
 	}
 
 	if h.Implant.Injection != nil {
+		WrapMessage("DBG", "generating injectlib")
+
 		if err := h.BuildModule(path.Join(Injectlib, "injectlib.json")); err != nil {
 			return err
 		}
 	}
 
+	WrapMessage("DBG", "generating implant")
 	if err := h.BuildModule(path.Join(ImplantPath, "implant.json")); err != nil {
 		return err
 	}
 
-	if err := h.EmbedSectionData(path.Join(h.Compiler.BuildDirectory, "build")+"implant.o", ".text$F", h.ConfigBytes); err != nil {
+	WrapMessage("DBG", "embedding config data")
+	if err := h.EmbedSectionData(path.Join(h.Compiler.BuildDirectory, "build")+"/implant.exe", ".text$F", h.ConfigBytes); err != nil {
 		return err
 	}
 
-	if err := h.CopySectionData(path.Join(h.Compiler.BuildDirectory, "build")+"implant.o", path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
+	WrapMessage("DBG", "extracting shellcode")
+	if err := h.CopySectionData(path.Join(h.Compiler.BuildDirectory, "build")+"/implant.exe", path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
 		return err
 	}
 
 	if h.BuildType == "dll" {
+		WrapMessage("DBG", "generating loader dll")
+
 		if err := h.GenerateLoader(); err != nil {
 			return err
 		}

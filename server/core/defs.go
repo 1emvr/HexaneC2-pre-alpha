@@ -37,13 +37,14 @@ type TableMap struct {
 }
 
 type Module struct {
-	Type        string
-	RootDir     string
-	OutputDir   string
-	OutputName  string
-	Linker      string
-	Directories []string
-	Sources     []string
+	Type         string
+	RootDir      string
+	OutputDir    string
+	OutputName   string
+	Linker       string
+	Directories  []string
+	Sources      []string
+	Dependencies []string
 }
 
 type Config struct {

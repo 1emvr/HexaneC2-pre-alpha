@@ -4,11 +4,12 @@
   "OutputName": "implant",
   "Linker": "implant.ld",
 
-  "Directories": [
-    "implant"
-  ],
+  "Directories": [],
   "Sources": [
     "implant.cpp",
     "start.asm"
+  ],
+  "Dependencies": [
+    "/home/lemur/Github/HexaneC2/core/corelib/build/corelib.a"
   ]
 }
