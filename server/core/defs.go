@@ -55,9 +55,9 @@ type Loader struct {
 	RootDirectory string
 	InjectionType string
 	LinkerScript  string
-	RsrcScript    string
 	MainFile      string
 	Config        interface{}
+	Rsrc          *Rsrc
 }
 
 type Rsrc struct {
@@ -65,7 +65,7 @@ type Rsrc struct {
 	RsrcBinary string
 }
 
-type Builder struct {
+type Module struct {
 	BuildType     int
 	OutputName    string
 	RootDirectory string
@@ -97,7 +97,7 @@ type Config struct {
 type JsonConfig struct {
 	Config  *Config
 	Network *Network
-	Builder *Builder
+	Builder *Module
 }
 
 type Http struct {

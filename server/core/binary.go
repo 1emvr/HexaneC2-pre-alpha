@@ -234,7 +234,7 @@ func (h *HexaneConfig) CompileObject(command, output string, targets, flags, inc
 	return nil
 }
 
-func (h *HexaneConfig) BuildSources(module *Builder) error {
+func (h *HexaneConfig) BuildSources(module *Module) error {
 	var (
 		err error
 		wg  sync.WaitGroup
@@ -304,7 +304,7 @@ func (h *HexaneConfig) BuildSources(module *Builder) error {
 	return nil
 }
 
-func (h *HexaneConfig) ExecuteBuildType(module *Builder) error {
+func (h *HexaneConfig) ExecuteBuildType(module *Module) error {
 	var (
 		err       error
 		flags     []string

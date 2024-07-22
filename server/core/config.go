@@ -193,6 +193,19 @@ func ReadConfig(cfgPath string) error {
 		} else {
 			h.BuildType = BUILD_TYPE_DLL
 
+			if h.UserConfig.Builder.Loader.MainFile == "" {
+				return fmt.Errorf("implant::loader - main dll file must be specified")
+			}
+			if h.UserConfig.Builder.Loader.Rsrc != nil {
+				if h.UserConfig.Builder.Loader.Rsrc.RsrcScript == "" {
+					return fmt.Errorf("implant::loader - resource script must be specified")
+				}
+				if h.UserConfig.Builder.Loader.Rsrc.RsrcBinary == "" {
+					return fmt.Errorf("implant::loader - resource output name must be specified")
+				}
+			} else {
+				return fmt.Errorf("implant::loader - resource info must be specified")
+			}
 			if h.UserConfig.Builder.Loader.InjectionType != "threadless" {
 				return fmt.Errorf("implant::loader - unknown injection method")
 			}
