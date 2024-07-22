@@ -1,7 +1,6 @@
 package core
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -48,8 +47,9 @@ func (h *HexaneConfig) GenerateConfigBytes() error {
 	return nil
 }
 
+/*
 func (tc *TypedConfig) UnmarshalJSON(data []byte) error {
-	// Temporary struct to get the type first
+
 	var temp struct {
 		Type   string          `json:"Type"`
 		Config json.RawMessage `json:"Config"`
@@ -61,7 +61,6 @@ func (tc *TypedConfig) UnmarshalJSON(data []byte) error {
 
 	tc.Type = temp.Type
 
-	// Switch based on the type to unmarshal into the correct struct
 	switch tc.Type {
 	case "http":
 		var httpConfig Http
@@ -78,11 +77,11 @@ func (tc *TypedConfig) UnmarshalJSON(data []byte) error {
 		tc.Config = &smbConfig
 
 	case "threadless":
-		var loaderConfig Loader
-		if err := json.Unmarshal(temp.Config, &loaderConfig); err != nil {
+		var injectConfig Threadless
+		if err := json.Unmarshal(temp.Config, &injectConfig); err != nil {
 			return err
 		}
-		tc.Config = &loaderConfig
+		tc.Config = &injectConfig
 
 	default:
 		return fmt.Errorf("unknown config type: %s", tc.Type)
@@ -90,6 +89,7 @@ func (tc *TypedConfig) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
+*/
 
 func (h *HexaneConfig) CreateConfig() {
 
@@ -156,44 +156,25 @@ func ReadConfig(cfgPath string) error {
 	h.CreateConfig()
 	h.PeerId = GeneratePeerId()
 
-	if h.UserConfig.Config.Hostname == "" {
-		return fmt.Errorf("config:: - a hostname must be provided")
-	}
-
-	switch h.UserConfig.Network.ProfileType {
-	case "http":
-		hNet, ok := h.UserConfig.Network.Config.(*Http)
-		if !ok {
-			return fmt.Errorf("network::http - incorrect type assertion")
+	if h.UserConfig.Config != nil {
+		if h.UserConfig.Config.Hostname == "" {
+			return fmt.Errorf("config:: - a hostname must be provided")
 		}
-		if hNet.Address == "" {
-			return fmt.Errorf("network::http - ip address must be specified")
+		if h.UserConfig.Config.Arch == "" {
+			return fmt.Errorf("config:: - an architecture must be provided")
 		}
-		if hNet.Port > 65535 || hNet.Port < 1 {
-			return fmt.Errorf("network::http - invalid tcp port %d", hNet.Port)
-		}
-		if hNet.Endpoints == nil {
-			return fmt.Errorf("network::http - at least 1 http endpoint must be specified")
-		}
-		if hNet.Useragent == "" {
-			hNet.Useragent = Useragent
-		}
-
-	case "smb":
-		hNet, ok := h.UserConfig.Network.Config.(*Smb)
-		if !ok {
-			return fmt.Errorf("network::smb - incorrect type assertion")
-		}
-		if hNet.EgressPeer == "" {
-			return fmt.Errorf("network::smb - peer must have it's parent node name specified")
-		}
-
-	default:
-		return fmt.Errorf("network:: - unknown network profile type")
+	} else {
+		return fmt.Errorf("config:: - Config { } is required")
 	}
 
 	if h.UserConfig.Builder != nil {
-		if h.UserConfig.Builder.Files.Sources == nil {
+		if h.UserConfig.Builder.RootDirectory == "" {
+			return fmt.Errorf("config:: - a root directory must be provided")
+		}
+		if h.UserConfig.Builder.OutputName == "" {
+			return fmt.Errorf("config:: - an output name must be provided")
+		}
+		if h.UserConfig.Builder.Sources == nil || len(h.UserConfig.Builder.Sources) == 0 {
 			return fmt.Errorf("implant::builder - builder must specify source files")
 		}
 
@@ -203,25 +184,70 @@ func ReadConfig(cfgPath string) error {
 		} else {
 			h.BuildType = BUILD_TYPE_DLL
 
+			if h.UserConfig.Builder.Loader.RootDirectory == "" {
+				return fmt.Errorf("implant::loader - root directory must be specified")
+			}
 			if h.UserConfig.Builder.Loader.MainFile == "" {
 				return fmt.Errorf("implant::loader - main dll file must be specified")
 			}
-			if h.UserConfig.Builder.Loader.Rsrc != nil {
-				if h.UserConfig.Builder.Loader.Rsrc.RsrcScript == "" {
-					return fmt.Errorf("implant::loader - resource script must be specified")
-				}
-				if h.UserConfig.Builder.Loader.Rsrc.RsrcBinary == "" {
-					return fmt.Errorf("implant::loader - resource output name must be specified")
-				}
-			} else {
-				return fmt.Errorf("implant::loader - resource info must be specified")
+			if h.UserConfig.Builder.Loader.RsrcScript == "" {
+				return fmt.Errorf("implant::loader - resource script must be specified")
 			}
-			if h.UserConfig.Builder.Loader.InjectionType != "threadless" {
+			if h.UserConfig.Builder.Loader.RsrcBinary == "" {
+				return fmt.Errorf("implant::loader - resource output name must be specified")
+			}
+
+			switch h.UserConfig.Builder.Loader.Injection.Type {
+			case "thredless":
+				if h.UserConfig.Builder.Loader.Injection.Config.(*Threadless) == nil {
+					return fmt.Errorf("implant::injection - threadless configuration must be specified")
+				}
+			default:
 				return fmt.Errorf("implant::loader - unknown injection method")
 			}
 		}
 	} else {
-		return fmt.Errorf("implant::builder - a build definition needs to be provided")
+		return fmt.Errorf("config:: - Builder { } is required")
+	}
+
+	if h.UserConfig.Network != nil {
+		switch h.UserConfig.Network.Type {
+
+		case "http":
+			h.Implant.ProfileTypeId = TRANSPORT_HTTP
+			httpConfig, ok := h.UserConfig.Network.Config.(*Http)
+
+			if !ok {
+				return fmt.Errorf("network::http - incorrect type assertion")
+			}
+			if httpConfig.Address == "" {
+				return fmt.Errorf("network::http - ip address must be specified")
+			}
+			if httpConfig.Port > 65535 || httpConfig.Port < 1 {
+				return fmt.Errorf("network::http - invalid tcp port %d", httpConfig.Port)
+			}
+			if httpConfig.Endpoints == nil {
+				// todo: add default endpoints from seclists or smth
+				return fmt.Errorf("network::http - at least 1 http endpoint must be specified")
+			}
+			if httpConfig.Useragent == "" {
+				httpConfig.Useragent = Useragent
+			}
+		case "smb":
+			h.Implant.ProfileTypeId = TRANSPORT_PIPE
+			smbConfig, ok := h.UserConfig.Network.Config.(*Smb)
+
+			if !ok {
+				return fmt.Errorf("network::smb - incorrect type assertion")
+			}
+			if smbConfig.EgressPeer == "" {
+				return fmt.Errorf("network::smb - peer must have it's parent node name specified")
+			}
+		default:
+			return fmt.Errorf("network:: - unknown network profile type")
+		}
+	} else {
+		return fmt.Errorf("config:: - Network { } is required")
 	}
 
 	h.UserSession = HexaneSession

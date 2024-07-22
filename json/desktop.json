@@ -39,13 +39,15 @@
 			"RsrcScript": "rsrc.rc",
 			"MainFile": "dllmain.cpp",
 
-			"Type": "threadless",
-			"Config": {
-				"TargetProc": "flameshot.exe",
-				"TargetModule":"kernel32.dll",
-				"TargetFunc":"OpenFile",
-				"LoaderAsm": "/home/lemur/Github/HexaneC2/inject/threadless/loader.asm",
-				"Execute":"/home/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp"
+			"Injection": {
+				"Type": "threadless",
+				"Config": {
+					"TargetProc": "flameshot.exe",
+					"TargetModule":"kernel32.dll",
+					"TargetFunc":"OpenFile",
+					"LoaderAsm": "/home/lemur/Github/HexaneC2/inject/threadless/loader.asm",
+					"Execute":"/home/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp"
+				}
 			}
 		}
 	}

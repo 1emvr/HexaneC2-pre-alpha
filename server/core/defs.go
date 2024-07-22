@@ -49,7 +49,7 @@ type Threadless struct {
 	Execute      string
 }
 
-type Files struct {
+type Sources struct {
 	Sources              []string
 	IncludeDirectories   []string
 	Dependencies         []string
@@ -57,17 +57,12 @@ type Files struct {
 }
 
 type Loader struct {
-	Rsrc          *Rsrc
 	RootDirectory string
-	InjectionType string
 	LinkerScript  string
+	RsrcScript    string
+	RsrcBinary    string
 	MainFile      string
-	Config        interface{}
-}
-
-type Rsrc struct {
-	RsrcScript string
-	RsrcBinary string
+	Injection     *TypedConfig
 }
 
 type Module struct {
@@ -75,19 +70,10 @@ type Module struct {
 	OutputName    string
 	RootDirectory string
 	LinkerScript  string
-	Rsrc          *Rsrc
-	Files         *Files
+	Files         *Sources
 	Loader        *Loader
 	Components    []string
 	Definitions   map[string][]byte
-}
-
-type Network struct {
-	ProfileType string
-	IngressPipe string
-	IngressPeer uint32
-	GroupId     int
-	Config      interface{}
 }
 
 type Config struct {
@@ -99,14 +85,19 @@ type Config struct {
 	Jitter       int
 }
 
-type JsonConfig struct {
-	Config  *Config
-	Network *Network
-	Builder *Module
+type Network struct {
+	IngressPipename string
+	IngressPeer     uint32
+	GroupId         int
+	Config          interface{}
+}
+
+type Smb struct {
+	EgressPipename string
+	EgressPeer     string
 }
 
 type Http struct {
-	GroupId   int
 	Address   string
 	Domain    string
 	Useragent string
@@ -120,19 +111,38 @@ type Http struct {
 	Next      *Http
 }
 
-type Smb struct {
-	EgressPeer      string
-	IngressPeer     string
-	EgressPipename  string
-	IngressPipename string
-}
-
 type Proxy struct {
 	Address  string
 	Port     string
 	Proto    string
 	Username string
 	Password string
+}
+
+type JsonConfig struct {
+	Config *struct {
+		Arch         string
+		Debug        bool
+		Hostname     string
+		WorkingHours string
+		Sleeptime    int
+		Jitter       int
+	}
+	Network *TypedConfig
+	Builder *struct {
+		OutputName    string
+		RootDirectory string
+		LinkerScript  string
+		Sources       []string
+		Loader        *struct {
+			RootDirectory string
+			LinkerScript  string
+			RsrcScript    string
+			RsrcBinary    string
+			MainFile      string
+			Injection     *TypedConfig
+		}
+	}
 }
 
 type Implant struct {

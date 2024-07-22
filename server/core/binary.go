@@ -278,17 +278,16 @@ func (h *HexaneConfig) CompileObject(command, output string, targets, flags, inc
 	return nil
 }
 
-func (h *HexaneConfig) BuildSources() error {
+func (h *HexaneConfig) BuildSources(module *Module) error {
 	var (
 		err error
 		wg  sync.WaitGroup
 	)
 
 	errCh := make(chan error)
-	ctx, cancel := context.WithCancel(context.Background())
 
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	module := h.UserConfig.Builder
 
 	srcPath := filepath.Join(module.RootDirectory, "src")
 
@@ -296,8 +295,9 @@ func (h *HexaneConfig) BuildSources() error {
 		wg.Add(1)
 
 		go func(src string) {
-			var flags []string
 			defer wg.Done()
+
+			var flags []string
 
 			target := filepath.Join(srcPath, src)
 			obj := filepath.Join(BuildPath, src+".o")
@@ -362,24 +362,24 @@ func (h *HexaneConfig) ExecuteBuildType(module *Module) error {
 		return err
 	}
 
-	if module.BuildType != BUILD_TYPE_RESOURCE {
-		module.Definitions = MergeMaps(module.Definitions, map[string][]byte{transport: nil})
-	}
+	module.Definitions = MergeMaps(module.Definitions, map[string][]byte{transport: nil})
+
 	if module.LinkerScript != "" {
 		flags = append(flags, "-T"+module.LinkerScript)
 	}
 
 	switch module.BuildType {
 	case BUILD_TYPE_DLL:
-		WrapMessage("DBG", "building dll loader from json config")
 
 		rs := filepath.Join(BuildPath, "resource.rs")
-		module.Rsrc.RsrcScript = filepath.Join(module.Loader.RootDirectory, module.Rsrc.RsrcScript)
-		module.Rsrc.RsrcBinary = filepath.Join(module.Loader.RootDirectory, module.Rsrc.RsrcBinary)
 
-		if err = h.RunCommand(h.Compiler.Windres + " -O coff " + module.Rsrc.RsrcScript + " -DRSRCDATA=\"" + module.Rsrc.RsrcBinary + "\" -o " + rs); err != nil {
+		module.Loader.RsrcScript = filepath.Join(module.Loader.RootDirectory, module.Loader.RsrcScript)
+		module.Loader.RsrcBinary = filepath.Join(module.Loader.RootDirectory, module.Loader.RsrcBinary)
+
+		if err = h.RunCommand(h.Compiler.Windres + " -O coff " + module.Loader.RsrcScript + " -DRSRCDATA=\"" + module.Loader.RsrcBinary + "\" -o " + rs); err != nil {
 			return err
 		}
+
 		module.Components = append(module.Components, rs)
 
 		flags = append(flags, "-shared")
@@ -388,7 +388,6 @@ func (h *HexaneConfig) ExecuteBuildType(module *Module) error {
 		return h.CompileObject(h.Compiler.Mingw, module.OutputName, module.Components, flags, module.Files.IncludeDirectories, module.Definitions)
 
 	case BUILD_TYPE_SHELLCODE:
-		WrapMessage("DBG", "building object file from json config")
 
 		flags = append(flags, h.Compiler.Flags...)
 		return h.CompileObject(h.Compiler.Mingw, module.OutputName, module.Components, flags, module.Files.IncludeDirectories, module.Definitions)

@@ -10,7 +10,6 @@ func (h *HexaneConfig) AddServer(engine *gin.Engine, profile *Http) {
 	HexaneServers.Group++
 
 	c := &Http{
-		GroupId:   HexaneServers.Group,
 		Endpoints: profile.Endpoints,
 		Address:   profile.Address,
 		Port:      profile.Port,

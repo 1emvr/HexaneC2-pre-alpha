@@ -24,34 +24,67 @@ var (
 	HashStrings = path.Join(ConfigsPath, "strings.txt")
 )
 
+func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) *Module {
+
+	module := &Module{
+		RootDirectory: config.Builder.RootDirectory,
+		OutputName:    config.Builder.OutputName,
+		LinkerScript:  config.Builder.LinkerScript,
+
+		Files: &Sources{
+			Sources:            config.Builder.Sources,
+			IncludeDirectories: []string{RootDirectory},
+		},
+
+		Loader: &Loader{
+			RootDirectory: config.Builder.Loader.RootDirectory,
+			LinkerScript:  config.Builder.Loader.LinkerScript,
+			RsrcScript:    config.Builder.Loader.RsrcScript,
+			RsrcBinary:    config.Builder.Loader.RsrcBinary,
+			MainFile:      config.Builder.Loader.MainFile,
+			Injection:     config.Builder.Loader.Injection,
+		},
+	}
+
+	if config.Builder.Loader == nil {
+		module.BuildType = BUILD_TYPE_SHELLCODE
+	} else {
+		module.BuildType = BUILD_TYPE_DLL
+	}
+
+	return module
+}
+
 func (h *HexaneConfig) BuildModule() error {
-	var err error
+	var (
+		err    error
+		module *Module
+	)
 
-	builder := h.UserConfig.Builder
-	if builder.RootDirectory == "" {
-		return fmt.Errorf("source directory is required")
+	if module = h.GetModuleConfig(h.UserConfig); module == nil {
+		return fmt.Errorf("module config is nil")
 	}
 
-	if builder.OutputName == "" {
-		return fmt.Errorf("output name is required")
+	if module.LinkerScript != "" {
+		module.LinkerScript = filepath.Join(module.RootDirectory, module.LinkerScript)
 	}
 
-	if builder.LinkerScript != "" {
-		builder.LinkerScript = filepath.Join(builder.RootDirectory, builder.LinkerScript)
+	if module.Loader.LinkerScript != "" {
+		module.Loader.LinkerScript = filepath.Join(module.Loader.RootDirectory, module.Loader.LinkerScript)
 	}
 
-	if err = h.BuildSources(); err != nil {
+	if err = h.BuildSources(module); err != nil {
 		return err
 	}
 
-	if builder.Files.Dependencies != nil {
-		builder.Components = append(builder.Components, builder.Files.Dependencies...)
+	if module.Files.Dependencies != nil {
+		module.Components = append(module.Components, module.Files.Dependencies...)
 	}
 
-	if len(builder.Components) > 1 {
-		return h.ExecuteBuildType(builder)
+	if len(module.Components) > 1 {
+		return h.ExecuteBuildType(module)
 	} else {
-		builder.OutputName = builder.Components[0]
+		module.OutputName = module.Components[0]
 		return nil
 	}
 }
