@@ -26,9 +26,11 @@
 		"SourceDirectores": [
 			"/home/lemur/Github/HexaneC2/core/src"
 		],
+
 		"IncludeDirectories": [
 			"/home/lemur/Github/HexaneC2/core/include"
 		],
+
 		"Sources": [
 			"implant.cpp", "cipher.cpp", "commands.cpp", "cruntime.cpp", "inject.cpp",
 			"memory.cpp", "message.cpp", "network.cpp", "opsec.cpp", "parser.cpp",
