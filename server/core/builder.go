@@ -20,80 +20,24 @@ func (h *HexaneConfig) BuildLoader(cfgName string) error {
 	return nil
 }
 
-func (h *HexaneConfig) BuildModule(modCfg *ModuleConfig) error {
+func (h *HexaneConfig) BuildModule(modCfg *Object) error {
 	var (
-		err    error
-		target string
+		err error
 	)
 
-	if modCfg.RootDir == "" {
-		return fmt.Errorf("root directory needs provided")
-	}
-
-	if modCfg.Linker != "" {
-		modCfg.Linker = filepath.Join(modCfg.RootDir, modCfg.Linker)
-	}
-
 	if modCfg.OutputDir != "" {
+		modCfg.OutputDir = h.Compiler.BuildDirectory
+	} else {
 		if err = CreateTemp(modCfg.OutputDir); err != nil {
 			return err
 		}
-	} else {
-		modCfg.OutputDir = h.Compiler.BuildDirectory
 	}
-
-	target = filepath.Join(modCfg.OutputDir, modCfg.OutputName)
-	modCfg.OutputName = filepath.Join(modCfg.OutputDir, modCfg.OutputName)
-
-	if modCfg.PreBuildDependencies != nil {
-		WrapMessage("DBG", "pre-building dependencies for "+target)
-		var linker string
-
-		for _, dep := range modCfg.PreBuildDependencies {
-			WrapMessage("DBG", " - "+dep)
-
-			if err = SearchFile(filepath.Dir(dep), filepath.Base(dep)); err != nil {
-				return err
-			}
-			if filepath.Ext(dep) == ".cpp" {
-				linker = modCfg.Linker
-			}
-			if err = h.CompileFile(dep, modCfg.OutputDir+".o", linker); err != nil {
-				return err
-			}
-		}
-	}
-
-	for _, src := range modCfg.Sources {
-
-		srcPath := filepath.Join(modCfg.RootDir, "src")
-		srcObj := filepath.Join(modCfg.OutputDir, src+".o")
-
-		if err = SearchFile(srcPath, src); err != nil {
-			return fmt.Errorf("could not find %s in %s", src, srcPath)
-		}
-
-		srcFile := filepath.Join(srcPath, src)
-		if err = h.CompileFile(srcFile, srcObj, modCfg.Linker); err != nil {
-			return err
-		}
-
-		modCfg.Components = append(modCfg.Components, srcObj)
-	}
-
-	if modCfg.Dependencies != nil {
-		WrapMessage("DBG", "adding external dependencies to "+target)
-
-		for _, dep := range modCfg.Dependencies {
-			WrapMessage("DBG", " - "+dep)
-
-			if err = SearchFile(filepath.Dir(dep), filepath.Base(dep)); err != nil {
-				return err
-			}
-
-			modCfg.Components = append(modCfg.Components, dep)
-		}
-	}
+	/*
+		sources should be compiled together as one
+		pre-builds should be compiled separately with their own sources and returned an object
+		the object should be added to modCfg.Components
+		all builds can be objects
+	*/
 
 	return h.ExecuteBuild(modCfg)
 }

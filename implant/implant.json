@@ -1,0 +1,16 @@
+{
+  "Type": "executable",
+  "SourceDir": "/home/lemur/Github/HexaneC2/implant/src",
+  "OutputName": "implant",
+
+  "Sources": [
+    "/home/lemur/Github/HexaneC2/implant/src/implant.cpp"
+  ],
+  "PreBuildDependencies": [
+    "/home/lemur/Github/HexaneC2/implant/src/start.asm"
+  ],
+  "Dependencies": [
+    "/home/lemur/Github/HexaneC2/implant/build/start.asm.o",
+    "/home/lemur/Github/HexaneC2/core/build/corelib.a"
+  ]
+}

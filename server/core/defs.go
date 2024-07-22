@@ -36,16 +36,12 @@ type TableMap struct {
 	Values  [][]string
 }
 
-type ModuleConfig struct {
+type Object struct {
 	Type                 string
-	RootDir              string
-	OutputDir            string
-	OutputName           string
 	Linker               string
-	PreLinkSources       bool
-	Directories          []string
+	OutputName           string
+	SourceDirectory      string
 	Sources              []string
-	Includes             []string
 	Dependencies         []string
 	PreBuildDependencies []string
 	Components           []string
@@ -69,14 +65,9 @@ type Threadless struct {
 	Execute    string
 }
 
-type Threadpool struct {
-	None string
-}
-
 type Injection struct {
-	Config     *ModuleConfig
+	Object     *Object
 	Threadless *Threadless
-	Threadpool *Threadpool
 }
 
 type InjectConfig struct {
@@ -140,6 +131,21 @@ type ImplantConfig struct {
 	ProxyBool    bool
 }
 
+type CompilerConfig struct {
+	Debug          bool
+	Arch           string
+	Mingw          string
+	Linker         string
+	Objcopy        string
+	Assembler      string
+	Windres        string
+	Strip          string
+	FileExtension  string
+	BuildDirectory string
+	Definitions    map[string][]byte
+	Flags          []string
+}
+
 type ServerConfig struct {
 	GroupId   int
 	Port      int
@@ -151,28 +157,10 @@ type ServerConfig struct {
 	Next      *ServerConfig
 }
 
-type CompilerConfig struct {
-	Debug          bool
-	Arch           string
-	Mingw          string
-	Linker         string
-	Objcopy        string
-	Assembler      string
-	Windres        string
-	Strip          string
-	Ar             string
-	FileExtension  string
-	BuildDirectory string
-	IncludeDirs    []string // get rid of these
-	ComponentDirs  []string
-	Flags          []string
-	Definitions    map[string][]byte
-}
-
 type HexaneConfig struct {
 	GroupId     int
+	PeerId      uint32
 	Payload     string
-	ImplantUuid string
 	ImplantName string
 	TaskCounter int
 	Mu          sync.Mutex
@@ -181,14 +169,13 @@ type HexaneConfig struct {
 	ConfigBytes []byte
 	Components  []string
 	Shellcode   string
-	Main        string
 	Active      bool
 	BuildType   string
 
-	Implant     *ImplantConfig
-	Proxy       *ProxyConfig
-	Compiler    *CompilerConfig
-	Server      *ServerConfig
+	ImplantCfg  *ImplantConfig
+	ProxyCfg    *ProxyConfig
+	CompilerCfg *CompilerConfig
+	ServerCfg   *ServerConfig
 	UserSession *HexaneSession
 	Next        *HexaneConfig
 }

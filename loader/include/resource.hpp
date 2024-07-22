@@ -1,0 +1,4 @@
+#ifndef _SHELLCODE_BIN_HPP
+#define _SHELLCODE_BIN_HPP
+#define IDR_RSRC_BIN1 1337
+#endif //_SHELLCODE_BIN_HPP

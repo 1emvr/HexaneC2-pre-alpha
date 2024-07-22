@@ -1,0 +1,12 @@
+{
+  "Type": "object",
+  "OutputName": "corelib",
+  "SourceDir": "/home/lemur/Github/HexaneC2/core/corelib/src",
+
+  "Linker": "corelib.ld",
+  "Sources": [
+    "cipher.cpp", "commands.cpp", "cruntime.cpp", "inject.cpp", "memory.cpp",
+    "message.cpp", "network.cpp", "opsec.cpp", "parser.cpp", "process.cpp",
+    "stream.cpp", "utils.cpp"
+  ]
+}

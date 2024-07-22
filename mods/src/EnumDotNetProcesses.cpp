@@ -1,5 +1,5 @@
 #include <core/monolith.hpp>
-#include <core/corelib/include/stream.hpp>
+#include <core/include/stream.hpp>
 #include <metahost.h>
 #include <iostream>
 #pragma comment (lib, "mscoree.lib")
