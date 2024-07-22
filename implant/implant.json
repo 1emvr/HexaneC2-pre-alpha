@@ -1,10 +1,10 @@
 {
-  "Type": "executable",
+  "Type": "object",
   "RootDirectory": "/home/lemur/Github/HexaneC2/implant",
   "IncludeDirectory": "/home/lemur/Github/HexaneC2/implant/include",
-  "OutputName": "implant",
-
+  "OutputName": "implant.exe",
   "Implant": true,
+
   "Linker": "implant.ld",
   "Sources": [
     "implant.cpp"

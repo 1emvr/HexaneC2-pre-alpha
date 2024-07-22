@@ -235,9 +235,6 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 		flags []string
 		wg    sync.WaitGroup
 	)
-	// fuck it. just build the implant with all components at once
-	// at least we can thread them so it'll be a bit quicker...
-	// last chance..
 
 	errCh := make(chan error)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -262,16 +259,15 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 			default:
 				switch filepath.Ext(target) {
 				case ".asm":
+					obj = module.OutputName
 					flags = []string{"-f win64"}
+
 					err = h.CompileObject(h.CompilerCFG.Assembler, obj, []string{target}, flags, nil, nil)
 
 				case ".cpp":
 					flags = []string{"-c"}
 					flags = append(flags, h.CompilerCFG.Flags...)
 
-					if module.LinkSources {
-						flags = append(flags, "-T"+module.Linker)
-					}
 					err = h.CompileObject(h.CompilerCFG.Mingw, obj, []string{target}, flags, module.IncludeDirectories, nil)
 				}
 			}
@@ -324,6 +320,10 @@ func (h *HexaneConfig) ExecuteBuildType(module *Object) error {
 		defs = MergeMaps(defs, map[string][]byte{transport: nil})
 	}
 	switch module.Type {
+	case "resource":
+		WrapMessage("DBG", "building resource file from json config")
+		return h.RunCommand(h.CompilerCFG.Windres + " -O coff " + module.RsrcScript + " -DRSRCDATA=\"" + module.RsrcBinary + "\" -o " + module.OutputName)
+
 	case "static":
 		WrapMessage("DBG", "building static library from json config")
 		return h.RunCommand(h.CompilerCFG.Ar + " rcs " + module.OutputName + " " + strings.Join(module.Components, " "))
@@ -336,21 +336,11 @@ func (h *HexaneConfig) ExecuteBuildType(module *Object) error {
 
 		return h.CompileObject(h.CompilerCFG.Linker, module.OutputName, module.Components, flags, module.IncludeDirectories, defs)
 
-	case "executable":
-		WrapMessage("DBG", "building executable from json config")
-
-		flags = append(flags, h.CompilerCFG.Flags...)
-		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.IncludeDirectories, defs)
-
 	case "object":
 		WrapMessage("DBG", "building object file from json config")
 
 		flags = append(flags, h.CompilerCFG.Flags...)
 		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.IncludeDirectories, defs)
-
-	case "resource":
-		WrapMessage("DBG", "building resource file from json config")
-		return h.RunCommand(h.CompilerCFG.Windres + " -O coff " + module.RsrcScript + " -DRSRCDATA=\"" + module.RsrcBinary + "\" -o " + module.OutputName)
 
 	default:
 		return fmt.Errorf("unknown build type: %s", module.Type)

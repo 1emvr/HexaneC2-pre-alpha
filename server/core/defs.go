@@ -42,7 +42,6 @@ type Object struct {
 	OutputName           string
 	RootDirectory        string
 	Linker               string
-	LinkSources          bool
 	Implant              bool
 	RsrcScript           string
 	RsrcBinary           string
