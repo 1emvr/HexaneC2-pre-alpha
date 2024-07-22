@@ -337,7 +337,7 @@ func (h *HexaneConfig) ExecuteBuild(module *Object) error {
 		WrapMessage("DBG", "building static library from json config")
 
 		module.OutputName += ".a"
-		return h.CompileObject(h.CompilerCFG.Ar+" rcs ", module.OutputName, module.Components, nil, nil, nil)
+		return h.RunCommand(h.CompilerCFG.Ar + " rcs " + module.OutputName + " " + strings.Join(module.Components, " "))
 
 	case "dynamic":
 		WrapMessage("DBG", "building dynamic library from json config")
