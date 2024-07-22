@@ -18,10 +18,6 @@ var (
 	HashStrings = path.Join(ConfigsPath, "strings.txt")
 )
 
-func (h *HexaneConfig) BuildLoader(cfgName string) error {
-	return nil
-}
-
 func (h *HexaneConfig) BuildModule(modCfg *Object) error {
 	var (
 		err error
@@ -104,7 +100,7 @@ func (h *HexaneConfig) RunBuild() error {
 		}
 
 		WrapMessage("DBG", "generating loader dll")
-		if err = h.BuildLoader(path.Join(LoaderPath, "loader.json")); err != nil {
+		if err = h.BuildModule(path.Join(LoaderPath, "loader.json")); err != nil {
 			return err
 		}
 	}
