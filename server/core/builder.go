@@ -149,6 +149,7 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 		var flags []string
 		WrapMessage("DBG", "building object file from config json: "+cfgName)
 
+		flags = append(flags, " -c ")
 		if jsonCfg.Linker != "" {
 			flags = append(flags, " -T "+path.Join(jsonCfg.RootDir, jsonCfg.Linker))
 		}
@@ -251,19 +252,6 @@ func (h *HexaneConfig) CompileFile(srcFile, outFile, includes, linker string) er
 func (h *HexaneConfig) RunWindres(rsrcObj, rsrcData string) error {
 	cmd := fmt.Sprintf("%s -O coff %s -DRSRCDATA=\"%s\" -o %s", h.Compiler.Windres, RsrcScript, rsrcData, rsrcObj)
 	return h.RunCommand(cmd)
-}
-
-func (h *HexaneConfig) CompileExecuteObject(coreCpp, executeObj, coreComponents string) error {
-	return h.CompileObject(h.Compiler.Mingw+" -c ", []string{coreCpp, executeObj}, nil, h.Compiler.IncludeDirs, nil, coreComponents)
-}
-
-func (h *HexaneConfig) CompileFinalDLL(components []string, output string) error {
-	return h.CompileObject(h.Compiler.Linker+" -T "+LinkerLoader, components, []string{"-shared"}, h.Compiler.IncludeDirs, nil, output)
-}
-
-func (h *HexaneConfig) FinalBuild(dstPath, outName string) error {
-	outFile := path.Join(dstPath, outName)
-	return h.CompileObject(h.Compiler.Mingw+" -c ", h.Components, h.Compiler.Flags, []string{RootDirectory}, nil, outFile)
 }
 
 func (h *HexaneConfig) StripSymbols(output string) error {
