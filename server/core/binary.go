@@ -95,7 +95,7 @@ func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, d
 		err      error
 	)
 
-	if readFile, err = os.OpenFile(readPath, FstatRW, 0644); err != nil {
+	if readFile, err = os.OpenFile(readPath, FSTAT_RW, 0644); err != nil {
 		return err
 	}
 	defer func() {
@@ -199,7 +199,7 @@ func (h *HexaneConfig) CompileObject(command, output string, targets, flags, inc
 		definitions = make(map[string][]byte)
 	}
 
-	if h.CompilerCFG.Debug {
+	if h.Compiler.Debug {
 		definitions["DEBUG"] = nil
 	}
 
@@ -298,36 +298,32 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 	return nil
 }
 
-func (h *HexaneConfig) ExecuteBuildType(module *Object) error {
+func (h *HexaneConfig) ExecuteBuildType(module *Builder) error {
 	var (
 		err       error
 		flags     []string
 		transport string
 	)
 
-	module.OutputName = filepath.Join(BuildPath, module.OutputName)
-	if module.Linker != "" {
-		flags = append(flags, "-T"+module.Linker)
+	h.Implant.ImplantName = filepath.Join(BuildPath, h.Implant.ImplantName)
+
+	if module.LinkerScript != "" {
+		flags = append(flags, "-T"+module.LinkerScript)
+	}
+	if transport, err = h.GetTransportType(); err != nil {
+		return err
 	}
 
-	defs := h.CompilerCFG.Definitions
-	if module.Implant {
-		if transport, err = h.GetTransportType(); err != nil {
-			return err
-		}
+	h.Compiler.Definitions = MergeMaps(h.Compiler.Definitions, map[string][]byte{transport: nil})
 
-		defs = MergeMaps(defs, map[string][]byte{transport: nil})
-	}
-	switch module.Type {
-	case "resource":
+	switch h.BuildType {
+	case BUILD_TYPE_RESOURCE:
+
 		WrapMessage("DBG", "building resource file from json config")
-		return h.RunCommand(h.CompilerCFG.Windres + " -O coff " + module.RsrcScript + " -DRSRCDATA=\"" + module.RsrcBinary + "\" -o " + module.OutputName)
+		return h.RunCommand(h.Compiler.Windres + " -O coff " + module.RsrcScript + " -DRSRCDATA=\"" + module.RsrcBinary + "\" -o " + module.OutputName)
 
-	case "static":
-		WrapMessage("DBG", "building static library from json config")
-		return h.RunCommand(h.CompilerCFG.Ar + " rcs " + module.OutputName + " " + strings.Join(module.Components, " "))
+	case BUILD_TYPE_DLL:
 
-	case "dynamic":
 		WrapMessage("DBG", "building dynamic library from json config")
 
 		flags = append(flags, "-shared")
@@ -335,7 +331,8 @@ func (h *HexaneConfig) ExecuteBuildType(module *Object) error {
 
 		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.IncludeDirectories, defs)
 
-	case "object":
+	case BUILD_TYPE_SHELLCODE:
+
 		WrapMessage("DBG", "building object file from json config")
 
 		flags = append(flags, h.CompilerCFG.Flags...)

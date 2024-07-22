@@ -10,17 +10,15 @@ var (
 	Debug        = false
 	ShowCommands = false
 
-	Cb       = make(chan Callback)
-	Payloads = new(HexanePayloads)
-	Servers  = new(ServerList)
-	Session  = &HexaneSession{
+	Cb             = make(chan Callback)
+	HexanePayloads = new(Payloads)
+	HexaneServers  = new(ServerList)
+	HexaneSession  = &Session{
 		Username: "lemur",
 		Admin:    true,
 	}
-)
 
-var (
-	FstatRW   = os.O_RDWR | os.O_APPEND
+	FSTAT_RW  = os.O_RDWR | os.O_APPEND
 	Useragent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0"
 )
 
@@ -140,10 +138,8 @@ func ReadConfig(cfgPath string) error {
 		h   *HexaneConfig
 	)
 
-	WrapMessage("INF", fmt.Sprintf("loading %s", cfgPath))
-
 	h = new(HexaneConfig)
-	h.Network = new(Network)
+	WrapMessage("INF", fmt.Sprintf("loading %s", cfgPath))
 
 	if j = ReadJson(cfgPath); j == nil {
 		return fmt.Errorf("%s not found", cfgPath)
@@ -153,6 +149,7 @@ func ReadConfig(cfgPath string) error {
 	h.PeerId = GeneratePeerId()
 	h.Implant.Sleeptime = uint32(j.Config.Sleeptime)
 	h.Implant.Jitter = uint32(j.Config.Jitter)
+
 	if h.Implant.WorkingHours, err = ParseWorkingHours(j.Config.WorkingHours); err != nil {
 		return err
 	}
@@ -160,6 +157,7 @@ func ReadConfig(cfgPath string) error {
 		return fmt.Errorf("config:: - a hostname must be provided")
 	}
 
+	h.Network = new(Network)
 	switch j.Network.ProfileType {
 	case "http":
 		// Handle, SigTerm, Success and Next are added later
@@ -221,6 +219,7 @@ func ReadConfig(cfgPath string) error {
 	compiler := h.Compiler
 
 	if j.Builder != nil {
+
 		implant.ImplantName = j.Builder.OutputName
 		compiler.RootDirectory = j.Builder.RootDirectory
 		compiler.LinkerScript = j.Builder.LinkerScript
@@ -231,10 +230,17 @@ func ReadConfig(cfgPath string) error {
 			return fmt.Errorf("implant::builder - builder must specify source files")
 		}
 
-		if implant.Loader != nil {
+		if j.Builder.Loader == nil {
+			h.BuildType = BUILD_TYPE_SHELLCODE
+
+		} else {
+			h.BuildType = BUILD_TYPE_DLL
+
+			implant.Loader = new(Loader)
 			implant.Loader.InjectionType = j.Builder.Loader.InjectionType
 			implant.Loader.LinkerScript = j.Builder.Loader.LinkerScript
 			implant.Loader.MainFile = j.Builder.Loader.MainFile
+			implant.Loader.RsrcScript = j.Builder.Loader.RsrcScript
 
 			switch implant.Loader.InjectionType {
 			case "threadless":
@@ -256,7 +262,7 @@ func ReadConfig(cfgPath string) error {
 		return fmt.Errorf("implant::builder - a build definition needs to be provided")
 	}
 
-	h.UserSession = Session
+	h.UserSession = HexaneSession
 	return h.RunBuild()
 }
 
@@ -283,15 +289,11 @@ func (h *HexaneConfig) PePatchConfig() ([]byte, error) {
 			stream.PackString(hNet.Domain)
 			stream.PackDword(uint32(hNet.Port))
 
-			if len(hNet.Endpoints) == 0 {
-				stream.PackDword(1)
-				stream.PackWString("/")
-
-			} else {
-				stream.PackDword(uint32(len(hNet.Endpoints)))
-				for _, uri := range hNet.Endpoints {
-					stream.PackWString(uri)
-				}
+			// endpoints always need specified
+			// todo: add random endpoints when not specified. use seclists or smth.
+			stream.PackDword(uint32(len(hNet.Endpoints)))
+			for _, uri := range hNet.Endpoints {
+				stream.PackWString(uri)
 			}
 
 			if hNet.Proxy != nil {

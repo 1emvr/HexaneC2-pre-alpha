@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+const (
+	BUILD_TYPE_SHELLCODE = 0
+	BUILD_TYPE_RESOURCE  = 1
+	BUILD_TYPE_DLL       = 2
+)
+
 var (
 	BuildPath   = path.Join(RootDirectory, "build")
 	ConfigsPath = path.Join(RootDirectory, "configs")

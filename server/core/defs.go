@@ -55,6 +55,7 @@ type Objects struct {
 type Loader struct {
 	InjectionType string
 	LinkerScript  string
+	RsrcScript    string
 	MainFile      string
 	Config        interface{}
 }
@@ -150,11 +151,13 @@ type Compiler struct {
 	LinkerScript   string
 	Flags          []string
 	Sources        []string
+	Definitions    map[string][]byte
 }
 
 type HexaneConfig struct {
 	GroupId       int
 	CurrentTaskId int
+	BuildType     int
 	PeerId        uint32
 	Mu            sync.Mutex
 
@@ -167,7 +170,7 @@ type HexaneConfig struct {
 	Compiler    *Compiler
 	Network     *Network
 	Proxy       *Proxy
-	UserSession *HexaneSession
+	UserSession *Session
 	Next        *HexaneConfig
 }
 
@@ -182,7 +185,7 @@ type Parser struct {
 	BigEndian bool
 }
 
-type HexanePayloads struct {
+type Payloads struct {
 	Head  *HexaneConfig
 	Group int
 }
@@ -192,7 +195,7 @@ type ServerList struct {
 	Group int
 }
 
-type HexaneSession struct {
+type Session struct {
 	Username string
 	Admin    bool
 }
