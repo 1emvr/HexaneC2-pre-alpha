@@ -17,12 +17,14 @@
 			"Endpoints": [
 				"/endpoint0","/endpoint1", "/endpoint2", "/endpoint3", "/endpoint4",
 				"/endpoint5", "/endpoint6", "/endpoint7", "/endpoint8", "/endpoint9"
-			]
+			],
+
+			"Headers": []
 		}
 	},
 
 	"Builder": {
-		"ObjectName": "test_implant",
+		"ImplantName": "test_implant",
 		"RootDirectory": "/home/lemur/Github/HexaneC2/core",
 		"Linker": "implant.ld",
 
@@ -33,7 +35,7 @@
 		],
 
 		"Loader": {
-			"Type": "threadless",
+			"InjectionType": "threadless",
 			"Source": "/home/lemur/Github/HexaneC2/loader/dllmain.cpp",
 			"Linker": "/home/lemur/Github/HexaneC2/loader/loader.ld",
 

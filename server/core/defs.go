@@ -44,59 +44,33 @@ type Threadless struct {
 	Execute      string
 }
 
-type Loader struct {
-	Type   string
-	Source string
-	Linker string
-	Config interface{}
-}
-
-type Builder struct {
-	ObjectName         string
-	RootDirectory      string
-	Linker             string
-	SourceDirectories  []string
-	IncludeDirectories []string
-	Sources            []string
-	Loader             *Loader
-}
-
-type Json struct {
-	Config  *JsonConfig
-	Network *JsonNetwork
-	Builder *Builder
-}
-
 type JsonConfig struct {
-	Arch       string
-	Debug      bool
-	Hostname   string
-	Sleeptime  int
-	Jitter     int
-	EgressPeer string
-}
+	Config struct {
+		Arch      string
+		Debug     bool
+		Hostname  string
+		Sleeptime int
+		Jitter    int
+	}
 
-type JsonNetwork struct {
-	ProfileType string
-	Config      interface{}
-}
+	Network struct {
+		ProfileType string
+		Config      interface{}
+	}
 
-type JsonObject struct {
-	Type                 string
-	ObjectName           string
-	RootDirectory        string
-	Linker               string
-	Implant              bool
-	RsrcScript           string
-	RsrcBinary           string
-	SourceDirectories    []string
-	IncludeDirectories   []string
-	Sources              []string
-	Flags                []string
-	PreBuildDependencies []string
-	Dependencies         []string
-	Components           []string
-	Definitions          map[string][]byte
+	Builder struct {
+		ImplantName   string
+		RootDirectory string
+		Linker        string
+		Sources       []string
+
+		Loader struct {
+			InjectionType string
+			Source        string
+			Linker        string
+			Config        interface{}
+		}
+	}
 }
 
 type HttpConfig struct {
@@ -109,8 +83,10 @@ type HttpConfig struct {
 }
 
 type SmbConfig struct {
-	EgressPeer     string
-	EgressPipename string
+	EgressPeer      uint32
+	IngressPeer     uint32
+	EgressPipename  string
+	IngressPipename string
 }
 
 type ProxyConfig struct {
@@ -122,11 +98,11 @@ type ProxyConfig struct {
 }
 
 type ImplantConfig struct {
-	Profile       any
-	ProfileTypeId uint32
-	CurrentTaskId uint32
-	IngressPipe   string
-	LoadedModules []string
+	NetworkProfile any
+	ProfileTypeId  uint32
+	CurrentTaskId  uint32
+	IngressPipe    string
+	LoadedModules  []string
 
 	Hostname     string
 	Domain       string
@@ -181,16 +157,6 @@ type HexaneConfig struct {
 	Next        *HexaneConfig
 }
 
-type HexanePayloads struct {
-	Head  *HexaneConfig
-	Group int
-}
-
-type ServerList struct {
-	Head  *ServerConfig
-	Group int
-}
-
 type Parser struct {
 	PeerId    uint32
 	TaskId    uint32
@@ -200,6 +166,16 @@ type Parser struct {
 	Method    string
 	Address   string
 	BigEndian bool
+}
+
+type HexanePayloads struct {
+	Head  *HexaneConfig
+	Group int
+}
+
+type ServerList struct {
+	Head  *ServerConfig
+	Group int
 }
 
 type HexaneSession struct {
