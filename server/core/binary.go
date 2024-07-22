@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 )
 
 func (h *HexaneConfig) GenerateIncludes(incs []string) string {
@@ -47,9 +48,8 @@ func (h *HexaneConfig) GenerateDefinitions(defs map[string][]byte) string {
 
 func GenerateHashes(stringsFile string, outFile string) error {
 	var (
-		err      error
-		hashFile *os.File
-		strFile  *os.File
+		err     error
+		strFile *os.File
 	)
 
 	if strFile, err = os.Open(stringsFile); err != nil {
@@ -62,35 +62,21 @@ func GenerateHashes(stringsFile string, outFile string) error {
 		}
 	}()
 
-	if hashFile, err = os.OpenFile(outFile, FstatWrite, 0644); err != nil {
-		return err
-	}
-
-	defer func() {
-		if err = hashFile.Close(); err != nil {
-			WrapMessage("ERR", err.Error())
-		}
-	}()
-
+	hashes := make([]string, 0)
 	scanner := bufio.NewScanner(strFile)
-	writer := bufio.NewWriter(hashFile)
-
-	defer func() {
-		if err = writer.Flush(); err != nil {
-			WrapMessage("ERR", err.Error())
-		}
-	}()
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		hash := GetHashFromString(line)
-
-		if _, err = writer.WriteString(hash + "\n"); err != nil {
-			return err
-		}
+		hashes = append(hashes, hash)
 	}
 
 	if err = scanner.Err(); err != nil {
+		return err
+	}
+
+	text := strings.Join(hashes, "\n")
+	if err = WriteFile(outFile, []byte(text)); err != nil {
 		return err
 	}
 

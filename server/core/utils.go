@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"math/bits"
@@ -55,12 +56,21 @@ func WriteFile(name string, data []byte) error {
 		outFile *os.File
 	)
 
-	if outFile, err = os.OpenFile(name, FstatCreate, 0644); err != nil {
+	if outFile, err = os.OpenFile(name, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644); err != nil {
 		return err
 	}
-	defer outFile.Close()
+	defer func() {
+		if err = outFile.Close(); err != nil {
+			WrapMessage("ERR", fmt.Sprintf("Error closing output file: %v", err))
+		}
+	}()
 
-	if _, err = outFile.Write(data); err != nil {
+	writer := bufio.NewWriter(outFile)
+	if _, err = writer.WriteString(string(data)); err != nil {
+		return err
+	}
+
+	if err = writer.Flush(); err != nil {
 		return err
 	}
 

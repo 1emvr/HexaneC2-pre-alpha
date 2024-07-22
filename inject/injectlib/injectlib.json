@@ -5,8 +5,7 @@
   "Linker": "injectlib.ld",
 
   "Sources": [
-    "injectlib.cpp",
-    "start.asm"
+    "injectlib.cpp"
   ],
   "Dependencies": [
 	"/home/lemur/Github/HexaneC2/core/corelib/build/corelib.a",

@@ -10,7 +10,7 @@ import (
 
 const numRounds = 64
 const BlockSize = 8
-const delta 	= 0x9E3779B9
+const delta = 0x9E3779B9
 
 type KeySizeError int
 type Cipher struct {
@@ -165,7 +165,7 @@ func (k KeySizeError) Error() string {
 
 func initCipher(c *Cipher, key []byte) {
 	var (
-		k 	[4]uint32
+		k   [4]uint32
 		sum uint32
 	)
 
@@ -173,7 +173,6 @@ func initCipher(c *Cipher, key []byte) {
 		j := i << 2 // Multiply by 4
 		k[i] = uint32(key[j+0])<<24 | uint32(key[j+1])<<16 | uint32(key[j+2])<<8 | uint32(key[j+3])
 	}
-
 
 	for i := 0; i < numRounds; {
 		c.table[i] = sum + k[sum&3]

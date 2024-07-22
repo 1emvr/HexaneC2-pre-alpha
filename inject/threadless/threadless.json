@@ -5,6 +5,7 @@
   "OutputName": "execute",
 
   "Sources": [
-    "OpenFileExecute.cpp"
+    "OpenFileExecute.cpp",
+    "threadless.asm"
   ]
 }

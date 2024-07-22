@@ -133,23 +133,33 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 
 	switch jsonCfg.Type {
 	case "static":
+		WrapMessage("DBG", "building static library")
 		return h.RunCommand(h.Compiler.Ar + " crf " + path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".a") + " " + strings.Join(components, " "))
 
 	case "dynamic":
+		WrapMessage("DBG", "building dynamic library")
 		return h.CompileObject(h.Compiler.Linker+" -shared", components, nil, h.Compiler.IncludeDirs, nil, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".dll"))
 
 	case "executable":
+		WrapMessage("DBG", "building executable")
 		return h.CompileObject(h.Compiler.Linker, components, nil, h.Compiler.IncludeDirs, nil, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".exe"))
 
 	case "object":
+		WrapMessage("DBG", "building object file")
 		for _, obj := range components {
+			dependency := false
+
 			for _, dep := range jsonCfg.Dependencies {
-				if obj == dep {
-					continue
+				if filepath.Base(obj) == filepath.Base(dep) {
+					dependency = true
+					break
 				}
 			}
-			if err = MoveFile(obj, jsonCfg.OutputDir); err != nil {
-				return err
+
+			if !dependency {
+				if err = MoveFile(obj, jsonCfg.OutputDir); err != nil {
+					return err
+				}
 			}
 		}
 		return nil
