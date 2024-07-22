@@ -9,6 +9,7 @@ import (
 )
 
 var (
+	BuildPath   = path.Join(RootDirectory, "build")
 	ConfigsPath = path.Join(RootDirectory, "configs")
 	CorePath    = path.Join(RootDirectory, "core")
 	LogsPath    = path.Join(RootDirectory, "logs")
@@ -21,14 +22,45 @@ var (
 func (h *HexaneConfig) BuildModule(modCfg *Object) error {
 	var (
 		err error
+		dep *Object
 	)
 
-	/*
-		sources should be compiled together as one
-		pre-builds should be compiled separately with their own sources and returned an object
-		the object should be added to modCfg.Components
-		all builds can be objects
-	*/
+	if modCfg.SourceDirectory == "" {
+		return fmt.Errorf("source directory is required")
+	}
+
+	if modCfg.OutputName == "" {
+		return fmt.Errorf("output name is required")
+	}
+
+	modCfg.OutputName = filepath.Join(BuildPath, modCfg.OutputName)
+
+	if modCfg.PreBuildDependencies != nil {
+		for _, pre := range modCfg.PreBuildDependencies {
+
+			if dep, err = GetModuleConfig(pre); err != nil {
+				return err
+			}
+			if dep, err = h.CompileFiles(dep); err != nil {
+				return err
+			}
+
+			modCfg.Components = append(modCfg.Components, dep.OutputName)
+			WrapMessage("DBG", "\t-"+dep.OutputName)
+		}
+	}
+
+	WrapMessage("DBG", "adding components for "+modCfg.OutputName)
+	for _, src := range modCfg.Sources {
+		cmp := filepath.Join(modCfg.SourceDirectory, src)
+
+		modCfg.Components = append(modCfg.Components, cmp)
+		WrapMessage("DBG", "\t-"+cmp)
+	}
+
+	if modCfg.Dependencies != nil {
+		modCfg.Components = append(modCfg.Components, modCfg.Dependencies...)
+	}
 
 	return h.ExecuteBuild(modCfg)
 }

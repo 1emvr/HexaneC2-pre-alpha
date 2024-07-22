@@ -41,6 +41,7 @@ type Object struct {
 	Linker               string
 	OutputName           string
 	SourceDirectory      string
+	RsrcScript           string
 	Sources              []string
 	Includes             []string
 	Dependencies         []string

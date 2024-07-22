@@ -263,27 +263,41 @@ func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []
 	return nil
 }
 
-func (h *HexaneConfig) CompileFile(srcFile string, outFile string, linker string) error {
+func (h *HexaneConfig) CompileFiles(compile *Object) error {
 	var (
+		err      error
 		flags    []string
 		includes []string
 	)
 
-	includes = append(includes, "../")
-	flags = append(h.CompilerCFG.Flags, "-c")
+	compile.OutputName = filepath.Join(BuildPath, compile.OutputName)
 
-	if linker != "" {
-		flags = append(flags, "-T", linker)
+	for _, src := range compile.Sources {
+		if err = SearchFile(compile.SourceDirectory, src); err != nil {
+			return err
+		}
+
+		srcFile := filepath.Join(compile.SourceDirectory, src)
+		if compile.Linker != "" {
+			flags = append(flags, "-T", compile.Linker)
+		}
+
+		switch path.Ext(filepath.Base(srcFile)) {
+		case ".cpp":
+			if err = h.CompileObject(h.CompilerCFG.Mingw, compile.Components, flags, includes, nil, outFile); err != nil {
+				return err
+			}
+		case ".asm":
+			flags = append(flags, "-f win64")
+			if err = h.CompileObject(h.CompilerCFG.Assembler, compile.Components, flags, nil, nil, outFile); err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("cannot compile ")
+		}
 	}
 
-	switch path.Ext(filepath.Base(srcFile)) {
-	case ".cpp":
-		return h.CompileObject(h.CompilerCFG.Mingw, []string{srcFile}, flags, includes, nil, outFile)
-	case ".asm":
-		return h.CompileObject(h.CompilerCFG.Assembler, []string{srcFile}, []string{"-f win64"}, nil, nil, outFile)
-	default:
-		return fmt.Errorf("cannot compile " + path.Ext(srcFile) + " files")
-	}
+	return nil
 }
 
 func (h *HexaneConfig) ExecuteBuild(module *Object) error {
@@ -309,14 +323,14 @@ func (h *HexaneConfig) ExecuteBuild(module *Object) error {
 		flags = append(flags, h.CompilerCFG.Flags...)
 		return h.CompileObject(h.CompilerCFG.Mingw, module.Components, flags, module.Includes, h.CompilerCFG.Definitions, module.OutputName+".o")
 
+	case "resource":
+		module.OutputName = filepath.Join(BuildPath, module.OutputName)
+		cmd := fmt.Sprintf("%s -O coff %s -DRSRCDATA=\"%s\" -o %s", h.CompilerCFG.Windres, module.RsrcScript, rsrcData, module.OutputName)
+		return h.RunCommand(cmd)
+
 	default:
 		return fmt.Errorf("unknown build type: %s", module.Type)
 	}
-}
-
-func (h *HexaneConfig) RunWindres(rsrcObj, rsrcData string) error {
-	cmd := fmt.Sprintf("%s -O coff %s -DRSRCDATA=\"%s\" -o %s", h.CompilerCFG.Windres, RsrcScript, rsrcData, rsrcObj)
-	return h.RunCommand(cmd)
 }
 
 func (h *HexaneConfig) StripSymbols(output string) error {
