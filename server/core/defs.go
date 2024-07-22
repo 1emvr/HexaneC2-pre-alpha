@@ -38,15 +38,16 @@ type TableMap struct {
 
 type Object struct {
 	Type                 string
-	Linker               string
+	ConfigName           string
 	OutputName           string
-	SourceDirectory      string
+	RootDirectory        string
+	Linker               string
 	RsrcScript           string
 	RsrcBinary           string
+	IncludeDirectories   []string
 	Sources              []string
-	Includes             []string
-	Dependencies         []string
 	PreBuildDependencies []string
+	Dependencies         []string
 	Components           []string
 }
 

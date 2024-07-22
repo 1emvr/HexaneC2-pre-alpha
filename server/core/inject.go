@@ -25,12 +25,12 @@ func (h *HexaneConfig) GetInjectConfig() (*InjectConfig, error) {
 		InjectCfg.ExecuteObj = Execute + ".o"
 
 		WrapMessage("DBG", fmt.Sprintf("generating execute object %s", Execute))
-		if err = h.CompileObject(h.CompilerCFG.Mingw+" -c ", []string{Execute}, h.CompilerCFG.Flags, h.CompilerCFG.Includes, nil, InjectCfg.ExecuteObj); err != nil {
+		if err = h.CompileObject(h.CompilerCFG.Mingw+" -c ", InjectCfg.ExecuteObj, []string{Execute}, h.CompilerCFG.Flags, h.CompilerCFG.Includes, nil); err != nil {
 			return nil, err
 		}
 
 		WrapMessage("DBG", "generating Threadless loader object")
-		if err = h.CompileObject(h.CompilerCFG.Mingw+" -c ", []string{LoaderAsm}, nil, h.CompilerCFG.IncludeDirs, nil, LoaderObj); err != nil {
+		if err = h.CompileObject(h.CompilerCFG.Mingw+" -c ", LoaderObj, []string{LoaderAsm}, nil, h.CompilerCFG.Includes, nil); err != nil {
 			return nil, err
 		}
 

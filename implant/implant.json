@@ -1,6 +1,7 @@
 {
   "Type": "executable",
-  "SourceDir": "/home/lemur/Github/HexaneC2/implant/src",
+  "RootDirectory": "/home/lemur/Github/HexaneC2/implant",
+  "IncludeDirectory": "/home/lemur/Github/HexaneC2/implant/include",
   "OutputName": "implant",
 
   "Linker": "implant.ld",

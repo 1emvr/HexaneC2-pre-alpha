@@ -1,7 +1,8 @@
 {
   "Type": "object",
   "OutputName": "corelib",
-  "SourceDir": "/home/lemur/Github/HexaneC2/core/corelib/src",
+  "RootDirectory": "/home/lemur/Github/HexaneC2/core",
+  "IncludeDirectory": "/home/lemur/Github/HexaneC2/core/include",
 
   "Linker": "corelib.ld",
   "Sources": [

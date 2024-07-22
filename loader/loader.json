@@ -1,6 +1,7 @@
 {
   "Type": "dynamic",
-  "RootDir": "/home/lemur/Github/HexaneC2/loader",
+  "RootDirectory": "/home/lemur/Github/HexaneC2/loader",
+  "IncludeDirectory": "/home/lemur/Github/HexaneC2/loader/include",
   "OutputName": "loader",
 
   "Sources": [

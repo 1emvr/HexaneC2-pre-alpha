@@ -14,63 +14,76 @@ var (
 	CorePath    = path.Join(RootDirectory, "core")
 	LogsPath    = path.Join(RootDirectory, "logs")
 	LoaderPath  = path.Join(RootDirectory, "loader")
-	ImplantPath = path.Join(CorePath, "implant")
+	ImplantPath = path.Join(RootDirectory, "implant")
 	HashHeader  = path.Join(CorePath, "include/names.hpp")
 	HashStrings = path.Join(ConfigsPath, "strings.txt")
 )
 
-func (h *HexaneConfig) BuildModule(modCfg *Object) error {
-	var (
-		err error
-		dep *Object
-	)
+func (h *HexaneConfig) BuildModule(module *Object) error {
+	var err error
 
-	if modCfg.SourceDirectory == "" {
+	WrapMessage("DBG", fmt.Sprintf("loading module config - %s", module.ConfigName))
+
+	if module.RootDirectory == "" {
 		return fmt.Errorf("source directory is required")
 	}
 
-	if modCfg.OutputName == "" {
+	if module.OutputName == "" {
 		return fmt.Errorf("output name is required")
 	}
 
-	if modCfg.PreBuildDependencies != nil {
-		for _, pre := range modCfg.PreBuildDependencies {
+	if module.Linker != "" {
+		module.Linker = filepath.Join(module.RootDirectory, module.Linker)
+	}
+
+	if module.PreBuildDependencies != nil {
+
+		var dep *Object
+		for _, pre := range module.PreBuildDependencies {
+
 			if dep, err = GetModuleConfig(pre); err != nil {
 				return err
 			}
-
 			if err = h.BuildModule(dep); err != nil {
 				return err
 			}
 
-			modCfg.Components = append(modCfg.Components, dep.OutputName)
-			WrapMessage("DBG", "\t-"+dep.OutputName)
+			module.Components = append(module.Components, dep.OutputName)
 		}
 	}
 
-	for _, src := range modCfg.Sources {
+	for _, src := range module.Sources {
 
-		comp := filepath.Join(modCfg.SourceDirectory, src)
-		out := filepath.Join(BuildPath, src+".o")
+		srcPath := filepath.Join(module.RootDirectory, "src")
+		target := filepath.Join(srcPath, src)
+		obj := filepath.Join(BuildPath, src+".o")
 
-		if filepath.Ext(comp) == ".asm" {
-			if err = h.CompileObject(h.CompilerCFG.Assembler, out, []string{comp}, nil, nil, nil); err != nil {
+		switch filepath.Ext(target) {
+		case ".asm":
+			flags := []string{"-f win64"}
+			if err = h.CompileObject(h.CompilerCFG.Assembler, obj, []string{target}, flags, nil, nil); err != nil {
+				return err
+			}
+		case ".cpp":
+			flags := []string{"-c"}
+			flags = append(flags, h.CompilerCFG.Flags...)
+
+			if err = h.CompileObject(h.CompilerCFG.Mingw, obj, []string{target}, flags, module.IncludeDirectories, h.CompilerCFG.Definitions); err != nil {
 				return err
 			}
 		}
 
-		WrapMessage("DBG", "adding component - "+out)
-		modCfg.Components = append(modCfg.Components, out)
+		module.Components = append(module.Components, obj)
 	}
 
-	if modCfg.Dependencies != nil {
-		modCfg.Components = append(modCfg.Components, modCfg.Dependencies...)
+	if module.Dependencies != nil {
+		module.Components = append(module.Components, module.Dependencies...)
 	}
 
-	if len(modCfg.Components) > 1 {
-		return h.ExecuteBuild(modCfg)
+	if len(module.Components) > 1 {
+		return h.ExecuteBuild(module)
 	} else {
-		modCfg.OutputName = modCfg.Components[0]
+		module.OutputName = module.Components[0]
 		return nil
 	}
 }

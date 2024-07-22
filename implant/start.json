@@ -1,6 +1,6 @@
 {
   "Type": "object",
-  "SourceDir": "/home/lemur/Github/HexaneC2/implant/src",
+  "RootDirectory": "/home/lemur/Github/HexaneC2/implant",
   "OutputName": "start",
 
   "Sources": [

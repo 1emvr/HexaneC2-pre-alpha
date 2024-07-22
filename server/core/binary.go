@@ -266,7 +266,6 @@ func (h *HexaneConfig) ExecuteBuild(module *Object) error {
 	var flags []string
 
 	module.OutputName = filepath.Join(BuildPath, module.OutputName)
-
 	if module.Linker != "" {
 		flags = append(flags, "-T"+module.Linker)
 	}
@@ -275,23 +274,25 @@ func (h *HexaneConfig) ExecuteBuild(module *Object) error {
 	case "dynamic":
 		WrapMessage("DBG", "building dynamic library from json config")
 
-		module.OutputName += ".dll"
 		flags = append(flags, "-shared")
-		return h.CompileObject(h.CompilerCFG.Linker, module.OutputName, module.Components, flags, module.Includes, nil)
+		flags = append(flags, h.CompilerCFG.Flags...)
+
+		module.OutputName += ".dll"
+		return h.CompileObject(h.CompilerCFG.Linker, module.OutputName, module.Components, flags, module.IncludeDirectories, nil)
 
 	case "executable":
 		WrapMessage("DBG", "building executable from json config")
 
 		module.OutputName += ".exe"
 		flags = append(flags, h.CompilerCFG.Flags...)
-		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.Includes, nil)
+		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.IncludeDirectories, nil)
 
 	case "object":
 		WrapMessage("DBG", "building object file from json config")
 
 		module.OutputName += ".o"
 		flags = append(flags, h.CompilerCFG.Flags...)
-		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.Includes, h.CompilerCFG.Definitions)
+		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.IncludeDirectories, h.CompilerCFG.Definitions)
 
 	case "resource":
 		WrapMessage("DBG", "building resource file from json config")

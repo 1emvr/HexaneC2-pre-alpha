@@ -50,6 +50,9 @@ func GetModuleConfig(cfgName string) (*Object, error) {
 		return nil, err
 	}
 
+	module.ConfigName = cfgName
+	module.IncludeDirectories = append(module.IncludeDirectories, RootDirectory)
+
 	return module, nil
 }
 

@@ -1,7 +1,7 @@
 #ifndef HEXANE_CORELIB_OPSEC_HPP
 #define HEXANE_CORELIB_OPSEC_HPP
-#include "core/monolith.hpp"
-#include "core/corelib.hpp"
+#include <core/monolith.hpp>
+#include <core/corelib.hpp>
 
 namespace Opsec {
     FUNCTION BOOL CheckTime();
