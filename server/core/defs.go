@@ -42,6 +42,7 @@ type Object struct {
 	OutputName           string
 	SourceDirectory      string
 	Sources              []string
+	Includes             []string
 	Dependencies         []string
 	PreBuildDependencies []string
 	Components           []string

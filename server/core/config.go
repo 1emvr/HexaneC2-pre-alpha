@@ -28,24 +28,8 @@ var (
 	CorePath    = path.Join(RootDirectory, "core")
 	InjectPath  = path.Join(RootDirectory, "inject")
 	LogsPath    = path.Join(RootDirectory, "logs")
-	ModsPath    = path.Join(RootDirectory, "mods")
-	PayloadPath = path.Join(RootDirectory, "payload")
 	LoaderPath  = path.Join(RootDirectory, "loader")
-
-	IncludePath = path.Join(CorePath, "include")
 	ImplantPath = path.Join(CorePath, "implant")
-	ImplantLd   = path.Join(ImplantPath, "implant.ld")
-
-	Corelib    = path.Join(CorePath, "corelib")
-	CorelibSrc = path.Join(Corelib, "src")
-	CorelibInc = path.Join(Corelib, "include")
-	CorelibLd  = path.Join(Corelib, "corelib.ld")
-	Libs       = path.Join(RootDirectory, "libs")
-
-	Injectlib   = path.Join(InjectPath, "injectlib")
-	InjectSrc   = path.Join(Injectlib, "src")
-	InjectInc   = path.Join(Injectlib, "include")
-	InjectlibLd = path.Join(Injectlib, "injectlib.ld")
 )
 
 var (
@@ -61,22 +45,22 @@ var ModuleStrings = []string{
 	"iphlpapi",
 }
 
-func GetModuleConfig(cfgName string) (*ModuleConfig, error) {
+func GetModuleConfig(cfgName string) (*Object, error) {
 	var (
 		err    error
 		buffer []byte
-		modCfg *ModuleConfig
+		module *Object
 	)
 
 	if buffer, err = os.ReadFile(cfgName); err != nil {
 		return nil, err
 	}
 
-	if err = json.Unmarshal(buffer, &modCfg); err != nil {
+	if err = json.Unmarshal(buffer, &module); err != nil {
 		return nil, err
 	}
 
-	return modCfg, nil
+	return module, nil
 }
 
 func (h *HexaneConfig) GenerateConfigBytes() error {
@@ -94,53 +78,38 @@ func (h *HexaneConfig) GenerateConfigBytes() error {
 func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
 	var err error
 
-	h.Compiler = new(CompilerConfig)
-	h.Implant = new(ImplantConfig)
+	h.CompilerCFG = new(CompilerConfig)
+	h.ImplantCFG = new(ImplantConfig)
 
 	h.BuildType = jsonCfg.Config.BuildType
 
 	switch h.BuildType {
+
 	case "bin":
-		{
-			h.Compiler.FileExtension = ".bin"
-		}
+		h.CompilerCFG.FileExtension = ".bin"
 	case "dll":
-		{
-			h.Compiler.FileExtension = ".dll"
-		}
+		h.CompilerCFG.FileExtension = ".dll"
 	case "exe":
-		{
-			h.Compiler.FileExtension = ".exe"
-		}
+		h.CompilerCFG.FileExtension = ".exe"
 	default:
 		return fmt.Errorf("unkown build type. Exiting")
 	}
 
-	WrapMessage("INF", fmt.Sprintf("generating config for %s", h.Compiler.FileExtension))
+	WrapMessage("INF", fmt.Sprintf("generating config for %s", h.CompilerCFG.FileExtension))
 
 	h.ImplantName = jsonCfg.ImplantName
-	h.Compiler.BuildDirectory = fmt.Sprintf("../payload/%s", strings.TrimSuffix(h.ImplantName, h.Compiler.FileExtension))
+	h.CompilerCFG.BuildDirectory = fmt.Sprintf("../payload/%s", strings.TrimSuffix(h.ImplantName, h.CompilerCFG.FileExtension))
 
-	h.Compiler.Debug = jsonCfg.Config.Debug
-	h.Compiler.Arch = jsonCfg.Config.Arch
-	h.Compiler.Mingw = "/usr/bin/x86_64-w64-mingw32-g++"
-	h.Compiler.Linker = "/usr/bin/x86_64-w64-mingw32-ld"
-	h.Compiler.Objcopy = "/usr/bin/x86_64-w64-mingw32-objcopy"
-	h.Compiler.Windres = "/usr/bin/x86_64-w64-mingw32-windres"
-	h.Compiler.Strip = "/usr/bin/x86_64-w64-mingw32-strip"
-	h.Compiler.Ar = "/usr/bin/x86_64-w64-mingw32-ar"
-	h.Compiler.Assembler = "/usr/bin/nasm"
+	h.CompilerCFG.Debug = jsonCfg.Config.Debug
+	h.CompilerCFG.Arch = jsonCfg.Config.Arch
+	h.CompilerCFG.Mingw = "/usr/bin/x86_64-w64-mingw32-g++"
+	h.CompilerCFG.Linker = "/usr/bin/x86_64-w64-mingw32-ld"
+	h.CompilerCFG.Objcopy = "/usr/bin/x86_64-w64-mingw32-objcopy"
+	h.CompilerCFG.Windres = "/usr/bin/x86_64-w64-mingw32-windres"
+	h.CompilerCFG.Strip = "/usr/bin/x86_64-w64-mingw32-strip"
+	h.CompilerCFG.Assembler = "/usr/bin/nasm"
 
-	h.Compiler.IncludeDirs = []string{
-		"../core/include",
-	}
-
-	h.Compiler.ComponentDirs = []string{
-		"../core/src",
-		"../implant",
-	}
-
-	h.Implant.LoadedModules = []string{
+	h.ImplantCFG.LoadedModules = []string{
 		"crypt32",
 		"winhttp",
 		"advapi32",
@@ -149,7 +118,7 @@ func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
 	}
 
 	if jsonCfg.Config.Debug {
-		h.Compiler.Flags = []string{
+		h.CompilerCFG.Flags = []string{
 			"",
 			"-std=c++23",
 			"-g -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel",
@@ -159,7 +128,7 @@ func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
 			"-Wl,--no-seh,--enable-stdcall-fixup,--gc-sections",
 		}
 	} else {
-		h.Compiler.Flags = []string{
+		h.CompilerCFG.Flags = []string{
 			"",
 			"-std=c++23",
 			"-Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel",
@@ -195,33 +164,33 @@ func ReadConfig(cfgName string) error {
 		return err
 	}
 
-	hexane.Implant.EgressPeer = jsonCfg.Config.EgressPeer
-	if hexane.Implant.EgressPeer != "" {
-		hexane.GroupId = GetGIDByPeerName(hexane.Implant.EgressPeer)
+	hexane.ImplantCFG.EgressPeer = jsonCfg.Config.EgressPeer
+	if hexane.ImplantCFG.EgressPeer != "" {
+		hexane.GroupId = GetGIDByPeerName(hexane.ImplantCFG.EgressPeer)
 
 	} else {
 		Payloads.Group++
 		hexane.GroupId = Payloads.Group
 	}
 
-	hexane.Implant.PeerId = GeneratePeerId()
+	hexane.PeerId = GeneratePeerId()
 
-	hexane.Implant.Sleeptime = uint32(jsonCfg.Config.Sleeptime)
-	hexane.Implant.Jitter = uint32(jsonCfg.Config.Jitter)
-	hexane.Implant.Domain = jsonCfg.Network.Domain
+	hexane.ImplantCFG.Sleeptime = uint32(jsonCfg.Config.Sleeptime)
+	hexane.ImplantCFG.Jitter = uint32(jsonCfg.Config.Jitter)
+	hexane.ImplantCFG.Domain = jsonCfg.Network.Domain
 
-	if hexane.Implant.Hostname = jsonCfg.Config.Hostname; hexane.Implant.Hostname == "" {
+	if hexane.ImplantCFG.Hostname = jsonCfg.Config.Hostname; hexane.ImplantCFG.Hostname == "" {
 		return fmt.Errorf("a hostname must be provided")
 	}
 
 	if jsonCfg.Injection != nil {
-		hexane.Implant.Injection = new(Injection)
+		hexane.ImplantCFG.Injection = new(Injection)
 
 		if jsonCfg.Injection.Threadless != nil {
-			hexane.Implant.Injection.Threadless = new(Threadless)
-			hexane.Implant.Injection.Threadless.ConfigName = jsonCfg.Injection.Threadless.ConfigName
+			hexane.ImplantCFG.Injection.Threadless = new(Threadless)
+			hexane.ImplantCFG.Injection.Threadless.ConfigName = jsonCfg.Injection.Threadless.ConfigName
 
-			if hexane.Implant.Injection.Config, err = GetModuleConfig(hexane.Implant.Injection.Threadless.ConfigName); err != nil {
+			if hexane.ImplantCFG.Injection.Object, err = GetModuleConfig(hexane.ImplantCFG.Injection.Threadless.ConfigName); err != nil {
 				return err
 			}
 
@@ -230,10 +199,10 @@ func ReadConfig(cfgName string) error {
 
 	if jsonCfg.Network.ProfileType == "http" {
 
-		hexane.Implant.Profile = new(HttpConfig)
-		hexane.Implant.ProfileTypeId = TRANSPORT_HTTP
+		hexane.ImplantCFG.Profile = new(HttpConfig)
+		hexane.ImplantCFG.ProfileTypeId = TRANSPORT_HTTP
 
-		profile := hexane.Implant.Profile.(*HttpConfig)
+		profile := hexane.ImplantCFG.Profile.(*HttpConfig)
 		profile.Address = jsonCfg.Network.Address
 		profile.Port = jsonCfg.Network.Port
 		profile.Useragent = jsonCfg.Network.Useragent
@@ -245,22 +214,22 @@ func ReadConfig(cfgName string) error {
 		profile.Endpoints = make([]string, 0, len(jsonCfg.Network.Endpoints))
 		profile.Endpoints = append(profile.Endpoints, jsonCfg.Network.Endpoints...)
 
-		hexane.Proxy = new(ProxyConfig)
+		hexane.ProxyCFG = new(ProxyConfig)
 
 		if jsonCfg.Network.Proxy.Enabled {
 			if jsonCfg.Network.Proxy.Port < 1 || jsonCfg.Network.Proxy.Port > 65535 {
 				return errors.New("proxy port number must be between 1 - 65535")
 			}
 
-			hexane.Implant.ProxyBool = true
-			hexane.Proxy.Proto = "http://"
-			hexane.Proxy.Address = jsonCfg.Network.Proxy.Address
-			hexane.Proxy.Port = strconv.Itoa(jsonCfg.Network.Proxy.Port)
+			hexane.ImplantCFG.ProxyBool = true
+			hexane.ProxyCFG.Proto = "http://"
+			hexane.ProxyCFG.Address = jsonCfg.Network.Proxy.Address
+			hexane.ProxyCFG.Port = strconv.Itoa(jsonCfg.Network.Proxy.Port)
 		}
 	} else if jsonCfg.Network.ProfileType == "smb" {
 
-		hexane.Implant.ProfileTypeId = TRANSPORT_PIPE
-		hexane.Implant.EgressPipe = GenerateUuid(24)
+		hexane.ImplantCFG.ProfileTypeId = TRANSPORT_PIPE
+		hexane.ImplantCFG.EgressPipe = GenerateUuid(24)
 	}
 
 	hexane.UserSession = Session
@@ -274,22 +243,22 @@ func (h *HexaneConfig) PePatchConfig() ([]byte, error) {
 		err    error
 	)
 
-	if Hours, err = ParseWorkingHours(h.Implant.WorkingHours); err != nil {
+	if Hours, err = ParseWorkingHours(h.ImplantCFG.WorkingHours); err != nil {
 		return nil, err
 	}
 
-	stream.PackString(h.Implant.Hostname)
-	stream.PackString(h.Implant.Domain)
-	stream.PackDword(h.Implant.PeerId)
-	stream.PackDword(h.Implant.Sleeptime)
-	stream.PackDword(h.Implant.Jitter)
+	stream.PackString(h.ImplantCFG.Hostname)
+	stream.PackString(h.ImplantCFG.Domain)
+	stream.PackDword(h.ImplantCFG.PeerId)
+	stream.PackDword(h.ImplantCFG.Sleeptime)
+	stream.PackDword(h.ImplantCFG.Jitter)
 	stream.PackInt32(Hours)
-	stream.PackDword64(h.Implant.Killdate)
+	stream.PackDword64(h.ImplantCFG.Killdate)
 
-	switch h.Implant.ProfileTypeId {
+	switch h.ImplantCFG.ProfileTypeId {
 	case TRANSPORT_HTTP:
 		{
-			var httpCfg = h.Implant.Profile.(*HttpConfig)
+			var httpCfg = h.ImplantCFG.Profile.(*HttpConfig)
 
 			stream.PackWString(httpCfg.Useragent)
 			stream.PackWString(httpCfg.Address)
@@ -305,13 +274,13 @@ func (h *HexaneConfig) PePatchConfig() ([]byte, error) {
 					stream.PackWString(uri)
 				}
 			}
-			if h.Implant.ProxyBool {
-				var proxyUrl = fmt.Sprintf("%v://%v:%v", h.Proxy.Proto, h.Proxy.Address, h.Proxy.Port)
+			if h.ImplantCFG.ProxyBool {
+				var proxyUrl = fmt.Sprintf("%v://%v:%v", h.ProxyCFG.Proto, h.ProxyCFG.Address, h.ProxyCFG.Port)
 
 				stream.PackDword(1)
 				stream.PackWString(proxyUrl)
-				stream.PackWString(h.Proxy.Username)
-				stream.PackWString(h.Proxy.Password)
+				stream.PackWString(h.ProxyCFG.Username)
+				stream.PackWString(h.ProxyCFG.Password)
 
 			} else {
 				stream.PackDword(0)
@@ -321,7 +290,7 @@ func (h *HexaneConfig) PePatchConfig() ([]byte, error) {
 		}
 	case TRANSPORT_PIPE:
 		{
-			stream.PackWString(h.Implant.EgressPipe)
+			stream.PackWString(h.ImplantCFG.EgressPipe)
 		}
 	}
 	return stream.Buffer, err
