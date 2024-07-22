@@ -311,11 +311,7 @@ func (h *HexaneConfig) ExecuteBuildType(module *Builder) error {
 		transport string
 	)
 
-	h.Implant.ImplantName = filepath.Join(BuildPath, h.Implant.ImplantName)
-
-	if module.LinkerScript != "" {
-		flags = append(flags, "-T"+module.LinkerScript)
-	}
+	h.UserConfig.Builder.OutputName = filepath.Join(BuildPath, h.UserConfig.Builder.OutputName)
 	if transport, err = h.GetTransportType(); err != nil {
 		return err
 	}
@@ -323,16 +319,22 @@ func (h *HexaneConfig) ExecuteBuildType(module *Builder) error {
 	if module.BuildType != BUILD_TYPE_RESOURCE {
 		module.Definitions = MergeMaps(module.Definitions, map[string][]byte{transport: nil})
 	}
+	if module.LinkerScript != "" {
+		flags = append(flags, "-T"+module.LinkerScript)
+	}
 
 	switch module.BuildType {
-	case BUILD_TYPE_RESOURCE:
-
-		WrapMessage("DBG", "building resource file from json config")
-		return h.RunCommand(h.Compiler.Windres + " -O coff " + module.Rsrc.RsrcScript + " -DRSRCDATA=\"" + module.Rsrc.RsrcBinary + "\" -o " + module.OutputName)
-
 	case BUILD_TYPE_DLL:
+		WrapMessage("DBG", "building dll loader from json config")
 
-		WrapMessage("DBG", "building dynamic library from json config")
+		rs := filepath.Join(BuildPath, "resource.rs")
+		module.Rsrc.RsrcScript = filepath.Join(module.Loader.RootDirectory, module.Rsrc.RsrcScript)
+		module.Rsrc.RsrcBinary = filepath.Join(module.Loader.RootDirectory, module.Rsrc.RsrcBinary)
+
+		if err = h.RunCommand(h.Compiler.Windres + " -O coff " + module.Rsrc.RsrcScript + " -DRSRCDATA=\"" + module.Rsrc.RsrcBinary + "\" -o " + rs); err != nil {
+			return err
+		}
+		module.Components = append(module.Components, rs)
 
 		flags = append(flags, "-shared")
 		flags = append(flags, h.Compiler.Flags...)
@@ -340,7 +342,6 @@ func (h *HexaneConfig) ExecuteBuildType(module *Builder) error {
 		return h.CompileObject(h.Compiler.Mingw, module.OutputName, module.Components, flags, module.Files.IncludeDirectories, module.Definitions)
 
 	case BUILD_TYPE_SHELLCODE:
-
 		WrapMessage("DBG", "building object file from json config")
 
 		flags = append(flags, h.Compiler.Flags...)

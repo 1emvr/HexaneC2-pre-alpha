@@ -171,21 +171,20 @@ func Clear() {
 	}
 }
 
-func ReadJson(cfgPath string) *JsonConfig {
+func (h *HexaneConfig) ReadJson(cfgPath string) error {
 	var (
 		err    error
 		buffer []byte
-		jsn    *JsonConfig
 	)
 
 	if buffer, err = os.ReadFile(cfgPath); err != nil {
-		return nil
+		return err
 	}
-	if err = json.Unmarshal(buffer, &jsn); err != nil {
-		return nil
+	if err = json.Unmarshal(buffer, &h.UserConfig); err != nil {
+		return err
 	}
 
-	return jsn
+	return nil
 }
 
 func MergeMaps(m1 map[string][]byte, m2 map[string][]byte) map[string][]byte {

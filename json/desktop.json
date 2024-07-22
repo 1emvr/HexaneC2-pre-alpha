@@ -24,7 +24,7 @@
 	},
 
 	"Builder": {
-		"ImplantName": "test_implant",
+		"OutputName": "test_implant",
 		"RootDirectory": "/home/lemur/Github/HexaneC2/core",
 		"LinkerScript": "implant.ld",
 
@@ -35,9 +35,10 @@
 		],
 
 		"Loader": {
-			"LinkerScript": "/home/lemur/Github/HexaneC2/loader/loader.ld",
-			"MainFile": "/home/lemur/Github/HexaneC2/loader/dllmain.cpp",
-			"RsrcScript": "/home/lemur/Github/HexaneC2/loader/rsrc.rc",
+			"RootDirectory": "/home/lemur/Github/HexaneC2/loader",
+			"LinkerScript": "loader.ld",
+			"RsrcScript": "rsrc.rc",
+			"MainFile": "dllmain.cpp",
 
 			"InjectionType": "threadless",
 			"Config": {

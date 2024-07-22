@@ -25,9 +25,10 @@ var (
 	HashStrings = path.Join(ConfigsPath, "strings.txt")
 )
 
-func (h *HexaneConfig) BuildModule(builder *Builder) error {
+func (h *HexaneConfig) BuildModule() error {
 	var err error
 
+	builder := h.UserConfig.Builder
 	if builder.RootDirectory == "" {
 		return fmt.Errorf("source directory is required")
 	}
@@ -36,34 +37,31 @@ func (h *HexaneConfig) BuildModule(builder *Builder) error {
 		return fmt.Errorf("output name is required")
 	}
 
-	if builder.Linker != "" {
-		builder.Linker = filepath.Join(builder.RootDirectory, builder.Linker)
+	if builder.LinkerScript != "" {
+		builder.LinkerScript = filepath.Join(builder.RootDirectory, builder.LinkerScript)
 	}
 
 	if err = h.BuildSources(builder); err != nil {
 		return err
 	}
 
-	if builder.Objects.Dependencies != nil {
-		builder.Objects.Components = append(builder.Objects.Components, builder.Objects.Dependencies...)
+	if builder.Files.Dependencies != nil {
+		builder.Components = append(builder.Components, builder.Files.Dependencies...)
 	}
 
-	if len(builder.Objects.Components) > 1 {
+	if len(builder.Components) > 1 {
 		return h.ExecuteBuildType(builder)
 	} else {
-		builder.OutputName = builder.Objects.Components[0]
+		builder.OutputName = builder.Components[0]
 		return nil
 	}
 }
 
 func (h *HexaneConfig) RunBuild() error {
-	var (
-		err    error
-		module *Object
-	)
+	var err error
 
 	WrapMessage("DBG", "creating payload directory")
-	if err = os.MkdirAll(h.CompilerCFG.BuildDirectory, os.ModePerm); err != nil {
+	if err = os.MkdirAll(h.Compiler.BuildDirectory, os.ModePerm); err != nil {
 		return err
 	}
 
@@ -78,10 +76,7 @@ func (h *HexaneConfig) RunBuild() error {
 	}
 
 	WrapMessage("DBG", "generating implant\n")
-	if module, err = GetModuleConfig(path.Join(CorePath, "implant.json")); err != nil {
-		return err
-	}
-	if err = h.BuildModule(module); err != nil {
+	if err = h.BuildModule(); err != nil {
 		return err
 	}
 

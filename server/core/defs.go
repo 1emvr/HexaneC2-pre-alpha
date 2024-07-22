@@ -52,6 +52,7 @@ type Files struct {
 }
 
 type Loader struct {
+	RootDirectory string
 	InjectionType string
 	LinkerScript  string
 	RsrcScript    string
@@ -129,13 +130,13 @@ type Proxy struct {
 }
 
 type Implant struct {
-	ImplantName    string
 	NetworkProfile any
+	PeerId         uint32
+	GroupId        uint32
 	ProfileTypeId  uint32
 	CurrentTaskId  uint32
 	LoadedModules  []string
 
-	Loader       *Loader
 	Hostname     string
 	WorkingHours int32
 	Sleeptime    uint32
@@ -155,10 +156,7 @@ type Compiler struct {
 	Strip          string
 	FileExtension  string
 	BuildDirectory string
-	RootDirectory  string
-	LinkerScript   string
 	Flags          []string
-	Sources        []string
 }
 
 type HexaneConfig struct {
@@ -175,9 +173,8 @@ type HexaneConfig struct {
 
 	Implant     *Implant
 	Compiler    *Compiler
-	Network     *Network
-	Proxy       *Proxy
 	UserSession *Session
+	UserConfig  *JsonConfig
 	Next        *HexaneConfig
 }
 
