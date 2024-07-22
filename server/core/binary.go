@@ -285,11 +285,10 @@ func (h *HexaneConfig) BuildSources(module *Module) error {
 	)
 
 	errCh := make(chan error)
+	srcPath := filepath.Join(module.RootDirectory, "src")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	srcPath := filepath.Join(module.RootDirectory, "src")
 
 	for _, src := range module.Files.Sources {
 		wg.Add(1)
@@ -334,7 +333,6 @@ func (h *HexaneConfig) BuildSources(module *Module) error {
 			}
 
 			module.Components = append(module.Components, obj)
-
 		}(src)
 	}
 
