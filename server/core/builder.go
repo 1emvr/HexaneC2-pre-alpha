@@ -41,7 +41,7 @@ func (h *HexaneConfig) BuildModule() error {
 		builder.LinkerScript = filepath.Join(builder.RootDirectory, builder.LinkerScript)
 	}
 
-	if err = h.BuildSources(builder); err != nil {
+	if err = h.BuildSources(); err != nil {
 		return err
 	}
 

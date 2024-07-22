@@ -38,14 +38,14 @@ func (h *HexaneConfig) ServerRoutine(context *gin.Context) {
 	context.String(200, string(rsp))
 }
 
-func (h *HexaneConfig) UpdateServerEndpoints(server *ServerConfig, profile *HttpConfig) {
+func (h *HexaneConfig) UpdateServerEndpoints(profile *Http) {
 
 	chanNewEndp := make(chan string)
 	defer close(chanNewEndp)
 
 	go func() {
 		for endp := range chanNewEndp {
-			server.Handle.GET(endp, func(context *gin.Context) {
+			profile.Handle.GET(endp, func(context *gin.Context) {
 				h.ServerRoutine(context)
 			})
 		}
@@ -54,7 +54,7 @@ func (h *HexaneConfig) UpdateServerEndpoints(server *ServerConfig, profile *Http
 	for _, newEndp := range profile.Endpoints {
 		endpointExists := false
 
-		for _, existingEndp := range server.Endpoints {
+		for _, existingEndp := range profile.Endpoints {
 			if existingEndp == newEndp {
 
 				endpointExists = true
@@ -62,13 +62,13 @@ func (h *HexaneConfig) UpdateServerEndpoints(server *ServerConfig, profile *Http
 			}
 		}
 		if !endpointExists {
-			server.Endpoints = append(server.Endpoints, newEndp)
+			profile.Endpoints = append(profile.Endpoints, newEndp)
 			chanNewEndp <- newEndp
 		}
 	}
 }
 
-func (h *HexaneConfig) StartNewServer(profile *HttpConfig) {
+func (h *HexaneConfig) StartNewServer(profile *Http) {
 	var err error
 
 	Handle := gin.Default()
@@ -90,14 +90,14 @@ func (h *HexaneConfig) StartNewServer(profile *HttpConfig) {
 
 func (h *HexaneConfig) HttpServerHandler() {
 
-	profile := h.ImplantCFG.Profile.(*HttpConfig)
+	profile := h.UserConfig.Network.Config.(*Http)
 	serverExists := false
 
-	for Head := Servers.Head; Head != nil; Head = Head.Next {
+	for Head := HexaneServers.Head; Head != nil; Head = Head.Next {
 		if Head.Address == profile.Address && Head.Port == profile.Port {
 
 			serverExists = true
-			h.UpdateServerEndpoints(Head, profile)
+			h.UpdateServerEndpoints(Head)
 			break
 		}
 	}

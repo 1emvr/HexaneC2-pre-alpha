@@ -269,7 +269,7 @@ func (h *HexaneConfig) CompileObject(command, output string, targets, flags, inc
 	return nil
 }
 
-func (h *HexaneConfig) BuildSources(module *Module) error {
+func (h *HexaneConfig) BuildSources() error {
 	var (
 		err error
 		wg  sync.WaitGroup
@@ -279,6 +279,8 @@ func (h *HexaneConfig) BuildSources(module *Module) error {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	defer cancel()
+	module := h.UserConfig.Builder
+
 	srcPath := filepath.Join(module.RootDirectory, "src")
 
 	for _, src := range module.Files.Sources {

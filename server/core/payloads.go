@@ -5,78 +5,41 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *HexaneConfig) AddServer(engine *gin.Engine, profile *HttpConfig) {
+func (h *HexaneConfig) AddServer(engine *gin.Engine, profile *Http) {
 
-	Servers.Group++
+	HexaneServers.Group++
 
-	c := &ServerConfig{
-		GroupId:   Servers.Group,
+	c := &Http{
+		GroupId:   HexaneServers.Group,
 		Endpoints: profile.Endpoints,
 		Address:   profile.Address,
 		Port:      profile.Port,
 		Handle:    engine,
-		Next:      Servers.Head,
+		Next:      HexaneServers.Head,
 	}
 
-	if Servers.Head != nil {
-		Servers.Head.Next = Servers.Head
+	if HexaneServers.Head != nil {
+		HexaneServers.Head.Next = HexaneServers.Head
 	}
 
-	Servers.Head = c
-	h.ServerCFG = c
+	HexaneServers.Head = c
+	h.UserConfig.Network.Config.(*Http).Handle = engine
 }
 
 func AddConfig(h *HexaneConfig) {
 
-	c := &HexaneConfig{
-		GroupId:       h.GroupId,
-		PeerId:        h.PeerId,
-		ImplantName:   h.ImplantName,
-		CurrentTaskId: h.CurrentTaskId,
-		Key:           h.Key,
-
-		ImplantCFG: &ImplantConfig{
-			ProfileTypeId: h.ImplantCFG.ProfileTypeId,
-			Profile:       h.ImplantCFG.Profile,
-			Hostname:      h.ImplantCFG.Hostname,
-			Domain:        h.ImplantCFG.Domain,
-			IngressPipe:   h.ImplantCFG.IngressPipe,
-			EgressPipe:    h.ImplantCFG.EgressPipe,
-			WorkingHours:  h.ImplantCFG.WorkingHours,
-			Sleeptime:     h.ImplantCFG.Sleeptime,
-			Jitter:        h.ImplantCFG.Jitter,
-			Killdate:      h.ImplantCFG.Killdate,
-			ProxyBool:     h.ImplantCFG.ProxyBool,
-		},
-		ProxyCFG: &ProxyConfig{
-			Address:  h.ProxyCFG.Address,
-			Port:     h.ProxyCFG.Port,
-			Proto:    h.ProxyCFG.Proto,
-			Username: h.ProxyCFG.Username,
-			Password: h.ProxyCFG.Password,
-		},
-		CompilerCFG: &CompilerConfig{
-			Debug:         h.CompilerCFG.Debug,
-			FileExtension: h.CompilerCFG.FileExtension,
-		},
-		UserSession: &HexaneSession{
-			Username: h.UserSession.Username,
-			Admin:    h.UserSession.Admin,
-		},
+	if HexanePayloads.Head != nil {
+		h.Next = HexanePayloads.Head
 	}
 
-	if Payloads.Head != nil {
-		c.Next = Payloads.Head
-	}
-
-	Payloads.Head = c
+	HexanePayloads.Head = h
 }
 
 func GetImplantByName(name string) *HexaneConfig {
-	var Head = Payloads.Head
+	var Head = HexanePayloads.Head
 
 	for Head != nil {
-		if Head.ImplantName == name {
+		if Head.UserConfig.Builder.OutputName == name {
 			return Head
 		}
 		Head = Head.Next
@@ -86,7 +49,7 @@ func GetImplantByName(name string) *HexaneConfig {
 }
 
 func GetConfigByGID(gid int) *HexaneConfig {
-	var Head = Payloads.Head
+	var Head = HexanePayloads.Head
 
 	for Head != nil {
 		if Head.GroupId == gid {
@@ -98,7 +61,7 @@ func GetConfigByGID(gid int) *HexaneConfig {
 }
 
 func GetConfigByPeerId(pid uint32) *HexaneConfig {
-	var Head = Payloads.Head
+	var Head = HexanePayloads.Head
 
 	for Head != nil {
 		WrapMessage("DBG", fmt.Sprintf(" checking %d against %d\n", pid, Head.PeerId))
@@ -114,12 +77,12 @@ func GetConfigByPeerId(pid uint32) *HexaneConfig {
 }
 
 func GetGIDByPeerName(name string) int {
-	var Head = Payloads.Head
+	var Head = HexanePayloads.Head
 
 	for Head != nil {
-		WrapMessage("DBG", fmt.Sprintf("checking %s against %s", name, Head.ImplantName))
+		WrapMessage("DBG", fmt.Sprintf("checking %s against %s", name, Head.UserConfig.Builder.OutputName))
 
-		if Head.ImplantName == name {
+		if Head.UserConfig.Builder.OutputName == name {
 			return Head.GroupId
 		}
 		Head = Head.Next
@@ -130,7 +93,7 @@ func GetGIDByPeerName(name string) int {
 }
 
 func GetPeerNameByGID(gid int) *HexaneConfig {
-	var Head = Payloads.Head
+	var Head = HexanePayloads.Head
 
 	for Head != nil {
 		if Head.GroupId == gid {

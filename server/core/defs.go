@@ -101,6 +101,7 @@ type JsonConfig struct {
 }
 
 type Http struct {
+	GroupId   int
 	Address   string
 	Domain    string
 	Useragent string

