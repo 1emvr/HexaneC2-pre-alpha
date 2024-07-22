@@ -70,7 +70,7 @@ func (h *HexaneConfig) BuildModule(modCfg *Object) error {
 	if len(modCfg.Components) > 1 {
 		return h.ExecuteBuild(modCfg)
 	} else {
-		// single file. good to go.
+		modCfg.OutputName = modCfg.Components[0]
 		return nil
 	}
 }
