@@ -12,6 +12,6 @@
   ],
   "Dependencies": [
     "/home/lemur/Github/HexaneC2/build/start.asm.o",
-    "/home/lemur/Github/HexaneC2/core/build/corelib.a"
+    "/home/lemur/Github/HexaneC2/build/corelib.o"
   ]
 }
