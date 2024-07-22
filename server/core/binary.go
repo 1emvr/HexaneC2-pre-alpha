@@ -237,7 +237,7 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 	)
 	// fuck it. just build the implant with all components at once
 	// at least we can thread them so it'll be a bit quicker...
-	// GUUUUUUUHHHH...
+	// last chance..
 
 	errCh := make(chan error)
 	ctx, cancel := context.WithCancel(context.Background())
