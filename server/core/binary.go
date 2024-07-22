@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -227,7 +226,7 @@ func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []
 		definitions["DEBUG"] = nil
 	}
 
-	if command != h.CompilerCFG.Ar && command != h.CompilerCFG.Linker && command != h.CompilerCFG.Assembler {
+	if command != h.CompilerCFG.Linker && command != h.CompilerCFG.Assembler {
 		if h.ImplantCFG.ProfileTypeId == TRANSPORT_HTTP {
 			definitions["TRANSPORT_HTTP"] = nil
 
@@ -263,69 +262,38 @@ func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []
 	return nil
 }
 
-func (h *HexaneConfig) CompileFiles(compile *Object) error {
-	var (
-		err      error
-		flags    []string
-		includes []string
-	)
-
-	compile.OutputName = filepath.Join(BuildPath, compile.OutputName)
-
-	for _, src := range compile.Sources {
-		if err = SearchFile(compile.SourceDirectory, src); err != nil {
-			return err
-		}
-
-		srcFile := filepath.Join(compile.SourceDirectory, src)
-		if compile.Linker != "" {
-			flags = append(flags, "-T", compile.Linker)
-		}
-
-		switch path.Ext(filepath.Base(srcFile)) {
-		case ".cpp":
-			if err = h.CompileObject(h.CompilerCFG.Mingw, compile.Components, flags, includes, nil, compile.OutputName); err != nil {
-				return err
-			}
-		case ".asm":
-			flags = append(flags, "-f win64")
-			if err = h.CompileObject(h.CompilerCFG.Assembler, compile.Components, flags, nil, nil, compile.OutputName); err != nil {
-				return err
-			}
-		default:
-			return fmt.Errorf("cannot compile ")
-		}
-	}
-
-	return nil
-}
-
 func (h *HexaneConfig) ExecuteBuild(module *Object) error {
 	var flags []string
+
+	module.OutputName = filepath.Join(BuildPath, module.OutputName)
 
 	if module.Linker != "" {
 		flags = append(flags, "-T"+module.Linker)
 	}
 
 	switch module.Type {
-	case "dynamic library":
+	case "dynamic":
 		WrapMessage("DBG", "building dynamic library from json config")
+
 		flags = append(flags, "-shared")
 		return h.CompileObject(h.CompilerCFG.Linker, module.Components, flags, module.Includes, nil, module.OutputName+".dll")
 
 	case "executable":
 		WrapMessage("DBG", "building executable from json config")
+
 		flags = append(flags, h.CompilerCFG.Flags...)
 		return h.CompileObject(h.CompilerCFG.Mingw, module.Components, flags, module.Includes, nil, module.OutputName+".exe")
 
 	case "object":
 		WrapMessage("DBG", "building object file from json config")
+
 		flags = append(flags, h.CompilerCFG.Flags...)
 		return h.CompileObject(h.CompilerCFG.Mingw, module.Components, flags, module.Includes, h.CompilerCFG.Definitions, module.OutputName+".o")
 
 	case "resource":
-		module.OutputName = filepath.Join(BuildPath, module.OutputName)
-		cmd := fmt.Sprintf("%s -O coff %s -DRSRCDATA=\"%s\" -o %s", h.CompilerCFG.Windres, module.RsrcScript, rsrcData, module.OutputName)
+		WrapMessage("DBG", "building resource file from json config")
+
+		cmd := fmt.Sprintf("%s -O coff %s -DRSRCDATA=\"%s\" -o %s", h.CompilerCFG.Windres, module.RsrcScript, module.RsrcBinary, module.OutputName)
 		return h.RunCommand(cmd)
 
 	default:

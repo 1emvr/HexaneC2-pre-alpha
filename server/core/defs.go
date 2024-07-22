@@ -42,6 +42,7 @@ type Object struct {
 	OutputName           string
 	SourceDirectory      string
 	RsrcScript           string
+	RsrcBinary           string
 	Sources              []string
 	Includes             []string
 	Dependencies         []string
