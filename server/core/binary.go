@@ -17,6 +17,15 @@ func (h *HexaneConfig) StripSymbols(output string) error {
 	return h.RunCommand(h.Compiler.Strip + " " + output)
 }
 
+func (h *HexaneConfig) GetBuildType() string {
+
+	if h.UserConfig.Builder.Loader != nil {
+		return ".dll"
+	} else {
+		return ".bin"
+	}
+}
+
 func (h *HexaneConfig) GetTransportType() (string, error) {
 
 	switch h.Implant.ProfileTypeId {
@@ -26,15 +35,6 @@ func (h *HexaneConfig) GetTransportType() (string, error) {
 		return "TRANSPORT_PIPE", nil
 	default:
 		return "", fmt.Errorf("transport type was not defined")
-	}
-}
-
-func (h *HexaneConfig) GetBuildType() string {
-
-	if h.UserConfig.Builder.Loader != nil {
-		return ".dll"
-	} else {
-		return ".bin"
 	}
 }
 
@@ -317,7 +317,7 @@ func (h *HexaneConfig) BuildSources(module *Module) error {
 					flags = append(flags, h.Compiler.Flags...)
 					flags = append(flags, "-c")
 
-					err = h.CompileObject(h.Compiler.Mingw, obj, []string{target}, flags, module.Files.IncludeDirectories, nil)
+					err = h.CompileObject(h.Compiler.Mingw, obj, []string{target}, flags, module.Files.IncludeDirectories, module.Definitions)
 				}
 			}
 

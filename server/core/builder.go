@@ -25,11 +25,20 @@ var (
 )
 
 func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) *Module {
+	var (
+		err       error
+		transport string
+	)
+
+	if transport, err = h.GetTransportType(); err != nil {
+		return nil
+	}
 
 	module := &Module{
 		RootDirectory: config.Builder.RootDirectory,
 		OutputName:    config.Builder.OutputName,
 		LinkerScript:  config.Builder.LinkerScript,
+		Definitions:   map[string][]byte{transport: nil},
 
 		Files: &Sources{
 			Sources:            config.Builder.Sources,
