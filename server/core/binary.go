@@ -223,15 +223,6 @@ func (h *HexaneConfig) CompileObject(command, output string, targets, flags, inc
 		definitions["DEBUG"] = nil
 	}
 
-	if command != h.CompilerCFG.Linker && command != h.CompilerCFG.Assembler && command != h.CompilerCFG.Ar {
-		if h.ImplantCFG.ProfileTypeId == TRANSPORT_HTTP {
-			definitions["TRANSPORT_HTTP"] = nil
-
-		} else if h.ImplantCFG.ProfileTypeId == TRANSPORT_PIPE {
-			definitions["TRANSPORT_PIPE"] = nil
-		}
-	}
-
 	if includes != nil {
 		command += h.GenerateIncludes(includes)
 	}
@@ -246,8 +237,7 @@ func (h *HexaneConfig) CompileObject(command, output string, targets, flags, inc
 
 	if definitions != nil {
 		for k, v := range definitions {
-			def := map[string][]byte{k: v}
-			command += h.GenerateDefinitions(def)
+			command += h.GenerateDefinitions(map[string][]byte{k: v})
 		}
 	}
 
@@ -269,16 +259,21 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	defer cancel()
-	srcPath := filepath.Join(module.RootDirectory, "src")
 
+	srcPath := filepath.Join(module.RootDirectory, "src")
 	for _, src := range module.Sources {
 		wg.Add(1)
 
 		go func(src string) {
+			var (
+				flags     []string
+				transport string
+			)
 			defer wg.Done()
 
 			target := filepath.Join(srcPath, src)
 			obj := filepath.Join(BuildPath, src+".o")
+			defs := h.CompilerCFG.Definitions
 
 			select {
 			case <-ctx.Done():
@@ -287,17 +282,24 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 			default:
 				switch filepath.Ext(target) {
 				case ".asm":
-					flags := []string{"-f win64"}
+					flags = []string{"-f win64"}
 					err = h.CompileObject(h.CompilerCFG.Assembler, obj, []string{target}, flags, nil, nil)
 
 				case ".cpp":
-					flags := []string{"-c"}
+					flags = []string{"-c"}
 					flags = append(flags, h.CompilerCFG.Flags...)
 
 					if module.LinkSources {
 						flags = append(flags, "-T"+module.Linker)
 					}
-					err = h.CompileObject(h.CompilerCFG.Mingw, obj, []string{target}, flags, module.IncludeDirectories, h.CompilerCFG.Definitions)
+					if module.Implant {
+						if transport, err = h.GetTransportType(); err != nil {
+							break
+						}
+
+						defs = MergeMaps(defs, map[string][]byte{transport: nil})
+					}
+					err = h.CompileObject(h.CompilerCFG.Mingw, obj, []string{target}, flags, module.IncludeDirectories, defs)
 				}
 			}
 
@@ -364,7 +366,7 @@ func (h *HexaneConfig) ExecuteBuildType(module *Object) error {
 
 		module.OutputName += ".o"
 		flags = append(flags, h.CompilerCFG.Flags...)
-		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.IncludeDirectories, h.CompilerCFG.Definitions)
+		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.IncludeDirectories, module.Definitions)
 
 	case "resource":
 		WrapMessage("DBG", "building resource file from json config")

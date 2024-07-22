@@ -20,9 +20,7 @@ var (
 )
 
 func (h *HexaneConfig) BuildModule(module *Object) error {
-	var (
-		err error
-	)
+	var err error
 
 	WrapMessage("DBG", fmt.Sprintf("loading module config - %s", module.ConfigName))
 
@@ -67,6 +65,8 @@ func (h *HexaneConfig) BuildModule(module *Object) error {
 	if module.Dependencies != nil {
 		module.Components = append(module.Components, module.Dependencies...)
 	}
+
+	module.Definitions = h.CompilerCFG.Definitions
 
 	if len(module.Components) > 1 {
 		return h.ExecuteBuildType(module)

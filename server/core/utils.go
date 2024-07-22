@@ -170,6 +170,19 @@ func Clear() {
 	}
 }
 
+func MergeMaps(m1 map[string][]byte, m2 map[string][]byte) map[string][]byte {
+	buffer := make(map[string][]byte)
+
+	for k, v := range m1 {
+		buffer[k] = v
+	}
+	for k, v := range m2 {
+		buffer[k] = v
+	}
+
+	return buffer
+}
+
 func CreateCppArray(buffer []byte, length int) []byte {
 
 	array := "{"

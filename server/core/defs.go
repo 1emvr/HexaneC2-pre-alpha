@@ -43,8 +43,10 @@ type Object struct {
 	RootDirectory        string
 	Linker               string
 	LinkSources          bool
+	Implant              bool
 	RsrcScript           string
 	RsrcBinary           string
+	Definitions          map[string][]byte
 	IncludeDirectories   []string
 	Sources              []string
 	PreBuildDependencies []string

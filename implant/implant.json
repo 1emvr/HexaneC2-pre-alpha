@@ -4,6 +4,7 @@
   "IncludeDirectory": "/home/lemur/Github/HexaneC2/implant/include",
   "OutputName": "implant",
 
+  "Implant": true,
   "Linker": "implant.ld",
   "Sources": [
     "implant.cpp"

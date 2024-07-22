@@ -35,6 +35,17 @@ var ModuleStrings = []string{
 	"iphlpapi",
 }
 
+func (h *HexaneConfig) GetTransportType() (string, error) {
+	switch h.ImplantCFG.ProfileTypeId {
+	case TRANSPORT_HTTP:
+		return "TRANSPORT_HTTP", nil
+	case TRANSPORT_PIPE:
+		return "TRANSPORT_PIPE", nil
+	default:
+		return "", fmt.Errorf("transport type was not defined")
+	}
+}
+
 func GetModuleConfig(cfgName string) (*Object, error) {
 	var (
 		err    error
@@ -128,7 +139,7 @@ func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
 			"-fno-ident -fpack-struct=8 -falign-functions=1",
 			"-ffunction-sections -fdata-sections -falign-jumps=1 -w",
 			"-falign-labels=1 -fPIC",
-			"-Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections",
+			"-Wl,--no-seh,--enable-stdcall-fixup,--gc-sections",
 		}
 	}
 
