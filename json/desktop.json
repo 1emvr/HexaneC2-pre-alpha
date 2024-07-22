@@ -26,7 +26,7 @@
 	"Builder": {
 		"ImplantName": "test_implant",
 		"RootDirectory": "/home/lemur/Github/HexaneC2/core",
-		"Linker": "implant.ld",
+		"LinkerScript": "implant.ld",
 
 		"Sources": [
 			"implant.cpp", "cipher.cpp", "commands.cpp", "cruntime.cpp", "inject.cpp",
@@ -36,8 +36,8 @@
 
 		"Loader": {
 			"InjectionType": "threadless",
-			"Source": "/home/lemur/Github/HexaneC2/loader/dllmain.cpp",
-			"Linker": "/home/lemur/Github/HexaneC2/loader/loader.ld",
+			"LinkerScript": "/home/lemur/Github/HexaneC2/loader/loader.ld",
+			"MainFile": "/home/lemur/Github/HexaneC2/loader/dllmain.cpp",
 
 			"Config": {
 				"TargetProc": "flameshot.exe",

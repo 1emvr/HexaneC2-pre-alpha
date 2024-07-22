@@ -19,54 +19,33 @@ var (
 	HashStrings = path.Join(ConfigsPath, "strings.txt")
 )
 
-func (h *HexaneConfig) BuildModule(module *Object) error {
+func (h *HexaneConfig) BuildModule(builder *Builder) error {
 	var err error
 
-	WrapMessage("DBG", fmt.Sprintf("loading module config - %s", module.ConfigName))
-
-	if module.RootDirectory == "" {
+	if builder.RootDirectory == "" {
 		return fmt.Errorf("source directory is required")
 	}
 
-	if module.ObjectName == "" {
+	if builder.OutputName == "" {
 		return fmt.Errorf("output name is required")
 	}
 
-	if module.IncludeDirectories == nil {
-		module.IncludeDirectories = append(module.IncludeDirectories, module.RootDirectory+"/include")
+	if builder.Linker != "" {
+		builder.Linker = filepath.Join(builder.RootDirectory, builder.Linker)
 	}
 
-	if module.Linker != "" {
-		module.Linker = filepath.Join(module.RootDirectory, module.Linker)
-	}
-
-	if module.PreBuildDependencies != nil {
-		var dep *Object
-
-		for _, pre := range module.PreBuildDependencies {
-			if dep, err = GetModuleConfig(pre); err != nil {
-				return err
-			}
-			if err = h.BuildModule(dep); err != nil {
-				return err
-			}
-
-			module.Components = append(module.Components, dep.ObjectName)
-		}
-	}
-
-	if err = h.BuildSources(module); err != nil {
+	if err = h.BuildSources(builder); err != nil {
 		return err
 	}
 
-	if module.Dependencies != nil {
-		module.Components = append(module.Components, module.Dependencies...)
+	if builder.Objects.Dependencies != nil {
+		builder.Objects.Components = append(builder.Objects.Components, builder.Objects.Dependencies...)
 	}
 
-	if len(module.Components) > 1 {
-		return h.ExecuteBuildType(module)
+	if len(builder.Objects.Components) > 1 {
+		return h.ExecuteBuildType(builder)
 	} else {
-		module.ObjectName = module.Components[0]
+		builder.OutputName = builder.Objects.Components[0]
 		return nil
 	}
 }

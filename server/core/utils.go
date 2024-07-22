@@ -2,6 +2,7 @@ package core
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/bits"
@@ -168,6 +169,23 @@ func Clear() {
 	if err := command.Run(); err != nil {
 		panic(err)
 	}
+}
+
+func ReadJson(cfgPath string) *JsonConfig {
+	var (
+		err    error
+		buffer []byte
+		jsn    *JsonConfig
+	)
+
+	if buffer, err = os.ReadFile(cfgPath); err != nil {
+		return nil
+	}
+	if err = json.Unmarshal(buffer, &jsn); err != nil {
+		return nil
+	}
+
+	return jsn
 }
 
 func MergeMaps(m1 map[string][]byte, m2 map[string][]byte) map[string][]byte {
