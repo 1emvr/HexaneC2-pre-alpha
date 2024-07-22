@@ -4,13 +4,13 @@
   "OutputName": "implant",
 
   "Sources": [
-    "/home/lemur/Github/HexaneC2/implant/src/implant.cpp"
+    "implant.cpp"
   ],
   "PreBuildDependencies": [
     "/home/lemur/Github/HexaneC2/implant/src/start.asm"
   ],
   "Dependencies": [
-    "/home/lemur/Github/HexaneC2/implant/build/start.asm.o",
+    "/home/lemur/Github/HexaneC2/build/start.asm.o",
     "/home/lemur/Github/HexaneC2/core/build/corelib.a"
   ]
 }
