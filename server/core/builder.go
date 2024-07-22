@@ -14,6 +14,8 @@ var (
 	LogsPath    = path.Join(RootDirectory, "logs")
 	LoaderPath  = path.Join(RootDirectory, "loader")
 	ImplantPath = path.Join(CorePath, "implant")
+	HashHeader  = path.Join(CorePath, "include/names.hpp")
+	HashStrings = path.Join(ConfigsPath, "strings.txt")
 )
 
 func (h *HexaneConfig) BuildLoader(cfgName string) error {
