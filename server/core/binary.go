@@ -240,13 +240,12 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	defer cancel()
-
 	srcPath := filepath.Join(module.RootDirectory, "src")
+
 	for _, src := range module.Sources {
 		wg.Add(1)
 
 		go func(src string) {
-			var ()
 			defer wg.Done()
 
 			target := filepath.Join(srcPath, src)
