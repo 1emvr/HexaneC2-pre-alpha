@@ -32,6 +32,10 @@ func (h *HexaneConfig) BuildModule(module *Object) error {
 		return fmt.Errorf("output name is required")
 	}
 
+	if module.IncludeDirectories == nil {
+		module.IncludeDirectories = append(module.IncludeDirectories, module.RootDirectory+"/include")
+	}
+
 	if module.Linker != "" {
 		module.Linker = filepath.Join(module.RootDirectory, module.Linker)
 	}
@@ -51,15 +55,8 @@ func (h *HexaneConfig) BuildModule(module *Object) error {
 		}
 	}
 
-	if module.Type != "executable" {
-		if err = h.BuildSources(module); err != nil {
-			return err
-		}
-	} else {
-		for _, src := range module.Sources {
-			comp := filepath.Join(module.RootDirectory+"/src", src)
-			module.Components = append(module.Components, comp)
-		}
+	if err = h.BuildSources(module); err != nil {
+		return err
 	}
 
 	if module.Dependencies != nil {

@@ -2,10 +2,11 @@
   "Type": "static",
   "OutputName": "corelib",
   "RootDirectory": "/home/lemur/Github/HexaneC2/core",
-  "IncludeDirectory": "/home/lemur/Github/HexaneC2/core/include",
+  "IncludeDirectories": [
+    "/home/lemur/Github/HexaneC2/core/include"
+  ],
 
   "Linker": "corelib.ld",
-  "LinkSources": true,
   "Sources": [
     "cipher.cpp", "commands.cpp", "cruntime.cpp", "inject.cpp", "memory.cpp",
     "message.cpp", "network.cpp", "opsec.cpp", "parser.cpp", "process.cpp",
