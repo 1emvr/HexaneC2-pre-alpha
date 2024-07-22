@@ -37,16 +37,34 @@ type TableMap struct {
 }
 
 type Threadless struct {
-	ProcName   string
-	ModuleName string
-	FuncName   string
-	Execute    string
+	TargetProc   string
+	TargetModule string
+	TargetFunc   string
+	LoaderAsm    string
+	Execute      string
+}
+
+type Loader struct {
+	Type   string
+	Source string
+	Linker string
+	Config interface{}
+}
+
+type Builder struct {
+	ObjectName         string
+	RootDirectory      string
+	Linker             string
+	SourceDirectories  []string
+	IncludeDirectories []string
+	Sources            []string
+	Loader             *Loader
 }
 
 type Json struct {
 	Config  *JsonConfig
 	Network *JsonNetwork
-	Build   *JsonObject
+	Builder *Builder
 }
 
 type JsonConfig struct {

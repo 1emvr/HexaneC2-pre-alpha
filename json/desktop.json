@@ -10,30 +10,21 @@
 	"Network": {
 		"ProfileType": "http",
 		"Config": {
-	"Useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
-		"Address": "192.168.0.30",
-		"Port": 80,
+			"Useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+			"Address": "192.168.0.30",
+			"Port": 80,
 
-		"Endpoints": [
-			"/endpoint0","/endpoint1", "/endpoint2", "/endpoint3", "/endpoint4",
-			"/endpoint5", "/endpoint6", "/endpoint7", "/endpoint8", "/endpoint9"
-		]
+			"Endpoints": [
+				"/endpoint0","/endpoint1", "/endpoint2", "/endpoint3", "/endpoint4",
+				"/endpoint5", "/endpoint6", "/endpoint7", "/endpoint8", "/endpoint9"
+			]
 		}
-	
 	},
 
-	"Build": {
+	"Builder": {
 		"ObjectName": "test_implant",
-		"RootDirectory": "",
+		"RootDirectory": "/home/lemur/Github/HexaneC2/core",
 		"Linker": "implant.ld",
-
-		"SourceDirectores": [
-			"/home/lemur/Github/HexaneC2/core/src"
-		],
-
-		"IncludeDirectories": [
-			"/home/lemur/Github/HexaneC2/core/include"
-		],
 
 		"Sources": [
 			"implant.cpp", "cipher.cpp", "commands.cpp", "cruntime.cpp", "inject.cpp",
@@ -42,9 +33,9 @@
 		],
 
 		"Loader": {
+			"Type": "threadless",
 			"Source": "/home/lemur/Github/HexaneC2/loader/dllmain.cpp",
 			"Linker": "/home/lemur/Github/HexaneC2/loader/loader.ld",
-			"Type": "threadless",
 
 			"Config": {
 				"TargetProc": "flameshot.exe",
