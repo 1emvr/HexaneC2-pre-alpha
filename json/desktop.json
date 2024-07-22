@@ -1,5 +1,4 @@
 {
-
 	"Config": {
 		"Arch": "amd64",
 		"Debug": false,
@@ -15,34 +14,37 @@
 		"Port": 80,
 
 		"Endpoints": [
-			"/endpoint1", "/endpoint2", "/endpoint3", "/endpoint4", "/endpoint5"
+			"/endpoint0","/endpoint1", "/endpoint2", "/endpoint3", "/endpoint4",
+			"/endpoint5", "/endpoint6", "/endpoint7", "/endpoint8", "/endpoint9"
 		]
 	},
 
 	"Build": {
 		"ImplantName": "test_implant",
-		"RootDirectory": "/home/lemur/Github/HexaneC2/core",
 		"Linker": "implant.ld",
 
-		"Sources": [
-			"implant.cpp", "cipher.cpp", "commands.cpp", "cruntime.cpp", "inject.cpp", "memory.cpp", "message.cpp", 
-			"network.cpp", "opsec.cpp", "parser.cpp", "process.cpp", "stream.cpp", "utils.cpp", "start.asm"
+		"SourceDirectores": [
+			"/home/lemur/Github/HexaneC2/core"
 		],
-
 		"IncludeDirectories": [
 			"/home/lemur/Github/HexaneC2/core/include"
+		],
+		"Sources": [
+			"implant.cpp", "cipher.cpp", "commands.cpp", "cruntime.cpp", "inject.cpp",
+			"memory.cpp", "message.cpp", "network.cpp", "opsec.cpp", "parser.cpp",
+			"process.cpp", "stream.cpp", "utils.cpp", "start.asm"
 		],
 
 		"Loader": {
 			"Source": "/home/lemur/Github/HexaneC2/loader/dllmain.cpp",
-			"Injection": {
-				"Type": "Threadless",
-				"Config": {
-					"TargetFunc":"OpenFile",
-					"TargetModule":"kernel32.dll",
-					"LoaderAsm": "/home/lemur/Github/HexaneC2/inject/threadless/loader.asm",
-					"Execute":"/home/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp"
-				}
+			"Linker": "/home/lemur/Github/HexaneC2/loader/loader.ld",
+			"Type": "threadless",
+
+			"Config": {
+				"TargetFunc":"OpenFile",
+				"TargetModule":"kernel32.dll",
+				"LoaderAsm": "/home/lemur/Github/HexaneC2/inject/threadless/loader.asm",
+				"Execute":"/home/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp"
 			}
 		}
 	}
