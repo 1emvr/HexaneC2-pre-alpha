@@ -100,7 +100,10 @@ func (h *HexaneConfig) RunBuild() error {
 		}
 
 		WrapMessage("DBG", "generating loader dll")
-		if err = h.BuildModule(path.Join(LoaderPath, "loader.json")); err != nil {
+		if cfg, err = GetModuleConfig(path.Join(LoaderPath, "loader.json")); err != nil {
+			return err
+		}
+		if err = h.BuildModule(cfg); err != nil {
 			return err
 		}
 	}
