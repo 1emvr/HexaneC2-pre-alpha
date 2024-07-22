@@ -1,6 +1,6 @@
 {
   "Type": "static",
-  "OutputName": "corelib",
+  "OutputName": "corelib.a",
   "RootDirectory": "/home/lemur/Github/HexaneC2/core",
   "IncludeDirectories": [
     "/home/lemur/Github/HexaneC2/core/include"

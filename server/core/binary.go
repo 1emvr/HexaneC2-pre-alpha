@@ -326,8 +326,6 @@ func (h *HexaneConfig) ExecuteBuildType(module *Object) error {
 	switch module.Type {
 	case "static":
 		WrapMessage("DBG", "building static library from json config")
-
-		module.OutputName += ".a"
 		return h.RunCommand(h.CompilerCFG.Ar + " rcs " + module.OutputName + " " + strings.Join(module.Components, " "))
 
 	case "dynamic":
@@ -336,27 +334,22 @@ func (h *HexaneConfig) ExecuteBuildType(module *Object) error {
 		flags = append(flags, "-shared")
 		flags = append(flags, h.CompilerCFG.Flags...)
 
-		module.OutputName += ".dll"
 		return h.CompileObject(h.CompilerCFG.Linker, module.OutputName, module.Components, flags, module.IncludeDirectories, defs)
 
 	case "executable":
 		WrapMessage("DBG", "building executable from json config")
 
-		module.OutputName += ".exe"
 		flags = append(flags, h.CompilerCFG.Flags...)
 		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.IncludeDirectories, defs)
 
 	case "object":
 		WrapMessage("DBG", "building object file from json config")
 
-		module.OutputName += ".o"
 		flags = append(flags, h.CompilerCFG.Flags...)
 		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.IncludeDirectories, defs)
 
 	case "resource":
 		WrapMessage("DBG", "building resource file from json config")
-
-		module.OutputName += ".rs"
 		return h.RunCommand(h.CompilerCFG.Windres + " -O coff " + module.RsrcScript + " -DRSRCDATA=\"" + module.RsrcBinary + "\" -o " + module.OutputName)
 
 	default:
