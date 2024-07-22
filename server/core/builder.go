@@ -35,10 +35,10 @@ func (h *HexaneConfig) BuildModule(modCfg *Object) error {
 
 	if modCfg.PreBuildDependencies != nil {
 		for _, pre := range modCfg.PreBuildDependencies {
-
 			if dep, err = GetModuleConfig(pre); err != nil {
 				return err
 			}
+
 			if err = h.BuildModule(dep); err != nil {
 				return err
 			}
@@ -78,7 +78,7 @@ func (h *HexaneConfig) BuildModule(modCfg *Object) error {
 func (h *HexaneConfig) RunBuild() error {
 	var (
 		err error
-		cfg *Object
+		obj *Object
 	)
 
 	WrapMessage("DBG", "creating payload directory")
@@ -100,10 +100,10 @@ func (h *HexaneConfig) RunBuild() error {
 		if err.Error() == FileNotFound.Error() {
 
 			WrapMessage("DBG", "generating corelib\n")
-			if cfg, err = GetModuleConfig(path.Join(CorePath, "corelib.json")); err != nil {
+			if obj, err = GetModuleConfig(path.Join(CorePath, "corelib.json")); err != nil {
 				return err
 			}
-			if err = h.BuildModule(cfg); err != nil {
+			if err = h.BuildModule(obj); err != nil {
 				return err
 			}
 		} else {
@@ -112,10 +112,10 @@ func (h *HexaneConfig) RunBuild() error {
 	}
 
 	WrapMessage("DBG", "generating implant\n")
-	if cfg, err = GetModuleConfig(path.Join(ImplantPath, "implant.json")); err != nil {
+	if obj, err = GetModuleConfig(path.Join(ImplantPath, "implant.json")); err != nil {
 		return err
 	}
-	if err = h.BuildModule(cfg); err != nil {
+	if err = h.BuildModule(obj); err != nil {
 		return err
 	}
 
@@ -142,10 +142,10 @@ func (h *HexaneConfig) RunBuild() error {
 		}
 
 		WrapMessage("DBG", "generating loader dll")
-		if cfg, err = GetModuleConfig(path.Join(LoaderPath, "loader.json")); err != nil {
+		if obj, err = GetModuleConfig(path.Join(LoaderPath, "loader.json")); err != nil {
 			return err
 		}
-		if err = h.BuildModule(cfg); err != nil {
+		if err = h.BuildModule(obj); err != nil {
 			return err
 		}
 	}
