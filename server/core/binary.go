@@ -343,11 +343,8 @@ func (h *HexaneConfig) BuildSources(module *Module) error {
 		close(errCh)
 	}()
 
-	if err = <-errCh; err != nil {
-		return err
-	}
-
-	return nil
+	err = <-errCh
+	return err
 }
 
 func (h *HexaneConfig) ExecuteBuildType(module *Module) error {
