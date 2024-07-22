@@ -2,6 +2,7 @@ package core
 
 import (
 	"bufio"
+	"context"
 	"debug/pe"
 	"fmt"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 func (h *HexaneConfig) GenerateIncludes(incs []string) string {
@@ -211,12 +213,7 @@ func (h *HexaneConfig) GetEmbededStrings(strList []string) []byte {
 }
 
 func (h *HexaneConfig) CompileObject(command, output string, targets, flags, includes []string, definitions map[string][]byte) error {
-	var (
-		Command string
-		err     error
-	)
-
-	Command += command
+	var err error
 
 	if definitions == nil {
 		definitions = make(map[string][]byte)
@@ -236,29 +233,94 @@ func (h *HexaneConfig) CompileObject(command, output string, targets, flags, inc
 	}
 
 	if includes != nil {
-		Command += h.GenerateIncludes(includes)
+		command += h.GenerateIncludes(includes)
 	}
 
 	if targets != nil {
-		Command += h.GenerateArguments(targets)
+		command += h.GenerateArguments(targets)
 	}
 
 	if flags != nil {
-		Command += h.GenerateArguments(flags)
+		command += h.GenerateArguments(flags)
 	}
 
 	if definitions != nil {
 		for k, v := range definitions {
 			def := map[string][]byte{k: v}
-			Command += h.GenerateDefinitions(def)
+			command += h.GenerateDefinitions(def)
 		}
 	}
 
-	Command += fmt.Sprintf(" -o %s ", output)
+	command += fmt.Sprintf(" -o %s ", output)
 
-	if err = h.RunCommand(Command); err != nil {
+	if err = h.RunCommand(command); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (h *HexaneConfig) BuildSources(module *Object) error {
+	var (
+		err error
+		wg  sync.WaitGroup
+	)
+
+	errCh := make(chan error)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	defer cancel()
+	srcPath := filepath.Join(module.RootDirectory, "src")
+
+	for _, src := range module.Sources {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			target := filepath.Join(srcPath, src)
+			obj := filepath.Join(BuildPath, src+".o")
+
+			select {
+			case <-ctx.Done():
+				return
+
+			default:
+				switch filepath.Ext(target) {
+				case ".asm":
+					flags := []string{"-f win64"}
+					err = h.CompileObject(h.CompilerCFG.Assembler, obj, []string{target}, flags, nil, nil)
+
+				case ".cpp":
+					flags := []string{"-c"}
+					flags = append(flags, h.CompilerCFG.Flags...)
+					err = h.CompileObject(h.CompilerCFG.Mingw, obj, []string{target}, flags, module.IncludeDirectories, h.CompilerCFG.Definitions)
+				}
+			}
+
+			if err != nil {
+				select {
+				case errCh <- err:
+					cancel()
+				case <-ctx.Done():
+					err = nil
+				}
+
+				return
+			}
+
+			module.Components = append(module.Components, obj)
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
+
+	if err = <-errCh; err != nil {
+		return err
+	}
+
 	return nil
 }
 

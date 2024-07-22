@@ -20,7 +20,9 @@ var (
 )
 
 func (h *HexaneConfig) BuildModule(module *Object) error {
-	var err error
+	var (
+		err error
+	)
 
 	WrapMessage("DBG", fmt.Sprintf("loading module config - %s", module.ConfigName))
 
@@ -52,28 +54,8 @@ func (h *HexaneConfig) BuildModule(module *Object) error {
 		}
 	}
 
-	for _, src := range module.Sources {
-
-		srcPath := filepath.Join(module.RootDirectory, "src")
-		target := filepath.Join(srcPath, src)
-		obj := filepath.Join(BuildPath, src+".o")
-
-		switch filepath.Ext(target) {
-		case ".asm":
-			flags := []string{"-f win64"}
-			if err = h.CompileObject(h.CompilerCFG.Assembler, obj, []string{target}, flags, nil, nil); err != nil {
-				return err
-			}
-		case ".cpp":
-			flags := []string{"-c"}
-			flags = append(flags, h.CompilerCFG.Flags...)
-
-			if err = h.CompileObject(h.CompilerCFG.Mingw, obj, []string{target}, flags, module.IncludeDirectories, h.CompilerCFG.Definitions); err != nil {
-				return err
-			}
-		}
-
-		module.Components = append(module.Components, obj)
+	if err = h.BuildSources(module); err != nil {
+		return err
 	}
 
 	if module.Dependencies != nil {
