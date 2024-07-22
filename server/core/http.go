@@ -68,7 +68,7 @@ func (h *HexaneConfig) UpdateServerEndpoints(profile *Http) {
 	}
 }
 
-func (h *HexaneConfig) StartNewServer(profile *Http) {
+func (h *HexaneConfig) StartNewServer(profile *Http) error {
 	var err error
 
 	Handle := gin.Default()
@@ -84,11 +84,18 @@ func (h *HexaneConfig) StartNewServer(profile *Http) {
 		}
 	}()
 
+	if err != nil {
+		return err
+	}
+
 	h.AddServer(Handle, profile)
 	WrapMessage("INF", fmt.Sprintf("server started on %s:%d", profile.Address, profile.Port))
+
+	return nil
 }
 
-func (h *HexaneConfig) HttpServerHandler() {
+func (h *HexaneConfig) HttpServerHandler() error {
+	var err error
 
 	profile := h.UserConfig.Network.Config.(*Http)
 	serverExists := false
@@ -102,6 +109,9 @@ func (h *HexaneConfig) HttpServerHandler() {
 		}
 	}
 	if !serverExists {
-		h.StartNewServer(profile)
+		if err = h.StartNewServer(profile); err != nil {
+			return err
+		}
 	}
+	return nil
 }

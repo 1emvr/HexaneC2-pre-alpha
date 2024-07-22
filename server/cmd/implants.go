@@ -74,15 +74,17 @@ func InteractImplant(name string) error {
 func RemoveImplantByName(name string) error {
 	var (
 		Prev *core.HexaneConfig
-		Head = core.Payloads.Head
+		Head = core.HexanePayloads.Head
 	)
 
 	for Head != nil {
-		if strings.EqualFold(Head.ImplantName, name) {
+		if strings.EqualFold(Head.UserConfig.Builder.OutputName, name) {
 
 			if Head.Next == nil {
-				if Head.ServerCFG != nil && Head.ServerCFG.SigTerm != nil {
-					Head.ServerCFG.SigTerm <- true
+				Http := Head.UserConfig.Network.Config.(*core.Http)
+
+				if Http != nil && Http.SigTerm != nil {
+					Http.SigTerm <- true
 
 				} else {
 					core.WrapMessage("WRN", "A server/channel was not found for this implant. Implant will still be removed")
@@ -90,7 +92,7 @@ func RemoveImplantByName(name string) error {
 			}
 
 			if Prev == nil {
-				core.Payloads.Head = Head.Next
+				core.HexanePayloads.Head = Head.Next
 			} else {
 				Prev.Next = Head.Next
 			}
@@ -108,13 +110,13 @@ func RemoveImplantByName(name string) error {
 
 func ListImplants() error {
 	var (
-		Head    = core.Payloads.Head
 		address string
 		domain  string
-		profile string
+		netType string
 		proxy   string
 	)
 
+	Head := core.HexanePayloads.Head
 	formatter := color.New(color.FgCyan).SprintfFunc()
 
 	implantTable := table.New("gid", "pid", "name", "debug", "type", "address", "hostname", "domain", "proxy", "user", "active")
@@ -128,25 +130,31 @@ func ListImplants() error {
 			-- IMPLANTS -- 
 `)
 		for Head != nil {
-			if Head.ImplantCFG.ProfileTypeId == core.TRANSPORT_HTTP {
+			if Head.Implant.ProfileTypeId == core.TRANSPORT_HTTP {
+				config := Head.UserConfig.Network.Config.(*core.Http)
 
-				address = fmt.Sprintf("%s:%d", Head.ImplantCFG.Profile.(*core.HttpConfig).Address, Head.ImplantCFG.Profile.(*core.HttpConfig).Port)
-				profile = "http"
+				address = fmt.Sprintf("%s:%d", config.Address, config.Port)
+				netType = "http"
 
-				if Head.ImplantCFG.ProxyBool {
-					proxy = fmt.Sprintf("%s%s:%s", Head.ProxyCFG.Proto, Head.ProxyCFG.Address, Head.ProxyCFG.Port)
+				if Head.Implant.ProxyBool {
+					proxy = fmt.Sprintf("%s%s:%s", config.Proxy.Proto, config.Proxy.Address, config.Proxy.Port)
 				} else {
 					proxy = "null"
 				}
 
-				if Head.ImplantCFG.Domain != "" {
-					domain = Head.ImplantCFG.Domain
+				if config.Domain != "" {
+					domain = config.Domain
 				} else {
 					domain = "null"
 				}
+			} else if Head.Implant.ProfileTypeId == core.TRANSPORT_PIPE {
+				config := Head.UserConfig.Network.Config.(*core.Smb)
+
+				address = config.EgressPipename
+				netType = "smb"
 			}
 
-			implantTable.AddRow(Head.GroupId, Head.PeerId, Head.ImplantName, Head.CompilerCFG.Debug, profile, address, Head.ImplantCFG.Hostname, domain, proxy, Head.UserSession.Username, Head.Active)
+			implantTable.AddRow(Head.GroupId, Head.PeerId, Head.UserConfig.Builder.OutputName, Head.Compiler.Debug, netType, address, Head.Implant.Hostname, domain, proxy, Head.UserSession.Username, Head.Active)
 			Head = Head.Next
 		}
 	}

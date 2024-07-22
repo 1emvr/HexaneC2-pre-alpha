@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 var (
@@ -103,7 +104,7 @@ func ReadConfig(cfgPath string) error {
 	h = new(HexaneConfig)
 	WrapMessage("INF", fmt.Sprintf("loading %s", cfgPath))
 
-	if err = h.ReadJson(cfgPath); err != nil {
+	if err = h.ReadJson(filepath.Join("../json", cfgPath)); err != nil {
 		return err
 	}
 

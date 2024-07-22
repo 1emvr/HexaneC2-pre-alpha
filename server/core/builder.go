@@ -90,10 +90,16 @@ func (h *HexaneConfig) RunBuild() error {
 		return err
 	}
 
-	AddConfig(h)
-	go h.HttpServerHandler()
+	go func() {
+		err = h.HttpServerHandler()
+	}()
 
-	time.Sleep(time.Millisecond * 500)
+	time.Sleep(500 * time.Millisecond)
+	if err != nil {
+		return err
+	}
+
+	AddConfig(h)
 	WrapMessage("INF", fmt.Sprintf("%s ready!", h.UserConfig.Builder.OutputName))
 
 	return nil
