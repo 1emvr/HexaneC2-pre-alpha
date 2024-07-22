@@ -50,15 +50,16 @@ func (h *HexaneConfig) BuildModule(modCfg *Object) error {
 
 	for _, src := range modCfg.Sources {
 		comp := filepath.Join(modCfg.SourceDirectory, src)
+		out := filepath.Join(BuildPath, src+".o")
 
 		if filepath.Ext(comp) == ".asm" {
-			if err = h.CompileObject(h.CompilerCFG.Assembler, []string{comp}, nil, nil, nil, comp+".o"); err != nil {
+			if err = h.CompileObject(h.CompilerCFG.Assembler, []string{comp}, nil, nil, nil, out); err != nil {
 				return err
 			}
-			comp = comp + ".o"
 		}
-		WrapMessage("DBG", "adding component - "+comp)
-		modCfg.Components = append(modCfg.Components, comp)
+
+		WrapMessage("DBG", "adding component - "+out)
+		modCfg.Components = append(modCfg.Components, out)
 	}
 
 	if modCfg.Dependencies != nil {
