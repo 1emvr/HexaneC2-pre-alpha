@@ -35,11 +35,19 @@
 		],
 		"IncludeDirectories": [
 			"/home/lemur/Github/HexaneC2/core/include"
-    ]
-	},
-
-	"Injection": {
-		"Type": "Threadless"
+		],
+		"Loader": {
+			"Source": "/home/lemur/Github/HexaneC2/loader/dllmain.cpp",
+			"Injection": {
+				"Type": "Threadless",
+				"Config": {
+					"TargetFunc":"OpenFile",
+					"TargetModule":"kernel32.dll",
+					"LoaderAsm": "/home/lemur/Github/HexaneC2/inject/loader.asm",
+					"Execute":"/home/lemur/Github/HexaneC2/inject/OpenFileExecute.cpp"
+				}
+			}
+		}
 	}
 }
 

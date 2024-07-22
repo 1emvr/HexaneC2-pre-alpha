@@ -51,5 +51,6 @@ set(MAIN_FILES
         "${LOADER}/src/OpenFileExecute.cpp"
         "${IMPLANT}/src/implant.cpp"
         mods/src/EnumDotNetProcesses.cpp
+        core/src/inject.cpp
 )
 add_executable(Hexane-Implant ${MAIN_FILES} ${INCLUDES})
