@@ -25,13 +25,6 @@ func (h *HexaneConfig) BuildModule(modCfg *Object) error {
 		err error
 	)
 
-	if modCfg.OutputDir != "" {
-		modCfg.OutputDir = h.Compiler.BuildDirectory
-	} else {
-		if err = CreateTemp(modCfg.OutputDir); err != nil {
-			return err
-		}
-	}
 	/*
 		sources should be compiled together as one
 		pre-builds should be compiled separately with their own sources and returned an object
@@ -45,11 +38,11 @@ func (h *HexaneConfig) BuildModule(modCfg *Object) error {
 func (h *HexaneConfig) RunBuild() error {
 	var (
 		err error
-		cfg *ModuleConfig
+		cfg *Object
 	)
 
 	WrapMessage("DBG", "creating payload directory")
-	if err = os.MkdirAll(h.Compiler.BuildDirectory, os.ModePerm); err != nil {
+	if err = os.MkdirAll(h.CompilerCFG.BuildDirectory, os.ModePerm); err != nil {
 		return err
 	}
 
@@ -92,20 +85,19 @@ func (h *HexaneConfig) RunBuild() error {
 	}
 
 	WrapMessage("DBG", "extracting shellcode")
-	if err = h.CopySectionData(path.Join(ImplantPath, "build")+"/implant.exe", path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
+	if err = h.CopySectionData(path.Join(ImplantPath, "build")+"/implant.exe", path.Join(h.CompilerCFG.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
 		return err
 	}
 
-	// generate injectlib + loader
-	if h.Implant.Injection != nil {
+	if h.ImplantCFG.Injection != nil {
 
 		WrapMessage("DBG", "generating injectlib\n")
-		if err = h.BuildModule(h.Implant.Injection.Config); err != nil {
+		if err = h.BuildModule(h.ImplantCFG.Injection.Object); err != nil {
 			return err
 		}
 
 		WrapMessage("DBG", "embedding injectlib config")
-		if err = h.EmbedSectionData(path.Join(h.Compiler.BuildDirectory, h.Implant.Injection.Config.OutputName), ".text$F", h.ConfigBytes); err != nil {
+		if err = h.EmbedSectionData(path.Join(h.CompilerCFG.BuildDirectory, h.ImplantCFG.Injection.Object.OutputName), ".text$F", h.ConfigBytes); err != nil {
 			return err
 		}
 

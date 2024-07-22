@@ -112,16 +112,11 @@ type ImplantConfig struct {
 	Profile       any
 	ProfileTypeId uint32
 	CurrentTaskId uint32
-	PeerId        uint32
 	IngressPipe   string
 	EgressPeer    string
 	EgressPipe    string
-	ConfigBytes   []byte
 	LoadedModules []string
-	Shellcode     []byte
-	Loader        []byte
 
-	Injection    *Injection
 	Hostname     string
 	Domain       string
 	WorkingHours string
@@ -129,6 +124,8 @@ type ImplantConfig struct {
 	Jitter       uint32
 	Killdate     int64
 	ProxyBool    bool
+
+	Injection *Injection
 }
 
 type CompilerConfig struct {
@@ -158,24 +155,23 @@ type ServerConfig struct {
 }
 
 type HexaneConfig struct {
-	GroupId     int
-	PeerId      uint32
-	Payload     string
-	ImplantName string
-	TaskCounter int
-	Mu          sync.Mutex
+	ImplantName   string
+	GroupId       int
+	CurrentTaskId int
+	PeerId        uint32
+	Mu            sync.Mutex
 
 	Key         []byte
+	Shellcode   []byte
 	ConfigBytes []byte
 	Components  []string
-	Shellcode   string
 	Active      bool
 	BuildType   string
 
-	ImplantCfg  *ImplantConfig
-	ProxyCfg    *ProxyConfig
-	CompilerCfg *CompilerConfig
-	ServerCfg   *ServerConfig
+	ImplantCFG  *ImplantConfig
+	CompilerCFG *CompilerConfig
+	ServerCFG   *ServerConfig
+	ProxyCFG    *ProxyConfig
 	UserSession *HexaneSession
 	Next        *HexaneConfig
 }

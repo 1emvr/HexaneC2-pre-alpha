@@ -196,9 +196,9 @@ func (h *HexaneConfig) GetEmbededStrings(strList []string) []byte {
 
 	stream.PackString(string(h.Key))
 
-	if h.Implant.ProfileTypeId == TRANSPORT_HTTP {
+	if h.ImplantCFG.ProfileTypeId == TRANSPORT_HTTP {
 		stream.PackDword(1)
-	} else if h.Implant.ProfileTypeId == TRANSPORT_PIPE {
+	} else if h.ImplantCFG.ProfileTypeId == TRANSPORT_PIPE {
 		stream.PackDword(0)
 	}
 
@@ -223,15 +223,15 @@ func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []
 		definitions = make(map[string][]byte)
 	}
 
-	if h.Compiler.Debug {
+	if h.CompilerCFG.Debug {
 		definitions["DEBUG"] = nil
 	}
 
-	if command != h.Compiler.Ar && command != h.Compiler.Linker && command != h.Compiler.Assembler {
-		if h.Implant.ProfileTypeId == TRANSPORT_HTTP {
+	if command != h.CompilerCFG.Ar && command != h.CompilerCFG.Linker && command != h.CompilerCFG.Assembler {
+		if h.ImplantCFG.ProfileTypeId == TRANSPORT_HTTP {
 			definitions["TRANSPORT_HTTP"] = nil
 
-		} else if h.Implant.ProfileTypeId == TRANSPORT_PIPE {
+		} else if h.ImplantCFG.ProfileTypeId == TRANSPORT_PIPE {
 			definitions["TRANSPORT_PIPE"] = nil
 		}
 	}
@@ -270,7 +270,7 @@ func (h *HexaneConfig) CompileFile(srcFile string, outFile string, linker string
 	)
 
 	includes = append(includes, "../")
-	flags = append(h.Compiler.Flags, "-c")
+	flags = append(h.CompilerCFG.Flags, "-c")
 
 	if linker != "" {
 		flags = append(flags, "-T", linker)
@@ -278,53 +278,49 @@ func (h *HexaneConfig) CompileFile(srcFile string, outFile string, linker string
 
 	switch path.Ext(filepath.Base(srcFile)) {
 	case ".cpp":
-		return h.CompileObject(h.Compiler.Mingw, []string{srcFile}, flags, includes, nil, outFile)
+		return h.CompileObject(h.CompilerCFG.Mingw, []string{srcFile}, flags, includes, nil, outFile)
 	case ".asm":
-		return h.CompileObject(h.Compiler.Assembler, []string{srcFile}, []string{"-f win64"}, nil, nil, outFile)
+		return h.CompileObject(h.CompilerCFG.Assembler, []string{srcFile}, []string{"-f win64"}, nil, nil, outFile)
 	default:
 		return fmt.Errorf("cannot compile " + path.Ext(srcFile) + " files")
 	}
 }
 
-func (h *HexaneConfig) ExecuteBuild(modCfg *ModuleConfig) error {
+func (h *HexaneConfig) ExecuteBuild(module *Object) error {
 	var flags []string
 
-	if modCfg.Linker != "" {
-		flags = append(flags, "-T"+modCfg.Linker)
+	if module.Linker != "" {
+		flags = append(flags, "-T"+module.Linker)
 	}
 
-	switch modCfg.Type {
-	case "static library":
-		WrapMessage("DBG", "building static library from json config")
-		return h.RunCommand(h.Compiler.Ar + " crf " + modCfg.OutputName + ".a " + strings.Join(modCfg.Components, " "))
-
+	switch module.Type {
 	case "dynamic library":
 		WrapMessage("DBG", "building dynamic library from json config")
 		flags = append(flags, "-shared")
-		return h.CompileObject(h.Compiler.Linker, modCfg.Components, flags, modCfg.Includes, nil, modCfg.OutputName+".dll")
+		return h.CompileObject(h.CompilerCFG.Linker, module.Components, flags, module.Includes, nil, module.OutputName+".dll")
 
 	case "executable":
 		WrapMessage("DBG", "building executable from json config")
-		flags = append(flags, h.Compiler.Flags...)
-		return h.CompileObject(h.Compiler.Mingw, modCfg.Components, flags, modCfg.Includes, nil, modCfg.OutputName+".exe")
+		flags = append(flags, h.CompilerCFG.Flags...)
+		return h.CompileObject(h.CompilerCFG.Mingw, module.Components, flags, module.Includes, nil, module.OutputName+".exe")
 
 	case "object":
 		WrapMessage("DBG", "building object file from json config")
-		flags = append(flags, h.Compiler.Flags...)
-		return h.CompileObject(h.Compiler.Mingw, modCfg.Components, flags, modCfg.Includes, h.Compiler.Definitions, modCfg.OutputName+".o")
+		flags = append(flags, h.CompilerCFG.Flags...)
+		return h.CompileObject(h.CompilerCFG.Mingw, module.Components, flags, module.Includes, h.CompilerCFG.Definitions, module.OutputName+".o")
 
 	default:
-		return fmt.Errorf("unknown build type: %s", modCfg.Type)
+		return fmt.Errorf("unknown build type: %s", module.Type)
 	}
 }
 
 func (h *HexaneConfig) RunWindres(rsrcObj, rsrcData string) error {
-	cmd := fmt.Sprintf("%s -O coff %s -DRSRCDATA=\"%s\" -o %s", h.Compiler.Windres, RsrcScript, rsrcData, rsrcObj)
+	cmd := fmt.Sprintf("%s -O coff %s -DRSRCDATA=\"%s\" -o %s", h.CompilerCFG.Windres, RsrcScript, rsrcData, rsrcObj)
 	return h.RunCommand(cmd)
 }
 
 func (h *HexaneConfig) StripSymbols(output string) error {
-	return h.RunCommand(h.Compiler.Strip + " " + output)
+	return h.RunCommand(h.CompilerCFG.Strip + " " + output)
 }
 
 func (h *HexaneConfig) RunCommand(cmd string) error {
@@ -335,7 +331,7 @@ func (h *HexaneConfig) RunCommand(cmd string) error {
 		err     error
 	)
 
-	LogName = filepath.Join(LogsPath, strconv.Itoa(int(h.Implant.PeerId))+"-error.log")
+	LogName = filepath.Join(LogsPath, strconv.Itoa(int(h.PeerId))+"-error.log")
 	if Log, err = os.Create(LogName); err != nil {
 		return err
 	}
