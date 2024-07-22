@@ -274,7 +274,7 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 	for _, src := range module.Sources {
 		wg.Add(1)
 
-		go func() {
+		go func(src string) {
 			defer wg.Done()
 
 			target := filepath.Join(srcPath, src)
@@ -301,15 +301,15 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 				select {
 				case errCh <- err:
 					cancel()
+
 				case <-ctx.Done():
 					err = nil
 				}
-
 				return
 			}
 
 			module.Components = append(module.Components, obj)
-		}()
+		}(src)
 	}
 
 	go func() {
