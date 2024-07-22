@@ -259,13 +259,13 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 				switch filepath.Ext(target) {
 				case ".asm":
 					obj = module.OutputName
-					flags = []string{"-f win64"}
+					flags = append(flags, "-f win64")
 
 					err = h.CompileObject(h.CompilerCFG.Assembler, obj, []string{target}, flags, nil, nil)
 
 				case ".cpp":
-					flags = []string{"-c"}
 					flags = append(flags, h.CompilerCFG.Flags...)
+					flags = append(flags, "-c")
 
 					err = h.CompileObject(h.CompilerCFG.Mingw, obj, []string{target}, flags, module.IncludeDirectories, nil)
 				}

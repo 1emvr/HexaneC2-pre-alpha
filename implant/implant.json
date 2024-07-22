@@ -1,13 +1,15 @@
 {
   "Type": "object",
   "RootDirectory": "/home/lemur/Github/HexaneC2/implant",
-  "IncludeDirectory": "/home/lemur/Github/HexaneC2/implant/include",
   "OutputName": "implant.exe",
   "Implant": true,
 
   "Linker": "implant.ld",
   "Sources": [
     "implant.cpp"
+  ],
+  "IncludeDirectories": [
+    "/home/lemur/Github/HexaneC2/implant/include"
   ],
   "PreBuildDependencies": [
     "/home/lemur/Github/HexaneC2/implant/start.json"
