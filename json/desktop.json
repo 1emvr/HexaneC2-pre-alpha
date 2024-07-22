@@ -24,7 +24,7 @@
 		"Linker": "implant.ld",
 
 		"SourceDirectores": [
-			"/home/lemur/Github/HexaneC2/core"
+			"/home/lemur/Github/HexaneC2/core/src"
 		],
 		"IncludeDirectories": [
 			"/home/lemur/Github/HexaneC2/core/include"
