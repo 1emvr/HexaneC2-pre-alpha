@@ -263,17 +263,19 @@ func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []
 	return nil
 }
 
-func (h *HexaneConfig) CompileFile(srcFile, outFile, includes, linker string) error {
+func (h *HexaneConfig) CompileFile(srcFile string, outFile string, includes []string, linker string) error {
 	var flags = h.Compiler.Flags
+
+	includes = append(includes, "../")
+	flags = append(flags, "-c")
 
 	if linker != "" {
 		flags = append(flags, "-T", linker)
 	}
 
-	switch path.Ext(srcFile) {
+	switch path.Ext(filepath.Base(srcFile)) {
 	case ".cpp":
-		flags = append(flags, "-c")
-		return h.CompileObject(h.Compiler.Mingw, []string{srcFile}, flags, []string{RootDirectory, includes}, nil, outFile)
+		return h.CompileObject(h.Compiler.Mingw, []string{srcFile}, flags, includes, nil, outFile)
 	case ".asm":
 		return h.CompileObject(h.Compiler.Assembler, []string{srcFile}, []string{"-f win64"}, nil, nil, outFile)
 	default:
@@ -282,34 +284,35 @@ func (h *HexaneConfig) CompileFile(srcFile, outFile, includes, linker string) er
 	}
 }
 
-func (h *HexaneConfig) ExecuteBuild(jsonCfg *Module, cfgName string, components []string, includes []string) error {
+func (h *HexaneConfig) ExecuteBuild(modCfg *ModuleConfig) error {
 	var flags []string
 
-	switch jsonCfg.Type {
+	switch modCfg.Type {
 	case "static":
-		WrapMessage("DBG", "building static library from config json: "+cfgName)
-		return h.RunCommand(h.Compiler.Ar + " crf " + path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".a") + " " + strings.Join(components, " "))
+		WrapMessage("DBG", "building static library from json config")
+		return h.RunCommand(h.Compiler.Ar + " crf " + modCfg.OutputName + " " + strings.Join(modCfg.Components, " "))
 
 	case "dynamic":
-		WrapMessage("DBG", "building dynamic library from config json: "+cfgName)
-		return h.CompileObject(h.Compiler.Linker+" -shared", components, nil, includes, nil, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".dll"))
+		WrapMessage("DBG", "building dynamic library from json config")
+		flags = append(flags, "-shared")
+		return h.CompileObject(h.Compiler.Linker, modCfg.Components, flags, modCfg.Includes, nil, modCfg.OutputName+".dll")
 
 	case "executable":
-		WrapMessage("DBG", "building executable from config json: "+cfgName)
-		return h.CompileObject(h.Compiler.Linker, components, nil, includes, nil, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".exe"))
+		WrapMessage("DBG", "building executable from json config")
+		return h.CompileObject(h.Compiler.Linker, modCfg.Components, flags, modCfg.Includes, nil, modCfg.OutputName+".exe")
 
 	case "object":
-		WrapMessage("DBG", "building object file from config json: "+cfgName)
+		WrapMessage("DBG", "building object file from json config")
 		flags = append(flags, " -c ")
 
-		if jsonCfg.Linker != "" {
-			flags = append(flags, " -T "+path.Join(jsonCfg.RootDir, jsonCfg.Linker))
+		if modCfg.Linker != "" {
+			flags = append(flags, " -T "+modCfg.Linker)
 		}
 
-		return h.CompileObject(h.Compiler.Linker, components, flags, includes, h.Compiler.Definitions, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".o"))
+		return h.CompileObject(h.Compiler.Linker, modCfg.Components, flags, modCfg.Includes, h.Compiler.Definitions, modCfg.OutputName+".o")
 
 	default:
-		return fmt.Errorf("unknown build type: %s", jsonCfg.Type)
+		return fmt.Errorf("unknown build type: %s", modCfg.Type)
 	}
 }
 

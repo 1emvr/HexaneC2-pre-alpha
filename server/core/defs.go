@@ -47,6 +47,7 @@ type ModuleConfig struct {
 	Includes             []string
 	Dependencies         []string
 	PreBuildDependencies []string
+	Components           []string
 }
 
 type Config struct {
