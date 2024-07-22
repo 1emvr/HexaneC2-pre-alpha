@@ -143,12 +143,12 @@ func (h *HexaneConfig) RunBuild() error {
 	}
 
 	WrapMessage("DBG", "embedding implant config data")
-	if err = h.EmbedSectionData(path.Join(h.Compiler.BuildDirectory, "build")+"/implant.o", ".text$F", h.ConfigBytes); err != nil {
+	if err = h.EmbedSectionData(path.Join(ImplantPath, "build")+"/implant.exe", ".text$F", h.ConfigBytes); err != nil {
 		return err
 	}
 
 	WrapMessage("DBG", "extracting shellcode")
-	if err = h.CopySectionData(path.Join(h.Compiler.BuildDirectory, "build")+"/implant.o", path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
+	if err = h.CopySectionData(path.Join(ImplantPath, "build")+"/implant.exe", path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
 		return err
 	}
 
