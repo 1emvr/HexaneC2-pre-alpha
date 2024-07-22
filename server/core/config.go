@@ -1,6 +1,7 @@
 package core
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 var (
 	Debug        = false
 	ShowCommands = false
+	ShowConfigs  = false
 
 	Cb             = make(chan Callback)
 	HexanePayloads = new(Payloads)
@@ -46,9 +48,52 @@ func (h *HexaneConfig) GenerateConfigBytes() error {
 	return nil
 }
 
+func (tc *TypedConfig) UnmarshalJSON(data []byte) error {
+	// Temporary struct to get the type first
+	var temp struct {
+		Type   string          `json:"Type"`
+		Config json.RawMessage `json:"Config"`
+	}
+
+	if err := json.Unmarshal(data, &temp); err != nil {
+		return err
+	}
+
+	tc.Type = temp.Type
+
+	// Switch based on the type to unmarshal into the correct struct
+	switch tc.Type {
+	case "http":
+		var httpConfig Http
+		if err := json.Unmarshal(temp.Config, &httpConfig); err != nil {
+			return err
+		}
+		tc.Config = &httpConfig
+
+	case "smb":
+		var smbConfig Smb
+		if err := json.Unmarshal(temp.Config, &smbConfig); err != nil {
+			return err
+		}
+		tc.Config = &smbConfig
+
+	case "threadless":
+		var loaderConfig Loader
+		if err := json.Unmarshal(temp.Config, &loaderConfig); err != nil {
+			return err
+		}
+		tc.Config = &loaderConfig
+
+	default:
+		return fmt.Errorf("unknown config type: %s", tc.Type)
+	}
+
+	return nil
+}
+
 func (h *HexaneConfig) CreateConfig() {
 
-	WrapMessage("INF", "generating config for "+h.Compiler.FileExtension)
+	WrapMessage("INF", "generating config for "+h.GetBuildType())
 
 	h.Compiler = new(Compiler)
 	h.Implant = new(Implant)
@@ -111,14 +156,16 @@ func ReadConfig(cfgPath string) error {
 	h.CreateConfig()
 	h.PeerId = GeneratePeerId()
 
-	if h.Implant.Hostname == "" {
+	if h.UserConfig.Config.Hostname == "" {
 		return fmt.Errorf("config:: - a hostname must be provided")
 	}
 
 	switch h.UserConfig.Network.ProfileType {
 	case "http":
-
-		hNet := h.UserConfig.Network.Config.(*Http)
+		hNet, ok := h.UserConfig.Network.Config.(*Http)
+		if !ok {
+			return fmt.Errorf("network::http - incorrect type assertion")
+		}
 		if hNet.Address == "" {
 			return fmt.Errorf("network::http - ip address must be specified")
 		}
@@ -128,14 +175,15 @@ func ReadConfig(cfgPath string) error {
 		if hNet.Endpoints == nil {
 			return fmt.Errorf("network::http - at least 1 http endpoint must be specified")
 		}
-
 		if hNet.Useragent == "" {
 			hNet.Useragent = Useragent
 		}
 
 	case "smb":
-
-		hNet := h.UserConfig.Network.Config.(*Smb)
+		hNet, ok := h.UserConfig.Network.Config.(*Smb)
+		if !ok {
+			return fmt.Errorf("network::smb - incorrect type assertion")
+		}
 		if hNet.EgressPeer == "" {
 			return fmt.Errorf("network::smb - peer must have it's parent node name specified")
 		}
@@ -144,11 +192,7 @@ func ReadConfig(cfgPath string) error {
 		return fmt.Errorf("network:: - unknown network profile type")
 	}
 
-	h.Implant = new(Implant)
-	h.Compiler = new(Compiler)
-
 	if h.UserConfig.Builder != nil {
-
 		if h.UserConfig.Builder.Files.Sources == nil {
 			return fmt.Errorf("implant::builder - builder must specify source files")
 		}

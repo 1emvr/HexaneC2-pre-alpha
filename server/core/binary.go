@@ -29,6 +29,15 @@ func (h *HexaneConfig) GetTransportType() (string, error) {
 	}
 }
 
+func (h *HexaneConfig) GetBuildType() string {
+
+	if h.UserConfig.Builder.Loader != nil {
+		return ".dll"
+	} else {
+		return ".bin"
+	}
+}
+
 func (h *HexaneConfig) GetEmbededStrings(strList []string) []byte {
 
 	stream := new(Stream)

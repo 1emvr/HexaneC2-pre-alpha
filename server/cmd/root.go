@@ -9,8 +9,6 @@ import (
 	"strings"
 )
 
-var ()
-
 var banner = `
 ██╗  ██╗███████╗██╗  ██╗ █████╗ ███╗   ██╗███████╗     ██████╗██████╗ 
 ██║  ██║██╔════╝╚██╗██╔╝██╔══██╗████╗  ██║██╔════╝    ██╔════╝╚════██╗
@@ -28,10 +26,12 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&core.Debug, "debug", "d", false, "debug mode")
 	rootCmd.PersistentFlags().BoolVarP(&core.ShowCommands, "show-commands", "c", false, "debug command mode")
+	rootCmd.PersistentFlags().BoolVarP(&core.ShowConfigs, "show-configs", "j", false, "debug json configs")
 	rootCmd.AddCommand(Implants)
 }
 
 func CallbackListener(cb chan core.Callback) {
+
 	for {
 		select {
 		case m := <-cb:
@@ -55,6 +55,7 @@ func Run() {
 	)
 
 	fmt.Println(banner)
+	core.Cb = make(chan core.Callback)
 
 	go CallbackListener(core.Cb)
 	defer close(core.Cb)
@@ -69,6 +70,9 @@ func Run() {
 	}
 	if core.ShowCommands {
 		core.WrapMessage("INF", "running with command output")
+	}
+	if core.ShowConfigs {
+		core.WrapMessage("INF", "running with json config output")
 	}
 
 	for {

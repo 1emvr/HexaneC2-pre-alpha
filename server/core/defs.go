@@ -26,6 +26,11 @@ type Callback struct {
 	Msg     string
 }
 
+type TypedConfig struct {
+	Type   string
+	Config interface{}
+}
+
 type Stream struct {
 	Buffer []byte
 	Length int
