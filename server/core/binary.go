@@ -275,25 +275,28 @@ func (h *HexaneConfig) ExecuteBuild(module *Object) error {
 	case "dynamic":
 		WrapMessage("DBG", "building dynamic library from json config")
 
+		module.OutputName += ".dll"
 		flags = append(flags, "-shared")
-		return h.CompileObject(h.CompilerCFG.Linker, module.Components, flags, module.Includes, nil, module.OutputName+".dll")
+		return h.CompileObject(h.CompilerCFG.Linker, module.Components, flags, module.Includes, nil, module.OutputName)
 
 	case "executable":
 		WrapMessage("DBG", "building executable from json config")
 
+		module.OutputName += ".exe"
 		flags = append(flags, h.CompilerCFG.Flags...)
-		return h.CompileObject(h.CompilerCFG.Mingw, module.Components, flags, module.Includes, nil, module.OutputName+".exe")
+		return h.CompileObject(h.CompilerCFG.Mingw, module.Components, flags, module.Includes, nil, module.OutputName)
 
 	case "object":
 		WrapMessage("DBG", "building object file from json config")
 
+		module.OutputName += ".o"
 		flags = append(flags, h.CompilerCFG.Flags...)
-		return h.CompileObject(h.CompilerCFG.Mingw, module.Components, flags, module.Includes, h.CompilerCFG.Definitions, module.OutputName+".o")
+		return h.CompileObject(h.CompilerCFG.Mingw, module.Components, flags, module.Includes, h.CompilerCFG.Definitions, module.OutputName)
 
 	case "resource":
 		WrapMessage("DBG", "building resource file from json config")
 
-		module.OutputName = filepath.Join(BuildPath, module.OutputName)
+		module.OutputName += ".rs"
 		cmd := fmt.Sprintf("%s -O coff %s -DRSRCDATA=\"%s\" -o %s", h.CompilerCFG.Windres, module.RsrcScript, module.RsrcBinary, module.OutputName)
 		return h.RunCommand(cmd)
 

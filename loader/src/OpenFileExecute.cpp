@@ -4,7 +4,7 @@
 EXTERN_C VOID Execute() {
 
     OFSTRUCT ofInfo = { };
-    HFILE File  = OpenFile("document.txt", &ofInfo, OF_CREATE);
+    HFILE File  = OpenFile("doesnotexist.txt", &ofInfo, OF_CREATE);
 
     CloseHandle(RCAST(HANDLE, File));
 }
