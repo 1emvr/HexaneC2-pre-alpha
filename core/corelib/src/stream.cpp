@@ -21,7 +21,7 @@ namespace Stream {
         buffer[3] = (value) & 0xFF;
     }
 
-    uint32_t ExtractU32 (BYTE CONST *Buffer) {
+    UINT32 ExtractU32 (BYTE CONST *Buffer) {
         return Buffer[0] | (Buffer[1] << 8) | (Buffer[2] << 16) | (Buffer[3] <<24);
     }
 

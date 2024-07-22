@@ -26,14 +26,8 @@ func (h *HexaneConfig) BuildModule(modCfg *ModuleConfig) error {
 		target string
 	)
 
-	target = filepath.Join(modCfg.OutputDir, modCfg.OutputName)
-
-	if modCfg.RootDir == "" || modCfg.Sources == nil {
+	if modCfg.RootDir == "" {
 		return fmt.Errorf("root directory needs provided")
-	}
-
-	if modCfg.Sources == nil {
-		return fmt.Errorf("source files need to be provided")
 	}
 
 	if modCfg.Linker != "" {
@@ -48,66 +42,57 @@ func (h *HexaneConfig) BuildModule(modCfg *ModuleConfig) error {
 		modCfg.OutputDir = h.Compiler.BuildDirectory
 	}
 
+	target = filepath.Join(modCfg.OutputDir, modCfg.OutputName)
 	modCfg.OutputName = filepath.Join(modCfg.OutputDir, modCfg.OutputName)
 
-	WrapMessage("DBG", "adding external dependencies to "+target)
-	if modCfg.Dependencies != nil {
-		for _, dep := range modCfg.Dependencies {
-
-			WrapMessage("DBG", " - "+dep)
-			modCfg.Components = append(modCfg.Components, dep)
-		}
-	}
-
 	if modCfg.PreBuildDependencies != nil {
-		var pre *ModuleConfig
-
 		WrapMessage("DBG", "pre-building dependencies for "+target)
-		for _, cfg := range modCfg.PreBuildDependencies {
-			WrapMessage("DBG", " - "+cfg)
+		var linker string
 
-			if pre, err = GetModuleConfig(cfg); err != nil {
+		for _, dep := range modCfg.PreBuildDependencies {
+			WrapMessage("DBG", " - "+dep)
+
+			if err = SearchFile(filepath.Dir(dep), filepath.Base(dep)); err != nil {
 				return err
 			}
-
-			if err = h.BuildModule(pre); err != nil {
+			if filepath.Ext(dep) == ".cpp" {
+				linker = modCfg.Linker
+			}
+			if err = h.CompileFile(dep, modCfg.OutputDir+".o", linker); err != nil {
 				return err
 			}
 		}
 	}
 
-	WrapMessage("DBG", "generating sources for "+target)
 	for _, src := range modCfg.Sources {
 
 		srcPath := filepath.Join(modCfg.RootDir, "src")
-		incPath := filepath.Join(modCfg.RootDir, "include")
-		obj := filepath.Join(modCfg.OutputDir, src+".o")
+		srcObj := filepath.Join(modCfg.OutputDir, src+".o")
 
 		if err = SearchFile(srcPath, src); err != nil {
 			return fmt.Errorf("could not find %s in %s", src, srcPath)
 		}
 
-		if modCfg.Includes != nil {
-			for _, inc := range modCfg.Includes {
-				if err = SearchFile(incPath, inc); err != nil {
-					return fmt.Errorf("could not find %s in %s", inc, incPath)
-				}
-			}
-		}
-
-		source := filepath.Join(srcPath, src)
-		linker := ""
-
-		WrapMessage("DBG", fmt.Sprintf("compiling %s", source))
-		if modCfg.PreLinkSources {
-			linker = modCfg.Linker
-		}
-
-		if err = h.CompileFile(source, obj, modCfg.Includes, linker); err != nil {
+		srcFile := filepath.Join(srcPath, src)
+		if err = h.CompileFile(srcFile, srcObj, modCfg.Linker); err != nil {
 			return err
 		}
 
-		modCfg.Components = append(modCfg.Components, obj)
+		modCfg.Components = append(modCfg.Components, srcObj)
+	}
+
+	if modCfg.Dependencies != nil {
+		WrapMessage("DBG", "adding external dependencies to "+target)
+
+		for _, dep := range modCfg.Dependencies {
+			WrapMessage("DBG", " - "+dep)
+
+			if err = SearchFile(filepath.Dir(dep), filepath.Base(dep)); err != nil {
+				return err
+			}
+
+			modCfg.Components = append(modCfg.Components, dep)
+		}
 	}
 
 	return h.ExecuteBuild(modCfg)

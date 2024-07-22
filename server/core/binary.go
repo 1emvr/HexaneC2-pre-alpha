@@ -263,11 +263,14 @@ func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []
 	return nil
 }
 
-func (h *HexaneConfig) CompileFile(srcFile string, outFile string, includes []string, linker string) error {
-	var flags = h.Compiler.Flags
+func (h *HexaneConfig) CompileFile(srcFile string, outFile string, linker string) error {
+	var (
+		flags    []string
+		includes []string
+	)
 
 	includes = append(includes, "../")
-	flags = append(flags, "-c")
+	flags = append(h.Compiler.Flags, "-c")
 
 	if linker != "" {
 		flags = append(flags, "-T", linker)
@@ -279,34 +282,35 @@ func (h *HexaneConfig) CompileFile(srcFile string, outFile string, includes []st
 	case ".asm":
 		return h.CompileObject(h.Compiler.Assembler, []string{srcFile}, []string{"-f win64"}, nil, nil, outFile)
 	default:
-		WrapMessage("DBG", "cannot compile "+path.Ext(srcFile)+" files")
-		return nil
+		return fmt.Errorf("cannot compile " + path.Ext(srcFile) + " files")
 	}
 }
 
 func (h *HexaneConfig) ExecuteBuild(modCfg *ModuleConfig) error {
-	var flags = h.Compiler.Flags
+	var flags []string
+
+	if modCfg.Linker != "" {
+		flags = append(flags, "-T"+modCfg.Linker)
+	}
 
 	switch modCfg.Type {
-	case "static":
+	case "static library":
 		WrapMessage("DBG", "building static library from json config")
 		return h.RunCommand(h.Compiler.Ar + " crf " + modCfg.OutputName + ".a " + strings.Join(modCfg.Components, " "))
 
-	case "dynamic":
+	case "dynamic library":
 		WrapMessage("DBG", "building dynamic library from json config")
 		flags = append(flags, "-shared")
 		return h.CompileObject(h.Compiler.Linker, modCfg.Components, flags, modCfg.Includes, nil, modCfg.OutputName+".dll")
 
 	case "executable":
 		WrapMessage("DBG", "building executable from json config")
-		return h.CompileObject(h.Compiler.Linker, modCfg.Components, flags, modCfg.Includes, nil, modCfg.OutputName+".exe")
+		flags = append(flags, h.Compiler.Flags...)
+		return h.CompileObject(h.Compiler.Mingw, modCfg.Components, flags, modCfg.Includes, nil, modCfg.OutputName+".exe")
 
 	case "object":
 		WrapMessage("DBG", "building object file from json config")
-		if modCfg.Linker != "" {
-			flags = append(flags, "-T"+modCfg.Linker)
-		}
-
+		flags = append(flags, h.Compiler.Flags...)
 		return h.CompileObject(h.Compiler.Mingw, modCfg.Components, flags, modCfg.Includes, h.Compiler.Definitions, modCfg.OutputName+".o")
 
 	default:

@@ -177,7 +177,7 @@ unsigned char x_toLowerA(unsigned char c) {
     return c >= 0x41 && c <= 0x5A ? c | 0x20 : c;
 }
 
-size_t x_mbstowcs (wchar_t *dst, char *src, size_t size) {
+size_t x_mbstowcs (wchar_t *dst, const char *src, size_t size) {
 
     int count = (int)size;
     while (--count >= 0) {

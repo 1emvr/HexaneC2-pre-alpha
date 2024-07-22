@@ -86,7 +86,6 @@ func FindFiles(path string) ([]os.DirEntry, error) {
 
 	if files, err = os.ReadDir(path); err != nil {
 		return nil, err
-
 	}
 
 	return files, nil

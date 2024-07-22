@@ -5,7 +5,7 @@
 
 namespace Stream {
 
-	FUNCTION UINT32 ExtractU32 (PBYTE Buffer);
+	FUNCTION UINT32 ExtractU32 (BYTE CONST *Buffer);
 	FUNCTION VOID PackInt64(PBYTE buffer, UINT64 value);
 	FUNCTION VOID PackInt32(PBYTE buffer, UINT32 value);
 

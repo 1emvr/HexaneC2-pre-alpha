@@ -108,13 +108,13 @@ namespace Process {
 		}
 	}
 
-	VOID NtCreateUserProcess(PIMAGE proc, PCHAR path) {
+	VOID NtCreateUserProcess(PIMAGE proc, LPCSTR path) {
 
 		HEXANE
 		LPWSTR wName			= { };
 		UNICODE_STRING uName	= { };
 
-		x_mbstowcs(wName, path, x_strlen(path));
+		x_mbstowcs(wName, path, x_strlen((PCHAR)path));
 		Ctx->Nt.RtlInitUnicodeString(&uName, wName);
 
 		proc->Create = {};
