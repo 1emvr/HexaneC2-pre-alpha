@@ -86,38 +86,15 @@ func (h *HexaneConfig) RunBuild() error {
 	}
 
 	WrapMessage("DBG", "extracting shellcode")
-	if err = h.CopySectionData(BuildPath+"/implant.exe", path.Join(h.CompilerCFG.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
+	if err = h.CopySectionData(BuildPath+"/implant.exe", path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
 		return err
 	}
-
-	/*
-		if h.ImplantCFG.Injection != nil {
-
-			WrapMessage("DBG", "generating injectlib\n")
-			if err = h.BuildModule(h.ImplantCFG.Injection.Object); err != nil {
-				return err
-			}
-
-			WrapMessage("DBG", "embedding injectlib config")
-			if err = h.EmbedSectionData(path.Join(h.CompilerCFG.BuildDirectory, h.ImplantCFG.Injection.Object.OutputName), ".text$F", h.ConfigBytes); err != nil {
-				return err
-			}
-
-			WrapMessage("DBG", "generating loader dll")
-			if module, err = GetModuleConfig(path.Join(LoaderPath, "loader.json")); err != nil {
-				return err
-			}
-			if err = h.BuildModule(module); err != nil {
-				return err
-			}
-		}
-	*/
 
 	AddConfig(h)
 	go h.HttpServerHandler()
 
 	time.Sleep(time.Millisecond * 500)
-	WrapMessage("INF", fmt.Sprintf("%s ready!", module.ObjectName))
+	WrapMessage("INF", fmt.Sprintf("%s ready!", h.UserConfig.Builder.OutputName))
 
 	return nil
 }

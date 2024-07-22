@@ -17,6 +17,41 @@ func (h *HexaneConfig) StripSymbols(output string) error {
 	return h.RunCommand(h.Compiler.Strip + " " + output)
 }
 
+func (h *HexaneConfig) GetTransportType() (string, error) {
+
+	switch h.Implant.ProfileTypeId {
+	case TRANSPORT_HTTP:
+		return "TRANSPORT_HTTP", nil
+	case TRANSPORT_PIPE:
+		return "TRANSPORT_PIPE", nil
+	default:
+		return "", fmt.Errorf("transport type was not defined")
+	}
+}
+
+func (h *HexaneConfig) GetEmbededStrings(strList []string) []byte {
+
+	stream := new(Stream)
+	stream.PackString(string(h.Key))
+
+	switch h.Implant.ProfileTypeId {
+	case TRANSPORT_HTTP:
+		stream.PackDword(1)
+	case TRANSPORT_PIPE:
+		stream.PackDword(0)
+	default:
+		return nil
+	}
+
+	stream.PackDword(1) // Ctx->LE == TRUE
+
+	for _, str := range strList {
+		stream.PackString(str)
+	}
+
+	return stream.Buffer
+}
+
 func (h *HexaneConfig) GenerateIncludes(incs []string) string {
 	var list string
 

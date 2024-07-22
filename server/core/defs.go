@@ -52,12 +52,12 @@ type Files struct {
 }
 
 type Loader struct {
+	Rsrc          *Rsrc
 	RootDirectory string
 	InjectionType string
 	LinkerScript  string
 	MainFile      string
 	Config        interface{}
-	Rsrc          *Rsrc
 }
 
 type Rsrc struct {
