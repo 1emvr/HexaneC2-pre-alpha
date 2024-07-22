@@ -303,8 +303,6 @@ func (h *HexaneConfig) ExecuteBuild(modCfg *ModuleConfig) error {
 
 	case "object":
 		WrapMessage("DBG", "building object file from json config")
-		flags = append(flags, " -c ")
-
 		if modCfg.Linker != "" {
 			flags = append(flags, " -T "+modCfg.Linker)
 		}
