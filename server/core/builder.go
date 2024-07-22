@@ -35,10 +35,10 @@ func (h *HexaneConfig) BuildModule(modCfg *Object) error {
 
 	if modCfg.PreBuildDependencies != nil {
 		for _, pre := range modCfg.PreBuildDependencies {
+
 			if dep, err = GetModuleConfig(pre); err != nil {
 				return err
 			}
-
 			if err = h.BuildModule(dep); err != nil {
 				return err
 			}
@@ -49,11 +49,12 @@ func (h *HexaneConfig) BuildModule(modCfg *Object) error {
 	}
 
 	for _, src := range modCfg.Sources {
+
 		comp := filepath.Join(modCfg.SourceDirectory, src)
 		out := filepath.Join(BuildPath, src+".o")
 
 		if filepath.Ext(comp) == ".asm" {
-			if err = h.CompileObject(h.CompilerCFG.Assembler, []string{comp}, nil, nil, nil, out); err != nil {
+			if err = h.CompileObject(h.CompilerCFG.Assembler, out, []string{comp}, nil, nil, nil); err != nil {
 				return err
 			}
 		}
