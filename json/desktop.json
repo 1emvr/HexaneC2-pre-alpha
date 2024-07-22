@@ -1,10 +1,8 @@
 {
-	"ImplantName": "desktop",
 
 	"Config": {
 		"Arch": "amd64",
 		"Debug": false,
-		"BuildType": "bin",
 		"Hostname": "LENOVO-WRKSTN-W",
 		"Sleeptime": 3,
 		"Jitter": 10
@@ -12,7 +10,6 @@
 
 	"Network": {
 		"ProfileType": "http",
-		"Domain": null,
 		"Useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
 		"Address": "192.168.0.30",
 		"Port": 80,
@@ -23,19 +20,19 @@
 	},
 
 	"Build": {
-		"Type": "object",
+		"ImplantName": "test_implant",
 		"RootDirectory": "/home/lemur/Github/HexaneC2/core",
-		"OutputName": "implant.exe",
-		"Implant": true,
-
 		"Linker": "implant.ld",
+
 		"Sources": [
-			"implant.cpp", "cipher.cpp", "commands.cpp", "cruntime.cpp", "inject.cpp", "memory.cpp", "message.cpp",
+			"implant.cpp", "cipher.cpp", "commands.cpp", "cruntime.cpp", "inject.cpp", "memory.cpp", "message.cpp", 
 			"network.cpp", "opsec.cpp", "parser.cpp", "process.cpp", "stream.cpp", "utils.cpp", "start.asm"
 		],
+
 		"IncludeDirectories": [
 			"/home/lemur/Github/HexaneC2/core/include"
 		],
+
 		"Loader": {
 			"Source": "/home/lemur/Github/HexaneC2/loader/dllmain.cpp",
 			"Injection": {
@@ -43,8 +40,8 @@
 				"Config": {
 					"TargetFunc":"OpenFile",
 					"TargetModule":"kernel32.dll",
-					"LoaderAsm": "/home/lemur/Github/HexaneC2/inject/loader.asm",
-					"Execute":"/home/lemur/Github/HexaneC2/inject/OpenFileExecute.cpp"
+					"LoaderAsm": "/home/lemur/Github/HexaneC2/inject/threadless/loader.asm",
+					"Execute":"/home/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp"
 				}
 			}
 		}
