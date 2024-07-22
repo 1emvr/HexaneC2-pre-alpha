@@ -67,7 +67,12 @@ func (h *HexaneConfig) BuildModule(modCfg *Object) error {
 		modCfg.Components = append(modCfg.Components, modCfg.Dependencies...)
 	}
 
-	return h.ExecuteBuild(modCfg)
+	if len(modCfg.Components) > 1 {
+		return h.ExecuteBuild(modCfg)
+	} else {
+		// single file. good to go.
+		return nil
+	}
 }
 
 func (h *HexaneConfig) RunBuild() error {

@@ -3,11 +3,12 @@
   "SourceDir": "/home/lemur/Github/HexaneC2/implant/src",
   "OutputName": "implant",
 
+  "Linker": "implant.ld",
   "Sources": [
     "implant.cpp"
   ],
   "PreBuildDependencies": [
-    "/home/lemur/Github/HexaneC2/implant/src/start.asm"
+    "/home/lemur/Github/HexaneC2/implant/start.json"
   ],
   "Dependencies": [
     "/home/lemur/Github/HexaneC2/build/start.asm.o",

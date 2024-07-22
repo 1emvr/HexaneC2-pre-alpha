@@ -1,0 +1,9 @@
+{
+  "Type": "object",
+  "SourceDir": "/home/lemur/Github/HexaneC2/implant/src",
+  "OutputName": "start",
+
+  "Sources": [
+    "start.asm"
+  ]
+}
