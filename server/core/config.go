@@ -99,7 +99,7 @@ func (h *HexaneConfig) GenerateConfigBytes() error {
 	return nil
 }
 
-func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
+func (h *HexaneConfig) CreateConfig(jsonCfg Json) error {
 	var err error
 
 	h.CompilerCFG = new(CompilerConfig)
@@ -120,7 +120,7 @@ func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
 
 	WrapMessage("INF", fmt.Sprintf("generating config for %s", h.CompilerCFG.FileExtension))
 
-	h.ImplantName = jsonCfg.ImplantName
+	h.Config.ImplantName = jsonCfg.ImplantName
 	h.CompilerCFG.BuildDirectory = fmt.Sprintf("../payload/%s", strings.TrimSuffix(h.ImplantName, h.CompilerCFG.FileExtension))
 
 	h.CompilerCFG.Debug = jsonCfg.Config.Debug
@@ -166,97 +166,139 @@ func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
 	return err
 }
 
-func ReadConfig(cfgName string) error {
+func (jn *JsonNetwork) ReadNetworkConfig(data []byte) error {
 	var (
-		hexane  = new(HexaneConfig)
-		jsonCfg JsonConfig
-		buffer  []byte
-		err     error
+		err error
+		tmp struct {
+			ProfileType string
+			Config      json.RawMessage
+		}
 	)
 
+	if err = json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+
+	jn.ProfileType = tmp.ProfileType
+
+	switch jn.ProfileType {
+	case "http":
+
+		var httpConfig HttpConfig
+		if err = json.Unmarshal(tmp.Config, &httpConfig); err != nil {
+			return err
+		}
+		jn.Config = httpConfig
+
+	case "smb":
+
+		var smbConfig SmbConfig
+		if err = json.Unmarshal(tmp.Config, &smbConfig); err != nil {
+			return err
+		}
+		jn.Config = smbConfig
+
+	default:
+		return fmt.Errorf("unrecognized profile type: %s", jn.ProfileType)
+	}
+
+	return nil
+}
+
+func ReadConfig(cfgName string) error {
+	var (
+		config Json
+		buffer []byte
+		err    error
+	)
+
+	hexane := new(HexaneConfig)
 	WrapMessage("INF", fmt.Sprintf("loading %s", cfgName))
 	if buffer, err = os.ReadFile(RootDirectory + "json/" + cfgName); err != nil {
 		return err
 	}
 
-	if err = json.Unmarshal(buffer, &jsonCfg); err != nil {
+	if err = json.Unmarshal(buffer, &config); err != nil {
 		return err
 	}
 
-	if err = hexane.CreateConfig(jsonCfg); err != nil {
+	if err = hexane.CreateConfig(config); err != nil {
 		return err
-	}
-
-	hexane.ImplantCFG.EgressPeer = jsonCfg.Config.EgressPeer
-	if hexane.ImplantCFG.EgressPeer != "" {
-		hexane.GroupId = GetGIDByPeerName(hexane.ImplantCFG.EgressPeer)
-
-	} else {
-		Payloads.Group++
-		hexane.GroupId = Payloads.Group
 	}
 
 	hexane.PeerId = GeneratePeerId()
+	hexane.ImplantCFG.Sleeptime = uint32(config.Config.Sleeptime)
+	hexane.ImplantCFG.Jitter = uint32(config.Config.Jitter)
 
-	hexane.ImplantCFG.Sleeptime = uint32(jsonCfg.Config.Sleeptime)
-	hexane.ImplantCFG.Jitter = uint32(jsonCfg.Config.Jitter)
-	hexane.ImplantCFG.Domain = jsonCfg.Network.Domain
-
-	if hexane.ImplantCFG.Hostname = jsonCfg.Config.Hostname; hexane.ImplantCFG.Hostname == "" {
+	if hexane.ImplantCFG.Hostname = config.Config.Hostname; hexane.ImplantCFG.Hostname == "" {
 		return fmt.Errorf("a hostname must be provided")
 	}
 
-	if jsonCfg.Injection != nil {
-		WrapMessage("DBG", "generating injection config")
-		hexane.ImplantCFG.Injection = new(Injection)
+	/*
+		if config.Injection != nil {
+			WrapMessage("DBG", "generating injection config")
+			hexane.ImplantCFG.Injection = new(Injection)
 
-		if jsonCfg.Injection.Threadless != nil {
-			hexane.ImplantCFG.Injection.Threadless = new(Threadless)
-			hexane.ImplantCFG.Injection.ConfigPath = jsonCfg.Injection.ConfigPath
+			if config.Injection.Threadless != nil {
+				hexane.ImplantCFG.Injection.Threadless = new(Threadless)
+				hexane.ImplantCFG.Injection.ConfigPath = config.Injection.ConfigPath
 
-			if hexane.ImplantCFG.Injection.Object, err = GetModuleConfig(hexane.ImplantCFG.Injection.ConfigPath); err != nil {
-				WrapMessage("ERR", "injection config error.")
-				return err
+				if hexane.ImplantCFG.Injection.Object, err = GetModuleConfig(hexane.ImplantCFG.Injection.ConfigPath); err != nil {
+					WrapMessage("ERR", "injection config error.")
+					return err
+				}
+
 			}
+		}
+	*/
+
+	switch config.Network.ProfileType {
+	case "http":
+		if httpConfig, ok := config.Network.Config.(HttpConfig); ok {
 
 		}
+	case "smb":
+	default:
+		return fmt.Errorf("not a recognized profile type: %s", config.Network.ProfileType)
 	}
 
-	fmt.Println("end injection config")
-
-	if jsonCfg.Network.ProfileType == "http" {
+	if config.Network.ProfileType == "http" {
 
 		hexane.ImplantCFG.Profile = new(HttpConfig)
 		hexane.ImplantCFG.ProfileTypeId = TRANSPORT_HTTP
 
 		profile := hexane.ImplantCFG.Profile.(*HttpConfig)
-		profile.Address = jsonCfg.Network.Address
-		profile.Port = jsonCfg.Network.Port
-		profile.Useragent = jsonCfg.Network.Useragent
+		profile.Address = config.Network.Address
+		profile.Port = config.Network.Port
+		profile.Useragent = config.Network.Useragent
 
-		if jsonCfg.Network.Port < 1 || jsonCfg.Network.Port > 65535 {
+		if config.Network.Port < 1 || config.Network.Port > 65535 {
 			return fmt.Errorf("port number must be between 1 - 65535")
 		}
 
-		profile.Endpoints = make([]string, 0, len(jsonCfg.Network.Endpoints))
-		profile.Endpoints = append(profile.Endpoints, jsonCfg.Network.Endpoints...)
+		profile.Endpoints = make([]string, 0, len(config.Network.Endpoints))
+		profile.Endpoints = append(profile.Endpoints, config.Network.Endpoints...)
 
 		hexane.ProxyCFG = new(ProxyConfig)
 
-		if jsonCfg.Network.Proxy.Enabled {
-			if jsonCfg.Network.Proxy.Port < 1 || jsonCfg.Network.Proxy.Port > 65535 {
+		if config.Network.Proxy.Enabled {
+			if config.Network.Proxy.Port < 1 || config.Network.Proxy.Port > 65535 {
 				return errors.New("proxy port number must be between 1 - 65535")
 			}
 
 			hexane.ImplantCFG.ProxyBool = true
 			hexane.ProxyCFG.Proto = "http://"
-			hexane.ProxyCFG.Address = jsonCfg.Network.Proxy.Address
-			hexane.ProxyCFG.Port = strconv.Itoa(jsonCfg.Network.Proxy.Port)
+			hexane.ProxyCFG.Address = config.Network.Proxy.Address
+			hexane.ProxyCFG.Port = strconv.Itoa(config.Network.Proxy.Port)
 		}
-	} else if jsonCfg.Network.ProfileType == "smb" {
+	} else if config.Network.ProfileType == "smb" {
 
 		hexane.ImplantCFG.ProfileTypeId = TRANSPORT_PIPE
 		hexane.ImplantCFG.EgressPipe = GenerateUuid(24)
+	}
+
+	if config.Build == nil {
+		return fmt.Errorf("a build definition needs to be provided")
 	}
 
 	hexane.UserSession = Session

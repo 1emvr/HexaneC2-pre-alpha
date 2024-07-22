@@ -36,32 +36,6 @@ type TableMap struct {
 	Values  [][]string
 }
 
-type Object struct {
-	Type                 string
-	ConfigName           string
-	OutputName           string
-	RootDirectory        string
-	Linker               string
-	Implant              bool
-	RsrcScript           string
-	RsrcBinary           string
-	IncludeDirectories   []string
-	Sources              []string
-	PreBuildDependencies []string
-	Dependencies         []string
-	Components           []string
-}
-
-type Config struct {
-	Arch       string
-	Debug      bool
-	BuildType  string
-	Hostname   string
-	EgressPeer string
-	Sleeptime  int
-	Jitter     int
-}
-
 type Threadless struct {
 	ProcName   string
 	ModuleName string
@@ -69,40 +43,56 @@ type Threadless struct {
 	Execute    string
 }
 
-type Injection struct {
-	ConfigPath string
-	Object     *Object
-	Threadless *Threadless
+type Json struct {
+	Config  *JsonConfig
+	Network *JsonNetwork
+	Build   *JsonObject
 }
 
-type InjectConfig struct {
-	InjectConfig []byte
-	ExecuteObj   string
-	Strings      []string
+type JsonConfig struct {
+	Arch       string
+	Debug      bool
+	Hostname   string
+	Sleeptime  int
+	Jitter     int
+	EgressPeer string
 }
 
-type Proxy struct {
-	Enabled bool
-	Address string
-	Port    int
-}
-
-type Network struct {
+type JsonNetwork struct {
 	ProfileType string
-	Domain      string
-	Useragent   string
-	Address     string
-	Port        int
-	Endpoints   []string
-	Proxy       *Proxy
+	Config      interface{}
+}
+
+type JsonObject struct {
+	Type                 string
+	ObjectName           string
+	RootDirectory        string
+	Linker               string
+	Implant              bool
+	RsrcScript           string
+	RsrcBinary           string
+	SourceDirectories    []string
+	IncludeDirectories   []string
+	Sources              []string
+	Flags                []string
+	PreBuildDependencies []string
+	Dependencies         []string
+	Components           []string
+	Definitions          map[string][]byte
 }
 
 type HttpConfig struct {
 	Address   string
+	Domain    string
 	Port      int
 	Useragent string
 	Endpoints []string
 	Headers   []string
+}
+
+type SmbConfig struct {
+	EgressPeer     string
+	EgressPipename string
 }
 
 type ProxyConfig struct {
@@ -118,8 +108,6 @@ type ImplantConfig struct {
 	ProfileTypeId uint32
 	CurrentTaskId uint32
 	IngressPipe   string
-	EgressPeer    string
-	EgressPipe    string
 	LoadedModules []string
 
 	Hostname     string
@@ -129,8 +117,6 @@ type ImplantConfig struct {
 	Jitter       uint32
 	Killdate     int64
 	ProxyBool    bool
-
-	Injection *Injection
 }
 
 type CompilerConfig struct {
@@ -145,10 +131,6 @@ type CompilerConfig struct {
 	Ar             string
 	FileExtension  string
 	BuildDirectory string
-	Definitions    map[string][]byte
-	Source         []string
-	Includes       []string
-	Flags          []string
 }
 
 type ServerConfig struct {
@@ -163,7 +145,6 @@ type ServerConfig struct {
 }
 
 type HexaneConfig struct {
-	ImplantName   string
 	GroupId       int
 	CurrentTaskId int
 	PeerId        uint32
@@ -172,9 +153,7 @@ type HexaneConfig struct {
 	Key         []byte
 	Shellcode   []byte
 	ConfigBytes []byte
-	Components  []string
 	Active      bool
-	BuildType   string
 
 	ImplantCFG  *ImplantConfig
 	CompilerCFG *CompilerConfig
@@ -192,13 +171,6 @@ type HexanePayloads struct {
 type ServerList struct {
 	Head  *ServerConfig
 	Group int
-}
-
-type JsonConfig struct {
-	ImplantName string
-	Config      *Config
-	Network     *Network
-	Injection   *Injection
 }
 
 type Parser struct {

@@ -28,7 +28,7 @@ func (h *HexaneConfig) BuildModule(module *Object) error {
 		return fmt.Errorf("source directory is required")
 	}
 
-	if module.OutputName == "" {
+	if module.ObjectName == "" {
 		return fmt.Errorf("output name is required")
 	}
 
@@ -51,7 +51,7 @@ func (h *HexaneConfig) BuildModule(module *Object) error {
 				return err
 			}
 
-			module.Components = append(module.Components, dep.OutputName)
+			module.Components = append(module.Components, dep.ObjectName)
 		}
 	}
 
@@ -66,15 +66,15 @@ func (h *HexaneConfig) BuildModule(module *Object) error {
 	if len(module.Components) > 1 {
 		return h.ExecuteBuildType(module)
 	} else {
-		module.OutputName = module.Components[0]
+		module.ObjectName = module.Components[0]
 		return nil
 	}
 }
 
 func (h *HexaneConfig) RunBuild() error {
 	var (
-		err error
-		obj *Object
+		err    error
+		module *Object
 	)
 
 	WrapMessage("DBG", "creating payload directory")
@@ -93,10 +93,10 @@ func (h *HexaneConfig) RunBuild() error {
 	}
 
 	WrapMessage("DBG", "generating implant\n")
-	if obj, err = GetModuleConfig(path.Join(CorePath, "implant.json")); err != nil {
+	if module, err = GetModuleConfig(path.Join(CorePath, "implant.json")); err != nil {
 		return err
 	}
-	if err = h.BuildModule(obj); err != nil {
+	if err = h.BuildModule(module); err != nil {
 		return err
 	}
 
@@ -124,10 +124,10 @@ func (h *HexaneConfig) RunBuild() error {
 			}
 
 			WrapMessage("DBG", "generating loader dll")
-			if obj, err = GetModuleConfig(path.Join(LoaderPath, "loader.json")); err != nil {
+			if module, err = GetModuleConfig(path.Join(LoaderPath, "loader.json")); err != nil {
 				return err
 			}
-			if err = h.BuildModule(obj); err != nil {
+			if err = h.BuildModule(module); err != nil {
 				return err
 			}
 		}
@@ -137,7 +137,7 @@ func (h *HexaneConfig) RunBuild() error {
 	go h.HttpServerHandler()
 
 	time.Sleep(time.Millisecond * 500)
-	WrapMessage("INF", fmt.Sprintf("%s ready!", h.ImplantName))
+	WrapMessage("INF", fmt.Sprintf("%s ready!", module.ObjectName))
 
 	return nil
 }
