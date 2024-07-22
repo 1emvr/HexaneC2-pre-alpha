@@ -333,7 +333,7 @@ func (h *HexaneConfig) ExecuteBuildType(module *Object) error {
 		flags = append(flags, "-shared")
 		flags = append(flags, h.CompilerCFG.Flags...)
 
-		return h.CompileObject(h.CompilerCFG.Linker, module.OutputName, module.Components, flags, module.IncludeDirectories, defs)
+		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.IncludeDirectories, defs)
 
 	case "object":
 		WrapMessage("DBG", "building object file from json config")
