@@ -47,50 +47,6 @@ func (h *HexaneConfig) GenerateConfigBytes() error {
 	return nil
 }
 
-/*
-func (tc *TypedConfig) UnmarshalJSON(data []byte) error {
-
-	var temp struct {
-		Type   string          `json:"Type"`
-		Config json.RawMessage `json:"Config"`
-	}
-
-	if err := json.Unmarshal(data, &temp); err != nil {
-		return err
-	}
-
-	tc.Type = temp.Type
-
-	switch tc.Type {
-	case "http":
-		var httpConfig Http
-		if err := json.Unmarshal(temp.Config, &httpConfig); err != nil {
-			return err
-		}
-		tc.Config = &httpConfig
-
-	case "smb":
-		var smbConfig Smb
-		if err := json.Unmarshal(temp.Config, &smbConfig); err != nil {
-			return err
-		}
-		tc.Config = &smbConfig
-
-	case "threadless":
-		var injectConfig Threadless
-		if err := json.Unmarshal(temp.Config, &injectConfig); err != nil {
-			return err
-		}
-		tc.Config = &injectConfig
-
-	default:
-		return fmt.Errorf("unknown config type: %s", tc.Type)
-	}
-
-	return nil
-}
-*/
-
 func (h *HexaneConfig) CreateConfig() {
 
 	WrapMessage("INF", "generating config for "+h.GetBuildType())
@@ -194,16 +150,22 @@ func ReadConfig(cfgPath string) error {
 				return fmt.Errorf("implant::loader - resource script must be specified")
 			}
 			if h.UserConfig.Builder.Loader.RsrcBinary == "" {
-				return fmt.Errorf("implant::loader - resource output name must be specified")
+				return fmt.Errorf("implant::loader - resource output binary must be specified")
 			}
+			if h.UserConfig.Builder.Loader.Injection != nil {
+				injectType := h.UserConfig.Builder.Loader.Injection.Type
 
-			switch h.UserConfig.Builder.Loader.Injection.Type {
-			case "thredless":
-				if h.UserConfig.Builder.Loader.Injection.Config.(*Threadless) == nil {
-					return fmt.Errorf("implant::injection - threadless configuration must be specified")
+				switch injectType {
+				case "threadless":
+					var threadlessConfig Threadless
+					if err = MapToStruct(h.UserConfig.Builder.Loader.Injection.Config, &threadlessConfig); err != nil {
+						return fmt.Errorf("implant::injection - threadless configuration - " + err.Error())
+					}
+				default:
+					return fmt.Errorf("implant::loader - unknown injection method - " + injectType)
 				}
-			default:
-				return fmt.Errorf("implant::loader - unknown injection method")
+			} else {
+				return fmt.Errorf("implant::injection - Injection { } is required")
 			}
 		}
 	} else {
@@ -211,43 +173,50 @@ func ReadConfig(cfgPath string) error {
 	}
 
 	if h.UserConfig.Network != nil {
-		switch h.UserConfig.Network.Type {
+		networkType := h.UserConfig.Network.Type
 
+		switch networkType {
 		case "http":
-			h.Implant.ProfileTypeId = TRANSPORT_HTTP
-			httpConfig, ok := h.UserConfig.Network.Config.(*Http)
+			var httpConfig Http
 
-			if !ok {
-				return fmt.Errorf("network::http - incorrect type assertion")
+			if err = MapToStruct(h.UserConfig.Network.Config, &httpConfig); err != nil {
+				return fmt.Errorf("implant::network - network configuration - " + err.Error())
 			}
+
+			h.Implant.ProfileTypeId = TRANSPORT_HTTP
 			if httpConfig.Address == "" {
-				return fmt.Errorf("network::http - ip address must be specified")
+				return fmt.Errorf("implant::network::http - ip address must be specified")
 			}
+
 			if httpConfig.Port > 65535 || httpConfig.Port < 1 {
-				return fmt.Errorf("network::http - invalid tcp port %d", httpConfig.Port)
+				return fmt.Errorf("implant::network::http - invalid tcp port %d", httpConfig.Port)
 			}
+
 			if httpConfig.Endpoints == nil {
 				// todo: add default endpoints from seclists or smth
-				return fmt.Errorf("network::http - at least 1 http endpoint must be specified")
+				return fmt.Errorf("implant::network::http - at least 1 http endpoint must be specified")
 			}
+
 			if httpConfig.Useragent == "" {
 				httpConfig.Useragent = Useragent
 			}
-		case "smb":
-			h.Implant.ProfileTypeId = TRANSPORT_PIPE
-			smbConfig, ok := h.UserConfig.Network.Config.(*Smb)
 
-			if !ok {
-				return fmt.Errorf("network::smb - incorrect type assertion")
+		case "smb":
+			var smbConfig Smb
+
+			if err = MapToStruct(h.UserConfig.Network.Config, &smbConfig); err != nil {
+				return fmt.Errorf("implant::network - network configuration - " + err.Error())
 			}
+
+			h.Implant.ProfileTypeId = TRANSPORT_PIPE
 			if smbConfig.EgressPeer == "" {
-				return fmt.Errorf("network::smb - peer must have it's parent node name specified")
+				return fmt.Errorf("implant::network::smb - peer must have it's parent node name specified")
 			}
 		default:
-			return fmt.Errorf("network:: - unknown network profile type")
+			return fmt.Errorf("implant::network - unknown network profile type")
 		}
 	} else {
-		return fmt.Errorf("config:: - Network { } is required")
+		return fmt.Errorf("implant::config - Network { } is required")
 	}
 
 	h.UserSession = HexaneSession
@@ -270,28 +239,32 @@ func (h *HexaneConfig) PePatchConfig() ([]byte, error) {
 	switch implant.ProfileTypeId {
 	case TRANSPORT_HTTP:
 		{
-			hNet := h.UserConfig.Network.Config.(*Http)
+			var httpConfig Http
+			if err = MapToStruct(h.UserConfig.Network.Config, &httpConfig); err != nil {
+				return nil, err
+			}
 
-			stream.PackWString(hNet.Useragent)
-			stream.PackWString(hNet.Address)
-			stream.PackString(hNet.Domain)
-			stream.PackDword(uint32(hNet.Port))
+			stream.PackWString(httpConfig.Useragent)
+			stream.PackWString(httpConfig.Address)
+			stream.PackString(httpConfig.Domain)
+			stream.PackDword(uint32(httpConfig.Port))
 
 			// endpoints always need specified
 			// todo: add random endpoints when not specified. use seclists or smth.
 
-			stream.PackDword(uint32(len(hNet.Endpoints)))
-			for _, uri := range hNet.Endpoints {
+			stream.PackDword(uint32(len(httpConfig.Endpoints)))
+
+			for _, uri := range httpConfig.Endpoints {
 				stream.PackWString(uri)
 			}
 
-			if hNet.Proxy != nil {
-				proxyUrl := fmt.Sprintf("%v://%v:%v", hNet.Proxy.Proto, hNet.Proxy.Address, hNet.Proxy.Port)
+			if httpConfig.Proxy != nil {
+				proxyUrl := fmt.Sprintf("%v://%v:%v", httpConfig.Proxy.Proto, httpConfig.Proxy.Address, httpConfig.Proxy.Port)
 
 				stream.PackDword(1)
 				stream.PackWString(proxyUrl)
-				stream.PackWString(hNet.Proxy.Username)
-				stream.PackWString(hNet.Proxy.Password)
+				stream.PackWString(httpConfig.Proxy.Username)
+				stream.PackWString(httpConfig.Proxy.Password)
 
 			} else {
 				stream.PackDword(0)
@@ -301,8 +274,12 @@ func (h *HexaneConfig) PePatchConfig() ([]byte, error) {
 		}
 	case TRANSPORT_PIPE:
 		{
-			hNet := h.UserConfig.Network.Config.(*Smb)
-			stream.PackWString(hNet.EgressPipename)
+			var smbConfig Smb
+			if err = MapToStruct(h.UserConfig.Network.Config, &smbConfig); err != nil {
+				return nil, err
+			}
+
+			stream.PackWString(smbConfig.EgressPipename)
 		}
 	}
 	return stream.Buffer, err

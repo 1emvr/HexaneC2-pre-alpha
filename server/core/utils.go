@@ -210,6 +210,18 @@ func MergeMaps(m1 map[string][]byte, m2 map[string][]byte) map[string][]byte {
 	return buffer
 }
 
+func MapToStruct(m interface{}, result interface{}) error {
+	var (
+		err  error
+		data []byte
+	)
+	if data, err = json.Marshal(m); err != nil {
+		return err
+	}
+
+	return json.Unmarshal(data, result)
+}
+
 func CreateCppArray(buffer []byte, length int) []byte {
 
 	array := "{"
