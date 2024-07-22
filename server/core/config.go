@@ -94,6 +94,7 @@ func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
 
 	h.CompilerCFG.Debug = jsonCfg.Config.Debug
 	h.CompilerCFG.Arch = jsonCfg.Config.Arch
+	h.CompilerCFG.Ar = "/usr/bin/x86_64-w64-mingw32-ar"
 	h.CompilerCFG.Mingw = "/usr/bin/x86_64-w64-mingw32-g++"
 	h.CompilerCFG.Linker = "/usr/bin/x86_64-w64-mingw32-ld"
 	h.CompilerCFG.Objcopy = "/usr/bin/x86_64-w64-mingw32-objcopy"

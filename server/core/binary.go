@@ -223,7 +223,7 @@ func (h *HexaneConfig) CompileObject(command, output string, targets, flags, inc
 		definitions["DEBUG"] = nil
 	}
 
-	if command != h.CompilerCFG.Linker && command != h.CompilerCFG.Assembler {
+	if command != h.CompilerCFG.Linker && command != h.CompilerCFG.Assembler && command != h.CompilerCFG.Ar {
 		if h.ImplantCFG.ProfileTypeId == TRANSPORT_HTTP {
 			definitions["TRANSPORT_HTTP"] = nil
 
@@ -333,6 +333,12 @@ func (h *HexaneConfig) ExecuteBuild(module *Object) error {
 	}
 
 	switch module.Type {
+	case "static":
+		WrapMessage("DBG", "building static library from json config")
+
+		module.OutputName += ".a"
+		return h.CompileObject(h.CompilerCFG.Ar+" rcs ", module.OutputName, module.Components, nil, nil, nil)
+
 	case "dynamic":
 		WrapMessage("DBG", "building dynamic library from json config")
 

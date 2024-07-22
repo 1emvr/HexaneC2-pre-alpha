@@ -141,6 +141,7 @@ type CompilerConfig struct {
 	Assembler      string
 	Windres        string
 	Strip          string
+	Ar             string
 	FileExtension  string
 	BuildDirectory string
 	Definitions    map[string][]byte

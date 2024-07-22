@@ -1,5 +1,5 @@
 {
-  "Type": "object",
+  "Type": "static",
   "OutputName": "corelib",
   "RootDirectory": "/home/lemur/Github/HexaneC2/core",
   "IncludeDirectory": "/home/lemur/Github/HexaneC2/core/include",
