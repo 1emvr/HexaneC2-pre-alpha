@@ -56,11 +56,11 @@ func (h *HexaneConfig) RunBuild() error {
 		return err
 	}
 
-	if err = SearchFile(filepath.Join(Corelib, "build"), "corelib.a"); err != nil {
+	if err = SearchFile(filepath.Join(CorePath, "build"), "corelib.a"); err != nil {
 		if err.Error() == FileNotFound.Error() {
 
 			WrapMessage("DBG", "generating corelib\n")
-			if cfg, err = GetModuleConfig(path.Join(Corelib, "corelib.json")); err != nil {
+			if cfg, err = GetModuleConfig(path.Join(CorePath, "corelib.json")); err != nil {
 				return err
 			}
 			if err = h.BuildModule(cfg); err != nil {
