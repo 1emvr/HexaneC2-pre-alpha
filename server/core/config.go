@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
 	"strconv"
 	"strings"
 )
@@ -21,15 +20,6 @@ var (
 		Username: "lemur",
 		Admin:    true,
 	}
-)
-
-var (
-	ConfigsPath = path.Join(RootDirectory, "configs")
-	CorePath    = path.Join(RootDirectory, "core")
-	InjectPath  = path.Join(RootDirectory, "inject")
-	LogsPath    = path.Join(RootDirectory, "logs")
-	LoaderPath  = path.Join(RootDirectory, "loader")
-	ImplantPath = path.Join(CorePath, "implant")
 )
 
 var (

@@ -8,6 +8,14 @@ import (
 	"time"
 )
 
+var (
+	ConfigsPath = path.Join(RootDirectory, "configs")
+	CorePath    = path.Join(RootDirectory, "core")
+	LogsPath    = path.Join(RootDirectory, "logs")
+	LoaderPath  = path.Join(RootDirectory, "loader")
+	ImplantPath = path.Join(CorePath, "implant")
+)
+
 func (h *HexaneConfig) BuildLoader(cfgName string) error {
 	return nil
 }
