@@ -284,12 +284,12 @@ func (h *HexaneConfig) CompileFiles(compile *Object) error {
 
 		switch path.Ext(filepath.Base(srcFile)) {
 		case ".cpp":
-			if err = h.CompileObject(h.CompilerCFG.Mingw, compile.Components, flags, includes, nil, outFile); err != nil {
+			if err = h.CompileObject(h.CompilerCFG.Mingw, compile.Components, flags, includes, nil, compile.OutputName); err != nil {
 				return err
 			}
 		case ".asm":
 			flags = append(flags, "-f win64")
-			if err = h.CompileObject(h.CompilerCFG.Assembler, compile.Components, flags, nil, nil, outFile); err != nil {
+			if err = h.CompileObject(h.CompilerCFG.Assembler, compile.Components, flags, nil, nil, compile.OutputName); err != nil {
 				return err
 			}
 		default:

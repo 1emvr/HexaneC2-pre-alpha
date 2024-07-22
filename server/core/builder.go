@@ -41,7 +41,7 @@ func (h *HexaneConfig) BuildModule(modCfg *Object) error {
 			if dep, err = GetModuleConfig(pre); err != nil {
 				return err
 			}
-			if dep, err = h.CompileFiles(dep); err != nil {
+			if err = h.CompileFiles(dep); err != nil {
 				return err
 			}
 
