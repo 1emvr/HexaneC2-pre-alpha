@@ -31,6 +31,7 @@ set(INCLUDES
         "${CORELIB}/include/cipher.hpp"
         "${CORELIB}/include/stream.hpp"
         "${CORELIB}/include/commands.hpp"
+        core/corelib/include/inject.hpp
 )
 set(MAIN_FILES
         "${CORELIB}/src/process.cpp"
@@ -50,5 +51,6 @@ set(MAIN_FILES
         "${INJECT}/threadless/OpenFileExecute.cpp"
         "${IMPLANT}/implant.cpp"
         mods/src/EnumDotNetProcesses.cpp
+        core/corelib/src/inject.cpp
 )
 add_executable(Hexane-Implant ${MAIN_FILES} ${INCLUDES})

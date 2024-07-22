@@ -104,7 +104,6 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 				}
 				files = append(files, srcFile)
 			}
-
 		}
 	} else {
 		for _, src := range jsonCfg.Sources {
@@ -119,50 +118,49 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 	}
 
 	for _, file := range files {
+		var includes string
 		objFile := path.Join(jsonCfg.OutputDir, filepath.Base(file)+".o")
-		if err := h.CompileFile(file, objFile, jsonCfg.Linker); err != nil {
-			return err
+
+		if jsonCfg.Includes != nil {
+			includes = strings.Join(jsonCfg.Includes, " -I")
+		} else {
+			includes = strings.Join(h.Compiler.IncludeDirs, " -I")
 		}
 
+		if err = h.CompileFile(file, objFile, includes, path.Join(jsonCfg.RootDir, jsonCfg.Linker)); err != nil {
+			return err
+		}
 		components = append(components, objFile)
 	}
 
 	if jsonCfg.Dependencies != nil {
-		components = append(components, jsonCfg.Dependencies...)
+		for _, dep := range jsonCfg.Dependencies {
+			components = append(components, dep)
+		}
 	}
 
 	switch jsonCfg.Type {
 	case "static":
-		WrapMessage("DBG", "building static library")
+		WrapMessage("DBG", "building static library from config json: "+cfgName)
 		return h.RunCommand(h.Compiler.Ar + " crf " + path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".a") + " " + strings.Join(components, " "))
 
 	case "dynamic":
-		WrapMessage("DBG", "building dynamic library")
+		WrapMessage("DBG", "building dynamic library from config json: "+cfgName)
 		return h.CompileObject(h.Compiler.Linker+" -shared", components, nil, h.Compiler.IncludeDirs, nil, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".dll"))
 
 	case "executable":
-		WrapMessage("DBG", "building executable")
+		WrapMessage("DBG", "building executable from config json: "+cfgName)
 		return h.CompileObject(h.Compiler.Linker, components, nil, h.Compiler.IncludeDirs, nil, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".exe"))
 
 	case "object":
-		WrapMessage("DBG", "building object file")
-		for _, obj := range components {
-			dependency := false
+		var flags []string
+		WrapMessage("DBG", "building object file from config json: "+cfgName)
 
-			for _, dep := range jsonCfg.Dependencies {
-				if filepath.Base(obj) == filepath.Base(dep) {
-					dependency = true
-					break
-				}
-			}
-
-			if !dependency {
-				if err = MoveFile(obj, jsonCfg.OutputDir); err != nil {
-					return err
-				}
-			}
+		if jsonCfg.Linker != "" {
+			flags = append(flags, " -T "+path.Join(jsonCfg.RootDir, jsonCfg.Linker))
 		}
-		return nil
+
+		return h.CompileObject(h.Compiler.Linker, components, flags, []string{h.Compiler.BuildDirectory}, h.Compiler.Definitions, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".o"))
 
 	default:
 		return fmt.Errorf("unknown build type: %s", jsonCfg.Type)
@@ -187,39 +185,37 @@ func (h *HexaneConfig) RunBuild() error {
 	}
 
 	if !SearchFile(path.Join(Corelib, "build"), "corelib.a") {
-		WrapMessage("DBG", "generating corelib")
 
+		WrapMessage("DBG", "generating corelib\n")
 		if err := h.BuildModule(path.Join(Corelib, "corelib.json")); err != nil {
 			return err
 		}
 	}
 
 	if h.Implant.Injection != nil {
-		WrapMessage("DBG", "generating injectlib")
-
+		WrapMessage("DBG", "generating injectlib\n")
 		if err := h.BuildModule(path.Join(Injectlib, "injectlib.json")); err != nil {
 			return err
 		}
 
-		WrapMessage("DBG", "embedding inject config")
-
-		if err := h.EmbedSectionData(path.Join(h.Compiler.BuildDirectory, "injectlib.cpp.o"), ".text$F", h.ConfigBytes); err != nil {
+		WrapMessage("DBG", "embedding injectlib config")
+		if err := h.EmbedSectionData(path.Join(h.Compiler.BuildDirectory, "injectlib.o"), ".text$F", h.ConfigBytes); err != nil {
 			return err
 		}
 	}
 
-	WrapMessage("DBG", "generating implant")
+	WrapMessage("DBG", "generating implant\n")
 	if err := h.BuildModule(path.Join(ImplantPath, "implant.json")); err != nil {
 		return err
 	}
 
-	WrapMessage("DBG", "embedding config data")
-	if err := h.EmbedSectionData(path.Join(h.Compiler.BuildDirectory, "build")+"/implant.exe", ".text$F", h.ConfigBytes); err != nil {
+	WrapMessage("DBG", "embedding implant config data")
+	if err := h.EmbedSectionData(path.Join(h.Compiler.BuildDirectory, "build")+"/implant.o", ".text$F", h.ConfigBytes); err != nil {
 		return err
 	}
 
 	WrapMessage("DBG", "extracting shellcode")
-	if err := h.CopySectionData(path.Join(h.Compiler.BuildDirectory, "build")+"/implant.exe", path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
+	if err := h.CopySectionData(path.Join(h.Compiler.BuildDirectory, "build")+"/implant.o", path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
 		return err
 	}
 
@@ -240,7 +236,7 @@ func (h *HexaneConfig) RunBuild() error {
 	return nil
 }
 
-func (h *HexaneConfig) CompileFile(srcFile, outFile, linker string) error {
+func (h *HexaneConfig) CompileFile(srcFile, outFile, includes, linker string) error {
 	var flags = h.Compiler.Flags
 
 	if linker != "" {
@@ -249,7 +245,8 @@ func (h *HexaneConfig) CompileFile(srcFile, outFile, linker string) error {
 
 	switch path.Ext(srcFile) {
 	case ".cpp":
-		return h.CompileObject(h.Compiler.Mingw, []string{srcFile}, []string{"-c"}, []string{RootDirectory}, nil, outFile)
+		flags = append(flags, "-c")
+		return h.CompileObject(h.Compiler.Mingw, []string{srcFile}, flags, []string{RootDirectory, includes}, nil, outFile)
 	case ".asm":
 		return h.CompileObject(h.Compiler.Assembler, []string{srcFile}, []string{"-f win64"}, nil, nil, outFile)
 	default:

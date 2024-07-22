@@ -1,8 +1,10 @@
 #include <core/monolith.hpp>
+#pragma comment(lib, "kernel32")
+
 EXTERN_C VOID Execute() {
 
-    OFSTRUCT of_info = { };
-    HFILE file  = OpenFile("document.txt", &of_info, OF_CREATE);
+    OFSTRUCT ofInfo = { };
+    HFILE File  = OpenFile("document.txt", &ofInfo, OF_CREATE);
 
-    CloseHandle(RCAST(HANDLE, file));
+    CloseHandle(RCAST(HANDLE, File));
 }

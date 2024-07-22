@@ -13,4 +13,5 @@
 #include <core/corelib/include/process.hpp>
 #include <core/corelib/include/stream.hpp>
 #include <core/corelib/include/utils.hpp>
+#include <core/corelib/include/inject.hpp>
 #endif //HEXANE_CORELIB_CONFIG_HPP

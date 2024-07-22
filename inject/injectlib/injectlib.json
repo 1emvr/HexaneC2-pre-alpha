@@ -5,11 +5,15 @@
   "Linker": "injectlib.ld",
 
   "Sources": [
-    "injectlib.cpp"
+    "injectlib.cpp",
+    "start.asm"
+  ],
+  "Includes":[
+    "/home/lemur/Github/HexaneC2/inject/injectlib/injectlib.hpp"
   ],
   "Dependencies": [
 	"/home/lemur/Github/HexaneC2/core/corelib/build/corelib.a",
-	"/home/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp.o"
+    "/home/lemur/Github/HexaneC2/inject/threadless/execute.o"
   ],
   "PreBuildDependencies": [
     "/home/lemur/Github/HexaneC2/inject/threadless/threadless.json"

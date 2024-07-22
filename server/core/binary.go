@@ -118,11 +118,11 @@ func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, d
 	}
 
 	if section == nil {
-		return fmt.Errorf("section %s not found", targetSection)
+		return fmt.Errorf("section %s not found in %s", targetSection, readPath)
 	}
 
 	if uint32(len(data)) > section.Size {
-		return fmt.Errorf("section %s is not large enough", targetSection)
+		return fmt.Errorf("section %s is not large enough in %s", targetSection, readPath)
 	}
 
 	if secData, err = section.Data(); err != nil {
@@ -243,7 +243,7 @@ func (h *HexaneConfig) RunCommand(cmd string) error {
 	return nil
 }
 
-func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []string, definitions []map[string][]byte, output string) error {
+func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []string, definitions map[string][]byte, output string) error {
 	var (
 		Command string
 		err     error
@@ -251,17 +251,21 @@ func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []
 
 	Command += command
 
-	if command != h.Compiler.Ar && command != h.Compiler.Linker && command != h.Compiler.Assembler {
-		if h.Implant.ProfileTypeId == TRANSPORT_HTTP {
-			definitions = append(definitions, map[string][]byte{"TRANSPORT_HTTP": nil})
-
-		} else if h.Implant.ProfileTypeId == TRANSPORT_PIPE {
-			definitions = append(definitions, map[string][]byte{"TRANSPORT_PIPE": nil})
-		}
+	if definitions == nil {
+		definitions = make(map[string][]byte)
 	}
 
 	if h.Compiler.Debug {
-		definitions = append(definitions, map[string][]byte{"DEBUG": nil})
+		definitions["DEBUG"] = nil
+	}
+
+	if command != h.Compiler.Ar && command != h.Compiler.Linker && command != h.Compiler.Assembler {
+		if h.Implant.ProfileTypeId == TRANSPORT_HTTP {
+			definitions["TRANSPORT_HTTP"] = nil
+
+		} else if h.Implant.ProfileTypeId == TRANSPORT_PIPE {
+			definitions["TRANSPORT_PIPE"] = nil
+		}
 	}
 
 	if includes != nil {
@@ -277,7 +281,8 @@ func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []
 	}
 
 	if definitions != nil {
-		for _, def := range definitions {
+		for k, v := range definitions {
+			def := map[string][]byte{k: v}
 			Command += h.GenerateDefinitions(def)
 		}
 	}

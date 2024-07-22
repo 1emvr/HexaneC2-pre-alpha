@@ -44,6 +44,7 @@ type Module struct {
 	Linker               string
 	Directories          []string
 	Sources              []string
+	Includes             []string
 	Dependencies         []string
 	PreBuildDependencies []string
 }

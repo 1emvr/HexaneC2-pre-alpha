@@ -5,7 +5,9 @@
   "OutputName": "execute",
 
   "Sources": [
-    "OpenFileExecute.cpp",
-    "threadless.asm"
+    "OpenFileExecute.cpp"
+  ],
+  "Dependencies": [
+    "/usr/x86_64-w64-mingw32/lib/libkernel32.a"
   ]
 }

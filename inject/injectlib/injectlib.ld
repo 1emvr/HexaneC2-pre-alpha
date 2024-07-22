@@ -9,13 +9,13 @@ SECTIONS {
         *(.data*);
         *(.rdata*);
 
-	FILL(0x00);
-	ALIGN(0x1000);
+	    FILL(0x00);
+	    . = ALIGN(0x1000);
 
-	__InstanceOffset = .;
-	*(.global);
-	*(.text$E);
-	*(.text$F);
+	    __InstanceOffset = .;
+	    *(.global);
+	    *(.text$E);
+	    *(.text$F);
     }
     .eh_frame : {
         *(.eh_frame);

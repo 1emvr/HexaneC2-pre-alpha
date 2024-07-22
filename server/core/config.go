@@ -136,7 +136,7 @@ func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
 			"-g -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel",
 			"-fno-ident -fpack-struct=8 -falign-functions=1",
 			"-ffunction-sections -fdata-sections -falign-jumps=1 -w",
-			"-falign-labels=1",
+			"-falign-labels=1 -fPIC",
 			"-Wl,--no-seh,--enable-stdcall-fixup,--gc-sections",
 		}
 	} else {
@@ -146,7 +146,7 @@ func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
 			"-Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel",
 			"-fno-ident -fpack-struct=8 -falign-functions=1",
 			"-s -ffunction-sections -fdata-sections -falign-jumps=1 -w",
-			"-falign-labels=1",
+			"-falign-labels=1 -fPIC",
 			"-Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections",
 		}
 	}

@@ -11,8 +11,8 @@ SECTIONS {
 
         FILL(0X00);
         . = ALIGN(0x1000);
-        __InstanceOffset = .;
 
+        __InstanceOffset = .;
         *(.global);
         *(.text$E);
         *(.text$F);
