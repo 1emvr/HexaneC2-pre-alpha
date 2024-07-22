@@ -251,8 +251,9 @@ func (h *HexaneConfig) CompileObject(command, output string, targets, flags, inc
 
 func (h *HexaneConfig) BuildSources(module *Object) error {
 	var (
-		err error
-		wg  sync.WaitGroup
+		err   error
+		flags []string
+		wg    sync.WaitGroup
 	)
 
 	errCh := make(chan error)
@@ -265,15 +266,11 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 		wg.Add(1)
 
 		go func(src string) {
-			var (
-				flags     []string
-				transport string
-			)
+			var ()
 			defer wg.Done()
 
 			target := filepath.Join(srcPath, src)
 			obj := filepath.Join(BuildPath, src+".o")
-			defs := h.CompilerCFG.Definitions
 
 			select {
 			case <-ctx.Done():
@@ -292,14 +289,7 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 					if module.LinkSources {
 						flags = append(flags, "-T"+module.Linker)
 					}
-					if module.Implant {
-						if transport, err = h.GetTransportType(); err != nil {
-							break
-						}
-
-						defs = MergeMaps(defs, map[string][]byte{transport: nil})
-					}
-					err = h.CompileObject(h.CompilerCFG.Mingw, obj, []string{target}, flags, module.IncludeDirectories, defs)
+					err = h.CompileObject(h.CompilerCFG.Mingw, obj, []string{target}, flags, module.IncludeDirectories, h.CompilerCFG.Definitions)
 				}
 			}
 
@@ -331,13 +321,25 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 }
 
 func (h *HexaneConfig) ExecuteBuildType(module *Object) error {
-	var flags []string
+	var (
+		err       error
+		flags     []string
+		transport string
+	)
 
 	module.OutputName = filepath.Join(BuildPath, module.OutputName)
 	if module.Linker != "" {
 		flags = append(flags, "-T"+module.Linker)
 	}
 
+	defs := h.CompilerCFG.Definitions
+	if module.Implant {
+		if transport, err = h.GetTransportType(); err != nil {
+			return err
+		}
+
+		defs = MergeMaps(defs, map[string][]byte{transport: nil})
+	}
 	switch module.Type {
 	case "static":
 		WrapMessage("DBG", "building static library from json config")
@@ -352,21 +354,21 @@ func (h *HexaneConfig) ExecuteBuildType(module *Object) error {
 		flags = append(flags, h.CompilerCFG.Flags...)
 
 		module.OutputName += ".dll"
-		return h.CompileObject(h.CompilerCFG.Linker, module.OutputName, module.Components, flags, module.IncludeDirectories, nil)
+		return h.CompileObject(h.CompilerCFG.Linker, module.OutputName, module.Components, flags, module.IncludeDirectories, defs)
 
 	case "executable":
 		WrapMessage("DBG", "building executable from json config")
 
 		module.OutputName += ".exe"
 		flags = append(flags, h.CompilerCFG.Flags...)
-		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.IncludeDirectories, nil)
+		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.IncludeDirectories, defs)
 
 	case "object":
 		WrapMessage("DBG", "building object file from json config")
 
 		module.OutputName += ".o"
 		flags = append(flags, h.CompilerCFG.Flags...)
-		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.IncludeDirectories, module.Definitions)
+		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.IncludeDirectories, defs)
 
 	case "resource":
 		WrapMessage("DBG", "building resource file from json config")
