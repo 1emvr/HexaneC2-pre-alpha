@@ -25,10 +25,10 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 		err        error
 		components []string
 		includes   []string
-		jsonCfg    *Module
+		jsonCfg    *ModuleConfig
 	)
 
-	if jsonCfg, err = ReadJson(cfgName); err != nil {
+	if jsonCfg, err = GetModuleConfig(cfgName); err != nil {
 		return err
 	}
 

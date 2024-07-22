@@ -34,7 +34,7 @@
       "ProcName": "flameshot.exe",
       "ModuleName": "KERNEL32.DLL",
       "FuncName": "OpenFile",
-      "LdrExecute": "C:\\Users\\lemur\\CLionProjects\\hexane-server\\src\\inject\\threadless\\OpenFileExecute.cpp"
+      "LdrExecute": "//wsl.localhost/kali-linux/home/lemur/Github/HexaneC2/src/inject/threadless/OpenFileExecute.cpp"
     }
   }
 }

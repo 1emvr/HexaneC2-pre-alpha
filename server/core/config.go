@@ -61,22 +61,22 @@ var ModuleStrings = []string{
 	"iphlpapi",
 }
 
-func ReadJson(cfgName string) (*Module, error) {
+func GetModuleConfig(cfgName string) (*ModuleConfig, error) {
 	var (
-		err     error
-		buffer  []byte
-		jsonCfg *Module
+		err    error
+		buffer []byte
+		modCfg *ModuleConfig
 	)
 
 	if buffer, err = os.ReadFile(cfgName); err != nil {
 		return nil, err
 	}
 
-	if err = json.Unmarshal(buffer, &jsonCfg); err != nil {
+	if err = json.Unmarshal(buffer, &modCfg); err != nil {
 		return nil, err
 	}
 
-	return jsonCfg, nil
+	return modCfg, nil
 }
 
 func (h *HexaneConfig) GenerateConfigBytes() error {
@@ -219,10 +219,12 @@ func ReadConfig(cfgName string) error {
 
 		if jsonCfg.Injection.Threadless != nil {
 			hexane.Implant.Injection.Threadless = new(Threadless)
-			hexane.Implant.Injection.Threadless.ModuleName = jsonCfg.Injection.Threadless.ModuleName + string(byte(0x00))
-			hexane.Implant.Injection.Threadless.ProcName = jsonCfg.Injection.Threadless.ProcName + string(byte(0x00))
-			hexane.Implant.Injection.Threadless.FuncName = jsonCfg.Injection.Threadless.FuncName + string(byte(0x00))
-			hexane.Implant.Injection.Threadless.Execute = jsonCfg.Injection.Threadless.Execute
+			hexane.Implant.Injection.Threadless.ConfigName = jsonCfg.Injection.Threadless.ConfigName
+
+			if hexane.Implant.Injection.Config, err = GetModuleConfig(hexane.Implant.Injection.Threadless.ConfigName); err != nil {
+				return err
+			}
+
 		}
 	}
 

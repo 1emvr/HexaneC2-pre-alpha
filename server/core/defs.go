@@ -36,7 +36,7 @@ type TableMap struct {
 	Values  [][]string
 }
 
-type Module struct {
+type ModuleConfig struct {
 	Type                 string
 	RootDir              string
 	OutputDir            string
@@ -60,6 +60,7 @@ type Config struct {
 }
 
 type Threadless struct {
+	ConfigName string
 	ProcName   string
 	ModuleName string
 	FuncName   string
@@ -71,8 +72,7 @@ type Threadpool struct {
 }
 
 type Injection struct {
-	ConfigName string
-	Config     Module
+	Config     *ModuleConfig
 	Threadless *Threadless
 	Threadpool *Threadpool
 }

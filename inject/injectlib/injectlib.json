@@ -13,10 +13,6 @@
     "injectlib.hpp"
   ],
   "Dependencies": [
-	"/home/lemur/Github/HexaneC2/libs/corelib.a",
-    "/home/lemur/Github/HexaneC2/libs/execute.o"
-  ],
-  "PreBuildDependencies": [
-    "/home/lemur/Github/HexaneC2/inject/threadless/threadless.json"
+	"/home/lemur/Github/HexaneC2/libs/corelib.a"
   ]
 }

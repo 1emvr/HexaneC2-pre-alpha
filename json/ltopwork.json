@@ -32,11 +32,7 @@
 
 	"Injection": {
 		"Threadless": {
-
-			"ProcName": "flameshot.exe",
-			"ModuleName": "KERNEL32.DLL",
-			"FuncName": "OpenFile",
-			"LdrExecute": "C:\\Users\\lemur\\CLionProjects\\hexane-server\\src\\inject\\threadless\\OpenFileExecute.cpp"
+			"ConfigName": "//wsl.localhost/kali-linux/home/lemur/Github/HexaneC2/src/inject/threadless/threadless.json"
 		}
 	}
 }

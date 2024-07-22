@@ -9,5 +9,11 @@
   ],
   "Dependencies": [
     "/usr/x86_64-w64-mingw32/lib/libkernel32.a"
-  ]
+  ],
+  "Config": {
+    "ProcName": "flameshot.exe",
+    "ModuleName": "KERNEL32.DLL",
+    "FuncName": "OpenFile",
+    "LdrExecute": "//wsl.localhost/kali-linux/home/lemur/Github/HexaneC2/src/inject/threadless/src/OpenFileExecute.cpp"
+  }
 }
