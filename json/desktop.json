@@ -33,6 +33,7 @@
 			"process.cpp", "stream.cpp", "utils.cpp", "start.asm"
 		],
 
+		"Dependencies": [],
 		"Loader": {
 			"RootDirectory": "/home/lemur/Github/HexaneC2/loader",
 			"LinkerScript": "loader.ld",

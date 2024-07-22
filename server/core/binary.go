@@ -352,7 +352,6 @@ func (h *HexaneConfig) ExecuteBuildType(module *Module) error {
 		transport string
 	)
 
-	h.UserConfig.Builder.OutputName = filepath.Join(BuildPath, h.UserConfig.Builder.OutputName)
 	if transport, err = h.GetTransportType(); err != nil {
 		return err
 	}

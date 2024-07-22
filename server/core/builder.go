@@ -33,7 +33,8 @@ func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) *Module {
 
 		Files: &Sources{
 			Sources:            config.Builder.Sources,
-			IncludeDirectories: []string{RootDirectory},
+			Dependencies:       config.Builder.Dependencies,
+			IncludeDirectories: []string{RootDirectory, config.Builder.RootDirectory},
 		},
 
 		Loader: &Loader{
@@ -64,6 +65,7 @@ func (h *HexaneConfig) BuildModule() error {
 	if module = h.GetModuleConfig(h.UserConfig); module == nil {
 		return fmt.Errorf("module config is nil")
 	}
+	module.OutputName = filepath.Join(BuildPath, module.OutputName)
 
 	if module.LinkerScript != "" {
 		module.LinkerScript = filepath.Join(module.RootDirectory, module.LinkerScript)
@@ -75,10 +77,6 @@ func (h *HexaneConfig) BuildModule() error {
 
 	if err = h.BuildSources(module); err != nil {
 		return err
-	}
-
-	if module.Files.Dependencies != nil {
-		module.Components = append(module.Components, module.Files.Dependencies...)
 	}
 
 	if len(module.Components) > 1 {

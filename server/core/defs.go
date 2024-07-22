@@ -134,6 +134,7 @@ type JsonConfig struct {
 		RootDirectory string
 		LinkerScript  string
 		Sources       []string
+		Dependencies  []string
 		Loader        *struct {
 			RootDirectory string
 			LinkerScript  string
