@@ -1,6 +1,7 @@
 {
   "Type": "object",
   "RootDir": "/home/lemur/Github/HexaneC2/inject/injectlib",
+  "OutputDir": "/home/lemur/Github/HexaneC2/libs",
   "OutputName": "injectlib",
   "Linker": "injectlib.ld",
 
@@ -9,11 +10,11 @@
     "start.asm"
   ],
   "Includes":[
-    "/home/lemur/Github/HexaneC2/inject/injectlib/injectlib.hpp"
+    "injectlib.hpp"
   ],
   "Dependencies": [
-	"/home/lemur/Github/HexaneC2/core/corelib/build/corelib.a",
-    "/home/lemur/Github/HexaneC2/inject/threadless/execute.o"
+	"/home/lemur/Github/HexaneC2/libs/corelib.a",
+    "/home/lemur/Github/HexaneC2/libs/execute.o"
   ],
   "PreBuildDependencies": [
     "/home/lemur/Github/HexaneC2/inject/threadless/threadless.json"

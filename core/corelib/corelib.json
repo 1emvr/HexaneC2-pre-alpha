@@ -1,7 +1,7 @@
 {
   "Type": "static",
   "RootDir": "/home/lemur/Github/HexaneC2/core/corelib",
-  "OutputDir": "/home/lemur/Github/HexaneC2/core/corelib/build",
+  "OutputDir": "/home/lemur/Github/HexaneC2/libs",
   "OutputName": "corelib",
   "Linker": "corelib.ld",
 

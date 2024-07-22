@@ -16,8 +16,8 @@ VOID RsrcLoader(HMODULE Base) {
 
         Memory::ResolveApi();
         Parser::CreateParser(&Parser, Config, sizeof(Config));
-        x_memset(Config, 0, sizeof(Config));
 
+        x_memset(Config, 0, sizeof(Config));
         //XteaCrypt(B_PTR(Parser.Handle), Parser.Length, Ctx->ConfigBytes.Key, FALSE);
 
         Parser::ParserStrcpy(&Parser, RCAST(LPSTR*, &Ctx->Config.Key), nullptr);

