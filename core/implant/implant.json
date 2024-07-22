@@ -1,16 +1,15 @@
 {
   "Type": "object",
   "RootDir": "/home/lemur/Github/HexaneC2/core/implant",
+  "OutputDir": "/home/lemur/Github/HexaneC2/core/implant/build",
   "OutputName": "implant",
   "Linker": "implant.ld",
 
-  "Directories": [],
   "Sources": [
     "start.asm",
     "implant.cpp"
   ],
   "Dependencies": [
-    "/home/lemur/Github/HexaneC2/core/corelib/build/corelib.a",
-    "/home/lemur/Github/HexaneC2/core/implant/start.asm.o"
+    "/home/lemur/Github/HexaneC2/core/corelib/build/corelib.a"
   ]
 }

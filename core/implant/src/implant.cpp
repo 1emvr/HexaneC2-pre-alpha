@@ -122,7 +122,6 @@ namespace Implant {
 
         Ctx->Transport.OutboundQueue = nullptr;
 
-#define TRANSPORT_HTTP
 #ifdef TRANSPORT_HTTP
         Ctx->Transport.http = SCAST(PHTTP_CONTEXT, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(HTTP_CONTEXT)));
 

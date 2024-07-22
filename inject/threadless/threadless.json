@@ -1,7 +1,7 @@
 {
   "Type": "object",
   "RootDir": "/home/lemur/Github/HexaneC2/inject/threadless",
-  "OutputDir": "/home/lemur/Github/HexaneC2/libs",
+  "OutputDir": "/home/lemur/Github/HexaneC2/inject/threadless/build",
   "OutputName": "execute",
 
   "Sources": [
@@ -14,6 +14,6 @@
     "ProcName": "flameshot.exe",
     "ModuleName": "KERNEL32.DLL",
     "FuncName": "OpenFile",
-    "LdrExecute": "//wsl.localhost/kali-linux/home/lemur/Github/HexaneC2/inject/threadless/src/OpenFileExecute.cpp"
+    "LdrExecute": "/home/lemur/Github/HexaneC2/inject/threadless/src/OpenFileExecute.cpp"
   }
 }

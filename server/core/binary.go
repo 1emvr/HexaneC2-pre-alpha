@@ -285,12 +285,12 @@ func (h *HexaneConfig) CompileFile(srcFile string, outFile string, includes []st
 }
 
 func (h *HexaneConfig) ExecuteBuild(modCfg *ModuleConfig) error {
-	var flags []string
+	var flags = h.Compiler.Flags
 
 	switch modCfg.Type {
 	case "static":
 		WrapMessage("DBG", "building static library from json config")
-		return h.RunCommand(h.Compiler.Ar + " crf " + modCfg.OutputName + " " + strings.Join(modCfg.Components, " "))
+		return h.RunCommand(h.Compiler.Ar + " crf " + modCfg.OutputName + ".a " + strings.Join(modCfg.Components, " "))
 
 	case "dynamic":
 		WrapMessage("DBG", "building dynamic library from json config")
@@ -304,10 +304,10 @@ func (h *HexaneConfig) ExecuteBuild(modCfg *ModuleConfig) error {
 	case "object":
 		WrapMessage("DBG", "building object file from json config")
 		if modCfg.Linker != "" {
-			flags = append(flags, " -T "+modCfg.Linker)
+			flags = append(flags, "-T"+modCfg.Linker)
 		}
 
-		return h.CompileObject(h.Compiler.Linker, modCfg.Components, flags, modCfg.Includes, h.Compiler.Definitions, modCfg.OutputName+".o")
+		return h.CompileObject(h.Compiler.Mingw, modCfg.Components, flags, modCfg.Includes, h.Compiler.Definitions, modCfg.OutputName+".o")
 
 	default:
 		return fmt.Errorf("unknown build type: %s", modCfg.Type)

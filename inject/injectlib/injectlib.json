@@ -1,7 +1,7 @@
 {
   "Type": "object",
   "RootDir": "/home/lemur/Github/HexaneC2/inject/injectlib",
-  "OutputDir": "/home/lemur/Github/HexaneC2/libs",
+  "OutputDir": "/home/lemur/Github/HexaneC2/inject/injectlib/build",
   "OutputName": "injectlib",
   "Linker": "injectlib.ld",
 

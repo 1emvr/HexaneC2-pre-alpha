@@ -96,9 +96,14 @@ func (h *HexaneConfig) BuildModule(modCfg *ModuleConfig) error {
 		}
 
 		source := filepath.Join(srcPath, src)
-		WrapMessage("DBG", fmt.Sprintf("compiling %s", source))
+		linker := ""
 
-		if err = h.CompileFile(source, obj, modCfg.Includes, modCfg.Linker); err != nil {
+		WrapMessage("DBG", fmt.Sprintf("compiling %s", source))
+		if modCfg.PreLinkSources {
+			linker = modCfg.Linker
+		}
+
+		if err = h.CompileFile(source, obj, modCfg.Includes, linker); err != nil {
 			return err
 		}
 
@@ -129,7 +134,7 @@ func (h *HexaneConfig) RunBuild() error {
 		return err
 	}
 
-	if err = SearchFile(Libs, "corelib.a"); err != nil {
+	if err = SearchFile(filepath.Join(Corelib, "build"), "corelib.a"); err != nil {
 		if err.Error() == FileNotFound.Error() {
 
 			WrapMessage("DBG", "generating corelib\n")

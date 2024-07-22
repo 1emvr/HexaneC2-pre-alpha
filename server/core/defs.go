@@ -42,6 +42,7 @@ type ModuleConfig struct {
 	OutputDir            string
 	OutputName           string
 	Linker               string
+	PreLinkSources       bool
 	Directories          []string
 	Sources              []string
 	Includes             []string
