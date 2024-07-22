@@ -63,7 +63,6 @@ type Config struct {
 }
 
 type Threadless struct {
-	ConfigName string
 	ProcName   string
 	ModuleName string
 	FuncName   string
@@ -71,6 +70,7 @@ type Threadless struct {
 }
 
 type Injection struct {
+	ConfigPath string
 	Object     *Object
 	Threadless *Threadless
 }

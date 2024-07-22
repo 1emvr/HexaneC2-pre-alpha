@@ -28,12 +28,6 @@
 		"Proxy":{
 			"Enabled": false
 		}
-	},
-
-	"Injection": {
-		"Threadless": {
-			"ConfigName": "/home/lemur/Github/HexaneC2/inject/threadless/threadless.json"
-		}
 	}
 }
 

@@ -18,23 +18,11 @@
     "Port": 80,
 
     "Endpoints": [
-      "/endpoint1", "/endpoint2", "/endpoint3", "/endpoint4",
-      "/endpoint5"
+      "/endpoint1", "/endpoint2", "/endpoint3", "/endpoint4", "/endpoint5"
     ],
 
     "Proxy":{
       "Enabled": false
-    }
-  },
-
-  "Injection": {
-    "ConfigName": "threadless.json",
-
-    "Threadless": {
-      "ProcName": "flameshot.exe",
-      "ModuleName": "KERNEL32.DLL",
-      "FuncName": "OpenFile",
-      "LdrExecute": "//wsl.localhost/kali-linux/home/lemur/Github/HexaneC2/src/inject/threadless/OpenFileExecute.cpp"
     }
   }
 }

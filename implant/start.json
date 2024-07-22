@@ -1,9 +1,0 @@
-{
-  "Type": "object",
-  "RootDirectory": "/home/lemur/Github/HexaneC2/implant",
-  "OutputName": "start.o",
-
-  "Sources": [
-    "start.asm"
-  ]
-}

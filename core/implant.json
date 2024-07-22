@@ -1,0 +1,15 @@
+{
+  "Type": "object",
+  "RootDirectory": "/home/lemur/Github/HexaneC2/core",
+  "OutputName": "implant.exe",
+  "Implant": true,
+
+  "Linker": "implant.ld",
+  "Sources": [
+    "implant.cpp", "cipher.cpp", "commands.cpp", "cruntime.cpp", "inject.cpp", "memory.cpp", "message.cpp", 
+    "network.cpp", "opsec.cpp", "parser.cpp", "process.cpp", "stream.cpp", "utils.cpp", "start.asm"
+  ],
+  "IncludeDirectories": [
+    "/home/lemur/Github/HexaneC2/core/include"
+  ]
+}

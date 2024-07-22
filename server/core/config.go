@@ -175,7 +175,6 @@ func ReadConfig(cfgName string) error {
 	)
 
 	WrapMessage("INF", fmt.Sprintf("loading %s", cfgName))
-
 	if buffer, err = os.ReadFile(RootDirectory + "json/" + cfgName); err != nil {
 		return err
 	}
@@ -208,18 +207,22 @@ func ReadConfig(cfgName string) error {
 	}
 
 	if jsonCfg.Injection != nil {
+		WrapMessage("DBG", "generating injection config")
 		hexane.ImplantCFG.Injection = new(Injection)
 
 		if jsonCfg.Injection.Threadless != nil {
 			hexane.ImplantCFG.Injection.Threadless = new(Threadless)
-			hexane.ImplantCFG.Injection.Threadless.ConfigName = jsonCfg.Injection.Threadless.ConfigName
+			hexane.ImplantCFG.Injection.ConfigPath = jsonCfg.Injection.ConfigPath
 
-			if hexane.ImplantCFG.Injection.Object, err = GetModuleConfig(hexane.ImplantCFG.Injection.Threadless.ConfigName); err != nil {
+			if hexane.ImplantCFG.Injection.Object, err = GetModuleConfig(hexane.ImplantCFG.Injection.ConfigPath); err != nil {
+				WrapMessage("ERR", "injection config error.")
 				return err
 			}
 
 		}
 	}
+
+	fmt.Println("end injection config")
 
 	if jsonCfg.Network.ProfileType == "http" {
 

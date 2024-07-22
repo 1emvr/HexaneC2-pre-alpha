@@ -231,9 +231,8 @@ func (h *HexaneConfig) CompileObject(command, output string, targets, flags, inc
 
 func (h *HexaneConfig) BuildSources(module *Object) error {
 	var (
-		err   error
-		flags []string
-		wg    sync.WaitGroup
+		err error
+		wg  sync.WaitGroup
 	)
 
 	errCh := make(chan error)
@@ -246,6 +245,7 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 		wg.Add(1)
 
 		go func(src string) {
+			var flags []string
 			defer wg.Done()
 
 			target := filepath.Join(srcPath, src)
@@ -259,7 +259,7 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 				switch filepath.Ext(target) {
 				case ".asm":
 
-					flags = append(flags, "-f")
+					flags = append(flags, "-f win64")
 					err = h.CompileObject(h.CompilerCFG.Assembler, obj, []string{target}, flags, nil, nil)
 
 				case ".cpp":

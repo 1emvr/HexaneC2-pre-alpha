@@ -1,0 +1,15 @@
+{
+	"Type": "object",
+	"RootDirectory": "/home/lemur/Github/HexaneC2/loader",
+	"OutputName": "threadless.o",
+
+	"Sources": [
+		"threadless.cpp"
+	],
+	"IncludeDirectories": [
+		"/home/lemur/Github/HexaneC2/loader/include"
+	],
+	"Dependencies": [
+		"/home/lemur/Github/HexaneC2/libs/inject.o"
+	]
+}

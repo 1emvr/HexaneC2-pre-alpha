@@ -92,23 +92,8 @@ func (h *HexaneConfig) RunBuild() error {
 		return err
 	}
 
-	if err = SearchFile(BuildPath, "corelib.a"); err != nil {
-		if err.Error() == FileNotFound.Error() {
-
-			WrapMessage("DBG", "generating corelib\n")
-			if obj, err = GetModuleConfig(path.Join(CorePath, "corelib.json")); err != nil {
-				return err
-			}
-			if err = h.BuildModule(obj); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
-	}
-
 	WrapMessage("DBG", "generating implant\n")
-	if obj, err = GetModuleConfig(path.Join(ImplantPath, "implant.json")); err != nil {
+	if obj, err = GetModuleConfig(path.Join(CorePath, "implant.json")); err != nil {
 		return err
 	}
 	if err = h.BuildModule(obj); err != nil {
@@ -125,26 +110,28 @@ func (h *HexaneConfig) RunBuild() error {
 		return err
 	}
 
-	if h.ImplantCFG.Injection != nil {
+	/*
+		if h.ImplantCFG.Injection != nil {
 
-		WrapMessage("DBG", "generating injectlib\n")
-		if err = h.BuildModule(h.ImplantCFG.Injection.Object); err != nil {
-			return err
-		}
+			WrapMessage("DBG", "generating injectlib\n")
+			if err = h.BuildModule(h.ImplantCFG.Injection.Object); err != nil {
+				return err
+			}
 
-		WrapMessage("DBG", "embedding injectlib config")
-		if err = h.EmbedSectionData(path.Join(h.CompilerCFG.BuildDirectory, h.ImplantCFG.Injection.Object.OutputName), ".text$F", h.ConfigBytes); err != nil {
-			return err
-		}
+			WrapMessage("DBG", "embedding injectlib config")
+			if err = h.EmbedSectionData(path.Join(h.CompilerCFG.BuildDirectory, h.ImplantCFG.Injection.Object.OutputName), ".text$F", h.ConfigBytes); err != nil {
+				return err
+			}
 
-		WrapMessage("DBG", "generating loader dll")
-		if obj, err = GetModuleConfig(path.Join(LoaderPath, "loader.json")); err != nil {
-			return err
+			WrapMessage("DBG", "generating loader dll")
+			if obj, err = GetModuleConfig(path.Join(LoaderPath, "loader.json")); err != nil {
+				return err
+			}
+			if err = h.BuildModule(obj); err != nil {
+				return err
+			}
 		}
-		if err = h.BuildModule(obj); err != nil {
-			return err
-		}
-	}
+	*/
 
 	AddConfig(h)
 	go h.HttpServerHandler()
