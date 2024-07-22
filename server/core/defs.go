@@ -42,6 +42,7 @@ type Object struct {
 	OutputName           string
 	RootDirectory        string
 	Linker               string
+	LinkSources          bool
 	RsrcScript           string
 	RsrcBinary           string
 	IncludeDirectories   []string

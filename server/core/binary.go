@@ -293,6 +293,10 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 				case ".cpp":
 					flags := []string{"-c"}
 					flags = append(flags, h.CompilerCFG.Flags...)
+
+					if module.LinkSources {
+						flags = append(flags, "-T"+module.Linker)
+					}
 					err = h.CompileObject(h.CompilerCFG.Mingw, obj, []string{target}, flags, module.IncludeDirectories, h.CompilerCFG.Definitions)
 				}
 			}
@@ -324,7 +328,7 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 	return nil
 }
 
-func (h *HexaneConfig) ExecuteBuild(module *Object) error {
+func (h *HexaneConfig) ExecuteBuildType(module *Object) error {
 	var flags []string
 
 	module.OutputName = filepath.Join(BuildPath, module.OutputName)
@@ -366,8 +370,7 @@ func (h *HexaneConfig) ExecuteBuild(module *Object) error {
 		WrapMessage("DBG", "building resource file from json config")
 
 		module.OutputName += ".rs"
-		cmd := fmt.Sprintf("%s -O coff %s -DRSRCDATA=\"%s\" -o %s", h.CompilerCFG.Windres, module.RsrcScript, module.RsrcBinary, module.OutputName)
-		return h.RunCommand(cmd)
+		return h.RunCommand(h.CompilerCFG.Windres + " -O coff " + module.RsrcScript + " -DRSRCDATA=\"" + module.RsrcBinary + "\" -o " + module.OutputName)
 
 	default:
 		return fmt.Errorf("unknown build type: %s", module.Type)

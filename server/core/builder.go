@@ -39,10 +39,9 @@ func (h *HexaneConfig) BuildModule(module *Object) error {
 	}
 
 	if module.PreBuildDependencies != nil {
-
 		var dep *Object
-		for _, pre := range module.PreBuildDependencies {
 
+		for _, pre := range module.PreBuildDependencies {
 			if dep, err = GetModuleConfig(pre); err != nil {
 				return err
 			}
@@ -54,8 +53,15 @@ func (h *HexaneConfig) BuildModule(module *Object) error {
 		}
 	}
 
-	if err = h.BuildSources(module); err != nil {
-		return err
+	if module.Type != "executable" {
+		if err = h.BuildSources(module); err != nil {
+			return err
+		}
+	} else {
+		for _, src := range module.Sources {
+			comp := filepath.Join(module.RootDirectory+"/src", src)
+			module.Components = append(module.Components, comp)
+		}
 	}
 
 	if module.Dependencies != nil {
@@ -63,7 +69,7 @@ func (h *HexaneConfig) BuildModule(module *Object) error {
 	}
 
 	if len(module.Components) > 1 {
-		return h.ExecuteBuild(module)
+		return h.ExecuteBuildType(module)
 	} else {
 		module.OutputName = module.Components[0]
 		return nil
@@ -91,7 +97,7 @@ func (h *HexaneConfig) RunBuild() error {
 		return err
 	}
 
-	if err = SearchFile(BuildPath, "corelib.o"); err != nil {
+	if err = SearchFile(BuildPath, "corelib.a"); err != nil {
 		if err.Error() == FileNotFound.Error() {
 
 			WrapMessage("DBG", "generating corelib\n")

@@ -12,6 +12,6 @@
     "/home/lemur/Github/HexaneC2/implant/start.json"
   ],
   "Dependencies": [
-    "/home/lemur/Github/HexaneC2/build/corelib.o"
+    "/home/lemur/Github/HexaneC2/build/corelib.a"
   ]
 }

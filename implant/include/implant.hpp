@@ -9,5 +9,4 @@ namespace Implant {
     FUNCTION VOID MainRoutine();
     FUNCTION VOID ReadConfig();
 }
-
 #endif //HEXANE_CORELIB_BASE_HPP
