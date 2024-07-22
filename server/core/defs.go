@@ -71,6 +71,7 @@ type Threadpool struct {
 }
 
 type Injection struct {
+	Config     string
 	Threadless *Threadless
 	Threadpool *Threadpool
 }

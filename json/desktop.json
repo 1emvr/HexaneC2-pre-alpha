@@ -18,10 +18,7 @@
     "Port": 80,
 
     "Endpoints": [
-      "/endpoint1",
-      "/endpoint2",
-      "/endpoint3",
-      "/endpoint4",
+      "/endpoint1", "/endpoint2", "/endpoint3", "/endpoint4",
       "/endpoint5"
     ],
 
@@ -31,8 +28,8 @@
   },
 
   "Injection": {
+    "Config": "threadless.json",
     "Threadless": {
-
       "ProcName": "flameshot.exe",
       "ModuleName": "KERNEL32.DLL",
       "FuncName": "OpenFile",

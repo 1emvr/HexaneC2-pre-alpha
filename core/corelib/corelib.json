@@ -5,13 +5,13 @@
   "OutputName": "corelib",
   "Linker": "corelib.ld",
 
-  "Directories": [
-    "src",
-    "include"
-  ],
   "Sources": [
     "cipher.cpp", "commands.cpp", "cruntime.cpp", "memory.cpp",
     "network.cpp", "opsec.cpp", "parser.cpp", "process.cpp",
     "stream.cpp", "utils.cpp", "inject.cpp"
+  ],
+
+  "Includes": [
+    "corelib.hpp"
   ]
 }
