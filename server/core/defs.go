@@ -61,7 +61,7 @@ type Loader struct {
 	LinkerScript  string
 	RsrcScript    string
 	RsrcBinary    string
-	MainFile      string
+	Sources       []string
 	Injection     *TypedConfig
 }
 
@@ -140,7 +140,8 @@ type JsonConfig struct {
 			LinkerScript  string
 			RsrcScript    string
 			RsrcBinary    string
-			MainFile      string
+			Sources       []string
+			Dependencies  []string
 			Injection     *TypedConfig
 		}
 	}

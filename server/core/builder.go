@@ -42,7 +42,7 @@ func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) *Module {
 			LinkerScript:  config.Builder.Loader.LinkerScript,
 			RsrcScript:    config.Builder.Loader.RsrcScript,
 			RsrcBinary:    config.Builder.Loader.RsrcBinary,
-			MainFile:      config.Builder.Loader.MainFile,
+			Sources:       config.Builder.Loader.Sources,
 			Injection:     config.Builder.Loader.Injection,
 		},
 	}

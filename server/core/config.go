@@ -143,8 +143,8 @@ func ReadConfig(cfgPath string) error {
 			if h.UserConfig.Builder.Loader.RootDirectory == "" {
 				return fmt.Errorf("implant::loader - root directory must be specified")
 			}
-			if h.UserConfig.Builder.Loader.MainFile == "" {
-				return fmt.Errorf("implant::loader - main dll file must be specified")
+			if h.UserConfig.Builder.Loader.Sources == nil {
+				return fmt.Errorf("implant::loader - source files must be specified")
 			}
 			if h.UserConfig.Builder.Loader.RsrcScript == "" {
 				return fmt.Errorf("implant::loader - resource script must be specified")
@@ -157,12 +157,14 @@ func ReadConfig(cfgPath string) error {
 
 				switch injectType {
 				case "threadless":
+
 					var threadlessConfig Threadless
 					if err = MapToStruct(h.UserConfig.Builder.Loader.Injection.Config, &threadlessConfig); err != nil {
 						return fmt.Errorf("implant::injection - threadless configuration - " + err.Error())
 					}
 				default:
 					return fmt.Errorf("implant::loader - unknown injection method - " + injectType)
+
 				}
 			} else {
 				return fmt.Errorf("implant::injection - Injection { } is required")
@@ -177,8 +179,8 @@ func ReadConfig(cfgPath string) error {
 
 		switch networkType {
 		case "http":
-			var httpConfig Http
 
+			var httpConfig Http
 			if err = MapToStruct(h.UserConfig.Network.Config, &httpConfig); err != nil {
 				return fmt.Errorf("implant::network - network configuration - " + err.Error())
 			}
@@ -202,8 +204,8 @@ func ReadConfig(cfgPath string) error {
 			}
 
 		case "smb":
-			var smbConfig Smb
 
+			var smbConfig Smb
 			if err = MapToStruct(h.UserConfig.Network.Config, &smbConfig); err != nil {
 				return fmt.Errorf("implant::network - network configuration - " + err.Error())
 			}
@@ -214,6 +216,7 @@ func ReadConfig(cfgPath string) error {
 			}
 		default:
 			return fmt.Errorf("implant::network - unknown network profile type")
+
 		}
 	} else {
 		return fmt.Errorf("implant::config - Network { } is required")

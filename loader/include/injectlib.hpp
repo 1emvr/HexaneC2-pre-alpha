@@ -6,6 +6,8 @@
 
 EXTERN_C VOID Execute();
 EXTERN_C FUNCTION VOID Entrypoint(HMODULE Base);
-FUNCTION VOID RsrcLoader(HMODULE Base);
 
+namespace Rsrc {
+    FUNCTION VOID RsrcLoader(HMODULE Base);
+}
 #endif //_HEXANE_INJECTLIB_CONFIG_HPP

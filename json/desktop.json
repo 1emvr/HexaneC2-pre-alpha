@@ -37,10 +37,12 @@
 		"Loader": {
 			"RootDirectory": "/home/lemur/Github/HexaneC2/loader",
 			"LinkerScript": "loader.ld",
-			"RsrcScript": "rsrc.rc",
+			"RsrcScript": "resource.rc",
 			"RsrcBinary": "lolidk.bin",
-			"MainFile": "dllmain.cpp",
 
+			"Sources": [
+				"dllmain.cpp", "resource.cpp"
+			],
 			"Injection": {
 				"Type": "threadless",
 				"Config": {
