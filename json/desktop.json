@@ -28,7 +28,8 @@
   },
 
   "Injection": {
-    "Config": "threadless.json",
+    "ConfigName": "threadless.json",
+
     "Threadless": {
       "ProcName": "flameshot.exe",
       "ModuleName": "KERNEL32.DLL",

@@ -17,6 +17,7 @@ import (
 
 var Characters = "abcdef0123456789"
 var RootDirectory = GetCwd() + "/../"
+var FileNotFound = fmt.Errorf("file not found")
 
 func WrapMessage(typ, msg string) {
 	Cb <- Callback{MsgType: typ, Msg: msg}
@@ -91,24 +92,28 @@ func FindFiles(path string) ([]os.DirEntry, error) {
 	return files, nil
 }
 
-func SearchFile(rootPath string, fileName string) bool {
+func SearchFile(rootPath string, fileName string) error {
 	var (
 		files []os.DirEntry
+		found bool
 		err   error
 	)
 
 	if files, err = FindFiles(rootPath); err != nil {
-		WrapMessage("ERR", err.Error())
-		return false
+		return err
 	}
 
 	for _, file := range files {
 		if file.Name() == fileName {
-			return true
+			found = true
 		}
 	}
 
-	return false
+	if !found {
+		return FileNotFound
+	} else {
+		return nil
+	}
 }
 
 func MoveFile(srcPath, dstPath string) error {

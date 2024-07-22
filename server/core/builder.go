@@ -1,12 +1,10 @@
 package core
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -18,61 +16,32 @@ var (
 	HashHeader   = CorelibInc + "/names.hpp"
 )
 
-func (h *HexaneConfig) BuildLoader() error {
-	injectCfg, err := h.GetInjectConfig()
-	if err != nil {
-		return err
-	}
-
-	injectCfg.InjectConfig = h.GetEmbededStrings(injectCfg.Strings)
-
-	rsrcObj := path.Join(h.Compiler.BuildDirectory, "resource.res")
-	rsrcData := path.Join(h.Compiler.BuildDirectory, "shellcode.bin")
-	coreCpp := path.Join(h.Compiler.BuildDirectory, "ldrcore.cpp")
-	coreComponents := path.Join(h.Compiler.BuildDirectory, "ldrcore.cpp.o")
-	output := path.Join(h.Compiler.BuildDirectory, h.ImplantName+h.Compiler.FileExtension)
-
-	if err = h.RunWindres(rsrcObj, rsrcData); err != nil {
-		return err
-	}
-
-	if err = h.CompileExecuteObject(coreCpp, injectCfg.ExecuteObj, coreComponents); err != nil {
-		return err
-	}
-
-	components := []string{DllMain, rsrcObj, coreComponents}
-	if err = h.CompileFinalDLL(components, output); err != nil {
-		return err
-	}
-
-	if err = h.EmbedSectionData(output, ".text$F", injectCfg.InjectConfig); err != nil {
-		return err
-	}
-
-	if !h.Compiler.Debug {
-		if err = h.StripSymbols(output); err != nil {
-			return err
-		}
-	}
-
+func (h *HexaneConfig) BuildLoader(cfgName string) error {
 	return nil
 }
 
 func (h *HexaneConfig) BuildModule(cfgName string) error {
 	var (
 		err        error
-		buffer     []byte
 		components []string
-		includes   string
-		jsonCfg    Module
+		includes   []string
+		jsonCfg    *Module
 	)
 
-	if buffer, err = os.ReadFile(cfgName); err != nil {
+	if jsonCfg, err = ReadJson(cfgName); err != nil {
 		return err
 	}
 
-	if err = json.Unmarshal(buffer, &jsonCfg); err != nil {
-		return err
+	if jsonCfg.RootDir == "" {
+		return fmt.Errorf("root directory needs provided")
+	}
+
+	if jsonCfg.PreBuildDependencies != nil {
+		for _, dep := range jsonCfg.PreBuildDependencies {
+			if err = h.BuildModule(dep); err != nil {
+				return err
+			}
+		}
 	}
 
 	if jsonCfg.OutputDir != "" {
@@ -83,47 +52,34 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 		jsonCfg.OutputDir = h.Compiler.BuildDirectory
 	}
 
-	if jsonCfg.Includes != nil {
-		includes = strings.Join(jsonCfg.Includes, " -I")
-		includes = strings.Join(h.Compiler.IncludeDirs, " -I")
-	} else {
-		includes = strings.Join(h.Compiler.IncludeDirs, " -I")
-	}
-
-	if jsonCfg.Directories != nil {
-		for _, dir := range jsonCfg.Directories {
-			searchPath := path.Join(jsonCfg.RootDir, dir)
-
-			for _, src := range jsonCfg.Sources {
-				srcFile := path.Join(searchPath, src)
-				objFile := path.Join(jsonCfg.OutputDir, filepath.Base(srcFile)+".o")
-
-				if !SearchFile(searchPath, filepath.Base(srcFile)) {
-					WrapMessage("ERR", "unable to find "+srcFile+" in directory "+searchPath)
-					continue
-				}
-
-				if err = h.CompileFile(srcFile, objFile, includes, path.Join(jsonCfg.RootDir, jsonCfg.Linker)); err != nil {
-					return err
-				}
-				components = append(components, objFile)
-			}
-		}
-	} else {
+	if jsonCfg.Sources != nil {
 		for _, src := range jsonCfg.Sources {
-			srcFile := path.Join(jsonCfg.RootDir, src)
-			objFile := path.Join(jsonCfg.OutputDir, filepath.Base(srcFile)+".o")
 
-			if !SearchFile(jsonCfg.RootDir, filepath.Base(srcFile)) {
-				WrapMessage("ERR", "unable to find "+srcFile+" in directory "+jsonCfg.RootDir)
-				continue
+			srcPath := filepath.Join(jsonCfg.RootDir, "src")
+			incPath := filepath.Join(jsonCfg.RootDir, "include")
+			dep := filepath.Join(jsonCfg.OutputDir, src+".o")
+
+			if err = SearchFile(srcPath, src); err != nil {
+				return fmt.Errorf("could not find %s in %s", src, srcPath)
 			}
 
-			if err = h.CompileFile(srcFile, objFile, includes, path.Join(jsonCfg.RootDir, jsonCfg.Linker)); err != nil {
+			if jsonCfg.Includes != nil {
+				for _, inc := range jsonCfg.Includes {
+					if err = SearchFile(incPath, inc); err != nil {
+						return fmt.Errorf("could not find %s in %s", inc, incPath)
+					}
+					includes = append(includes, inc)
+				}
+			}
+
+			inc := h.GenerateIncludes(includes)
+			if err = h.CompileFile(src, dep, inc, jsonCfg.Linker); err != nil {
 				return err
 			}
-			components = append(components, objFile)
+			components = append(components, dep)
 		}
+	} else {
+		return fmt.Errorf("sources need to be provided")
 	}
 
 	if jsonCfg.Dependencies != nil {
@@ -132,33 +88,7 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 		}
 	}
 
-	switch jsonCfg.Type {
-	case "static":
-		WrapMessage("DBG", "building static library from config json: "+cfgName)
-		return h.RunCommand(h.Compiler.Ar + " crf " + path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".a") + " " + strings.Join(components, " "))
-
-	case "dynamic":
-		WrapMessage("DBG", "building dynamic library from config json: "+cfgName)
-		return h.CompileObject(h.Compiler.Linker+" -shared", components, nil, h.Compiler.IncludeDirs, nil, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".dll"))
-
-	case "executable":
-		WrapMessage("DBG", "building executable from config json: "+cfgName)
-		return h.CompileObject(h.Compiler.Linker, components, nil, h.Compiler.IncludeDirs, nil, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".exe"))
-
-	case "object":
-		var flags []string
-		WrapMessage("DBG", "building object file from config json: "+cfgName)
-
-		flags = append(flags, " -c ")
-		if jsonCfg.Linker != "" {
-			flags = append(flags, " -T "+path.Join(jsonCfg.RootDir, jsonCfg.Linker))
-		}
-
-		return h.CompileObject(h.Compiler.Linker, components, flags, []string{h.Compiler.BuildDirectory}, h.Compiler.Definitions, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".o"))
-
-	default:
-		return fmt.Errorf("unknown build type: %s", jsonCfg.Type)
-	}
+	return h.ExecuteBuild(jsonCfg, cfgName, components, includes)
 }
 
 func (h *HexaneConfig) RunBuild() error {
@@ -178,22 +108,26 @@ func (h *HexaneConfig) RunBuild() error {
 		return err
 	}
 
-	if !SearchFile(path.Join(Corelib, "build"), "corelib.a") {
+	if err := SearchFile(Libs, "corelib.a"); err != nil {
+		if err.Error() == FileNotFound.Error() {
 
-		WrapMessage("DBG", "generating corelib\n")
-		if err := h.BuildModule(path.Join(Corelib, "corelib.json")); err != nil {
+			WrapMessage("DBG", "generating corelib\n")
+			if err := h.BuildModule(path.Join(Corelib, "corelib.json")); err != nil {
+				return err
+			}
+		} else {
 			return err
 		}
 	}
 
 	if h.Implant.Injection != nil {
 		WrapMessage("DBG", "generating injectlib\n")
-		if err := h.BuildModule(path.Join(Injectlib, "injectlib.json")); err != nil {
+		if err := h.BuildModule(path.Join(Injectlib, h.Implant.Injection.ConfigName)); err != nil {
 			return err
 		}
 
 		WrapMessage("DBG", "embedding injectlib config")
-		if err := h.EmbedSectionData(path.Join(h.Compiler.BuildDirectory, "injectlib.o"), ".text$F", h.ConfigBytes); err != nil {
+		if err := h.EmbedSectionData(path.Join(h.Compiler.BuildDirectory, h.Implant.Injection.Config.OutputName), ".text$F", h.ConfigBytes); err != nil {
 			return err
 		}
 	}
@@ -213,10 +147,10 @@ func (h *HexaneConfig) RunBuild() error {
 		return err
 	}
 
-	if h.BuildType == "dll" {
+	if h.Implant.Injection != nil {
 		WrapMessage("DBG", "generating loader dll")
 
-		if err := h.BuildLoader(); err != nil {
+		if err := h.BuildLoader(path.Join(LoaderPath, "loader.json")); err != nil {
 			return err
 		}
 	}
@@ -228,32 +162,4 @@ func (h *HexaneConfig) RunBuild() error {
 	WrapMessage("INF", fmt.Sprintf("%s ready!", h.ImplantName))
 
 	return nil
-}
-
-func (h *HexaneConfig) CompileFile(srcFile, outFile, includes, linker string) error {
-	var flags = h.Compiler.Flags
-
-	if linker != "" {
-		flags = append(flags, "-T", linker)
-	}
-
-	switch path.Ext(srcFile) {
-	case ".cpp":
-		flags = append(flags, "-c")
-		return h.CompileObject(h.Compiler.Mingw, []string{srcFile}, flags, []string{RootDirectory, includes}, nil, outFile)
-	case ".asm":
-		return h.CompileObject(h.Compiler.Assembler, []string{srcFile}, []string{"-f win64"}, nil, nil, outFile)
-	default:
-		WrapMessage("DBG", "cannot compile "+path.Ext(srcFile)+" files")
-		return nil
-	}
-}
-
-func (h *HexaneConfig) RunWindres(rsrcObj, rsrcData string) error {
-	cmd := fmt.Sprintf("%s -O coff %s -DRSRCDATA=\"%s\" -o %s", h.Compiler.Windres, RsrcScript, rsrcData, rsrcObj)
-	return h.RunCommand(cmd)
-}
-
-func (h *HexaneConfig) StripSymbols(output string) error {
-	return h.RunCommand(h.Compiler.Strip + " " + output)
 }

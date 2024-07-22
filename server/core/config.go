@@ -40,6 +40,7 @@ var (
 	CorelibSrc = path.Join(Corelib, "src")
 	CorelibInc = path.Join(Corelib, "include")
 	CorelibLd  = path.Join(Corelib, "corelib.ld")
+	Libs       = path.Join(RootDirectory, "libs")
 
 	Injectlib   = path.Join(InjectPath, "injectlib")
 	InjectSrc   = path.Join(Injectlib, "src")
@@ -58,6 +59,24 @@ var ModuleStrings = []string{
 	"winhttp",
 	"advapi32",
 	"iphlpapi",
+}
+
+func ReadJson(cfgName string) (*Module, error) {
+	var (
+		err     error
+		buffer  []byte
+		jsonCfg *Module
+	)
+
+	if buffer, err = os.ReadFile(cfgName); err != nil {
+		return nil, err
+	}
+
+	if err = json.Unmarshal(buffer, &jsonCfg); err != nil {
+		return nil, err
+	}
+
+	return jsonCfg, nil
 }
 
 func (h *HexaneConfig) GenerateConfigBytes() error {

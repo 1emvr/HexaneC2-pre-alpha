@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -209,40 +211,6 @@ func (h *HexaneConfig) GetEmbededStrings(strList []string) []byte {
 	return stream.Buffer
 }
 
-func (h *HexaneConfig) RunCommand(cmd string) error {
-	var (
-		Command *exec.Cmd
-		Log     *os.File
-		LogName string
-		err     error
-	)
-
-	LogName = LogsPath + "/" + strconv.Itoa(int(h.Implant.PeerId)) + "-error.log"
-	if Log, err = os.Create(LogName); err != nil {
-		return err
-	}
-
-	defer func() {
-		if err = Log.Close(); err != nil {
-			WrapMessage("ERR", err.Error())
-		}
-	}()
-
-	Command = exec.Command("bash", "-c", cmd)
-	Command.Stdout = Log
-	Command.Stderr = Log
-
-	if ShowCommands {
-		WrapMessage("DBG", "running command : "+Command.String()+"\n")
-	}
-
-	if err = Command.Run(); err != nil {
-		return fmt.Errorf("compilation error. Check %s for details", LogName)
-	}
-
-	return nil
-}
-
 func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []string, definitions map[string][]byte, output string) error {
 	var (
 		Command string
@@ -292,5 +260,98 @@ func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []
 	if err = h.RunCommand(Command); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (h *HexaneConfig) CompileFile(srcFile, outFile, includes, linker string) error {
+	var flags = h.Compiler.Flags
+
+	if linker != "" {
+		flags = append(flags, "-T", linker)
+	}
+
+	switch path.Ext(srcFile) {
+	case ".cpp":
+		flags = append(flags, "-c")
+		return h.CompileObject(h.Compiler.Mingw, []string{srcFile}, flags, []string{RootDirectory, includes}, nil, outFile)
+	case ".asm":
+		return h.CompileObject(h.Compiler.Assembler, []string{srcFile}, []string{"-f win64"}, nil, nil, outFile)
+	default:
+		WrapMessage("DBG", "cannot compile "+path.Ext(srcFile)+" files")
+		return nil
+	}
+}
+
+func (h *HexaneConfig) ExecuteBuild(jsonCfg *Module, cfgName string, components []string, includes []string) error {
+	var flags []string
+
+	switch jsonCfg.Type {
+	case "static":
+		WrapMessage("DBG", "building static library from config json: "+cfgName)
+		return h.RunCommand(h.Compiler.Ar + " crf " + path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".a") + " " + strings.Join(components, " "))
+
+	case "dynamic":
+		WrapMessage("DBG", "building dynamic library from config json: "+cfgName)
+		return h.CompileObject(h.Compiler.Linker+" -shared", components, nil, includes, nil, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".dll"))
+
+	case "executable":
+		WrapMessage("DBG", "building executable from config json: "+cfgName)
+		return h.CompileObject(h.Compiler.Linker, components, nil, includes, nil, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".exe"))
+
+	case "object":
+		WrapMessage("DBG", "building object file from config json: "+cfgName)
+		flags = append(flags, " -c ")
+
+		if jsonCfg.Linker != "" {
+			flags = append(flags, " -T "+path.Join(jsonCfg.RootDir, jsonCfg.Linker))
+		}
+
+		return h.CompileObject(h.Compiler.Linker, components, flags, includes, h.Compiler.Definitions, path.Join(jsonCfg.OutputDir, jsonCfg.OutputName+".o"))
+
+	default:
+		return fmt.Errorf("unknown build type: %s", jsonCfg.Type)
+	}
+}
+
+func (h *HexaneConfig) RunWindres(rsrcObj, rsrcData string) error {
+	cmd := fmt.Sprintf("%s -O coff %s -DRSRCDATA=\"%s\" -o %s", h.Compiler.Windres, RsrcScript, rsrcData, rsrcObj)
+	return h.RunCommand(cmd)
+}
+
+func (h *HexaneConfig) StripSymbols(output string) error {
+	return h.RunCommand(h.Compiler.Strip + " " + output)
+}
+
+func (h *HexaneConfig) RunCommand(cmd string) error {
+	var (
+		Command *exec.Cmd
+		Log     *os.File
+		LogName string
+		err     error
+	)
+
+	LogName = filepath.Join(LogsPath, strconv.Itoa(int(h.Implant.PeerId))+"-error.log")
+	if Log, err = os.Create(LogName); err != nil {
+		return err
+	}
+
+	defer func() {
+		if err = Log.Close(); err != nil {
+			WrapMessage("ERR", err.Error())
+		}
+	}()
+
+	Command = exec.Command("bash", "-c", cmd)
+	Command.Stdout = Log
+	Command.Stderr = Log
+
+	if ShowCommands {
+		WrapMessage("DBG", "running command : "+Command.String()+"\n")
+	}
+
+	if err = Command.Run(); err != nil {
+		return fmt.Errorf("compilation error. Check %s for details", LogName)
+	}
+
 	return nil
 }
