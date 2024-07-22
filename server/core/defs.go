@@ -141,6 +141,8 @@ type CompilerConfig struct {
 	FileExtension  string
 	BuildDirectory string
 	Definitions    map[string][]byte
+	Source         []string
+	Includes       []string
 	Flags          []string
 }
 

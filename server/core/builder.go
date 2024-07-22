@@ -8,14 +8,6 @@ import (
 	"time"
 )
 
-var (
-	LinkerLoader = LoaderPath + "/linker.loader.ld"
-	HashStrings  = ConfigsPath + "/strings.txt"
-	DllMain      = LoaderPath + "/dllmain.cpp"
-	RsrcScript   = LoaderPath + "/resource.rc"
-	HashHeader   = CorelibInc + "/names.hpp"
-)
-
 func (h *HexaneConfig) BuildLoader(cfgName string) error {
 	return nil
 }

@@ -23,41 +23,41 @@ func (h *HexaneConfig) AddServer(engine *gin.Engine, profile *HttpConfig) {
 	}
 
 	Servers.Head = c
-	h.Server = c
+	h.ServerCFG = c
 }
 
 func AddConfig(h *HexaneConfig) {
 
 	c := &HexaneConfig{
-		GroupId:     h.GroupId,
-		ImplantName: h.ImplantName,
-		TaskCounter: h.TaskCounter,
-		Key:         h.Key,
+		GroupId:       h.GroupId,
+		PeerId:        h.PeerId,
+		ImplantName:   h.ImplantName,
+		CurrentTaskId: h.CurrentTaskId,
+		Key:           h.Key,
 
-		Implant: &ImplantConfig{
-			ProfileTypeId: h.Implant.ProfileTypeId,
-			Profile:       h.Implant.Profile,
-			Hostname:      h.Implant.Hostname,
-			Domain:        h.Implant.Domain,
-			PeerId:        h.Implant.PeerId,
-			IngressPipe:   h.Implant.IngressPipe,
-			EgressPipe:    h.Implant.EgressPipe,
-			WorkingHours:  h.Implant.WorkingHours,
-			Sleeptime:     h.Implant.Sleeptime,
-			Jitter:        h.Implant.Jitter,
-			Killdate:      h.Implant.Killdate,
-			ProxyBool:     h.Implant.ProxyBool,
+		ImplantCFG: &ImplantConfig{
+			ProfileTypeId: h.ImplantCFG.ProfileTypeId,
+			Profile:       h.ImplantCFG.Profile,
+			Hostname:      h.ImplantCFG.Hostname,
+			Domain:        h.ImplantCFG.Domain,
+			IngressPipe:   h.ImplantCFG.IngressPipe,
+			EgressPipe:    h.ImplantCFG.EgressPipe,
+			WorkingHours:  h.ImplantCFG.WorkingHours,
+			Sleeptime:     h.ImplantCFG.Sleeptime,
+			Jitter:        h.ImplantCFG.Jitter,
+			Killdate:      h.ImplantCFG.Killdate,
+			ProxyBool:     h.ImplantCFG.ProxyBool,
 		},
-		Proxy: &ProxyConfig{
-			Address:  h.Proxy.Address,
-			Port:     h.Proxy.Port,
-			Proto:    h.Proxy.Proto,
-			Username: h.Proxy.Username,
-			Password: h.Proxy.Password,
+		ProxyCFG: &ProxyConfig{
+			Address:  h.ProxyCFG.Address,
+			Port:     h.ProxyCFG.Port,
+			Proto:    h.ProxyCFG.Proto,
+			Username: h.ProxyCFG.Username,
+			Password: h.ProxyCFG.Password,
 		},
-		Compiler: &CompilerConfig{
-			Debug:         h.Compiler.Debug,
-			FileExtension: h.Compiler.FileExtension,
+		CompilerCFG: &CompilerConfig{
+			Debug:         h.CompilerCFG.Debug,
+			FileExtension: h.CompilerCFG.FileExtension,
 		},
 		UserSession: &HexaneSession{
 			Username: h.UserSession.Username,
@@ -101,9 +101,9 @@ func GetConfigByPeerId(pid uint32) *HexaneConfig {
 	var Head = Payloads.Head
 
 	for Head != nil {
-		WrapMessage("DBG", fmt.Sprintf(" checking %d against %d\n", pid, Head.Implant.PeerId))
+		WrapMessage("DBG", fmt.Sprintf(" checking %d against %d\n", pid, Head.PeerId))
 
-		if Head.Implant.PeerId == pid {
+		if Head.PeerId == pid {
 			return Head
 		}
 		Head = Head.Next

@@ -49,7 +49,7 @@ func (h *HexaneConfig) HandleCheckin(Parser *Parser, Stream *Stream) {
 	defer h.Mu.Unlock()
 
 	if Parser.ParserPrintData(TypeCheckin) {
-		Stream.CreateHeader(Parser, TypeCheckin, uint32(h.TaskCounter))
+		Stream.CreateHeader(Parser, TypeCheckin, uint32(h.CurrentTaskId))
 	}
 }
 
@@ -59,7 +59,7 @@ func (h *HexaneConfig) HandleResponse(Parser *Parser, Stream *Stream) {
 	defer h.Mu.Unlock()
 
 	if Parser.ParserPrintData(TypeTasking) {
-		Stream.CreateHeader(Parser, TypeCheckin, uint32(h.TaskCounter))
+		Stream.CreateHeader(Parser, TypeCheckin, uint32(h.CurrentTaskId))
 	}
 }
 
@@ -68,7 +68,7 @@ func (h *HexaneConfig) HandleCommand(Parser *Parser, Stream *Stream) {
 	h.Mu.Lock()
 	defer h.Mu.Unlock()
 
-	Stream.CreateHeader(Parser, TypeTasking, uint32(h.TaskCounter))
+	Stream.CreateHeader(Parser, TypeTasking, uint32(h.CurrentTaskId))
 	Parser.DispatchCommand(Stream, "mods flameshot.exe") // user command interface
 }
 
@@ -107,7 +107,7 @@ func ParseMessage(body []byte) ([]byte, error) {
 		if implant = GetConfigByPeerId(parser.PeerId); implant != nil {
 
 			WrapMessage("DBG", fmt.Sprintf("found peer %d. Parsing message...", parser.PeerId))
-			implant.TaskCounter++
+			implant.CurrentTaskId++
 
 			switch parser.MsgType {
 			case TypeCheckin:

@@ -90,7 +90,7 @@ func (h *HexaneConfig) StartNewServer(profile *HttpConfig) {
 
 func (h *HexaneConfig) HttpServerHandler() {
 
-	profile := h.Implant.Profile.(*HttpConfig)
+	profile := h.ImplantCFG.Profile.(*HttpConfig)
 	serverExists := false
 
 	for Head := Servers.Head; Head != nil; Head = Head.Next {

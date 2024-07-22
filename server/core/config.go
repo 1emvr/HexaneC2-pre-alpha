@@ -84,7 +84,6 @@ func (h *HexaneConfig) CreateConfig(jsonCfg JsonConfig) error {
 	h.BuildType = jsonCfg.Config.BuildType
 
 	switch h.BuildType {
-
 	case "bin":
 		h.CompilerCFG.FileExtension = ".bin"
 	case "dll":
@@ -249,7 +248,7 @@ func (h *HexaneConfig) PePatchConfig() ([]byte, error) {
 
 	stream.PackString(h.ImplantCFG.Hostname)
 	stream.PackString(h.ImplantCFG.Domain)
-	stream.PackDword(h.ImplantCFG.PeerId)
+	stream.PackDword(h.PeerId)
 	stream.PackDword(h.ImplantCFG.Sleeptime)
 	stream.PackDword(h.ImplantCFG.Jitter)
 	stream.PackInt32(Hours)

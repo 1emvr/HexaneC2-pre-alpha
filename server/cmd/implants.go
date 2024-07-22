@@ -16,10 +16,10 @@ var Implants = &cobra.Command{
 }
 
 var Load = &cobra.Command{
-	Use: "load",
+	Use:   "load",
 	Short: "load json implant configuration",
-	Long: "load json implant configuration",
-	Args: cobra.MinimumNArgs(1),
+	Long:  "load json implant configuration",
+	Args:  cobra.MinimumNArgs(1),
 
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := core.ReadConfig(args[0]); err != nil {
@@ -29,10 +29,10 @@ var Load = &cobra.Command{
 }
 
 var Interact = &cobra.Command{
-	Use: 	"i",
-	Short: 	"interact with a specified implant by name",
-	Long: 	"interact with a specified implant by name",
-	Args: 	cobra.MinimumNArgs(1),
+	Use:   "i",
+	Short: "interact with a specified implant by name",
+	Long:  "interact with a specified implant by name",
+	Args:  cobra.MinimumNArgs(1),
 
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := InteractImplant(args[0]); err != nil {
@@ -55,13 +55,13 @@ var Remove = &cobra.Command{
 }
 
 var List = &cobra.Command{
-	Use: 	"ls",
-	Short: 	"list all loaded implants",
-	Long: 	"list all loaded implants",
-	Args: 	cobra.NoArgs,
+	Use:   "ls",
+	Short: "list all loaded implants",
+	Long:  "list all loaded implants",
+	Args:  cobra.NoArgs,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		if err:= ListImplants(); err != nil {
+		if err := ListImplants(); err != nil {
 			core.WrapMessage("ERR", err.Error())
 		}
 	},
@@ -81,8 +81,8 @@ func RemoveImplantByName(name string) error {
 		if strings.EqualFold(Head.ImplantName, name) {
 
 			if Head.Next == nil {
-				if Head.Server != nil && Head.Server.SigTerm != nil {
-					Head.Server.SigTerm <- true
+				if Head.ServerCFG != nil && Head.ServerCFG.SigTerm != nil {
+					Head.ServerCFG.SigTerm <- true
 
 				} else {
 					core.WrapMessage("WRN", "A server/channel was not found for this implant. Implant will still be removed")
@@ -108,11 +108,11 @@ func RemoveImplantByName(name string) error {
 
 func ListImplants() error {
 	var (
-		Head = core.Payloads.Head
+		Head    = core.Payloads.Head
 		address string
-		domain 	string
-		profile	string
-		proxy 	string
+		domain  string
+		profile string
+		proxy   string
 	)
 
 	formatter := color.New(color.FgCyan).SprintfFunc()
@@ -128,25 +128,25 @@ func ListImplants() error {
 			-- IMPLANTS -- 
 `)
 		for Head != nil {
-			if Head.Implant.ProfileTypeId == core.TRANSPORT_HTTP {
+			if Head.ImplantCFG.ProfileTypeId == core.TRANSPORT_HTTP {
 
-				address = fmt.Sprintf("%s:%d", Head.Implant.Profile.(*core.HttpConfig).Address, Head.Implant.Profile.(*core.HttpConfig).Port)
+				address = fmt.Sprintf("%s:%d", Head.ImplantCFG.Profile.(*core.HttpConfig).Address, Head.ImplantCFG.Profile.(*core.HttpConfig).Port)
 				profile = "http"
 
-				if Head.Implant.ProxyBool {
-					proxy = fmt.Sprintf("%s%s:%s", Head.Proxy.Proto, Head.Proxy.Address, Head.Proxy.Port)
+				if Head.ImplantCFG.ProxyBool {
+					proxy = fmt.Sprintf("%s%s:%s", Head.ProxyCFG.Proto, Head.ProxyCFG.Address, Head.ProxyCFG.Port)
 				} else {
 					proxy = "null"
 				}
 
-				if Head.Implant.Domain != "" {
-					domain = Head.Implant.Domain
+				if Head.ImplantCFG.Domain != "" {
+					domain = Head.ImplantCFG.Domain
 				} else {
 					domain = "null"
 				}
 			}
 
-			implantTable.AddRow(Head.GroupId, Head.Implant.PeerId, Head.ImplantName, Head.Compiler.Debug, profile, address, Head.Implant.Hostname, domain, proxy, Head.UserSession.Username, Head.Active)
+			implantTable.AddRow(Head.GroupId, Head.PeerId, Head.ImplantName, Head.CompilerCFG.Debug, profile, address, Head.ImplantCFG.Hostname, domain, proxy, Head.UserSession.Username, Head.Active)
 			Head = Head.Next
 		}
 	}
