@@ -258,12 +258,12 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 			default:
 				switch filepath.Ext(target) {
 				case ".asm":
-					obj = module.OutputName
-					flags = append(flags, "-f win64")
 
+					flags = append(flags, "-f")
 					err = h.CompileObject(h.CompilerCFG.Assembler, obj, []string{target}, flags, nil, nil)
 
 				case ".cpp":
+
 					flags = append(flags, h.CompilerCFG.Flags...)
 					flags = append(flags, "-c")
 
