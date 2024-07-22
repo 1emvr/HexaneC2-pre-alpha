@@ -293,6 +293,7 @@ func (h *HexaneConfig) ExecuteBuild(module *Object) error {
 	case "resource":
 		WrapMessage("DBG", "building resource file from json config")
 
+		module.OutputName = filepath.Join(BuildPath, module.OutputName)
 		cmd := fmt.Sprintf("%s -O coff %s -DRSRCDATA=\"%s\" -o %s", h.CompilerCFG.Windres, module.RsrcScript, module.RsrcBinary, module.OutputName)
 		return h.RunCommand(cmd)
 
