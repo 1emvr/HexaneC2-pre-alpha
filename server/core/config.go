@@ -46,6 +46,26 @@ func (h *HexaneConfig) GetTransportType() (string, error) {
 	}
 }
 
+func (h *HexaneConfig) GetEmbededStrings(strList []string) []byte {
+	var stream = new(Stream)
+
+	stream.PackString(string(h.Key))
+
+	if h.ImplantCFG.ProfileTypeId == TRANSPORT_HTTP {
+		stream.PackDword(1)
+	} else if h.ImplantCFG.ProfileTypeId == TRANSPORT_PIPE {
+		stream.PackDword(0)
+	}
+
+	stream.PackDword(1) // Ctx->LE == TRUE
+
+	for _, str := range strList {
+		stream.PackString(str)
+	}
+
+	return stream.Buffer
+}
+
 func GetModuleConfig(cfgName string) (*Object, error) {
 	var (
 		err    error

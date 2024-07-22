@@ -66,8 +66,6 @@ func (h *HexaneConfig) BuildModule(module *Object) error {
 		module.Components = append(module.Components, module.Dependencies...)
 	}
 
-	module.Definitions = h.CompilerCFG.Definitions
-
 	if len(module.Components) > 1 {
 		return h.ExecuteBuildType(module)
 	} else {

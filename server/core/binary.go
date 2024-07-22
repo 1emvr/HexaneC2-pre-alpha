@@ -192,26 +192,6 @@ func (h *HexaneConfig) CopySectionData(readPath string, outPath string, targetSe
 	return nil
 }
 
-func (h *HexaneConfig) GetEmbededStrings(strList []string) []byte {
-	var stream = new(Stream)
-
-	stream.PackString(string(h.Key))
-
-	if h.ImplantCFG.ProfileTypeId == TRANSPORT_HTTP {
-		stream.PackDword(1)
-	} else if h.ImplantCFG.ProfileTypeId == TRANSPORT_PIPE {
-		stream.PackDword(0)
-	}
-
-	stream.PackDword(1) // Ctx->LE == TRUE
-
-	for _, str := range strList {
-		stream.PackString(str)
-	}
-
-	return stream.Buffer
-}
-
 func (h *HexaneConfig) CompileObject(command, output string, targets, flags, includes []string, definitions map[string][]byte) error {
 	var err error
 
@@ -255,6 +235,9 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 		flags []string
 		wg    sync.WaitGroup
 	)
+	// fuck it. just build the implant with all components at once
+	// at least we can thread them so it'll be a bit quicker...
+	// GUUUUUUUHHHH...
 
 	errCh := make(chan error)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -289,7 +272,7 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 					if module.LinkSources {
 						flags = append(flags, "-T"+module.Linker)
 					}
-					err = h.CompileObject(h.CompilerCFG.Mingw, obj, []string{target}, flags, module.IncludeDirectories, h.CompilerCFG.Definitions)
+					err = h.CompileObject(h.CompilerCFG.Mingw, obj, []string{target}, flags, module.IncludeDirectories, nil)
 				}
 			}
 
