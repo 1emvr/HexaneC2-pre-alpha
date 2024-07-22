@@ -48,10 +48,11 @@ set(MAIN_FILES
         "${CORE}/src/inject.cpp"
         "${LOADER}/src/main.cpp"
         "${LOADER}/src/dllmain.cpp"
-        "${LOADER}/src/rsrc.cpp"
+        "${LOADER}/src/resource.cpp"
         inject/threadless/OpenFileExecute.cpp
         mods/src/EnumDotNetProcesses.cpp
         "${CORE}/src/inject.cpp"
         "${CORE}/src/implant.cpp"
+        loader/resource.rc
 )
 add_executable(Hexane-Implant ${MAIN_FILES} ${INCLUDES})

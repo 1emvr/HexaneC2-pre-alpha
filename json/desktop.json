@@ -27,19 +27,20 @@
 		"RootDirectory": "/home/lemur/Github/HexaneC2/core",
 		"LinkerScript": "implant.ld",
 
+		"Dependencies": [],
 		"Sources": [
 			"implant.cpp", "cipher.cpp", "commands.cpp", "cruntime.cpp", "inject.cpp",
 			"memory.cpp", "message.cpp", "network.cpp", "opsec.cpp", "parser.cpp",
 			"process.cpp", "stream.cpp", "utils.cpp", "start.asm"
 		],
 
-		"Dependencies": [],
 		"Loader": {
 			"RootDirectory": "/home/lemur/Github/HexaneC2/loader",
 			"LinkerScript": "loader.ld",
 			"RsrcScript": "resource.rc",
 			"RsrcBinary": "lolidk.bin",
 
+			"Dependencies":[],
 			"Sources": [
 				"dllmain.cpp", "resource.cpp"
 			],
