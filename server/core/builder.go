@@ -18,7 +18,7 @@ var (
 	HashHeader   = CorelibInc + "/names.hpp"
 )
 
-func (h *HexaneConfig) GenerateLoader() error {
+func (h *HexaneConfig) BuildLoader() error {
 	injectCfg, err := h.GetInjectConfig()
 	if err != nil {
 		return err
@@ -62,8 +62,8 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 	var (
 		err        error
 		buffer     []byte
-		files      []string
 		components []string
+		includes   string
 		jsonCfg    Module
 	)
 
@@ -83,12 +83,11 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 		jsonCfg.OutputDir = h.Compiler.BuildDirectory
 	}
 
-	if jsonCfg.PreBuildDependencies != nil {
-		for _, dep := range jsonCfg.PreBuildDependencies {
-			if err = h.BuildModule(dep); err != nil {
-				return err
-			}
-		}
+	if jsonCfg.Includes != nil {
+		includes = strings.Join(jsonCfg.Includes, " -I")
+		includes = strings.Join(h.Compiler.IncludeDirs, " -I")
+	} else {
+		includes = strings.Join(h.Compiler.IncludeDirs, " -I")
 	}
 
 	if jsonCfg.Directories != nil {
@@ -97,40 +96,34 @@ func (h *HexaneConfig) BuildModule(cfgName string) error {
 
 			for _, src := range jsonCfg.Sources {
 				srcFile := path.Join(searchPath, src)
+				objFile := path.Join(jsonCfg.OutputDir, filepath.Base(srcFile)+".o")
 
 				if !SearchFile(searchPath, filepath.Base(srcFile)) {
 					WrapMessage("ERR", "unable to find "+srcFile+" in directory "+searchPath)
 					continue
 				}
-				files = append(files, srcFile)
+
+				if err = h.CompileFile(srcFile, objFile, includes, path.Join(jsonCfg.RootDir, jsonCfg.Linker)); err != nil {
+					return err
+				}
+				components = append(components, objFile)
 			}
 		}
 	} else {
 		for _, src := range jsonCfg.Sources {
 			srcFile := path.Join(jsonCfg.RootDir, src)
+			objFile := path.Join(jsonCfg.OutputDir, filepath.Base(srcFile)+".o")
 
 			if !SearchFile(jsonCfg.RootDir, filepath.Base(srcFile)) {
 				WrapMessage("ERR", "unable to find "+srcFile+" in directory "+jsonCfg.RootDir)
 				continue
 			}
-			files = append(files, srcFile)
-		}
-	}
 
-	for _, file := range files {
-		var includes string
-		objFile := path.Join(jsonCfg.OutputDir, filepath.Base(file)+".o")
-
-		if jsonCfg.Includes != nil {
-			includes = strings.Join(jsonCfg.Includes, " -I")
-		} else {
-			includes = strings.Join(h.Compiler.IncludeDirs, " -I")
+			if err = h.CompileFile(srcFile, objFile, includes, path.Join(jsonCfg.RootDir, jsonCfg.Linker)); err != nil {
+				return err
+			}
+			components = append(components, objFile)
 		}
-
-		if err = h.CompileFile(file, objFile, includes, path.Join(jsonCfg.RootDir, jsonCfg.Linker)); err != nil {
-			return err
-		}
-		components = append(components, objFile)
 	}
 
 	if jsonCfg.Dependencies != nil {
@@ -222,7 +215,7 @@ func (h *HexaneConfig) RunBuild() error {
 	if h.BuildType == "dll" {
 		WrapMessage("DBG", "generating loader dll")
 
-		if err := h.GenerateLoader(); err != nil {
+		if err := h.BuildLoader(); err != nil {
 			return err
 		}
 	}

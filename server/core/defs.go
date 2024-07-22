@@ -159,7 +159,7 @@ type CompilerConfig struct {
 	Ar             string
 	FileExtension  string
 	BuildDirectory string
-	IncludeDirs    []string
+	IncludeDirs    []string // get rid of these
 	ComponentDirs  []string
 	Flags          []string
 	Definitions    map[string][]byte
