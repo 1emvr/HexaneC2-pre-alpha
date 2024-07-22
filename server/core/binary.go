@@ -210,7 +210,7 @@ func (h *HexaneConfig) GetEmbededStrings(strList []string) []byte {
 	return stream.Buffer
 }
 
-func (h *HexaneConfig) CompileObject(command string, targets, flags, includes []string, definitions map[string][]byte, output string) error {
+func (h *HexaneConfig) CompileObject(command, output string, targets, flags, includes []string, definitions map[string][]byte) error {
 	var (
 		Command string
 		err     error
@@ -277,21 +277,21 @@ func (h *HexaneConfig) ExecuteBuild(module *Object) error {
 
 		module.OutputName += ".dll"
 		flags = append(flags, "-shared")
-		return h.CompileObject(h.CompilerCFG.Linker, module.Components, flags, module.Includes, nil, module.OutputName)
+		return h.CompileObject(h.CompilerCFG.Linker, module.OutputName, module.Components, flags, module.Includes, nil)
 
 	case "executable":
 		WrapMessage("DBG", "building executable from json config")
 
 		module.OutputName += ".exe"
 		flags = append(flags, h.CompilerCFG.Flags...)
-		return h.CompileObject(h.CompilerCFG.Mingw, module.Components, flags, module.Includes, nil, module.OutputName)
+		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.Includes, nil)
 
 	case "object":
 		WrapMessage("DBG", "building object file from json config")
 
 		module.OutputName += ".o"
 		flags = append(flags, h.CompilerCFG.Flags...)
-		return h.CompileObject(h.CompilerCFG.Mingw, module.Components, flags, module.Includes, h.CompilerCFG.Definitions, module.OutputName)
+		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.Includes, h.CompilerCFG.Definitions)
 
 	case "resource":
 		WrapMessage("DBG", "building resource file from json config")
