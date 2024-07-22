@@ -44,12 +44,11 @@ type Threadless struct {
 	Execute      string
 }
 
-type Objects struct {
+type Files struct {
 	Sources              []string
 	IncludeDirectories   []string
 	Dependencies         []string
 	PreBuildDependencies []string
-	Components           []string
 }
 
 type Loader struct {
@@ -60,12 +59,21 @@ type Loader struct {
 	Config        interface{}
 }
 
+type Rsrc struct {
+	RsrcScript string
+	RsrcBinary string
+}
+
 type Builder struct {
+	BuildType     int
 	OutputName    string
 	RootDirectory string
 	LinkerScript  string
-	Objects       *Objects
+	Rsrc          *Rsrc
+	Files         *Files
 	Loader        *Loader
+	Components    []string
+	Definitions   map[string][]byte
 }
 
 type Network struct {
@@ -151,7 +159,6 @@ type Compiler struct {
 	LinkerScript   string
 	Flags          []string
 	Sources        []string
-	Definitions    map[string][]byte
 }
 
 type HexaneConfig struct {

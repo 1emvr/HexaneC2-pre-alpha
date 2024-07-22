@@ -35,11 +35,11 @@
 		],
 
 		"Loader": {
-			"InjectionType": "threadless",
 			"LinkerScript": "/home/lemur/Github/HexaneC2/loader/loader.ld",
 			"MainFile": "/home/lemur/Github/HexaneC2/loader/dllmain.cpp",
 			"RsrcScript": "/home/lemur/Github/HexaneC2/loader/rsrc.rc",
 
+			"InjectionType": "threadless",
 			"Config": {
 				"TargetProc": "flameshot.exe",
 				"TargetModule":"kernel32.dll",

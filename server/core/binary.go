@@ -13,6 +13,10 @@ import (
 	"sync"
 )
 
+func (h *HexaneConfig) StripSymbols(output string) error {
+	return h.RunCommand(h.Compiler.Strip + " " + output)
+}
+
 func (h *HexaneConfig) GenerateIncludes(incs []string) string {
 	var list string
 
@@ -226,10 +230,11 @@ func (h *HexaneConfig) CompileObject(command, output string, targets, flags, inc
 	if err = h.RunCommand(command); err != nil {
 		return err
 	}
+
 	return nil
 }
 
-func (h *HexaneConfig) BuildSources(module *Object) error {
+func (h *HexaneConfig) BuildSources(module *Builder) error {
 	var (
 		err error
 		wg  sync.WaitGroup
@@ -241,7 +246,7 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 	defer cancel()
 	srcPath := filepath.Join(module.RootDirectory, "src")
 
-	for _, src := range module.Sources {
+	for _, src := range module.Files.Sources {
 		wg.Add(1)
 
 		go func(src string) {
@@ -260,14 +265,14 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 				case ".asm":
 
 					flags = append(flags, "-f win64")
-					err = h.CompileObject(h.CompilerCFG.Assembler, obj, []string{target}, flags, nil, nil)
+					err = h.CompileObject(h.Compiler.Assembler, obj, []string{target}, flags, nil, nil)
 
 				case ".cpp":
 
-					flags = append(flags, h.CompilerCFG.Flags...)
+					flags = append(flags, h.Compiler.Flags...)
 					flags = append(flags, "-c")
 
-					err = h.CompileObject(h.CompilerCFG.Mingw, obj, []string{target}, flags, module.IncludeDirectories, nil)
+					err = h.CompileObject(h.Compiler.Mingw, obj, []string{target}, flags, module.Files.IncludeDirectories, nil)
 				}
 			}
 
@@ -283,6 +288,7 @@ func (h *HexaneConfig) BuildSources(module *Object) error {
 			}
 
 			module.Components = append(module.Components, obj)
+
 		}(src)
 	}
 
@@ -314,37 +320,35 @@ func (h *HexaneConfig) ExecuteBuildType(module *Builder) error {
 		return err
 	}
 
-	h.Compiler.Definitions = MergeMaps(h.Compiler.Definitions, map[string][]byte{transport: nil})
+	if module.BuildType != BUILD_TYPE_RESOURCE {
+		module.Definitions = MergeMaps(module.Definitions, map[string][]byte{transport: nil})
+	}
 
-	switch h.BuildType {
+	switch module.BuildType {
 	case BUILD_TYPE_RESOURCE:
 
 		WrapMessage("DBG", "building resource file from json config")
-		return h.RunCommand(h.Compiler.Windres + " -O coff " + module.RsrcScript + " -DRSRCDATA=\"" + module.RsrcBinary + "\" -o " + module.OutputName)
+		return h.RunCommand(h.Compiler.Windres + " -O coff " + module.Rsrc.RsrcScript + " -DRSRCDATA=\"" + module.Rsrc.RsrcBinary + "\" -o " + module.OutputName)
 
 	case BUILD_TYPE_DLL:
 
 		WrapMessage("DBG", "building dynamic library from json config")
 
 		flags = append(flags, "-shared")
-		flags = append(flags, h.CompilerCFG.Flags...)
+		flags = append(flags, h.Compiler.Flags...)
 
-		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.IncludeDirectories, defs)
+		return h.CompileObject(h.Compiler.Mingw, module.OutputName, module.Components, flags, module.Files.IncludeDirectories, module.Definitions)
 
 	case BUILD_TYPE_SHELLCODE:
 
 		WrapMessage("DBG", "building object file from json config")
 
-		flags = append(flags, h.CompilerCFG.Flags...)
-		return h.CompileObject(h.CompilerCFG.Mingw, module.OutputName, module.Components, flags, module.IncludeDirectories, defs)
+		flags = append(flags, h.Compiler.Flags...)
+		return h.CompileObject(h.Compiler.Mingw, module.OutputName, module.Components, flags, module.Files.IncludeDirectories, module.Definitions)
 
 	default:
-		return fmt.Errorf("unknown build type: %s", module.Type)
+		return fmt.Errorf("unknown build type: %d", module.BuildType)
 	}
-}
-
-func (h *HexaneConfig) StripSymbols(output string) error {
-	return h.RunCommand(h.CompilerCFG.Strip + " " + output)
 }
 
 func (h *HexaneConfig) RunCommand(cmd string) error {
