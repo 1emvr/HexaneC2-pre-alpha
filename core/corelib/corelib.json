@@ -12,6 +12,6 @@
   "Sources": [
     "cipher.cpp", "commands.cpp", "cruntime.cpp", "memory.cpp",
     "network.cpp", "opsec.cpp", "parser.cpp", "process.cpp",
-    "stream.cpp", "utils.cpp"
+    "stream.cpp", "utils.cpp", "inject.cpp"
   ]
 }
