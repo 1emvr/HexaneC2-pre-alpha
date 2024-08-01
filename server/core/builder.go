@@ -65,7 +65,7 @@ func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) *Module {
 	return module
 }
 
-func (h *HexaneConfig) BuildModule() error {
+func (h *HexaneConfig) BuildSource() error {
 	var (
 		err    error
 		module *Module
@@ -88,12 +88,7 @@ func (h *HexaneConfig) BuildModule() error {
 		return err
 	}
 
-	if len(module.Components) > 1 {
-		return h.ExecuteBuildType(module)
-	} else {
-		module.OutputName = module.Components[0]
-		return nil
-	}
+	return nil
 }
 
 func (h *HexaneConfig) RunBuild() error {
@@ -115,17 +110,17 @@ func (h *HexaneConfig) RunBuild() error {
 	}
 
 	WrapMessage("DBG", "generating implant\n")
-	if err = h.BuildModule(); err != nil {
+	if err = h.BuildSource(); err != nil {
 		return err
 	}
 
 	WrapMessage("DBG", "embedding implant config data")
-	if err = h.EmbedSectionData(BuildPath+"/implant.exe", ".text$F", h.ConfigBytes); err != nil {
+	if err = h.EmbedSectionData(h.UserConfig.Builder.OutputName, ".text$F", h.ConfigBytes); err != nil {
 		return err
 	}
 
 	WrapMessage("DBG", "extracting shellcode")
-	if err = h.CopySectionData(BuildPath+"/implant.exe", path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
+	if err = h.CopySectionData(h.UserConfig.Builder.OutputName, path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
 		return err
 	}
 

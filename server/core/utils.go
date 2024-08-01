@@ -184,13 +184,13 @@ func (h *HexaneConfig) ReadJson(cfgPath string) error {
 		return err
 	}
 
-	if Debug {
+	if ShowConfigs {
 		jsonData, err := json.MarshalIndent(h.UserConfig, "", "\t")
 		if err != nil {
 			return err
 		}
 
-		WrapMessage("DBG", "Unmarshalled data:")
+		WrapMessage("INF", "Unmarshalled data:")
 		fmt.Println(string(jsonData))
 	}
 

