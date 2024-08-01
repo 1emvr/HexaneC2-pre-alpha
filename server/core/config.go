@@ -2,28 +2,7 @@ package core
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
-)
-
-var (
-	Debug        = false
-	ShowCommands = false
-	ShowConfigs  = false
-
-	Cb             = make(chan Message)
-	Exit           = make(chan bool)
-	HexanePayloads = new(Payloads)
-	HexaneServers  = new(ServerList)
-
-	// HexaneSession todo: add user sessions/authentication
-	HexaneSession = &Session{
-		Username: "lemur",
-		Admin:    true,
-	}
-
-	FSTAT_RW  = os.O_RDWR | os.O_APPEND
-	Useragent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0"
 )
 
 var ModuleStrings = []string{
@@ -189,6 +168,8 @@ func ReadConfig(cfgPath string) error {
 			}
 
 			h.Implant.ProfileTypeId = TRANSPORT_HTTP
+			WrapMessage("DBG", "loading http config")
+
 			if httpConfig.Address == "" {
 				return fmt.Errorf("implant::network::http - ip address must be specified")
 			}
@@ -214,6 +195,8 @@ func ReadConfig(cfgPath string) error {
 			}
 
 			h.Implant.ProfileTypeId = TRANSPORT_PIPE
+			WrapMessage("DBG", "loading smb config")
+
 			if smbConfig.EgressPeer == "" {
 				return fmt.Errorf("implant::network::smb - peer must have it's parent node name specified")
 			}
