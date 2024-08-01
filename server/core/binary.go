@@ -143,6 +143,7 @@ func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, d
 		err      error
 	)
 
+	fmt.Println("opening " + readPath)
 	if readFile, err = os.OpenFile(readPath, FSTAT_RW, 0644); err != nil {
 		return err
 	}
@@ -152,6 +153,7 @@ func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, d
 		}
 	}()
 
+	fmt.Println("new pe.File")
 	if peFile, err = pe.NewFile(readFile); err != nil {
 		return err
 	}
@@ -203,6 +205,7 @@ func (h *HexaneConfig) CopySectionData(readPath string, outPath string, targetSe
 		err      error
 	)
 
+	fmt.Println("opening " + readPath)
 	if readFile, err = os.Open(readPath); err != nil {
 		return err
 	}
@@ -212,6 +215,7 @@ func (h *HexaneConfig) CopySectionData(readPath string, outPath string, targetSe
 		}
 	}()
 
+	fmt.Println("new pe.File")
 	if peFile, err = pe.NewFile(readFile); err != nil {
 		return err
 	}
@@ -341,8 +345,22 @@ func (h *HexaneConfig) BuildSources(module *Module) error {
 		close(errCh)
 	}()
 
-	err = <-errCh
-	return err
+	if err = <-errCh; err != nil {
+		return err
+	}
+
+	module.OutputName = filepath.Join(BuildPath, module.OutputName)
+	flags := h.Compiler.Flags
+
+	if module.LinkerScript != "" {
+		flags = append(flags, "-T"+module.LinkerScript)
+	}
+
+	if err = h.CompileObject(h.Compiler.Mingw, module.OutputName, module.Components, flags, module.Files.IncludeDirectories, module.Definitions); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (h *HexaneConfig) ExecuteBuildType(module *Module) error {

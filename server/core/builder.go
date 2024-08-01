@@ -5,7 +5,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"time"
 )
 
 const (
@@ -74,7 +73,6 @@ func (h *HexaneConfig) BuildSource() error {
 	if module = h.GetModuleConfig(h.UserConfig); module == nil {
 		return fmt.Errorf("module config is nil")
 	}
-	module.OutputName = filepath.Join(BuildPath, module.OutputName)
 
 	if module.LinkerScript != "" {
 		module.LinkerScript = filepath.Join(module.RootDirectory, module.LinkerScript)
@@ -84,11 +82,11 @@ func (h *HexaneConfig) BuildSource() error {
 		return err
 	}
 
-	if err = h.EmbedSectionData(h.UserConfig.Builder.OutputName, ".text$F", h.ConfigBytes); err != nil {
+	if err = h.EmbedSectionData(module.OutputName, ".text$F", h.ConfigBytes); err != nil {
 		return err
 	}
 
-	if err = h.CopySectionData(h.UserConfig.Builder.OutputName, path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
+	if err = h.CopySectionData(module.OutputName, path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
 		return err
 	}
 
@@ -118,17 +116,18 @@ func (h *HexaneConfig) RunBuild() error {
 		return err
 	}
 
+	profile := h.UserConfig.Network.Config.(*Http)
+	profile.Success = make(chan bool)
+
 	go func() {
 		err = h.HttpServerHandler()
 	}()
 
-	time.Sleep(500 * time.Millisecond)
+	<-profile.Success
 	if err != nil {
 		return err
 	}
 
 	AddConfig(h)
-	WrapMessage("INF", fmt.Sprintf("%s ready!", h.UserConfig.Builder.OutputName))
-
 	return nil
 }

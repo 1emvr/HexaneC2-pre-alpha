@@ -113,5 +113,7 @@ func (h *HexaneConfig) HttpServerHandler() error {
 			return err
 		}
 	}
+
+	profile.Success <- true
 	return nil
 }
