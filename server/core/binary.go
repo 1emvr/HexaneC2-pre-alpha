@@ -143,7 +143,8 @@ func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, d
 		err      error
 	)
 
-	fmt.Println("opening " + readPath)
+	readPath += ".exe"
+
 	if readFile, err = os.OpenFile(readPath, FSTAT_RW, 0644); err != nil {
 		return err
 	}
@@ -153,7 +154,6 @@ func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, d
 		}
 	}()
 
-	fmt.Println("new pe.File")
 	if peFile, err = pe.NewFile(readFile); err != nil {
 		return err
 	}
@@ -205,7 +205,8 @@ func (h *HexaneConfig) CopySectionData(readPath string, outPath string, targetSe
 		err      error
 	)
 
-	fmt.Println("opening " + readPath)
+	readPath += ".exe"
+
 	if readFile, err = os.Open(readPath); err != nil {
 		return err
 	}
@@ -215,7 +216,6 @@ func (h *HexaneConfig) CopySectionData(readPath string, outPath string, targetSe
 		}
 	}()
 
-	fmt.Println("new pe.File")
 	if peFile, err = pe.NewFile(readFile); err != nil {
 		return err
 	}
@@ -282,17 +282,17 @@ func (h *HexaneConfig) CompileObject(command, output string, targets, flags, inc
 	return nil
 }
 
-func (h *HexaneConfig) BuildSources(module *Module) error {
+func (h *HexaneConfig) CompileSources(module *Module) error {
 	var (
 		err error
 		wg  sync.WaitGroup
 	)
 
-	errCh := make(chan error)
-	srcPath := filepath.Join(module.RootDirectory, "src")
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	srcPath := filepath.Join(module.RootDirectory, "src")
+	errCh := make(chan error)
 
 	for _, src := range module.Files.Sources {
 		wg.Add(1)
@@ -300,11 +300,10 @@ func (h *HexaneConfig) BuildSources(module *Module) error {
 		go func(src string) {
 			defer wg.Done()
 
-			var flags []string
-
 			target := filepath.Join(srcPath, src)
 			obj := filepath.Join(BuildPath, src+".o")
 
+			var flags []string
 			select {
 			case <-ctx.Done():
 				return
@@ -349,11 +348,10 @@ func (h *HexaneConfig) BuildSources(module *Module) error {
 		return err
 	}
 
-	module.OutputName = filepath.Join(BuildPath, module.OutputName)
 	flags := h.Compiler.Flags
 
 	if module.LinkerScript != "" {
-		flags = append(flags, "-T"+module.LinkerScript)
+		flags = append(flags, module.LinkerScript)
 	}
 
 	if err = h.CompileObject(h.Compiler.Mingw, module.OutputName, module.Components, flags, module.Files.IncludeDirectories, module.Definitions); err != nil {
@@ -370,11 +368,10 @@ func (h *HexaneConfig) ExecuteBuildType(module *Module) error {
 	)
 
 	if module.LinkerScript != "" {
-		flags = append(flags, "-T"+module.LinkerScript)
+		flags = append(flags, module.LinkerScript)
 	}
 
-	switch module.BuildType {
-	case BUILD_TYPE_DLL:
+	if module.BuildType == BUILD_TYPE_DLL {
 
 		rs := filepath.Join(BuildPath, "resource.rs")
 
@@ -391,15 +388,9 @@ func (h *HexaneConfig) ExecuteBuildType(module *Module) error {
 		flags = append(flags, h.Compiler.Flags...)
 
 		return h.CompileObject(h.Compiler.Mingw, module.OutputName, module.Components, flags, module.Files.IncludeDirectories, module.Definitions)
-
-	case BUILD_TYPE_SHELLCODE:
-
-		flags = append(flags, h.Compiler.Flags...)
-		return h.CompileObject(h.Compiler.Mingw, module.OutputName, module.Components, flags, module.Files.IncludeDirectories, module.Definitions)
-
-	default:
-		return fmt.Errorf("unknown build type: %d", module.BuildType)
 	}
+
+	return nil
 }
 
 func (h *HexaneConfig) RunCommand(cmd string) error {

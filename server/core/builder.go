@@ -75,10 +75,12 @@ func (h *HexaneConfig) BuildSource() error {
 	}
 
 	if module.LinkerScript != "" {
-		module.LinkerScript = filepath.Join(module.RootDirectory, module.LinkerScript)
+		module.LinkerScript = filepath.Join("-T"+module.RootDirectory, module.LinkerScript)
 	}
 
-	if err = h.BuildSources(module); err != nil {
+	module.OutputName = filepath.Join(BuildPath, module.OutputName)
+
+	if err = h.CompileSources(module); err != nil {
 		return err
 	}
 
@@ -111,7 +113,7 @@ func (h *HexaneConfig) RunBuild() error {
 		return err
 	}
 
-	WrapMessage("DBG", "generating implant\n")
+	WrapMessage("DBG", "generating implant")
 	if err = h.BuildSource(); err != nil {
 		return err
 	}
