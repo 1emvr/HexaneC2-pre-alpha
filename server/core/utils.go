@@ -17,7 +17,7 @@ import (
 )
 
 var Characters = "abcdef0123456789"
-var RootDirectory = GetCwd() + "/../"
+var RootDirectory = filepath.Join(GetCwd(), "../")
 var FileNotFound = fmt.Errorf("file not found")
 
 func WrapMessage(typ, msg string) {
