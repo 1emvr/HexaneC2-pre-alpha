@@ -11,10 +11,13 @@ var (
 	ShowCommands = false
 	ShowConfigs  = false
 
-	Cb             = make(chan Callback)
+	Cb             = make(chan Message)
+	Exit           = make(chan bool)
 	HexanePayloads = new(Payloads)
 	HexaneServers  = new(ServerList)
-	HexaneSession  = &Session{
+
+	// HexaneSession todo: add user sessions/authentication
+	HexaneSession = &Session{
 		Username: "lemur",
 		Admin:    true,
 	}

@@ -21,7 +21,7 @@ var (
 	CommandUpdatePeer uint32 = 0x00000005
 )
 
-type Callback struct {
+type Message struct {
 	MsgType string
 	Msg     string
 }

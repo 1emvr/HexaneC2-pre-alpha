@@ -370,7 +370,7 @@ func (h *HexaneConfig) ExecuteBuildType(module *Module) error {
 		module.Loader.RsrcScript = filepath.Join(module.Loader.RootDirectory, module.Loader.RsrcScript)
 		module.Loader.RsrcBinary = filepath.Join(module.Loader.RootDirectory, module.Loader.RsrcBinary)
 
-		if err = h.RunCommand(h.Compiler.Windres + " -O coff " + module.Loader.RsrcScript + " -I../" + " -DRSRCDATA=\"" + module.Loader.RsrcBinary + "\" -o " + rs); err != nil {
+		if err = h.RunCommand(h.Compiler.Windres + " -I../ " + " -O coff " + module.Loader.RsrcScript + " -DRSRCDATA=\"" + module.Loader.RsrcBinary + "\" -o " + rs); err != nil {
 			return err
 		}
 

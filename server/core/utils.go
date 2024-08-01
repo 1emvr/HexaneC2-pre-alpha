@@ -21,7 +21,7 @@ var RootDirectory = GetCwd() + "/../"
 var FileNotFound = fmt.Errorf("file not found")
 
 func WrapMessage(typ, msg string) {
-	Cb <- Callback{MsgType: typ, Msg: msg}
+	Cb <- Message{MsgType: typ, Msg: msg}
 }
 
 func GeneratePeerId() uint32 {

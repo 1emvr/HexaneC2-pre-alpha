@@ -30,18 +30,20 @@ func init() {
 	rootCmd.AddCommand(Implants)
 }
 
-func CallbackListener(cb chan core.Callback) {
+func PrintChannel(cb chan core.Message, exit chan bool) {
 
 	for {
 		select {
+		case x := <-exit:
+			if x {
+				return
+			}
 		case m := <-cb:
 			if !core.Debug && m.MsgType == "DBG" {
 				continue
 			}
-			fmt.Println(fmt.Sprintf("[%s] %s", m.MsgType, m.Msg))
 
-		default:
-			continue
+			fmt.Println(fmt.Sprintf("[%s] %s", m.MsgType, m.Msg))
 		}
 	}
 }
@@ -55,10 +57,7 @@ func Run() {
 	)
 
 	fmt.Println(banner)
-	core.Cb = make(chan core.Callback)
-
-	go CallbackListener(core.Cb)
-	defer close(core.Cb)
+	go PrintChannel(core.Cb, core.Exit)
 
 	if err = rootCmd.ParseFlags(os.Args[1:]); err != nil {
 		core.WrapMessage("ERR", err.Error())
@@ -83,6 +82,7 @@ func Run() {
 
 		input = strings.TrimSpace(input)
 		if args = strings.Split(input, " "); args[0] == "exit" {
+			core.Exit <- true
 			break
 		}
 
