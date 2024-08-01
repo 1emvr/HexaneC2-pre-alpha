@@ -347,16 +347,9 @@ func (h *HexaneConfig) BuildSources(module *Module) error {
 
 func (h *HexaneConfig) ExecuteBuildType(module *Module) error {
 	var (
-		err       error
-		flags     []string
-		transport string
+		err   error
+		flags []string
 	)
-
-	if transport, err = h.GetTransportType(); err != nil {
-		return err
-	}
-
-	module.Definitions = MergeMaps(module.Definitions, map[string][]byte{transport: nil})
 
 	if module.LinkerScript != "" {
 		flags = append(flags, "-T"+module.LinkerScript)
