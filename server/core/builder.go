@@ -80,11 +80,15 @@ func (h *HexaneConfig) BuildSource() error {
 		module.LinkerScript = filepath.Join(module.RootDirectory, module.LinkerScript)
 	}
 
-	if module.Loader.LinkerScript != "" {
-		module.Loader.LinkerScript = filepath.Join(module.Loader.RootDirectory, module.Loader.LinkerScript)
+	if err = h.BuildSources(module); err != nil {
+		return err
 	}
 
-	if err = h.BuildSources(module); err != nil {
+	if err = h.EmbedSectionData(h.UserConfig.Builder.OutputName, ".text$F", h.ConfigBytes); err != nil {
+		return err
+	}
+
+	if err = h.CopySectionData(h.UserConfig.Builder.OutputName, path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
 		return err
 	}
 
@@ -111,16 +115,6 @@ func (h *HexaneConfig) RunBuild() error {
 
 	WrapMessage("DBG", "generating implant\n")
 	if err = h.BuildSource(); err != nil {
-		return err
-	}
-
-	WrapMessage("DBG", "embedding implant config data")
-	if err = h.EmbedSectionData(h.UserConfig.Builder.OutputName, ".text$F", h.ConfigBytes); err != nil {
-		return err
-	}
-
-	WrapMessage("DBG", "extracting shellcode")
-	if err = h.CopySectionData(h.UserConfig.Builder.OutputName, path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
 		return err
 	}
 
