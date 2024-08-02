@@ -1,7 +1,6 @@
 #include <loader/include/injectlib.hpp>
-
 namespace Rsrc {
-    TXT_SECTION(F) BYTE Config[512] = { 0xDE, 0xAD, 0xBE, 0xEF };
+    TXT_SECTION(F) BYTE Config[512] = { 0xDE,0xAD,0xBE,0xEF,0xDE,0xAD,0xBE,0xEF,};
 
     VOID RsrcLoader(HMODULE Base) {
             HEXANE

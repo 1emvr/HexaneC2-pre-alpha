@@ -6,7 +6,7 @@ VOID Entrypoint(HMODULE Base) {
 }
 
 namespace Implant {
-    TXT_SECTION(F) BYTE ConfigBytes[512] = { 0xDE, 0xAD, 0xBE, 0xEF };
+    TXT_SECTION(F) BYTE ConfigBytes[512] = { 0xDE,0xAD,0xBE,0xEF,0xDE,0xAD,0xBE,0xEF, };
 
     VOID MainRoutine() {
         HEXANE
@@ -54,8 +54,8 @@ namespace Implant {
 
     VOID ReadConfig() {
         HEXANE
-        PARSER Parser = {};
 
+        PARSER Parser = { };
         Parser::CreateParser(&Parser, ConfigBytes, sizeof(ConfigBytes));
         x_memset(ConfigBytes, 0, sizeof(ConfigBytes));
 
