@@ -28,7 +28,7 @@ events:
       Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.exe"
       
       The C compiler identification is GNU, found in:
-        /home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/3.28.5/CompilerIdC/a.exe
+        /mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/3.28.5/CompilerIdC/a.exe
       
   -
     kind: "message-v1"
@@ -50,7 +50,7 @@ events:
       Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.exe"
       
       The CXX compiler identification is GNU, found in:
-        /home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/3.28.5/CompilerIdCXX/a.exe
+        /mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/3.28.5/CompilerIdCXX/a.exe
       
   -
     kind: "try_compile-v1"
@@ -61,8 +61,8 @@ events:
     checks:
       - "Detecting C compiler ABI info"
     directories:
-      source: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mFYCGu"
-      binary: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mFYCGu"
+      source: "/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-VJkxTD"
+      binary: "/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-VJkxTD"
     cmakeVariables:
       CMAKE_C_FLAGS: ""
       CMAKE_C_FLAGS_DEBUG: "-g"
@@ -71,13 +71,13 @@ events:
       variable: "CMAKE_C_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mFYCGu'
+        Change Dir: '/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-VJkxTD'
         
-        Run Build Command(s): /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_42784/fast
-        /usr/bin/gmake  -f CMakeFiles/cmTC_42784.dir/build.make CMakeFiles/cmTC_42784.dir/build
-        gmake[1]: Entering directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mFYCGu'
-        Building C object CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.o
-        /usr/bin/x86_64-w64-mingw32-gcc   -fdiagnostics-color=always   -v -o CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.o -c /home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeCCompilerABI.c
+        Run Build Command(s): /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_0ebb6/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_0ebb6.dir/build.make CMakeFiles/cmTC_0ebb6.dir/build
+        gmake[1]: Entering directory '/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-VJkxTD'
+        Building C object CMakeFiles/cmTC_0ebb6.dir/CMakeCCompilerABI.c.o
+        /usr/bin/x86_64-w64-mingw32-gcc   -fdiagnostics-color=always   -v -o CMakeFiles/cmTC_0ebb6.dir/CMakeCCompilerABI.c.o -c /home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeCCompilerABI.c
         Using built-in specs.
         COLLECT_GCC=/usr/bin/x86_64-w64-mingw32-gcc
         Target: x86_64-w64-mingw32
@@ -85,8 +85,8 @@ events:
         Thread model: win32
         Supported LTO compression algorithms: zlib zstd
         gcc version 13-win32 (GCC) 
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_42784.dir/'
-         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/cc1 -quiet -v /home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeCCompilerABI.c -quiet -dumpdir CMakeFiles/cmTC_42784.dir/ -dumpbase CMakeCCompilerABI.c.c -dumpbase-ext .c -mtune=generic -march=x86-64 -version -fdiagnostics-color=always -o /tmp/ccO3HsWU.s
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_0ebb6.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_0ebb6.dir/'
+         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/cc1 -quiet -v /home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeCCompilerABI.c -quiet -dumpdir CMakeFiles/cmTC_0ebb6.dir/ -dumpbase CMakeCCompilerABI.c.c -dumpbase-ext .c -mtune=generic -march=x86-64 -version -fdiagnostics-color=always -o /tmp/cctSbcgP.s
         GNU C17 (GCC) version 13-win32 (x86_64-w64-mingw32)
         	compiled by GNU C version 13.2.0, GMP version 6.3.0, MPFR version 4.2.1, MPC version 1.3.1, isl version isl-0.26-GMP
         
@@ -99,15 +99,15 @@ events:
          /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/include
         End of search list.
         Compiler executable checksum: e14c887f05a54c28d8876a005411f636
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_42784.dir/'
-         /usr/bin/x86_64-w64-mingw32-as -v -o CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.o /tmp/ccO3HsWU.s
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_0ebb6.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_0ebb6.dir/'
+         /usr/bin/x86_64-w64-mingw32-as -v -o CMakeFiles/cmTC_0ebb6.dir/CMakeCCompilerABI.c.o /tmp/cctSbcgP.s
         GNU assembler version 2.42 (x86_64-w64-mingw32) using BFD version (GNU Binutils) 2.42
         COMPILER_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/bin/
         LIBRARY_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.'
-        Linking C executable cmTC_42784
-        /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_42784.dir/link.txt --verbose=1
-        /usr/bin/x86_64-w64-mingw32-gcc  -v CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.o -o cmTC_42784 
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_0ebb6.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_0ebb6.dir/CMakeCCompilerABI.c.'
+        Linking C executable cmTC_0ebb6
+        /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0ebb6.dir/link.txt --verbose=1
+        /usr/bin/x86_64-w64-mingw32-gcc  -v CMakeFiles/cmTC_0ebb6.dir/CMakeCCompilerABI.c.o -o cmTC_0ebb6 
         Using built-in specs.
         COLLECT_GCC=/usr/bin/x86_64-w64-mingw32-gcc
         COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper
@@ -118,10 +118,10 @@ events:
         gcc version 13-win32 (GCC) 
         COMPILER_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/bin/
         LIBRARY_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_42784.exe' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_42784.'
-         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/collect2 -plugin /usr/lib/gcc/x86_64-w64-mingw32/13-win32/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper -plugin-opt=-fresolution=/tmp/ccbdNmMF.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_42784.exe /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/crt2.o /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtbegin.o -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32 -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib CMakeFiles/cmTC_42784.dir/CMakeCCompilerABI.c.o -lmingw32 -lgcc -lgcc_eh -lmoldname -lmingwex -lmsvcrt -lkernel32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc -lgcc_eh -lmoldname -lmingwex -lmsvcrt -lkernel32 /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtend.o
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_42784.exe' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_42784.'
-        gmake[1]: Leaving directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mFYCGu'
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_0ebb6.exe' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_0ebb6.'
+         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/collect2 -plugin /usr/lib/gcc/x86_64-w64-mingw32/13-win32/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper -plugin-opt=-fresolution=/tmp/ccLlnQ3c.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_0ebb6.exe /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/crt2.o /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtbegin.o -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32 -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib CMakeFiles/cmTC_0ebb6.dir/CMakeCCompilerABI.c.o -lmingw32 -lgcc -lgcc_eh -lmoldname -lmingwex -lmsvcrt -lkernel32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc -lgcc_eh -lmoldname -lmingwex -lmsvcrt -lkernel32 /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtend.o
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_0ebb6.exe' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_0ebb6.'
+        gmake[1]: Leaving directory '/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-VJkxTD'
         
       exitCode: 0
   -
@@ -132,8 +132,8 @@ events:
     checks:
       - "Check for working C compiler: /usr/bin/x86_64-w64-mingw32-gcc"
     directories:
-      source: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-DANIgt"
-      binary: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-DANIgt"
+      source: "/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-A1m7Ec"
+      binary: "/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-A1m7Ec"
     cmakeVariables:
       CMAKE_C_FLAGS: ""
       CMAKE_C_FLAGS_DEBUG: "-g"
@@ -142,17 +142,17 @@ events:
       variable: "CMAKE_C_COMPILER_WORKS"
       cached: true
       stdout: |
-        Change Dir: '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-DANIgt'
+        Change Dir: '/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-A1m7Ec'
         
-        Run Build Command(s): /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_119f5/fast
-        /usr/bin/gmake  -f CMakeFiles/cmTC_119f5.dir/build.make CMakeFiles/cmTC_119f5.dir/build
-        gmake[1]: Entering directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-DANIgt'
-        Building C object CMakeFiles/cmTC_119f5.dir/testCCompiler.c.o
-        /usr/bin/x86_64-w64-mingw32-gcc   -fdiagnostics-color=always -o CMakeFiles/cmTC_119f5.dir/testCCompiler.c.o -c /home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-DANIgt/testCCompiler.c
-        Linking C executable cmTC_119f5
-        /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_119f5.dir/link.txt --verbose=1
-        /usr/bin/x86_64-w64-mingw32-gcc CMakeFiles/cmTC_119f5.dir/testCCompiler.c.o -o cmTC_119f5 
-        gmake[1]: Leaving directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-DANIgt'
+        Run Build Command(s): /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_78cf2/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_78cf2.dir/build.make CMakeFiles/cmTC_78cf2.dir/build
+        gmake[1]: Entering directory '/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-A1m7Ec'
+        Building C object CMakeFiles/cmTC_78cf2.dir/testCCompiler.c.o
+        /usr/bin/x86_64-w64-mingw32-gcc   -fdiagnostics-color=always -o CMakeFiles/cmTC_78cf2.dir/testCCompiler.c.o -c /mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-A1m7Ec/testCCompiler.c
+        Linking C executable cmTC_78cf2
+        /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_78cf2.dir/link.txt --verbose=1
+        /usr/bin/x86_64-w64-mingw32-gcc CMakeFiles/cmTC_78cf2.dir/testCCompiler.c.o -o cmTC_78cf2 
+        gmake[1]: Leaving directory '/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-A1m7Ec'
         
       exitCode: 0
   -
@@ -164,8 +164,8 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bi8MkL"
-      binary: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bi8MkL"
+      source: "/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fw1Vz0"
+      binary: "/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fw1Vz0"
     cmakeVariables:
       CMAKE_CXX_FLAGS: ""
       CMAKE_CXX_FLAGS_DEBUG: "-g"
@@ -175,13 +175,13 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bi8MkL'
+        Change Dir: '/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fw1Vz0'
         
-        Run Build Command(s): /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_1f5ae/fast
-        /usr/bin/gmake  -f CMakeFiles/cmTC_1f5ae.dir/build.make CMakeFiles/cmTC_1f5ae.dir/build
-        gmake[1]: Entering directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bi8MkL'
-        Building CXX object CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.o
-        /usr/bin/x86_64-w64-mingw32-g++   -fdiagnostics-color=always   -v -o CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.o -c /home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp
+        Run Build Command(s): /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_6c1f6/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_6c1f6.dir/build.make CMakeFiles/cmTC_6c1f6.dir/build
+        gmake[1]: Entering directory '/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fw1Vz0'
+        Building CXX object CMakeFiles/cmTC_6c1f6.dir/CMakeCXXCompilerABI.cpp.o
+        /usr/bin/x86_64-w64-mingw32-g++   -fdiagnostics-color=always   -v -o CMakeFiles/cmTC_6c1f6.dir/CMakeCXXCompilerABI.cpp.o -c /home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp
         Using built-in specs.
         COLLECT_GCC=/usr/bin/x86_64-w64-mingw32-g++
         Target: x86_64-w64-mingw32
@@ -189,8 +189,8 @@ events:
         Thread model: win32
         Supported LTO compression algorithms: zlib zstd
         gcc version 13-win32 (GCC) 
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_1f5ae.dir/'
-         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/cc1plus -quiet -v /home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_1f5ae.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -fdiagnostics-color=always -o /tmp/cc7X7tFc.s
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_6c1f6.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_6c1f6.dir/'
+         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/cc1plus -quiet -v /home/lemur/cmake-3.28.5-linux-x86_64/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_6c1f6.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -fdiagnostics-color=always -o /tmp/ccz8EagM.s
         GNU C++17 (GCC) version 13-win32 (x86_64-w64-mingw32)
         	compiled by GNU C version 13.2.0, GMP version 6.3.0, MPFR version 4.2.1, MPC version 1.3.1, isl version isl-0.26-GMP
         
@@ -206,15 +206,15 @@ events:
          /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/include
         End of search list.
         Compiler executable checksum: 1aa5aef1072e84d4d47f5a211bac94fa
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_1f5ae.dir/'
-         /usr/bin/x86_64-w64-mingw32-as -v -o CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.o /tmp/cc7X7tFc.s
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_6c1f6.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_6c1f6.dir/'
+         /usr/bin/x86_64-w64-mingw32-as -v -o CMakeFiles/cmTC_6c1f6.dir/CMakeCXXCompilerABI.cpp.o /tmp/ccz8EagM.s
         GNU assembler version 2.42 (x86_64-w64-mingw32) using BFD version (GNU Binutils) 2.42
         COMPILER_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/bin/
         LIBRARY_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/
-        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.'
-        Linking CXX executable cmTC_1f5ae
-        /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1f5ae.dir/link.txt --verbose=1
-        /usr/bin/x86_64-w64-mingw32-g++  -v CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_1f5ae 
+        COLLECT_GCC_OPTIONS='-fdiagnostics-color=always' '-v' '-o' 'CMakeFiles/cmTC_6c1f6.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_6c1f6.dir/CMakeCXXCompilerABI.cpp.'
+        Linking CXX executable cmTC_6c1f6
+        /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6c1f6.dir/link.txt --verbose=1
+        /usr/bin/x86_64-w64-mingw32-g++  -v CMakeFiles/cmTC_6c1f6.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_6c1f6 
         Using built-in specs.
         COLLECT_GCC=/usr/bin/x86_64-w64-mingw32-g++
         COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper
@@ -225,10 +225,10 @@ events:
         gcc version 13-win32 (GCC) 
         COMPILER_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/bin/
         LIBRARY_PATH=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/:/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_1f5ae.exe' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_1f5ae.'
-         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/collect2 -plugin /usr/lib/gcc/x86_64-w64-mingw32/13-win32/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper -plugin-opt=-fresolution=/tmp/ccoRObKi.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_1f5ae.exe /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/crt2.o /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtbegin.o -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32 -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib CMakeFiles/cmTC_1f5ae.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lmingw32 -lgcc_s -lgcc -lmoldname -lmingwex -lmsvcrt -lkernel32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc_s -lgcc -lmoldname -lmingwex -lmsvcrt -lkernel32 /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtend.o
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_1f5ae.exe' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_1f5ae.'
-        gmake[1]: Leaving directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bi8MkL'
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_6c1f6.exe' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_6c1f6.'
+         /usr/lib/gcc/x86_64-w64-mingw32/13-win32/collect2 -plugin /usr/lib/gcc/x86_64-w64-mingw32/13-win32/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-w64-mingw32/13-win32/lto-wrapper -plugin-opt=-fresolution=/tmp/cceuqaHR.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_6c1f6.exe /usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib/crt2.o /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtbegin.o -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32 -L/usr/lib/gcc/x86_64-w64-mingw32/13-win32/../../../../x86_64-w64-mingw32/lib CMakeFiles/cmTC_6c1f6.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lmingw32 -lgcc_s -lgcc -lmoldname -lmingwex -lmsvcrt -lkernel32 -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc_s -lgcc -lmoldname -lmingwex -lmsvcrt -lkernel32 /usr/lib/gcc/x86_64-w64-mingw32/13-win32/crtend.o
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_6c1f6.exe' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_6c1f6.'
+        gmake[1]: Leaving directory '/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fw1Vz0'
         
       exitCode: 0
   -
@@ -239,8 +239,8 @@ events:
     checks:
       - "Check for working CXX compiler: /usr/bin/x86_64-w64-mingw32-g++"
     directories:
-      source: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fi93SU"
-      binary: "/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fi93SU"
+      source: "/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-l80eew"
+      binary: "/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-l80eew"
     cmakeVariables:
       CMAKE_CXX_FLAGS: ""
       CMAKE_CXX_FLAGS_DEBUG: "-g"
@@ -250,17 +250,17 @@ events:
       variable: "CMAKE_CXX_COMPILER_WORKS"
       cached: true
       stdout: |
-        Change Dir: '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fi93SU'
+        Change Dir: '/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-l80eew'
         
-        Run Build Command(s): /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_1216f/fast
-        /usr/bin/gmake  -f CMakeFiles/cmTC_1216f.dir/build.make CMakeFiles/cmTC_1216f.dir/build
-        gmake[1]: Entering directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fi93SU'
-        Building CXX object CMakeFiles/cmTC_1216f.dir/testCXXCompiler.cxx.o
-        /usr/bin/x86_64-w64-mingw32-g++   -fdiagnostics-color=always -o CMakeFiles/cmTC_1216f.dir/testCXXCompiler.cxx.o -c /home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fi93SU/testCXXCompiler.cxx
-        Linking CXX executable cmTC_1216f
-        /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1216f.dir/link.txt --verbose=1
-        /usr/bin/x86_64-w64-mingw32-g++ CMakeFiles/cmTC_1216f.dir/testCXXCompiler.cxx.o -o cmTC_1216f 
-        gmake[1]: Leaving directory '/home/lemur/Github/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-fi93SU'
+        Run Build Command(s): /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_00dc9/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_00dc9.dir/build.make CMakeFiles/cmTC_00dc9.dir/build
+        gmake[1]: Entering directory '/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-l80eew'
+        Building CXX object CMakeFiles/cmTC_00dc9.dir/testCXXCompiler.cxx.o
+        /usr/bin/x86_64-w64-mingw32-g++   -fdiagnostics-color=always -o CMakeFiles/cmTC_00dc9.dir/testCXXCompiler.cxx.o -c /mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-l80eew/testCXXCompiler.cxx
+        Linking CXX executable cmTC_00dc9
+        /home/lemur/cmake-3.28.5-linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_00dc9.dir/link.txt --verbose=1
+        /usr/bin/x86_64-w64-mingw32-g++ CMakeFiles/cmTC_00dc9.dir/testCXXCompiler.cxx.o -o cmTC_00dc9 
+        gmake[1]: Leaving directory '/mnt/c/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-l80eew'
         
       exitCode: 0
   -

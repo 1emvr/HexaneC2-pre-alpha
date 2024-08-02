@@ -16,10 +16,6 @@ import (
 	"time"
 )
 
-var Characters = "abcdef0123456789"
-var RootDirectory = filepath.Join(GetCwd(), "../")
-var FileNotFound = fmt.Errorf("file not found")
-
 func WrapMessage(typ, msg string) {
 	Cb <- Message{MsgType: typ, Msg: msg}
 }
@@ -156,6 +152,7 @@ func GetCwd() string {
 	)
 
 	if exe, err = os.Executable(); err != nil {
+		WrapMessage("ERR", fmt.Sprintf("Error getting cwd: %v", err))
 		return ""
 	} else {
 		return filepath.Dir(exe)

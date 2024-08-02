@@ -85,9 +85,11 @@ func ReadConfig(cfgPath string) error {
 	)
 
 	h = new(HexaneConfig)
-	WrapMessage("INF", fmt.Sprintf("loading %s", cfgPath))
+	fmt.Println("root directory: " + RootDirectory)
+	jsonPath := filepath.Join(RootDirectory, "json/"+cfgPath)
 
-	if err = h.ReadJson(filepath.Join("../json", cfgPath)); err != nil {
+	WrapMessage("INF", fmt.Sprintf("loading %s", jsonPath))
+	if err = h.ReadJson(jsonPath); err != nil {
 		return err
 	}
 
