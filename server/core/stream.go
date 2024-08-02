@@ -62,6 +62,16 @@ func CreateStream() *Stream {
 	return stream
 }
 
+func (h *HexaneConfig) CreateStreamWithHeaders(msgType uint32) *Stream {
+	var stream = new(Stream)
+
+	stream.PackDword(h.PeerId)
+	stream.PackDword(h.CurrentTaskId)
+	stream.PackDword(TypeCheckin)
+
+	return stream
+}
+
 func (s *Stream) PackByte(data byte) {
 	s.Buffer = append(s.Buffer, data)
 	s.Length += 1

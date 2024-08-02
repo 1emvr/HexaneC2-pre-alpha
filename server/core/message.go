@@ -2,32 +2,9 @@ package core
 
 import (
 	"fmt"
-	"strconv"
 )
 
 const HeaderLength = 16
-
-func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
-	switch parser.MsgType {
-
-	case TypeCheckin:
-		h.CommandChan = make(chan string, 5)
-		h.Active = true
-
-		parser.ParseTable()
-		return []byte(strconv.Itoa(int(parser.PeerId))), nil
-
-	case TypeResponse:
-		parser.ParseTable()
-		return h.DispatchCommand()
-
-	case TypeTasking:
-		return h.DispatchCommand()
-
-	default:
-		return nil, fmt.Errorf("unknown msg type: %v", parser.MsgType)
-	}
-}
 
 func ResponseWorker(body []byte) ([]byte, error) {
 	var (
@@ -63,5 +40,6 @@ func ResponseWorker(body []byte) ([]byte, error) {
 		}
 	}
 
+	WrapMessage("DBG", DbgPrintBytes("outgoing response: ", rsp))
 	return rsp, err
 }

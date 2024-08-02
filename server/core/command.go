@@ -13,13 +13,11 @@ var (
 	}
 )
 
-func (h *HexaneConfig) DispatchCommand() ([]byte, error) {
+func (h *HexaneConfig) DispatchCommand(stream *Stream) {
 	var (
 		err error
 		cmd []byte
 	)
-
-	stream := new(Stream)
 
 	if h.CommandChan != nil {
 		for blob := range h.CommandChan {
@@ -28,6 +26,39 @@ func (h *HexaneConfig) DispatchCommand() ([]byte, error) {
 			}
 			stream.PackBytes(cmd)
 		}
+	}
+}
+
+func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
+	var stream *Stream
+
+	switch parser.MsgType {
+	case TypeCheckin:
+
+		h.Active = true
+		h.CommandChan = make(chan string, 5)
+
+		parser.ParseTable()
+		if stream = h.CreateStreamWithHeaders(TypeCheckin); stream == nil {
+			return nil, fmt.Errorf("stream returned nil")
+		}
+
+	case TypeResponse:
+		parser.ParseTable()
+		if stream = h.CreateStreamWithHeaders(TypeTasking); stream == nil {
+			return nil, fmt.Errorf("stream returned nil")
+		}
+
+		h.DispatchCommand(stream)
+
+	case TypeTasking:
+		if stream = h.CreateStreamWithHeaders(TypeTasking); stream == nil {
+			return nil, fmt.Errorf("stream returned nil")
+		}
+
+		h.DispatchCommand(stream)
+	default:
+		return nil, fmt.Errorf("unknown msg type: %v", parser.MsgType)
 	}
 
 	return stream.Buffer, nil

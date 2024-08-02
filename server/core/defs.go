@@ -185,9 +185,9 @@ type Compiler struct {
 }
 
 type HexaneConfig struct {
+	CurrentTaskId uint32
 	PeerId        uint32
 	GroupId       int
-	CurrentTaskId int
 	BuildType     int
 	Mu            sync.Mutex
 	CommandChan   chan string
