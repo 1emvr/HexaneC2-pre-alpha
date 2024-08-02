@@ -1,5 +1,5 @@
 #include <core/corelib.hpp>
-// todo: the idea of "ROP-Engine" is just to make writing rop payloads/programming easier.
+// todo: the idea for "ROP-Engine" is just to make writing rop payloads/programming easier. (Deisl)
 
 VOID Entrypoint(HMODULE Base) {
     Memory::ContextInit();

