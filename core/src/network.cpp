@@ -27,7 +27,7 @@ namespace Http {
         ULONG nEndpoint     = 0;
         ULONG nHeaders      = 0;
 
-        Ctx->Transport.http->Method = CCAST(CONST LPWSTR, L<GET>);
+        Ctx->Transport.http->Method = CCAST(CONST LPWSTR, L"GET");
 
         if (!Ctx->Transport.http->Handle) {
             if (!(Ctx->Transport.http->Handle = Ctx->win32.WinHttpOpen(Ctx->Transport.http->Useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))) {

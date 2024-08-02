@@ -42,7 +42,7 @@ func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) *Module {
 		Files: &Sources{
 			Sources:            config.Builder.Sources,
 			Dependencies:       config.Builder.Dependencies,
-			IncludeDirectories: append(config.Builder.IncludeDirectories, Tick(NetFXSDK), "../"),
+			IncludeDirectories: append(config.Builder.IncludeDirectories, "../"),
 		},
 
 		Loader: &Loader{
@@ -75,21 +75,21 @@ func (h *HexaneConfig) BuildSource() error {
 	}
 
 	if module.LinkerScript != "" {
-		module.LinkerScript = "-T" + SQuote(module.RootDirectory+"/"+module.LinkerScript)
+		module.LinkerScript = "-T" + module.RootDirectory + "/" + module.LinkerScript
 	}
 
 	module.OutputName = filepath.Join(BuildPath, module.OutputName)
 
 	if err = h.CompileSources(module); err != nil {
-		return err
+		return fmt.Errorf("h.CompileSources - " + err.Error())
 	}
 
 	if err = h.EmbedSectionData(module.OutputName, ".text$F", h.ConfigBytes); err != nil {
-		return err
+		return fmt.Errorf("h.EmbedSectionData - " + err.Error())
 	}
 
 	if err = h.CopySectionData(module.OutputName, path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
-		return err
+		return fmt.Errorf("h.CopySectionData - " + err.Error())
 	}
 
 	return nil
@@ -98,38 +98,21 @@ func (h *HexaneConfig) BuildSource() error {
 func (h *HexaneConfig) RunBuild() error {
 	var err error
 
-	WrapMessage("DBG", "creating payload directory")
 	if err = CreatePath(h.Compiler.BuildDirectory, os.ModePerm); err != nil {
-		WrapMessage("ERR", err.Error())
+		return fmt.Errorf("error creating payload directory - " + err.Error())
 	}
 
-	WrapMessage("DBG", "generating config")
 	if err = h.GenerateConfigBytes(); err != nil {
-		return err
+		return fmt.Errorf("error generating config data - " + err.Error())
 	}
 
-	WrapMessage("DBG", "generating hashes")
 	if err = GenerateHashes(HashStrings, HashHeader); err != nil {
-		return err
+		return fmt.Errorf("error generating string hashes - " + err.Error())
 	}
 
-	WrapMessage("DBG", "generating implant")
 	if err = h.BuildSource(); err != nil {
-		return err
+		return fmt.Errorf("error generating implant - " + err.Error())
 	}
 
-	profile := h.UserConfig.Network.Config.(*Http)
-	profile.Success = make(chan bool)
-
-	go func() {
-		err = h.HttpServerHandler()
-	}()
-
-	<-profile.Success
-	if err != nil {
-		return err
-	}
-
-	AddConfig(h)
-	return nil
+	return h.RunServer()
 }

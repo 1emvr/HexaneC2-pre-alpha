@@ -135,70 +135,69 @@ func GenerateHashes(stringsFile string, outFile string) error {
 	return nil
 }
 
-func (h *HexaneConfig) EmbedSectionData(readPath string, targetSection string, data []byte) error {
+func (h *HexaneConfig) EmbedSectionData(path string, target string, data []byte) error {
 	var (
-		readFile *os.File
-		peFile   *pe.File
 		section  *pe.Section
+		peFile   *pe.File
+		readFile *os.File
 		secData  []byte
 		err      error
 	)
 
-	readPath += ".exe"
+	path += ".exe"
 
-	if readFile, err = os.OpenFile(readPath, FSTAT_RW, 0644); err != nil {
-		return err
-	}
 	defer func() {
 		if err = readFile.Close(); err != nil {
 			WrapMessage("ERR", err.Error())
 		}
-	}()
-
-	if peFile, err = pe.NewFile(readFile); err != nil {
-		return err
-	}
-	defer func() {
 		if err = peFile.Close(); err != nil {
 			WrapMessage("ERR", err.Error())
 		}
 	}()
 
+	if readFile, err = os.OpenFile(path, FSTAT_RW, 0644); err != nil {
+		return err
+	}
+
+	if peFile, err = pe.NewFile(readFile); err != nil {
+		return err
+	}
+
 	for _, s := range peFile.Sections {
-		if s.Name == targetSection {
+		if s.Name == target {
 			section = s
 			break
 		}
 	}
 
 	if section == nil {
-		return fmt.Errorf("section %s not found in %s", targetSection, readPath)
+		return fmt.Errorf("%s section was not found in %s", target, path)
 	}
 
 	if uint32(len(data)) > section.Size {
-		return fmt.Errorf("section %s is not large enough in %s", targetSection, readPath)
+		return fmt.Errorf("section %s is not large enough in %s", target, path)
 	}
 
 	if secData, err = section.Data(); err != nil {
 		return err
 	}
 
-	newSection := make([]byte, len(data))
-	copy(newSection, secData)
-	copy(newSection, data)
+	outData := make([]byte, len(data))
+	copy(outData, secData)
+	copy(outData, data)
 
 	if _, err = readFile.Seek(int64(section.Offset), os.SEEK_SET); err != nil {
 		return err
 	}
 
-	if _, err = readFile.Write(newSection); err != nil {
+	if _, err = readFile.Write(outData); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (h *HexaneConfig) CopySectionData(readPath string, outPath string, targetSection string) error {
+func (h *HexaneConfig) CopySectionData(path string, out string, target string) error {
 	var (
 		readFile *os.File
 		peFile   *pe.File
@@ -206,30 +205,34 @@ func (h *HexaneConfig) CopySectionData(readPath string, outPath string, targetSe
 		err      error
 	)
 
-	readPath += ".exe"
+	path += ".exe"
 
-	if readFile, err = os.Open(readPath); err != nil {
-		return err
-	}
 	defer func() {
 		if err = readFile.Close(); err != nil {
 			WrapMessage("ERR", err.Error())
 		}
+		if err = peFile.Close(); err != nil {
+			WrapMessage("ERR", err.Error())
+		}
 	}()
+
+	if readFile, err = os.Open(path); err != nil {
+		return err
+	}
 
 	if peFile, err = pe.NewFile(readFile); err != nil {
 		return err
 	}
 
 	for _, s := range peFile.Sections {
-		if s.Name == targetSection {
+		if s.Name == target {
 			section = s
 			break
 		}
 	}
 
 	if section == nil {
-		return fmt.Errorf("%s section was not found", targetSection)
+		return fmt.Errorf("%s section was not found in %s", target, path)
 	}
 
 	outData := make([]byte, section.Size)
@@ -238,7 +241,7 @@ func (h *HexaneConfig) CopySectionData(readPath string, outPath string, targetSe
 		return err
 	}
 
-	if err = WriteFile(outPath, outData); err != nil {
+	if err = WriteFile(out, outData); err != nil {
 		return err
 	}
 
@@ -357,38 +360,6 @@ func (h *HexaneConfig) CompileSources(module *Module) error {
 
 	if err = h.CompileObject(h.Compiler.Mingw, module.OutputName, module.Components, flags, module.Files.IncludeDirectories, module.Definitions); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (h *HexaneConfig) ExecuteBuildType(module *Module) error {
-	var (
-		err   error
-		flags []string
-	)
-
-	if module.LinkerScript != "" {
-		flags = append(flags, module.LinkerScript)
-	}
-
-	if module.BuildType == BUILD_TYPE_DLL {
-
-		rs := filepath.Join(BuildPath, "resource.rs")
-
-		module.Loader.RsrcScript = filepath.Join(module.Loader.RootDirectory, module.Loader.RsrcScript)
-		module.Loader.RsrcBinary = filepath.Join(module.Loader.RootDirectory, module.Loader.RsrcBinary)
-
-		if err = h.RunCommand(h.Compiler.Windres + " -I../ " + " -O coff " + module.Loader.RsrcScript + " -DRSRCDATA=\"" + module.Loader.RsrcBinary + "\" -o " + rs); err != nil {
-			return err
-		}
-
-		module.Components = append(module.Components, rs)
-
-		flags = append(flags, "-shared")
-		flags = append(flags, h.Compiler.Flags...)
-
-		return h.CompileObject(h.Compiler.Mingw, module.OutputName, module.Components, flags, module.Files.IncludeDirectories, module.Definitions)
 	}
 
 	return nil

@@ -107,7 +107,7 @@ type Http struct {
 	Proxy     *Proxy
 	Handle    *gin.Engine
 	SigTerm   chan bool
-	Success   chan bool
+	Ready     chan bool
 	Next      *Http
 }
 

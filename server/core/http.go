@@ -97,11 +97,11 @@ func (h *HexaneConfig) StartNewServer(profile *Http) error {
 func (h *HexaneConfig) HttpServerHandler() error {
 	var err error
 
-	profile := h.UserConfig.Network.Config.(*Http)
+	server := h.UserConfig.Network.Config.(*Http)
 	serverExists := false
 
 	for Head := HexaneServers.Head; Head != nil; Head = Head.Next {
-		if Head.Address == profile.Address && Head.Port == profile.Port {
+		if Head.Address == server.Address && Head.Port == server.Port {
 
 			serverExists = true
 			h.UpdateServerEndpoints(Head)
@@ -109,11 +109,28 @@ func (h *HexaneConfig) HttpServerHandler() error {
 		}
 	}
 	if !serverExists {
-		if err = h.StartNewServer(profile); err != nil {
-			return err
-		}
+		err = h.StartNewServer(server)
 	}
 
-	profile.Success <- true
+	server.Ready <- true
+	return err
+}
+
+func (h *HexaneConfig) RunServer() error {
+	var err error
+
+	server := h.UserConfig.Network.Config.(*Http)
+	server.Ready = make(chan bool)
+
+	go func() {
+		err = h.HttpServerHandler()
+	}()
+
+	<-server.Ready
+	if err != nil {
+		return err
+	}
+
+	AddConfig(h)
 	return nil
 }
