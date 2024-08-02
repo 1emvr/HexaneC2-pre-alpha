@@ -5,7 +5,7 @@
 namespace Injection {
 
     VOID Threadless(THREADLESS Threadless, LPVOID Shellcode, SIZE_T cbShellcode, SIZE_T cbFullSize) {
-        // todo: needs MmPivot (Flower)
+        // todo: needs MmAllocationPivot (Flower)
         HEXANE
 
         HANDLE Proc         = { };

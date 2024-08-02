@@ -7,7 +7,6 @@ namespace Memory {
 
     VOID ResolveApi() {
         HEXANE
-
         OSVERSIONINFOW OSVersionW = {};
 
         x_memset(&Ctx->LE, ENDIANESS, 1);
@@ -20,8 +19,8 @@ namespace Memory {
         }
 
         // WinVersion resolution : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
-        Ctx->Session.OSVersion = WIN_VERSION_UNKNOWN;
-        OSVersionW.dwOSVersionInfoSize = sizeof(OSVersionW);
+        Ctx->Session.OSVersion          = WIN_VERSION_UNKNOWN;
+        OSVersionW.dwOSVersionInfoSize  = sizeof(OSVersionW);
 
         if (!NT_SUCCESS(Ctx->Nt.RtlGetVersion(&OSVersionW))) {
             return_defer(ERROR_PROC_NOT_FOUND);
@@ -55,81 +54,81 @@ namespace Memory {
         }
 
         if (
-            !(FPTR(Ctx->win32.GetLastError, Ctx->Modules.kernel32, GETLASTERROR)) ||
-            !(FPTR(Ctx->win32.IsWow64Process, Ctx->Modules.kernel32, ISWOW64PROCESS)) ||
-            !(FPTR(Ctx->win32.GlobalMemoryStatusEx, Ctx->Modules.kernel32, GLOBALMEMORYSTATUSEX))) {
+            !(FPTR(Ctx->win32.GetLastError,                 Ctx->Modules.kernel32, GETLASTERROR)) ||
+            !(FPTR(Ctx->win32.IsWow64Process,               Ctx->Modules.kernel32, ISWOW64PROCESS)) ||
+            !(FPTR(Ctx->win32.GlobalMemoryStatusEx,         Ctx->Modules.kernel32, GLOBALMEMORYSTATUSEX))) {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
 
         if (
-            !(FPTR(Ctx->Nt.NtAllocateVirtualMemory, Ctx->Modules.ntdll, NTALLOCATEVIRTUALMEMORY)) ||
-            !(FPTR(Ctx->Nt.RtlAllocateHeap, Ctx->Modules.ntdll, RTLALLOCATEHEAP)) ||
-            !(FPTR(Ctx->Nt.NtFreeVirtualMemory, Ctx->Modules.ntdll, NTFREEVIRTUALMEMORY)) ||
-            !(FPTR(Ctx->Nt.NtReadVirtualMemory, Ctx->Modules.ntdll, NTREADVIRTUALMEMORY)) ||
-            !(FPTR(Ctx->Nt.NtWriteVirtualMemory, Ctx->Modules.ntdll, NTWRITEVIRTUALMEMORY)) ||
-            !(FPTR(Ctx->Nt.NtQueryVirtualMemory, Ctx->Modules.ntdll, NTQUERYVIRTUALMEMORY)) ||
-            !(FPTR(Ctx->Nt.NtCreateSection, Ctx->Modules.ntdll, NTCREATESECTION)) ||
-            !(FPTR(Ctx->Nt.NtMapViewOfSection, Ctx->Modules.ntdll, NTMAPVIEWOFSECTION)) ||
-            !(FPTR(Ctx->Nt.NtUnmapViewOfSection, Ctx->Modules.ntdll, NTUNMAPVIEWOFSECTION)) ||
+            !(FPTR(Ctx->Nt.NtAllocateVirtualMemory,         Ctx->Modules.ntdll, NTALLOCATEVIRTUALMEMORY)) ||
+            !(FPTR(Ctx->Nt.RtlAllocateHeap,                 Ctx->Modules.ntdll, RTLALLOCATEHEAP)) ||
+            !(FPTR(Ctx->Nt.NtFreeVirtualMemory,             Ctx->Modules.ntdll, NTFREEVIRTUALMEMORY)) ||
+            !(FPTR(Ctx->Nt.NtReadVirtualMemory,             Ctx->Modules.ntdll, NTREADVIRTUALMEMORY)) ||
+            !(FPTR(Ctx->Nt.NtWriteVirtualMemory,            Ctx->Modules.ntdll, NTWRITEVIRTUALMEMORY)) ||
+            !(FPTR(Ctx->Nt.NtQueryVirtualMemory,            Ctx->Modules.ntdll, NTQUERYVIRTUALMEMORY)) ||
+            !(FPTR(Ctx->Nt.NtCreateSection,                 Ctx->Modules.ntdll, NTCREATESECTION)) ||
+            !(FPTR(Ctx->Nt.NtMapViewOfSection,              Ctx->Modules.ntdll, NTMAPVIEWOFSECTION)) ||
+            !(FPTR(Ctx->Nt.NtUnmapViewOfSection,            Ctx->Modules.ntdll, NTUNMAPVIEWOFSECTION)) ||
 
-            !(FPTR(Ctx->Nt.NtCreateUserProcess, Ctx->Modules.ntdll, NTCREATEUSERPROCESS)) ||
-            !(FPTR(Ctx->Nt.NtTerminateProcess, Ctx->Modules.ntdll, NTTERMINATEPROCESS)) ||
-            !(FPTR(Ctx->Nt.NtOpenProcess, Ctx->Modules.ntdll, NTOPENPROCESS)) ||
-            !(FPTR(Ctx->Nt.NtOpenProcessToken, Ctx->Modules.ntdll, NTOPENPROCESSTOKEN)) ||
-            !(FPTR(Ctx->Nt.NtQueryInformationToken, Ctx->Modules.ntdll, NTQUERYINFORMATIONTOKEN)) ||
-            !(FPTR(Ctx->Nt.NtQueryInformationProcess, Ctx->Modules.ntdll, NTQUERYINFORMATIONPROCESS)) ||
-            !(FPTR(Ctx->Nt.NtQuerySystemInformation, Ctx->Modules.ntdll, NTQUERYSYSTEMINFORMATION)) ||
-            !(FPTR(Ctx->Nt.NtClose, Ctx->Modules.ntdll, NTCLOSE)) ||
+            !(FPTR(Ctx->Nt.NtCreateUserProcess,             Ctx->Modules.ntdll, NTCREATEUSERPROCESS)) ||
+            !(FPTR(Ctx->Nt.NtTerminateProcess,              Ctx->Modules.ntdll, NTTERMINATEPROCESS)) ||
+            !(FPTR(Ctx->Nt.NtOpenProcess,                   Ctx->Modules.ntdll, NTOPENPROCESS)) ||
+            !(FPTR(Ctx->Nt.NtOpenProcessToken,              Ctx->Modules.ntdll, NTOPENPROCESSTOKEN)) ||
+            !(FPTR(Ctx->Nt.NtQueryInformationToken,         Ctx->Modules.ntdll, NTQUERYINFORMATIONTOKEN)) ||
+            !(FPTR(Ctx->Nt.NtQueryInformationProcess,       Ctx->Modules.ntdll, NTQUERYINFORMATIONPROCESS)) ||
+            !(FPTR(Ctx->Nt.NtQuerySystemInformation,        Ctx->Modules.ntdll, NTQUERYSYSTEMINFORMATION)) ||
+            !(FPTR(Ctx->Nt.NtClose,                         Ctx->Modules.ntdll, NTCLOSE)) ||
 
-            !(FPTR(Ctx->Nt.RtlRandomEx, Ctx->Modules.ntdll, RTLRANDOMEX)) ||
-            !(FPTR(Ctx->Nt.NtResumeThread, Ctx->Modules.ntdll, NTRESUMETHREAD)) ||
-            !(FPTR(Ctx->Nt.NtGetContextThread, Ctx->Modules.ntdll, NTGETCONTEXTTHREAD)) ||
-            !(FPTR(Ctx->Nt.NtSetContextThread, Ctx->Modules.ntdll, NTSETCONTEXTTHREAD)) ||
-            !(FPTR(Ctx->Nt.NtWaitForSingleObject, Ctx->Modules.ntdll, NTWAITFORSINGLEOBJECT)) ||
-            !(FPTR(Ctx->Nt.TpAllocWork, Ctx->Modules.ntdll, TPALLOCWORK)) ||
-            !(FPTR(Ctx->Nt.TpPostWork, Ctx->Modules.ntdll, TPPOSTWORK)) ||
-            !(FPTR(Ctx->Nt.TpReleaseWork, Ctx->Modules.ntdll, TPRELEASEWORK)) ||
+            !(FPTR(Ctx->Nt.RtlRandomEx,                     Ctx->Modules.ntdll, RTLRANDOMEX)) ||
+            !(FPTR(Ctx->Nt.NtResumeThread,                  Ctx->Modules.ntdll, NTRESUMETHREAD)) ||
+            !(FPTR(Ctx->Nt.NtGetContextThread,              Ctx->Modules.ntdll, NTGETCONTEXTTHREAD)) ||
+            !(FPTR(Ctx->Nt.NtSetContextThread,              Ctx->Modules.ntdll, NTSETCONTEXTTHREAD)) ||
+            !(FPTR(Ctx->Nt.NtWaitForSingleObject,           Ctx->Modules.ntdll, NTWAITFORSINGLEOBJECT)) ||
+            !(FPTR(Ctx->Nt.TpAllocWork,                     Ctx->Modules.ntdll, TPALLOCWORK)) ||
+            !(FPTR(Ctx->Nt.TpPostWork,                      Ctx->Modules.ntdll, TPPOSTWORK)) ||
+            !(FPTR(Ctx->Nt.TpReleaseWork,                   Ctx->Modules.ntdll, TPRELEASEWORK)) ||
 
-            !(FPTR(Ctx->Nt.RtlCreateHeap, Ctx->Modules.ntdll, RTLCREATEHEAP)) ||
-            !(FPTR(Ctx->Nt.RtlReAllocateHeap, Ctx->Modules.ntdll, RTLREALLOCATEHEAP)) ||
-            !(FPTR(Ctx->Nt.RtlFreeHeap, Ctx->Modules.ntdll, RTLFREEHEAP)) ||
-            !(FPTR(Ctx->Nt.RtlDestroyHeap, Ctx->Modules.ntdll, RTLDESTROYHEAP)) ||
-            !(FPTR(Ctx->Nt.RtlInitUnicodeString, Ctx->Modules.ntdll, RTLINITUNICODESTRING)) ||
-            !(FPTR(Ctx->Nt.RtlCreateProcessParametersEx, Ctx->Modules.ntdll, RTLCREATEPROCESSPARAMETERSEX)) ||
-            !(FPTR(Ctx->Nt.RtlDestroyProcessParameters, Ctx->Modules.ntdll, RTLDESTROYPROCESSPARAMETERS))) {
+            !(FPTR(Ctx->Nt.RtlCreateHeap,                   Ctx->Modules.ntdll, RTLCREATEHEAP)) ||
+            !(FPTR(Ctx->Nt.RtlReAllocateHeap,               Ctx->Modules.ntdll, RTLREALLOCATEHEAP)) ||
+            !(FPTR(Ctx->Nt.RtlFreeHeap,                     Ctx->Modules.ntdll, RTLFREEHEAP)) ||
+            !(FPTR(Ctx->Nt.RtlDestroyHeap,                  Ctx->Modules.ntdll, RTLDESTROYHEAP)) ||
+            !(FPTR(Ctx->Nt.RtlInitUnicodeString,            Ctx->Modules.ntdll, RTLINITUNICODESTRING)) ||
+            !(FPTR(Ctx->Nt.RtlCreateProcessParametersEx,    Ctx->Modules.ntdll, RTLCREATEPROCESSPARAMETERSEX)) ||
+            !(FPTR(Ctx->Nt.RtlDestroyProcessParameters,     Ctx->Modules.ntdll, RTLDESTROYPROCESSPARAMETERS))) {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
 
         if (
-            !(FPTR(Ctx->win32.FormatMessageA, Ctx->Modules.kernel32, FORMATMESSAGEA)) ||
-            !(FPTR(Ctx->win32.CreateToolhelp32Snapshot, Ctx->Modules.kernel32, CREATETOOLHELP32SNAPSHOT)) ||
-            !(FPTR(Ctx->win32.Process32First, Ctx->Modules.kernel32, PROCESS32FIRST)) ||
-            !(FPTR(Ctx->win32.Process32Next, Ctx->Modules.kernel32, PROCESS32NEXT)) ||
-            !(FPTR(Ctx->win32.CreateRemoteThread, Ctx->Modules.kernel32, CREATEREMOTETHREAD)) ||
-            !(FPTR(Ctx->win32.GetComputerNameExA, Ctx->Modules.kernel32, GETCOMPUTERNAMEEXA)) ||
-            !(FPTR(Ctx->win32.GetLocalTime, Ctx->Modules.kernel32, GETLOCALTIME)) ||
-            !(FPTR(Ctx->win32.SleepEx, Ctx->Modules.kernel32, SLEEPEX)) ||
+            !(FPTR(Ctx->win32.FormatMessageA,               Ctx->Modules.kernel32, FORMATMESSAGEA)) ||
+            !(FPTR(Ctx->win32.CreateToolhelp32Snapshot,     Ctx->Modules.kernel32, CREATETOOLHELP32SNAPSHOT)) ||
+            !(FPTR(Ctx->win32.Process32First,               Ctx->Modules.kernel32, PROCESS32FIRST)) ||
+            !(FPTR(Ctx->win32.Process32Next,                Ctx->Modules.kernel32, PROCESS32NEXT)) ||
+            !(FPTR(Ctx->win32.CreateRemoteThread,           Ctx->Modules.kernel32, CREATEREMOTETHREAD)) ||
+            !(FPTR(Ctx->win32.GetComputerNameExA,           Ctx->Modules.kernel32, GETCOMPUTERNAMEEXA)) ||
+            !(FPTR(Ctx->win32.GetLocalTime,                 Ctx->Modules.kernel32, GETLOCALTIME)) ||
+            !(FPTR(Ctx->win32.SleepEx,                      Ctx->Modules.kernel32, SLEEPEX)) ||
 
-            !(FPTR(Ctx->win32.GetCurrentDirectoryA, Ctx->Modules.kernel32, GETCURRENTDIRECTORYA)) ||
-            !(FPTR(Ctx->win32.FileTimeToSystemTime, Ctx->Modules.kernel32, FILETIMETOSYSTEMTIME)) ||
-            !(FPTR(Ctx->win32.GetSystemTimeAsFileTime, Ctx->Modules.kernel32, GETSYSTEMTIMEASFILETIME)) ||
+            !(FPTR(Ctx->win32.GetCurrentDirectoryA,         Ctx->Modules.kernel32, GETCURRENTDIRECTORYA)) ||
+            !(FPTR(Ctx->win32.FileTimeToSystemTime,         Ctx->Modules.kernel32, FILETIMETOSYSTEMTIME)) ||
+            !(FPTR(Ctx->win32.GetSystemTimeAsFileTime,      Ctx->Modules.kernel32, GETSYSTEMTIMEASFILETIME)) ||
             !(FPTR(Ctx->win32.SystemTimeToTzSpecificLocalTime, Ctx->Modules.kernel32, SYSTEMTIMETOTZSPECIFICLOCALTIME)) ||
-            !(FPTR(Ctx->win32.GetFullPathNameA, Ctx->Modules.kernel32, GETFULLPATHNAMEA)) ||
-            !(FPTR(Ctx->win32.CreateFileW, Ctx->Modules.kernel32, CREATEFILEW)) ||
-            !(FPTR(Ctx->win32.ReadFile, Ctx->Modules.kernel32, READFILE)) ||
-            !(FPTR(Ctx->win32.WriteFile, Ctx->Modules.kernel32, WRITEFILE)) ||
-            !(FPTR(Ctx->win32.GetFileSizeEx, Ctx->Modules.kernel32, GETFILESIZEEX)) ||
-            !(FPTR(Ctx->win32.FindFirstFileA, Ctx->Modules.kernel32, FINDFIRSTFILEA)) ||
-            !(FPTR(Ctx->win32.FindNextFileA, Ctx->Modules.kernel32, FINDNEXTFILEA)) ||
-            !(FPTR(Ctx->win32.FindClose, Ctx->Modules.kernel32, FINDCLOSE)) ||
+            !(FPTR(Ctx->win32.GetFullPathNameA,             Ctx->Modules.kernel32, GETFULLPATHNAMEA)) ||
+            !(FPTR(Ctx->win32.CreateFileW,                  Ctx->Modules.kernel32, CREATEFILEW)) ||
+            !(FPTR(Ctx->win32.ReadFile,                     Ctx->Modules.kernel32, READFILE)) ||
+            !(FPTR(Ctx->win32.WriteFile,                    Ctx->Modules.kernel32, WRITEFILE)) ||
+            !(FPTR(Ctx->win32.GetFileSizeEx,                Ctx->Modules.kernel32, GETFILESIZEEX)) ||
+            !(FPTR(Ctx->win32.FindFirstFileA,               Ctx->Modules.kernel32, FINDFIRSTFILEA)) ||
+            !(FPTR(Ctx->win32.FindNextFileA,                Ctx->Modules.kernel32, FINDNEXTFILEA)) ||
+            !(FPTR(Ctx->win32.FindClose,                    Ctx->Modules.kernel32, FINDCLOSE)) ||
 
-            !(FPTR(Ctx->win32.CreateNamedPipeW, Ctx->Modules.kernel32, CREATENAMEDPIPEW)) ||
-            !(FPTR(Ctx->win32.CallNamedPipeW, Ctx->Modules.kernel32, CALLNAMEDPIPEW)) ||
-            !(FPTR(Ctx->win32.WaitNamedPipeW, Ctx->Modules.kernel32, WAITNAMEDPIPEW)) ||
-            !(FPTR(Ctx->win32.ConnectNamedPipe, Ctx->Modules.kernel32, CONNECTNAMEDPIPE)) ||
-            !(FPTR(Ctx->win32.DisconnectNamedPipe, Ctx->Modules.kernel32, DISCONNECTNAMEDPIPE)) ||
-            !(FPTR(Ctx->win32.SetNamedPipeHandleState, Ctx->Modules.kernel32, SETNAMEDPIPEHANDLESTATE)) ||
-            !(FPTR(Ctx->win32.PeekNamedPipe, Ctx->Modules.kernel32, PEEKNAMEDPIPE))) {
+            !(FPTR(Ctx->win32.CreateNamedPipeW,             Ctx->Modules.kernel32, CREATENAMEDPIPEW)) ||
+            !(FPTR(Ctx->win32.CallNamedPipeW,               Ctx->Modules.kernel32, CALLNAMEDPIPEW)) ||
+            !(FPTR(Ctx->win32.WaitNamedPipeW,               Ctx->Modules.kernel32, WAITNAMEDPIPEW)) ||
+            !(FPTR(Ctx->win32.ConnectNamedPipe,             Ctx->Modules.kernel32, CONNECTNAMEDPIPE)) ||
+            !(FPTR(Ctx->win32.DisconnectNamedPipe,          Ctx->Modules.kernel32, DISCONNECTNAMEDPIPE)) ||
+            !(FPTR(Ctx->win32.SetNamedPipeHandleState,      Ctx->Modules.kernel32, SETNAMEDPIPEHANDLESTATE)) ||
+            !(FPTR(Ctx->win32.PeekNamedPipe,                Ctx->Modules.kernel32, PEEKNAMEDPIPE))) {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
     defer:

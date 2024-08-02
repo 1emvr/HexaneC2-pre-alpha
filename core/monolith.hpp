@@ -179,7 +179,7 @@ enum CommandType {
 	CommandMods     	= 0x00000002,
 	CommandNoJob    	= 0x00000003,
 	CommandShutdown 	= 0x00000004,
-	CommandUpdatePeer 	= 0x00000005,
+	CommandUpdatePeer = 0x00000005,
 };
 
 typedef struct {
@@ -469,7 +469,7 @@ typedef struct {
 		PROTOTYPE(FreeSid);
 	} win32;
 
-} HEXANE_CTX, *PHEXANE_CTX;
+} HEXANE_CTX;
 
 EXTERN_C WEAK ULONG  		__InstanceOffset;
 #define GLOBAL_OFFSET       (U_PTR(InstStart()) + U_PTR(&__InstanceOffset))
