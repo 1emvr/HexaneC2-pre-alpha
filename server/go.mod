@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/fatih/color v1.16.0
 	github.com/gin-gonic/gin v1.10.0
+	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/rodaine/table v1.1.1
 	github.com/spf13/cobra v1.8.1
 	golang.org/x/net v0.25.0

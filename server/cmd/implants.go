@@ -41,7 +41,7 @@ var Interact = &cobra.Command{
 			err    error
 			config *core.HexaneConfig
 		)
-		if config := core.GetImplantByName(args[0]); config == nil {
+		if config = core.GetImplantByName(args[0]); config == nil {
 			core.WrapMessage("ERR", fmt.Sprintf("failed to get config for %s", args[0]))
 			return
 		}
@@ -194,12 +194,14 @@ func UserInterface(config *core.HexaneConfig) error {
 
 	reader := bufio.NewReader(os.Stdin)
 	for {
+		fmt.Print(config.UserConfig.Builder.OutputName + " > ")
 		if input, err = reader.ReadString('\n'); err != nil {
 			return err
 		}
 		if input == "exit" {
 			break
 		}
+
 		if config.CommandChan == nil {
 			core.WrapMessage("ERR", "command channel is not ready")
 			break

@@ -9,25 +9,19 @@ import (
 // parse response, push to database then print?
 const HeaderLength = 12
 
-func ProcessBodyToParser(b []byte) (*Parser, uint32) {
+func ProcessBodyToParser(b []byte) (*Parser, uint32, error) {
 	var offset uint32
 
+	// pid, tid, type, len, body
+	WrapMessage("DBG", "creating parser from http body")
 	parser := CreateParser(b)
+
 	if parser.MsgLength < HeaderLength {
-		return nil, 0
-	}
-	if parser.MsgLength >= HeaderLength+4 {
-		offset = parser.ParseDword()
-		offset += HeaderLength + 4
-	} else {
-		offset = HeaderLength
+		return nil, 0, fmt.Errorf("parser length is not long enough")
 	}
 
-	if offset > parser.MsgLength {
-		return nil, 0
-	}
-
-	return parser, offset
+	offset = HeaderLength
+	return parser, offset, nil
 }
 
 func (h *HexaneConfig) ProcessParser(p *Parser) ([]byte, error) {
@@ -61,14 +55,19 @@ func ResponseWorker(b []byte) ([]byte, error) {
 		rsp    []byte
 	)
 
+	WrapMessage("DBG", DbgPrintBytes("http body: ", b))
+
 	for len(b) > 0 {
-		if parser, offset = ProcessBodyToParser(b); parser == nil {
-			return nil, fmt.Errorf("processing message b to parser: bad parser or message length")
+		if parser, offset, err = ProcessBodyToParser(b); err != nil {
+			return nil, fmt.Errorf("processing message b to parser: bad parser or message length: %s", err)
 		}
 
 		parser.PeerId = bits.ReverseBytes32(parser.ParseDword())
 		parser.TaskId = bits.ReverseBytes32(parser.ParseDword())
 		parser.MsgType = bits.ReverseBytes32(parser.ParseDword())
+		parser.MsgLength = bits.Reverse32(parser.ParseDword())
+
+		offset += parser.MsgLength
 
 		if config = GetConfigByPeerId(parser.PeerId); config != nil {
 			if err = config.SqliteInsertParser(parser); err != nil {
@@ -83,7 +82,11 @@ func ResponseWorker(b []byte) ([]byte, error) {
 			rsp = []byte("200 ok")
 		}
 
-		b = b[offset:]
+		if offset != 0 {
+			b = b[offset:]
+		} else {
+			b = nil
+		}
 	}
 
 	return rsp, err

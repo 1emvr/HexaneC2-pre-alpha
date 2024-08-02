@@ -515,29 +515,4 @@ EXTERN_C WEAK LPVOID __Instance;
 #define FPTR2(Fn, mod, sym) \
 	Fn = (__typeof__(Fn)) Memory::LdrGetSymbolAddress(Memory::LdrGetModuleAddress(mod), sym)
 
-
-
-void* operator new(std::size_t size) {
-	HEXANE
-	return Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, size);
-}
-
-
-void operator delete(void* ptr) noexcept {
-	HEXANE
-	if (ptr && Ctx->Heap) {
-		Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, ptr);
-	}
-}
-
-
-void* operator new[](std::size_t size) {
-	return operator new(size);
-}
-
-
-void operator delete[](void* ptr) noexcept {
-	operator delete(ptr);
-}
-
 #endif
