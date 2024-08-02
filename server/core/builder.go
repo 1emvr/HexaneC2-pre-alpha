@@ -83,7 +83,7 @@ func (h *HexaneConfig) BuildSource() error {
 		module.LinkerScript = "-T" + module.RootDirectory + "/" + module.LinkerScript
 	}
 
-	module.OutputName = filepath.Join(BuildPath, module.OutputName)
+	module.OutputName = filepath.Join(BuildPath, module.OutputName+".exe")
 
 	if err = h.CompileSources(module); err != nil {
 		return fmt.Errorf("h.CompileSources - " + err.Error())
@@ -97,7 +97,7 @@ func (h *HexaneConfig) BuildSource() error {
 		return err
 	}
 
-	if err = h.EmbedSectionData(module.OutputName, module.Egg, h.ConfigBytes, 512); err != nil {
+	if err = h.EmbedSectionData(module.OutputName, module.Egg, h.ConfigBytes, 1024); err != nil {
 		return fmt.Errorf("h.EmbedSectionData - " + err.Error())
 	}
 

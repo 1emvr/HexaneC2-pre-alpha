@@ -2,10 +2,9 @@ package core
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 )
 
-func (h *HexaneConfig) AddServer(engine *gin.Engine, profile *Http) {
+func AddServer(profile *Http) {
 
 	HexaneServers.Group++
 
@@ -13,7 +12,7 @@ func (h *HexaneConfig) AddServer(engine *gin.Engine, profile *Http) {
 		Endpoints: profile.Endpoints,
 		Address:   profile.Address,
 		Port:      profile.Port,
-		Handle:    engine,
+		Handle:    profile.Handle,
 		Next:      HexaneServers.Head,
 	}
 
@@ -22,7 +21,6 @@ func (h *HexaneConfig) AddServer(engine *gin.Engine, profile *Http) {
 	}
 
 	HexaneServers.Head = c
-	h.UserConfig.Network.Config.(*Http).Handle = engine
 }
 
 func AddConfig(h *HexaneConfig) {

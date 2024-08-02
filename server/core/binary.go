@@ -136,7 +136,7 @@ func GenerateHashes(stringsFile string, outFile string) error {
 	return nil
 }
 
-func (h *HexaneConfig) EmbedSectionData(path string, egg []byte, data []byte, size int) error {
+func (h *HexaneConfig) EmbedSectionData(path string, egg []byte, data []byte, secSize int) error {
 	var (
 		readFile *os.File
 		readData []byte
@@ -144,7 +144,7 @@ func (h *HexaneConfig) EmbedSectionData(path string, egg []byte, data []byte, si
 		err      error
 	)
 
-	if readFile, err = os.OpenFile(path, FSTAT_RW, 0644); err != nil {
+	if readFile, err = os.OpenFile(path, os.O_RDWR, 0644); err != nil {
 		return err
 	}
 	defer func() {
@@ -161,12 +161,12 @@ func (h *HexaneConfig) EmbedSectionData(path string, egg []byte, data []byte, si
 		return fmt.Errorf("egg was not found in " + path)
 	}
 
-	if len(data) > size {
-		return fmt.Errorf("data is longer than " + strconv.Itoa(size) + " bytes")
+	if len(data) > secSize {
+		return fmt.Errorf("data is longer than " + strconv.Itoa(secSize) + " bytes")
 	}
 
-	copy(readData[:offset], data)
-	remaining := size - len(data)
+	copy(readData[offset:], data)
+	remaining := secSize - len(data)
 
 	if remaining > 0 {
 		for i := 0; i < remaining; i++ {

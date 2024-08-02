@@ -88,9 +88,7 @@ func (h *HexaneConfig) StartNewServer(profile *Http) error {
 		return err
 	}
 
-	h.AddServer(Handle, profile)
 	WrapMessage("INF", fmt.Sprintf("server started on %s:%d", profile.Address, profile.Port))
-
 	return nil
 }
 
@@ -117,9 +115,17 @@ func (h *HexaneConfig) HttpServerHandler() error {
 }
 
 func (h *HexaneConfig) RunServer() error {
-	var err error
+	var (
+		err    error
+		server *Http
+	)
 
-	server := h.UserConfig.Network.Config.(*Http)
+	server = new(Http)
+
+	if err = MapToStruct(h.UserConfig.Network.Config, server); err != nil {
+		return err
+	}
+
 	server.Ready = make(chan bool)
 
 	go func() {
@@ -131,6 +137,8 @@ func (h *HexaneConfig) RunServer() error {
 		return err
 	}
 
+	AddServer(server)
 	AddConfig(h)
+
 	return nil
 }
