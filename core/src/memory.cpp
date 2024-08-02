@@ -148,6 +148,7 @@ namespace Memory {
         MmAddr = C_PTR(GLOBAL_OFFSET);
         MmSize = sizeof(MmAddr);
 
+        __debugbreak();
         if (
             !(Instance.Modules.ntdll = LdrGetModuleAddress(NTDLL)) ||
             !(FPTR(Instance.Nt.NtProtectVirtualMemory, Instance.Modules.ntdll, NTPROTECTVIRTUALMEMORY)) ||
@@ -158,6 +159,7 @@ namespace Memory {
         if (!NT_SUCCESS(Instance.Nt.NtProtectVirtualMemory(NtCurrentProcess(), &MmAddr, &MmSize, PAGE_READWRITE, &Protect))) {
             return;
         }
+
         MmAddr = C_PTR(GLOBAL_OFFSET);
         if (!(C_DREF(MmAddr) = Instance.Nt.RtlAllocateHeap(Instance.Heap, HEAP_ZERO_MEMORY, sizeof(HEXANE_CTX)))) {
             return;

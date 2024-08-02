@@ -22,7 +22,7 @@
   },
 
   "Builder": {
-    "OutputName": "test_implant",
+    "OutputName": "momshouse",
     "RootDirectory": "C:/Users/lemur/CLionProjects/HexaneC2/core",
     "LinkerScript": "implant.ld",
 
