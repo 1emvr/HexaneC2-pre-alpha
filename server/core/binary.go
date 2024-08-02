@@ -237,7 +237,9 @@ func (h *HexaneConfig) CompileObject(command, output string, targets, flags, inc
 	}
 
 	if h.Compiler.Debug {
-		definitions["DEBUG"] = nil
+		if command != h.Compiler.Linker {
+			definitions["DEBUG"] = nil
+		}
 	}
 
 	if includes != nil {

@@ -1,7 +1,7 @@
 {
   "Config": {
     "Arch": "amd64",
-    "Debug": false,
+    "Debug": true,
     "Hostname": "LENOVO-WRKSTN-W",
     "Sleeptime": 3,
     "Jitter": 10

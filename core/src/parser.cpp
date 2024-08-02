@@ -10,7 +10,7 @@ namespace Parser {
         if (Length) {
             *cbOut = Length;
 
-            if ((*Dst = SCAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
+            if ((*Dst = S_CAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
                 x_memcpy(*Dst, Buffer, Length);
             }
         }
@@ -25,7 +25,7 @@ namespace Parser {
         if (Length) {
             *cbOut = Length;
 
-            if ((*Dst = SCAST(LPWSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (Length * sizeof(WCHAR)) + sizeof(WCHAR))))) {
+            if ((*Dst = S_CAST(LPWSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (Length * sizeof(WCHAR)) + sizeof(WCHAR))))) {
                 x_memcpy(*Dst, Buffer, Length * sizeof(WCHAR));
             }
         }
@@ -40,7 +40,7 @@ namespace Parser {
         if (Length) {
             *cbOut = Length;
 
-            if ((*Dst = SCAST(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
+            if ((*Dst = S_CAST(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
                 x_memcpy(*Dst, Buffer, Length);
             }
         }
@@ -81,7 +81,7 @@ namespace Parser {
         if (Parser->Length >= 1) {
             x_memcpy(&intBytes, Parser->Buffer, 1);
 
-            Parser->Buffer = SCAST(PBYTE, Parser->Buffer) + 1;
+            Parser->Buffer = S_CAST(PBYTE, Parser->Buffer) + 1;
             Parser->Length -= 1;
         }
 
@@ -95,7 +95,7 @@ namespace Parser {
         if (Parser->Length >= 2) {
             x_memcpy(&intBytes, Parser->Buffer, 2);
 
-            Parser->Buffer = SCAST(PBYTE, Parser->Buffer) + 2;
+            Parser->Buffer = S_CAST(PBYTE, Parser->Buffer) + 2;
             Parser->Length -= 2;
         }
         return intBytes;
@@ -110,12 +110,12 @@ namespace Parser {
         }
         x_memcpy(&intBytes, Parser->Buffer, 4);
 
-        Parser->Buffer = SCAST(PBYTE, Parser->Buffer) + 4;
+        Parser->Buffer = S_CAST(PBYTE, Parser->Buffer) + 4;
         Parser->Length -= 4;
 
         return (Parser->Little)
                ? intBytes
-               : __bswapd(SCAST(ULONG, intBytes));
+               : __bswapd(S_CAST(ULONG, intBytes));
     }
 
     ULONG64 UnpackDword64 (PPARSER Parser) {
@@ -127,12 +127,12 @@ namespace Parser {
         }
         x_memcpy(&intBytes, Parser->Buffer, 4);
 
-        Parser->Buffer = SCAST(PBYTE, Parser->Buffer) + 8;
+        Parser->Buffer = S_CAST(PBYTE, Parser->Buffer) + 8;
         Parser->Length -= 8;
 
         return (Parser->Little)
                ? intBytes
-               : __bswapq(SCAST(ULONG64, intBytes));
+               : __bswapq(S_CAST(ULONG64, intBytes));
     }
 
     BOOL UnpackBool (PPARSER Parser) {
@@ -144,7 +144,7 @@ namespace Parser {
         }
         x_memcpy(&intBytes, Parser->Buffer, 4);
 
-        Parser->Buffer = SCAST(PBYTE, Parser->Buffer) + 4;
+        Parser->Buffer = S_CAST(PBYTE, Parser->Buffer) + 4;
         Parser->Length -= 4;
 
         return (Parser->Little)
@@ -166,22 +166,22 @@ namespace Parser {
             *cbOut = length;
         }
 
-        output = SCAST(PBYTE, Parser->Buffer);
+        output = S_CAST(PBYTE, Parser->Buffer);
         if (output == nullptr) {
             return nullptr;
         }
 
         Parser->Length -= length;
-        Parser->Buffer = SCAST(PBYTE, Parser->Buffer) + length;
+        Parser->Buffer = S_CAST(PBYTE, Parser->Buffer) + length;
 
         return output;
     }
 
     LPSTR UnpackString(PPARSER Parser, PULONG cbOut) {
-        return RCAST(LPSTR, UnpackBytes(Parser, cbOut));
+        return R_CAST(LPSTR, UnpackBytes(Parser, cbOut));
     }
 
     LPWSTR UnpackWString(PPARSER Parser, PULONG cbOut) {
-        return RCAST(LPWSTR, UnpackBytes(Parser, cbOut));
+        return R_CAST(LPWSTR, UnpackBytes(Parser, cbOut));
     }
 }

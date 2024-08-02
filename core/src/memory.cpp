@@ -148,7 +148,6 @@ namespace Memory {
         MmAddr = C_PTR(GLOBAL_OFFSET);
         MmSize = sizeof(MmAddr);
 
-        __debugbreak();
         if (
             !(Instance.Modules.ntdll = LdrGetModuleAddress(NTDLL)) ||
             !(FPTR(Instance.Nt.NtProtectVirtualMemory, Instance.Modules.ntdll, NTPROTECTVIRTUALMEMORY)) ||
@@ -172,8 +171,8 @@ namespace Memory {
 
     HMODULE LdrGetModuleAddress(ULONG Hash) {
 
-        HMODULE Base = {};
-        WCHAR wcsName[MAX_PATH];
+        HMODULE Base            = { };
+        WCHAR lowName[MAX_PATH] = { };
 
         auto Head = IN_MEMORY_ORDER_MODULE_LIST;
         auto Next = Head->Flink;
@@ -182,54 +181,49 @@ namespace Memory {
             auto Mod = MODULE_ENTRY(Next);
             auto Name = MODULE_NAME(Mod);
 
-            x_memset(wcsName, 0, MAX_PATH);
+            x_memset(lowName, 0, MAX_PATH);
 
-            for (auto i = 0; i < x_wcslen(Name); i++) {
-                wcsName[i] = x_toLowerW(Name[i]);
+            if (Hash - Utils::GetHashFromStringW(x_wcsToLower(lowName, Name), x_wcslen(Name)) == 0) {
+                Base = S_CAST(HMODULE, Mod->BaseAddress);
+                break;
             }
 
-            if (Name) {
-                if (Hash - Utils::GetHashFromStringW(wcsName, x_wcslen(wcsName)) == 0) {
-                    Base = (HMODULE)Mod->BaseAddress;
-                }
-            }
             Next = Next->Flink;
         }
+
         return Base;
     }
 
     FARPROC LdrGetSymbolAddress(HMODULE Base, ULONG Hash) {
 
-        FARPROC Export = {};
-        CHAR mbsName[MAX_PATH];
+        FARPROC Export          = { };
+        CHAR lowName[MAX_PATH]  = { };
 
         if (!Base) {
             return nullptr;
         }
 
-        auto DosHead = IMAGE_DOS_HEADER(Base);
-        auto NtHead = IMAGE_NT_HEADERS(Base, DosHead);
-        auto Exports = IMAGE_EXPORT_DIRECTORY(DosHead, NtHead);
+        auto DosHead    = IMAGE_DOS_HEADER(Base);
+        auto NtHead     = IMAGE_NT_HEADERS(Base, DosHead);
+        auto Exports    = IMAGE_EXPORT_DIRECTORY(DosHead, NtHead);
 
         if (Exports->AddressOfNames) {
-            auto Ords = RVA(PWORD, Base, (long) Exports->AddressOfNameOrdinals);
-            auto Fns = RVA(PULONG, Base, (long) Exports->AddressOfFunctions);
-            auto Names = RVA(PULONG, Base, (long) Exports->AddressOfNames);
+            auto Ords   = RVA(PWORD, Base, Exports->AddressOfNameOrdinals);
+            auto Fns    = RVA(PULONG, Base, Exports->AddressOfFunctions);
+            auto Names  = RVA(PULONG, Base, Exports->AddressOfNames);
 
             for (auto i = 0; i < Exports->NumberOfNames; i++) {
                 auto Name = RVA(LPSTR, Base, (long) Names[i]);
 
-                x_memset(mbsName, 0, MAX_PATH);
+                x_memset(lowName, 0, MAX_PATH);
 
-                for (auto j = 0; j < x_strlen(Name); j++) {
-                    mbsName[j] = SCAST(CHAR, x_toLowerA(Name[j]));
-                }
-
-                if (Hash - Utils::GetHashFromStringA(mbsName, x_strlen(Name)) == 0) {
-                    Export = (FARPROC)RVA(PULONG, Base, (long) Fns[Ords[i]]);
+                if (Hash - Utils::GetHashFromStringA(x_mbsToLower(lowName, Name), x_strlen(Name)) == 0) {
+                    Export = R_CAST(FARPROC, RVA(PULONG, Base, Fns[Ords[i]]));
+                    break;
                 }
             }
         }
+
         return Export;
     }
 
@@ -237,12 +231,12 @@ namespace Memory {
         HEXANE
 
         UINT_PTR Region     = 0;
-        UINT_PTR Address    = RCAST(UINT_PTR, Export);
+        UINT_PTR Address    = R_CAST(UINT_PTR, Export);
 
         for (Region = (Address & 0xFFFFFFFFFFF70000) - 0x70000000;
              Region < Address + 0x70000000;
              Region += 0x10000) {
-            if ((Ctx->Nt.NtAllocateVirtualMemory(Proc, RCAST(LPVOID*, &Region), 0, &Size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ)) >= 0) {
+            if ((Ctx->Nt.NtAllocateVirtualMemory(Proc, R_CAST(LPVOID*, &Region), 0, &Size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ)) >= 0) {
                 return Region;
             }
         }
@@ -258,7 +252,7 @@ namespace Memory {
 
         while (!pExport) {
             if (!(FPTR2(pExport, Utils::GetHashFromStringA(Module, x_strlen(Module)), Utils::GetHashFromStringA(Export, x_strlen(Export))))) {
-                if (reload || !(Ctx->win32.LoadLibraryA(SCAST(LPCSTR, Module)))) {
+                if (reload || !(Ctx->win32.LoadLibraryA(S_CAST(LPCSTR, Module)))) {
                     goto defer;
                 }
                 reload++;
@@ -274,7 +268,7 @@ namespace Memory {
         HRSRC hResInfo  = { };
         PRSRC Object    = { };
 
-        Object = SCAST(PRSRC, Ctx->Nt.RtlAllocateHeap(LocalHeap, 0, sizeof(RSRC)));
+        Object = S_CAST(PRSRC, Ctx->Nt.RtlAllocateHeap(LocalHeap, 0, sizeof(RSRC)));
 
         if (
             !(hResInfo          = Ctx->win32.FindResourceA(Base, MAKEINTRESOURCE(RsrcId), RT_RCDATA)) ||

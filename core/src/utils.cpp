@@ -10,7 +10,7 @@ namespace Utils {
         Ctx->win32.GetSystemTimeAsFileTime(&FileTime);
 
         LargeInt.LowPart = FileTime.dwLowDateTime;
-        LargeInt.HighPart = SCAST(LONG, FileTime.dwHighDateTime);
+        LargeInt.HighPart = S_CAST(LONG, FileTime.dwHighDateTime);
 
         return LargeInt.QuadPart;
     }
@@ -141,8 +141,8 @@ namespace Random {
         const size_t UNIX_TIME_START = 0x019DB1DED53E8000;
         const size_t TICKS_PER_MILLISECOND = 1000;
 
-        time.u.LowPart = *RCAST(uint32_t*, 0x7FFE0000 + 0x14);
-        time.u.HighPart = *RCAST(int32_t*, 0x7FFE0000 + 0x1c);
+        time.u.LowPart = *R_CAST(uint32_t*, 0x7FFE0000 + 0x14);
+        time.u.HighPart = *R_CAST(int32_t*, 0x7FFE0000 + 0x1c);
 
         return (time.QuadPart - UNIX_TIME_START) / TICKS_PER_MILLISECOND;
     }
@@ -179,7 +179,7 @@ namespace Random {
         HEXANE
 
         auto defaultseed = RandomSeed();
-        auto seed = Ctx->Nt.RtlRandomEx(SCAST(PULONG, &defaultseed));
+        auto seed = Ctx->Nt.RtlRandomEx(S_CAST(PULONG, &defaultseed));
 
         volatile size_t x = INTERVAL(seed);
         const uintptr_t end = Timestamp() + (x * ms);
