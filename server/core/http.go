@@ -11,10 +11,10 @@ import (
 	"time"
 )
 
-func ParseHeaders(context *gin.Context) []Headers {
+func ParseHeaders(c *gin.Context) []Headers {
 	var heads []Headers
 
-	for key, headers := range context.Request.Header {
+	for key, headers := range c.Request.Header {
 		for _, value := range headers {
 
 			vals := Headers{key, value}
@@ -24,13 +24,13 @@ func ParseHeaders(context *gin.Context) []Headers {
 	return heads
 }
 
-func (h *HexaneConfig) ServerRoutine(context *gin.Context) {
+func (h *HexaneConfig) ServerRoutine(c *gin.Context) {
 	var (
 		err       error
 		body, rsp []byte
 	)
 
-	if body, err = ioutil.ReadAll(context.Request.Body); err != nil {
+	if body, err = ioutil.ReadAll(c.Request.Body); err != nil {
 		WrapMessage("ERR", err.Error())
 	}
 
@@ -38,27 +38,27 @@ func (h *HexaneConfig) ServerRoutine(context *gin.Context) {
 		WrapMessage("ERR", err.Error())
 	}
 
-	//context.String(200, base64.StdEncoding.WithPadding(base64.NoPadding).EncodeToString(rsp))
-	context.String(200, string(rsp))
+	//c.String(200, base64.StdEncoding.WithPadding(base64.NoPadding).EncodeToString(rsp))
+	c.String(200, string(rsp))
 }
 
-func (h *HexaneConfig) UpdateServerEndpoints(profile *Http) {
+func (h *HexaneConfig) UpdateServerEndpoints(p *Http) {
 
 	chanNewEndp := make(chan string)
 	defer close(chanNewEndp)
 
 	go func() {
 		for endp := range chanNewEndp {
-			profile.Handle.GET(endp, func(context *gin.Context) {
+			p.Handle.GET(endp, func(context *gin.Context) {
 				h.ServerRoutine(context)
 			})
 		}
 	}()
 
-	for _, newEndp := range profile.Endpoints {
+	for _, newEndp := range p.Endpoints {
 		endpointExists := false
 
-		for _, existingEndp := range profile.Endpoints {
+		for _, existingEndp := range p.Endpoints {
 			if existingEndp == newEndp {
 
 				endpointExists = true
@@ -66,29 +66,29 @@ func (h *HexaneConfig) UpdateServerEndpoints(profile *Http) {
 			}
 		}
 		if !endpointExists {
-			profile.Endpoints = append(profile.Endpoints, newEndp)
+			p.Endpoints = append(p.Endpoints, newEndp)
 			chanNewEndp <- newEndp
 		}
 	}
 }
 
-func (h *HexaneConfig) StartNewServer(profile *Http) error {
+func (h *HexaneConfig) StartNewServer(p *Http) error {
 	var err error
 
-	profile.Handle = gin.Default()
+	p.Handle = gin.Default()
 	if !Debug {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	for _, endp := range profile.Endpoints {
-		profile.Handle.GET(endp, func(context *gin.Context) {
+	for _, endp := range p.Endpoints {
+		p.Handle.GET(endp, func(context *gin.Context) {
 			h.ServerRoutine(context)
 		})
 	}
 
 	server := &http.Server{
-		Addr:    profile.Address + ":" + strconv.Itoa(profile.Port),
-		Handler: profile.Handle,
+		Addr:    p.Address + ":" + strconv.Itoa(p.Port),
+		Handler: p.Handle,
 	}
 
 	go func() {
@@ -101,7 +101,7 @@ func (h *HexaneConfig) StartNewServer(profile *Http) error {
 	}
 
 	go func() {
-		<-profile.SigTerm
+		<-p.SigTerm
 
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -115,54 +115,55 @@ func (h *HexaneConfig) StartNewServer(profile *Http) error {
 		return err
 	}
 
-	WrapMessage("INF", fmt.Sprintf("server started on %s:%d", profile.Address, profile.Port))
+	WrapMessage("INF", fmt.Sprintf("server started on %s:%d", p.Address, p.Port))
 	return nil
 }
 
-func (h *HexaneConfig) HttpServerHandler(profile *Http) error {
-	var err error
-
-	serverExists := false
+func (h *HexaneConfig) HttpServerHandler(p *Http) error {
+	var (
+		err    error
+		exists = false
+	)
 
 	for Head := HexaneServers.Head; Head != nil; Head = Head.Next {
-		if Head.Address == profile.Address && Head.Port == profile.Port {
+		if Head.Address == p.Address && Head.Port == p.Port {
 
-			serverExists = true
+			exists = true
 			h.UpdateServerEndpoints(Head)
 			break
 		}
 	}
-	if !serverExists {
-		if err = h.StartNewServer(profile); err != nil {
+	if !exists {
+		if err = h.StartNewServer(p); err != nil {
 			return err
 		}
-		AddServer(profile)
+		AddServer(p)
 	}
 
-	profile.Ready <- true
+	p.Ready <- true
 	return err
 }
 
 func (h *HexaneConfig) RunServer() error {
 	var (
-		err     error
-		profile *Http
+		err error
+		p   *Http
 	)
 
-	profile = new(Http)
+	p = new(Http)
 
-	if err = MapToStruct(h.UserConfig.Network.Config, profile); err != nil {
+	if err = MapToStruct(h.UserConfig.Network.Config, p); err != nil {
 		return err
 	}
 
-	profile.SigTerm = make(chan bool)
-	profile.Ready = make(chan bool)
+	p.SigTerm = make(chan bool)
+	p.Ready = make(chan bool)
 
 	go func() {
-		err = h.HttpServerHandler(profile)
+		err = h.HttpServerHandler(p)
 	}()
 
-	<-profile.Ready
+	<-p.Ready
 	if err != nil {
 		return err
 	}

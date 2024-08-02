@@ -20,12 +20,15 @@ var HeaderMap = map[uint32]TableMap{
 }
 
 func (p *Parser) ParseTable() TableMap {
+	var (
+		heads, vals []string
+	)
 
 	switch p.MsgType {
 	case TypeCheckin:
 		{
-			Headers := []string{"PeerId", "Hostname", "Domain", "Username", "Interfaces"}
-			Values := []string{strconv.Itoa(int(p.PeerId)), p.ParseString(), p.ParseString(), p.ParseString(), p.ParseString()}
+			heads = []string{"PeerId", "Hostname", "Domain", "Username", "Interfaces"}
+			vals = []string{strconv.Itoa(int(p.PeerId)), p.ParseString(), p.ParseString(), p.ParseString(), p.ParseString()}
 		}
 
 	case TypeTasking:
@@ -33,9 +36,8 @@ func (p *Parser) ParseTable() TableMap {
 			switch p.ParseDword() {
 			case CommandDir:
 				{
-				Headers:
-					[]string{"Mode", "Length", "LastWriteTime", "Name"}
-					Values := make([][]string, 0)
+					heads = []string{"Mode", "Length", "LastWriteTime", "Name"}
+					vals = make([]string, 0)
 
 					for p.MsgLength != 0 {
 						row := make([]string, 4)
@@ -49,16 +51,10 @@ func (p *Parser) ParseTable() TableMap {
 							row[0], row[1] = "", FormatSize(size)
 						}
 
-						Month := p.ParseDword()
-						Day := p.ParseDword()
-						Year := p.ParseDword()
-
-						Hour := p.ParseDword()
-						Minute := p.ParseDword()
-						Second := p.ParseDword()
-
-						row[2] = fmt.Sprintf("%d/%d/%d %d:%d:%d", Month, Day, Year, Hour, Minute, Second)
+						row[2] = fmt.Sprintf("%d/%d/%d %d:%d:%d", p.ParseDword(), p.ParseDword(), p.ParseDword(), p.ParseDword(), p.ParseDword(), p.ParseDword())
 						row[3] = p.ParseString()
+
+						vals = append(vals, row[1], row[2], row[3])
 					}
 				}
 			case CommandMods:
@@ -71,19 +67,20 @@ func (p *Parser) ParseTable() TableMap {
 							tMap.Values = append(tMap.Values, row)
 						}
 
-						return PrintTable(tMap)
 					}
 				}
 			}
 		}
 	}
+
+	PrintTable(heads, vals)
 	return false
 }
 
-func PrintTable(tMap TableMap) {
-	headersInterface := make([]interface{}, len(tMap.Headers))
+func PrintTable(heads, vals []string) {
+	headersInterface := make([]interface{}, len(heads))
 
-	for i, header := range tMap.Headers {
+	for i, header := range heads {
 		headersInterface[i] = header
 	}
 
@@ -92,7 +89,7 @@ func PrintTable(tMap TableMap) {
 
 	tbl.WithHeaderFormatter(format)
 
-	for _, row := range tMap.Values {
+	for _, row := range vals {
 		rowInterface := make([]interface{}, len(row))
 
 		for i, val := range row {
