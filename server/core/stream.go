@@ -62,6 +62,11 @@ func CreateStream() *Stream {
 	return stream
 }
 
+func (s *Stream) PackByte(data byte) {
+	s.Buffer = append(s.Buffer, data)
+	s.Length += 1
+}
+
 func (s *Stream) PackDword64(data int64) {
 	var buffer = make([]byte, 8)
 
