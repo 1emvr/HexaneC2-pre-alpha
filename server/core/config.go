@@ -19,12 +19,11 @@ func (h *HexaneConfig) GenerateConfigBytes() error {
 		patch []byte
 	)
 
-	key := CryptCreateKey(16)
+	h.Key = CryptCreateKey(16)
 	if patch, err = h.CreateBinaryPatch(); err != nil {
 		return err
 	}
 
-	h.Key = key
 	h.ConfigBytes = patch // Assuming XteaCrypt(patch) if needed.
 
 	return nil
