@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+// todo: implement command front-end and back-end
+
 var (
 	CommandMap = map[string]uint32{
 		"dir":      CommandDir,
