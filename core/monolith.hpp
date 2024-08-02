@@ -477,8 +477,7 @@ EXTERN_C WEAK LPVOID __Instance;
 
 #define InstanceOffset()    (U_PTR(&__InstanceOffset))
 #define GLOBAL_OFFSET       (U_PTR(InstStart()) + InstanceOffset())
-#define InstancePtr()	    (R_CAST(HEXANE_CTX*, C_DREF(C_PTR(GLOBAL_OFFSET))))
-#define HEXANE 		        HEXANE_CTX* Ctx = InstancePtr();
+#define HEXANE 		        HEXANE_CTX* Ctx = R_CAST(HEXANE_CTX*, C_DREF(C_PTR(GLOBAL_OFFSET)));
 
 #define return_defer(x) ntstatus = x; goto defer
 #define InitializeObjectAttributes(ptr, name, attr, root, sec )	\

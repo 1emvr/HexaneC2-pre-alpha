@@ -14,7 +14,6 @@ namespace Implant {
     VOID MainRoutine() {
         HEXANE
 
-        __debugbreak();
         Memory::ResolveApi();
         if (ntstatus != ERROR_SUCCESS) {
             return_defer(ntstatus);
