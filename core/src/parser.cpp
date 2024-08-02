@@ -36,9 +36,9 @@ namespace Parser {
     }
 
     VOID ParserMemcpy(PPARSER Parser, PBYTE *Dst, ULONG *cbOut) {
+        __debugbreak();
         HEXANE
 
-        __debugbreak();
         ULONG Length = 0;
         PBYTE Buffer = UnpackBytes(Parser, &Length);
 
