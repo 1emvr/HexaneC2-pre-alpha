@@ -1,8 +1,9 @@
 #include <core/monolith.hpp>
 #include <core/include/stream.hpp>
-#include <metahost.h>
-#include <iostream>
 #pragma comment (lib, "mscoree.lib")
+
+#define UNMANAGED_PROCESSES   0
+#define MANAGED_PROCESSES     1
 
 VOID EnumDotNetProcesses(PPARSER Parser) {
 
@@ -21,41 +22,49 @@ VOID EnumDotNetProcesses(PPARSER Parser) {
 
     Entries.dwSize = sizeof(PROCESSENTRY32);
 
-    if (
-        (Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)) == INVALID_HANDLE_VALUE ||
-        !Process32First(Snapshot, &Entries)) {
-        return;
-    }
-    do {
-        if (!(hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, Entries.th32ProcessID))) {
-            continue;
-        }
+    switch (Parser::UnpackDword(Parser)) {
+        case MANAGED_PROCESSES: {
+            if (
+                (Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)) == INVALID_HANDLE_VALUE ||
+                !Process32First(Snapshot, &Entries)) {
+                return;
+            }
+            do {
+                if (!(hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, Entries.th32ProcessID))) {
+                    continue;
+                }
 
-        Size = ARRAY_LEN(Buffer);
+                Size = ARRAY_LEN(Buffer);
 
-        if (SUCCEEDED(CLRCreateInstance(CLSID_CLRMetaHost, IID_PPV_ARGS(&pMetaHost)))) {
-            if (SUCCEEDED(pMetaHost->EnumerateInstalledRuntimes(&pEnum))) {
-                while (S_OK == pEnum->Next(1, (IUnknown**) &pRuntime, nullptr)) {
+                if (SUCCEEDED(CLRCreateInstance(CLSID_CLRMetaHost, IID_PPV_ARGS(&pMetaHost)))) {
+                    if (SUCCEEDED(pMetaHost->EnumerateInstalledRuntimes(&pEnum))) {
+                        while (S_OK == pEnum->Next(1, (IUnknown **) &pRuntime, nullptr)) {
 
-                    if (pRuntime->IsLoaded(hProcess, &Loaded) == S_OK && Loaded == TRUE) {
-                        if (SUCCEEDED(pRuntime->GetVersionString(Buffer, &Size))) {
+                            if (pRuntime->IsLoaded(hProcess, &Loaded) == S_OK && Loaded == TRUE) {
+                                if (SUCCEEDED(pRuntime->GetVersionString(Buffer, &Size))) {
 
-                            Stream::PackDword(Stream, Entries.th32ProcessID);
-                            Stream::PackString(Stream, Entries.szExeFile);
-                            Stream::PackWString(Stream, Buffer);
+                                    Stream::PackDword(Stream, Entries.th32ProcessID);
+                                    Stream::PackString(Stream, Entries.szExeFile);
+                                    Stream::PackWString(Stream, Buffer);
+                                }
+                            }
+                            pRuntime->Release();
                         }
                     }
-                    pRuntime->Release();
                 }
-            }
+
+                if (pMetaHost) { pMetaHost->Release(); }
+                if (pRuntime) { pRuntime->Release(); }
+                if (pEnum) { pEnum->Release(); }
+
+                CloseHandle(hProcess);
+            } while (Process32Next(Snapshot, &Entries));
+
+            CloseHandle(Snapshot);
         }
+        case UNMANAGED_PROCESSES: {
 
-        if (pMetaHost) { pMetaHost->Release(); }
-        if (pRuntime) { pRuntime->Release(); }
-        if (pEnum) { pEnum->Release(); }
-
-        CloseHandle(hProcess);
-    } while (Process32Next(Snapshot, &Entries));
-
-    CloseHandle(Snapshot);
+        }
+        default:
+    }
 }

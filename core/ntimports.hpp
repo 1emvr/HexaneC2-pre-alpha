@@ -11,6 +11,8 @@
 #include <iphlpapi.h>
 #include <tlhelp32.h>
 #include <aclapi.h>
+#include <metahost.h>
+#include <iostream>
 #include <stdio.h>
 #include <float.h>
 #include <math.h>
