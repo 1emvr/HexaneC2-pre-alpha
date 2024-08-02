@@ -5,11 +5,11 @@ import (
 	"math/bits"
 	"strings"
 	"sync"
+	"time"
 )
 
 var (
 	Cmd      string
-	CmdQueue *Stream
 	CmdMu    sync.Mutex
 
 	CommandMap = map[string]uint32{
@@ -20,6 +20,28 @@ var (
 )
 
 const HeaderLength = 12
+
+func (h *HexaneConfig) ResponseWorker() {
+	go func () {
+		for {
+			select {
+			case parser, ok := <- h.ResponseChan:
+				if !ok {
+					WrapMessage("ERR", "response channel was closed for some reason")
+					return
+				}
+				h.ProcessParser(parser)
+			case <- time.After(10 * time.Second):
+				// cleanup
+			}
+		}
+	}()
+}
+
+func (h *HexaneConfig) ProcessParser(parser *Parser) {
+
+	// message offloading
+}
 
 func (m *Parser) DispatchCommand(s *Stream, UserInput string) error {
 	var (
@@ -62,22 +84,26 @@ func (s *Stream) CreateHeader(peerId uint32, msgType uint32, taskId uint32) {
 	s.PackDword(msgType)
 }
 
-func (h *HexaneConfig) HandleCheckin(Parser *Parser, Stream *Stream) {
+func (h *HexaneConfig) HandleCheckin(parser *Parser, stream *Stream) {
 
 	h.Mu.Lock()
 	defer h.Mu.Unlock()
 
 	h.CurrentTaskId++
-	if buffer := Parser.ParseTable(TypeCheckin); buffer != "" {
-		Stream.CreateHeader(h.PeerId, TypeCheckin, uint32(h.CurrentTaskId))
+	stream.CreateHeader(h.PeerId, TypeCheckin, uint32(h.CurrentTaskId))
+
+	if h.CommandChan == nil {
+		h.CommandChan = make(chan string)
+	}
+	if h.ResponseChan == nil {
+		h.ResponseChan = make(chan *Parser)
 	}
 
-	h.CommandChan = make(chan string)
-	h.ResponseChan = make(chan string)
 	h.Active = true
+	h.ResponseChan <- parser
 }
 
-func (h *HexaneConfig) HandleResponse(Parser *Parser, Stream *Stream) error {
+func (h *HexaneConfig) HandleResponse(Parser *Parser, Stream *Stream) {
 
 	h.Mu.Lock()
 	defer h.Mu.Unlock()
@@ -88,11 +114,8 @@ func (h *HexaneConfig) HandleResponse(Parser *Parser, Stream *Stream) error {
 			Stream.CreateHeader(h.PeerId, TypeCheckin, uint32(h.CurrentTaskId))
 		}
 	} else {
-		return fmt.Errorf("%s response channel is not open", h.PeerId)
+		WrapMessage("ERR", fmt.Sprintf("%s response channel is not open", h.PeerId))
 	}
-
-
-	return nil
 }
 
 func (h *HexaneConfig) HandleCommand(Parser *Parser, Stream *Stream) {

@@ -5,7 +5,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/rodaine/table"
 	"strconv"
-	"strings"
 )
 
 var HeaderMap = map[uint32]TableMap{
@@ -87,7 +86,6 @@ func (p *Parser) ParseTable(TypeId uint32) TableMap {
 						return PrintTable(tMap)
 					}
 				}
-
 			}
 		}
 	}
@@ -95,8 +93,6 @@ func (p *Parser) ParseTable(TypeId uint32) TableMap {
 }
 
 func PrintTable(tMap TableMap) {
-	var sb strings.Builder
-
 	headersInterface := make([]interface{}, len(tMap.Headers))
 
 	for i, header := range tMap.Headers {
@@ -119,5 +115,5 @@ func PrintTable(tMap TableMap) {
 	}
 
 	fmt.Println()
-	tbl.Print(&sb)
+	tbl.Print()
 }

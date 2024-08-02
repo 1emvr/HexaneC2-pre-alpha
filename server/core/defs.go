@@ -190,7 +190,7 @@ type HexaneConfig struct {
 	BuildType     int
 	Mu            sync.Mutex
 	CommandChan   chan string
-	ResponseChan  chan string
+	ResponseChan  chan *Parser
 
 	Key         []byte
 	Shellcode   []byte
