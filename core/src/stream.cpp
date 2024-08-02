@@ -38,10 +38,9 @@ namespace Stream {
     }
 
     PSTREAM CreateStream () {
-
         HEXANE
-        PSTREAM stream = { };
 
+        PSTREAM stream = { };
         if (
             !(stream            = S_CAST(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, sizeof(STREAM)))) ||
             !(stream->Buffer    = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, sizeof(BYTE)))) {
@@ -56,7 +55,6 @@ namespace Stream {
     }
 
     VOID DestroyStream (PSTREAM Stream) {
-
         HEXANE
 
         if (Stream) {
@@ -77,7 +75,6 @@ namespace Stream {
     }
 
     VOID PackByte (PSTREAM stream, BYTE data) {
-
         HEXANE
 
         if (stream) {
@@ -89,7 +86,6 @@ namespace Stream {
     }
 
     VOID PackDword64 (PSTREAM stream, ULONG64 data) {
-
         HEXANE
 
         if (stream) {
@@ -101,7 +97,6 @@ namespace Stream {
     }
 
     VOID PackDword (PSTREAM stream, ULONG data) {
-
         HEXANE
 
         if (stream) {
@@ -113,7 +108,6 @@ namespace Stream {
     }
 
     VOID PackBytes (PSTREAM stream, PBYTE data, SIZE_T size) {
-
         HEXANE
 
         if (stream) {

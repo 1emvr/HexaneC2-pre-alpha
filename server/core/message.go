@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"math/bits"
 	"strconv"
 )
 
@@ -62,10 +61,10 @@ func ResponseWorker(b []byte) ([]byte, error) {
 			return nil, fmt.Errorf("processing message b to parser: bad parser or message length: %s", err)
 		}
 
-		parser.PeerId = bits.ReverseBytes32(parser.ParseDword())
-		parser.TaskId = bits.ReverseBytes32(parser.ParseDword())
-		parser.MsgType = bits.ReverseBytes32(parser.ParseDword())
-		parser.MsgLength = bits.Reverse32(parser.ParseDword())
+		parser.PeerId = parser.ParseDword()
+		parser.TaskId = parser.ParseDword()
+		parser.MsgType = parser.ParseDword()
+		parser.MsgLength = parser.ParseDword()
 
 		offset += parser.MsgLength
 

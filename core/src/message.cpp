@@ -91,9 +91,9 @@ namespace Message {
             Parser::CreateParser(&Parser, S_CAST(PBYTE, Outbound->Buffer), Outbound->Length);
 
             Queue           = Stream::CreateStream();
-            Queue->PeerId   = Parser::UnpackDword(&Parser);
-            Queue->TaskId   = Parser::UnpackDword(&Parser);
-            Queue->MsgType  = Parser::UnpackDword(&Parser);
+            Queue->PeerId   = __bswapd(Parser::UnpackDword(&Parser));
+            Queue->TaskId   = __bswapd(Parser::UnpackDword(&Parser));
+            Queue->MsgType  = __bswapd(Parser::UnpackDword(&Parser));
 
             Queue->Length   = Parser.Length;
             Queue->Buffer   = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Queue->Buffer, Queue->Length);
@@ -156,10 +156,9 @@ namespace Message {
 #ifdef TRANSPORT_SMB
             return_defer(ERROR_SUCCESS);
 #endif
-            // message on stack vs message from the queue are different endianess for some fucking reason.
-            Stream::PackDword(Outbound, __bswapd(Ctx->Session.PeerId));
-            Stream::PackDword(Outbound, __bswapd(Ctx->Session.CurrentTaskId));
-            Stream::PackDword(Outbound, __bswapd(TypeTasking));
+            Stream::PackDword(Outbound, Ctx->Session.PeerId);
+            Stream::PackDword(Outbound, Ctx->Session.CurrentTaskId);
+            Stream::PackDword(Outbound, TypeTasking);
 
         } else {
             Head = Ctx->Transport.OutboundQueue;

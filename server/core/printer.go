@@ -75,6 +75,7 @@ func (p *Parser) ParseTable() {
 
 	PrintTable(heads, vals)
 	fmt.Println()
+	fmt.Println()
 }
 
 func PrintTable(heads, vals []string) {
