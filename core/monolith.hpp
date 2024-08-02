@@ -76,17 +76,6 @@ EXTERN_C LPVOID InstEnd();
 #define PIPE_BUFFER_MAX     					(64 * 1000 - 1)
 #define MIN(a,b)								(a < b ? a : b)
 
-#define THREAD_CREATE_FLAGS_NONE                            0x00000000
-#define THREAD_CREATE_FLAGS_CREATE_SUSPENDED                0x00000001
-#define THREAD_CREATE_FLAGS_SKIP_THREAD_ATTACH              0x00000002
-#define THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER              0x00000004
-#define THREAD_CREATE_FLAGS_LOADER_WORKER                   0x00000010
-#define THREAD_CREATE_FLAGS_SKIP_LOADER_INIT                0x00000020
-#define THREAD_CREATE_FLAGS_BYPASS_PROCESS_FREEZE           0x00000040
-
-#define DEFAULT_SECTION_SIZE								0x00001000
-#define DEFAULT_BUFFLEN										0x00000400
-
 #ifdef _M_X64
 #define ENTRYPOINT_REG 							Rcx
 #define PTR_MASK                                0x7FFFFFFF
@@ -118,10 +107,20 @@ EXTERN_C LPVOID InstEnd();
 #define FLG_HEAP_ENABLE_FREE_CHECK				0x00000040
 #define FLG_HEAP_VALIDATE_PARAMETERS			0x40000000
 
-#define MESSAGE_HEADER_SIZE (sizeof(uint32_t) * 3)
-#define SEGMENT_HEADER_SIZE ((sizeof(uint32_t) * 6) + sizeof(uint32_t))
-#define PIPE_SEGMENT_MAX (PIPE_BUFFER_MAX - SEGMENT_HEADER_SIZE)
-#define HTTP_REQUEST_MAX 0x300000
+#define MESSAGE_HEADER_SIZE 					(sizeof(uint32_t) * 3)
+#define SEGMENT_HEADER_SIZE 					((sizeof(uint32_t) * 6) + sizeof(uint32_t))
+#define HTTP_REQUEST_MAX 						0x300000
+
+#define THREAD_CREATE_FLAGS_NONE                            0x00000000
+#define THREAD_CREATE_FLAGS_CREATE_SUSPENDED                0x00000001
+#define THREAD_CREATE_FLAGS_SKIP_THREAD_ATTACH              0x00000002
+#define THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER              0x00000004
+#define THREAD_CREATE_FLAGS_LOADER_WORKER                   0x00000010
+#define THREAD_CREATE_FLAGS_SKIP_LOADER_INIT                0x00000020
+#define THREAD_CREATE_FLAGS_BYPASS_PROCESS_FREEZE           0x00000040
+
+#define DEFAULT_SECTION_SIZE								0x00001000
+#define DEFAULT_BUFFLEN										0x00000400
 
 #ifdef TRANSPORT_PIPE
 #define MESSAGE_MAX PIPE_BUFFER_MAX
@@ -472,12 +471,9 @@ typedef struct {
 
 } HEXANE_CTX, *PHEXANE_CTX;
 
-EXTERN_C WEAK ULONG  __InstanceOffset;
-EXTERN_C WEAK LPVOID __Instance;
-
-#define InstanceOffset()    (U_PTR(&__InstanceOffset))
-#define GLOBAL_OFFSET       (U_PTR(InstStart()) + InstanceOffset())
-#define HEXANE 		        HEXANE_CTX* Ctx = R_CAST(HEXANE_CTX*, C_DREF(C_PTR(GLOBAL_OFFSET)));
+EXTERN_C WEAK ULONG  		__InstanceOffset;
+#define GLOBAL_OFFSET       (U_PTR(InstStart()) + U_PTR(&__InstanceOffset))
+#define HEXANE 		        HEXANE_CTX* Ctx = R_CAST(HEXANE_CTX*, C_DREF(GLOBAL_OFFSET));
 
 #define return_defer(x) ntstatus = x; goto defer
 #define InitializeObjectAttributes(ptr, name, attr, root, sec )	\

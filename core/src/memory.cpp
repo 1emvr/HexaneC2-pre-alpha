@@ -1,5 +1,7 @@
 #include <core/corelib.hpp>
+#ifndef ENDIANESS
 #define ENDIANESS 1
+#endif
 
 namespace Memory {
 

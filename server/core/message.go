@@ -5,13 +5,11 @@ import (
 	"strconv"
 )
 
-// parse response, push to database then print?
 const HeaderLength = 12
 
 func ProcessBodyToParser(b []byte) (*Parser, uint32, error) {
 	var offset uint32
 
-	// pid, tid, type, len, body
 	WrapMessage("DBG", "creating parser from http body")
 	parser := CreateParser(b)
 
@@ -19,8 +17,19 @@ func ProcessBodyToParser(b []byte) (*Parser, uint32, error) {
 		return nil, 0, fmt.Errorf("parser length is not long enough")
 	}
 
-	offset = HeaderLength
+	if parser.MsgLength >= HeaderLength+4 {
+		offset = parser.ParseDword()
+		offset += HeaderLength + 4
+	} else {
+		offset = HeaderLength
+	}
+
+	if offset > parser.MsgLength {
+		return nil, 0, nil
+	}
+
 	return parser, offset, nil
+
 }
 
 func (h *HexaneConfig) ProcessParser(p *Parser) ([]byte, error) {

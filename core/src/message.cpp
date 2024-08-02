@@ -74,8 +74,6 @@ namespace Message {
 
     VOID OutboundQueue(PSTREAM Outbound) {
         HEXANE
-        // all implants in the chain must use the same key, else could not parse headers
-        // only the server needs a length?
 
         PARSER Parser   = { };
         PSTREAM Queue   = { };
@@ -91,9 +89,9 @@ namespace Message {
             Parser::CreateParser(&Parser, S_CAST(PBYTE, Outbound->Buffer), Outbound->Length);
 
             Queue           = Stream::CreateStream();
-            Queue->PeerId   = __bswapd(Parser::UnpackDword(&Parser));
-            Queue->TaskId   = __bswapd(Parser::UnpackDword(&Parser));
-            Queue->MsgType  = __bswapd(Parser::UnpackDword(&Parser));
+            Queue->PeerId   = __bswapd(S_CAST(ULONG, Parser::UnpackDword(&Parser)));
+            Queue->TaskId   = __bswapd(S_CAST(ULONG, Parser::UnpackDword(&Parser)));
+            Queue->MsgType  = __bswapd(S_CAST(ULONG, Parser::UnpackDword(&Parser)));
 
             Queue->Length   = Parser.Length;
             Queue->Buffer   = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Queue->Buffer, Queue->Length);
@@ -111,7 +109,7 @@ namespace Message {
     VOID QueueSegments(PBYTE Buffer, ULONG Length) {
         HEXANE
 
-        PSTREAM Queue    = { };
+        PSTREAM Queue   = { };
         ULONG Index     = 1;
         ULONG Offset    = 0;
         ULONG PeerId    = 0;
