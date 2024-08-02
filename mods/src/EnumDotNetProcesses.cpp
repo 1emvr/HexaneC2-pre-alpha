@@ -1,5 +1,4 @@
-#include <core/monolith.hpp>
-#include <core/include/stream.hpp>
+#include <core/corelib.hpp>
 #pragma comment (lib, "mscoree.lib")
 
 #define UNMANAGED_PROCESSES   0

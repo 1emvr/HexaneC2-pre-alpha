@@ -1,6 +1,5 @@
 #ifndef HEXANE_CORELIB_PROCESS_HPP
 #define HEXANE_CORELIB_PROCESS_HPP
-#include <core/monolith.hpp>
 #include <core/corelib.hpp>
 
 namespace Process {

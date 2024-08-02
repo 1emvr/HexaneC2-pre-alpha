@@ -42,7 +42,7 @@ func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) *Module {
 		Files: &Sources{
 			Sources:            config.Builder.Sources,
 			Dependencies:       config.Builder.Dependencies,
-			IncludeDirectories: []string{RootDirectory, config.Builder.RootDirectory},
+			IncludeDirectories: []string{RootDirectory},
 		},
 
 		Loader: &Loader{

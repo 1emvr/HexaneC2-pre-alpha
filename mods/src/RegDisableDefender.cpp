@@ -1,5 +1,4 @@
-#include "../../core/monolith.hpp"
-#include <stdio.h>
+#include "core/corelib.hpp"
 #pragma comment(lib, "advapi32")
 
 #define result_error(x, r) printf("error: %s -> 0x%lx\n", x, r); FormatResultError(r); goto defer

@@ -24,6 +24,10 @@ func Quote(str string) string {
 	return fmt.Sprintf("\"%s\"", str)
 }
 
+func Tick(str string) string {
+	return fmt.Sprintf("`%s`", str)
+}
+
 func GeneratePeerId() uint32 {
 	return bits.Reverse32(rand.Uint32())
 }

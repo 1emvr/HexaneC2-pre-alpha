@@ -1,7 +1,6 @@
 #ifndef HEXANE_CORELIB_BASE_HPP
 #define HEXANE_CORELIB_BASE_HPP
-#include "core/monolith.hpp"
-#include "core/corelib.hpp"
+#include <core/corelib.hpp>
 
 EXTERN_C FUNCTION VOID Entrypoint(HMODULE Base);
 

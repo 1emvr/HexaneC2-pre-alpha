@@ -1,6 +1,5 @@
 #ifndef HEXANE_CORELIB_UTILS_HPP
 #define HEXANE_CORELIB_UTILS_HPP
-#include <core/monolith.hpp>
 #include <core/corelib.hpp>
 
 #define MS_PER_SECOND	1000

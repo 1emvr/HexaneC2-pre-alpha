@@ -1,7 +1,4 @@
-#include <core/monolith.hpp>
-#include <core/corelib/include/cruntime.hpp>
-#include <core/corelib/include/memory.hpp>
-
+#include <core/corelib.hpp>
 using namespace Memory;
 
 NTSTATUS ImpersonateProcess(LPCWSTR lpszCmd, LPWSTR lpszCmdLine, DWORD pid) {
