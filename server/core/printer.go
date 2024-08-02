@@ -28,7 +28,17 @@ func (p *Parser) ParseTable() {
 	case TypeCheckin:
 		{
 			heads = []string{"PeerId", "Hostname", "Domain", "Username", "Interfaces"}
-			vals = []string{strconv.Itoa(int(p.PeerId)), p.ParseString(), p.ParseString(), p.ParseString(), p.ParseString()}
+			peerId := strconv.Itoa(int(p.PeerId))
+			host := p.ParseString()
+
+			domain := p.ParseString()
+			if domain == "" {
+				domain = "null"
+			}
+			user := p.ParseString()
+			iface := p.ParseString()
+
+			vals = []string{peerId, host, domain, user, iface}
 		}
 
 	case TypeTasking:
@@ -38,9 +48,9 @@ func (p *Parser) ParseTable() {
 				{
 					heads = []string{"Mode", "Length", "LastWriteTime", "Name"}
 					vals = make([]string, 0)
+					row := make([]string, 4)
 
 					for p.MsgLength != 0 {
-						row := make([]string, 4)
 						IsDir := p.ParseDword()
 
 						if IsDir != 0 {
@@ -61,10 +71,9 @@ func (p *Parser) ParseTable() {
 				{
 					heads = []string{"ModName", "BaseAddress"}
 					vals = make([]string, 0)
+					row := make([]string, 2)
 
 					for p.MsgLength != 0 {
-						row := make([]string, 2)
-
 						row[0], row[1] = p.ParseString(), fmt.Sprintf("0x%X", p.ParseDword64())
 						vals = append(vals, row[0], row[1])
 					}
