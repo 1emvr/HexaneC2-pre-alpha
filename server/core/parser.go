@@ -12,6 +12,11 @@ func CreateParser(buffer []byte) *Parser {
 	parser.BigEndian = true
 	parser.MsgLength = uint32(len(buffer))
 
+	parser.PeerId = parser.ParseDword()
+	parser.TaskId = parser.ParseDword()
+	parser.MsgType = parser.ParseDword()
+	parser.MsgLength = parser.ParseDword()
+
 	return parser
 }
 
