@@ -19,7 +19,7 @@ var HeaderMap = map[uint32]TableMap{
 	},
 }
 
-func (p *Parser) ParseTable() TableMap {
+func (p *Parser) ParseTable() {
 	var (
 		heads, vals []string
 	)
@@ -54,19 +54,19 @@ func (p *Parser) ParseTable() TableMap {
 						row[2] = fmt.Sprintf("%d/%d/%d %d:%d:%d", p.ParseDword(), p.ParseDword(), p.ParseDword(), p.ParseDword(), p.ParseDword(), p.ParseDword())
 						row[3] = p.ParseString()
 
-						vals = append(vals, row[1], row[2], row[3])
+						vals = append(vals, row[0], row[1], row[2], row[3])
 					}
 				}
 			case CommandMods:
 				{
-					if tMap, ok := HeaderMap[CommandMods]; ok {
-						tMap.Values = make([][]string, 0)
+					heads = []string{"ModName", "BaseAddress"}
+					vals = make([]string, 0)
 
-						for p.MsgLength != 0 {
-							row := []string{p.ParseString(), fmt.Sprintf("0x%X", p.ParseDword64())}
-							tMap.Values = append(tMap.Values, row)
-						}
+					for p.MsgLength != 0 {
+						row := make([]string, 2)
 
+						row[0], row[1] = p.ParseString(), fmt.Sprintf("0x%X", p.ParseDword64())
+						vals = append(vals, row[0], row[1])
 					}
 				}
 			}
@@ -74,7 +74,6 @@ func (p *Parser) ParseTable() TableMap {
 	}
 
 	PrintTable(heads, vals)
-	return false
 }
 
 func PrintTable(heads, vals []string) {
