@@ -160,7 +160,6 @@ namespace Message {
             goto retry;
 #endif
         } else {
-
             Head = Ctx->Transport.OutboundQueue;
             while (Head) {
                 if (!Head->Ready) {
