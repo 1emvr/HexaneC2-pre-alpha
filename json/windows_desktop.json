@@ -2,7 +2,7 @@
 	"Config": {
 		"Arch": "amd64",
 		"Debug": false,
-		"Hostname": "LENOVO-WRKSTN-W",
+		"Hostname": "DESKTOP-HFVTTIJ",
 		"Sleeptime": 3,
 		"Jitter": 10
 	},
@@ -22,8 +22,8 @@
 	},
 
 	"Builder": {
-		"OutputName": "test_implant",
-		"RootDirectory": "C:/Users/lemur/CLionProjects/HexaneC2/core",
+		"OutputName": "windows_desktop",
+		"RootDirectory": "C:/Users/lemur/Github/HexaneC2/core",
 		"LinkerScript": "implant.ld",
 
 		"Dependencies": [],
@@ -40,7 +40,7 @@
 	},
 
 	"Loader": {
-		"RootDirectory": "C:/Users/lemur/CLionProjects/HexaneC2/loader",
+		"RootDirectory": "C:/Users/lemur/Github/HexaneC2/loader",
 		"LinkerScript": "loader.ld",
 		"RsrcScript": "resource.rc",
 		"RsrcBinary": "lolwat.bin",
@@ -56,8 +56,8 @@
 				"TargetProc": "flameshot.exe",
 				"TargetModule":"kernel32.dll",
 				"TargetFunc":"OpenFile",
-				"LoaderAsm": "C:/Users/lemur/CLionProjects/HexaneC2/inject/threadless/loader.asm",
-				"Execute":"C:/Users/lemur/CLionProjects/HexaneC2/inject/threadless/OpenFileExecute.cpp"
+				"LoaderAsm": "C:/Users/lemur/Github/HexaneC2/inject/threadless/loader.asm",
+				"Execute":"C:/Users/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp"
 			}
 		}
 	}

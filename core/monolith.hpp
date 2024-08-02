@@ -499,9 +499,12 @@ EXTERN_C WEAK ULONG  		__InstanceOffset;
 
 
 #define FreeApi(Ctx) 						\
-	auto Free = Ctx->Nt.RtlFreeHeap; 		\
+	auto RtlFreeHeap = Ctx->Nt.RtlFreeHeap; \
+	auto Heap = Ctx->Heap;					\
 	x_memset(Ctx, 0, sizeof(HEXANE_CTX));	\
-	Free(Ctx->Heap, 0, Ctx)
+	if (RtlFreeHeap) {						\
+		RtlFreeHeap(Heap, 0, Ctx);			\
+	}
 
 
 #define FPTR(Fn, mod, sym) 	\
