@@ -145,9 +145,9 @@ namespace Memory {
         Instance.Teb = NtCurrentTeb();
         Instance.Heap = Instance.Teb->ProcessEnvironmentBlock->ProcessHeap;
 
-        Instance.Teb->LastErrorValue = ERROR_SUCCESS;
-        Instance.Base.Address = U_PTR(InstStart());
-        Instance.Base.Size = U_PTR(InstEnd()) - Instance.Base.Address;
+        Instance.Teb->LastErrorValue    = ERROR_SUCCESS;
+        Instance.Base.Address           = U_PTR(InstStart());
+        Instance.Base.Size              = U_PTR(InstEnd()) - Instance.Base.Address;
 
         MmAddr = C_PTR(GLOBAL_OFFSET);
         MmSize = sizeof(MmAddr);
