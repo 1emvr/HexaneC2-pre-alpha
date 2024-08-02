@@ -67,7 +67,7 @@ func (h *HexaneConfig) CreateStreamWithHeaders(msgType uint32) *Stream {
 
 	stream.PackDword(h.PeerId)
 	stream.PackDword(h.CurrentTaskId)
-	stream.PackDword(TypeCheckin)
+	stream.PackDword(msgType)
 
 	return stream
 }

