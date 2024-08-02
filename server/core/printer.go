@@ -28,17 +28,7 @@ func (p *Parser) ParseTable() {
 	case TypeCheckin:
 		{
 			heads = []string{"PeerId", "Hostname", "Domain", "Username", "Interfaces"}
-			peerId := strconv.Itoa(int(p.PeerId))
-			host := p.ParseString()
-
-			domain := p.ParseString()
-			if domain == "" {
-				domain = "null"
-			}
-			user := p.ParseString()
-			iface := p.ParseString()
-
-			vals = []string{peerId, host, domain, user, iface}
+			vals = []string{strconv.Itoa(int(p.PeerId)), p.ParseString(), p.ParseString(), p.ParseString(), p.ParseString()}
 		}
 
 	case TypeTasking:
