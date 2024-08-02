@@ -10,10 +10,10 @@ import (
 )
 
 func EncodeUTF8(s string) []byte {
-
 	if !strings.HasSuffix(s, "\x00") {
 		s += "\x00"
 	}
+
 	return []byte(s)
 }
 
