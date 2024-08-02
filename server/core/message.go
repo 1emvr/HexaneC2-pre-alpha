@@ -103,7 +103,6 @@ func ParseMessage(body []byte) ([]byte, error) {
 		if len(body) >= HeaderLength+4 {
 			offset = parser.ParseDword()
 			offset += HeaderLength + 4
-
 		} else {
 			offset = HeaderLength
 		}
