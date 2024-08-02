@@ -33,20 +33,24 @@ func (h *HexaneConfig) DispatchCommand() (*Stream, error) {
 	select {
 	case blob := <-h.CommandChan:
 
-		WrapMessage("DBG", fmt.Sprintf("%d processing command: %s, task id: %d", h.PeerId, blob, h.CurrentTaskId))
+		WrapMessage("DBG", fmt.Sprintf("%d : %s", h.PeerId, blob))
 
 		if cmd, err = h.ProcessCommand(blob); err != nil {
 			return nil, err
 		}
 
+		h.CurrentTaskId++
 		stream.PackBytes(cmd)
+
 		return stream, nil
 
 	default:
 
 		WrapMessage("DBG", fmt.Sprintf("%d : CommandNoJob", h.PeerId))
 
+		h.CurrentTaskId++
 		stream.PackDword(CommandNoJob)
+
 		return stream, nil
 	}
 }
