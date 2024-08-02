@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -65,7 +66,7 @@ func (h *HexaneConfig) GenerateIncludes(incs []string) string {
 	var list string
 
 	for _, inc := range incs {
-		list += fmt.Sprintf(" -I%s ", inc)
+		list += fmt.Sprintf(" -I%s ", Quote(inc))
 	}
 
 	return list
@@ -398,10 +399,19 @@ func (h *HexaneConfig) RunCommand(cmd string) error {
 		Command *exec.Cmd
 		Log     *os.File
 		LogName string
+		Shell   string
+		Flag    string
 		err     error
 	)
 
+	if runtime.GOOS == "windows" {
+		Shell, Flag = "cmd", "/c"
+	} else if runtime.GOOS == "linux" {
+		Shell, Flag = "bash", "-c"
+	}
+
 	LogName = filepath.Join(LogsPath, strconv.Itoa(int(h.PeerId))+"-error.log")
+
 	if Log, err = os.Create(LogName); err != nil {
 		return err
 	}
@@ -412,7 +422,7 @@ func (h *HexaneConfig) RunCommand(cmd string) error {
 		}
 	}()
 
-	Command = exec.Command("bash", "-c", cmd)
+	Command = exec.Command(Shell, Flag, cmd)
 	Command.Stdout = Log
 	Command.Stderr = Log
 

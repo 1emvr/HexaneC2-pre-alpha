@@ -75,7 +75,7 @@ func (h *HexaneConfig) BuildSource() error {
 	}
 
 	if module.LinkerScript != "" {
-		module.LinkerScript = filepath.Join("-T"+module.RootDirectory, module.LinkerScript)
+		module.LinkerScript = "-T" + Quote(module.RootDirectory+"/"+module.LinkerScript)
 	}
 
 	module.OutputName = filepath.Join(BuildPath, module.OutputName)
@@ -99,8 +99,8 @@ func (h *HexaneConfig) RunBuild() error {
 	var err error
 
 	WrapMessage("DBG", "creating payload directory")
-	if err = os.MkdirAll(h.Compiler.BuildDirectory, os.ModePerm); err != nil {
-		return err
+	if err = CreatePath(h.Compiler.BuildDirectory, os.ModePerm); err != nil {
+		WrapMessage("ERR", err.Error())
 	}
 
 	WrapMessage("DBG", "generating config")

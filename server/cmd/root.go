@@ -64,6 +64,12 @@ func Run() {
 		return
 	}
 
+	if err = core.CreatePath(core.LogsPath, os.ModePerm); err != nil {
+		core.WrapMessage("ERR", err.Error())
+	}
+	if err = core.CreatePath(core.BuildPath, os.ModePerm); err != nil {
+		core.WrapMessage("ERR", err.Error())
+	}
 	if core.Debug {
 		core.WrapMessage("INF", "running in debug mode")
 	}

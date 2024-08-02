@@ -20,6 +20,10 @@ func WrapMessage(typ, msg string) {
 	Cb <- Message{MsgType: typ, Msg: msg}
 }
 
+func Quote(str string) string {
+	return fmt.Sprintf("\"%s\"", str)
+}
+
 func GeneratePeerId() uint32 {
 	return bits.Reverse32(rand.Uint32())
 }
@@ -46,6 +50,17 @@ func GenerateUuid(n int) string {
 		remain--
 	}
 	return string(buffer)
+}
+
+func CreatePath(path string, modeperm os.FileMode) error {
+	var err error
+
+	if _, err = os.Stat(path); err != nil {
+		if err = os.Mkdir(path, modeperm); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func WriteFile(name string, data []byte) error {

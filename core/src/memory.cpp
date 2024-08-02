@@ -1,10 +1,9 @@
-#include "core/include/memory.hpp"
+#include <core/include/memory.hpp>
 namespace Memory {
 
     VOID ResolveApi() {
-        // load basic dependent api's. does not include winhttp, iphlpapi, advapi32 or crypt32
-
         HEXANE
+
         OSVERSIONINFOW OSVersionW = {};
 
         if (!(Ctx->Modules.kernel32 = LdrGetModuleAddress(KERNEL32))) {

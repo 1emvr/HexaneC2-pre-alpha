@@ -36,16 +36,16 @@ func (h *HexaneConfig) CreateConfig() {
 	h.Compiler = new(Compiler)
 	h.Implant = new(Implant)
 
-	h.Compiler.BuildDirectory = "../payload/" + h.UserConfig.Builder.OutputName
+	h.Compiler.BuildDirectory = filepath.Join(RootDirectory, "../payload/"+h.UserConfig.Builder.OutputName)
 
 	h.Compiler.Debug = h.UserConfig.Config.Debug
 	h.Compiler.Arch = h.UserConfig.Config.Arch
-	h.Compiler.Mingw = "/usr/bin/x86_64-w64-mingw32-g++"
-	h.Compiler.Linker = "/usr/bin/x86_64-w64-mingw32-ld"
-	h.Compiler.Objcopy = "/usr/bin/x86_64-w64-mingw32-objcopy"
-	h.Compiler.Windres = "/usr/bin/x86_64-w64-mingw32-windres"
-	h.Compiler.Strip = "/usr/bin/x86_64-w64-mingw32-strip"
-	h.Compiler.Assembler = "/usr/bin/nasm"
+	h.Compiler.Mingw = "x86_64-w64-mingw32-g++"
+	h.Compiler.Linker = "x86_64-w64-mingw32-ld"
+	h.Compiler.Objcopy = "x86_64-w64-mingw32-objcopy"
+	h.Compiler.Windres = "x86_64-w64-mingw32-windres"
+	h.Compiler.Strip = "x86_64-w64-mingw32-strip"
+	h.Compiler.Assembler = "nasm"
 
 	h.Implant.LoadedModules = []string{
 		"crypt32",
@@ -85,7 +85,6 @@ func ReadConfig(cfgPath string) error {
 	)
 
 	h = new(HexaneConfig)
-	fmt.Println("root directory: " + RootDirectory)
 	jsonPath := filepath.Join(RootDirectory, "json/"+cfgPath)
 
 	WrapMessage("INF", fmt.Sprintf("loading %s", jsonPath))
