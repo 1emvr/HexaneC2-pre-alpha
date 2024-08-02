@@ -113,3 +113,10 @@ func (s *Stream) PackString(data string) {
 func (s *Stream) PackWString(data string) {
 	s.PackBytes(EncodeUTF16(data))
 }
+
+func (s *Stream) CreateHeader(peerId uint32, msgType uint32, taskId uint32) {
+
+	s.PackDword(peerId)
+	s.PackDword(taskId)
+	s.PackDword(msgType)
+}

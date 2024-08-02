@@ -39,7 +39,7 @@ include CMakeFiles/rules.ninja
 #############################################
 # Logical path to working directory; prefix for absolute paths.
 
-cmake_ninja_workdir = C$:/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/
+cmake_ninja_workdir = C$:/Users/lemur/Github/HexaneC2/cmake-build-debug/
 # =============================================================================
 # Object build statements for EXECUTABLE target Hexane-Implant
 
@@ -49,161 +49,161 @@ cmake_ninja_workdir = C$:/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug/
 
 build cmake_object_order_depends_target_Hexane-Implant: phony || CMakeFiles/Hexane-Implant.dir
 
-build CMakeFiles/Hexane-Implant.dir/core/src/cipher.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/cipher.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/core/src/cipher.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/cipher.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\core\src\cipher.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\core\src
 
-build CMakeFiles/Hexane-Implant.dir/core/src/commands.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/commands.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/core/src/commands.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/commands.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\core\src\commands.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\core\src
 
-build CMakeFiles/Hexane-Implant.dir/core/src/cruntime.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/cruntime.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/core/src/cruntime.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/cruntime.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\core\src\cruntime.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\core\src
 
-build CMakeFiles/Hexane-Implant.dir/core/src/implant.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/implant.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/core/src/implant.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/implant.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\core\src\implant.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\core\src
 
-build CMakeFiles/Hexane-Implant.dir/core/src/inject.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/inject.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/core/src/inject.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/inject.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\core\src\inject.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\core\src
 
-build CMakeFiles/Hexane-Implant.dir/core/src/memory.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/memory.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/core/src/memory.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/memory.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\core\src\memory.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\core\src
 
-build CMakeFiles/Hexane-Implant.dir/core/src/message.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/message.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/core/src/message.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/message.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\core\src\message.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\core\src
 
-build CMakeFiles/Hexane-Implant.dir/core/src/network.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/network.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/core/src/network.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/network.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\core\src\network.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\core\src
 
-build CMakeFiles/Hexane-Implant.dir/core/src/opsec.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/opsec.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/core/src/opsec.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/opsec.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\core\src\opsec.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\core\src
 
-build CMakeFiles/Hexane-Implant.dir/core/src/parser.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/parser.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/core/src/parser.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/parser.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\core\src\parser.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\core\src
 
-build CMakeFiles/Hexane-Implant.dir/core/src/process.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/process.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/core/src/process.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/process.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\core\src\process.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\core\src
 
-build CMakeFiles/Hexane-Implant.dir/core/src/start.asm.obj: ASM_NASM_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/start.asm || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/core/src/start.asm.obj: ASM_NASM_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/start.asm || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\core\src\start.asm.obj.d
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\core\src
 
-build CMakeFiles/Hexane-Implant.dir/core/src/stream.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/stream.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/core/src/stream.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/stream.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\core\src\stream.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\core\src
 
-build CMakeFiles/Hexane-Implant.dir/core/src/utils.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/core/src/utils.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/core/src/utils.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/utils.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\core\src\utils.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\core\src
 
-build CMakeFiles/Hexane-Implant.dir/commands/src/EnumProcess.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/commands/src/EnumProcess.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/commands/src/EnumProcess.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/commands/src/EnumProcess.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\commands\src\EnumProcess.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\commands\src
 
-build CMakeFiles/Hexane-Implant.dir/commands/src/RegDisableDefender.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/commands/src/RegDisableDefender.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/commands/src/RegDisableDefender.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/commands/src/RegDisableDefender.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\commands\src\RegDisableDefender.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\commands\src
 
-build CMakeFiles/Hexane-Implant.dir/commands/src/SeImpersonate.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/commands/src/SeImpersonate.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/commands/src/SeImpersonate.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/commands/src/SeImpersonate.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\commands\src\SeImpersonate.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\commands\src
 
-build CMakeFiles/Hexane-Implant.dir/loader/resource.rc.obj: RC_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/loader/resource.rc || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/loader/resource.rc.obj: RC_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/loader/resource.rc || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\loader\resource.rc.obj.d
-  INCLUDES = -I C:/Users/lemur/CLionProjects/HexaneC2/include -I C:/Users/lemur/CLionProjects/HexaneC2 -I "C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -I C:/Users/lemur/Github/HexaneC2/include -I C:/Users/lemur/Github/HexaneC2 -I "C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\loader
 
-build CMakeFiles/Hexane-Implant.dir/loader/src/dllmain.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/loader/src/dllmain.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/loader/src/dllmain.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/loader/src/dllmain.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\loader\src\dllmain.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\loader\src
 
-build CMakeFiles/Hexane-Implant.dir/loader/src/exemain.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/loader/src/exemain.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/loader/src/exemain.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/loader/src/exemain.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\loader\src\exemain.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\loader\src
 
-build CMakeFiles/Hexane-Implant.dir/loader/src/resource.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/loader/src/resource.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/loader/src/resource.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/loader/src/resource.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\loader\src\resource.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\loader\src
 
-build CMakeFiles/Hexane-Implant.dir/inject/threadless/loader.asm.obj: ASM_NASM_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/inject/threadless/loader.asm || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/inject/threadless/loader.asm.obj: ASM_NASM_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/inject/threadless/loader.asm || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\inject\threadless\loader.asm.obj.d
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\inject\threadless
 
-build CMakeFiles/Hexane-Implant.dir/inject/threadless/OpenFileExecute.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/inject/threadless/OpenFileExecute.cpp || cmake_object_order_depends_target_Hexane-Implant
+build CMakeFiles/Hexane-Implant.dir/inject/threadless/OpenFileExecute.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\inject\threadless\OpenFileExecute.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\inject\threadless
 
@@ -230,7 +230,7 @@ build Hexane-Implant.exe: CXX_EXECUTABLE_LINKER__Hexane-Implant_Debug CMakeFiles
 # Utility command for edit_cache
 
 build CMakeFiles/edit_cache.util: CUSTOM_COMMAND
-  COMMAND = C:\Windows\system32\cmd.exe /C "cd /D C:\Users\lemur\CLionProjects\HexaneC2\cmake-build-debug && "C:\Program Files\JetBrains\CLion 2024.1.1\bin\cmake\win\x64\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
+  COMMAND = C:\Windows\system32\cmd.exe /C "cd /D C:\Users\lemur\Github\HexaneC2\cmake-build-debug && "C:\Program Files\JetBrains\CLion 2024.1.4\bin\cmake\win\x64\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
   DESC = No interactive CMake dialog available...
   restat = 1
 
@@ -241,7 +241,7 @@ build edit_cache: phony CMakeFiles/edit_cache.util
 # Utility command for rebuild_cache
 
 build CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = C:\Windows\system32\cmd.exe /C "cd /D C:\Users\lemur\CLionProjects\HexaneC2\cmake-build-debug && "C:\Program Files\JetBrains\CLion 2024.1.1\bin\cmake\win\x64\bin\cmake.exe" --regenerate-during-build -SC:\Users\lemur\CLionProjects\HexaneC2 -BC:\Users\lemur\CLionProjects\HexaneC2\cmake-build-debug"
+  COMMAND = C:\Windows\system32\cmd.exe /C "cd /D C:\Users\lemur\Github\HexaneC2\cmake-build-debug && "C:\Program Files\JetBrains\CLion 2024.1.4\bin\cmake\win\x64\bin\cmake.exe" --regenerate-during-build -SC:\Users\lemur\Github\HexaneC2 -BC:\Users\lemur\Github\HexaneC2\cmake-build-debug"
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -259,7 +259,7 @@ build Hexane-Implant: phony Hexane-Implant.exe
 # =============================================================================
 
 #############################################
-# Folder: C:/Users/lemur/CLionProjects/HexaneC2/cmake-build-debug
+# Folder: C:/Users/lemur/Github/HexaneC2/cmake-build-debug
 
 build all: phony Hexane-Implant.exe
 
@@ -270,14 +270,14 @@ build all: phony Hexane-Implant.exe
 #############################################
 # Re-run CMake if any of its inputs changed.
 
-build build.ninja: RERUN_CMAKE | C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeASMInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeASM_NASMInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCXXInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeGenericSystem.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeInitializeConfigs.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeRCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-C-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-Initialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-windres.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/WindowsPaths.cmake C$:/Users/lemur/CLionProjects/HexaneC2/CMakeLists.txt CMakeCache.txt CMakeFiles/3.28.1/CMakeASM_NASMCompiler.cmake CMakeFiles/3.28.1/CMakeCCompiler.cmake CMakeFiles/3.28.1/CMakeCXXCompiler.cmake CMakeFiles/3.28.1/CMakeRCCompiler.cmake CMakeFiles/3.28.1/CMakeSystem.cmake
+build build.ninja: RERUN_CMAKE | C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeASMCompiler.cmake.in C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeASMInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeASM_NASMInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCXXInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCompilerIdDetection.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeDetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeFindBinUtils.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeGenericSystem.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeInitializeConfigs.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeRCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeTestASMCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeTestASM_NASMCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-C-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-Initialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-windres.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/WindowsPaths.cmake C$:/Users/lemur/Github/HexaneC2/CMakeLists.txt CMakeCache.txt CMakeFiles/3.28.1/CMakeASM_NASMCompiler.cmake CMakeFiles/3.28.1/CMakeCCompiler.cmake CMakeFiles/3.28.1/CMakeCXXCompiler.cmake CMakeFiles/3.28.1/CMakeRCCompiler.cmake CMakeFiles/3.28.1/CMakeSystem.cmake
   pool = console
 
 
 #############################################
 # A missing CMake input file is not an error.
 
-build C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeASMInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeASM_NASMInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCXXInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeGenericSystem.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeInitializeConfigs.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeRCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-C-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-Initialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-windres.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/WindowsPaths.cmake C$:/Users/lemur/CLionProjects/HexaneC2/CMakeLists.txt CMakeCache.txt CMakeFiles/3.28.1/CMakeASM_NASMCompiler.cmake CMakeFiles/3.28.1/CMakeCCompiler.cmake CMakeFiles/3.28.1/CMakeCXXCompiler.cmake CMakeFiles/3.28.1/CMakeRCCompiler.cmake CMakeFiles/3.28.1/CMakeSystem.cmake: phony
+build C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeASMCompiler.cmake.in C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeASMInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeASM_NASMInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCXXInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCompilerIdDetection.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeDetermineASMCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeDetermineASM_NASMCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeDetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeDetermineCompilerId.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeFindBinUtils.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeGenericSystem.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeInitializeConfigs.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeRCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeTestASMCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeTestASM_NASMCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-C-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-Initialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-windres.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1.4/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/WindowsPaths.cmake C$:/Users/lemur/Github/HexaneC2/CMakeLists.txt CMakeCache.txt CMakeFiles/3.28.1/CMakeASM_NASMCompiler.cmake CMakeFiles/3.28.1/CMakeCCompiler.cmake CMakeFiles/3.28.1/CMakeCXXCompiler.cmake CMakeFiles/3.28.1/CMakeRCCompiler.cmake CMakeFiles/3.28.1/CMakeSystem.cmake: phony
 
 
 #############################################

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"database/sql"
 	"github.com/gin-gonic/gin"
 	"sync"
 )
@@ -192,6 +193,7 @@ type HexaneConfig struct {
 	CommandChan   chan string
 	ResponseChan  chan *Parser
 	Database      string
+	db            *sql.DB
 
 	Key         []byte
 	Shellcode   []byte

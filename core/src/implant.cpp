@@ -9,6 +9,7 @@ VOID Entrypoint(HMODULE Base) {
     if (ntstatus != ERROR_SUCCESS) {
         return;
     }
+
     Implant::MainRoutine();
 }
 
