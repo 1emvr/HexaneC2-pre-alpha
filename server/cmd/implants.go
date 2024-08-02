@@ -197,6 +197,8 @@ func UserInterface(config *core.HexaneConfig) error {
 	)
 
 	reader := bufio.NewReader(os.Stdin)
+	config.WriteChan.AttachBuffer()
+
 	for {
 		fmt.Print(config.UserConfig.Builder.OutputName + " > ")
 		if input, err = reader.ReadString('\n'); err != nil {
@@ -218,10 +220,10 @@ func UserInterface(config *core.HexaneConfig) error {
 			core.WrapMessage("INF", "command queue is full (5). please wait for processing...")
 		}
 
-		// todo: print from config RespChan. Only print when interacting with selected implant.
-		// todo: else save parsers and read later.
+		config.WriteChan.PrintTable()
 	}
 
+	config.WriteChan.DetachBuffer()
 	return nil
 }
 

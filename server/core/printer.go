@@ -1,25 +1,14 @@
 package core
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/olekukonko/tablewriter"
 	"os"
 	"strconv"
 )
 
-var HeaderMap = map[uint32]TableMap{
-	TypeCheckin: {
-		Headers: []string{"PeerId", "Hostname", "Domain", "Username", "Interfaces"},
-	},
-	CommandDir: {
-		Headers: []string{"Mode", "Length", "LastWriteTime", "Name"},
-	},
-	CommandMods: {
-		Headers: []string{"ModName", "BaseAddress"},
-	},
-}
-
-func (p *Parser) ParseTable() {
+func (p *Parser) ParseTable(writer *WriteChannel) {
 	var (
 		heads, vals []string
 	)
@@ -72,20 +61,44 @@ func (p *Parser) ParseTable() {
 		}
 	}
 
-	PrintTable(heads, vals)
-	fmt.Println()
-	fmt.Println()
+	writer.PrintTable(heads, vals)
 }
 
-func PrintTable(heads, vals []string) {
+func (w *WriteChannel) AttachBuffer() {
+	w.IsActive = true
+	w.Buffer.Reset()
+}
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetCenterSeparator("-")
-	table.SetBorder(false)
+func (w *WriteChannel) DetachBuffer() {
+	w.IsActive = false
+}
 
-	table.SetHeader(heads)
-	table.Append(vals)
+func CreateOutputChannel() *WriteChannel {
+	buffer := new(bytes.Buffer)
+	table := tablewriter.NewWriter(buffer)
+
+	return &WriteChannel{
+		Buffer: buffer,
+		Table:  table,
+	}
+}
+
+func (w *WriteChannel) PrintTable(heads, vals []string) {
+	if !w.IsActive {
+		return
+	}
+
+	w.Table = tablewriter.NewWriter(os.Stdout)
+	w.Table.SetCenterSeparator("-")
+	w.Table.SetBorder(false)
+
+	w.Table.SetHeader(heads)
+	w.Table.Append(vals)
 
 	fmt.Println()
-	table.Render()
+	w.Table.Render()
+	w.Buffer.Reset()
+
+	fmt.Println()
+	fmt.Println()
 }

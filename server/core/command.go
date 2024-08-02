@@ -37,14 +37,15 @@ func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
 
 		h.Active = true
 		h.CommandChan = make(chan string, 5)
+		h.WriteChan = CreateOutputChannel()
 
-		parser.ParseTable()
 		if stream = h.CreateStreamWithHeaders(TypeCheckin); stream == nil {
 			return nil, fmt.Errorf("stream returned nil")
 		}
 
 	case TypeResponse:
-		parser.ParseTable()
+
+		parser.ParseTable(h.WriteChan)
 		if stream = h.CreateStreamWithHeaders(TypeTasking); stream == nil {
 			return nil, fmt.Errorf("stream returned nil")
 		}
@@ -52,11 +53,13 @@ func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
 		h.DispatchCommand(stream)
 
 	case TypeTasking:
+
 		if stream = h.CreateStreamWithHeaders(TypeTasking); stream == nil {
 			return nil, fmt.Errorf("stream returned nil")
 		}
 
 		h.DispatchCommand(stream)
+
 	default:
 		return nil, fmt.Errorf("unknown msg type: %v", parser.MsgType)
 	}

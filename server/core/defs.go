@@ -1,8 +1,10 @@
 package core
 
 import (
+	"bytes"
 	"database/sql"
 	"github.com/gin-gonic/gin"
+	"github.com/olekukonko/tablewriter"
 	"sync"
 )
 
@@ -184,14 +186,20 @@ type Compiler struct {
 	Flags          []string
 }
 
+type WriteChannel struct {
+	Buffer   *bytes.Buffer
+	Table    *tablewriter.Table
+	IsActive bool
+}
+
 type HexaneConfig struct {
 	CurrentTaskId uint32
 	PeerId        uint32
 	GroupId       int
 	BuildType     int
 	Mu            sync.Mutex
+	WriteChan     *WriteChannel
 	CommandChan   chan string
-	ResponseChan  chan *Parser
 	Database      string
 	db            *sql.DB
 
