@@ -3,11 +3,11 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"github.com/fatih/color"
-	"github.com/rodaine/table"
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"hexane_server/core"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -131,10 +131,9 @@ func ListImplants() error {
 	)
 
 	Head := core.HexanePayloads.Head
-	formatter := color.New(color.FgCyan).SprintfFunc()
+	heads := []string{"gid", "pid", "name", "debug", "type", "address", "hostname", "domain", "proxy", "user", "active"}
 
-	implantTable := table.New("gid", "pid", "name", "debug", "type", "address", "hostname", "domain", "proxy", "user", "active")
-	implantTable.WithHeaderFormatter(formatter)
+	table := tablewriter.NewWriter(os.Stdout)
 
 	if Head == nil {
 		return fmt.Errorf("no active implants available")
@@ -175,12 +174,19 @@ func ListImplants() error {
 				netType = "smb"
 			}
 
-			implantTable.AddRow(Head.GroupId, Head.PeerId, Head.UserConfig.Builder.OutputName, Head.Compiler.Debug, netType, address, Head.Implant.Hostname, domain, proxy, Head.UserSession.Username, Head.Active)
+			gid := strconv.Itoa(Head.GroupId)
+			pid := strconv.Itoa(int(Head.PeerId))
+			dbg := strconv.FormatBool(Head.Compiler.Debug)
+			active := strconv.FormatBool(Head.Active)
+
+			vals := []string{gid, pid, Head.UserConfig.Builder.OutputName, dbg, netType, address, Head.Implant.Hostname, domain, proxy, Head.UserSession.Username, active}
+			table.Append(vals)
+
 			Head = Head.Next
 		}
 	}
 
-	implantTable.Print()
+	table.Render()
 	fmt.Println()
 
 	return nil

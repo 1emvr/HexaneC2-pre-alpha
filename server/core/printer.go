@@ -2,8 +2,8 @@ package core
 
 import (
 	"fmt"
-	"github.com/fatih/color"
-	"github.com/rodaine/table"
+	"github.com/olekukonko/tablewriter"
+	"os"
 	"strconv"
 )
 
@@ -77,27 +77,11 @@ func (p *Parser) ParseTable() {
 }
 
 func PrintTable(heads, vals []string) {
-	headersInterface := make([]interface{}, len(heads))
+	tbl := tablewriter.NewWriter(os.Stdout)
+	//format := color.New(color.FgCyan).SprintfFunc()
 
-	for i, header := range heads {
-		headersInterface[i] = header
-	}
-
-	tbl := table.New(headersInterface...)
-	format := color.New(color.FgCyan).SprintfFunc()
-
-	tbl.WithHeaderFormatter(format)
-
-	for _, row := range vals {
-		rowInterface := make([]interface{}, len(row))
-
-		for i, val := range row {
-			rowInterface[i] = val
-		}
-
-		tbl.AddRow(rowInterface...)
-	}
+	tbl.Append(vals)
 
 	fmt.Println()
-	tbl.Print()
+	tbl.Render()
 }
