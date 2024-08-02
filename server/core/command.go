@@ -19,6 +19,7 @@ func (h *HexaneConfig) DispatchCommand(stream *Stream) {
 		cmd []byte
 	)
 
+	// todo: implementing implant-side multi-task processing
 	if h.CommandChan != nil {
 		for blob := range h.CommandChan {
 			if cmd, err = h.ProcessCommand(blob); err != nil {
