@@ -146,26 +146,26 @@ build CMakeFiles/Hexane-Implant.dir/core/src/utils.cpp.obj: CXX_COMPILER__Hexane
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
   OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\core\src
 
-build CMakeFiles/Hexane-Implant.dir/mods/src/EnumDotNetProcesses.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/mods/src/EnumDotNetProcesses.cpp || cmake_object_order_depends_target_Hexane-Implant
-  DEP_FILE = CMakeFiles\Hexane-Implant.dir\mods\src\EnumDotNetProcesses.cpp.obj.d
+build CMakeFiles/Hexane-Implant.dir/commands/src/EnumProcess.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/commands/src/EnumProcess.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles\Hexane-Implant.dir\commands\src\EnumProcess.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
   INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
-  OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\mods\src
+  OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\commands\src
 
-build CMakeFiles/Hexane-Implant.dir/mods/src/RegDisableDefender.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/mods/src/RegDisableDefender.cpp || cmake_object_order_depends_target_Hexane-Implant
-  DEP_FILE = CMakeFiles\Hexane-Implant.dir\mods\src\RegDisableDefender.cpp.obj.d
+build CMakeFiles/Hexane-Implant.dir/commands/src/RegDisableDefender.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/commands/src/RegDisableDefender.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles\Hexane-Implant.dir\commands\src\RegDisableDefender.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
   INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
-  OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\mods\src
+  OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\commands\src
 
-build CMakeFiles/Hexane-Implant.dir/mods/src/SeImpersonate.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/mods/src/SeImpersonate.cpp || cmake_object_order_depends_target_Hexane-Implant
-  DEP_FILE = CMakeFiles\Hexane-Implant.dir\mods\src\SeImpersonate.cpp.obj.d
+build CMakeFiles/Hexane-Implant.dir/commands/src/SeImpersonate.cpp.obj: CXX_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/commands/src/SeImpersonate.cpp || cmake_object_order_depends_target_Hexane-Implant
+  DEP_FILE = CMakeFiles\Hexane-Implant.dir\commands\src\SeImpersonate.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
   INCLUDES = -IC:/Users/lemur/CLionProjects/HexaneC2/include -IC:/Users/lemur/CLionProjects/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir
-  OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\mods\src
+  OBJECT_FILE_DIR = CMakeFiles\Hexane-Implant.dir\commands\src
 
 build CMakeFiles/Hexane-Implant.dir/loader/resource.rc.obj: RC_COMPILER__Hexane-Implant_unscanned_Debug C$:/Users/lemur/CLionProjects/HexaneC2/loader/resource.rc || cmake_object_order_depends_target_Hexane-Implant
   DEP_FILE = CMakeFiles\Hexane-Implant.dir\loader\resource.rc.obj.d
@@ -215,7 +215,7 @@ build CMakeFiles/Hexane-Implant.dir/inject/threadless/OpenFileExecute.cpp.obj: C
 #############################################
 # Link the executable Hexane-Implant.exe
 
-build Hexane-Implant.exe: CXX_EXECUTABLE_LINKER__Hexane-Implant_Debug CMakeFiles/Hexane-Implant.dir/core/src/cipher.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/commands.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/cruntime.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/implant.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/inject.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/memory.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/message.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/network.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/opsec.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/parser.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/process.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/start.asm.obj CMakeFiles/Hexane-Implant.dir/core/src/stream.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/utils.cpp.obj CMakeFiles/Hexane-Implant.dir/mods/src/EnumDotNetProcesses.cpp.obj CMakeFiles/Hexane-Implant.dir/mods/src/RegDisableDefender.cpp.obj CMakeFiles/Hexane-Implant.dir/mods/src/SeImpersonate.cpp.obj CMakeFiles/Hexane-Implant.dir/loader/resource.rc.obj CMakeFiles/Hexane-Implant.dir/loader/src/dllmain.cpp.obj CMakeFiles/Hexane-Implant.dir/loader/src/exemain.cpp.obj CMakeFiles/Hexane-Implant.dir/loader/src/resource.cpp.obj CMakeFiles/Hexane-Implant.dir/inject/threadless/loader.asm.obj CMakeFiles/Hexane-Implant.dir/inject/threadless/OpenFileExecute.cpp.obj
+build Hexane-Implant.exe: CXX_EXECUTABLE_LINKER__Hexane-Implant_Debug CMakeFiles/Hexane-Implant.dir/core/src/cipher.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/commands.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/cruntime.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/implant.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/inject.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/memory.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/message.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/network.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/opsec.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/parser.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/process.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/start.asm.obj CMakeFiles/Hexane-Implant.dir/core/src/stream.cpp.obj CMakeFiles/Hexane-Implant.dir/core/src/utils.cpp.obj CMakeFiles/Hexane-Implant.dir/commands/src/EnumProcess.cpp.obj CMakeFiles/Hexane-Implant.dir/commands/src/RegDisableDefender.cpp.obj CMakeFiles/Hexane-Implant.dir/commands/src/SeImpersonate.cpp.obj CMakeFiles/Hexane-Implant.dir/loader/resource.rc.obj CMakeFiles/Hexane-Implant.dir/loader/src/dllmain.cpp.obj CMakeFiles/Hexane-Implant.dir/loader/src/exemain.cpp.obj CMakeFiles/Hexane-Implant.dir/loader/src/resource.cpp.obj CMakeFiles/Hexane-Implant.dir/inject/threadless/loader.asm.obj CMakeFiles/Hexane-Implant.dir/inject/threadless/OpenFileExecute.cpp.obj
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\Hexane-Implant.dir

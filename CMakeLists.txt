@@ -47,10 +47,10 @@ set (INCLUDES
         ${HOME}/core/include/utils.hpp
 )
 
-set (MODS
-        ${HOME}/mods/src/EnumDotNetProcesses.cpp
-        ${HOME}/mods/src/RegDisableDefender.cpp
-        ${HOME}/mods/src/SeImpersonate.cpp
+set (COMMANDS
+        ${HOME}/commands/src/EnumProcess.cpp
+        ${HOME}/commands/src/RegDisableDefender.cpp
+        ${HOME}/commands/src/SeImpersonate.cpp
 )
 
 set (LOADER
@@ -67,10 +67,10 @@ set (INJECT
 )
 
 #file(GLOB_RECURSE SOURCES "core/src/*.cpp")
-#file(GLOB_RECURSE SOURCES "mods/src/*.cpp")
+#file(GLOB_RECURSE SOURCES "commands/src/*.cpp")
 #file(GLOB_RECURSE SOURCES "loader/src/*.cpp")
 #file(GLOB_RECURSE SOURCES "inject/threadless/*.cpp")
 #file(GLOB_RECURSE INCLUDES "core/include/*.cpp")
 #file(GLOB_RECURSE INCLUDES "loader/include/*.cpp")
 
-add_executable(Hexane-Implant ${SOURCES} ${MODS} ${LOADER} ${INJECT} ${INCLUDES})
+add_executable(Hexane-Implant ${SOURCES} ${COMMANDS} ${LOADER} ${INJECT} ${INCLUDES})
