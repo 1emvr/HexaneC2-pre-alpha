@@ -3,6 +3,7 @@ package core
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"os"
 )
 
@@ -45,7 +46,7 @@ func (h *HexaneConfig) SqliteInit() (*sql.DB, error) {
 	return db, nil
 }
 
-func (h *HexaneConfig) ProcessParsers() error {
+func (h *HexaneConfig) SqliteProcessAllParsers() error {
 	var (
 		err  error
 		rows *sql.Rows
@@ -73,6 +74,32 @@ func (h *HexaneConfig) ProcessParsers() error {
 			WrapMessage("ERR", "unmarshal response to JSON: "+err.Error())
 			continue
 		}
+	}
+
+	return nil
+}
+
+func (h *HexaneConfig) SqliteInsertParser(parser *Parser) error {
+	var (
+		err  error
+		data []byte
+	)
+
+	if h.db, err = h.SqliteInit(); err != nil {
+		return err
+	}
+	defer func() {
+		if err = h.db.Close(); err != nil {
+			WrapMessage("ERR", "error closing database: "+err.Error())
+		}
+	}()
+
+	if data, err = json.Marshal(parser); err != nil {
+		return fmt.Errorf("marshal response to JSON: " + err.Error())
+	}
+
+	if _, err = h.db.Exec(`INSERT INTO parsers (data) VALUES (?)`, string(data)); err != nil {
+		return fmt.Errorf("write response to JSON: " + err.Error())
 	}
 
 	return nil

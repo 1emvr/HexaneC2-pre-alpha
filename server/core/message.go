@@ -1,125 +1,91 @@
 package core
 
 import (
-	"encoding/json"
 	"fmt"
 	"math/bits"
-	"strings"
 )
 
+// parse response, push to database then print?
 const HeaderLength = 12
 
-var (
-	CommandMap = map[string]uint32{
-		"dir":      CommandDir,
-		"mods":     CommandMods,
-		"shutdown": CommandShutdown,
+func ProcessBodyToParser(body []byte) (*Parser, uint32) {
+	var offset uint32
+
+	parser := CreateParser(body)
+	if parser.MsgLength < HeaderLength {
+		return nil, 0
 	}
-)
-
-func (h *HexaneConfig) ResponseWorker() error {
-	var (
-		err  error
-		data []byte
-	)
-
-	if h.db, err = h.SqliteInit(); err != nil {
-		return err
-	}
-	defer func() {
-		if err = h.db.Close(); err != nil {
-			WrapMessage("ERR", "error closing database: "+err.Error())
-		}
-	}()
-
-	for parser := range h.ResponseChan {
-		if data, err = json.Marshal(parser); err != nil {
-			return fmt.Errorf("marshal response to JSON: " + err.Error())
-		}
-
-		if _, err = h.db.Exec(`INSERT INTO parsers (data) VALUES (?)`, string(data)); err != nil {
-			return fmt.Errorf("write response to JSON: " + err.Error())
-		}
-	}
-
-	return nil
-}
-
-func (m *Parser) DispatchCommand(s *Stream, UserInput string) error {
-	var (
-		Buffer      []string
-		Arguments   []string
-		Args        string
-		Command     string
-		CommandType uint32
-	)
-
-	if UserInput != "" {
-		Buffer = strings.Split(UserInput, " ")
-		Command = Buffer[0]
-
-		Arguments = append(Arguments, Buffer[1:]...)
-		Args = strings.Join(Arguments, " ")
-
-		for k, v := range CommandMap {
-			if strings.EqualFold(k, Command) {
-				CommandType = v
-				break
-			}
-		}
-		if CommandType == 0 {
-			return fmt.Errorf("unknown command: %s", UserInput)
-		}
+	if parser.MsgLength >= HeaderLength+4 {
+		offset = parser.ParseDword()
+		offset += HeaderLength + 4
 	} else {
-		CommandType = CommandNoJob
+		offset = HeaderLength
 	}
 
-	s.PackDword(CommandType)
-	s.PackString(Args)
-	return nil
+	if offset > parser.MsgLength {
+		return nil, 0
+	}
+
+	return parser, offset
 }
 
-func ParseMessage(body []byte) ([]byte, error) {
+func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
+	var (
+		err error
+		rsp []byte
+	)
+
+	// todo: command data per config (CommandChannel)
+	switch parser.MsgType {
+	case TypeCheckin:
+		// process/print checkin data
+		// return PID
+	case TypeTasking:
+		// process task request. print nothing
+		// return any tasking data (if available)
+	case TypeResponse:
+		// process/print response data
+		// return any tasking data (if available)
+	default:
+		return nil, fmt.Errorf("unknown msg type: %v", parser.MsgType)
+	}
+
+	return rsp, nil
+}
+
+func ResponseWorker(body []byte) ([]byte, error) {
 	var (
 		err    error
 		offset uint32
 		parser *Parser
 		config *HexaneConfig
+		rsp    []byte
 	)
 
-	stream := new(Stream)
-
 	for len(body) > 0 {
-		parser = CreateParser(body)
-
-		if parser.Length < HeaderLength {
-			break
+		if parser, offset = ProcessBodyToParser(body); parser == nil {
+			return nil, fmt.Errorf("processing message body to parser: bad parser or message length")
 		}
-
-		if parser.Length >= HeaderLength+4 {
-			offset = parser.ParseDword()
-			offset += HeaderLength + 4
-		} else {
-			offset = HeaderLength
-		}
-
-		if offset > parser.Length {
-			break
-		}
-
-		body = body[offset:]
 
 		parser.PeerId = bits.ReverseBytes32(parser.ParseDword())
 		parser.TaskId = bits.ReverseBytes32(parser.ParseDword())
 		parser.MsgType = bits.ReverseBytes32(parser.ParseDword())
 
+		// peer is confirmed by PID. Probably not the safest method
 		if config = GetConfigByPeerId(parser.PeerId); config != nil {
-			// todo
+			if err = config.SqliteInsertParser(parser); err != nil {
+				return []byte("200 ok"), err
+			}
+			if rsp, err = config.ProcessParser(parser); err != nil {
+				return []byte("200 ok"), err
+			}
 		} else {
-			WrapMessage("ERR", "could not find peer in the database")
-			stream.Buffer = []byte("200 ok")
+			WrapMessage("ERR", fmt.Sprintf("could not find peer in the database: %d", parser.PeerId))
+			rsp = []byte("200 ok")
 		}
+
+		body = body[offset:]
 	}
 
-	return stream.Buffer, err
+	return rsp, err
 }

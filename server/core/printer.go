@@ -19,7 +19,6 @@ var HeaderMap = map[uint32]TableMap{
 	},
 }
 
-// response channel is parsed data *tablewriter.NewWriter(&channel)
 func (p *Parser) ParseTable(TypeId uint32) TableMap {
 
 	switch TypeId {
@@ -43,7 +42,7 @@ func (p *Parser) ParseTable(TypeId uint32) TableMap {
 					if tMap, ok := HeaderMap[CommandDir]; ok {
 						tMap.Values = make([][]string, 0)
 
-						for p.Length != 0 {
+						for p.MsgLength != 0 {
 							row := make([]string, 4)
 							IsDir := p.ParseDword()
 
@@ -72,13 +71,12 @@ func (p *Parser) ParseTable(TypeId uint32) TableMap {
 						return PrintTable(tMap)
 					}
 				}
-
 			case CommandMods:
 				{
 					if tMap, ok := HeaderMap[CommandMods]; ok {
 						tMap.Values = make([][]string, 0)
 
-						for p.Length != 0 {
+						for p.MsgLength != 0 {
 							row := []string{p.ParseString(), fmt.Sprintf("0x%X", p.ParseDword64())}
 							tMap.Values = append(tMap.Values, row)
 						}

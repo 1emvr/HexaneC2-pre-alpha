@@ -8,9 +8,9 @@ import (
 func CreateParser(buffer []byte) *Parser {
 	var parser = new(Parser)
 
-	parser.Buffer = buffer
+	parser.MsgBuffer = buffer
 	parser.BigEndian = true
-	parser.Length = uint32(len(buffer))
+	parser.MsgLength = uint32(len(buffer))
 
 	return parser
 }
@@ -22,16 +22,16 @@ func (p *Parser) ParseByte() []byte {
 		buffer[i] = 0
 	}
 
-	if p.Length >= 1 {
+	if p.MsgLength >= 1 {
 
-		copy(buffer, p.Buffer[:1])
-		p.Length -= 1
+		copy(buffer, p.MsgBuffer[:1])
+		p.MsgLength -= 1
 
-		if p.Length == 0 {
-			p.Buffer = []byte{}
+		if p.MsgLength == 0 {
+			p.MsgBuffer = []byte{}
 
 		} else {
-			p.Buffer = p.Buffer[1:]
+			p.MsgBuffer = p.MsgBuffer[1:]
 		}
 	}
 
@@ -45,16 +45,16 @@ func (p *Parser) ParseBool() bool {
 		integer[i] = 0
 	}
 
-	if p.Length >= 4 {
+	if p.MsgLength >= 4 {
 
-		copy(integer, p.Buffer[:4])
-		p.Length -= 4
+		copy(integer, p.MsgBuffer[:4])
+		p.MsgLength -= 4
 
-		if p.Length == 0 {
-			p.Buffer = []byte{}
+		if p.MsgLength == 0 {
+			p.MsgBuffer = []byte{}
 
 		} else {
-			p.Buffer = p.Buffer[4:]
+			p.MsgBuffer = p.MsgBuffer[4:]
 		}
 	}
 
@@ -73,16 +73,16 @@ func (p *Parser) ParseDword() uint32 {
 		buffer[i] = 0
 	}
 
-	if p.Length >= 4 {
+	if p.MsgLength >= 4 {
 
-		copy(buffer, p.Buffer[:4])
-		p.Length -= 4
+		copy(buffer, p.MsgBuffer[:4])
+		p.MsgLength -= 4
 
-		if p.Length == 0 {
-			p.Buffer = []byte{}
+		if p.MsgLength == 0 {
+			p.MsgBuffer = []byte{}
 
 		} else {
-			p.Buffer = p.Buffer[4:]
+			p.MsgBuffer = p.MsgBuffer[4:]
 		}
 	}
 
@@ -101,15 +101,15 @@ func (p *Parser) ParseDword64() uint64 {
 		buffer[i] = 0
 	}
 
-	if p.Length >= 8 {
+	if p.MsgLength >= 8 {
 
-		copy(buffer, p.Buffer[:8])
-		p.Length -= 8
+		copy(buffer, p.MsgBuffer[:8])
+		p.MsgLength -= 8
 
-		if p.Length == 0 {
-			p.Buffer = []byte{}
+		if p.MsgLength == 0 {
+			p.MsgBuffer = []byte{}
 		} else {
-			p.Buffer = p.Buffer[8:]
+			p.MsgBuffer = p.MsgBuffer[8:]
 		}
 	}
 
@@ -124,20 +124,20 @@ func (p *Parser) ParseDword64() uint64 {
 func (p *Parser) ParseBytes() []byte {
 	var buffer []byte
 
-	if p.Length >= 4 {
+	if p.MsgLength >= 4 {
 		size := p.ParseDword()
 
 		if size != 0 {
 			buffer = make([]byte, size)
-			copy(buffer, p.Buffer[:size])
+			copy(buffer, p.MsgBuffer[:size])
 
-			p.Length -= size
+			p.MsgLength -= size
 
-			if p.Length == 0 {
-				p.Buffer = []byte{}
+			if p.MsgLength == 0 {
+				p.MsgBuffer = []byte{}
 
 			} else {
-				p.Buffer = p.Buffer[size:]
+				p.MsgBuffer = p.MsgBuffer[size:]
 			}
 		}
 	}

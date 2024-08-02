@@ -211,10 +211,8 @@ type Parser struct {
 	PeerId    uint32
 	TaskId    uint32
 	MsgType   uint32
-	Length    uint32
-	Buffer    []byte
-	Method    string
-	Address   string
+	MsgLength uint32
+	MsgBuffer []byte
 	BigEndian bool
 }
 
