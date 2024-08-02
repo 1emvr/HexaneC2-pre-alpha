@@ -2,24 +2,23 @@
 namespace Opsec {
 
     VOID SeRuntimeCheck() {
-
         HEXANE
+
         do {
 #ifndef DEBUG
             Opsec::SeCheckDebugger();
             if (ntstatus != ERROR_SUCCESS) {
 
-                Random::Timeout(SECONDS(8));
-                return_defer(ERROR_BAD_ENVIRONMENT);
-            }
-
-            Opsec::SeCheckSandbox();
-            if (ntstatus != ERROR_SUCCESS) {
-
-                Random::Timeout(SECONDS(8));
+                Random::Timeout(SECONDS(1));
                 return_defer(ERROR_BAD_ENVIRONMENT);
             }
 #endif
+            Opsec::SeCheckSandbox();
+            if (ntstatus != ERROR_SUCCESS) {
+
+                Random::Timeout(SECONDS(1));
+                return_defer(ERROR_BAD_ENVIRONMENT);
+            }
             break;
         } while (TRUE);
 
