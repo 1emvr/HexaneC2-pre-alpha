@@ -63,7 +63,6 @@ namespace Implant {
 
         //XteaCrypt(B_PTR(Parser.Handle), Parser.Length, Ctx->ConfigBytes.Key, FALSE);
 
-        __debugbreak();
         Parser::ParserMemcpy(&Parser, &Ctx->Config.Key, nullptr);
         Parser::ParserMemcpy(&Parser, R_CAST(PBYTE*, &Ctx->Root), nullptr);
         Parser::ParserMemcpy(&Parser, R_CAST(PBYTE*, &Ctx->LE), nullptr);
