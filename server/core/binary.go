@@ -148,17 +148,18 @@ func (h *HexaneConfig) EmbedSectionData(path string, egg []byte, data []byte, se
 		return err
 	}
 	defer func() {
-		if err = readFile.Close(); err != nil {
-			WrapMessage("ERR", err.Error())
-		}
+		err = readFile.Close()
 	}()
+	if err != nil {
+		return err
+	}
 
 	if readData, err = ioutil.ReadAll(readFile); err != nil {
 		return err
 	}
 
-	if offset = HuntEgg(readData, egg); offset == -1 {
-		return fmt.Errorf("egg was not found in " + path)
+	if offset, err = EggHuntDoubleD(readData, egg); offset == -1 {
+		return err
 	}
 
 	if len(data) > secSize {

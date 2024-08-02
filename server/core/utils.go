@@ -47,14 +47,23 @@ func matchB(a, b []byte) bool {
 	return true
 }
 
-func HuntEgg(data []byte, egg []byte) int {
+func EggHuntDoubleD(data []byte, egg []byte) (int, error) {
+	eggLen := len(egg)
+	dataLen := len(data)
 
-	for i := 0; i <= len(data)-len(egg); i++ {
-		if matchB(data[i:i+len(egg)], egg) {
-			return i
+	for i := 0; i <= dataLen-eggLen; i++ {
+
+		if matchB(data[i:i+eggLen], egg) {
+
+			if i+4+eggLen > dataLen {
+				return -1, fmt.Errorf("out-of-bounds read in egg hunting")
+			}
+			if matchB(data[i+4:i+4+eggLen], egg) {
+				return i, nil
+			}
 		}
 	}
-	return -1
+	return -1, fmt.Errorf("egg was not found")
 }
 
 func ConvertEgg(egg string) ([]byte, error) {
