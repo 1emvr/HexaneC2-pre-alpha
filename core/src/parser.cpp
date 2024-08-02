@@ -8,7 +8,9 @@ namespace Parser {
         LPSTR Buffer  = UnpackString(Parser, &Length);
 
         if (Length) {
-            *cbOut = Length;
+            if (*cbOut) {
+                *cbOut = Length;
+            }
 
             if ((*Dst = S_CAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
                 x_memcpy(*Dst, Buffer, Length);
@@ -23,7 +25,9 @@ namespace Parser {
         LPWSTR Buffer  = UnpackWString(Parser, &Length);
 
         if (Length) {
-            *cbOut = Length;
+            if (*cbOut) {
+                *cbOut = Length;
+            }
 
             if ((*Dst = S_CAST(LPWSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (Length * sizeof(WCHAR)) + sizeof(WCHAR))))) {
                 x_memcpy(*Dst, Buffer, Length * sizeof(WCHAR));
@@ -38,7 +42,9 @@ namespace Parser {
         PBYTE Buffer = UnpackBytes(Parser, &Length);
 
         if (Length) {
-            *cbOut = Length;
+            if (*cbOut) {
+                *cbOut = Length;
+            }
 
             if ((*Dst = S_CAST(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
                 x_memcpy(*Dst, Buffer, Length);

