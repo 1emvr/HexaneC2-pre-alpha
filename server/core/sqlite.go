@@ -44,3 +44,36 @@ func (h *HexaneConfig) SqliteInit() (*sql.DB, error) {
 
 	return db, nil
 }
+
+func (h *HexaneConfig) ProcessParsers() error {
+	var (
+		err  error
+		rows *sql.Rows
+	)
+
+	if rows, err = h.db.Query(`SELECT data FROM parsers`); err != nil {
+		return err
+	}
+	defer func() {
+		if err = rows.Close(); err != nil {
+			WrapMessage("ERR", "close row: "+err.Error())
+		}
+	}()
+
+	for rows.Next() {
+
+		var data []byte
+		if err = rows.Scan(&data); err != nil {
+			WrapMessage("ERR", "scan row: "+err.Error())
+			continue
+		}
+
+		var parser Parser
+		if err = json.Unmarshal(data, &parser); err != nil {
+			WrapMessage("ERR", "unmarshal response to JSON: "+err.Error())
+			continue
+		}
+	}
+
+	return nil
+}
