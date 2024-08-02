@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"math/bits"
+	"strconv"
 )
 
 // parse response, push to database then print?
@@ -38,13 +39,22 @@ func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
 	// todo: command data per config (CommandChannel)
 	switch parser.MsgType {
 	case TypeCheckin:
-		// process/print checkin data
-		// return PID
-	case TypeTasking:
-		// process task request. print nothing
-		// return any tasking data (if available)
+
+		h.Active = true
+		h.CommandChan = make(chan string, 5) // implant is checked-in. give him a command channel
+
+		parser.ParseTable()
+		return []byte(strconv.Itoa(int(parser.PeerId))), nil
+
 	case TypeResponse:
+
+		parser.ParseTable()
+		return h.DispatchCommand()
 		// process/print response data
+		// return any tasking data (if available)
+	case TypeTasking:
+
+		// process task request. print nothing
 		// return any tasking data (if available)
 	default:
 		return nil, fmt.Errorf("unknown msg type: %v", parser.MsgType)

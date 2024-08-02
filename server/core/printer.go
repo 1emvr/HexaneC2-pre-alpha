@@ -19,56 +19,46 @@ var HeaderMap = map[uint32]TableMap{
 	},
 }
 
-func (p *Parser) ParseTable(TypeId uint32) TableMap {
+func (p *Parser) ParseTable() TableMap {
 
-	switch TypeId {
+	switch p.MsgType {
 	case TypeCheckin:
 		{
-			if tMap, ok := HeaderMap[TypeCheckin]; ok {
-				tMap.Values = [][]string{
-					{strconv.Itoa(int(p.PeerId)), p.ParseString(), p.ParseString(), p.ParseString(), p.ParseString()},
-				}
-				return tMap
-			}
+			Headers := []string{"PeerId", "Hostname", "Domain", "Username", "Interfaces"}
+			Values := []string{strconv.Itoa(int(p.PeerId)), p.ParseString(), p.ParseString(), p.ParseString(), p.ParseString()}
 		}
 
 	case TypeTasking:
 		{
-			CmdId := p.ParseDword()
-
-			switch CmdId {
+			switch p.ParseDword() {
 			case CommandDir:
 				{
-					if tMap, ok := HeaderMap[CommandDir]; ok {
-						tMap.Values = make([][]string, 0)
+				Headers:
+					[]string{"Mode", "Length", "LastWriteTime", "Name"}
+					Values := make([][]string, 0)
 
-						for p.MsgLength != 0 {
-							row := make([]string, 4)
-							IsDir := p.ParseDword()
+					for p.MsgLength != 0 {
+						row := make([]string, 4)
+						IsDir := p.ParseDword()
 
-							if IsDir != 0 {
-								row[0], row[1] = "dir", "n/a"
+						if IsDir != 0 {
+							row[0], row[1] = "dir", "n/a"
 
-							} else {
-								size := p.ParseDword64()
-								row[0], row[1] = "", FormatSize(size)
-							}
-
-							Month := p.ParseDword()
-							Day := p.ParseDword()
-							Year := p.ParseDword()
-
-							Hour := p.ParseDword()
-							Minute := p.ParseDword()
-							Second := p.ParseDword()
-
-							row[2] = fmt.Sprintf("%d/%d/%d %d:%d:%d", Month, Day, Year, Hour, Minute, Second)
-							row[3] = p.ParseString()
-
-							tMap.Values = append(tMap.Values, row)
+						} else {
+							size := p.ParseDword64()
+							row[0], row[1] = "", FormatSize(size)
 						}
 
-						return PrintTable(tMap)
+						Month := p.ParseDword()
+						Day := p.ParseDword()
+						Year := p.ParseDword()
+
+						Hour := p.ParseDword()
+						Minute := p.ParseDword()
+						Second := p.ParseDword()
+
+						row[2] = fmt.Sprintf("%d/%d/%d %d:%d:%d", Month, Day, Year, Hour, Minute, Second)
+						row[3] = p.ParseString()
 					}
 				}
 			case CommandMods:

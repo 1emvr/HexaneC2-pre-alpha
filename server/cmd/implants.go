@@ -190,24 +190,25 @@ func UserInterface(config *core.HexaneConfig) error {
 	)
 
 	reader := bufio.NewReader(os.Stdin)
-	if input, err = reader.ReadString('\n'); err != nil {
-		return err
-	}
-
-	if config.CommandChan == nil {
-		return fmt.Errorf("%s command channel is not ready", config.PeerId)
-	}
 	for {
+		if input, err = reader.ReadString('\n'); err != nil {
+			return err
+		}
 		if input == "exit" {
 			break
 		}
+		if config.CommandChan == nil {
+			return fmt.Errorf("%s command channel is not ready", config.PeerId)
+		}
+		select {
+		case config.CommandChan <- input:
+			core.WrapMessage("INF", "command queued")
+		default:
+			core.WrapMessage("INF", "command queue is full. please wait for processing...")
+		}
+		// todo: print from config RespChan. Only print when interacting with selected implant.
 	}
 
-	// interacting with implants through their own channels
-	// h.commandChan <- "command"
-	// h.responseChan -> "returned data"
-
-	config.CommandChan <- input
 	return nil
 }
 
