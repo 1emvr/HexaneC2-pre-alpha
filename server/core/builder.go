@@ -34,6 +34,7 @@ func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) (*Module, error) {
 	}
 
 	module := &Module{
+		//todo: fix broken HexaneServers list + config packing
 		RootDirectory: config.Builder.RootDirectory,
 		OutputName:    config.Builder.OutputName,
 		LinkerScript:  config.Builder.LinkerScript,
