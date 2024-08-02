@@ -39,6 +39,7 @@ func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
 		h.CommandChan = make(chan string, 5)
 		h.WriteChan = CreateOutputChannel()
 
+		parser.ParseTable(h.WriteChan)
 		if stream = h.CreateStreamWithHeaders(TypeCheckin); stream == nil {
 			return nil, fmt.Errorf("stream returned nil")
 		}

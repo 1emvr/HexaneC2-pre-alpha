@@ -180,7 +180,6 @@ namespace Message {
                     }
 
                     Head->Ready = TRUE;
-
                 } else {
                     return_defer(ERROR_NO_DATA);
                 }
@@ -203,7 +202,6 @@ namespace Message {
             ClearQueue();
 
             if (PeekPID(Inbound)) {
-                __debugbreak();
                 CommandDispatch(Inbound);
                 Stream::DestroyStream(Inbound);
             }
@@ -250,7 +248,7 @@ namespace Message {
         switch (MsgType) {
 
             case TypeCheckin: {
-                Ctx->Session.Checkin = TRUE;
+                Ctx->Session.Checkin = FALSE;
                 break;
             }
 

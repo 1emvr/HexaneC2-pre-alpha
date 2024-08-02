@@ -186,7 +186,12 @@ func ListImplants() error {
 		}
 	}
 
-	core.PrintTable(heads, vals)
+	writer := core.CreateOutputChannel()
+
+	writer.AttachBuffer()
+	writer.PrintTable(heads, vals)
+	writer.DetachBuffer()
+
 	return nil
 }
 
@@ -219,8 +224,6 @@ func UserInterface(config *core.HexaneConfig) error {
 		default:
 			core.WrapMessage("INF", "command queue is full (5). please wait for processing...")
 		}
-
-		config.WriteChan.PrintTable()
 	}
 
 	config.WriteChan.DetachBuffer()

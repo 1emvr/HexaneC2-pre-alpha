@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/olekukonko/tablewriter"
-	"os"
 	"strconv"
 )
 
@@ -34,7 +33,6 @@ func (p *Parser) ParseTable(writer *WriteChannel) {
 
 						if IsDir != 0 {
 							row[0], row[1] = "dir", "n/a"
-
 						} else {
 							size := p.ParseDword64()
 							row[0], row[1] = "", FormatSize(size)
@@ -88,7 +86,6 @@ func (w *WriteChannel) PrintTable(heads, vals []string) {
 		return
 	}
 
-	w.Table = tablewriter.NewWriter(os.Stdout)
 	w.Table.SetCenterSeparator("-")
 	w.Table.SetBorder(false)
 
@@ -97,8 +94,8 @@ func (w *WriteChannel) PrintTable(heads, vals []string) {
 
 	fmt.Println()
 	w.Table.Render()
-	w.Buffer.Reset()
+	fmt.Println(w.Buffer.String())
 
-	fmt.Println()
+	w.Buffer.Reset()
 	fmt.Println()
 }
