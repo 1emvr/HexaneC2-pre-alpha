@@ -90,15 +90,11 @@ func ParseMessage(body []byte) ([]byte, error) {
 	stream := new(Stream)
 
 	for len(body) > 0 {
-
 		parser = CreateParser(body)
+
 		if parser.Length < HeaderLength {
 			break
 		}
-
-		parser.PeerId = bits.ReverseBytes32(parser.ParseDword())
-		parser.TaskId = bits.ReverseBytes32(parser.ParseDword())
-		parser.MsgType = bits.ReverseBytes32(parser.ParseDword())
 
 		if parser.Length >= HeaderLength+4 {
 			offset = parser.ParseDword()
@@ -111,14 +107,18 @@ func ParseMessage(body []byte) ([]byte, error) {
 			break
 		}
 
+		body = body[offset:]
+
+		parser.PeerId = bits.ReverseBytes32(parser.ParseDword())
+		parser.TaskId = bits.ReverseBytes32(parser.ParseDword())
+		parser.MsgType = bits.ReverseBytes32(parser.ParseDword())
+
 		if config = GetConfigByPeerId(parser.PeerId); config != nil {
 			// todo
 		} else {
 			WrapMessage("ERR", "could not find peer in the database")
 			stream.Buffer = []byte("200 ok")
 		}
-
-		body = body[offset:]
 	}
 
 	return stream.Buffer, err
