@@ -92,14 +92,13 @@ func (h *HexaneConfig) StartNewServer(profile *Http) error {
 	return nil
 }
 
-func (h *HexaneConfig) HttpServerHandler() error {
+func (h *HexaneConfig) HttpServerHandler(profile *Http) error {
 	var err error
 
-	server := h.UserConfig.Network.Config.(*Http)
 	serverExists := false
 
 	for Head := HexaneServers.Head; Head != nil; Head = Head.Next {
-		if Head.Address == server.Address && Head.Port == server.Port {
+		if Head.Address == profile.Address && Head.Port == profile.Port {
 
 			serverExists = true
 			h.UpdateServerEndpoints(Head)
@@ -107,37 +106,37 @@ func (h *HexaneConfig) HttpServerHandler() error {
 		}
 	}
 	if !serverExists {
-		err = h.StartNewServer(server)
+		err = h.StartNewServer(profile)
 	}
 
-	server.Ready <- true
+	profile.Ready <- true
 	return err
 }
 
 func (h *HexaneConfig) RunServer() error {
 	var (
-		err    error
-		server *Http
+		err     error
+		profile *Http
 	)
 
-	server = new(Http)
+	profile = new(Http)
 
-	if err = MapToStruct(h.UserConfig.Network.Config, server); err != nil {
+	if err = MapToStruct(h.UserConfig.Network.Config, profile); err != nil {
 		return err
 	}
 
-	server.Ready = make(chan bool)
+	profile.Ready = make(chan bool)
 
 	go func() {
-		err = h.HttpServerHandler()
+		err = h.HttpServerHandler(profile)
 	}()
 
-	<-server.Ready
+	<-profile.Ready
 	if err != nil {
 		return err
 	}
 
-	AddServer(server)
+	AddServer(profile)
 	AddConfig(h)
 
 	return nil
