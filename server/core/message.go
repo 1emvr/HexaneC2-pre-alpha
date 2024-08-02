@@ -5,77 +5,67 @@ import (
 	"strconv"
 )
 
-const HeaderLength = 12
+const HeaderLength = 16
 
-func ProcessBodyToParser(b []byte) (*Parser, uint32, error) {
-	var offset uint32
+func ProcessBodyToParser(body []byte) (*Parser, error) {
+	var parser *Parser
 
 	WrapMessage("DBG", "creating parser from http body")
-	parser := CreateParser(b)
+	if parser = CreateParser(body); parser == nil {
+		return nil, fmt.Errorf("parser returned nil")
+	}
 
 	if parser.MsgLength < HeaderLength {
-		return nil, 0, fmt.Errorf("parser length is not long enough")
+		return nil, fmt.Errorf("parser length is not long enough")
 	}
 
-	if parser.MsgLength >= HeaderLength+4 {
-		offset = parser.ParseDword()
-		offset += HeaderLength + 4
-	} else {
-		offset = HeaderLength
-	}
+	parser.PeerId = parser.ParseDword()
+	parser.TaskId = parser.ParseDword()
+	parser.MsgType = parser.ParseDword()
+	parser.MsgLength = parser.ParseDword()
 
-	if offset > parser.MsgLength {
-		return nil, 0, nil
-	}
-
-	return parser, offset, nil
+	return parser, nil
 
 }
 
-func (h *HexaneConfig) ProcessParser(p *Parser) ([]byte, error) {
-	switch p.MsgType {
+func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
+	switch parser.MsgType {
+
 	case TypeCheckin:
+		parser.ParseTable()
 
 		h.CommandChan = make(chan string, 5) // implant is checked-in
 		h.Active = true
 
-		p.ParseTable()
-		return []byte(strconv.Itoa(int(p.PeerId))), nil
+		return []byte(strconv.Itoa(int(parser.PeerId))), nil
 
 	case TypeResponse:
-		p.ParseTable()
+
+		parser.ParseTable()
 		return h.DispatchCommand()
 
 	case TypeTasking:
 		return h.DispatchCommand()
 
 	default:
-		return nil, fmt.Errorf("unknown msg type: %v", p.MsgType)
+		return nil, fmt.Errorf("unknown msg type: %v", parser.MsgType)
 	}
 }
 
-func ResponseWorker(b []byte) ([]byte, error) {
+func ResponseWorker(body []byte) ([]byte, error) {
 	var (
 		err    error
-		offset uint32
-		parser *Parser
 		config *HexaneConfig
 		rsp    []byte
 	)
 
-	WrapMessage("DBG", DbgPrintBytes("http body: ", b))
+	WrapMessage("DBG", DbgPrintBytes("http body: ", body))
 
-	for len(b) > 0 {
-		if parser, offset, err = ProcessBodyToParser(b); err != nil {
-			return nil, fmt.Errorf("processing message b to parser: bad parser or message length: %s", err)
+	for len(body) > 0 {
+		var parser *Parser
+		if parser, err = ProcessBodyToParser(body); err != nil {
+			return nil, fmt.Errorf("processing message to p: %s", err)
 		}
-
-		parser.PeerId = parser.ParseDword()
-		parser.TaskId = parser.ParseDword()
-		parser.MsgType = parser.ParseDword()
-		parser.MsgLength = parser.ParseDword()
-
-		offset += parser.MsgLength
 
 		if config = GetConfigByPeerId(parser.PeerId); config != nil {
 			if err = config.SqliteInsertParser(parser); err != nil {
@@ -90,10 +80,10 @@ func ResponseWorker(b []byte) ([]byte, error) {
 			rsp = []byte("200 ok")
 		}
 
-		if offset != 0 {
-			b = b[offset:]
+		if parser.MsgLength < uint32(len(body)) {
+			body = body[parser.MsgLength:]
 		} else {
-			b = nil
+			body = nil
 		}
 	}
 
