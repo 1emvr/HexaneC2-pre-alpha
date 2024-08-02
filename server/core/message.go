@@ -90,24 +90,24 @@ func ParseMessage(body []byte) ([]byte, error) {
 	stream := new(Stream)
 
 	for len(body) > 0 {
-		if len(body) < HeaderLength {
-			break
-		}
 
 		parser = CreateParser(body)
+		if parser.Length < HeaderLength {
+			break
+		}
 
 		parser.PeerId = bits.ReverseBytes32(parser.ParseDword())
 		parser.TaskId = bits.ReverseBytes32(parser.ParseDword())
 		parser.MsgType = bits.ReverseBytes32(parser.ParseDword())
 
-		if len(body) >= HeaderLength+4 {
+		if parser.Length >= HeaderLength+4 {
 			offset = parser.ParseDword()
 			offset += HeaderLength + 4
 		} else {
 			offset = HeaderLength
 		}
 
-		if offset > uint32(len(body)) {
+		if offset > parser.Length {
 			break
 		}
 
