@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"path/filepath"
+	"runtime"
 )
 
 var ModuleStrings = []string{
@@ -42,18 +43,17 @@ func (h *HexaneConfig) CreateConfig() {
 	h.Compiler.Debug = h.UserConfig.Config.Debug
 	h.Compiler.Arch = h.UserConfig.Config.Arch
 	h.Compiler.Mingw = "x86_64-w64-mingw32-g++"
-	h.Compiler.Linker = "ld"
 	h.Compiler.Objcopy = "x86_64-w64-mingw32-objcopy"
 	h.Compiler.Windres = "x86_64-w64-mingw32-windres"
-	h.Compiler.Strip = "strip"
 	h.Compiler.Assembler = "nasm"
 
-	h.Implant.LoadedModules = []string{
-		"crypt32",
-		"winhttp",
-		"advapi32",
-		"iphlpapi",
-		".reloc",
+	if runtime.GOOS == "windows" {
+		h.Compiler.Linker = "ld"
+		h.Compiler.Strip = "strip"
+
+	} else if runtime.GOOS == "linux" {
+		h.Compiler.Linker = "x86_64-w64-mingw32-ld"
+		h.Compiler.Strip = "x86_64-w64-mingw32-strip"
 	}
 
 	if h.UserConfig.Config.Debug {

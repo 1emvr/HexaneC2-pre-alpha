@@ -74,7 +74,7 @@ type Module struct {
 	Loader        *Loader
 	Components    []string
 	Definitions   map[string][]byte
-	Egg           []byte
+	ConfigEgg     []byte
 }
 
 type Config struct {
@@ -140,7 +140,8 @@ type JsonConfig struct {
 		Sources            []string
 		Dependencies       []string
 		IncludeDirectories []string
-		Egg                string
+		LoadedModules      []string
+		ConfigEgg          string
 	}
 
 	Loader *struct {
@@ -160,7 +161,6 @@ type Implant struct {
 	GroupId        uint32
 	ProfileTypeId  uint32
 	CurrentTaskId  uint32
-	LoadedModules  []string
 
 	Hostname     string
 	WorkingHours int32

@@ -55,7 +55,7 @@ func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) (*Module, error) {
 		},
 	}
 
-	if module.Egg, err = ConvertEgg(config.Builder.Egg); err != nil {
+	if module.ConfigEgg, err = ConvertEgg(config.Builder.ConfigEgg); err != nil {
 		return nil, err
 	}
 

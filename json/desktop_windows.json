@@ -32,7 +32,11 @@
 			"network.cpp", "opsec.cpp", "parser.cpp", "process.cpp", "start.asm", "stream.cpp",
 			"utils.cpp", "implant.cpp"
 		],
-		"Egg": "0xde,0xad,0xbe,0xef"
+		"LoadedModules": [
+			"crypt32", "winhttp", "advapi32", "iphlpapi"
+		],
+
+		"ConfigEgg": "0xde,0xad,0xbe,0xef"
 	},
 
 	"Loader": {
