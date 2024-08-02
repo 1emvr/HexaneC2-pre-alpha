@@ -8,7 +8,7 @@ namespace Parser {
         LPSTR Buffer  = UnpackString(Parser, &Length);
 
         if (Length) {
-            if (*cbOut) {
+            if (cbOut) {
                 *cbOut = Length;
             }
 
@@ -25,7 +25,7 @@ namespace Parser {
         LPWSTR Buffer  = UnpackWString(Parser, &Length);
 
         if (Length) {
-            if (*cbOut) {
+            if (cbOut) {
                 *cbOut = Length;
             }
 
@@ -42,7 +42,7 @@ namespace Parser {
         PBYTE Buffer = UnpackBytes(Parser, &Length);
 
         if (Length) {
-            if (*cbOut) {
+            if (cbOut) {
                 *cbOut = Length;
             }
 
