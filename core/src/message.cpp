@@ -156,7 +156,7 @@ namespace Message {
 #ifdef TRANSPORT_SMB
             return_defer(ERROR_SUCCESS);
 #endif
-            // messages from the stack vs message from the queue are different endianess for some fucking reason.
+            // message on stack vs message from the queue are different endianess for some fucking reason.
             Stream::PackDword(Outbound, __bswapd(Ctx->Session.PeerId));
             Stream::PackDword(Outbound, __bswapd(Ctx->Session.CurrentTaskId));
             Stream::PackDword(Outbound, __bswapd(TypeTasking));
