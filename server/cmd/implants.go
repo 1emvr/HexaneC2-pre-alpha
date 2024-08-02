@@ -123,12 +123,13 @@ func RemoveImplantByName(name string) error {
 
 func ListImplants() error {
 	var (
-		err         error
-		address     string
-		domain      string
-		netType     string
-		proxy       string
-		heads, vals []string
+		err     error
+		address string
+		domain  string
+		netType string
+		proxy   string
+		heads   []string
+		rows    [][]string
 	)
 
 	heads = []string{"gid", "pid", "name", "debug", "type", "address", "hostname", "domain", "proxy", "user", "active"}
@@ -181,7 +182,8 @@ func ListImplants() error {
 			dbg := strconv.FormatBool(Head.Compiler.Debug)
 			active := strconv.FormatBool(Head.Active)
 
-			vals = []string{gid, pid, Head.UserConfig.Builder.OutputName, dbg, netType, address, Head.Implant.Hostname, domain, proxy, Head.UserSession.Username, active}
+			row := []string{gid, pid, Head.UserConfig.Builder.OutputName, dbg, netType, address, Head.Implant.Hostname, domain, proxy, Head.UserSession.Username, active}
+			rows = append(rows, row)
 			Head = Head.Next
 		}
 	}
@@ -189,7 +191,7 @@ func ListImplants() error {
 	writer := core.CreateOutputChannel()
 
 	writer.AttachBuffer()
-	writer.PrintTable(heads, vals)
+	writer.PrintTable(heads, rows)
 	writer.DetachBuffer()
 
 	return nil
@@ -213,7 +215,10 @@ func UserInterface(config *core.HexaneConfig) error {
 		if input, err = reader.ReadString('\n'); err != nil {
 			return err
 		}
-		if strings.EqualFold(input, "exit") {
+
+		input = strings.TrimSpace(input)
+
+		if input == "exit" {
 			core.WrapMessage("INF", "bye")
 			break
 		}

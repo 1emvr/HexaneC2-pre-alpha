@@ -7,57 +7,59 @@ import (
 	"strconv"
 )
 
-func (p *Parser) ParseTable(writer *WriteChannel) {
-	var heads, vals []string
+func (w *WriteChannel) ParseTable(parser *Parser) {
+	var (
+		heads []string
+		rows  [][]string
+	)
 
-	switch p.MsgType {
+	switch parser.MsgType {
 	case TypeCheckin:
 		{
 			heads = []string{"PeerId", "Hostname", "Domain", "Username", "Interfaces"}
-			vals = []string{strconv.Itoa(int(p.PeerId)), p.ParseString(), p.ParseString(), p.ParseString(), p.ParseString()}
+			row := []string{strconv.Itoa(int(parser.PeerId)), parser.ParseString(), parser.ParseString(), parser.ParseString(), parser.ParseString()}
+			rows = append(rows, row)
 		}
 
 	case TypeTasking:
 		{
-			switch p.ParseDword() {
+			switch parser.ParseDword() {
 			case CommandDir:
 				{
 					heads = []string{"Mode", "Length", "LastWriteTime", "Name"}
-					vals = make([]string, 0)
 					row := make([]string, 4)
 
-					for p.MsgLength != 0 {
-						IsDir := p.ParseDword()
+					for parser.MsgLength != 0 {
+						IsDir := parser.ParseDword()
 
 						if IsDir != 0 {
 							row[0], row[1] = "dir", "n/a"
 						} else {
-							size := p.ParseDword64()
+							size := parser.ParseDword64()
 							row[0], row[1] = "", FormatSize(size)
 						}
 
-						row[2] = fmt.Sprintf("%d/%d/%d %d:%d:%d", p.ParseDword(), p.ParseDword(), p.ParseDword(), p.ParseDword(), p.ParseDword(), p.ParseDword())
-						row[3] = p.ParseString()
+						row[2] = fmt.Sprintf("%d/%d/%d %d:%d:%d", parser.ParseDword(), parser.ParseDword(), parser.ParseDword(), parser.ParseDword(), parser.ParseDword(), parser.ParseDword())
+						row[3] = parser.ParseString()
 
-						vals = append(vals, row[0], row[1], row[2], row[3])
+						rows = append(rows, row)
 					}
 				}
 			case CommandMods:
 				{
 					heads = []string{"ModName", "BaseAddress"}
-					vals = make([]string, 0)
 					row := make([]string, 2)
 
-					for p.MsgLength != 0 {
-						row[0], row[1] = p.ParseString(), fmt.Sprintf("0x%X", p.ParseDword64())
-						vals = append(vals, row[0], row[1])
+					for parser.MsgLength != 0 {
+						row[0], row[1] = parser.ParseString(), fmt.Sprintf("0x%X", parser.ParseDword64())
+						rows = append(rows, row)
 					}
 				}
 			}
 		}
 	}
 
-	writer.PrintTable(heads, vals)
+	w.PrintTable(heads, rows)
 }
 
 func (w *WriteChannel) AttachBuffer() {
@@ -79,21 +81,23 @@ func CreateOutputChannel() *WriteChannel {
 	}
 }
 
-func (w *WriteChannel) PrintTable(heads, vals []string) {
+func (w *WriteChannel) PrintTable(heads []string, rows [][]string) {
 	if !w.IsActive {
 		return
 	}
 
 	w.Table.SetCenterSeparator("-")
 	w.Table.SetBorder(false)
-
 	w.Table.SetHeader(heads)
-	w.Table.Append(vals)
+
+	for _, row := range rows {
+		w.Table.Append(row)
+	}
 
 	fmt.Println()
 	w.Table.Render()
 	fmt.Println(w.Buffer.String())
+	fmt.Println()
 
 	w.Buffer.Reset()
-	fmt.Println()
 }

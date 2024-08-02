@@ -14,8 +14,6 @@ func ResponseWorker(body []byte) ([]byte, error) {
 		rsp    []byte
 	)
 
-	WrapMessage("DBG", DbgPrintBytes("http body: ", body))
-
 	for len(body) > 0 {
 		if parser = CreateParser(body); parser == nil {
 			return nil, fmt.Errorf("parser returned nil")
@@ -32,11 +30,11 @@ func ResponseWorker(body []byte) ([]byte, error) {
 
 		if config = GetConfigByPeerId(parser.PeerId); config != nil {
 			if err = config.SqliteInsertParser(parser); err != nil {
-				return []byte("200 ok"), err
+				return []byte("200 ok"), fmt.Errorf("SqliteInsertParser: %v", err)
 			}
 
 			if rsp, err = config.ProcessParser(parser); err != nil {
-				return []byte("200 ok"), err
+				return []byte("200 ok"), fmt.Errorf("ProcessParser: %v", err)
 			}
 		} else {
 			WrapMessage("ERR", fmt.Sprintf("could not find peer in the database: %d", parser.PeerId))
@@ -44,6 +42,5 @@ func ResponseWorker(body []byte) ([]byte, error) {
 		}
 	}
 
-	WrapMessage("DBG", DbgPrintBytes("outgoing response: ", rsp))
 	return rsp, err
 }
