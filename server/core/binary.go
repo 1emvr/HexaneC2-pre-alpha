@@ -66,7 +66,7 @@ func (h *HexaneConfig) GenerateIncludes(incs []string) string {
 	var list string
 
 	for _, inc := range incs {
-		list += fmt.Sprintf(" -I%s ", Quote(inc))
+		list += fmt.Sprintf(" -I%s ", inc)
 	}
 
 	return list

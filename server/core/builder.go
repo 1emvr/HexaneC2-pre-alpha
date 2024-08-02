@@ -42,7 +42,7 @@ func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) *Module {
 		Files: &Sources{
 			Sources:            config.Builder.Sources,
 			Dependencies:       config.Builder.Dependencies,
-			IncludeDirectories: append(config.Builder.IncludeDirectories, "../"),
+			IncludeDirectories: append(config.Builder.IncludeDirectories, Tick(NetFXSDK), "../"),
 		},
 
 		Loader: &Loader{
@@ -75,7 +75,7 @@ func (h *HexaneConfig) BuildSource() error {
 	}
 
 	if module.LinkerScript != "" {
-		module.LinkerScript = "-T" + Quote(module.RootDirectory+"/"+module.LinkerScript)
+		module.LinkerScript = "-T" + SQuote(module.RootDirectory+"/"+module.LinkerScript)
 	}
 
 	module.OutputName = filepath.Join(BuildPath, module.OutputName)

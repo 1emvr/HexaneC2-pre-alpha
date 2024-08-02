@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"hexane_server/core"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -48,7 +49,53 @@ func PrintChannel(cb chan core.Message, exit chan bool) {
 	}
 }
 
-func Run() {
+func RootInit() error {
+	var err error
+
+	if err = rootCmd.ParseFlags(os.Args[1:]); err != nil {
+		return err
+	}
+	if core.Debug {
+		core.WrapMessage("INF", "running in debug mode")
+	}
+	if core.ShowCommands {
+		core.WrapMessage("INF", "running with command output")
+	}
+	if core.ShowConfigs {
+		core.WrapMessage("INF", "running with json config output")
+	}
+
+	if err = core.CreatePath(core.LogsPath, os.ModePerm); err != nil {
+		return err
+	}
+	if err = core.CreatePath(core.BuildPath, os.ModePerm); err != nil {
+		return err
+	}
+
+	err = filepath.Walk(core.NetFXSDK, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && info.Name() == "metahost.h" {
+			core.NetFXSDK = filepath.Dir(path)
+			return filepath.SkipDir
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+	if core.NetFXSDK == "C:/Program Files(x86)/Windows Kits/NETFXSDK/" {
+		return fmt.Errorf("metahost.h not found anywhere in %s", core.NetFXSDK)
+	}
+
+	return err
+}
+
+func Run() error {
 	var (
 		err    error
 		input  string
@@ -59,25 +106,8 @@ func Run() {
 	fmt.Println(banner)
 	go PrintChannel(core.Cb, core.Exit)
 
-	if err = rootCmd.ParseFlags(os.Args[1:]); err != nil {
-		core.WrapMessage("ERR", err.Error())
-		return
-	}
-
-	if err = core.CreatePath(core.LogsPath, os.ModePerm); err != nil {
-		core.WrapMessage("ERR", err.Error())
-	}
-	if err = core.CreatePath(core.BuildPath, os.ModePerm); err != nil {
-		core.WrapMessage("ERR", err.Error())
-	}
-	if core.Debug {
-		core.WrapMessage("INF", "running in debug mode")
-	}
-	if core.ShowCommands {
-		core.WrapMessage("INF", "running with command output")
-	}
-	if core.ShowConfigs {
-		core.WrapMessage("INF", "running with json config output")
+	if err = RootInit(); err != nil {
+		return err
 	}
 
 	for {
@@ -99,4 +129,5 @@ func Run() {
 			continue
 		}
 	}
+	return nil
 }

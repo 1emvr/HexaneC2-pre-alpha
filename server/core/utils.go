@@ -20,8 +20,12 @@ func WrapMessage(typ, msg string) {
 	Cb <- Message{MsgType: typ, Msg: msg}
 }
 
-func Quote(str string) string {
+func DQuote(str string) string {
 	return fmt.Sprintf("\"%s\"", str)
+}
+
+func SQuote(str string) string {
+	return fmt.Sprintf("'%s'", str)
 }
 
 func Tick(str string) string {

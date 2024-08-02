@@ -1,7 +1,12 @@
 package main
 
-import "hexane_server/cmd"
+import (
+	"fmt"
+	"hexane_server/cmd"
+)
 
 func main() {
-	cmd.Run()
+	if err := cmd.Run(); err != nil {
+		fmt.Println(err)
+	}
 }

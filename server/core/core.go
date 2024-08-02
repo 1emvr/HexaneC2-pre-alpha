@@ -24,6 +24,7 @@ var (
 
 	RootDirectory = filepath.Join(GetCwd(), "../")
 	FileNotFound  = fmt.Errorf("file not found")
+	NetFXSDK      = "C:/Program Files (x86)/Windows Kits/NETFXSDK/"
 )
 
 const (

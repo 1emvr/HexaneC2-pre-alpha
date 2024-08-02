@@ -63,6 +63,7 @@ set (LOADER
 set (INJECT
         ${HOME}/inject/threadless/loader.asm
         ${HOME}/inject/threadless/OpenFileExecute.cpp
+        core/dotnet.hpp
 )
 
 #file(GLOB_RECURSE SOURCES "core/src/*.cpp")
