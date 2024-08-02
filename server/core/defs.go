@@ -127,6 +127,7 @@ type JsonConfig struct {
 		Debug        bool
 		Hostname     string
 		WorkingHours string
+		Killdate     string
 		Sleeptime    int
 		Jitter       int
 	}
@@ -157,8 +158,6 @@ type JsonConfig struct {
 
 type Implant struct {
 	NetworkProfile any
-	PeerId         uint32
-	GroupId        uint32
 	ProfileTypeId  uint32
 	CurrentTaskId  uint32
 
@@ -185,11 +184,13 @@ type Compiler struct {
 }
 
 type HexaneConfig struct {
+	PeerId        uint32
 	GroupId       int
 	CurrentTaskId int
 	BuildType     int
-	PeerId        uint32
 	Mu            sync.Mutex
+	CommandChan   chan string
+	ResponseChan  chan string
 
 	Key         []byte
 	Shellcode   []byte

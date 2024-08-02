@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/fatih/color"
 	"github.com/rodaine/table"
 	"github.com/spf13/cobra"
 	"hexane_server/core"
+	"os"
 	"strings"
 )
 
@@ -17,8 +19,8 @@ var Implants = &cobra.Command{
 
 var Load = &cobra.Command{
 	Use:   "load",
-	Short: "load json implant configuration",
-	Long:  "load json implant configuration",
+	Short: "load json implant config",
+	Long:  "load json implant config",
 	Args:  cobra.MinimumNArgs(1),
 
 	Run: func(cmd *cobra.Command, args []string) {
@@ -30,21 +32,30 @@ var Load = &cobra.Command{
 
 var Interact = &cobra.Command{
 	Use:   "i",
-	Short: "interact with a specified implant by name",
-	Long:  "interact with a specified implant by name",
+	Short: "interact with an implant by name",
+	Long:  "interact with an implant by name",
 	Args:  cobra.MinimumNArgs(1),
 
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := InteractImplant(args[0]); err != nil {
+		var (
+			err    error
+			config *core.HexaneConfig
+		)
+		if config := core.GetImplantByName(args[0]); config == nil {
+			core.WrapMessage("ERR", fmt.Sprintf("failed to get config for %s", args[0]))
+			return
+		}
+		if err = UserInterface(config); err != nil {
 			core.WrapMessage("ERR", err.Error())
+			return
 		}
 	},
 }
 
 var Remove = &cobra.Command{
 	Use:   "rm",
-	Short: "remove implant by name",
-	Long:  "remove implant by name",
+	Short: "remove an implant by name",
+	Long:  "remove an implant by name",
 	Args:  cobra.MinimumNArgs(1),
 
 	Run: func(cmd *cobra.Command, args []string) {
@@ -65,10 +76,6 @@ var List = &cobra.Command{
 			core.WrapMessage("ERR", err.Error())
 		}
 	},
-}
-
-func InteractImplant(name string) error {
-	return nil
 }
 
 func RemoveImplantByName(name string) error {
@@ -173,6 +180,34 @@ func ListImplants() error {
 	implantTable.Print()
 	fmt.Println()
 
+	return nil
+}
+
+func UserInterface(config *core.HexaneConfig) error {
+	var (
+		err   error
+		input string
+	)
+
+	reader := bufio.NewReader(os.Stdin)
+	if input, err = reader.ReadString('\n'); err != nil {
+		return err
+	}
+
+	if config.CommandChan == nil {
+		return fmt.Errorf("%s command channel is not ready", config.PeerId)
+	}
+	for {
+		if input == "exit" {
+			break
+		}
+	}
+
+	// interacting with implants through their own channels
+	// h.commandChan <- "command"
+	// h.responseChan -> "returned data"
+
+	config.CommandChan <- input
 	return nil
 }
 

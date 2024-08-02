@@ -5,13 +5,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/rodaine/table"
 	"strconv"
+	"strings"
 )
-
-var CommandMap = map[string]uint32{
-	"dir":      CommandDir,
-	"mods":     CommandMods,
-	"shutdown": CommandShutdown,
-}
 
 var HeaderMap = map[uint32]TableMap{
 	TypeCheckin: {
@@ -25,7 +20,8 @@ var HeaderMap = map[uint32]TableMap{
 	},
 }
 
-func (p *Parser) ParserPrintData(TypeId uint32) bool {
+// response channel is parsed data *tablewriter.NewWriter(&channel)
+func (p *Parser) ParseTable(TypeId uint32) TableMap {
 
 	switch TypeId {
 	case TypeCheckin:
@@ -34,7 +30,7 @@ func (p *Parser) ParserPrintData(TypeId uint32) bool {
 				tMap.Values = [][]string{
 					{strconv.Itoa(int(p.PeerId)), p.ParseString(), p.ParseString(), p.ParseString(), p.ParseString()},
 				}
-				return ParseTable(tMap)
+				return tMap
 			}
 		}
 
@@ -50,18 +46,14 @@ func (p *Parser) ParserPrintData(TypeId uint32) bool {
 
 						for p.Length != 0 {
 							row := make([]string, 4)
-
 							IsDir := p.ParseDword()
 
 							if IsDir != 0 {
-								row[0] = "dir"
-								row[1] = "n/a"
+								row[0], row[1] = "dir", "n/a"
 
 							} else {
 								size := p.ParseDword64()
-
-								row[0] = ""
-								row[1] = FormatSize(size)
+								row[0], row[1] = "", FormatSize(size)
 							}
 
 							Month := p.ParseDword()
@@ -78,7 +70,7 @@ func (p *Parser) ParserPrintData(TypeId uint32) bool {
 							tMap.Values = append(tMap.Values, row)
 						}
 
-						return ParseTable(tMap)
+						return PrintTable(tMap)
 					}
 				}
 
@@ -92,7 +84,7 @@ func (p *Parser) ParserPrintData(TypeId uint32) bool {
 							tMap.Values = append(tMap.Values, row)
 						}
 
-						return ParseTable(tMap)
+						return PrintTable(tMap)
 					}
 				}
 
@@ -102,9 +94,11 @@ func (p *Parser) ParserPrintData(TypeId uint32) bool {
 	return false
 }
 
-func ParseTable(tMap TableMap) bool {
+func PrintTable(tMap TableMap) {
+	var sb strings.Builder
 
 	headersInterface := make([]interface{}, len(tMap.Headers))
+
 	for i, header := range tMap.Headers {
 		headersInterface[i] = header
 	}
@@ -116,6 +110,7 @@ func ParseTable(tMap TableMap) bool {
 
 	for _, row := range tMap.Values {
 		rowInterface := make([]interface{}, len(row))
+
 		for i, val := range row {
 			rowInterface[i] = val
 		}
@@ -124,7 +119,5 @@ func ParseTable(tMap TableMap) bool {
 	}
 
 	fmt.Println()
-	tbl.Print()
-
-	return true
+	tbl.Print(&sb)
 }
