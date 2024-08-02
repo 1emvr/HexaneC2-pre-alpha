@@ -161,8 +161,8 @@ namespace Message {
             Stream::PackDword(Outbound, __bswapd(TypeTasking));
 
         } else {
-
             Head = Ctx->Transport.OutboundQueue;
+
             while (Head) {
                 if (Head->Length + MESSAGE_HEADER_SIZE + Outbound->Length > MESSAGE_MAX) {
                     break;
