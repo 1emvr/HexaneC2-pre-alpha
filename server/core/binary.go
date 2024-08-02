@@ -144,8 +144,6 @@ func (h *HexaneConfig) EmbedSectionData(path string, target string, data []byte)
 		err      error
 	)
 
-	path += ".exe"
-
 	defer func() {
 		if err = readFile.Close(); err != nil {
 			WrapMessage("ERR", err.Error())
@@ -175,7 +173,7 @@ func (h *HexaneConfig) EmbedSectionData(path string, target string, data []byte)
 	}
 
 	if uint32(len(data)) > section.Size {
-		return fmt.Errorf("section %s is not large enough in %s", target, path)
+		return fmt.Errorf("%s section is not large enough in %s", target, path)
 	}
 
 	if secData, err = section.Data(); err != nil {
@@ -204,8 +202,6 @@ func (h *HexaneConfig) CopySectionData(path string, out string, target string) e
 		section  *pe.Section
 		err      error
 	)
-
-	path += ".exe"
 
 	defer func() {
 		if err = readFile.Close(); err != nil {
@@ -349,16 +345,6 @@ func (h *HexaneConfig) CompileSources(module *Module) error {
 	}()
 
 	if err = <-errCh; err != nil {
-		return err
-	}
-
-	flags := h.Compiler.Flags
-
-	if module.LinkerScript != "" {
-		flags = append(flags, module.LinkerScript)
-	}
-
-	if err = h.CompileObject(h.Compiler.Mingw, module.OutputName, module.Components, flags, module.Files.IncludeDirectories, module.Definitions); err != nil {
 		return err
 	}
 

@@ -28,9 +28,9 @@
 
 		"Dependencies": [],
 		"Sources": [
-			"cipher.cpp", "commands.cpp", "cruntime.cpp", "implant.cpp", "inject.cpp",
-			"memory.cpp", "message.cpp", "network.cpp", "opsec.cpp", "parser.cpp",
-			"process.cpp", "start.asm", "stream.cpp", "utils.cpp"
+			"cipher.cpp", "commands.cpp", "cruntime.cpp", "inject.cpp", "memory.cpp", "message.cpp",
+			"network.cpp", "opsec.cpp", "parser.cpp", "process.cpp", "start.asm", "stream.cpp",
+			"utils.cpp", "implant.cpp"
 		]
 	},
 

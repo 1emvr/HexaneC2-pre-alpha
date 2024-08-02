@@ -67,6 +67,7 @@ func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) *Module {
 func (h *HexaneConfig) BuildSource() error {
 	var (
 		err    error
+		flags  []string
 		module *Module
 	)
 
@@ -82,6 +83,14 @@ func (h *HexaneConfig) BuildSource() error {
 
 	if err = h.CompileSources(module); err != nil {
 		return fmt.Errorf("h.CompileSources - " + err.Error())
+	}
+
+	if module.LinkerScript != "" {
+		flags = append(flags, module.LinkerScript)
+	}
+
+	if err = h.CompileObject(h.Compiler.Linker, module.OutputName, module.Components, flags, module.Files.IncludeDirectories, nil); err != nil {
+		return err
 	}
 
 	if err = h.EmbedSectionData(module.OutputName, ".text$F", h.ConfigBytes); err != nil {

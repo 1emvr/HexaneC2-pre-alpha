@@ -41,7 +41,7 @@ func (h *HexaneConfig) CreateConfig() {
 	h.Compiler.Debug = h.UserConfig.Config.Debug
 	h.Compiler.Arch = h.UserConfig.Config.Arch
 	h.Compiler.Mingw = "x86_64-w64-mingw32-g++"
-	h.Compiler.Linker = "x86_64-w64-mingw32-ld"
+	h.Compiler.Linker = "ld"
 	h.Compiler.Objcopy = "x86_64-w64-mingw32-objcopy"
 	h.Compiler.Windres = "x86_64-w64-mingw32-windres"
 	h.Compiler.Strip = "x86_64-w64-mingw32-strip"
@@ -63,7 +63,7 @@ func (h *HexaneConfig) CreateConfig() {
 			"-fno-ident -fpack-struct=8 -falign-functions=1",
 			"-ffunction-sections -fdata-sections -falign-jumps=1 -w",
 			"-falign-labels=1 -fPIC",
-			"-Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections",
+			"-Wl,--no-seh,--enable-stdcall-fixup,--gc-sections",
 		}
 	} else {
 		h.Compiler.Flags = []string{
@@ -73,7 +73,7 @@ func (h *HexaneConfig) CreateConfig() {
 			"-fno-ident -fpack-struct=8 -falign-functions=1",
 			"-ffunction-sections -fdata-sections -falign-jumps=1 -w",
 			"-falign-labels=1 -fPIC",
-			"-Wl,--no-seh,--enable-stdcall-fixup,--gc-sections",
+			"-Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections",
 		}
 	}
 }

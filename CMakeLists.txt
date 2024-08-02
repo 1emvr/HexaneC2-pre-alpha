@@ -66,11 +66,4 @@ set (INJECT
         core/dotnet.hpp
 )
 
-#file(GLOB_RECURSE SOURCES "core/src/*.cpp")
-#file(GLOB_RECURSE SOURCES "commands/src/*.cpp")
-#file(GLOB_RECURSE SOURCES "loader/src/*.cpp")
-#file(GLOB_RECURSE SOURCES "inject/threadless/*.cpp")
-#file(GLOB_RECURSE INCLUDES "core/include/*.cpp")
-#file(GLOB_RECURSE INCLUDES "loader/include/*.cpp")
-
 add_executable(Hexane-Implant ${SOURCES} ${COMMANDS} ${LOADER} ${INJECT} ${INCLUDES})
