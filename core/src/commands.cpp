@@ -1,4 +1,4 @@
-#include <core/include/commands.hpp>
+#include "core/corelib.hpp"
 namespace Commands {
 
     VOID DirectoryList (PPARSER Parser) {

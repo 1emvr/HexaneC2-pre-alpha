@@ -10,6 +10,7 @@
 #include <winhttp.h>
 #include <iphlpapi.h>
 #include <tlhelp32.h>
+#include <type_traits>
 #include <aclapi.h>
 #include <metahost.h>
 #include <iostream>

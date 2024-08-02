@@ -1,6 +1,6 @@
 #ifndef HEXANE_CORELIB_CIPHER_HPP
 #define HEXANE_CORELIB_CIPHER_HPP
-#include <core/corelib.hpp>
+#include "core/corelib.hpp"
 
 #define FNV_OFFSET  (const unsigned int) 2166136261
 #define FNV_PRIME	(const unsigned int) 16777619

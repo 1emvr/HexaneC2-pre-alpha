@@ -1,4 +1,4 @@
-#include <core/include/implant.hpp>
+#include "core/corelib.hpp"
 
 VOID Entrypoint(HMODULE Base) {
     Memory::ContextInit();

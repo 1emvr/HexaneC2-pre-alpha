@@ -1,7 +1,6 @@
 #ifndef HEXANE_CORELIB_COMMANDS_HPP
 #define HEXANE_CORELIB_COMMANDS_HPP
-#include <core/monolith.hpp>
-#include <core/corelib.hpp>
+#include "core/corelib.hpp"
 
 namespace Commands {
 	FUNCTION VOID DirectoryList (PPARSER Parser);

@@ -16,7 +16,7 @@
 #define INTERNET_FLAG_IGNORE_CERT_DATE_INVALID	0x00002000
 #define ERROR_HTTP_HEADER_NOT_FOUND			    (INTERNET_ERROR_BASE + 150)
 
-#include <core/corelib.hpp>
+#include "core/corelib.hpp"
 
 namespace Http {
     FUNCTION VOID HttpCallback(PSTREAM Outbound, PSTREAM *Inbound);

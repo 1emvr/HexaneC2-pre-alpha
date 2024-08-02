@@ -1,6 +1,6 @@
 #ifndef HEXANE_PARSER_HPP
 #define HEXANE_PARSER_HPP
-#include <core/corelib.hpp>
+#include "core/corelib.hpp"
 
 namespace Parser {
     FUNCTION VOID ParserStrcpy(PPARSER Parser, LPSTR *Dst, ULONG *cbOut);

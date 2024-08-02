@@ -1,6 +1,6 @@
 #ifndef HEXANE_IMPLANT_INJECT_HPP
 #define HEXANE_IMPLANT_INJECT_HPP
-#include <core/corelib.hpp>
+#include "core/corelib.hpp"
 
 typedef struct _threadless {
     A_BUFFER Parent;
