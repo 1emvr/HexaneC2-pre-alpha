@@ -36,6 +36,26 @@ func GeneratePeerId() uint32 {
 	return bits.Reverse32(rand.Uint32())
 }
 
+func matchB(a, b []byte) bool {
+
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func HuntEgg(data []byte, egg []byte) int {
+
+	for i := 0; i <= len(data)-len(egg); i++ {
+		if matchB(data[i:i+len(egg)], egg) {
+			return i
+		}
+	}
+	return -1
+}
+
 func GenerateUuid(n int) string {
 	var (
 		indexBits = 4

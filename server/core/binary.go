@@ -5,6 +5,7 @@ import (
 	"context"
 	"debug/pe"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -135,60 +136,45 @@ func GenerateHashes(stringsFile string, outFile string) error {
 	return nil
 }
 
-func (h *HexaneConfig) EmbedSectionData(path string, target string, data []byte) error {
+func (h *HexaneConfig) EmbedSectionData(path string, egg []byte, data []byte, size int) error {
 	var (
-		section  *pe.Section
-		peFile   *pe.File
 		readFile *os.File
-		secData  []byte
+		readData []byte
+		offset   int
 		err      error
 	)
-
-	defer func() {
-		if err = readFile.Close(); err != nil {
-			WrapMessage("ERR", err.Error())
-		}
-		if err = peFile.Close(); err != nil {
-			WrapMessage("ERR", err.Error())
-		}
-	}()
 
 	if readFile, err = os.OpenFile(path, FSTAT_RW, 0644); err != nil {
 		return err
 	}
+	defer func() {
+		if err = readFile.Close(); err != nil {
+			WrapMessage("ERR", err.Error())
+		}
+	}()
 
-	if peFile, err = pe.NewFile(readFile); err != nil {
+	if readData, err = ioutil.ReadAll(readFile); err != nil {
 		return err
 	}
 
-	for _, s := range peFile.Sections {
-		if s.Name == target {
-			section = s
-			break
+	if offset = HuntEgg(readData, egg); offset == -1 {
+		return fmt.Errorf("egg was not found in " + path)
+	}
+
+	if len(data) > size {
+		return fmt.Errorf("data is longer than " + strconv.Itoa(size) + " bytes")
+	}
+
+	copy(readData[:offset], data)
+	remaining := size - len(data)
+
+	if remaining > 0 {
+		for i := 0; i < remaining; i++ {
+			readData[offset+len(data)+i] = 0x00
 		}
 	}
 
-	if section == nil {
-		return fmt.Errorf("%s section was not found in %s", target, path)
-	}
-
-	if uint32(len(data)) > section.Size {
-		return fmt.Errorf("%s section is not large enough in %s", target, path)
-	}
-
-	if secData, err = section.Data(); err != nil {
-		return err
-	}
-
-	outData := make([]byte, len(data))
-	copy(outData, secData)
-	copy(outData, data)
-
-	if _, err = readFile.Seek(int64(section.Offset), os.SEEK_SET); err != nil {
-		return err
-	}
-
-	if _, err = readFile.Write(outData); err != nil {
+	if _, err = readFile.WriteAt(readData, 0); err != nil {
 		return err
 	}
 
