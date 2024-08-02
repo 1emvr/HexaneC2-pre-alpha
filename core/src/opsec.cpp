@@ -119,12 +119,12 @@ namespace Opsec {
         }
 
         length = 0;
-        if (Ctx->Config.Domain[0] != NULTERM) {
+        if (Ctx->Transport.Domain[0] != NULTERM) {
             if (!Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, buffer, &length)) {
                 buffer = S_CAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
 
                 if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, buffer, &length)) {
-                    if (Utils::GetHashFromStringA(Ctx->Config.Domain, x_strlen(Ctx->Config.Domain)) != Utils::GetHashFromStringA(buffer, x_strlen(buffer))) {
+                    if (Utils::GetHashFromStringA(Ctx->Transport.Domain, x_strlen(Ctx->Transport.Domain)) != Utils::GetHashFromStringA(buffer, x_strlen(buffer))) {
                         return_defer(ERROR_BAD_ENVIRONMENT);
                     }
 

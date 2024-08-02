@@ -309,7 +309,6 @@ typedef struct {
 		LPWSTR  IngressPipename;
 		LPWSTR  EgressPipename;
 		HANDLE  EgressHandle;
-		LPSTR	Domain;
 		LPSTR	Hostname;
 		ULONG	Sleeptime;
 		ULONG	Jitter;
@@ -336,6 +335,7 @@ typedef struct {
 		BOOL	    	bEnvProxyCheck;
 		LPVOID	    	EnvProxy;
 		SIZE_T	    	EnvProxyLen;
+		LPSTR 			Domain;
 		PHTTP_CONTEXT 	http;
         PSTREAM        	OutboundQueue;
 	} Transport;

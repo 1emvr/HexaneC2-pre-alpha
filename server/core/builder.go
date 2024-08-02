@@ -98,7 +98,7 @@ func (h *HexaneConfig) BuildSource() error {
 		return err
 	}
 
-	if err = h.EmbedSectionData(module.OutputName, module.ConfigEgg, h.ConfigBytes, 576); err != nil {
+	if err = h.EmbedSectionData(module.OutputName, module.ConfigEgg, h.ConfigBytes, 1024); err != nil {
 		return fmt.Errorf("h.EmbedSectionData - " + err.Error())
 	}
 

