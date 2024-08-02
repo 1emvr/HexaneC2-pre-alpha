@@ -1,4 +1,4 @@
-#include "core/corelib.hpp"
+#include <core/corelib.hpp>
 
 #define NULTERM 0x00
 #define WNULTERM 0x00000000

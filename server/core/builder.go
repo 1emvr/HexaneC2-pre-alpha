@@ -42,20 +42,20 @@ func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) *Module {
 		Files: &Sources{
 			Sources:            config.Builder.Sources,
 			Dependencies:       config.Builder.Dependencies,
-			IncludeDirectories: []string{RootDirectory},
+			IncludeDirectories: append(config.Builder.IncludeDirectories, "../"),
 		},
 
 		Loader: &Loader{
-			RootDirectory: config.Builder.Loader.RootDirectory,
-			LinkerScript:  config.Builder.Loader.LinkerScript,
-			RsrcScript:    config.Builder.Loader.RsrcScript,
-			RsrcBinary:    config.Builder.Loader.RsrcBinary,
-			Sources:       config.Builder.Loader.Sources,
-			Injection:     config.Builder.Loader.Injection,
+			RootDirectory: config.Loader.RootDirectory,
+			LinkerScript:  config.Loader.LinkerScript,
+			RsrcScript:    config.Loader.RsrcScript,
+			RsrcBinary:    config.Loader.RsrcBinary,
+			Sources:       config.Loader.Sources,
+			Injection:     config.Loader.Injection,
 		},
 	}
 
-	if config.Builder.Loader == nil {
+	if config.Loader == nil {
 		module.BuildType = BUILD_TYPE_SHELLCODE
 	} else {
 		module.BuildType = BUILD_TYPE_DLL

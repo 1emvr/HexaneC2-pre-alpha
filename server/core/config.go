@@ -117,32 +117,32 @@ func ReadConfig(cfgPath string) error {
 			return fmt.Errorf("implant::builder - builder must specify source files")
 		}
 
-		if h.UserConfig.Builder.Loader == nil {
+		if h.UserConfig.Loader == nil {
 			h.BuildType = BUILD_TYPE_SHELLCODE
 
 		} else {
 			h.BuildType = BUILD_TYPE_DLL
 
-			if h.UserConfig.Builder.Loader.RootDirectory == "" {
+			if h.UserConfig.Loader.RootDirectory == "" {
 				return fmt.Errorf("implant::loader - root directory must be specified")
 			}
-			if h.UserConfig.Builder.Loader.Sources == nil {
+			if h.UserConfig.Loader.Sources == nil {
 				return fmt.Errorf("implant::loader - source files must be specified")
 			}
-			if h.UserConfig.Builder.Loader.RsrcScript == "" {
+			if h.UserConfig.Loader.RsrcScript == "" {
 				return fmt.Errorf("implant::loader - resource script must be specified")
 			}
-			if h.UserConfig.Builder.Loader.RsrcBinary == "" {
+			if h.UserConfig.Loader.RsrcBinary == "" {
 				return fmt.Errorf("implant::loader - resource output binary must be specified")
 			}
-			if h.UserConfig.Builder.Loader.Injection != nil {
-				injectType := h.UserConfig.Builder.Loader.Injection.Type
+			if h.UserConfig.Loader.Injection != nil {
+				injectType := h.UserConfig.Loader.Injection.Type
 
 				switch injectType {
 				case "threadless":
 
 					var threadlessConfig Threadless
-					if err = MapToStruct(h.UserConfig.Builder.Loader.Injection.Config, &threadlessConfig); err != nil {
+					if err = MapToStruct(h.UserConfig.Loader.Injection.Config, &threadlessConfig); err != nil {
 						return fmt.Errorf("implant::injection - threadless configuration - " + err.Error())
 					}
 				default:

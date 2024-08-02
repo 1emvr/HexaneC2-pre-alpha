@@ -1,6 +1,6 @@
 #ifndef HEXANE_MONOLITH_HPP
 #define HEXANE_MONOLITH_HPP
-#include "core/ntimports.hpp"
+#include <core/ntimports.hpp>
 
 EXTERN_C LPVOID InstStart();
 EXTERN_C LPVOID InstEnd();
@@ -30,10 +30,10 @@ EXTERN_C LPVOID InstEnd();
 #define U_PTR(x)                                ((UINT_PTR)(x))
 #define C_DREF(x)                               (*(VOID**)(x))
 
-#define CCAST(T,x)								const_cast<T>(x)
-#define DCAST(T,x)								dynamic_cast<T>(x)
-#define SCAST(T,x)								static_cast<T>(x)
-#define RCAST(T,x)								reinterpret_cast<T>(x)
+#define CCAST(T,x)								const_cast"T"(x)
+#define DCAST(T,x)								dynamic_cast"T"(x)
+#define SCAST(T,x)								static_cast"T"(x)
+#define RCAST(T,x)								reinterpret_cast"T"(x)
 
 #define NT_SUCCESS(status)						((status) >= 0)
 #define LocalHeap								NtCurrentTeb()->ProcessEnvironmentBlock->ProcessHeap

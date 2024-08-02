@@ -24,7 +24,6 @@
 typedef LONG KPRIORITY;
 typedef ULONG LOGICAL;
 #define STATIC static
-#define EXTERN_C extern "C"
 #define PROCESSOR_FEATURE_MAX 64
 #define MAX_WOW64_SHARED_ENTRIES 16
 
@@ -110,7 +109,7 @@ typedef ULONG LOGICAL;
 #define PS_ATTRIBUTE_NUMBER_MASK				0x0000ffff
 #define PS_ATTRIBUTE_THREAD						0x00010000 // Attribute may be used with thread creation
 #define PS_ATTRIBUTE_INPUT						0x00020000 // Attribute is input only
-#define PS_ATTRIBUTE_ADDITIVE					0x00040000 // Attribute may be "accumulated", e.g. bitmasks, counters, etc.
+#define PS_ATTRIBUTE_ADDITIVE					0x00040000 // Attribute may be <accumulated>, e.g. bitmasks, counters, etc.
 
 #define PsAttributeValue(Number, Thread, Input, Additive)	\
     (((Number)	& PS_ATTRIBUTE_NUMBER_MASK) |				\
@@ -181,7 +180,7 @@ typedef ULONG LOGICAL;
 			ULONG_PTR Value;                // Reserve 8 bytes for data (such as a Handle or a data pointer)
 			PVOID ValuePtr;                 // data pointer
 		};
-		PSIZE_T ReturnLength;               // Either 0 or specifies size of data returned to caller via "ValuePtr"
+		PSIZE_T ReturnLength;               // Either 0 or specifies size of data returned to caller via <ValuePtr>
 	} PS_ATTRIBUTE, * PPS_ATTRIBUTE;
 
 

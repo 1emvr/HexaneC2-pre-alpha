@@ -1,4 +1,4 @@
-#include "core/corelib.hpp"
+#include <core/corelib.hpp>
 namespace Http {
     // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/TransportHttp.c#L21
 
@@ -27,7 +27,7 @@ namespace Http {
         ULONG nEndpoint     = 0;
         ULONG nHeaders      = 0;
 
-        Ctx->Transport.http->Method = CCAST(CONST LPWSTR, L"GET");
+        Ctx->Transport.http->Method = CCAST(CONST LPWSTR, L<GET>);
 
         if (!Ctx->Transport.http->Handle) {
             if (!(Ctx->Transport.http->Handle = Ctx->win32.WinHttpOpen(Ctx->Transport.http->Useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))) {

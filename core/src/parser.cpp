@@ -1,4 +1,4 @@
-#include "core/corelib.hpp"
+#include <core/corelib.hpp>
 namespace Parser {
 
     VOID ParserStrcpy(PPARSER Parser, LPSTR *Dst, ULONG *cbOut) {

@@ -1,4 +1,4 @@
-#include "loader/include/injectlib.hpp"
+#include <loader/include/injectlib.hpp>
 
 namespace Rsrc {
     TXT_SECTION(F) BYTE Config[512] = { };

@@ -128,22 +128,26 @@ type JsonConfig struct {
 		Sleeptime    int
 		Jitter       int
 	}
+
 	Network *TypedConfig
+
 	Builder *struct {
-		OutputName    string
+		OutputName         string
+		RootDirectory      string
+		LinkerScript       string
+		Sources            []string
+		Dependencies       []string
+		IncludeDirectories []string
+	}
+
+	Loader *struct {
 		RootDirectory string
 		LinkerScript  string
+		RsrcScript    string
+		RsrcBinary    string
 		Sources       []string
 		Dependencies  []string
-		Loader        *struct {
-			RootDirectory string
-			LinkerScript  string
-			RsrcScript    string
-			RsrcBinary    string
-			Sources       []string
-			Dependencies  []string
-			Injection     *TypedConfig
-		}
+		Injection     *TypedConfig
 	}
 }
 

@@ -1,4 +1,4 @@
-#include "core/corelib.hpp"
+#include <core/corelib.hpp>
 namespace Opsec {
 
     VOID SeRuntimeCheck() {

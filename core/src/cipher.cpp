@@ -1,4 +1,4 @@
-#include "core/corelib.hpp"
+#include <core/corelib.hpp>
 namespace Xtea {
 
     U32_BLOCK BlockToUint32 (const byte *src) {
@@ -23,7 +23,7 @@ namespace Xtea {
         dst[7] = v1;
     }
 
-    VOID InitCipher (CipherTxt *c, const byte *m_key) {
+    VOID InitCipher (CIPHER *c, const byte *m_key) {
 
         uint32_t key[4] = { };
         uint32_t sum    = { };
@@ -50,7 +50,7 @@ namespace Xtea {
         }
     }
 
-    VOID XteaEncrypt(CipherTxt *c, byte *dst, byte *src) {
+    VOID XteaEncrypt(CIPHER *c, byte *dst, byte *src) {
 
         U32_BLOCK block = BlockToUint32(src);
 
@@ -65,7 +65,7 @@ namespace Xtea {
         Uint32ToBlock(block.v0, block.v1, dst);
     }
 
-    VOID XteaDecrypt(CipherTxt *c, byte *dst, byte *src) {
+    VOID XteaDecrypt(CIPHER *c, byte *dst, byte *src) {
 
         U32_BLOCK block = BlockToUint32(src);
 
@@ -120,7 +120,7 @@ namespace Xtea {
     VOID XteaCrypt(PBYTE data, SIZE_T cbData, PBYTE key, BOOL encrypt) {
         HEXANE
 
-        CipherTxt *text     = { };
+        CIPHER *text     = { };
         size_t nSections    = { };
         uint64_t offset     = 0;
 
@@ -131,7 +131,7 @@ namespace Xtea {
             key = Ctx->Config.Key;
         }
 
-        if (!(text = SCAST(CipherTxt*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(CipherTxt))))) {
+        if (!(text = SCAST(CIPHER*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(CIPHER))))) {
             return;
         }
 

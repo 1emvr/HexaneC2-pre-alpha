@@ -1,6 +1,6 @@
 #ifndef HEXANE_CORELIB_MEMORY_HPP
 #define HEXANE_CORELIB_MEMORY_HPP
-#include "core/corelib.hpp"
+#include <core/corelib.hpp>
 
 namespace Memory {
     FUNCTION VOID       ResolveApi();

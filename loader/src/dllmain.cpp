@@ -1,4 +1,4 @@
-#include "core/monolith.hpp"
+#include <core/monolith.hpp>
 
 EXTERN_C VOID Start();
 DLL_EXPORT BOOL WINAPI DllMain(HMODULE module, DWORD reason, LPVOID reserved) {

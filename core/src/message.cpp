@@ -1,4 +1,4 @@
-#include "core/corelib.hpp"
+#include <core/corelib.hpp>
 namespace Message {
 
     RDATA_SECTION COMMAND_MAP CmdMap[] = {

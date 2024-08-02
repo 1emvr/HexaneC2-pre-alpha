@@ -32,26 +32,33 @@
 			"memory.cpp", "message.cpp", "network.cpp", "opsec.cpp", "parser.cpp",
 			"process.cpp", "start.asm", "stream.cpp", "utils.cpp"
 		],
+		"IncludeDirectories": [
+			"C:/Users/lemur/CLionProjects/HexaneC2/core/include"
+		]
+	},
 
-		"Loader": {
-			"RootDirectory": "C:/Users/lemur/CLionProjects/HexaneC2/loader",
-			"LinkerScript": "loader.ld",
-			"RsrcScript": "resource.rc",
-			"RsrcBinary": "lolwat.bin",
+	"Loader": {
+		"RootDirectory": "C:/Users/lemur/CLionProjects/HexaneC2/loader",
+		"LinkerScript": "loader.ld",
+		"RsrcScript": "resource.rc",
+		"RsrcBinary": "lolwat.bin",
 
-			"Dependencies":[],
-			"Sources": [
-				"dllmain.cpp", "resource.cpp"
-			],
-			"Injection": {
-				"Type": "threadless",
-				"Config": {
-					"TargetProc": "flameshot.exe",
-					"TargetModule":"kernel32.dll",
-					"TargetFunc":"OpenFile",
-					"LoaderAsm": "C:/Users/lemur/CLionProjects/HexaneC2/inject/threadless/loader.asm",
-					"Execute":"C:/Users/lemur/CLionProjects/HexaneC2/inject/threadless/OpenFileExecute.cpp"
-				}
+		"Dependencies":[],
+		"Sources": [
+			"dllmain.cpp", "resource.cpp"
+		],
+		"IncludeDirectories": [
+			"C:/Users/lemur/CLionProjects/HexaneC2/loader/include"
+		],
+
+		"Injection": {
+			"Type": "threadless",
+			"Config": {
+				"TargetProc": "flameshot.exe",
+				"TargetModule":"kernel32.dll",
+				"TargetFunc":"OpenFile",
+				"LoaderAsm": "C:/Users/lemur/CLionProjects/HexaneC2/inject/threadless/loader.asm",
+				"Execute":"C:/Users/lemur/CLionProjects/HexaneC2/inject/threadless/OpenFileExecute.cpp"
 			}
 		}
 	}

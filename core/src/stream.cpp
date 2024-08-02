@@ -1,4 +1,4 @@
-#include "core/corelib.hpp"
+#include <core/corelib.hpp>
 namespace Stream {
 
     VOID PackInt64 (PBYTE buffer, UINT64 value) {

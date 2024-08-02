@@ -1,6 +1,6 @@
 #ifndef HEXANE_CORELIB_PROCESS_HPP
 #define HEXANE_CORELIB_PROCESS_HPP
-#include "core/corelib.hpp"
+#include <core/corelib.hpp>
 
 namespace Process {
 	FUNCTION ULONG GetProcessIdByName(LPSTR proc);

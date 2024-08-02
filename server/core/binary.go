@@ -20,7 +20,7 @@ func (h *HexaneConfig) StripSymbols(output string) error {
 
 func (h *HexaneConfig) GetBuildType() string {
 
-	if h.UserConfig.Builder.Loader != nil {
+	if h.UserConfig.Loader != nil {
 		return ".dll"
 	} else {
 		return ".bin"
