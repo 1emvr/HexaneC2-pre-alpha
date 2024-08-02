@@ -8,9 +8,7 @@ import (
 )
 
 func (p *Parser) ParseTable(writer *WriteChannel) {
-	var (
-		heads, vals []string
-	)
+	var heads, vals []string
 
 	switch p.MsgType {
 	case TypeCheckin:

@@ -202,6 +202,10 @@ func UserInterface(config *core.HexaneConfig) error {
 	)
 
 	reader := bufio.NewReader(os.Stdin)
+	if config.WriteChan == nil {
+		return fmt.Errorf("no channel provided")
+	}
+
 	config.WriteChan.AttachBuffer()
 
 	for {
@@ -209,7 +213,8 @@ func UserInterface(config *core.HexaneConfig) error {
 		if input, err = reader.ReadString('\n'); err != nil {
 			return err
 		}
-		if input == "exit" {
+		if strings.EqualFold(input, "exit") {
+			core.WrapMessage("INF", "bye")
 			break
 		}
 

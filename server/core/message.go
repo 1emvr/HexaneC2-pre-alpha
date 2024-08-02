@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-const HeaderLength = 16
+const HeaderLength = 12
 
 func ResponseWorker(body []byte) ([]byte, error) {
 	var (
@@ -21,8 +21,11 @@ func ResponseWorker(body []byte) ([]byte, error) {
 			return nil, fmt.Errorf("parser returned nil")
 		}
 
-		if parser.MsgLength < HeaderLength {
-			return nil, fmt.Errorf("parser length is not long enough")
+		if parser.MsgLength < HeaderLength && parser.MsgType != TypeTasking {
+			return nil, fmt.Errorf("msg length too small: %d", parser.MsgLength)
+		}
+		if parser.MsgType != TypeTasking {
+			parser.MsgLength += 4
 		}
 
 		body = body[HeaderLength+parser.MsgLength:]
@@ -31,6 +34,7 @@ func ResponseWorker(body []byte) ([]byte, error) {
 			if err = config.SqliteInsertParser(parser); err != nil {
 				return []byte("200 ok"), err
 			}
+
 			if rsp, err = config.ProcessParser(parser); err != nil {
 				return []byte("200 ok"), err
 			}

