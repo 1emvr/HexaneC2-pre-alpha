@@ -85,13 +85,12 @@ func RemoveImplantByName(name string) error {
 	)
 
 	Head := core.HexanePayloads.Head
-
 	for Head != nil {
-		if strings.EqualFold(Head.UserConfig.Builder.OutputName, name) {
 
+		if Head.UserConfig.Builder.OutputName == name {
 			if Head.Next == nil {
-				var profile core.Http
 
+				var profile core.Http
 				if err = core.MapToStruct(Head.UserConfig.Network.Config, &profile); err != nil {
 					return err
 				}
@@ -142,7 +141,6 @@ func ListImplants() error {
 
 	if Head == nil {
 		return fmt.Errorf("no active implants available")
-
 	} else {
 		for Head != nil {
 			if Head.Implant.ProfileTypeId == core.TRANSPORT_HTTP {
