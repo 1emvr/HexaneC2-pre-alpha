@@ -170,5 +170,11 @@ func (h *HexaneConfig) RunServer() error {
 
 	AddConfig(h)
 
+	if h.WriteChan == nil {
+		if h.WriteChan = CreateOutputChannel(); h.WriteChan == nil {
+			return fmt.Errorf("config write channel returned nil")
+		}
+	}
+
 	return nil
 }

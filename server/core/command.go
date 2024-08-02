@@ -21,11 +21,15 @@ func (h *HexaneConfig) DispatchCommand(stream *Stream) {
 
 	if h.CommandChan != nil {
 		for blob := range h.CommandChan {
-			if cmd, err = ProcessCommand(blob); err != nil {
+			if cmd, err = h.ProcessCommand(blob); err != nil {
 				WrapMessage("ERR", err.Error())
 			}
+
+			WrapMessage("DBG", DbgPrintBytes("command received: ", cmd))
 			stream.PackBytes(cmd)
 		}
+	} else {
+		WrapMessage("ERR", "command channel is nil")
 	}
 }
 
@@ -36,15 +40,11 @@ func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
 	case TypeCheckin:
 
 		h.Active = true
+		h.WriteChan.ParseTable(parser)
 		h.CommandChan = make(chan string, 5)
 
-		if h.WriteChan == nil {
-			if h.WriteChan = CreateOutputChannel(); h.WriteChan == nil {
-				return nil, fmt.Errorf("config write channel return nil")
-			}
-		}
+		WrapMessage("DBG", fmt.Sprintf("checkin from: %d", parser.PeerId))
 
-		h.WriteChan.ParseTable(parser)
 		if stream = h.CreateStreamWithHeaders(TypeCheckin); stream == nil {
 			return nil, fmt.Errorf("stream returned nil")
 		}
@@ -52,6 +52,8 @@ func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
 	case TypeResponse:
 
 		h.WriteChan.ParseTable(parser)
+		WrapMessage("DBG", fmt.Sprintf("response from: %d", parser.PeerId))
+
 		if stream = h.CreateStreamWithHeaders(TypeTasking); stream == nil {
 			return nil, fmt.Errorf("stream returned nil")
 		}
@@ -59,6 +61,8 @@ func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
 		h.DispatchCommand(stream)
 
 	case TypeTasking:
+
+		WrapMessage("DBG", fmt.Sprintf("task request from: %d", parser.PeerId))
 
 		if stream = h.CreateStreamWithHeaders(TypeTasking); stream == nil {
 			return nil, fmt.Errorf("stream returned nil")
@@ -70,10 +74,11 @@ func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
 		return nil, fmt.Errorf("unknown msg type: %v", parser.MsgType)
 	}
 
+	WrapMessage("DBG", DbgPrintBytes("outgoing message: ", stream.Buffer))
 	return stream.Buffer, nil
 }
 
-func ProcessCommand(input string) ([]byte, error) {
+func (h *HexaneConfig) ProcessCommand(input string) ([]byte, error) {
 	var (
 		cmdType    uint32
 		args       string
@@ -81,7 +86,7 @@ func ProcessCommand(input string) ([]byte, error) {
 		stream     *Stream
 	)
 
-	stream = new(Stream)
+	stream = h.CreateStreamWithHeaders(TypeTasking)
 
 	if input != "" {
 		buffer := strings.Split(input, " ")

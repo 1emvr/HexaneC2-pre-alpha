@@ -1,9 +1,5 @@
 package core
 
-import (
-	"fmt"
-)
-
 func AddServer(profile *Http) {
 
 	HexaneServers.Group++
@@ -59,8 +55,6 @@ func GetConfigByPeerId(pid uint32) *HexaneConfig {
 	var Head = HexanePayloads.Head
 
 	for Head != nil {
-		WrapMessage("DBG", fmt.Sprintf(" checking %d against %d\n", pid, Head.PeerId))
-
 		if Head.PeerId == pid {
 			return Head
 		}
@@ -75,8 +69,6 @@ func GetGIDByPeerName(name string) int {
 	var Head = HexanePayloads.Head
 
 	for Head != nil {
-		WrapMessage("DBG", fmt.Sprintf("checking %s against %s", name, Head.UserConfig.Builder.OutputName))
-
 		if Head.UserConfig.Builder.OutputName == name {
 			return Head.GroupId
 		}

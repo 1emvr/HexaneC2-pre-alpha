@@ -204,10 +204,6 @@ func UserInterface(config *core.HexaneConfig) error {
 	)
 
 	reader := bufio.NewReader(os.Stdin)
-	if config.WriteChan == nil {
-		return fmt.Errorf("no channel provided")
-	}
-
 	config.WriteChan.AttachBuffer()
 
 	for {
@@ -217,15 +213,18 @@ func UserInterface(config *core.HexaneConfig) error {
 		}
 
 		input = strings.TrimSpace(input)
+		if input == "" {
+			continue
+		}
 
 		if input == "exit" {
-			core.WrapMessage("INF", "bye")
+			core.WrapMessage("INF", "main menu")
 			break
 		}
 
 		if config.CommandChan == nil {
-			core.WrapMessage("ERR", "command channel is not ready. return to main menu")
-			break
+			core.WrapMessage("ERR", "command channel is not ready.")
+			continue
 		}
 
 		select {
