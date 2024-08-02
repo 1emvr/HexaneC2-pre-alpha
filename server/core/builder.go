@@ -97,14 +97,19 @@ func (h *HexaneConfig) BuildSource() error {
 		return err
 	}
 
-	if err = h.EmbedSectionData(module.OutputName, module.Egg, h.ConfigBytes, 1024); err != nil {
+	if err = h.EmbedSectionData(module.OutputName, module.Egg, h.ConfigBytes, 576); err != nil {
 		return fmt.Errorf("h.EmbedSectionData - " + err.Error())
+	}
+
+	if err = h.StripSymbols(module.OutputName); err != nil {
+		return err
 	}
 
 	if err = h.CopySectionData(module.OutputName, path.Join(h.Compiler.BuildDirectory, "shellcode.bin"), ".text"); err != nil {
 		return fmt.Errorf("h.CopySectionData - " + err.Error())
 	}
 
+	WrapMessage("INF", path.Join(h.Compiler.BuildDirectory, "shellcode.bin")+" done!")
 	return nil
 }
 

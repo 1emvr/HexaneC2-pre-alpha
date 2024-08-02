@@ -73,19 +73,24 @@ func InteractImplant(name string) error {
 
 func RemoveImplantByName(name string) error {
 	var (
+		err  error
 		Prev *core.HexaneConfig
-		Head = core.HexanePayloads.Head
 	)
+
+	Head := core.HexanePayloads.Head
 
 	for Head != nil {
 		if strings.EqualFold(Head.UserConfig.Builder.OutputName, name) {
 
 			if Head.Next == nil {
-				Http := Head.UserConfig.Network.Config.(*core.Http)
+				var profile core.Http
 
-				if Http != nil && Http.SigTerm != nil {
-					Http.SigTerm <- true
+				if err = core.MapToStruct(Head.UserConfig.Network.Config, &profile); err != nil {
+					return err
+				}
 
+				if profile.SigTerm != nil {
+					profile.SigTerm <- true
 				} else {
 					core.WrapMessage("WRN", "A server/channel was not found for this implant. Implant will still be removed")
 				}
@@ -97,7 +102,8 @@ func RemoveImplantByName(name string) error {
 				Prev.Next = Head.Next
 			}
 
-			break
+			core.WrapMessage("INF", "implant removed")
+			return nil
 		}
 
 		Prev = Head
@@ -110,6 +116,7 @@ func RemoveImplantByName(name string) error {
 
 func ListImplants() error {
 	var (
+		err     error
 		address string
 		domain  string
 		netType string
@@ -131,7 +138,11 @@ func ListImplants() error {
 `)
 		for Head != nil {
 			if Head.Implant.ProfileTypeId == core.TRANSPORT_HTTP {
-				config := Head.UserConfig.Network.Config.(*core.Http)
+				var config core.Http
+
+				if err = core.MapToStruct(Head.UserConfig.Network.Config, &config); err != nil {
+					return err
+				}
 
 				address = fmt.Sprintf("%s:%d", config.Address, config.Port)
 				netType = "http"

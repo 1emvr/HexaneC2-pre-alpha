@@ -109,6 +109,7 @@ type Http struct {
 	Handle    *gin.Engine
 	SigTerm   chan bool
 	Ready     chan bool
+	GroupId   int
 	Next      *Http
 }
 

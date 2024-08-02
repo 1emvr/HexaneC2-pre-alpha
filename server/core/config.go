@@ -19,7 +19,7 @@ func (h *HexaneConfig) GenerateConfigBytes() error {
 	)
 
 	key := CryptCreateKey(16)
-	if patch, err = h.PePatchConfig(); err != nil {
+	if patch, err = h.CreateBinaryPatch(); err != nil {
 		return err
 	}
 
@@ -36,15 +36,16 @@ func (h *HexaneConfig) CreateConfig() {
 	h.Compiler = new(Compiler)
 	h.Implant = new(Implant)
 
-	h.Compiler.BuildDirectory = filepath.Join(RootDirectory, "../payload/"+h.UserConfig.Builder.OutputName)
+	h.Compiler.BuildDirectory = filepath.Join(RootDirectory, "payload/"+h.UserConfig.Builder.OutputName)
 
+	// todo: find a better way to do this that's cross-platform
 	h.Compiler.Debug = h.UserConfig.Config.Debug
 	h.Compiler.Arch = h.UserConfig.Config.Arch
 	h.Compiler.Mingw = "x86_64-w64-mingw32-g++"
 	h.Compiler.Linker = "ld"
 	h.Compiler.Objcopy = "x86_64-w64-mingw32-objcopy"
 	h.Compiler.Windres = "x86_64-w64-mingw32-windres"
-	h.Compiler.Strip = "x86_64-w64-mingw32-strip"
+	h.Compiler.Strip = "strip"
 	h.Compiler.Assembler = "nasm"
 
 	h.Implant.LoadedModules = []string{
@@ -213,7 +214,7 @@ func ReadConfig(cfgPath string) error {
 	return h.RunBuild()
 }
 
-func (h *HexaneConfig) PePatchConfig() ([]byte, error) {
+func (h *HexaneConfig) CreateBinaryPatch() ([]byte, error) {
 	var err error
 
 	stream := CreateStream()

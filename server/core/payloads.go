@@ -13,11 +13,9 @@ func AddServer(profile *Http) {
 		Address:   profile.Address,
 		Port:      profile.Port,
 		Handle:    profile.Handle,
+		SigTerm:   profile.SigTerm,
+		GroupId:   HexaneServers.Group,
 		Next:      HexaneServers.Head,
-	}
-
-	if HexaneServers.Head != nil {
-		HexaneServers.Head.Next = HexaneServers.Head
 	}
 
 	HexaneServers.Head = c

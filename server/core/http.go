@@ -1,10 +1,14 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/net/context"
 	"io/ioutil"
+	"net/http"
 	"strconv"
+	"time"
 )
 
 func ParseHeaders(context *gin.Context) []Headers {
@@ -71,19 +75,42 @@ func (h *HexaneConfig) UpdateServerEndpoints(profile *Http) {
 func (h *HexaneConfig) StartNewServer(profile *Http) error {
 	var err error
 
-	Handle := gin.Default()
+	profile.Handle = gin.Default()
+	if !Debug {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
 	for _, endp := range profile.Endpoints {
-		Handle.GET(endp, func(context *gin.Context) {
+		profile.Handle.GET(endp, func(context *gin.Context) {
 			h.ServerRoutine(context)
 		})
 	}
+
+	server := &http.Server{
+		Addr:    profile.Address + ":" + strconv.Itoa(profile.Port),
+		Handler: profile.Handle,
+	}
+
 	go func() {
-		if err = Handle.Run(profile.Address + ":" + strconv.Itoa(profile.Port)); err != nil {
-			WrapMessage("ERR", err.Error())
+		if err = server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			return
 		}
 	}()
+	if err != nil {
+		return err
+	}
 
+	go func() {
+		<-profile.SigTerm
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		WrapMessage("INF", "shutting down "+server.Addr)
+		if err = server.Shutdown(ctx); err != nil {
+			return
+		}
+	}()
 	if err != nil {
 		return err
 	}
@@ -106,7 +133,10 @@ func (h *HexaneConfig) HttpServerHandler(profile *Http) error {
 		}
 	}
 	if !serverExists {
-		err = h.StartNewServer(profile)
+		if err = h.StartNewServer(profile); err != nil {
+			return err
+		}
+		AddServer(profile)
 	}
 
 	profile.Ready <- true
@@ -125,6 +155,7 @@ func (h *HexaneConfig) RunServer() error {
 		return err
 	}
 
+	profile.SigTerm = make(chan bool)
 	profile.Ready = make(chan bool)
 
 	go func() {
@@ -136,7 +167,6 @@ func (h *HexaneConfig) RunServer() error {
 		return err
 	}
 
-	AddServer(profile)
 	AddConfig(h)
 
 	return nil

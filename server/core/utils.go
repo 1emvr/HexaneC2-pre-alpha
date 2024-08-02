@@ -132,6 +132,8 @@ func WriteFile(name string, data []byte) error {
 		}
 	}()
 
+	WrapMessage("DBG", "creating "+name)
+
 	writer := bufio.NewWriter(outFile)
 	if _, err = writer.WriteString(string(data)); err != nil {
 		return err
