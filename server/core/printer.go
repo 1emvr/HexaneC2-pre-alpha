@@ -74,14 +74,18 @@ func (p *Parser) ParseTable() {
 	}
 
 	PrintTable(heads, vals)
+	fmt.Println()
 }
 
 func PrintTable(heads, vals []string) {
-	tbl := tablewriter.NewWriter(os.Stdout)
-	//format := color.New(color.FgCyan).SprintfFunc()
 
-	tbl.Append(vals)
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetCenterSeparator("-")
+	table.SetBorder(false)
+
+	table.SetHeader(heads)
+	table.Append(vals)
 
 	fmt.Println()
-	tbl.Render()
+	table.Render()
 }

@@ -123,25 +123,26 @@ func RemoveImplantByName(name string) error {
 
 func ListImplants() error {
 	var (
-		err     error
-		address string
-		domain  string
-		netType string
-		proxy   string
+		err         error
+		address     string
+		domain      string
+		netType     string
+		proxy       string
+		heads, vals []string
 	)
 
+	heads = []string{"gid", "pid", "name", "debug", "type", "address", "hostname", "domain", "proxy", "user", "active"}
 	Head := core.HexanePayloads.Head
-	heads := []string{"gid", "pid", "name", "debug", "type", "address", "hostname", "domain", "proxy", "user", "active"}
 
 	table := tablewriter.NewWriter(os.Stdout)
+	table.SetCenterSeparator("-")
+	table.SetBorder(false)
+	table.SetHeader(heads)
 
 	if Head == nil {
 		return fmt.Errorf("no active implants available")
 
 	} else {
-		fmt.Print(`
-			-- IMPLANTS -- 
-`)
 		for Head != nil {
 			if Head.Implant.ProfileTypeId == core.TRANSPORT_HTTP {
 
@@ -170,6 +171,7 @@ func ListImplants() error {
 				if err = core.MapToStruct(Head.UserConfig.Network.Config, &config); err != nil {
 					return err
 				}
+
 				address = config.EgressPipename
 				netType = "smb"
 			}
@@ -179,16 +181,12 @@ func ListImplants() error {
 			dbg := strconv.FormatBool(Head.Compiler.Debug)
 			active := strconv.FormatBool(Head.Active)
 
-			vals := []string{gid, pid, Head.UserConfig.Builder.OutputName, dbg, netType, address, Head.Implant.Hostname, domain, proxy, Head.UserSession.Username, active}
-			table.Append(vals)
-
+			vals = []string{gid, pid, Head.UserConfig.Builder.OutputName, dbg, netType, address, Head.Implant.Hostname, domain, proxy, Head.UserSession.Username, active}
 			Head = Head.Next
 		}
 	}
 
-	table.Render()
-	fmt.Println()
-
+	core.PrintTable(heads, vals)
 	return nil
 }
 
@@ -209,7 +207,7 @@ func UserInterface(config *core.HexaneConfig) error {
 		}
 
 		if config.CommandChan == nil {
-			core.WrapMessage("ERR", "command channel is not ready")
+			core.WrapMessage("ERR", "command channel is not ready. return to main menu")
 			break
 		}
 
