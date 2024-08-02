@@ -74,6 +74,7 @@ type Module struct {
 	Loader        *Loader
 	Components    []string
 	Definitions   map[string][]byte
+	Egg           []byte
 }
 
 type Config struct {
@@ -138,6 +139,7 @@ type JsonConfig struct {
 		Sources            []string
 		Dependencies       []string
 		IncludeDirectories []string
+		Egg                string
 	}
 
 	Loader *struct {

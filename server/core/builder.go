@@ -23,14 +23,14 @@ var (
 	HashStrings = path.Join(ConfigsPath, "strings.txt")
 )
 
-func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) *Module {
+func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) (*Module, error) {
 	var (
 		err       error
 		transport string
 	)
 
 	if transport, err = h.GetTransportType(); err != nil {
-		return nil
+		return nil, err
 	}
 
 	module := &Module{
@@ -55,13 +55,17 @@ func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) *Module {
 		},
 	}
 
+	if module.Egg, err = ConvertEgg(config.Builder.Egg); err != nil {
+		return nil, err
+	}
+
 	if config.Loader == nil {
 		module.BuildType = BUILD_TYPE_SHELLCODE
 	} else {
 		module.BuildType = BUILD_TYPE_DLL
 	}
 
-	return module
+	return module, nil
 }
 
 func (h *HexaneConfig) BuildSource() error {
@@ -71,8 +75,8 @@ func (h *HexaneConfig) BuildSource() error {
 		module *Module
 	)
 
-	if module = h.GetModuleConfig(h.UserConfig); module == nil {
-		return fmt.Errorf("module config is nil")
+	if module, err = h.GetModuleConfig(h.UserConfig); err != nil {
+		return err
 	}
 
 	if module.LinkerScript != "" {
@@ -93,7 +97,7 @@ func (h *HexaneConfig) BuildSource() error {
 		return err
 	}
 
-	if err = h.EmbedSectionData(module.OutputName, ".text$F", h.ConfigBytes); err != nil {
+	if err = h.EmbedSectionData(module.OutputName, module.Egg, h.ConfigBytes, 512); err != nil {
 		return fmt.Errorf("h.EmbedSectionData - " + err.Error())
 	}
 

@@ -189,6 +189,12 @@ func (h *HexaneConfig) CopySectionData(path string, out string, target string) e
 		err      error
 	)
 
+	if readFile, err = os.Open(path); err != nil {
+		return err
+	}
+	if peFile, err = pe.NewFile(readFile); err != nil {
+		return err
+	}
 	defer func() {
 		if err = readFile.Close(); err != nil {
 			WrapMessage("ERR", err.Error())
@@ -197,14 +203,6 @@ func (h *HexaneConfig) CopySectionData(path string, out string, target string) e
 			WrapMessage("ERR", err.Error())
 		}
 	}()
-
-	if readFile, err = os.Open(path); err != nil {
-		return err
-	}
-
-	if peFile, err = pe.NewFile(readFile); err != nil {
-		return err
-	}
 
 	for _, s := range peFile.Sections {
 		if s.Name == target {

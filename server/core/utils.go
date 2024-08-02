@@ -2,6 +2,7 @@ package core
 
 import (
 	"bufio"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -54,6 +55,31 @@ func HuntEgg(data []byte, egg []byte) int {
 		}
 	}
 	return -1
+}
+
+func ConvertEgg(egg string) ([]byte, error) {
+	var (
+		err     error
+		parts   []string
+		bytes   []byte
+		byteVal []byte
+	)
+
+	parts = strings.Split(strings.ReplaceAll(egg, " ", ""), ",")
+	bytes = make([]byte, len(parts))
+
+	for i, part := range parts {
+		if strings.HasPrefix(part, "0x") {
+			part = part[2:]
+		}
+		if byteVal, err = hex.DecodeString(part); err != nil {
+			return nil, err
+		}
+
+		bytes[i] = byteVal[0]
+	}
+
+	return bytes, nil
 }
 
 func GenerateUuid(n int) string {
