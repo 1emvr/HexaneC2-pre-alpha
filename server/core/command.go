@@ -34,7 +34,6 @@ func (h *HexaneConfig) DispatchCommand() (*Stream, error) {
 	case blob := <-h.CommandChan:
 
 		WrapMessage("DBG", fmt.Sprintf("%d : %s", h.PeerId, blob))
-
 		if cmd, err = h.ProcessCommand(blob); err != nil {
 			return nil, err
 		}
@@ -47,8 +46,6 @@ func (h *HexaneConfig) DispatchCommand() (*Stream, error) {
 	default:
 
 		WrapMessage("DBG", fmt.Sprintf("%d : CommandNoJob", h.PeerId))
-
-		h.CurrentTaskId++
 		stream.PackDword(CommandNoJob)
 
 		return stream, nil

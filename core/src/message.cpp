@@ -240,7 +240,7 @@ namespace Message {
         ULONG MsgType   = 0;
 
         Parser::CreateParser(&Parser, S_CAST(PBYTE, Inbound->Buffer), Inbound->Length);
-        Parser::UnpackDword(&Parser);
+        Parser::UnpackDword(&Parser); // throw-away peer id
 
         Ctx->Session.CurrentTaskId  = Parser::UnpackDword(&Parser);
         MsgType                     = Parser::UnpackDword(&Parser);
@@ -253,11 +253,13 @@ namespace Message {
             }
 
             case TypeTasking: {
+
                 auto CmdId = Parser::UnpackDword(&Parser);
                 if (CmdId == CommandNoJob) {
                     break;
                 }
 
+                __debugbreak();
                 for (uint32_t FnCounter = 0;; FnCounter++) {
                     if (!CmdMap[FnCounter].Function) {
                         return_defer(ERROR_PROC_NOT_FOUND);
@@ -269,6 +271,14 @@ namespace Message {
                         break;
                     }
                 }
+            }
+
+            case TypeAssembly: {
+                /*
+                 * todo: JIT-style inline assembly execution
+                 * Considerations:
+                 *
+                 */
             }
             default:
                 break;
