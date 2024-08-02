@@ -24,7 +24,7 @@ func (h *HexaneConfig) GenerateConfigBytes() error {
 		return err
 	}
 
-	h.ConfigBytes = patch // Assuming XteaCrypt(patch) if needed.
+	h.ConfigBytes = patch // Assuming XteaCrypt(patch+18) if needed.
 
 	return nil
 }
