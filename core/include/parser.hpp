@@ -3,6 +3,7 @@
 #include <core/corelib.hpp>
 
 namespace Parser {
+    FUNCTION VOID ParserBytecpy(PPARSER Parser, PBYTE dst);
     FUNCTION VOID ParserStrcpy(PPARSER Parser, LPSTR *Dst, ULONG *cbOut);
     FUNCTION VOID ParserWcscpy(PPARSER Parser, LPWSTR *Dst, ULONG *cbOut);
     FUNCTION VOID ParserMemcpy(PPARSER Parser, PBYTE *Dst, ULONG *cbOut);

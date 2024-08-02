@@ -1,6 +1,13 @@
 #include <core/corelib.hpp>
 namespace Parser {
 
+    VOID ParserBytecpy(PPARSER Parser, PBYTE dst) {
+        HEXANE
+
+        BYTE byte = Parser::UnpackByte(Parser);
+        x_memcpy(dst, &byte, 1);
+    }
+
     VOID ParserStrcpy(PPARSER Parser, LPSTR *Dst, ULONG *cbOut) {
         HEXANE
 
@@ -63,7 +70,7 @@ namespace Parser {
 
         Parser->Length = Length;
         Parser->Buffer = Parser->Handle;
-        Parser->Little = Ctx->LE;
+        Parser->LE = Ctx->LE;
     }
 
     VOID DestroyParser (PPARSER Parser) {
@@ -119,7 +126,7 @@ namespace Parser {
         Parser->Buffer = S_CAST(PBYTE, Parser->Buffer) + 4;
         Parser->Length -= 4;
 
-        return (Parser->Little)
+        return (Parser->LE)
                ? intBytes
                : __bswapd(S_CAST(ULONG, intBytes));
     }
@@ -136,7 +143,7 @@ namespace Parser {
         Parser->Buffer = S_CAST(PBYTE, Parser->Buffer) + 8;
         Parser->Length -= 8;
 
-        return (Parser->Little)
+        return (Parser->LE)
                ? intBytes
                : __bswapq(S_CAST(ULONG64, intBytes));
     }
@@ -153,7 +160,7 @@ namespace Parser {
         Parser->Buffer = S_CAST(PBYTE, Parser->Buffer) + 4;
         Parser->Length -= 4;
 
-        return (Parser->Little)
+        return (Parser->LE)
                ? intBytes != 0
                : __bswapd(intBytes) != 0;
     }

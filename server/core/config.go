@@ -219,7 +219,6 @@ func (h *HexaneConfig) CreateBinaryPatch() ([]byte, error) {
 	stream := CreateStream()
 	implant := h.Implant
 
-	stream.PackByte(1) // LE
 	stream.PackByte(1) // Root
 	stream.PackBytes(h.Key)
 

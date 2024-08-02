@@ -263,7 +263,7 @@ typedef struct {
 	LPVOID 	Handle;
     LPVOID  Buffer;
 	ULONG 	Length;
-	BOOL 	Little;
+	BOOL 	LE;
 } PARSER, *PPARSER;
 
 
