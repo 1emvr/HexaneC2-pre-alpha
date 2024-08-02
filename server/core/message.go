@@ -1,12 +1,16 @@
 package core
 
 import (
+	"encoding/json"
+	"database/sql"
 	"fmt"
 	"math/bits"
+	"os"
 	"strings"
 	"sync"
-	"time"
 )
+
+const HeaderLength = 12
 
 var (
 	Cmd      string
@@ -19,28 +23,103 @@ var (
 	}
 )
 
-const HeaderLength = 12
-
-func (h *HexaneConfig) ResponseWorker() {
-	go func () {
-		for {
-			select {
-			case parser, ok := <- h.ResponseChan:
-				if !ok {
-					WrapMessage("ERR", "response channel was closed for some reason")
-					return
-				}
-				h.ProcessParser(parser)
-			case <- time.After(10 * time.Second):
-				// cleanup
-			}
+func (h *HexaneConfig) SaveConfig() error {
+	file, err := os.Create(h.Database + ".json")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err = file.Close(); err != nil {
+			WrapMessage("ERR", "error closing config database json")
 		}
 	}()
+
+	encoder := json.NewEncoder(file)
+	return encoder.Encode(h)
 }
 
-func (h *HexaneConfig) ProcessParser(parser *Parser) {
+func (h *HexaneConfig) SqliteInit() (*sql.DB, error) {
+	var (
+		err error
+		db *sql.DB
+	)
 
-	// message offloading
+	h.Database = h.UserConfig.Builder.OutputName + ".db"
+	if db, err = sql.Open("sqlite3", h.Database); err != nil {
+		return nil, err
+	}
+
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS parsers (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		data BLOB
+	)`)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
+func (h *HexaneConfig) ResponseWorker() error {
+	var (
+		err error
+		data []byte
+		db 		*sql.DB
+	)
+
+	if db, err = h.SqliteInit(); err != nil {
+		return err
+	}
+	defer func() {
+		if err = db.Close(); err != nil {
+			WrapMessage("ERR", "error closing database: "+err.Error())
+		}
+	}()
+
+	for parser := range h.ResponseChan {
+		if data, err = json.Marshal(parser); err != nil {
+			return fmt.Errorf("marshal response to JSON: "+err.Error())
+		}
+
+		if _, err = db.Exec(`INSERT INTO parsers (data) VALUES (?)`, string(data)); err != nil {
+			return fmt.Errorf("write response to JSON: "+err.Error())
+		}
+	}
+}
+
+func (h *HexaneConfig) ProcessParsers(parser *Parser) error {
+	var (
+		err error
+		rows *sql.Rows
+	)
+
+	if rows, err = db.Query(`SELECT data FROM parsers`); err != nil {
+		return err
+	}
+	defer func() {
+		if err = rows.Close(); err != nil {
+			WrapMessage("ERR", "close row: "+err.Error())
+		}
+	}()
+
+	for rows.Next() {
+
+		var data []byte
+		if err = rows.Scan(&data); err != nil {
+			WrapMessage("ERR", "scan row: "+err.Error())
+			continue
+		}
+
+		var parser Parser
+		if err = json.Unmarshal(data, &parser); err != nil {
+			WrapMessage("ERR", "unmarshal response to JSON: "+err.Error())
+			continue
+		}
+
+
+	}
+	return nil
 }
 
 func (m *Parser) DispatchCommand(s *Stream, UserInput string) error {

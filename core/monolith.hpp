@@ -498,14 +498,14 @@ EXTERN_C WEAK LPVOID __Instance;
 
 #define ZeroFreePtr(x, n) 						\
 	x_memset(x, 0, n); 							\
-	Ctx->Nt.RtlFreeHeap(LocalHeap, 0, x);		\
+	Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, x);		\
 	x = nullptr
 
 
 #define FreeApi(Ctx) 						\
 	auto Free = Ctx->Nt.RtlFreeHeap; 		\
 	x_memset(Ctx, 0, sizeof(HEXANE_CTX));	\
-	Free(LocalHeap, 0, Ctx)
+	Free(Ctx->Heap, 0, Ctx)
 
 
 #define FPTR(Fn, mod, sym) 	\
@@ -515,5 +515,29 @@ EXTERN_C WEAK LPVOID __Instance;
 #define FPTR2(Fn, mod, sym) \
 	Fn = (__typeof__(Fn)) Memory::LdrGetSymbolAddress(Memory::LdrGetModuleAddress(mod), sym)
 
+
+
+void* operator new(std::size_t size) {
+	HEXANE
+	return Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, size);
+}
+
+
+void operator delete(void* ptr) noexcept {
+	HEXANE
+	if (ptr && Ctx->Heap) {
+		Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, ptr);
+	}
+}
+
+
+void* operator new[](std::size_t size) {
+	return operator new(size);
+}
+
+
+void operator delete[](void* ptr) noexcept {
+	operator delete(ptr);
+}
 
 #endif
