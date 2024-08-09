@@ -162,9 +162,10 @@ namespace Commands {
 
         if (
             (Snapshot = Ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)) == INVALID_HANDLE_VALUE ||
-            !Process32First(Snapshot, &Entries)) {
+            !Ctx->win32.Process32First(Snapshot, &Entries)) {
             return;
         }
+
         do {
             CLIENT_ID Cid           = { };
             OBJECT_ATTRIBUTES Attr  = { };
