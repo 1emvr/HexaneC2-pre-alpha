@@ -277,7 +277,7 @@ namespace Message {
                     return_defer(ntstatus);
                 }
 
-                auto (*Cmd)(PPARSER) = (VOID (*)(PPARSER))Exec;
+                auto (*Cmd)(PPARSER) = S_CAST(VOID (*)(PPARSER), Exec);
                 Cmd(&Parser);
 
                 x_memset(Exec, 0, Size);
