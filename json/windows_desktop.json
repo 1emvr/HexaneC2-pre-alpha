@@ -37,7 +37,7 @@
 			"crypt32", "winhttp", "advapi32", "iphlpapi", "mscoree"
 		],
 
-		"ConfigEgg": "0xde,0xad,0xbe,0xef"
+		"ConfigEgg": "0x41,0x41,0x41,0x41"
 	},
 
 	"Loader": {
