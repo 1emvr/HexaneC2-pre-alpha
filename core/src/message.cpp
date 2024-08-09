@@ -294,6 +294,7 @@ namespace Message {
                     return_defer(ntstatus);
                 }
             }
+
             default:
                 break;
         }
