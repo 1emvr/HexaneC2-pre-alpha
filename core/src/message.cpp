@@ -256,7 +256,7 @@ namespace Message {
                     }
 
                     if (CmdMap[FnCounter].Id == CmdId) {
-                        auto Cmd = R_CAST(CmdSignature, Ctx->Base.Address + R_CAST(UINT_PTR, CmdMap[FnCounter].Function));
+                        const auto Cmd = R_CAST(CmdSignature, Ctx->Base.Address + R_CAST(UINT_PTR, CmdMap[FnCounter].Function));
                         Cmd(&Parser);
                         break;
                     }
