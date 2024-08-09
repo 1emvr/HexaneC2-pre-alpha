@@ -4,4 +4,5 @@
 
 FUNCTION LPSTR      FormatResultError(LRESULT Result);
 FUNCTION LSTATUS    RegCreateDwordSubkey(LPSTR Subkey, LPSTR Name, DWORD Value);
+
 #endif //HEXANE_IMPLANT_REGISTRY_HPP

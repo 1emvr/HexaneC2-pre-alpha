@@ -122,3 +122,4 @@ RegCreateKeyExA
 RegSetValueExA
 RegCloseKey
 AdjustTokenPrivileges
+NtOpenThreadToken

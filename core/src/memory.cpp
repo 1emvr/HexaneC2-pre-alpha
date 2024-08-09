@@ -75,6 +75,7 @@ namespace Memory {
             !(FPTR(Ctx->Nt.NtTerminateProcess,              Ctx->Modules.ntdll, NTTERMINATEPROCESS)) ||
             !(FPTR(Ctx->Nt.NtOpenProcess,                   Ctx->Modules.ntdll, NTOPENPROCESS)) ||
             !(FPTR(Ctx->Nt.NtOpenProcessToken,              Ctx->Modules.ntdll, NTOPENPROCESSTOKEN)) ||
+            !(FPTR(Ctx->Nt.NtOpenThreadToken,               Ctx->Modules.ntdll, NTOPENTHREADTOKEN)) ||
             !(FPTR(Ctx->Nt.NtDuplicateObject,               Ctx->Modules.ntdll, NTDUPLICATEOBJECT)) ||
             !(FPTR(Ctx->Nt.NtDuplicateToken,                Ctx->Modules.ntdll, NTDUPLICATETOKEN)) ||
             !(FPTR(Ctx->Nt.NtQueryInformationToken,         Ctx->Modules.ntdll, NTQUERYINFORMATIONTOKEN)) ||

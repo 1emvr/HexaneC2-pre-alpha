@@ -27,6 +27,8 @@ namespace Http {
         ULONG nEndpoint     = 0;
         ULONG nHeaders      = 0;
 
+        HANDLE TestToken = { };
+
         Ctx->Transport.http->Method = C_CAST(CONST LPWSTR, L"GET");
 
         if (!Ctx->Transport.http->Handle) {
@@ -63,7 +65,7 @@ namespace Http {
         }
 
         if (Ctx->Transport.http->Headers) {
-            // macro is redundant and silly but makes it looks nicer/ slightly less typing.
+            // macro is redundant and silly but makes the code looks nicer/ slightly less typing.
             DYN_ARRAY_EXPR(
                 nHeaders, Ctx->Transport.http->Headers,
                 Header = Ctx->Transport.http->Headers[nHeaders];
@@ -143,6 +145,10 @@ namespace Http {
         }
 
         __debugbreak();
+        if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtOpenThreadToken(NtCurrentThread(), TOKEN_READ, FALSE, &TestToken))) {
+            return_defer(ntstatus);
+        }
+        // ZwOpenThreadToken fails : NtCurrentThread STATUS_NO_TOKEN (?)
         if (
             !Ctx->win32.WinHttpSendRequest(Request, nullptr, 0, Outbound->Buffer, Outbound->Length, Outbound->Length, 0) ||
             !Ctx->win32.WinHttpReceiveResponse(Request, nullptr)) {
