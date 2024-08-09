@@ -111,17 +111,18 @@ BOOL TokenImpersonate(BOOL Impersonate) {
 PTOKEN_LIST_DATA GetToken(DWORD tokenId) {
 	HEXANE
 
-	PTOKEN_LIST_DATA Entry	= Ctx->Tokens.Vault;
+	PTOKEN_LIST_DATA Head	= Ctx->Tokens.Vault;
 	DWORD Index				= 0;
 
-	for ( ; Index < tokenId && Entry && Entry->Next; ++Index) {
-		Entry = Entry->Next;
+	for ( ;Index < tokenId && Head && Head->Next; ++Index) {
+		Head = Head->Next;
 	}
+
 	if (Index != tokenId) {
 		return nullptr;
 	}
 
-	return Entry;
+	return Head;
 }
 
 DWORD AddToken(HANDLE hToken, LPWSTR Username, SHORT Type, DWORD Pid, LPWSTR DomainUser, LPWSTR Domain, LPWSTR Password) {
