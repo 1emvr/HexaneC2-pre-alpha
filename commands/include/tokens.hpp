@@ -1,5 +1,5 @@
-#ifndef HEXANE_IMPLANT_SEIMPERSONATE_HPP
-#define HEXANE_IMPLANT_SEIMPERSONATE_HPP
+#ifndef HEXANE_IMPLANT_TOKENS_HPP
+#define HEXANE_IMPLANT_TOKENS_HPP
 #include <core/corelib.hpp>
 
 namespace Token {
@@ -13,4 +13,4 @@ namespace Token {
     FUNCTION BOOL RemoveToken(DWORD tokenId);
     FUNCTION PTOKEN_LIST_DATA GetToken(DWORD tokenId);
 }
-#endif //HEXANE_IMPLANT_SEIMPERSONATE_HPP
+#endif //HEXANE_IMPLANT_TOKENS_HPP

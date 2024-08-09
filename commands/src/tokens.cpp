@@ -1,4 +1,4 @@
-#include <commands/include/SeImpersonate.hpp>
+#include <commands/include/tokens.hpp>
 namespace Token {
 
 	BOOL RevertToken() {
