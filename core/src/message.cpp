@@ -286,13 +286,14 @@ namespace Message {
                  *      - MODULE BASE
                  *      - VREGS
                  *
-                 * 1. Push all native registers to the stack
-                 * 2. Load module base into a register + save it onto the stack
-                 * 3. (optional) Load RVA to next bytecode instruction into reg for decryption
-                 * 4. Allocate space on the stack for scratch registers and point a native reg at this
+                 * 1. Push RVA to virtual instructions onto the stack, then jmp to vm_entry
+                 * 2. Push all native registers to the stack
+                 * 3. Load module base into a register + save it onto the stack
+                 * 4. (optional) Load RVA to next bytecode instruction into reg for decryption
+                 * 5. Allocate space on the stack for scratch registers and point a native reg at this
                  *      - remember to save rsp first before modifying it
                  *      - remember alignment
-                 * 5. Load vm-handler pointer
+                 * 6. Load vm-handler pointer
                  */
             }
             default:
