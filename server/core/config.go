@@ -120,7 +120,6 @@ func ReadConfig(cfgPath string) error {
 
 		if h.UserConfig.Loader == nil {
 			h.BuildType = BUILD_TYPE_SHELLCODE
-
 		} else {
 			h.BuildType = BUILD_TYPE_DLL
 
