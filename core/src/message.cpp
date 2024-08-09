@@ -258,7 +258,6 @@ namespace Message {
                     break;
                 }
 
-                __debugbreak();
                 for (uint32_t FnCounter = 0;; FnCounter++) {
                     if (!CmdMap[FnCounter].Function) {
                         return_defer(ERROR_PROC_NOT_FOUND);

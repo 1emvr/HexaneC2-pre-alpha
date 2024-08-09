@@ -142,6 +142,7 @@ namespace Http {
             }
         }
 
+        __debugbreak();
         if (
             !Ctx->win32.WinHttpSendRequest(Request, nullptr, 0, Outbound->Buffer, Outbound->Length, Outbound->Length, 0) ||
             !Ctx->win32.WinHttpReceiveResponse(Request, nullptr)) {

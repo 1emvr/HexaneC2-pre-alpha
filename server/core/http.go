@@ -75,10 +75,11 @@ func (h *HexaneConfig) UpdateServerEndpoints(p *Http) {
 func (h *HexaneConfig) StartNewServer(p *Http) error {
 	var err error
 
-	p.Handle = gin.Default()
 	if !Debug {
 		gin.SetMode(gin.ReleaseMode)
 	}
+
+	p.Handle = gin.Default()
 
 	for _, endp := range p.Endpoints {
 		p.Handle.GET(endp, func(context *gin.Context) {
