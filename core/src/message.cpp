@@ -244,8 +244,8 @@ namespace Message {
         MsgType                     = Parser::UnpackDword(&Parser);
 
         switch (MsgType) {
-
             case TypeCheckin: {
+
                 Ctx->Session.Checkin = TRUE;
                 break;
             }
