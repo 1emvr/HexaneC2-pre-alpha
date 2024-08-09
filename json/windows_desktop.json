@@ -2,6 +2,7 @@
 	"Config": {
 		"Arch": "amd64",
 		"Debug": false,
+		"Encrypt": false,
 		"Hostname": "DESKTOP-HFVTTIJ",
 		"Sleeptime": 3,
 		"Jitter": 10
@@ -33,7 +34,7 @@
 			"utils.cpp", "implant.cpp"
 		],
 		"LoadedModules": [
-			"crypt32", "winhttp", "advapi32", "iphlpapi"
+			"crypt32", "winhttp", "advapi32", "iphlpapi", "mscoree"
 		],
 
 		"ConfigEgg": "0xde,0xad,0xbe,0xef"

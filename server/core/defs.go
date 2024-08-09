@@ -128,6 +128,7 @@ type JsonConfig struct {
 	Config *struct {
 		Arch         string
 		Debug        bool
+		Encrypt      bool
 		Hostname     string
 		WorkingHours string
 		Killdate     string

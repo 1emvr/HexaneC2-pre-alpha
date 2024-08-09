@@ -7,13 +7,6 @@ import (
 	"strconv"
 )
 
-var ModuleStrings = []string{
-	"crypt32",
-	"winhttp",
-	"advapi32",
-	"iphlpapi",
-}
-
 func (h *HexaneConfig) GenerateConfigBytes() error {
 	var (
 		err   error
@@ -25,8 +18,14 @@ func (h *HexaneConfig) GenerateConfigBytes() error {
 		return err
 	}
 
-	h.ConfigBytes = patch // Assuming XteaCrypt(patch+18) if needed.
+	if h.UserConfig.Config.Encrypt {
+		patchCpy := patch
+		if patch, err = CryptXtea(patchCpy, h.Key, true); err != nil {
+			return err
+		}
+	}
 
+	h.ConfigBytes = patch // Assuming XteaCrypt(patch+18) if needed.
 	return nil
 }
 
