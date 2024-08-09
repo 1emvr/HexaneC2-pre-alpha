@@ -4,7 +4,7 @@
 
 namespace Process {
 	FUNCTION ULONG GetProcessIdByName(LPSTR proc);
-	FUNCTION HANDLE NtOpenProcess(ULONG access, ULONG pid);
+	FUNCTION VOID NtOpenProcess(PHANDLE phProcess, ULONG access, ULONG pid);
 	FUNCTION VOID NtCloseUserProcess(PIMAGE proc);
 	FUNCTION VOID NtCreateUserProcess(PIMAGE proc, LPCSTR path);
 	FUNCTION HANDLE LdrGetParentHandle(PBYTE Parent);

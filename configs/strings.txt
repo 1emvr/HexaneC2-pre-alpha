@@ -76,6 +76,10 @@ WinHttpQueryHeaders
 WinHttpQueryDataAvailable
 WinHttpCloseHandle
 GetAdaptersInfo
+NtDuplicateToken
+NtDuplicateObject
+AdjustTokenPrivileges
+NtSetInformationThread
 CreateFileW
 GetFullPathNameA
 GetFileSizeEx

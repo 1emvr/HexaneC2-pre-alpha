@@ -97,6 +97,7 @@ namespace Implant {
             !(FPTR(Ctx->win32.InitializeAcl,                Ctx->Modules.advapi, INITIALIZEACL)) ||
             !(FPTR(Ctx->win32.SetSecurityDescriptorDacl,    Ctx->Modules.advapi, SETSECURITYDESCRIPTORDACL)) ||
             !(FPTR(Ctx->win32.SetSecurityDescriptorSacl,    Ctx->Modules.advapi, SETSECURITYDESCRIPTORSACL)) ||
+            !(FPTR(Ctx->win32.AdjustTokenPrivileges,        Ctx->Modules.kernel32, ADJUSTTOKENPRIVILEGES)) ||
             !(FPTR(Ctx->win32.FreeSid,                      Ctx->Modules.advapi, FREESID))) {
             return_defer(ERROR_PROC_NOT_FOUND);
         }

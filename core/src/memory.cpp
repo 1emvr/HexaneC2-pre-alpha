@@ -75,6 +75,8 @@ namespace Memory {
             !(FPTR(Ctx->Nt.NtTerminateProcess,              Ctx->Modules.ntdll, NTTERMINATEPROCESS)) ||
             !(FPTR(Ctx->Nt.NtOpenProcess,                   Ctx->Modules.ntdll, NTOPENPROCESS)) ||
             !(FPTR(Ctx->Nt.NtOpenProcessToken,              Ctx->Modules.ntdll, NTOPENPROCESSTOKEN)) ||
+            !(FPTR(Ctx->Nt.NtDuplicateObject,               Ctx->Modules.ntdll, NTDUPLICATEOBJECT)) ||
+            !(FPTR(Ctx->Nt.NtDuplicateToken,                Ctx->Modules.ntdll, NTDUPLICATETOKEN)) ||
             !(FPTR(Ctx->Nt.NtQueryInformationToken,         Ctx->Modules.ntdll, NTQUERYINFORMATIONTOKEN)) ||
             !(FPTR(Ctx->Nt.NtQueryInformationProcess,       Ctx->Modules.ntdll, NTQUERYINFORMATIONPROCESS)) ||
             !(FPTR(Ctx->Nt.NtQuerySystemInformation,        Ctx->Modules.ntdll, NTQUERYSYSTEMINFORMATION)) ||
@@ -84,6 +86,7 @@ namespace Memory {
             !(FPTR(Ctx->Nt.NtResumeThread,                  Ctx->Modules.ntdll, NTRESUMETHREAD)) ||
             !(FPTR(Ctx->Nt.NtGetContextThread,              Ctx->Modules.ntdll, NTGETCONTEXTTHREAD)) ||
             !(FPTR(Ctx->Nt.NtSetContextThread,              Ctx->Modules.ntdll, NTSETCONTEXTTHREAD)) ||
+            !(FPTR(Ctx->Nt.NtSetInformationThread,          Ctx->Modules.ntdll, NTSETINFORMATIONTHREAD)) ||
             !(FPTR(Ctx->Nt.NtWaitForSingleObject,           Ctx->Modules.ntdll, NTWAITFORSINGLEOBJECT)) ||
             !(FPTR(Ctx->Nt.TpAllocWork,                     Ctx->Modules.ntdll, TPALLOCWORK)) ||
             !(FPTR(Ctx->Nt.TpPostWork,                      Ctx->Modules.ntdll, TPPOSTWORK)) ||

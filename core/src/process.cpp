@@ -68,10 +68,9 @@ namespace Process {
 		return Proc;
 	}
 
-	HANDLE NtOpenProcess(ULONG access, ULONG pid) {
+	VOID NtOpenProcess(PHANDLE phProcess, ULONG access, ULONG pid) {
 
 		HEXANE
-		HANDLE handle				= { };
 		CLIENT_ID client			= { };
 		OBJECT_ATTRIBUTES attrs     = { };
 
@@ -79,12 +78,11 @@ namespace Process {
 		client.UniqueProcess = R_CAST(HANDLE, pid);
 		client.UniqueThread = nullptr;
 
-		if (!NT_SUCCESS(Ctx->Nt.NtOpenProcess(&handle, access, &attrs, &client))) {
+		if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtOpenProcess(phProcess, access, &attrs, &client))) {
 			return_defer(ntstatus);
 		}
 
 	defer:
-		return handle;
 	}
 
 	VOID NtCloseUserProcess(PIMAGE proc) {
