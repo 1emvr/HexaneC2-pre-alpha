@@ -222,7 +222,7 @@ namespace Commands {
         // Send final message
         // Zero/Free all memory
         // Exit
-        ntstatus = ERROR_FATAL_APP_EXIT;
+        ntstatus = 0x7FFFFFFF;
     }
 
     VOID UpdatePeer(PPARSER Parser) {

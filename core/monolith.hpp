@@ -28,7 +28,7 @@ EXTERN_C LPVOID InstEnd();
 #define FUNCTION								TXT_SECTION(B)
 
 #define UNMANAGED_PROCESS   					0
-#define MANAGED_PROCESS     					1
+#define MANAGED_PoROCESS     					1
 
 #define C_PTR(x)                                (R_CAST(LPVOID, x))
 #define U_PTR(x)                                (R_CAST(UINT_PTR, x))
@@ -104,6 +104,7 @@ EXTERN_C LPVOID InstEnd();
 #define SMB_RID_SINGLE_MANDATORY_LOW			SECURITY_MANDATORY_LOW_RID, 0, 0, 0, 0, 0, 0, 0
 #define PROCESS_CREATE_ALL_ACCESS_SUSPEND		PROCESS_ALL_ACCESS, THREAD_ALL_ACCESS, nullptr, nullptr, NULL, THREAD_CREATE_FLAGS_CREATE_SUSPENDED
 
+#define ERROR_EXIT								0x7FFFFFFF
 #define DBG_FLAG_OFFSET64						0x000000BC
 #define DBG_FLAG_OFFSET32						0x00000068
 #define FLG_HEAP_ENABLE_TAIL_CHECK				0x00000020
