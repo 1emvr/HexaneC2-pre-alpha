@@ -1,4 +1,5 @@
 #include <core/corelib.hpp>
+#include <core/dotnet.hpp>
 
 namespace Commands {
 
@@ -150,8 +151,8 @@ namespace Commands {
         HANDLE hProcess             = { };
 
         IEnumUnknown *pEnum         = { };
-        ICLRMetaHost *pMetaHost     = { };
-        ICLRRuntimeInfo *pRuntime   = { };
+        ICLRMetaHost *pMetaHost = { };
+        ICLRRuntimeInfo *pRuntime = { };
 
         WCHAR Buffer[1024];
         DWORD Size  = 0;
@@ -181,20 +182,20 @@ namespace Commands {
                 continue;
             }
 
-            if (SUCCEEDED(Ctx->win32.CLRCreateInstance(CLSID_CLRMetaHost, IID_PPV_ARGS(&pMetaHost)))) {
-                if (SUCCEEDED(pMetaHost->EnumerateInstalledRuntimes(&pEnum))) {
+            if (SUCCEEDED(Ctx->win32.CLRCreateInstance(xCLSID_CLRMetaHost, xIID_ICLRMetaHost, &pMetaHost))) {
+                if (SUCCEEDED((pMetaHost)->lpVtbl->EnumerateInstalledRuntimes(pMetaHost, &pEnum))) {
 
                     while (S_OK == pEnum->Next(1, R_CAST(IUnknown **, &pRuntime), nullptr)) {
-                        if (pRuntime->IsLoaded(hProcess, &isLoaded) == S_OK && isLoaded == TRUE) {
+                        if (pRuntime->lpVtbl->IsLoaded(pRuntime, hProcess, &isLoaded) == S_OK && isLoaded == TRUE) {
                             isManaged = TRUE;
 
-                            if (Type == MANAGED_PROCESS && SUCCEEDED(pRuntime->GetVersionString(Buffer, &Size))) {
+                            if (Type == MANAGED_PROCESS && SUCCEEDED(pRuntime->lpVtbl->GetVersionString(pRuntime, Buffer, &Size))) {
                                 Stream::PackDword(Stream, Entries.th32ProcessID);
                                 Stream::PackString(Stream, Entries.szExeFile);
                                 Stream::PackWString(Stream, Buffer);
                             }
                         }
-                        pRuntime->Release();
+                        pRuntime->lpVtbl->Release();
                     }
                 }
             }
@@ -204,9 +205,9 @@ namespace Commands {
                 Stream::PackString(Stream, Entries.szExeFile);
             }
 
-            if (pMetaHost) { pMetaHost->Release(); }
-            if (pRuntime) { pRuntime->Release(); }
-            if (pEnum) { pEnum->Release(); }
+            if (pMetaHost)  { pMetaHost->lpVtbl->Release(pMetaHost); }
+            if (pRuntime)   { pRuntime->lpVtbl->Release(pRuntime); }
+            if (pEnum)      { pEnum->Release(); }
 
             Ctx->Nt.NtClose(hProcess);
         } while (Ctx->win32.Process32Next(Snapshot, &Entries));
