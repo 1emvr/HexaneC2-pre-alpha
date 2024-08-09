@@ -167,11 +167,10 @@ func ReadConfig(cfgPath string) error {
 			var httpConfig Http
 			h.Implant.ProfileTypeId = TRANSPORT_HTTP
 
+			WrapMessage("DBG", "loading http config")
 			if err = MapToStruct(h.UserConfig.Network.Config, &httpConfig); err != nil {
 				return fmt.Errorf("implant::network - network configuration - " + err.Error())
 			}
-
-			WrapMessage("DBG", "loading http config")
 
 			if httpConfig.Address == "" {
 				return fmt.Errorf("implant::network::http - ip address must be specified")
@@ -195,11 +194,10 @@ func ReadConfig(cfgPath string) error {
 			var smbConfig Smb
 			h.Implant.ProfileTypeId = TRANSPORT_PIPE
 
+			WrapMessage("DBG", "loading smb config")
 			if err = MapToStruct(h.UserConfig.Network.Config, &smbConfig); err != nil {
 				return fmt.Errorf("implant::network - network configuration - " + err.Error())
 			}
-
-			WrapMessage("DBG", "loading smb config")
 
 			if smbConfig.EgressPeer == "" {
 				return fmt.Errorf("implant::network::smb - peer must have it's parent node name specified")
