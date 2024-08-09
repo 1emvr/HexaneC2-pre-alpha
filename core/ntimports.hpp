@@ -20,11 +20,13 @@
 #include <cstdint>
 #include <string>
 
+
 typedef LONG KPRIORITY;
 typedef ULONG LOGICAL;
-#define STATIC static
-#define PROCESSOR_FEATURE_MAX 64
-#define MAX_WOW64_SHARED_ENTRIES 16
+#define STATIC						static
+#define PROCESSOR_FEATURE_MAX		64
+#define MAX_WOW64_SHARED_ENTRIES	16
+#define NT_SUCCESS(status)			((status) >= 0)
 
 #if defined(_MSC_VER) && (_MSC_VER < 1300)
 #define XSTATE_LEGACY_FLOATING_POINT        0

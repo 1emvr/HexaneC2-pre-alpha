@@ -1,8 +1,7 @@
 #ifndef HEXANE_MONOLITH_HPP
 #define HEXANE_MONOLITH_HPP
-#include "C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um/metahost.h"
 #include <core/ntimports.hpp>
-#include <combaseapi.h>
+#include <metahost.h>
 
 EXTERN_C LPVOID InstStart();
 EXTERN_C LPVOID InstEnd();
@@ -20,71 +19,65 @@ EXTERN_C LPVOID InstEnd();
 #define WIN_VERSION_10                          10
 #define WIN_VERSION_2016_X                      11
 
-#define PROTOTYPE(x)                            __typeof__(x) *x
-#define DLL_EXPORT 								__declspec(dllexport)
-#define TXT_SECTION(x) 							__attribute__((used, section(".text$" #x "")))
-#define DATA_SECTION  							__attribute__((used, section(".data")))
-#define RDATA_SECTION  							__attribute__((used, section(".rdata")))
-#define WEAK									__attribute__((weak))
-#define FUNCTION								TXT_SECTION(B)
-
-#define UNMANAGED_PROCESS   					0
-#define MANAGED_PROCESS     					1
-
-#define C_PTR(x)                                (R_CAST(LPVOID, x))
-#define U_PTR(x)                                (R_CAST(UINT_PTR, x))
-#define C_DREF(x)                               (*R_CAST(VOID**, x))
+#define MAX_PATH 								260
+#define PIPE_BUFFER_MAX     					(64 * 1000 - 1)
+#define MIN(a,b)								(a < b ? a : b)
 
 #define C_CAST(T,x)								const_cast<T>(x)
 #define D_CAST(T,x)								dynamic_cast<T>(x)
 #define S_CAST(T,x)								static_cast<T>(x)
 #define R_CAST(T,x)								reinterpret_cast<T>(x)
 
-#define NT_SUCCESS(status)						((status) >= 0)
+#define B_PTR(x)								(R_CAST(PBYTE, x))
+#define C_PTR(x)                                (R_CAST(LPVOID, x))
+#define U_PTR(x)                                (R_CAST(UINT_PTR, x))
+#define C_DREF(x)                               (*R_CAST(VOID**, x))
+
+#define FUNCTION								TXT_SECTION(B)
+#define PROTOTYPE(x)                            __typeof__(x) *x
+#define DLL_EXPORT 								__declspec(dllexport)
+#define TXT_SECTION(x) 							__attribute__((used, section(".text$" #x "")))
+#define DATA_SECTION  							__attribute__((used, section(".data")))
+#define RDATA_SECTION  							__attribute__((used, section(".rdata")))
+#define WEAK									__attribute__((weak))
+
 #define LocalHeap								NtCurrentTeb()->ProcessEnvironmentBlock->ProcessHeap
 #define ntstatus 								Ctx->Teb->LastErrorValue
 
-#define PS_ATTR_LIST_SIZE( n )					(sizeof(PS_ATTRIBUTE_LIST) + (sizeof(PS_ATTRIBUTE) * (n - 1)))
+#define PS_ATTR_LIST_SIZE(n)					(sizeof(PS_ATTRIBUTE_LIST) + (sizeof(PS_ATTRIBUTE) * (n - 1)))
+#define MODULE_NAME(mod)						(mod->BaseDllName.Buffer)
 
-#define PEB_POINTER64							((PPEB)__readgsqword( 0x60 ))
-#define PEB_POINTER32							((PPEB)__readfsdword( 0x30 ))
+#define PEB_POINTER64							(R_CAST(PPEB, __readgsqword(0x60))
+#define PEB_POINTER32							(R_CAST(PPEB, __readfsdword(0x30))
+#define REG_PEB32(ctx) 						    (R_CAST(LPVOID, R_CAST(ULONG_PTR, ctx.Ebx) + 0x8))
+#define REG_PEB64(ctx) 						    (R_CAST(LPVOID, R_CAST(ULONG_PTR, ctx.Rdx) + 0x10))
 
-#define MODULE_ENTRY(next)                      ((PLDR_MODULE) ((PBYTE)next - SIZEOF_MODULE_ENTRY))
-#define IN_MEMORY_ORDER_MODULE_LIST             ((PLIST_ENTRY) (&(PEB_POINTER)->Ldr->InMemoryOrderModuleList))
-#define MODULE_NAME( mod )						(mod->BaseDllName.Buffer)
-#define SIZEOF_MODULE_ENTRY						(sizeof(ULONG) * 4)
+#define IMAGE_DOS_HEADER(base)                	(R_CAST(PIMAGE_DOS_HEADER, base)
+#define IMAGE_NT_HEADERS(base, dos)				(R_CAST(PIMAGE_NT_HEADERS, B_PTR(base) + dos->e_lfanew))
+#define IMAGE_EXPORT_DIRECTORY(dos, nt)	    	(R_CAST(PIMAGE_EXPORT_DIRECTORY, B_PTR(dos) + (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress))
 
-#define PEB_EBX 								((LPVOID) ((UINT_PTR)ThrCtx.Ebx + 0x8))
-#define PEB_RDX 								((LPVOID) ((UINT_PTR)ThrCtx.Rdx + 0x10))
-
-#define IMAGE_DOS_HEADER(base)                	((PIMAGE_DOS_HEADER)base)
-#define IMAGE_NT_HEADERS(base, dos)				((PIMAGE_NT_HEADERS) ((PBYTE)base + dos->e_lfanew))
-#define IMAGE_EXPORT_DIRECTORY(dos, nt)	    	((PIMAGE_EXPORT_DIRECTORY)((PBYTE)dos + (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress))
-
-#define RELOCATION_ENTRIES(base, raw, off)		((PBASE_RELOCATION_ENTRY) ((ULONG_PTR)base + raw + off))
-#define RELOCATION_BLOCK(base, raw, off)		((PBASE_RELOCATION_BLOCK) ((ULONG_PTR)base + raw + off))
+#define MODULE_ENTRY(next)                      (R_CAST(PLDR_MODULE, (B_PTR(next) - sizeof(ULONG)* 4))
+#define IN_MEMORY_ORDER_MODULE_LIST             (R_CAST(PLIST_ENTRY, &(PEB_POINTER)->Ldr->InMemoryOrderModuleList)
+#define RELOCATION_ENTRIES(base, raw, off)		(R_CAST(PBASE_RELOCATION_ENTRY, U_PTR(base) + raw + off))
+#define RELOCATION_BLOCK(base, raw, off)		(R_CAST(PBASE_RELOCATION_BLOCK, U_PTR(base) + raw + off))
 #define BASE_RELOCATION_COUNT(blk)				((blk->SizeOfBlock - sizeof(BASE_RELOCATION_BLOCK)) / sizeof(BASE_RELOCATION_ENTRY))
 
-#define PATCH_ADDRESS(base, addr)				((LPVOID) ((ULONG_PTR)base + addr))
-#define SECTION_OFFSET(data1, data2) 			((LPVOID) ((ULONG64)data1->lpBase + data2->Sections->VirtualAddress))
-#define SECTION_DATA(data) 						((LPVOID) ((ULONG64)data->lpBuffer + data->Sections->PointerToRawData))
-#define RVA(Ty, base, rva)  					(Ty) ((ULONG_PTR)base + rva)
+#define RVA(Ty, base, rva)  					(R_CAST(Ty, U_PTR(base) + rva))
+#define PATCH_ADDRESS(base, addr)				(R_CAST(LPVOID, R_CAST(ULONG_PTR, base) + addr))
+#define SECTION_OFFSET(data1, data2) 			(R_CAST(LPVOID, R_CAST(ULONG_PTR, data1->lpBase) + data2->Sections->VirtualAddress))
+#define SECTION_DATA(data) 						(R_CAST(LPVOID, R_CAST(ULONG_PTR, data->lpBuffer) + data->Sections->PointerToRawData))
 
-#define NtCurrentProcess()              		((HANDLE)(HANDLE) - 1)
-#define NtCurrentThread()               		((HANDLE)(LONG_PTR) - 2)
+#define NtCurrentProcess()              		(R_CAST(HANDLE, -1))
+#define NtCurrentThread()               		(R_CAST(HANDLE, S_CAST(LONG_PTR, -2))
 
 #define ARRAY_LEN(ptr) 							sizeof(ptr) / sizeof(ptr[0])
 #define DYN_ARRAY_LEN(i, ptr) 					while (TRUE) { if (!ptr[i]) { break; } else { i++; }}
 #define DYN_ARRAY_EXPR(i, ptr, x)				while (TRUE) { if (!ptr[i]) { break; } else { {x} i++; }}
 
-#define MAX_PATH 								260
-#define PIPE_BUFFER_MAX     					(64 * 1000 - 1)
-#define MIN(a,b)								(a < b ? a : b)
 
 #ifdef _M_X64
 #define ENTRYPOINT_REG 							Rcx
 #define PTR_MASK                                0x7FFFFFFF
-#define PEB_BASE_REG 							PEB_RDX
 #define PEB_POINTER     						PEB_POINTER64
 #define DBG_FLAG_OFFSET 						DBG_FLAG_OFFSET64
 #define IMAGE_OPT_MAGIC 						IMAGE_NT_OPTIONAL_HDR64_MAGIC
@@ -92,7 +85,6 @@ EXTERN_C LPVOID InstEnd();
 #elif _M_IX86
 #define ENTRYPOINT_REG 							Eax
 #define PTR_MASK                                0x7FFF
-#define PEB_BASE_REG 							PEB_EBX
 #define PEB_POINTER     						PEB_POINTER32
 #define DBG_FLAG_OFFSET 						DBG_FLAG_OFFSET32
 #define IMAGE_OPT_MAGIC 						IMAGE_NT_OPTIONAL_HDR32_MAGIC
@@ -105,6 +97,8 @@ EXTERN_C LPVOID InstEnd();
 #define SMB_RID_SINGLE_MANDATORY_LOW			SECURITY_MANDATORY_LOW_RID, 0, 0, 0, 0, 0, 0, 0
 #define PROCESS_CREATE_ALL_ACCESS_SUSPEND		PROCESS_ALL_ACCESS, THREAD_ALL_ACCESS, nullptr, nullptr, NULL, THREAD_CREATE_FLAGS_CREATE_SUSPENDED
 
+#define UNMANAGED_PROCESS   					0
+#define MANAGED_PROCESS     					1
 #define ERROR_EXIT								0x7FFFFFFF
 #define DBG_FLAG_OFFSET64						0x000000BC
 #define DBG_FLAG_OFFSET32						0x00000068
@@ -129,7 +123,7 @@ EXTERN_C LPVOID InstEnd();
 
 #ifdef TRANSPORT_PIPE
 #define MESSAGE_MAX PIPE_BUFFER_MAX
-#else
+#elif defined TRANSPORT_HTTP
 #define MESSAGE_MAX HTTP_REQUEST_MAX
 #endif
 
@@ -476,7 +470,6 @@ EXTERN_C WEAK ULONG  		__InstanceOffset;
 #define GLOBAL_OFFSET       (U_PTR(InstStart()) + U_PTR(&__InstanceOffset))
 #define HEXANE 		        HEXANE_CTX* Ctx = R_CAST(HEXANE_CTX*, C_DREF(GLOBAL_OFFSET));
 
-#define return_defer(x) ntstatus = x; goto defer
 #define InitializeObjectAttributes(ptr, name, attr, root, sec )	\
     (ptr)->Length = sizeof( OBJECT_ATTRIBUTES );				\
     (ptr)->RootDirectory = root;								\
@@ -509,4 +502,9 @@ EXTERN_C WEAK ULONG  		__InstanceOffset;
 
 #define NT_ASSERT(Fn)	\
 	Fn; if (NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) return
+
+
+#define return_defer(x)	\
+	ntstatus = x; goto defer
+
 #endif
