@@ -124,16 +124,16 @@ func ReadConfig(cfgPath string) error {
 			h.BuildType = BuildTypeDll
 
 			if h.UserConfig.Loader.RootDirectory == "" {
-				return fmt.Errorf("implant::loader - root directory must be specified")
+				return fmt.Errorf("implant::loader - root directory must be provided")
 			}
 			if h.UserConfig.Loader.Sources == nil {
-				return fmt.Errorf("implant::loader - source files must be specified")
+				return fmt.Errorf("implant::loader - source files must be provided")
 			}
 			if h.UserConfig.Loader.RsrcScript == "" {
-				return fmt.Errorf("implant::loader - resource script must be specified")
+				return fmt.Errorf("implant::loader - resource script must be provided")
 			}
 			if h.UserConfig.Loader.RsrcBinary == "" {
-				return fmt.Errorf("implant::loader - resource output binary must be specified")
+				return fmt.Errorf("implant::loader - resource output binary must be provided")
 			}
 			if h.UserConfig.Loader.Injection != nil {
 				injectType := h.UserConfig.Loader.Injection.Type
@@ -171,14 +171,14 @@ func ReadConfig(cfgPath string) error {
 				return fmt.Errorf("implant::network - network configuration - " + err.Error())
 			}
 			if httpConfig.Address == "" {
-				return fmt.Errorf("implant::network::http - ip address must be specified")
+				return fmt.Errorf("implant::network::http - ip address must be provided")
 			}
 			if httpConfig.Port > 65535 || httpConfig.Port < 1 {
 				return fmt.Errorf("implant::network::http - invalid tcp port %d", httpConfig.Port)
 			}
 			if httpConfig.Endpoints == nil {
 				// todo: add default endpoints from seclists or smth
-				return fmt.Errorf("implant::network::http - at least 1 http endpoint must be specified")
+				return fmt.Errorf("implant::network::http - at least 1 http endpoint must be provided")
 			}
 			if httpConfig.Useragent == "" {
 				httpConfig.Useragent = Useragent
@@ -194,7 +194,7 @@ func ReadConfig(cfgPath string) error {
 				return fmt.Errorf("implant::network - network configuration - " + err.Error())
 			}
 			if smbConfig.EgressPeer == "" {
-				return fmt.Errorf("implant::network::smb - peer must have it's parent node name specified")
+				return fmt.Errorf("implant::network::smb - peer must have it's parent name provided")
 			}
 		default:
 			return fmt.Errorf("implant::network - unknown network profile type")
