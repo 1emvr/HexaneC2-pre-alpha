@@ -1,8 +1,5 @@
-#ifndef HEXANE_CORELIB_CONFIG_HPP
-#define HEXANE_CORELIB_CONFIG_HPP
 #include <core/monolith.hpp>
 #include <core/include/implant.hpp>
-#include <core/include/cipher.hpp>
 #include <core/include/commands.hpp>
 #include <core/include/cruntime.hpp>
 #include <core/include/memory.hpp>
@@ -13,6 +10,6 @@
 #include <core/include/parser.hpp>
 #include <core/include/process.hpp>
 #include <core/include/stream.hpp>
+#include <core/include/cipher.hpp>
 #include <core/include/utils.hpp>
 #include <core/include/inject.hpp>
-#endif //HEXANE_CORELIB_CONFIG_HPP

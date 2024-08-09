@@ -1,3 +1,4 @@
+#include "C:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\Include\um\metahost.h"
 #include <core/corelib.hpp>
 
 namespace Commands {
@@ -167,11 +168,11 @@ namespace Commands {
         }
 
         do {
+            BOOL isManaged  = FALSE;
+            BOOL isLoaded   = FALSE;
+
             CLIENT_ID Cid           = { };
             OBJECT_ATTRIBUTES Attr  = { };
-
-            BOOL isManagedProcess   = FALSE;
-            BOOL isLoaded           = FALSE;
 
             Cid.UniqueThread    = nullptr;
             Cid.UniqueProcess   = R_CAST(HANDLE, Entries.th32ProcessID);
@@ -186,7 +187,7 @@ namespace Commands {
 
                     while (S_OK == pEnum->Next(1, R_CAST(IUnknown **, &pRuntime), nullptr)) {
                         if (pRuntime->IsLoaded(hProcess, &isLoaded) == S_OK && isLoaded == TRUE) {
-                            isManagedProcess = TRUE;
+                            isManaged = TRUE;
 
                             if (Type == MANAGED_PROCESS && SUCCEEDED(pRuntime->GetVersionString(Buffer, &Size))) {
                                 Stream::PackDword(Stream, Entries.th32ProcessID);
@@ -199,7 +200,7 @@ namespace Commands {
                 }
             }
 
-            if (!isManagedProcess && Type == UNMANAGED_PROCESS) {
+            if (!isManaged && Type == UNMANAGED_PROCESS) {
                 Stream::PackDword(Stream, Entries.th32ProcessID);
                 Stream::PackString(Stream, Entries.szExeFile);
             }
@@ -222,7 +223,7 @@ namespace Commands {
         // Send final message
         // Zero/Free all memory
         // Exit
-        ntstatus = 0x7FFFFFFF;
+        ntstatus = ERROR_EXIT;
     }
 
     VOID UpdatePeer(PPARSER Parser) {

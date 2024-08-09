@@ -1,7 +1,6 @@
 #ifndef HEXANE_MONOLITH_HPP
 #define HEXANE_MONOLITH_HPP
 #include <core/ntimports.hpp>
-#include <core/dotnet.hpp>
 
 EXTERN_C LPVOID InstStart();
 EXTERN_C LPVOID InstEnd();
@@ -28,7 +27,7 @@ EXTERN_C LPVOID InstEnd();
 #define FUNCTION								TXT_SECTION(B)
 
 #define UNMANAGED_PROCESS   					0
-#define MANAGED_PoROCESS     					1
+#define MANAGED_PROCESS     					1
 
 #define C_PTR(x)                                (R_CAST(LPVOID, x))
 #define U_PTR(x)                                (R_CAST(UINT_PTR, x))
