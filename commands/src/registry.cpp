@@ -3,9 +3,10 @@
 LPSTR FormatResultError(LRESULT Result) {
     HEXANE
 
-    LPSTR Buffer = { };
-    Ctx->win32.FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, Result, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&Buffer, 0, nullptr);
+    LPSTR Buffer    = { };
+    DWORD Flags     = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
 
+    Ctx->win32.FormatMessageA(Flags, nullptr, Result, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&Buffer, 0, nullptr);
     return Buffer;
 }
 
