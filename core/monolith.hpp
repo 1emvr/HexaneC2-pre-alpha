@@ -174,7 +174,7 @@ enum MessageType {
 	TypeTasking     = 0x7FFFFFFE,
 	TypeResponse    = 0x7FFFFFFD,
 	TypeSegment     = 0x7FFFFFFC,
-    TypeVMExecute    = 0x7FFFFFFB,
+    TypeExecute     = 0x7FFFFFFB,
 };
 
 typedef struct {

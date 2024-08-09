@@ -263,7 +263,7 @@ namespace Message {
                 }
             }
 
-            case TypeVMExecute: {
+            case TypeExecute: {
 
                 LPVOID Exec = { };
                 SIZE_T Size = Parser.Length;
