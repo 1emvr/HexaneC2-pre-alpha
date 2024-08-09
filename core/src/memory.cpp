@@ -174,6 +174,17 @@ namespace Memory {
         x_memset(C_PTR(U_PTR(MmAddr) + sizeof(LPVOID)), 0, 0xE);
     }
 
+    VOID ContextDelete(HEXANE_CTX *Ctx) {
+
+        auto RtlFreeHeap = Ctx->Nt.RtlFreeHeap;
+        auto Heap = Ctx->Heap;
+
+        x_memset(Ctx, 0, sizeof(HEXANE_CTX));
+
+        if (RtlFreeHeap)
+            RtlFreeHeap(Heap, 0, Ctx);
+    }
+
     HMODULE LdrGetModuleAddress(ULONG Hash) {
 
         HMODULE Base            = { };

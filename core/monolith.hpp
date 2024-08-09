@@ -499,15 +499,6 @@ EXTERN_C WEAK ULONG  		__InstanceOffset;
 	x = nullptr
 
 
-#define FreeApi(Ctx) 						\
-	auto RtlFreeHeap = Ctx->Nt.RtlFreeHeap; \
-	auto Heap = Ctx->Heap;					\
-	x_memset(Ctx, 0, sizeof(HEXANE_CTX));	\
-	if (RtlFreeHeap) {						\
-		RtlFreeHeap(Heap, 0, Ctx);			\
-	}
-
-
 #define FPTR(Fn, mod, sym) 	\
 	Fn = (__typeof__(Fn)) Memory::LdrGetSymbolAddress(mod, sym)
 

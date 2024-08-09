@@ -52,7 +52,7 @@ namespace Implant {
         } while (TRUE);
 
     defer:
-        FreeApi(Ctx);
+        Memory::ContextDelete(Ctx);
     }
 
     VOID ReadConfig() {

