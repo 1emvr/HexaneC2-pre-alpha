@@ -27,15 +27,8 @@ typedef ICorRuntimeHost *PICorRuntimeHost;
 
 typedef void* HDOMAINENUM;
 
-typedef HRESULT(__stdcall* CLRCreateInstanceFnPtr)(
-    REFCLSID clsid,
-    REFIID riid,
-    LPVOID* ppInterface);
-
-typedef HRESULT(__stdcall* CreateInterfaceFnPtr)(
-    REFCLSID clsid,
-    REFIID riid,
-    LPVOID* ppInterface);
+typedef HRESULT(__stdcall* CLRCreateInstanceFnPtr)(REFCLSID clsid, REFIID riid, LPVOID* ppInterface);
+typedef HRESULT(__stdcall* CreateInterfaceFnPtr)(REFCLSID clsid, REFIID riid, LPVOID* ppInterface);
 
 
 typedef HRESULT(__stdcall* CallbackThreadSetFnPtr)(void);
