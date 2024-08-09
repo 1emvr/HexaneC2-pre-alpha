@@ -57,7 +57,7 @@ EXTERN_C LPVOID InstEnd();
 #define IMAGE_EXPORT_DIRECTORY(dos, nt)	    	(R_CAST(PIMAGE_EXPORT_DIRECTORY, (U_PTR(dos) + (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)))
 
 #define MODULE_ENTRY(next)                      (R_CAST(PLDR_MODULE, (B_PTR(next) - sizeof(ULONG)* 4)))
-#define MODULE_LIST                             (R_CAST(PLIST_ENTRY, &(PEB_POINTER)->Ldr->InMemoryOrderModuleList))))
+#define MODULE_LIST                             (R_CAST(PLIST_ENTRY, &(PEB_POINTER)->Ldr->InMemoryOrderModuleList))
 #define BASERELOC_ENTRIES(base, raw, off)		(R_CAST(PBASE_RELOCATION_ENTRY, U_PTR(base) + raw + off))
 #define BASERELOC_BLOCK(base, raw, off)		    (R_CAST(PBASE_RELOCATION_BLOCK, U_PTR(base) + raw + off))
 #define BASERELOC_COUNT(blk)				    ((blk->SizeOfBlock - sizeof(BASE_RELOCATION_BLOCK)) / sizeof(BASE_RELOCATION_ENTRY))
