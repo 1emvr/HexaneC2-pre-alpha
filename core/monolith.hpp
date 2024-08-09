@@ -436,6 +436,11 @@ typedef struct {
 		PROTOTYPE(SetLastError);
 		PROTOTYPE(GetLastError);
 
+        PROTOTYPE(RegOpenKeyExA);
+        PROTOTYPE(RegCreateKeyExA);
+        PROTOTYPE(RegSetValueExA);
+        PROTOTYPE(RegCloseKey);
+
 		PROTOTYPE(ReadFile);
 		PROTOTYPE(WriteFile);
 		PROTOTYPE(CreateFileW);

@@ -78,7 +78,6 @@ WinHttpCloseHandle
 GetAdaptersInfo
 NtDuplicateToken
 NtDuplicateObject
-AdjustTokenPrivileges
 NtSetInformationThread
 CreateFileW
 GetFullPathNameA
@@ -118,3 +117,8 @@ SetSecurityDescriptorSacl
 InitializeAcl
 FreeSid
 CLRCreateInstance
+RegOpenKeyExA
+RegCreateKeyExA
+RegSetValueExA
+RegCloseKey
+AdjustTokenPrivileges
