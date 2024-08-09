@@ -56,10 +56,6 @@ func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) (*Module, error) {
 		},
 	}
 
-	if module.ConfigEgg, err = ConvertEgg(config.Builder.ConfigEgg); err != nil {
-		return nil, err
-	}
-
 	if config.Loader == nil {
 		module.BuildType = BuildTypeShellcode
 	} else {
@@ -98,7 +94,7 @@ func (h *HexaneConfig) BuildSource() error {
 		return err
 	}
 
-	if err = h.EmbedSectionData(module.OutputName, module.ConfigEgg, h.ConfigBytes, 1024); err != nil {
+	if err = h.EmbedSectionData(module.OutputName, h.ConfigBytes, 1024); err != nil {
 		return fmt.Errorf("h.EmbedSectionData - " + err.Error())
 	}
 

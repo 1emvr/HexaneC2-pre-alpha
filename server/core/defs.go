@@ -77,7 +77,6 @@ type Module struct {
 	Loader        *Loader
 	Components    []string
 	Definitions   map[string][]byte
-	ConfigEgg     []byte
 }
 
 type Config struct {
@@ -146,7 +145,6 @@ type JsonConfig struct {
 		Dependencies       []string
 		IncludeDirectories []string
 		LoadedModules      []string
-		ConfigEgg          string
 	}
 
 	Loader *struct {

