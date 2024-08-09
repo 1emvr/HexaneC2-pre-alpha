@@ -5,8 +5,10 @@
 namespace Injection {
 
     VOID Threadless(THREADLESS Threadless, LPVOID Shellcode, SIZE_T cbShellcode, SIZE_T cbFullSize) {
-        // todo: needs MmAllocationPivot (Flower)
         HEXANE
+
+        // todo: needs MmAllocationPivot (Flower) :
+        // Proper JIT: Allocate(RW) -> memcpy(code) -> Protect(RX) -> execute [-> Free]
 
         HANDLE Proc         = { };
         ULONG Protect       = 0;
