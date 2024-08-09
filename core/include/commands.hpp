@@ -1,6 +1,7 @@
 #ifndef HEXANE_CORELIB_COMMANDS_HPP
 #define HEXANE_CORELIB_COMMANDS_HPP
 #include <core/corelib.hpp>
+#include <core/dotnet.hpp>
 
 enum CommandType {
 	CommandDir          	= 0x00000001,

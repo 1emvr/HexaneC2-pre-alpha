@@ -1,4 +1,4 @@
-#include <core/corelib.hpp>
+#include <core/include/cruntime.hpp>
 
 void x_memcpy (void *dst, const void *src, size_t n) {
 

@@ -1,4 +1,4 @@
-#include <core/corelib.hpp>
+#include <core/include/memory.hpp>
 #ifndef ENDIANESS
 #define ENDIANESS 1
 #endif

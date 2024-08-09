@@ -1,6 +1,4 @@
-#include <core/corelib.hpp>
-#include <core/dotnet.hpp>
-
+#include <core/include/commands.hpp>
 namespace Commands {
 
     VOID DirectoryList (PPARSER Parser) {

@@ -47,6 +47,7 @@ set (INCLUDES
         ${HOME}/core/include/utils.hpp
         "C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um/mscoree.h"
         "C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um/metahost.h"
+        commands/include/SeImpersonate.hpp
 )
 
 set (COMMANDS

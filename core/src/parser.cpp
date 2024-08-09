@@ -1,4 +1,4 @@
-#include <core/corelib.hpp>
+#include <core/include/parser.hpp>
 namespace Parser {
 
     VOID ParserBytecpy(PPARSER Parser, PBYTE dst) {

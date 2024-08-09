@@ -1,4 +1,4 @@
-#include <core/corelib.hpp>
+#include <core/include/implant.hpp>
 namespace Implant {
 
     TXT_SECTION(F) BYTE Config[1024] = {
