@@ -170,20 +170,16 @@ func ReadConfig(cfgPath string) error {
 			if err = MapToStruct(h.UserConfig.Network.Config, &httpConfig); err != nil {
 				return fmt.Errorf("implant::network - network configuration - " + err.Error())
 			}
-
 			if httpConfig.Address == "" {
 				return fmt.Errorf("implant::network::http - ip address must be specified")
 			}
-
 			if httpConfig.Port > 65535 || httpConfig.Port < 1 {
 				return fmt.Errorf("implant::network::http - invalid tcp port %d", httpConfig.Port)
 			}
-
 			if httpConfig.Endpoints == nil {
 				// todo: add default endpoints from seclists or smth
 				return fmt.Errorf("implant::network::http - at least 1 http endpoint must be specified")
 			}
-
 			if httpConfig.Useragent == "" {
 				httpConfig.Useragent = Useragent
 			}
@@ -197,7 +193,6 @@ func ReadConfig(cfgPath string) error {
 			if err = MapToStruct(h.UserConfig.Network.Config, &smbConfig); err != nil {
 				return fmt.Errorf("implant::network - network configuration - " + err.Error())
 			}
-
 			if smbConfig.EgressPeer == "" {
 				return fmt.Errorf("implant::network::smb - peer must have it's parent node name specified")
 			}
