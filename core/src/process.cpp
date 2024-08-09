@@ -50,8 +50,8 @@ namespace Process {
 				if (x_strcmp(Entry.szExeFile, R_CAST(LPSTR, Parent)) == 0) {
 					Cid.UniqueThread = nullptr;
 					Cid.UniqueProcess = R_CAST(HANDLE, Entry.th32ProcessID);
-
 					InitializeObjectAttributes(&Attr, nullptr, 0, nullptr, nullptr);
+
 					if (!NT_SUCCESS(Ctx->Nt.NtOpenProcess(&Proc, PROCESS_ALL_ACCESS, &Attr, &Cid))) {
 						return nullptr;
 					}

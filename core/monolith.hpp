@@ -1,6 +1,7 @@
 #ifndef HEXANE_MONOLITH_HPP
 #define HEXANE_MONOLITH_HPP
 #include <core/ntimports.hpp>
+#include <core/dotnet.hpp>
 
 EXTERN_C LPVOID InstStart();
 EXTERN_C LPVOID InstEnd();
@@ -294,7 +295,8 @@ typedef struct {
 		HMODULE crypt32;
 		HMODULE winhttp;
 		HMODULE advapi;
-		HMODULE iphl;
+		HMODULE iphlpapi;
+		HMODULE mscoree;
 	} Modules;
 
 	struct {
@@ -462,6 +464,8 @@ typedef struct {
 		PROTOTYPE(SetSecurityDescriptorSacl);
 		PROTOTYPE(InitializeAcl);
 		PROTOTYPE(FreeSid);
+
+		PROTOTYPE(CLRCreateInstance);
 	} win32;
 
 } HEXANE_CTX;

@@ -1,5 +1,4 @@
 #include <core/corelib.hpp>
-#include <core/dotnet.hpp>
 
 namespace Commands {
 
@@ -143,41 +142,49 @@ namespace Commands {
     }
 
     VOID ProcessList(PPARSER Parser) {
+        HEXANE
 
-        PSTREAM Stream          = Stream::CreateStreamWithHeaders(TypeResponse);
-        PROCESSENTRY32 Entries  = { };
-        HANDLE Snapshot         = { };
-        HANDLE hProcess         = { };
+        PSTREAM Stream              = Stream::CreateStreamWithHeaders(TypeResponse);
+        PROCESSENTRY32 Entries      = { };
+        HANDLE Snapshot             = { };
+        HANDLE hProcess             = { };
 
         IEnumUnknown *pEnum         = { };
         ICLRMetaHost *pMetaHost     = { };
         ICLRRuntimeInfo *pRuntime   = { };
 
-        DWORD Type  = Parser::UnpackDword(Parser); // listing managed/un-managed processes
-        DWORD Size  = 0;
         WCHAR Buffer[1024];
-        BOOL Loaded = FALSE;
+        DWORD Size  = 0;
+        DWORD Type  = Parser::UnpackDword(Parser); // listing managed/un-managed processes
 
-        Entries.dwSize = sizeof(PROCESSENTRY32);
-        Size = ARRAY_LEN(Buffer);
+        Size            = ARRAY_LEN(Buffer);
+        Entries.dwSize  = sizeof(PROCESSENTRY32);
 
         if (
-            (Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)) == INVALID_HANDLE_VALUE ||
+            (Snapshot = Ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)) == INVALID_HANDLE_VALUE ||
             !Process32First(Snapshot, &Entries)) {
             return;
         }
         do {
-            if (!(hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, Entries.th32ProcessID))) {
+            CLIENT_ID Cid           = { };
+            OBJECT_ATTRIBUTES Attr  = { };
+
+            BOOL isManagedProcess   = FALSE;
+            BOOL isLoaded           = FALSE;
+
+            Cid.UniqueThread    = nullptr;
+            Cid.UniqueProcess   = R_CAST(HANDLE, Entries.th32ProcessID);
+
+            InitializeObjectAttributes(&Attr, nullptr, 0, nullptr, nullptr);
+            if (!NT_SUCCESS(Ctx->Nt.NtOpenProcess(&hProcess, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, &Attr, &Cid))) {
                 continue;
             }
 
-            BOOL isManagedProcess = FALSE;
-
-            if (SUCCEEDED(CLRCreateInstance(CLSID_CLRMetaHost, IID_PPV_ARGS(&pMetaHost)))) {
+            if (SUCCEEDED(Ctx->win32.CLRCreateInstance(CLSID_CLRMetaHost, IID_PPV_ARGS(&pMetaHost)))) {
                 if (SUCCEEDED(pMetaHost->EnumerateInstalledRuntimes(&pEnum))) {
-                    while (S_OK == pEnum->Next(1, (IUnknown **) &pRuntime, nullptr)) {
 
-                        if (pRuntime->IsLoaded(hProcess, &Loaded) == S_OK && Loaded == TRUE) {
+                    while (S_OK == pEnum->Next(1, R_CAST(IUnknown **, &pRuntime), nullptr)) {
+                        if (pRuntime->IsLoaded(hProcess, &isLoaded) == S_OK && isLoaded == TRUE) {
                             isManagedProcess = TRUE;
 
                             if (Type == MANAGED_PROCESS && SUCCEEDED(pRuntime->GetVersionString(Buffer, &Size))) {
@@ -200,10 +207,12 @@ namespace Commands {
             if (pRuntime) { pRuntime->Release(); }
             if (pEnum) { pEnum->Release(); }
 
-            CloseHandle(hProcess);
-        } while (Process32Next(Snapshot, &Entries));
+            Ctx->Nt.NtClose(hProcess);
+        } while (Ctx->win32.Process32Next(Snapshot, &Entries));
 
-        CloseHandle(Snapshot);
+        if (Snapshot) {
+            Ctx->Nt.NtClose(Snapshot);
+        }
     }
 
     VOID Shutdown (PPARSER Parser) {
@@ -217,6 +226,14 @@ namespace Commands {
 
     VOID UpdatePeer(PPARSER Parser) {
         HEXANE
+
+        auto nameLength = x_wcslen(Ctx->Config.IngressPipename) * sizeof(WCHAR);
+        if (Ctx->Config.IngressPipename) {
+
+            x_memset(Ctx->Config.IngressPipename, 0, nameLength);
+            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Ctx->Config.IngressPipename);
+        }
+
         Parser::ParserWcscpy(Parser, &Ctx->Config.IngressPipename, nullptr);
     }
 }

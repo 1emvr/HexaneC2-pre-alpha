@@ -2,4 +2,5 @@ crypt32
 winhttp
 advapi32
 iphlpapi
+mscoree
 .reloc

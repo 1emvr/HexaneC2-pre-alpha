@@ -19,13 +19,4 @@ namespace Commands {
 	FUNCTION VOID UpdatePeer(PPARSER Parser);
 }
 
-RDATA_SECTION COMMAND_MAP CmdMap[] = {
-	{ .Id = CommandDir,         .Function = Commands::DirectoryList },
-	{ .Id = CommandMods,        .Function = Commands::ProcessModules },
-	{ .Id = CommandProcess,     .Function = Commands::ProcessList },
-	{ .Id = CommandUpdatePeer,  .Function = Commands::UpdatePeer },
-	{ .Id = CommandShutdown,    .Function = Commands::Shutdown },
-	{ .Id = 0,                  .Function = nullptr }
-};
-
 #endif //HEXANE_CORELIB_COMMANDS_HPP
