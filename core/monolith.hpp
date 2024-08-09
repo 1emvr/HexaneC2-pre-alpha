@@ -1,6 +1,8 @@
 #ifndef HEXANE_MONOLITH_HPP
 #define HEXANE_MONOLITH_HPP
+#include "C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um/metahost.h"
 #include <core/ntimports.hpp>
+#include <combaseapi.h>
 
 EXTERN_C LPVOID InstStart();
 EXTERN_C LPVOID InstEnd();
@@ -504,4 +506,7 @@ EXTERN_C WEAK ULONG  		__InstanceOffset;
 #define FPTR2(Fn, mod, sym) \
 	Fn = (__typeof__(Fn)) Memory::LdrGetSymbolAddress(Memory::LdrGetModuleAddress(mod), sym)
 
+
+#define NT_ASSERT(Fn)	\
+	Fn; if (NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) return
 #endif
