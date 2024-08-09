@@ -154,7 +154,6 @@ namespace Commands {
 
     VOID UpdatePeer(PPARSER Parser) {
         HEXANE
-
         Parser::ParserWcscpy(Parser, &Ctx->Config.IngressPipename, nullptr);
     }
 }

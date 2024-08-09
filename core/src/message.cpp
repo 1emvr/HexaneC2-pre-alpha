@@ -285,7 +285,7 @@ namespace Message {
                     return_defer(ntstatus);
                 }
 
-                auto (*Cmd)(PPARSER) = (void (*)(PPARSER))Exec;
+                auto (*Cmd)(PPARSER) = (VOID (*)(PPARSER))Exec;
                 Cmd(&Parser);
 
                 x_memset(Exec, 0, Size);
