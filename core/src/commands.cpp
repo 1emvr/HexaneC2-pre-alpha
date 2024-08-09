@@ -182,7 +182,7 @@ namespace Commands {
                 continue;
             }
 
-            if (SUCCEEDED(Ctx->win32.CLRCreateInstance(GUID_CLSID_CLRMetaHost, GUID_IID_ICLRMetaHost, &pMetaHost))) {
+            if (SUCCEEDED(Ctx->CLR.CLRCreateInstance(GUID_CLSID_CLRMetaHost, GUID_IID_ICLRMetaHost, R_CAST(LPVOID*, &pMetaHost)))) {
                 if (SUCCEEDED((pMetaHost)->lpVtbl->EnumerateInstalledRuntimes(pMetaHost, &pEnum))) {
 
                     while (S_OK == pEnum->Next(0x1, R_CAST(IUnknown**, &pRuntime), nullptr)) {

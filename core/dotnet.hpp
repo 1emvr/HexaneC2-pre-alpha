@@ -39,7 +39,6 @@ typedef HRESULT(__stdcall* CreateInterfaceFnPtr)(
 
 
 typedef HRESULT(__stdcall* CallbackThreadSetFnPtr)(void);
-
 typedef HRESULT(__stdcall* CallbackThreadUnsetFnPtr)(void);
 
 typedef void(__stdcall* RuntimeLoadedCallbackFnPtr)(
@@ -51,16 +50,9 @@ typedef void(__stdcall* RuntimeLoadedCallbackFnPtr)(
 #define DUMMY_METHOD(x) HRESULT ( STDMETHODCALLTYPE *dummy_##x )(IBinder *This)
 
 typedef struct _BinderVtbl {
-    HRESULT(STDMETHODCALLTYPE* QueryInterface)(
-        IBinder* This,
-        /* [in] */ REFIID riid,
-        /* [iid_is][out] */ void** ppvObject);
-
-    ULONG(STDMETHODCALLTYPE* AddRef)(
-        IBinder* This);
-
-    ULONG(STDMETHODCALLTYPE* Release)(
-        IBinder* This);
+    HRESULT(STDMETHODCALLTYPE* QueryInterface)(IBinder* This, REFIID riid, void** ppvObject);
+    ULONG(STDMETHODCALLTYPE* AddRef)(IBinder* This);
+    ULONG(STDMETHODCALLTYPE* Release)(IBinder* This);
 
     DUMMY_METHOD(GetTypeInfoCount);
     DUMMY_METHOD(GetTypeInfo);
@@ -88,16 +80,9 @@ typedef struct _Binder {
 typedef struct _AppDomainVtbl {
     BEGIN_INTERFACE
 
-    HRESULT(STDMETHODCALLTYPE* QueryInterface)(
-        IAppDomain* This,
-        /* [in] */ REFIID riid,
-        /* [iid_is][out] */ void** ppvObject);
-
-    ULONG(STDMETHODCALLTYPE* AddRef)(
-        IAppDomain* This);
-
-    ULONG(STDMETHODCALLTYPE* Release)(
-        IAppDomain* This);
+    HRESULT(STDMETHODCALLTYPE* QueryInterface)(IAppDomain* This, REFIID riid, void** ppvObject);
+    ULONG(STDMETHODCALLTYPE* AddRef)(IAppDomain* This);
+    ULONG(STDMETHODCALLTYPE* Release)(IAppDomain* This);
 
     DUMMY_METHOD(GetTypeInfoCount);
     DUMMY_METHOD(GetTypeInfo);
@@ -143,10 +128,7 @@ typedef struct _AppDomainVtbl {
     DUMMY_METHOD(Load);
     DUMMY_METHOD(Load_2);
 
-    HRESULT(STDMETHODCALLTYPE* Load_3)(
-        IAppDomain* This,
-        SAFEARRAY* rawAssembly,
-        IAssembly** pRetVal);
+    HRESULT(STDMETHODCALLTYPE* Load_3)(IAppDomain* This, SAFEARRAY* rawAssembly, IAssembly** pRetVal);
 
     DUMMY_METHOD(Load_4);
     DUMMY_METHOD(Load_5);
@@ -186,16 +168,9 @@ typedef struct _AppDomain {
 typedef struct _AssemblyVtbl {
     BEGIN_INTERFACE
 
-    HRESULT(STDMETHODCALLTYPE* QueryInterface)(
-        IAssembly* This,
-        REFIID riid,
-        void** ppvObject);
-
-    ULONG(STDMETHODCALLTYPE* AddRef)(
-        IAssembly* This);
-
-    ULONG(STDMETHODCALLTYPE* Release)(
-        IAssembly* This);
+    HRESULT(STDMETHODCALLTYPE* QueryInterface)(IAssembly* This, REFIID riid, void** ppvObject);
+    ULONG(STDMETHODCALLTYPE* AddRef)(IAssembly* This);
+    ULONG(STDMETHODCALLTYPE* Release)(IAssembly* This);
 
     DUMMY_METHOD(GetTypeInfoCount);
     DUMMY_METHOD(GetTypeInfo);
@@ -291,16 +266,9 @@ typedef struct _Assembly {
 typedef struct _TypeVtbl {
     BEGIN_INTERFACE
 
-    HRESULT(STDMETHODCALLTYPE* QueryInterface)(
-        IType* This,
-        REFIID riid,
-        void** ppvObject);
-
-    ULONG(STDMETHODCALLTYPE* AddRef)(
-        IType* This);
-
-    ULONG(STDMETHODCALLTYPE* Release)(
-        IType* This);
+    HRESULT(STDMETHODCALLTYPE* QueryInterface)(IType* This, REFIID riid, void** ppvObject);
+    ULONG(STDMETHODCALLTYPE* AddRef)(IType* This);
+    ULONG(STDMETHODCALLTYPE* Release)(IType* This);
 
     DUMMY_METHOD(GetTypeInfoCount);
     DUMMY_METHOD(GetTypeInfo);
@@ -358,14 +326,7 @@ typedef struct _TypeVtbl {
     DUMMY_METHOD(UnderlyingSystemType);
     DUMMY_METHOD(InvokeMember_2);
 
-    HRESULT(STDMETHODCALLTYPE* InvokeMember_3)(
-        IType* This,
-        BSTR         name,
-        BindingFlags invokeAttr,
-        IBinder* Binder,
-        VARIANT      Target,
-        SAFEARRAY* args,
-        VARIANT* pRetVal);
+    HRESULT(STDMETHODCALLTYPE* InvokeMember_3)(IType* This, BSTR name, BindingFlags invokeAttr, IBinder* Binder, VARIANT Target, SAFEARRAY* args, VARIANT* pRetVal);
 
     DUMMY_METHOD(GetConstructor);
     DUMMY_METHOD(GetConstructor_2);
@@ -428,86 +389,24 @@ typedef struct _TypeVtbl {
     END_INTERFACE
 } TypeVtbl;
 
-typedef struct ICLRRuntimeInfoVtbl
-{
+typedef struct ICLRRuntimeInfoVtbl {
     BEGIN_INTERFACE
 
-    HRESULT(STDMETHODCALLTYPE* QueryInterface)(
-        ICLRRuntimeInfo* This,
-        /* [in] */ REFIID riid,
-        /* [iid_is][out] */
-        __RPC__deref_out  void** ppvObject);
-
-    ULONG(STDMETHODCALLTYPE* AddRef)(
-        ICLRRuntimeInfo* This);
-
-    ULONG(STDMETHODCALLTYPE* Release)(
-        ICLRRuntimeInfo* This);
-
-    HRESULT(STDMETHODCALLTYPE* GetVersionString)(
-        ICLRRuntimeInfo* This,
-        /* [size_is][out] */
-        LPWSTR pwzBuffer,
-        /* [out][in] */ DWORD* pcchBuffer);
-
-    HRESULT(STDMETHODCALLTYPE* GetRuntimeDirectory)(
-        ICLRRuntimeInfo* This,
-        /* [size_is][out] */
-        __out_ecount_full(*pcchBuffer)  LPWSTR pwzBuffer,
-        /* [out][in] */ DWORD* pcchBuffer);
-
-    HRESULT(STDMETHODCALLTYPE* IsLoaded)(
-        ICLRRuntimeInfo* This,
-        /* [in] */ HANDLE hndProcess,
-        /* [retval][out] */ BOOL* pbLoaded);
-
-    HRESULT(STDMETHODCALLTYPE* LoadErrorString)(
-        ICLRRuntimeInfo* This,
-        /* [in] */ UINT iResourceID,
-        /* [size_is][out] */
-        __out_ecount_full(*pcchBuffer)  LPWSTR pwzBuffer,
-        /* [out][in] */ DWORD* pcchBuffer,
-        /* [lcid][in] */ LONG iLocaleID);
-
-    HRESULT(STDMETHODCALLTYPE* LoadLibrary)(
-        ICLRRuntimeInfo* This,
-        /* [in] */ LPCWSTR pwzDllName,
-        /* [retval][out] */ HMODULE* phndModule);
-
-    HRESULT(STDMETHODCALLTYPE* GetProcAddress)(
-        ICLRRuntimeInfo* This,
-        /* [in] */ LPCSTR pszProcName,
-        /* [retval][out] */ LPVOID* ppProc);
-
-    HRESULT(STDMETHODCALLTYPE* GetInterface)(
-        ICLRRuntimeInfo* This,
-        /* [in] */ REFCLSID rclsid,
-        /* [in] */ REFIID riid,
-        /* [retval][iid_is][out] */ LPVOID* ppUnk);
-
-    HRESULT(STDMETHODCALLTYPE* IsLoadable)(
-        ICLRRuntimeInfo* This,
-        /* [retval][out] */ BOOL* pbLoadable);
-
-    HRESULT(STDMETHODCALLTYPE* SetDefaultStartupFlags)(
-        ICLRRuntimeInfo* This,
-        /* [in] */ DWORD dwStartupFlags,
-        /* [in] */ LPCWSTR pwzHostConfigFile);
-
-    HRESULT(STDMETHODCALLTYPE* GetDefaultStartupFlags)(
-        ICLRRuntimeInfo* This,
-        /* [out] */ DWORD* pdwStartupFlags,
-        /* [size_is][out] */
-        LPWSTR pwzHostConfigFile,
-        /* [out][in] */ DWORD* pcchHostConfigFile);
-
-    HRESULT(STDMETHODCALLTYPE* BindAsLegacyV2Runtime)(
-        ICLRRuntimeInfo* This);
-
-    HRESULT(STDMETHODCALLTYPE* IsStarted)(
-        ICLRRuntimeInfo* This,
-        /* [out] */ BOOL* pbStarted,
-        /* [out] */ DWORD* pdwStartupFlags);
+    HRESULT(STDMETHODCALLTYPE* QueryInterface)(ICLRRuntimeInfo* This, REFIID riid, __RPC__deref_out  void** ppvObject);
+    ULONG(STDMETHODCALLTYPE* AddRef)(ICLRRuntimeInfo* This);
+    ULONG(STDMETHODCALLTYPE* Release)(ICLRRuntimeInfo* This);
+    HRESULT(STDMETHODCALLTYPE* GetVersionString)(ICLRRuntimeInfo* This, LPWSTR pwzBuffer, DWORD* pcchBuffer);
+    HRESULT(STDMETHODCALLTYPE* GetRuntimeDirectory)(ICLRRuntimeInfo* This, __out_ecount_full(*pcchBuffer)  LPWSTR pwzBuffer, DWORD* pcchBuffer);
+    HRESULT(STDMETHODCALLTYPE* IsLoaded)(ICLRRuntimeInfo* This, HANDLE hndProcess, BOOL* pbLoaded);
+    HRESULT(STDMETHODCALLTYPE* LoadErrorString)(ICLRRuntimeInfo* This, UINT iResourceID, __out_ecount_full(*pcchBuffer)  LPWSTR pwzBuffer, DWORD* pcchBuffer, LONG iLocaleID);
+    HRESULT(STDMETHODCALLTYPE* LoadLibrary)(ICLRRuntimeInfo* This, LPCWSTR pwzDllName, HMODULE* phndModule);
+    HRESULT(STDMETHODCALLTYPE* GetProcAddress)(ICLRRuntimeInfo* This, LPCSTR pszProcName, LPVOID* ppProc);
+    HRESULT(STDMETHODCALLTYPE* GetInterface)(ICLRRuntimeInfo* This, REFCLSID rclsid, REFIID riid, LPVOID* ppUnk);
+    HRESULT(STDMETHODCALLTYPE* IsLoadable)(ICLRRuntimeInfo* This, BOOL* pbLoadable);
+    HRESULT(STDMETHODCALLTYPE* SetDefaultStartupFlags)(ICLRRuntimeInfo* This, DWORD dwStartupFlags, LPCWSTR pwzHostConfigFile);
+    HRESULT(STDMETHODCALLTYPE* GetDefaultStartupFlags)(ICLRRuntimeInfo* This, DWORD* pdwStartupFlags, LPWSTR pwzHostConfigFile, DWORD* pcchHostConfigFile);
+    HRESULT(STDMETHODCALLTYPE* BindAsLegacyV2Runtime)(ICLRRuntimeInfo* This);
+    HRESULT(STDMETHODCALLTYPE* IsStarted)(ICLRRuntimeInfo* This, BOOL* pbStarted, DWORD* pdwStartupFlags);
 
     END_INTERFACE
 } ICLRRuntimeInfoVtbl;
@@ -520,62 +419,24 @@ typedef struct _Type {
     TypeVtbl* lpVtbl;
 } Type;
 
-typedef struct ICLRMetaHostVtbl
-{
+typedef struct ICLRMetaHostVtbl {
     BEGIN_INTERFACE
 
-    HRESULT(STDMETHODCALLTYPE* QueryInterface)(
-        ICLRMetaHost* This,
-        /* [in] */ REFIID riid,
-        /* [iid_is][out] */
-        __RPC__deref_out  void** ppvObject);
-
-    ULONG(STDMETHODCALLTYPE* AddRef)(
-        ICLRMetaHost* This);
-
-    ULONG(STDMETHODCALLTYPE* Release)(
-        ICLRMetaHost* This);
-
-    HRESULT(STDMETHODCALLTYPE* GetRuntime)(
-        ICLRMetaHost* This,
-        /* [in] */ LPCWSTR pwzVersion,
-        /* [in] */ REFIID riid,
-        /* [retval][iid_is][out] */ LPVOID* ppRuntime);
-
-    HRESULT(STDMETHODCALLTYPE* GetVersionFromFile)(
-        ICLRMetaHost* This,
-        /* [in] */ LPCWSTR pwzFilePath,
-        /* [size_is][out] */
-        __out_ecount_full(*pcchBuffer)  LPWSTR pwzBuffer,
-        /* [out][in] */ DWORD* pcchBuffer);
-
-    HRESULT(STDMETHODCALLTYPE* EnumerateInstalledRuntimes)(
-        ICLRMetaHost* This,
-        /* [retval][out] */ IEnumUnknown** ppEnumerator);
-
-    HRESULT(STDMETHODCALLTYPE* EnumerateLoadedRuntimes)(
-        ICLRMetaHost* This,
-        /* [in] */ HANDLE hndProcess,
-        /* [retval][out] */ IEnumUnknown** ppEnumerator);
-
-    HRESULT(STDMETHODCALLTYPE* RequestRuntimeLoadedNotification)(
-        ICLRMetaHost* This,
-        /* [in] */ RuntimeLoadedCallbackFnPtr pCallbackFunction);
-
-    HRESULT(STDMETHODCALLTYPE* QueryLegacyV2RuntimeBinding)(
-        ICLRMetaHost* This,
-        /* [in] */ REFIID riid,
-        /* [retval][iid_is][out] */ LPVOID* ppUnk);
-
-    HRESULT(STDMETHODCALLTYPE* ExitProcess)(
-        ICLRMetaHost* This,
-        /* [in] */ INT32 iExitCode);
+    HRESULT(STDMETHODCALLTYPE* QueryInterface)(ICLRMetaHost* This, REFIID riid, __RPC__deref_out  void** ppvObject);
+    ULONG(STDMETHODCALLTYPE* AddRef)(ICLRMetaHost* This);
+    ULONG(STDMETHODCALLTYPE* Release)(ICLRMetaHost* This);
+    HRESULT(STDMETHODCALLTYPE* GetRuntime)(ICLRMetaHost* This, LPCWSTR pwzVersion, REFIID riid, LPVOID* ppRuntime);
+    HRESULT(STDMETHODCALLTYPE* GetVersionFromFile)(ICLRMetaHost* This, LPCWSTR pwzFilePath, __out_ecount_full(*pcchBuffer)  LPWSTR pwzBuffer, DWORD* pcchBuffer);
+    HRESULT(STDMETHODCALLTYPE* EnumerateInstalledRuntimes)(ICLRMetaHost* This, IEnumUnknown** ppEnumerator);
+    HRESULT(STDMETHODCALLTYPE* EnumerateLoadedRuntimes)(ICLRMetaHost* This, HANDLE hndProcess, IEnumUnknown** ppEnumerator);
+    HRESULT(STDMETHODCALLTYPE* RequestRuntimeLoadedNotification)(ICLRMetaHost* This, RuntimeLoadedCallbackFnPtr pCallbackFunction);
+    HRESULT(STDMETHODCALLTYPE* QueryLegacyV2RuntimeBinding)(ICLRMetaHost* This, REFIID riid, LPVOID* ppUnk);
+    HRESULT(STDMETHODCALLTYPE* ExitProcess)(ICLRMetaHost* This, INT32 iExitCode);
 
     END_INTERFACE
 } ICLRMetaHostVtbl;
 
-typedef struct _ICLRMetaHost
-{
+typedef struct _ICLRMetaHost {
     ICLRMetaHostVtbl* lpVtbl;
 } ICLRMetaHost;
 
@@ -586,17 +447,9 @@ typedef struct _ICLRMetaHost
 typedef struct _MethodInfoVtbl {
     BEGIN_INTERFACE
 
-    HRESULT(STDMETHODCALLTYPE* QueryInterface)(
-        IMethodInfo* This,
-        /* [in] */ REFIID riid,
-        /* [iid_is][out] */
-        __RPC__deref_out  void** ppvObject);
-
-    ULONG(STDMETHODCALLTYPE* AddRef)(
-        IMethodInfo* This);
-
-    ULONG(STDMETHODCALLTYPE* Release)(
-        IMethodInfo* This);
+    HRESULT(STDMETHODCALLTYPE* QueryInterface)(IMethodInfo* This, REFIID riid, __RPC__deref_out  void** ppvObject);
+    ULONG(STDMETHODCALLTYPE* AddRef)(IMethodInfo* This);
+    ULONG(STDMETHODCALLTYPE* Release)(IMethodInfo* This);
 
     DUMMY_METHOD(GetTypeInfoCount);
     DUMMY_METHOD(GetTypeInfo);
@@ -615,9 +468,7 @@ typedef struct _MethodInfoVtbl {
     DUMMY_METHOD(GetCustomAttributes_2);
     DUMMY_METHOD(IsDefined);
 
-    HRESULT(STDMETHODCALLTYPE* GetParameters)(
-        IMethodInfo* This,
-        SAFEARRAY** pRetVal);
+    HRESULT(STDMETHODCALLTYPE* GetParameters)(IMethodInfo* This, SAFEARRAY** pRetVal);
 
     DUMMY_METHOD(GetMethodImplementationFlags);
     DUMMY_METHOD(MethodHandle);
@@ -638,11 +489,7 @@ typedef struct _MethodInfoVtbl {
     DUMMY_METHOD(IsSpecialName);
     DUMMY_METHOD(IsConstructor);
 
-    HRESULT(STDMETHODCALLTYPE* Invoke_3)(
-        IMethodInfo* This,
-        VARIANT     obj,
-        SAFEARRAY* parameters,
-        VARIANT* ret);
+    HRESULT(STDMETHODCALLTYPE* Invoke_3)(IMethodInfo* This, VARIANT obj, SAFEARRAY* parameters, VARIANT* ret);
 
     DUMMY_METHOD(returnType);
     DUMMY_METHOD(ReturnTypeCustomAttributes);
