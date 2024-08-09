@@ -3,12 +3,12 @@
 #include <core/monolith.hpp>
 #include <mscoree.h>
 
-extern GUID xCLSID_CLRMetaHost;
-extern GUID xIID_ICLRMetaHost;
-extern GUID xIID_ICLRRuntimeInfo;
-extern GUID xCLSID_CorRuntimeHost;
-extern GUID xIID_ICorRuntimeHost;
-extern GUID xIID_AppDomain;
+extern GUID GUID_CLSID_CLRMetaHost;
+extern GUID GUID_IID_ICLRMetaHost;
+extern GUID GUID_IID_ICLRRuntimeInfo;
+extern GUID GUID_CLSID_CorRuntimeHost;
+extern GUID GUID_IID_ICorRuntimeHost;
+extern GUID GUID_IID_AppDomain;
 
 typedef struct _ICLRMetaHost    ICLRMetaHost;
 typedef struct _ICLRRuntimeInfo ICLRRuntimeInfo;

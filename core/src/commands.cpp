@@ -182,10 +182,10 @@ namespace Commands {
                 continue;
             }
 
-            if (SUCCEEDED(Ctx->win32.CLRCreateInstance(xCLSID_CLRMetaHost, xIID_ICLRMetaHost, &pMetaHost))) {
+            if (SUCCEEDED(Ctx->win32.CLRCreateInstance(GUID_CLSID_CLRMetaHost, GUID_IID_ICLRMetaHost, &pMetaHost))) {
                 if (SUCCEEDED((pMetaHost)->lpVtbl->EnumerateInstalledRuntimes(pMetaHost, &pEnum))) {
 
-                    while (S_OK == pEnum->Next(1, R_CAST(IUnknown **, &pRuntime), nullptr)) {
+                    while (S_OK == pEnum->Next(0x1, R_CAST(IUnknown**, &pRuntime), nullptr)) {
                         if (pRuntime->lpVtbl->IsLoaded(pRuntime, hProcess, &isLoaded) == S_OK && isLoaded == TRUE) {
                             isManaged = TRUE;
 
@@ -195,7 +195,7 @@ namespace Commands {
                                 Stream::PackWString(Stream, Buffer);
                             }
                         }
-                        pRuntime->lpVtbl->Release();
+                        pRuntime->lpVtbl->Release(pRuntime);
                     }
                 }
             }
