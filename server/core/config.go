@@ -165,11 +165,12 @@ func ReadConfig(cfgPath string) error {
 		case "http":
 
 			var httpConfig Http
+			h.Implant.ProfileTypeId = TRANSPORT_HTTP
+
 			if err = MapToStruct(h.UserConfig.Network.Config, &httpConfig); err != nil {
 				return fmt.Errorf("implant::network - network configuration - " + err.Error())
 			}
 
-			h.Implant.ProfileTypeId = TRANSPORT_HTTP
 			WrapMessage("DBG", "loading http config")
 
 			if httpConfig.Address == "" {
@@ -192,11 +193,12 @@ func ReadConfig(cfgPath string) error {
 		case "smb":
 
 			var smbConfig Smb
+			h.Implant.ProfileTypeId = TRANSPORT_PIPE
+
 			if err = MapToStruct(h.UserConfig.Network.Config, &smbConfig); err != nil {
 				return fmt.Errorf("implant::network - network configuration - " + err.Error())
 			}
 
-			h.Implant.ProfileTypeId = TRANSPORT_PIPE
 			WrapMessage("DBG", "loading smb config")
 
 			if smbConfig.EgressPeer == "" {
