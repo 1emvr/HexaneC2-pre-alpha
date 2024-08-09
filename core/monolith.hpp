@@ -26,6 +26,9 @@ EXTERN_C LPVOID InstEnd();
 #define WEAK									__attribute__((weak))
 #define FUNCTION								TXT_SECTION(B)
 
+#define UNMANAGED_PROCESS   					0
+#define MANAGED_PROCESS     					1
+
 #define C_PTR(x)                                (R_CAST(LPVOID, x))
 #define U_PTR(x)                                (R_CAST(UINT_PTR, x))
 #define C_DREF(x)                               (*R_CAST(VOID**, x))
@@ -98,7 +101,6 @@ EXTERN_C LPVOID InstEnd();
 #define DESKTOP_ENVIRONMENT_NULL				0, 0, 0, 0, 0, 0, 0
 #define SMB_SID_SINGLE_WORLD_SUBAUTHORITY		SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0
 #define SMB_RID_SINGLE_MANDATORY_LOW			SECURITY_MANDATORY_LOW_RID, 0, 0, 0, 0, 0, 0, 0
-#define NT_GLOBAL_FLAG_DEBUGGED					(FLG_HEAP_ENABLE_TAIL_CHECK | FLG_HEAP_ENABLE_FREE_CHECK | FLG_HEAP_VALIDATE_PARAMETERS)
 #define PROCESS_CREATE_ALL_ACCESS_SUSPEND		PROCESS_ALL_ACCESS, THREAD_ALL_ACCESS, nullptr, nullptr, NULL, THREAD_CREATE_FLAGS_CREATE_SUSPENDED
 
 #define DBG_FLAG_OFFSET64						0x000000BC
@@ -111,16 +113,16 @@ EXTERN_C LPVOID InstEnd();
 #define SEGMENT_HEADER_SIZE 					((sizeof(uint32_t) * 6) + sizeof(uint32_t))
 #define HTTP_REQUEST_MAX 						0x300000
 
-#define THREAD_CREATE_FLAGS_NONE                            0x00000000
-#define THREAD_CREATE_FLAGS_CREATE_SUSPENDED                0x00000001
-#define THREAD_CREATE_FLAGS_SKIP_THREAD_ATTACH              0x00000002
-#define THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER              0x00000004
-#define THREAD_CREATE_FLAGS_LOADER_WORKER                   0x00000010
-#define THREAD_CREATE_FLAGS_SKIP_LOADER_INIT                0x00000020
-#define THREAD_CREATE_FLAGS_BYPASS_PROCESS_FREEZE           0x00000040
+#define THREAD_CREATE_FLAGS_NONE                  	0x00000000
+#define THREAD_CREATE_FLAGS_CREATE_SUSPENDED      	0x00000001
+#define THREAD_CREATE_FLAGS_SKIP_THREAD_ATTACH    	0x00000002
+#define THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER    	0x00000004
+#define THREAD_CREATE_FLAGS_LOADER_WORKER         	0x00000010
+#define THREAD_CREATE_FLAGS_SKIP_LOADER_INIT      	0x00000020
+#define THREAD_CREATE_FLAGS_BYPASS_PROCESS_FREEZE 	0x00000040
 
-#define DEFAULT_SECTION_SIZE								0x00001000
-#define DEFAULT_BUFFLEN										0x00000400
+#define DEFAULT_SECTION_SIZE						0x00001000
+#define DEFAULT_BUFFLEN								0x00000400
 
 #ifdef TRANSPORT_PIPE
 #define MESSAGE_MAX PIPE_BUFFER_MAX
@@ -173,14 +175,6 @@ enum MessageType {
 	TypeResponse    = 0x7FFFFFFD,
 	TypeSegment     = 0x7FFFFFFC,
     TypeVMExecute    = 0x7FFFFFFB,
-};
-
-enum CommandType {
-	CommandDir          = 0x00000001,
-	CommandMods         = 0x00000002,
-	CommandNoJob        = 0x00000003,
-	CommandShutdown     = 0x00000004,
-	CommandUpdatePeer   = 0x00000005,
 };
 
 typedef struct {

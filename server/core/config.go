@@ -146,9 +146,9 @@ func ReadConfig(cfgPath string) error {
 					if err = MapToStruct(h.UserConfig.Loader.Injection.Config, &threadlessConfig); err != nil {
 						return fmt.Errorf("implant::injection - threadless configuration - " + err.Error())
 					}
+
 				default:
 					return fmt.Errorf("implant::loader - unknown injection method - " + injectType)
-
 				}
 			} else {
 				return fmt.Errorf("implant::injection - Injection { } is required")

