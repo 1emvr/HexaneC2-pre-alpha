@@ -191,7 +191,7 @@ namespace Memory {
         HMODULE Base            = { };
         WCHAR lowName[MAX_PATH] = { };
 
-        auto Head = IN_MEMORY_ORDER_MODULE_LIST;
+        auto Head = MODULE_LIST;
         auto Next = Head->Flink;
 
         while (Next != Head) {

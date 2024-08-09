@@ -1,4 +1,4 @@
-#include <core/corelib.hpp>
+#include <core/include/message.hpp>
 namespace Message {
 
     BOOL PeekPID(PSTREAM Stream) {
@@ -189,7 +189,7 @@ namespace Message {
         Smb::PeerConnectEgress(Outbound, &Inbound);
 #endif
         Stream::DestroyStream(Outbound);
-        Outbound = nullptr;
+        Outbound = NULL;
 
         if (Inbound) {
             ClearQueue();
