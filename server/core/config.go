@@ -223,7 +223,12 @@ func (h *HexaneConfig) CreateBinaryPatch() ([]byte, error) {
 
 	stream := CreateStream()
 
-	stream.PackByte(1) // Root
+	if h.Implant.ProfileTypeId == TRANSPORT_HTTP {
+		stream.PackByte(1)
+	} else if h.Implant.ProfileTypeId == TRANSPORT_PIPE {
+		stream.PackByte(0)
+	}
+
 	stream.PackBytes(h.Key)
 	stream.PackString(h.UserConfig.Config.Hostname)
 

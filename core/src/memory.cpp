@@ -181,8 +181,9 @@ namespace Memory {
 
         x_memset(Ctx, 0, sizeof(HEXANE_CTX));
 
-        if (RtlFreeHeap)
+        if (RtlFreeHeap) {
             RtlFreeHeap(Heap, 0, Ctx);
+        }
     }
 
     HMODULE LdrGetModuleAddress(ULONG Hash) {
