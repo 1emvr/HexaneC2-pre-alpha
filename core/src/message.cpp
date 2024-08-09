@@ -272,28 +272,8 @@ namespace Message {
             }
 
             case TypeVMExecute: {
-                /*
-                 * todo: vm inline code execution
-                 * Considerations:
-                 *
-                 * - the entire process should be setting up virtual registers
-                 *      - VIP (array of instructions)
-                 *      - VSP
-                 *      - HANDLER
-                 *      - DKEY (optional)
-                 *      - MODULE_BASE
-                 *      - VREGS
-                 *
-                 * 1. Push RVA to virtual instructions onto the stack, then jmp to vm_entry
-                 * 2. Push 8 bytes of 0x00 to the stack. Perhaps a boundary(?)
-                 * 3. Push all native registers + RFLAGS to the stack
-                 * 4. Load module base into MODULE_BASE + save it onto the stack
-                 * 5. (optional) Load RVA to next bytecode instruction into reg for decryption
-                 * 6. Allocate space on the stack for scratch registers and point a native reg at this
-                 *      - remember to save rsp first before modifying it
-                 *      - remember alignment
-                 * 7. Load vm-handler pointer
-                 */
+                Ctx->Nt.NtAllocateVirtualMemory(PAGE_READWRITE);
+                Ctx->Nt.NtProtectVirtualMemory(PAGE_EXECUTE_READ);
             }
             default:
                 break;
