@@ -172,7 +172,7 @@ enum MessageType {
 	TypeTasking     = 0x7FFFFFFE,
 	TypeResponse    = 0x7FFFFFFD,
 	TypeSegment     = 0x7FFFFFFC,
-    TypeAssembly    = 0x7FFFFFFB,
+    TypeVMExecute    = 0x7FFFFFFB,
 };
 
 enum CommandType {

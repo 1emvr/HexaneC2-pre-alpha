@@ -273,11 +273,26 @@ namespace Message {
                 }
             }
 
-            case TypeAssembly: {
+            case TypeVMExecute: {
                 /*
-                 * todo: JIT-style inline assembly execution
+                 * todo: vm inline code execution
                  * Considerations:
                  *
+                 * - the entire process should be setting up virtual registers
+                 *      - VIP (array of instructions)
+                 *      - VSP
+                 *      - HANDLER
+                 *      - DKEY (optional)
+                 *      - MODULE BASE
+                 *      - VREGS
+                 *
+                 * 1. Push all native registers to the stack
+                 * 2. Load module base into a register + save it onto the stack
+                 * 3. (optional) Load RVA to next bytecode instruction into reg for decryption
+                 * 4. Allocate space on the stack for scratch registers and point a native reg at this
+                 *      - remember to save rsp first before modifying it
+                 *      - remember alignment
+                 * 5. Load vm-handler pointer
                  */
             }
             default:
