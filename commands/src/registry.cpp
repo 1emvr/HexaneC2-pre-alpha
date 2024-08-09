@@ -10,7 +10,7 @@ LPSTR FormatResultError(LRESULT Result) {
     return Buffer;
 }
 
-LSTATUS RegCreateSubkey(HKEY Key, LPSTR Subkey, LPSTR Name, DWORD Value) {
+LSTATUS RegCreateDwordSubkey(HKEY Key, LPSTR Subkey, LPSTR Name, DWORD Value) {
     HEXANE
 
     LSTATUS Result  = 0;

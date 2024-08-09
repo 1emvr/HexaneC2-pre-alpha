@@ -3,5 +3,5 @@
 #include <core/corelib.hpp>
 
 FUNCTION LPSTR      FormatResultError(LRESULT Result);
-FUNCTION LSTATUS    RegCreateSubkey(LPSTR Subkey, LPSTR Name, DWORD Value);
+FUNCTION LSTATUS    RegCreateDwordSubkey(LPSTR Subkey, LPSTR Name, DWORD Value);
 #endif //HEXANE_IMPLANT_REGISTRY_HPP
