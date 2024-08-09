@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	BUILD_TYPE_SHELLCODE = 0
-	BUILD_TYPE_DLL       = 1
+	BuildTypeShellcode = 0
+	BuildTypeDll       = 1
 )
 
 var (
@@ -61,9 +61,9 @@ func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) (*Module, error) {
 	}
 
 	if config.Loader == nil {
-		module.BuildType = BUILD_TYPE_SHELLCODE
+		module.BuildType = BuildTypeShellcode
 	} else {
-		module.BuildType = BUILD_TYPE_DLL
+		module.BuildType = BuildTypeDll
 	}
 
 	return module, nil

@@ -119,9 +119,9 @@ func ReadConfig(cfgPath string) error {
 		}
 
 		if h.UserConfig.Loader == nil {
-			h.BuildType = BUILD_TYPE_SHELLCODE
+			h.BuildType = BuildTypeShellcode
 		} else {
-			h.BuildType = BUILD_TYPE_DLL
+			h.BuildType = BuildTypeDll
 
 			if h.UserConfig.Loader.RootDirectory == "" {
 				return fmt.Errorf("implant::loader - root directory must be specified")
