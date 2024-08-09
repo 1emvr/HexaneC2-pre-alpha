@@ -151,8 +151,8 @@ namespace Commands {
         HANDLE hProcess             = { };
 
         IEnumUnknown *pEnum         = { };
-        ICLRMetaHost *pMetaHost = { };
-        ICLRRuntimeInfo *pRuntime = { };
+        ICLRMetaHost *pMetaHost     = { };
+        ICLRRuntimeInfo *pRuntime   = { };
 
         WCHAR Buffer[1024];
         DWORD Size  = 0;
