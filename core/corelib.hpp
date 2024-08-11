@@ -5,7 +5,7 @@
 #include <core/include/implant.hpp>
 #include <core/include/inject.hpp>
 #include <core/include/memory.hpp>
-#include <core/include/message.hpp>
+#include <core/include/dispatch.hpp>
 #include <core/include/names.hpp>
 #include <core/include/network.hpp>
 #include <core/include/opsec.hpp>

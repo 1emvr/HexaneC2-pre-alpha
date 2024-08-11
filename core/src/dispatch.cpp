@@ -1,4 +1,4 @@
-#include <core/include/message.hpp>
+#include <core/include/dispatch.hpp>
 namespace Message {
 
     BOOL PeekPID(const _stream *const stream) {
