@@ -86,15 +86,15 @@ namespace Injection {
         LPVOID ObfuscatePointer(const void *target, const bool obfuscate) {
             HEXANE
 
-            uintptr_t canary = 0;
+            uintptr_t cookie = 0;
             void *pointer = { };
 
             /*
-                ntdll.dll:7714D343
-                ntdll.dll:7714D343 loc_7714D343:
-                ntdll.dll:7714D343 mov     eax, [ebp+var_8]
-                ntdll.dll:7714D346 mov     dword_771E65FC, eax
-                ...
+                ntdll.dll:770EB1BA mov     dword ptr [eax], 1
+                ntdll.dll:770EB1C0 mov     eax, dword_771E65FC <- static value
+                ntdll.dll:770EB1C5 test    eax, eax
+                ntdll.dll:770EB1C7 jz      loc_7714D329
+
                 ntdll.dll:7714D329
                 ntdll.dll:7714D329 loc_7714D329:
                 ntdll.dll:7714D329 push    ebx
@@ -107,7 +107,7 @@ namespace Injection {
                 ntdll.dll:7714D339 test    eax, eax
                 ntdll.dll:7714D33B jns     short loc_7714D343
              */
-            if (!NT_SUCCESS(Ctx->Nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &canary, 0x4, nullptr))) {
+            if (!NT_SUCCESS(Ctx->Nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr))) {
                 return_defer(ntstatus);
             }
 
@@ -115,7 +115,7 @@ namespace Injection {
                 ntdll.dll:770EB1CD
                 ntdll.dll:770EB1CD loc_770EB1CD:
                 ntdll.dll:770EB1CD imul    ebx, [ebp+arg_0], 0Ch
-                ntdll.dll:770EB1D1 mov     ecx, eax
+                ntdll.dll:770EB1D1 mov     ecx, eax <- eax is the value returned by NtQueryInformationProcess : (PROCESSINFOCLASS)0x24
                 ntdll.dll:770EB1D3 xor     eax, edi
                 ntdll.dll:770EB1D5 and     ecx, 1Fh
                 ntdll.dll:770EB1D8 ror     eax, cl
@@ -129,10 +129,25 @@ namespace Injection {
                 ntdll.dll:770EB1F4 cmp     [edi], edi
                 ntdll.dll:770EB1F6 jnz     short loc_770EB20B
 
-                ebx = [ebp+arg_0] * 0xC
+                eax = cookie
                 ecx = eax
+                ebx = [ebp+arg_0] * 0xC
 
-                eax ^ edi; ecx & 0x1F; eax >> cl
+                cookie ^ edi; cookie & 0x1F; cookie >> cl
+                - need to find edi
+                - need to find cl (cookie LSB)
+
+
+                ntdll.dll:770EB136 mov     edi, edi
+                ntdll.dll:770EB138 push    ebp
+                ntdll.dll:770EB139 mov     ebp, esp
+                ntdll.dll:770EB13B sub     esp, 0Ch
+                ntdll.dll:770EB13E push    edi
+                ntdll.dll:770EB13F mov     edi, edx
+
+                edi is 2nd arguments to RtlAddVectoredHandler, which is the pointer to the user handler
+
+                cookie ^ pointer; cookie & 0x1F; cookie >> (cookie-lsb) ??
              */
 
         defer:
