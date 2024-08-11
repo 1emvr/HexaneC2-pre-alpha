@@ -89,29 +89,15 @@ namespace Injection {
             uintptr_t pointer = 0;
             uintptr_t cookie = 0;
 
+            auto mask = _rotl(0x10, 4);         // 0x1F
+            auto sub = _rotl(0x0F, 1) | 0x1;    // 0x20
+
             if (!NT_SUCCESS(Ctx->Nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr))) {
                 return_defer(ntstatus);
             }
-
-            /*
-                ntdll.dll:771253D4
-                ntdll.dll:771253D4 loc_771253D4:
-                ntdll.dll:771253D4 mov     eax, edx
-                ntdll.dll:771253D6 and     eax, 1Fh
-                ntdll.dll:771253D9 push    20h ; ' '
-                ntdll.dll:771253DB pop     ecx
-                ntdll.dll:771253DC sub     ecx, eax
-                ntdll.dll:771253DE mov     eax, [ebp+arg_0]
-                ntdll.dll:771253E1 ror     eax, cl
-                ntdll.dll:771253E3 xor     eax, edx
-                ntdll.dll:771253E5 leave
-                ntdll.dll:771253E6 retn    4
-                ntdll.dll:771253E6 ntdll_RtlDecodePointer endp
-                ntdll.dll:771253E6
-
-
-            */
-            encode ? pointer = _rotr(cookie ^ handler, cookie & 0x1F) : pointer = 0;
+            encode
+                ? pointer = _rotr(cookie ^ handler, cookie & mask)
+                : pointer = cookie ^ _rotr(pointer, sub - (cookie & mask));
 
             defer:
             return pointer;
