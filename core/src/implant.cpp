@@ -1,7 +1,7 @@
 #include <core/include/implant.hpp>
 namespace Implant {
 
-    TXT_SECTION(F) BYTE Config[1024] = {
+    TXT_SECTION(F) BYTE __config[1024] = {
         0x41,0x41,0x41,0x41, 0x41,0x41,0x41,0x41,
     };
 
@@ -42,8 +42,8 @@ namespace Implant {
         HEXANE
 
         _parser parser = { };
-        Parser::CreateParser(&parser, Config, sizeof(Config));
-        x_memset(Config, 0, sizeof(Config));
+        Parser::CreateParser(&parser, __config, sizeof(__config));
+        x_memset(__config, 0, sizeof(__config));
 
         Parser::ParserBytecpy(&parser, R_CAST(PBYTE, &Ctx->Root));
         Parser::ParserMemcpy(&parser, &Ctx->Config.Key, nullptr);
