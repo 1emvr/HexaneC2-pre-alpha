@@ -153,7 +153,6 @@ namespace Memory {
         MmAddr = C_PTR(GLOBAL_OFFSET);
         MmSize = sizeof(MmAddr);
 
-
         if (
             !(Instance.Modules.ntdll = LdrGetModuleAddress(NTDLL)) ||
             !(FPTR(Instance.Nt.NtProtectVirtualMemory, Instance.Modules.ntdll, NTPROTECTVIRTUALMEMORY)) ||

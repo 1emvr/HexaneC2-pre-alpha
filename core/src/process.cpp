@@ -49,6 +49,7 @@ namespace Process {
 			while (Ctx->win32.Process32Next(Snap, &Entry) == TRUE) {
 
 				if (x_strcmp(Entry.szExeFile, R_CAST(LPSTR, Parent)) == 0) {
+
 					Cid.UniqueThread = nullptr;
 					Cid.UniqueProcess = R_CAST(HANDLE, Entry.th32ProcessID);
 					InitializeObjectAttributes(&Attr, nullptr, 0, nullptr, nullptr);
