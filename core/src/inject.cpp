@@ -90,16 +90,11 @@ namespace Injection {
             void *pointer = { };
 
             /*
-                ntdll.dll:770EB1BA mov     dword ptr [eax], 1
-                ntdll.dll:770EB1C0 mov     eax, dword_771E65FC <- static value
-                ntdll.dll:770EB1C5 test    eax, eax
-                ntdll.dll:770EB1C7 jz      loc_7714D329
-
                 ntdll.dll:7714D329
                 ntdll.dll:7714D329 loc_7714D329:
                 ntdll.dll:7714D329 push    ebx
                 ntdll.dll:7714D32A push    4
-                ntdll.dll:7714D32C lea     eax, [ebp+var_8]
+                ntdll.dll:7714D32C lea     eax, [ebp+var_8] <- cookie
                 ntdll.dll:7714D32F push    eax
                 ntdll.dll:7714D330 push    24h ; '$'
                 ntdll.dll:7714D332 push    0FFFFFFFFh
@@ -123,7 +118,7 @@ namespace Injection {
                 ntdll.dll:770EB1CD
                 ntdll.dll:770EB1CD loc_770EB1CD:
                 ntdll.dll:770EB1CD imul    ebx, [ebp+arg_0], 0Ch
-                ntdll.dll:770EB1D1 mov     ecx, eax <- eax is the value returned by NtQueryInformationProcess : (PROCESSINFOCLASS)0x24
+                ntdll.dll:770EB1D1 mov     ecx, eax <- return NtQueryInformationProcess : eax = &cookie
                 ntdll.dll:770EB1D3 xor     eax, edi
                 ntdll.dll:770EB1D5 and     ecx, 1Fh
                 ntdll.dll:770EB1D8 ror     eax, cl
@@ -138,14 +133,11 @@ namespace Injection {
                 ntdll.dll:770EB1F6 jnz     short loc_770EB20B
 
                 eax = cookie
-                ecx = eax
+                ecx = cookie
                 ebx = [ebp+arg_0] * 0xC
+                edi = &handler
+                cl = (cookie & 0xFF)
 
-                cookie ^ edi; cookie & 0x1F; cookie >> cl
-                - need to find edi
-                - need to find cl (cookie LSB)
-
-                cookie ^ pointer; cookie & 0x1F; cookie >> (cookie-lsb) ??
              */
 
         defer:
