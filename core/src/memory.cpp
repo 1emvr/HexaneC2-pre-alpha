@@ -11,6 +11,17 @@ namespace Memory {
         }
     }
 
+    UINT_PTR GetStackCookie() {
+        HEXANE
+
+        uintptr_t cookie = 0;
+        if (!NT_SUCCESS(Ctx->Nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr))) {
+            cookie = 0;
+        }
+
+        return cookie;
+    }
+
     VOID GetProcessHeaps(void *process, uint32_t access, uint32_t pid) {
         HEXANE
 

