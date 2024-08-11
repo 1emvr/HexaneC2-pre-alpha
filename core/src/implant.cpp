@@ -128,6 +128,7 @@ namespace Implant {
         for (auto i = 0; i < Ctx->Transport.http->nEndpoints; i++) {
             Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->Endpoints[i], nullptr);
         }
+
         Ctx->Transport.http->Endpoints[Ctx->Transport.http->nEndpoints + 1] = nullptr;
 
         Parser::ParserStrcpy(&Parser, &Ctx->Transport.Domain, nullptr  );

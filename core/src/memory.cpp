@@ -35,14 +35,11 @@ namespace Memory {
             else if (OSVersionW.dwMajorVersion == 6) {
                 if (OSVersionW.dwMinorVersion == 0) {
                     Ctx->Session.OSVersion = WIN_VERSION_2008;
-                }
-                else if (OSVersionW.dwMinorVersion == 1) {
+                } else if (OSVersionW.dwMinorVersion == 1) {
                     Ctx->Session.OSVersion = WIN_VERSION_2008_R2;
-                }
-                else if (OSVersionW.dwMinorVersion == 2) {
+                } else if (OSVersionW.dwMinorVersion == 2) {
                     Ctx->Session.OSVersion = WIN_VERSION_2012;
-                }
-                else if (OSVersionW.dwMinorVersion == 3) {
+                } else if (OSVersionW.dwMinorVersion == 3) {
                     Ctx->Session.OSVersion = WIN_VERSION_2012_R2;
                 }
             }

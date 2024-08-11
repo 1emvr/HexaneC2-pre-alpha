@@ -77,6 +77,7 @@ EXTERN_C LPVOID InstEnd();
 #define ENTRYPOINT_REG 							Rcx
 #define PTR_MASK                                0x7FFFFFFF
 #define PEB_POINTER     						PEB_POINTER64
+#define REG_PEB_OFFSET(x) 						REG_PEB64(x)
 #define DBG_FLAG_OFFSET 						DBG_FLAG_OFFSET64
 #define IMAGE_OPT_MAGIC 						IMAGE_NT_OPTIONAL_HDR64_MAGIC
 #define MACHINE_ARCH    						IMAGE_FILE_MACHINE_AMD64
@@ -84,6 +85,7 @@ EXTERN_C LPVOID InstEnd();
 #define ENTRYPOINT_REG 							Eax
 #define PTR_MASK                                0x7FFF
 #define PEB_POINTER     						PEB_POINTER32
+#define REG_PEB_OFFSET(x) 						REB_PEB32(x)
 #define DBG_FLAG_OFFSET 						DBG_FLAG_OFFSET32
 #define IMAGE_OPT_MAGIC 						IMAGE_NT_OPTIONAL_HDR32_MAGIC
 #define MACHINE_ARCH    						IMAGE_FILE_MACHINE_I386

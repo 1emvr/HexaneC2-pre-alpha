@@ -68,6 +68,7 @@ set (INJECT
         ${HOME}/inject/threadless/loader.asm
         ${HOME}/inject/threadless/OpenFileExecute.cpp
         core/dotnet.hpp
+        commands/src/veh.cpp
 )
 
 add_executable(Hexane-Implant ${SOURCES} ${COMMANDS} ${LOADER} ${INJECT} ${INCLUDES})
