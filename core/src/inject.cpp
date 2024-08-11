@@ -89,15 +89,12 @@ namespace Injection {
             uintptr_t pointer = 0;
             uintptr_t cookie = 0;
 
-            auto mask = _rotl(0x10, 4);         // 0x1F
-            auto sub = _rotl(0x0F, 1) | 0x1;    // 0x20
-
             if (!NT_SUCCESS(Ctx->Nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr))) {
                 return_defer(ntstatus);
             }
             encode
-                ? pointer = _rotr(cookie ^ handler, cookie & mask)
-                : pointer = cookie ^ _rotr(pointer, sub - (cookie & mask));
+                ? pointer = _rotr(cookie ^ handler, cookie & 0x1F)
+                : pointer = cookie ^ _rotr(pointer, 0x20 - (cookie & 0x1F));
 
             defer:
             return pointer;
