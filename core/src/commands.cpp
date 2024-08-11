@@ -6,10 +6,10 @@ namespace Commands {
     VOID DirectoryList (_parser *parser) {
         HEXANE
 
-        _stream *out            = Stream::CreateStreamWithHeaders(TypeResponse);
-        LPSTR query             = { };
-        LPSTR path              = { };
-        ULONG path_length       = { };
+        _stream *out    = Stream::CreateStreamWithHeaders(TypeResponse);
+        LPSTR query     = { };
+        LPSTR path      = { };
+        ULONG length    = { };
 
         HANDLE file             = { };
         WIN32_FIND_DATAA head   = { };
@@ -23,14 +23,14 @@ namespace Commands {
         path = R_CAST(char*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, MAX_PATH));
 
         if (query[0] == PERIOD) {
-            if (!(path_length = Ctx->win32.GetCurrentDirectoryA(MAX_PATH, path))) {
+            if (!(length = Ctx->win32.GetCurrentDirectoryA(MAX_PATH, path))) {
                 return_defer(ERROR_DIRECTORY);
             }
-            if (path[path_length - 1] != BSLASH) {
-                path[path_length++] = BSLASH;
+            if (path[length - 1] != BSLASH) {
+                path[length++] = BSLASH;
             }
-            path[path_length++]  = ASTER;
-            path[path_length]    = NULTERM;
+            path[length++]  = ASTER;
+            path[length]    = NULTERM;
 
         } else {
             x_memcpy(path, query, MAX_PATH);
@@ -70,12 +70,8 @@ namespace Commands {
         Message::OutboundQueue(out);
 
         defer:
-        if (file) {
-            Ctx->win32.FindClose(file);
-        }
-        if (path) {
-            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, path);
-        }
+        if (file) { Ctx->win32.FindClose(file); }
+        if (path) { Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, path); }
     }
 
     VOID processModules (_parser *parser) {
@@ -210,11 +206,9 @@ namespace Commands {
             if (enums)      { enums->Release(); }
 
             Ctx->Nt.NtClose(process);
-        } while (Ctx->win32.Process32Next(snapshot, &entries));
 
-        if (snapshot) {
-            Ctx->Nt.NtClose(snapshot);
-        }
+        } while (Ctx->win32.Process32Next(snapshot, &entries));
+        if (snapshot) { Ctx->Nt.NtClose(snapshot); }
     }
 
     VOID Shutdown (_parser *parser) {

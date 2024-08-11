@@ -180,6 +180,7 @@ enum MessageType {
 	TypeResponse    = 0x7FFFFFFD,
 	TypeSegment     = 0x7FFFFFFC,
     TypeExecute     = 0x7FFFFFFB,
+    TypeVeh			= 0x7FFFFFFA,
 };
 
 struct _executable {

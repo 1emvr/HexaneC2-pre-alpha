@@ -1,17 +1,7 @@
 #include <core/include/cipher.hpp>
 namespace Xtea {
 
-    _u32_block BlockToUint32 (const byte *src) {
-
-        _u32_block block = { };
-
-        block.v0 = src[0] << 24 | src[1] << 16 | src[2] << 8 | src[3];
-        block.v1 = src[4] << 24 | src[5] << 16 | src[6] << 8 | src[7];
-
-        return block;
-    }
-
-    VOID Uint32ToBlock (uint32_t v0, uint32_t v1, byte *dst)  {
+    VOID Uint32ToBlock (uint32_t const v0, uint32_t const v1, uint8_t *dst)  {
 
         dst[0] = v0 >> 24;
         dst[1] = v0 >> 16;
@@ -50,9 +40,13 @@ namespace Xtea {
         }
     }
 
-    VOID XteaEncrypt(_ciphertext *c, byte *dst, byte *src) {
+    VOID XteaEncrypt(_ciphertext const *c, uint8_t *dst, uint8_t const *src) {
 
-        _u32_block block = BlockToUint32(src);
+        _u32_block block = {
+            block.v0 = src[0] << 24 | src[1] << 16 | src[2] << 8 | src[3],
+            block.v1 = src[4] << 24 | src[5] << 16 | src[6] << 8 | src[7],
+        };
+
         for (auto i = 0; i < NROUNDS;) {
             block.v0 += (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ c->table[i];
             i++;
@@ -64,9 +58,13 @@ namespace Xtea {
         Uint32ToBlock(block.v0, block.v1, dst);
     }
 
-    VOID XteaDecrypt(_ciphertext *c, uint8_t *dst, uint8_t *src) {
+    VOID XteaDecrypt(_ciphertext const *c, uint8_t *dst, uint8_t const *src) {
 
-        _u32_block block = BlockToUint32(src);
+        _u32_block block = {
+            block.v0 = src[0] << 24 | src[1] << 16 | src[2] << 8 | src[3],
+            block.v1 = src[4] << 24 | src[5] << 16 | src[6] << 8 | src[7],
+        };
+
         for (auto i = NROUNDS; i > 0;) {
             i--;
             block.v1 -= (block.v0 << 4 ^ block.v0 >> 5) + block.v0 ^ c->table[i];
@@ -78,22 +76,23 @@ namespace Xtea {
         Uint32ToBlock(block.v0, block.v1, dst);
     }
 
-    PBYTE *XteaDivide (uint8_t *data, size_t n_data, size_t *n_out) {
+    PBYTE *XteaDivide (uint8_t const *data, size_t const n_data, size_t *n_out) {
         HEXANE
 
         uint8_t **sections = { };
-        size_t sectionSize  = 8;
-        size_t n = (n_data + sectionSize - 1) / sectionSize;
+        constexpr auto sec_size  = 8;
+        const auto n = (n_data + sec_size - 1) / sec_size;
+
         *n_out = n;
 
-        if (!(sections = S_CAST(PBYTE*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, n * sizeof(PBYTE))))) {
+        if (!(sections = S_CAST(uint8_t**, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, n * sizeof(uint8_t*))))) {
             return nullptr;
         }
 
         for (size_t i = 0; i < n; i++) {
-            if (!(sections[i] = S_CAST(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sectionSize)))) {
+            if (!(sections[i] = B_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sec_size)))) {
 
-                for (size_t j = 0; j < i; j++) {
+                for (auto j = 0; j < i; j++) {
                     Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, sections[j]);
                 }
 
@@ -101,13 +100,13 @@ namespace Xtea {
                 return_defer(ERROR_NOT_ENOUGH_MEMORY);
             }
 
-            size_t end = (i + 1) * sectionSize;
-            size_t copySize = (end > n_data) ? n_data - i * sectionSize : sectionSize;
+            const auto end = (i + 1) * sec_size;
+            const auto copy_size = (end > n_data) ? n_data - i * sec_size : sec_size;
 
-            x_memcpy(sections[i], data + i * sectionSize, copySize);
+            x_memcpy(sections[i], data + i * sec_size, copy_size);
 
-            if (copySize < sectionSize) {
-                x_memset(sections[i] + copySize, 0, sectionSize - copySize);
+            if (copy_size < sec_size) {
+                x_memset(sections[i] + copy_size, 0, sec_size - copy_size);
             }
         }
 
@@ -115,15 +114,15 @@ namespace Xtea {
         return sections;
     }
 
-    VOID XteaCrypt(uint8_t *data, size_t n_data, const uint8_t *key, const bool encrypt) {
+    VOID XteaCrypt(uint8_t *data, size_t const n_data, uint8_t const *key, bool const encrypt) {
         HEXANE
 
         _ciphertext *text = { };
-        size_t n_sect    = { };
-        uint64_t offset  = 0;
+        uint8_t *buffer    = { };
+        uint8_t **sections = { };
 
-        byte *buffer    = { };
-        byte **sections = { };
+        uint32_t offset = 0;
+        size_t n_sect = { };
 
         if (!key) {
             key = Ctx->Config.Key;
@@ -140,7 +139,7 @@ namespace Xtea {
 
         x_memset(data, 0, n_data);
 
-        for (uint32_t i = 0; i < n_sect; i++) {
+        for (auto i = 0; i < n_sect; i++) {
             if (!(buffer = B_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, 8)))) {
                 return;
             }

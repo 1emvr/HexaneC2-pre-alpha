@@ -3,11 +3,11 @@
 #include <core/corelib.hpp>
 
 enum CommandType {
-	CommandDir          	= 0x00000001,
-	CommandMods         	= 0x00000002,
-	CommandNoJob        	= 0x00000003,
-	CommandShutdown     	= 0x00000004,
-	CommandUpdatePeer   	= 0x00000005,
+	CommandDir			= 0x00000001,
+	CommandMods         = 0x00000002,
+	CommandNoJob        = 0x00000003,
+	CommandShutdown     = 0x00000004,
+	CommandUpdatePeer   = 0x00000005,
 	CommandProcess 		= 0x00000006,
 };
 
@@ -18,5 +18,4 @@ namespace Commands {
     FUNCTION VOID Shutdown(_parser *parser);
 	FUNCTION VOID UpdatePeer(_parser *parser);
 }
-
 #endif //HEXANE_CORELIB_COMMANDS_HPP

@@ -253,23 +253,23 @@ namespace Memory {
 
     namespace Modules {
 
-        HMODULE GetModuleAddress(PLDR_DATA_TABLE_ENTRY entry) {
+        HMODULE GetModuleAddress(const LDR_DATA_TABLE_ENTRY *entry) {
             return R_CAST(HMODULE, entry->DllBase);
         }
 
-        LDR_DATA_TABLE_ENTRY* GetModuleEntry(uint32_t hash) {
+        LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash) {
             HEXANE
 
-            PEB peb             = { };
-            CONTEXT thread_ctx  = { };
-            PEB_LDR_DATA *load  = { };
+            PEB peb = { };
+            CONTEXT thread_ctx = { };
+            PEB_LDR_DATA const *load  = { };
 
             size_t read = 0;
             wchar_t lowercase[MAX_PATH] = { };
 
             if (
                 !Ctx->Nt.NtGetContextThread(NtCurrentThread(), &thread_ctx) ||
-                !Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), REG_PEB_OFFSET(thread_ctx), (LPVOID) & peb, sizeof(PEB), &read)) {
+                !Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), REG_PEB_OFFSET(thread_ctx), C_PTR(&peb), sizeof(PEB), &read)) {
                 return nullptr;
             }
 
@@ -289,22 +289,22 @@ namespace Memory {
             return nullptr;
         }
 
-        FARPROC GetExportAddress(HMODULE base, uint32_t hash) {
+        FARPROC GetExportAddress(const HMODULE base, const uint32_t hash) {
 
             FARPROC address          = { };
             char lowercase[MAX_PATH]  = { };
 
-            auto dos_head = IMAGE_DOS_HEADER(base);
-            auto nt_head = IMAGE_NT_HEADERS(base, dos_head);
-            auto exports = IMAGE_EXPORT_DIRECTORY(dos_head, nt_head);
+            const auto dos_head = IMAGE_DOS_HEADER(base);
+            const auto nt_head = IMAGE_NT_HEADERS(base, dos_head);
+            const auto exports = IMAGE_EXPORT_DIRECTORY(dos_head, nt_head);
 
             if (exports->AddressOfNames) {
-                auto ords = RVA(uint16_t*, base, exports->AddressOfNameOrdinals);
-                auto fns = RVA(uint32_t*, base, exports->AddressOfFunctions);
-                auto names = RVA(uint32_t*, base, exports->AddressOfNames);
+                const auto ords = RVA(uint16_t*, base, exports->AddressOfNameOrdinals);
+                const auto fns = RVA(uint32_t*, base, exports->AddressOfFunctions);
+                const auto names = RVA(uint32_t*, base, exports->AddressOfNames);
 
                 for (auto i = 0; i < exports->NumberOfNames; i++) {
-                    auto name = RVA(char*, base, (long) names[i]);
+                    const auto name = RVA(char*, base, names[i]);
 
                     x_memset(lowercase, 0, MAX_PATH);
 
@@ -318,18 +318,18 @@ namespace Memory {
             return address;
         }
 
-        UINT_PTR LoadExportAddress(char *module_name, char *export_name) {
+        UINT_PTR LoadExportAddress(const char *const module_name, const char *const export_name) {
             HEXANE
 
             UINT_PTR address    = 0;
             INT reload          = 0;
 
-            auto mod_name = Utils::GetHashFromStringA(module_name, x_strlen(module_name));
-            auto fn_name = Utils::GetHashFromStringA(export_name, x_strlen(export_name));
+            const auto mod_name = Utils::GetHashFromStringA(module_name, x_strlen(module_name));
+            const auto fn_name = Utils::GetHashFromStringA(export_name, x_strlen(export_name));
 
             while (!address) {
                 if (!(F_PTR_HASHES(address, mod_name, fn_name))) {
-                    if (reload || !(Ctx->win32.LoadLibraryA(S_CAST(const char *, module_name)))) {
+                    if (reload || !Ctx->win32.LoadLibraryA(S_CAST(const char *, module_name))) {
                         goto defer;
                     }
                     reload++;
@@ -342,11 +342,11 @@ namespace Memory {
 
     namespace Scanners {
 
-        UINT_PTR RelocateExport(void *process, void *target, size_t size) {
+        UINT_PTR RelocateExport(void *const process, const void *const target, size_t size) {
             HEXANE
 
-            UINT_PTR ret = 0;
-            UINT_PTR address = R_CAST(uintptr_t, target);
+            uintptr_t ret = 0;
+            const auto address = R_CAST(uintptr_t, target);
 
             for (ret = (address & 0xFFFFFFFFFFF70000) - 0x70000000;
                  ret < address + 0x70000000;
@@ -370,7 +370,7 @@ namespace Memory {
         }
 
 
-        UINT_PTR SignatureScan(uintptr_t start, uint32_t size, const char *signature, const char *mask) {
+        UINT_PTR SignatureScan(const uintptr_t start, const uint32_t size, const char *signature, const char *mask) {
             HEXANE
 
             uintptr_t address = 0;

