@@ -109,10 +109,9 @@ namespace Injection {
                 ntdll.dll:771253E6 ntdll_RtlDecodePointer endp
                 ntdll.dll:771253E6
 
-                ecx = encoded
-                edx = esp - 4
+
             */
-            encode ? pointer = _rotr64(cookie ^ handler, cookie & 0x1F) : pointer = 0;
+            encode ? pointer = _rotr(cookie ^ handler, cookie & 0x1F) : pointer = 0;
 
             defer:
             return pointer;
