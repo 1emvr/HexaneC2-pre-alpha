@@ -19,8 +19,8 @@ namespace Memory {
 
         FUNCTION LDR_DATA_TABLE_ENTRY* GetModuleEntry(uint32_t hash);
         FUNCTION HMODULE GetModuleAddress(PLDR_DATA_TABLE_ENTRY entry);
-        FUNCTION FARPROC GetSymbolAddress(HMODULE Base, ULONG Hash);
-        FUNCTION UINT_PTR GetExportAddress(char *module_name, char *export_name);
+        FUNCTION FARPROC GetExportAddress(HMODULE Base, ULONG Hash);
+        FUNCTION UINT_PTR LoadExportAddress(char *module_name, char *export_name);
     }
 
     namespace Scanners {

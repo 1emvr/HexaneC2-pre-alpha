@@ -584,11 +584,11 @@ EXTERN_C WEAK ULONG  		__InstanceOffset;
 
 
 #define F_PTR_HMOD(Fn, hmod, sym_hash) 	\
-	Fn = (__typeof__(Fn)) Memory::Modules::GetSymbolAddress(hmod, sym_hash)
+	Fn = (__typeof__(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash)
 
 
 #define F_PTR_HASHES(Fn, mod_hash, sym_hash) \
-	Fn = (__typeof__(Fn)) Memory::Modules::GetSymbolAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash)
+	Fn = (__typeof__(Fn)) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash)
 
 
 #define M_PTR(mod_hash) \

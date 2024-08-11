@@ -251,10 +251,9 @@ namespace Memory {
         LDR_DATA_TABLE_ENTRY* GetModuleEntry(uint32_t hash) {
             HEXANE
 
-            PEB peb = { };
-            CONTEXT thread_ctx = { };
-            PEB_LDR_DATA *load = { };
-            HMODULE module = { };
+            PEB peb             = { };
+            CONTEXT thread_ctx  = { };
+            PEB_LDR_DATA *load  = { };
 
             size_t read = 0;
             wchar_t lowercase[MAX_PATH] = { };
@@ -281,7 +280,7 @@ namespace Memory {
             return nullptr;
         }
 
-        FARPROC GetSymbolAddress(HMODULE Base, ULONG Hash) {
+        FARPROC GetExportAddress(HMODULE Base, ULONG Hash) {
 
             FARPROC Export          = { };
             CHAR lowName[MAX_PATH]  = { };
@@ -314,7 +313,7 @@ namespace Memory {
             return Export;
         }
 
-        UINT_PTR GetExportAddress(char *module_name, char *export_name) {
+        UINT_PTR LoadExportAddress(char *module_name, char *export_name) {
             HEXANE
 
             UINT_PTR address    = 0;
