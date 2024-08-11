@@ -83,64 +83,38 @@ namespace Injection {
             return handler;
         }
 
-        LPVOID ObfuscatePointer(const void *target, const bool obfuscate) {
+        UINT_PTR ObfuscatePointer(uintptr_t handler, const bool encode) {
             HEXANE
 
+            uintptr_t pointer = 0;
             uintptr_t cookie = 0;
-            void *pointer = { };
 
-            /*
-                ntdll.dll:7714D329
-                ntdll.dll:7714D329 loc_7714D329:
-                ntdll.dll:7714D329 push    ebx
-                ntdll.dll:7714D32A push    4
-                ntdll.dll:7714D32C lea     eax, [ebp+var_8] <- cookie
-                ntdll.dll:7714D32F push    eax
-                ntdll.dll:7714D330 push    24h ; '$'
-                ntdll.dll:7714D332 push    0FFFFFFFFh
-                ntdll.dll:7714D334 call    near ptr ntdll_NtQueryInformationProcess
-                ntdll.dll:7714D339 test    eax, eax
-                ntdll.dll:7714D33B jns     short loc_7714D343
-             */
             if (!NT_SUCCESS(Ctx->Nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr))) {
                 return_defer(ntstatus);
             }
 
             /*
-                ntdll.dll:770EB136 mov     edi, edi
-                ntdll.dll:770EB138 push    ebp
-                ntdll.dll:770EB139 mov     ebp, esp
-                ntdll.dll:770EB13B sub     esp, 0Ch
-                ntdll.dll:770EB13E push    edi
-                ntdll.dll:770EB13F mov     edi, edx <- edi is the pointer to the user-provided handler
+                ntdll.dll:771253D4
+                ntdll.dll:771253D4 loc_771253D4:
+                ntdll.dll:771253D4 mov     eax, edx
+                ntdll.dll:771253D6 and     eax, 1Fh
+                ntdll.dll:771253D9 push    20h ; ' '
+                ntdll.dll:771253DB pop     ecx
+                ntdll.dll:771253DC sub     ecx, eax
+                ntdll.dll:771253DE mov     eax, [ebp+arg_0]
+                ntdll.dll:771253E1 ror     eax, cl
+                ntdll.dll:771253E3 xor     eax, edx
+                ntdll.dll:771253E5 leave
+                ntdll.dll:771253E6 retn    4
+                ntdll.dll:771253E6 ntdll_RtlDecodePointer endp
+                ntdll.dll:771253E6
 
-                <...>
-                ntdll.dll:770EB1CD
-                ntdll.dll:770EB1CD loc_770EB1CD:
-                ntdll.dll:770EB1CD imul    ebx, [ebp+arg_0], 0Ch
-                ntdll.dll:770EB1D1 mov     ecx, eax <- return NtQueryInformationProcess : eax = &cookie
-                ntdll.dll:770EB1D3 xor     eax, edi
-                ntdll.dll:770EB1D5 and     ecx, 1Fh
-                ntdll.dll:770EB1D8 ror     eax, cl
-                ntdll.dll:770EB1DA push    0
-                ntdll.dll:770EB1DC mov     [esi+10h], eax
-                ntdll.dll:770EB1DF add     ebx, offset off_771E9340
-                ntdll.dll:770EB1E5 lea     edi, [ebx+4]
-                ntdll.dll:770EB1E8 call    near ptr unk_77122156
-                ntdll.dll:770EB1ED push    dword ptr [ebx]
-                ntdll.dll:770EB1EF call    near ptr ntdll_RtlAcquireSRWLockExclusive
-                ntdll.dll:770EB1F4 cmp     [edi], edi
-                ntdll.dll:770EB1F6 jnz     short loc_770EB20B
+                ecx = encoded
+                edx = esp - 4
+            */
+            encode ? pointer = _rotr64(cookie ^ handler, cookie & 0x1F) : pointer = 0;
 
-                eax = cookie
-                ecx = cookie
-                ebx = [ebp+arg_0] * 0xC
-                edi = &handler
-                cl = (cookie & 0xFF)
-
-             */
-
-        defer:
+            defer:
             return pointer;
         }
     }
