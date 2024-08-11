@@ -137,4 +137,3 @@ namespace Stream {
         PackBytes(stream, R_CAST(uint8_t*, data), x_wcslen(data));
     }
 }
-

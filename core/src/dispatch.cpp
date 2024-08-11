@@ -1,11 +1,21 @@
-#include <core/include/message.hpp>
-namespace Message {
+#include <core/include/dispatch.hpp>
+namespace Dispatcher {
+
+    __allocate(".text$RDATA") _command_map cmd_map[] = {
+        {.Id = CommandDir,          .Function = Commands::DirectoryList},
+        {.Id = CommandMods,         .Function = Commands::ProcessModules},
+        {.Id = CommandProcess,      .Function = Commands::ProcessList},
+        {.Id = CommandUpdatePeer,   .Function = Commands::UpdatePeer},
+        {.Id = CommandShutdown,     .Function = Commands::Shutdown},
+        {.Id = 0,                   .Function = nullptr}
+    };
 
     BOOL PeekPID(const _stream *const stream) {
         HEXANE
-        UINT pid = 0;
 
+        uint32_t pid = 0;
         x_memcpy(&pid, stream->Buffer, 4);
+
         if (x_memcmp(&Ctx->Session.PeerId, &pid, 4) == 0) {
             return TRUE;
         }
@@ -61,7 +71,7 @@ namespace Message {
         }
     }
 
-    VOID OutboundQueue(const _stream *out) {
+    VOID OutboundQueue(_stream *const out) {
         HEXANE
 
         _parser parser = { };
@@ -78,9 +88,9 @@ namespace Message {
             Parser::CreateParser(&parser, B_PTR(out->Buffer), out->Length);
 
             queue           = Stream::CreateStream();
-            queue->PeerId   = __bswapd(S_CAST(ULONG, Parser::UnpackDword(&parser)));
-            queue->TaskId   = __bswapd(S_CAST(ULONG, Parser::UnpackDword(&parser)));
-            queue->MsgType  = __bswapd(S_CAST(ULONG, Parser::UnpackDword(&parser)));
+            queue->PeerId   = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
+            queue->TaskId   = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
+            queue->MsgType  = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
 
             queue->Length   = parser.Length;
             queue->Buffer   = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, queue->Buffer, queue->Length);
@@ -231,15 +241,6 @@ namespace Message {
 
     defer:
     }
-
-    RDATA_SECTION _command_map cmd_map[] = {
-        {.Id = CommandDir,          .Function = Commands::DirectoryList},
-        {.Id = CommandMods,         .Function = Commands::ProcessModules},
-        {.Id = CommandProcess,      .Function = Commands::ProcessList},
-        {.Id = CommandUpdatePeer,   .Function = Commands::UpdatePeer},
-        {.Id = CommandShutdown,     .Function = Commands::Shutdown},
-        {.Id = 0,                   .Function = nullptr}
-    };
 
     VOID CommandDispatch (const _stream *const in) {
         HEXANE

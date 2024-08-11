@@ -3,13 +3,8 @@ namespace Xtea {
 
     VOID Uint32ToBlock (uint32_t const v0, uint32_t const v1, uint8_t *dst)  {
 
-        dst[0] = v0 >> 24;
-        dst[1] = v0 >> 16;
-        dst[2] = v0 >> 8;
-        dst[3] = v0;
-        dst[4] = v1 >> 24;
-        dst[5] = v1 >> 16;
-        dst[6] = v1 >> 8;
+        dst[0] = v0 >> 24; dst[1] = v0 >> 16; dst[2] = v0 >> 8; dst[3] = v0;
+        dst[4] = v1 >> 24; dst[5] = v1 >> 16; dst[6] = v1 >> 8;
         dst[7] = v1;
     }
 
@@ -117,12 +112,12 @@ namespace Xtea {
     VOID XteaCrypt(uint8_t *data, size_t const n_data, uint8_t const *key, bool const encrypt) {
         HEXANE
 
-        _ciphertext *text = { };
-        uint8_t *buffer    = { };
-        uint8_t **sections = { };
+        _ciphertext *text   = { };
+        uint8_t *buffer     = { };
+        uint8_t **sections  = { };
 
         uint32_t offset = 0;
-        size_t n_sect = { };
+        size_t n_sect   = 0;
 
         if (!key) {
             key = Ctx->Config.Key;

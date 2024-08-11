@@ -12,7 +12,7 @@ include_directories(include ${CMAKE_SOURCE_DIR} ${META})
 set (SOURCES
         ${HOME}/core/src/cipher.cpp
         ${HOME}/core/src/commands.cpp
-        ${HOME}/core/src/cruntime.cpp
+        ${HOME}/core/src/stdlib.cpp
         ${HOME}/core/src/implant.cpp
         ${HOME}/core/src/inject.cpp
         ${HOME}/core/src/memory.cpp
@@ -24,6 +24,7 @@ set (SOURCES
         ${HOME}/core/src/start.asm
         ${HOME}/core/src/stream.cpp
         ${HOME}/core/src/utils.cpp
+        core/src/start.cpp
 )
 
 set (INCLUDES
@@ -33,7 +34,7 @@ set (INCLUDES
         ${HOME}/core/ntimports.hpp
         ${HOME}/core/include/cipher.hpp
         ${HOME}/core/include/commands.hpp
-        ${HOME}/core/include/cruntime.hpp
+        ${HOME}/core/include/stdlib.hpp
         ${HOME}/core/include/implant.hpp
         ${HOME}/core/include/inject.hpp
         ${HOME}/core/include/memory.hpp

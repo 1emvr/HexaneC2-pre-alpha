@@ -8,6 +8,7 @@
 #include <windows.h>
 #include <accctrl.h>
 #include <winhttp.h>
+#include <wincrypt.h>
 #include <iphlpapi.h>
 #include <tlhelp32.h>
 #include <type_traits>
@@ -21,6 +22,7 @@
 #include <string>
 
 
+typedef LONG NTSTATUS;
 typedef LONG KPRIORITY;
 typedef ULONG LOGICAL;
 #define STATIC						static

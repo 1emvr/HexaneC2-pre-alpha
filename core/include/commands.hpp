@@ -1,6 +1,5 @@
 #ifndef HEXANE_CORELIB_COMMANDS_HPP
 #define HEXANE_CORELIB_COMMANDS_HPP
-#include <core/corelib.hpp>
 
 enum CommandType {
 	CommandDir			= 0x00000001,
@@ -11,7 +10,9 @@ enum CommandType {
 	CommandProcess 		= 0x00000006,
 };
 
+#include <core/corelib.hpp>
 namespace Commands {
+
 	FUNCTION VOID DirectoryList (_parser *parser);
 	FUNCTION VOID ProcessModules (_parser *parser);
 	FUNCTION VOID ProcessList (_parser *parser);

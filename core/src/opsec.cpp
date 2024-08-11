@@ -148,7 +148,7 @@ namespace Opsec {
         x_memset(&adapter, 0, sizeof(IP_ADAPTER_INFO));
 
     defer:
-        Message::OutboundQueue(entry);
+        Dispatcher::OutboundQueue(entry);
     }
 
     VOID SeImageCheck(_executable *source, _executable *target) {

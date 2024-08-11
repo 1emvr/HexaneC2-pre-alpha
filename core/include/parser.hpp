@@ -1,8 +1,9 @@
 #ifndef HEXANE_PARSER_HPP
 #define HEXANE_PARSER_HPP
-#include <core/corelib.hpp>
 
+#include <core/corelib.hpp>
 namespace Parser {
+
     FUNCTION VOID ParserBytecpy(_parser *parser, uint8_t *dst);
     FUNCTION VOID ParserStrcpy(_parser *parser, char **dst, uint32_t *n_out);
     FUNCTION VOID ParserWcscpy(_parser *parser, wchar_t **dst, uint32_t *n_out);

@@ -129,7 +129,7 @@ namespace Parser {
 
         return (parser->LE)
                ? data
-               : __bswapd(S_CAST(int32_t, data));
+               : __builtin_bswap32(S_CAST(int32_t, data));
     }
 
     ULONG64 UnpackDword64 (_parser *parser) {
@@ -147,7 +147,7 @@ namespace Parser {
 
         return (parser->LE)
                ? data
-               : __bswapq(S_CAST(int64_t, data));
+               : __builtin_bswap64(S_CAST(int64_t, data));
     }
 
     BOOL UnpackBool (_parser *parser) {
@@ -165,7 +165,7 @@ namespace Parser {
 
         return (parser->LE)
                ? data != 0
-               : __bswapd(data) != 0;
+               : __builtin_bswap32(data) != 0;
     }
 
     PBYTE UnpackBytes (_parser *parser, uint32_t *n_out) {

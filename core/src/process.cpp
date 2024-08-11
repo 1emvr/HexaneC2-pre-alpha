@@ -78,23 +78,23 @@ namespace Process {
 		return Ctx->Nt.NtOpenProcess(pp_process, access, &attrs, &client);
 	}
 
-	VOID NtCloseUserProcess(PIMAGE proc) {
+	VOID NtCloseUserProcess(_executable *process) {
 		HEXANE
 
-		if (proc->Attrs) {
-			Ctx->Nt.RtlFreeHeap(proc->lpHeap, 0, proc->Attrs);
-			proc->Attrs = nullptr;
+		if (process->Attrs) {
+			Ctx->Nt.RtlFreeHeap(process->lpHeap, 0, process->Attrs);
+			process->Attrs = nullptr;
 		}
-		if (proc->lpHeap) {
-			Ctx->Nt.RtlDestroyHeap(proc->lpHeap);
-			proc->lpHeap = nullptr;
+		if (process->lpHeap) {
+			Ctx->Nt.RtlDestroyHeap(process->lpHeap);
+			process->lpHeap = nullptr;
 		}
-		if (proc->Params) {
-			Ctx->Nt.RtlDestroyProcessParameters(proc->Params);
-			proc->Params = nullptr;
+		if (process->Params) {
+			Ctx->Nt.RtlDestroyProcessParameters(process->Params);
+			process->Params = nullptr;
 		}
-		if (proc->pHandle) {
-			Ctx->Nt.NtTerminateProcess(proc->pHandle, ERROR_SUCCESS);
+		if (process->pHandle) {
+			Ctx->Nt.NtTerminateProcess(process->pHandle, ERROR_SUCCESS);
 		}
 	}
 

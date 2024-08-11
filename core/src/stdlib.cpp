@@ -1,5 +1,4 @@
 #include <core/include/stdlib.hpp>
-
 void x_memcpy (void *dst, const void *src, size_t n) {
 
     auto a = S_CAST(uint8_t*, dst);
@@ -225,4 +224,3 @@ int x_wcsEndsWith (const wchar_t *string, const wchar_t *end) {
     string = &string[ length1 - length2 ];
     return x_wcscmp(string, end) == 0;
 }
-

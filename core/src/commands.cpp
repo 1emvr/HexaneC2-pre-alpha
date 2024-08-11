@@ -1,6 +1,5 @@
 #include <core/include/commands.hpp>
 #include <core/dotnet.hpp>
-
 namespace Commands {
 
     VOID DirectoryList (_parser *parser) {
@@ -67,7 +66,7 @@ namespace Commands {
             Stream::PackString(out, head.cFileName);
         } while (Ctx->win32.FindNextFileA(file, &head) != 0);
 
-        Message::OutboundQueue(out);
+        Dispatcher::OutboundQueue(out);
 
         defer:
         if (file) { Ctx->win32.FindClose(file); }
@@ -133,7 +132,7 @@ namespace Commands {
             }
         }
 
-        Message::OutboundQueue(out);
+        Dispatcher::OutboundQueue(out);
         defer:
     }
 

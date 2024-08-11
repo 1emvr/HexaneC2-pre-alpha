@@ -1,22 +1,22 @@
 #ifndef HEXANE_CORELIB_STREAM_HPP
 #define HEXANE_CORELIB_STREAM_HPP
-#include <core/corelib.hpp>
 
+#include <core/corelib.hpp>
 namespace Stream {
 
-	FUNCTION UINT32 ExtractU32 (BYTE CONST *Buffer);
-	FUNCTION VOID PackInt64(PBYTE buffer, UINT64 value);
-	FUNCTION VOID PackInt32(PBYTE buffer, UINT32 value);
+	FUNCTION UINT32 ExtractU32 (uint8_t const *buffer);
+	FUNCTION VOID PackInt64(uint8_t *buffer, uint64_t value);
+	FUNCTION VOID PackInt32(uint8_t *buffer, uint32_t value);
 
-    FUNCTION PSTREAM CreateStream(VOID);
-	FUNCTION PSTREAM CreateStreamWithHeaders(ULONG MsgType);
-	FUNCTION VOID DestroyStream(PSTREAM stream);
-	FUNCTION VOID PackByte (PSTREAM stream, BYTE data);
-	FUNCTION VOID PackDword64(PSTREAM stream, ULONG64 data);
-	FUNCTION VOID PackDword(PSTREAM stream, ULONG data);
-	FUNCTION VOID PackBytes(PSTREAM stream, PBYTE data, SIZE_T size);
-	FUNCTION VOID PackPointer(PSTREAM stream, PVOID pointer);
-	FUNCTION VOID PackString(PSTREAM stream, PCHAR data);
-	FUNCTION VOID PackWString(PSTREAM stream, PWCHAR data);
+    FUNCTION _stream* CreateStream(void);
+	FUNCTION _stream* CreateStreamWithHeaders(uint32_t msg_type);
+	FUNCTION VOID DestroyStream(_stream* stream);
+	FUNCTION VOID PackByte (_stream* stream, uint8_t data);
+	FUNCTION VOID PackDword64(_stream* stream, uint64_t data);
+	FUNCTION VOID PackDword(_stream* stream, uint32_t data);
+	FUNCTION VOID PackBytes(_stream* stream, uint8_t *data, size_t size);
+	FUNCTION VOID PackPointer(_stream* stream, void *pointer);
+	FUNCTION VOID PackString(_stream* stream, char *data);
+	FUNCTION VOID PackWString(_stream* stream, wchar_t *data);
 }
 #endif //HEXANE_CORELIB_STREAM_HPP

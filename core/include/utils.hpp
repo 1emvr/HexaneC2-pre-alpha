@@ -1,6 +1,5 @@
 #ifndef HEXANE_CORELIB_UTILS_HPP
 #define HEXANE_CORELIB_UTILS_HPP
-#include <core/corelib.hpp>
 
 #define MS_PER_SECOND	1000
 #define INTERVAL(x)     (x % 26)
@@ -16,6 +15,7 @@
 #define BSLASH          0x5C
 #define ASTER           0x2A
 
+#include <core/corelib.hpp>
 namespace Utils {
 
     FUNCTION ULONG GetHashFromStringW(WCHAR CONST *String, SIZE_T Length);
