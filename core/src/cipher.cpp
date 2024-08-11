@@ -1,9 +1,9 @@
 #include <core/include/cipher.hpp>
 namespace Xtea {
 
-    U32_BLOCK BlockToUint32 (const byte *src) {
+    u32_block BlockToUint32 (const byte *src) {
 
-        U32_BLOCK block = { };
+        u32_block block = { };
 
         block.v0 = src[0] << 24 | src[1] << 16 | src[2] << 8 | src[3];
         block.v1 = src[4] << 24 | src[5] << 16 | src[6] << 8 | src[7];
@@ -23,7 +23,7 @@ namespace Xtea {
         dst[7] = v1;
     }
 
-    VOID InitCipher (CIPHER *c, const byte *m_key) {
+    VOID InitCipher (Ciphertext *c, const byte *m_key) {
 
         uint32_t key[4] = { };
         uint32_t sum    = { };
@@ -50,9 +50,9 @@ namespace Xtea {
         }
     }
 
-    VOID XteaEncrypt(CIPHER *c, byte *dst, byte *src) {
+    VOID XteaEncrypt(Ciphertext *c, byte *dst, byte *src) {
 
-        U32_BLOCK block = BlockToUint32(src);
+        u32_block block = BlockToUint32(src);
 
         for (auto i = 0; i < NROUNDS;) {
             block.v0 += (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ c->table[i];
@@ -65,9 +65,9 @@ namespace Xtea {
         Uint32ToBlock(block.v0, block.v1, dst);
     }
 
-    VOID XteaDecrypt(CIPHER *c, byte *dst, byte *src) {
+    VOID XteaDecrypt(Ciphertext *c, byte *dst, byte *src) {
 
-        U32_BLOCK block = BlockToUint32(src);
+        u32_block block = BlockToUint32(src);
 
         for (auto i = NROUNDS; i > 0;) {
             i--;
@@ -80,14 +80,14 @@ namespace Xtea {
         Uint32ToBlock(block.v0, block.v1, dst);
     }
 
-    PBYTE *XteaDivide (byte *data, size_t cbData, size_t *cbOut) {
+    PBYTE *XteaDivide (byte *data, size_t n_data, size_t *n_out) {
         HEXANE
 
         byte **sections = { };
         size_t sectionSize  = 8;
-        size_t n = (cbData + sectionSize - 1) / sectionSize;
+        size_t n = (n_data + sectionSize - 1) / sectionSize;
+        *n_out = n;
 
-        *cbOut = n;
         if (!(sections = S_CAST(PBYTE*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, n * sizeof(PBYTE))))) {
             return nullptr;
         }
@@ -104,7 +104,7 @@ namespace Xtea {
             }
 
             size_t end = (i + 1) * sectionSize;
-            size_t copySize = (end > cbData) ? cbData - i * sectionSize : sectionSize;
+            size_t copySize = (end > n_data) ? n_data - i * sectionSize : sectionSize;
 
             x_memcpy(sections[i], data + i * sectionSize, copySize);
 
@@ -117,12 +117,12 @@ namespace Xtea {
         return sections;
     }
 
-    VOID XteaCrypt(PBYTE data, SIZE_T cbData, PBYTE key, BOOL encrypt) {
+    VOID XteaCrypt(PBYTE data, SIZE_T n_data, PBYTE key, BOOL encrypt) {
         HEXANE
 
-        CIPHER *text     = { };
-        size_t nSections    = { };
-        uint64_t offset     = 0;
+        Ciphertext *text = { };
+        size_t n_sect    = { };
+        uint64_t offset  = 0;
 
         byte *buffer    = { };
         byte **sections = { };
@@ -131,22 +131,21 @@ namespace Xtea {
             key = Ctx->Config.Key;
         }
 
-        if (!(text = S_CAST(CIPHER*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(CIPHER))))) {
+        if (!(text = S_CAST(Ciphertext *, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(Ciphertext))))) {
             return;
         }
 
         InitCipher(text, key);
-        if (!(sections = XteaDivide(data, cbData, &nSections))) {
+        if (!(sections = XteaDivide(data, n_data, &n_sect))) {
             return;
         }
 
-        x_memset(data, 0, cbData);
+        x_memset(data, 0, n_data);
 
-        for (uint32_t i = 0; i < nSections; i++) {
-            if (!(buffer = S_CAST(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, 8)))) {
+        for (uint32_t i = 0; i < n_sect; i++) {
+            if (!(buffer = B_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, 8)))) {
                 return;
             }
-
             if (encrypt) {
                 XteaEncrypt(text, buffer, sections[i]);
             } else {
@@ -159,7 +158,7 @@ namespace Xtea {
             offset += sizeof(uint64_t);
         }
 
-        for (uint64_t i = 0; i < nSections; i++) {
+        for (uint64_t i = 0; i < n_sect; i++) {
             Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, sections[i]);
         }
 

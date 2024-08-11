@@ -17,18 +17,23 @@
 #define ASTER           0x2A
 
 namespace Utils {
-    FUNCTION ULONG64    GetTimeNow();
-    FUNCTION BOOL       InWorkingHours();
-    FUNCTION ULONG      GetHashFromStringW(WCHAR CONST *String, SIZE_T Length);
-    FUNCTION ULONG      GetHashFromStringA(CHAR CONST *String, SIZE_T Length);
+
+    FUNCTION ULONG GetHashFromStringW(WCHAR CONST *String, SIZE_T Length);
+    FUNCTION ULONG GetHashFromStringA(CHAR CONST *String, SIZE_T Length);
+
+    namespace Time {
+        FUNCTION ULONG64 GetTimeNow();
+        FUNCTION BOOL InWorkingHours();
+    }
+
+    namespace Random {
+        FUNCTION VOID Timeout(size_t ms);
+        FUNCTION UINT_PTR Timestamp();
+        FUNCTION ULONG RandomNumber32();
+        FUNCTION ULONG RandomSleepTime();
+        FUNCTION BOOL RandomBool();
+        FUNCTION ULONG RandomSeed();
+    }
 }
 
-namespace Random {
-    FUNCTION VOID       Timeout(size_t ms);
-    FUNCTION UINT_PTR   Timestamp();
-    FUNCTION ULONG      RandomNumber32();
-    FUNCTION ULONG      RandomSleepTime();
-    FUNCTION BOOL       RandomBool();
-    FUNCTION ULONG      RandomSeed();
-}
 #endif //HEXANE_CORELIB_UTILS_HPP
