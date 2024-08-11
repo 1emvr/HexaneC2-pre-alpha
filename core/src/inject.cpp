@@ -79,10 +79,10 @@ namespace Injection {
             return handler;
         }
 
-        UINT_PTR PointerEncoder(uintptr_t handler, const bool encode) {
+        UINT_PTR PointerEncoder(uintptr_t pointer, const bool encode) {
             HEXANE
 
-            uintptr_t pointer = 0;
+            uintptr_t encoded = 0;
             uintptr_t cookie = Memory::GetStackCookie();
 
             if (!cookie) {
@@ -90,11 +90,11 @@ namespace Injection {
             }
 
             encode
-                ? pointer = _rotr(cookie ^ handler, cookie & 0x1F)
-                : pointer = cookie ^ _rotr(pointer, 0x20 - (cookie & 0x1F));
+                ? encoded = _rotr(cookie ^ pointer, cookie & 0x1F)
+                : encoded = cookie ^ _rotr(pointer, 0x20 - (cookie & 0x1F));
 
             defer:
-            return pointer;
+            return encoded;
         }
 
         LONG OverwriteFirstHandler(const uintptr_t address, const wchar_t *mod_name) {
