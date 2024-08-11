@@ -7,6 +7,6 @@ namespace Process {
 	FUNCTION NTSTATUS NtOpenProcess(PHANDLE phProcess, ULONG access, ULONG pid);
 	FUNCTION VOID NtCloseUserProcess(PIMAGE proc);
 	FUNCTION VOID NtCreateUserProcess(PIMAGE proc, LPCSTR path);
-	FUNCTION HANDLE LdrGetParentHandle(PBYTE Parent);
+	FUNCTION HANDLE OpenParentProcess(const char *parent);
 }
 #endif //HEXANE_CORELIB_PROCESS_HPP

