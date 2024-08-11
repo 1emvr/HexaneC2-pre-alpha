@@ -301,6 +301,47 @@ typedef struct {
 } COMMAND_MAP;
 
 
+struct LdrpVectorHandlerEntry {
+    LdrpVectorHandlerEntry 		*Flink;
+    LdrpVectorHandlerEntry 		*Blink;
+    uint64_t 					Unknown1;
+    uint64_t 					Unknown2;
+    PVECTORED_EXCEPTION_HANDLER Handler;
+};
+
+
+struct LdrpVectorHandlerList {
+    LdrpVectorHandlerEntry *First;
+    LdrpVectorHandlerEntry *Last;
+    SRWLOCK 				Lock;
+};
+
+
+struct Module {
+    UNICODE_STRING BaseDllName;
+    LPVOID BaseAddress;
+    LPVOID Entrypoint;
+    ULONG Size;
+};
+
+
+struct HeapInfo {
+    ULONG_PTR HeapId;
+    DWORD ProcessId;
+};
+
+
+struct u32_block {
+    uint32_t v0;
+    uint32_t v1;
+};
+
+
+struct Ciphertext {
+    uint32_t table[64];
+};
+
+
 typedef struct {
 
 	LPVOID 	            Heap;
@@ -542,12 +583,16 @@ EXTERN_C WEAK ULONG  		__InstanceOffset;
 	x = nullptr
 
 
-#define FPTR(Fn, mod, sym) 	\
-	Fn = (__typeof__(Fn)) Memory::LdrGetSymbolAddress(mod, sym)
+#define F_PTR_HMOD(Fn, hmod, sym_hash) 	\
+	Fn = (__typeof__(Fn)) Memory::Modules::GetSymbolAddress(hmod, sym_hash)
 
 
-#define FPTR2(Fn, mod, sym) \
-	Fn = (__typeof__(Fn)) Memory::LdrGetSymbolAddress(Memory::LdrGetModuleAddress(mod), sym)
+#define F_PTR_HASHES(Fn, mod_hash, sym_hash) \
+	Fn = (__typeof__(Fn)) Memory::Modules::GetSymbolAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash)
+
+
+#define M_PTR(mod_hash) \
+	Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash))
 
 
 #define NT_ASSERT(Fn)	\

