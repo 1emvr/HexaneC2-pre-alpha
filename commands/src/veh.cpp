@@ -95,33 +95,33 @@ public:
 		return nullptr;
 	}
 
-	uintptr_t GetSymbolAddress(void *Base, uint32_t Hash) {
+	uintptr_t GetSymbolAddress(void *base, uint32_t hash) {
 
-		uintptr_t Export        = { };
-		char lowName[MAX_PATH]  = { };
+		uintptr_t address        = { };
+		char lowercase[MAX_PATH]  = { };
 
-		auto DosHead    = IMAGE_DOS_HEADER(Base);
-		auto NtHead     = IMAGE_NT_HEADERS(Base, DosHead);
-		auto Exports    = IMAGE_EXPORT_DIRECTORY(DosHead, NtHead);
+		auto dos_head = IMAGE_DOS_HEADER(base);
+		auto nt_head = IMAGE_NT_HEADERS(base, dos_head);
+		auto exports = IMAGE_EXPORT_DIRECTORY(dos_head, nt_head);
 
-		if (Exports->AddressOfNames) {
-			auto Ords   = RVA(PWORD, Base, Exports->AddressOfNameOrdinals);
-			auto Fns    = RVA(PULONG, Base, Exports->AddressOfFunctions);
-			auto Names  = RVA(PULONG, Base, Exports->AddressOfNames);
+		if (exports->AddressOfNames) {
+			auto ords = RVA(PWORD, base, exports->AddressOfNameOrdinals);
+			auto fns = RVA(PULONG, base, exports->AddressOfFunctions);
+			auto names = RVA(PULONG, base, exports->AddressOfNames);
 
-			for (auto i = 0; i < Exports->NumberOfNames; i++) {
-				auto Name = RVA(char *, Base, (long) Names[i]);
+			for (auto i = 0; i < exports->NumberOfNames; i++) {
+				auto name = RVA(char *, base, (long) names[i]);
 
-				x_memset(lowName, 0, MAX_PATH);
+				x_memset(lowercase, 0, MAX_PATH);
 
-				if (Hash - GetHashFromString(x_mbsToLower(lowName, Name), x_strlen(Name)) == 0) {
-					Export = R_CAST(uintptr_t, RVA(uint32_t *, Base, Fns[Ords[i]]));
+				if (hash - GetHashFromString(x_mbsToLower(lowercase, name), x_strlen(name)) == 0) {
+					address = R_CAST(uintptr_t, RVA(uint32_t *, base, fns[ords[i]]));
 					break;
 				}
 			}
 		}
 
-		return Export;
+		return address;
 	}
 
 	static bool SignatureMatch(const uint8_t *data, const uint8_t *mask, const char *szMask) {
