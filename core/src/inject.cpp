@@ -79,7 +79,7 @@ namespace Injection {
             return handler;
         }
 
-        UINT_PTR EncodePointer(uintptr_t handler, const bool encode) {
+        UINT_PTR PointerEncoder(uintptr_t handler, const bool encode) {
             HEXANE
 
             uintptr_t pointer = 0;
@@ -90,8 +90,8 @@ namespace Injection {
             }
 
             encode
-            ? pointer = _rotr(cookie ^ handler, cookie & 0x1F)
-            : pointer = cookie ^ _rotr(pointer, 0x20 - (cookie & 0x1F));
+                ? pointer = _rotr(cookie ^ handler, cookie & 0x1F)
+                : pointer = cookie ^ _rotr(pointer, 0x20 - (cookie & 0x1F));
 
             defer:
             return pointer;
@@ -104,7 +104,7 @@ namespace Injection {
             const auto ntdll = Memory::Modules::GetModuleEntry(mod_hash);
 
             const auto entry = Veh::GetFirstHandler(ntdll, "\x00\x00\x00\x00\x00\x00\x00\x00", "xxx00xxx");
-            const auto handler = Veh::EncodePointer(entry, false) + 0x20;
+            const auto handler = Veh::PointerEncoder(entry, false) + 0x20;
 
             if (!entry) {
                 return FALSE;
