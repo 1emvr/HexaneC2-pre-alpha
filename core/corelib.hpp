@@ -1,7 +1,7 @@
 #include <core/monolith.hpp>
 #include <core/include/cipher.hpp>
 #include <core/include/commands.hpp>
-#include <core/include/cruntime.hpp>
+#include <core/include/stdlib.hpp>
 #include <core/include/implant.hpp>
 #include <core/include/inject.hpp>
 #include <core/include/memory.hpp>

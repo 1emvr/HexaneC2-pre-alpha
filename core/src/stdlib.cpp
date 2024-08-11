@@ -1,4 +1,4 @@
-#include <core/include/cruntime.hpp>
+#include <core/include/stdlib.hpp>
 
 void x_memcpy (void *dst, const void *src, size_t n) {
 
@@ -27,7 +27,7 @@ void x_strcpy (char *dst, char const *src) {
     }
 }
 
-size_t x_strncmp (char *str1, char *str2, size_t len) {
+size_t x_strncmp (const char *str1, const char *str2, size_t len) {
 
     while ( len && *str1 && (*str1 == *str2) ) {
         len--;
@@ -42,7 +42,7 @@ size_t x_strncmp (char *str1, char *str2, size_t len) {
     return len;
 }
 
-int x_strcmp (char *str1, char *str2) {
+int x_strcmp (const char *str1, const char *str2) {
 
     for (; *str1 == *str2; str1++, str2++) {
         if (*str1 == NULTERM) {
@@ -66,7 +66,7 @@ int x_memcmp (const void *str1, const void *str2, size_t count) {
     return 0;
 }
 
-char *x_strcat (char *str1, char *str2) {
+char *x_strcat (char *str1, const char *str2) {
 
     x_strcpy(str1 + x_strlen(str1), str2);
     return str1;
@@ -104,23 +104,23 @@ void x_wcscpy (wchar_t *dest, wchar_t const *src) {
     }
 }
 
-int x_wcscmp (wchar_t *str1, wchar_t *str2) {
+int x_wcscmp (const wchar_t *str1, const wchar_t *str2) {
 
     for (; *str1 == *str2; str1++, str2++) {
         if (*str1 == 0x0000) {
             return 0;
         }
     }
-    return *S_CAST(wchar_t*, str1) < *S_CAST(wchar_t*, str2) ? -1 : +1;
+    return *str1 < *str2 ? -1 : +1;
 }
 
-wchar_t *x_wcscat (wchar_t *str1, wchar_t *str2) {
+wchar_t *x_wcscat (wchar_t *str1, const wchar_t *str2) {
 
     x_wcscpy(str1 + x_wcslen(str1), str2 );
     return str1;
 }
 
-wchar_t x_toLowerW(wchar_t wc) {
+wchar_t x_toLowerW(const wchar_t wc) {
     if (wc >= 0x0041 && wc <= 0x005A) {
         return wc + (0x0061 - 0x0041);
     }
@@ -128,7 +128,7 @@ wchar_t x_toLowerW(wchar_t wc) {
     return wc;
 }
 
-char x_toLowerA(char c) {
+char x_toLowerA(const char c) {
     if (c >= 0x41 && c <= 0x5A) {
         return c + (0x61 - 0x41);
     }
@@ -136,7 +136,7 @@ char x_toLowerA(char c) {
     return c;
 }
 
-wchar_t *x_wcsToLower(wchar_t *dst, wchar_t *src) {
+wchar_t *x_wcsToLower(wchar_t *dst, const wchar_t *src) {
     size_t len = x_wcslen(src);
 
     for (size_t i = 0; i < len; ++i) {
@@ -147,7 +147,7 @@ wchar_t *x_wcsToLower(wchar_t *dst, wchar_t *src) {
     return dst;
 }
 
-char *x_mbsToLower(char *dst, char *src) {
+char *x_mbsToLower(char *dst, const char *src) {
     size_t len = x_strlen(src);
 
     for (size_t i = 0; i < len; ++i) {
@@ -168,7 +168,7 @@ size_t x_mbstowcs (wchar_t *dst, const char *src, size_t size) {
     return size - count;
 }
 
-size_t x_wcstombs (char *str, wchar_t *wcs, size_t size) {
+size_t x_wcstombs (char *str, const wchar_t *wcs, size_t size) {
 
     size_t count = 0;
 
@@ -188,7 +188,7 @@ size_t x_wcstombs (char *str, wchar_t *wcs, size_t size) {
     return count;
 }
 
-int x_mbsEndsWith (char *string, char *end) {
+int x_mbsEndsWith (const char *string, const char *end) {
 
     uint32_t length1 = 0;
     uint32_t length2 = 0;
@@ -207,7 +207,7 @@ int x_mbsEndsWith (char *string, char *end) {
     return x_strcmp(string, end) == 0;
 }
 
-int x_wcsEndsWith (wchar_t *string, wchar_t *end) {
+int x_wcsEndsWith (const wchar_t *string, const wchar_t *end) {
 
     uint32_t length1 = 0;
     uint32_t length2 = 0;
