@@ -112,6 +112,14 @@ namespace Injection {
             }
 
             /*
+                ntdll.dll:770EB136 mov     edi, edi
+                ntdll.dll:770EB138 push    ebp
+                ntdll.dll:770EB139 mov     ebp, esp
+                ntdll.dll:770EB13B sub     esp, 0Ch
+                ntdll.dll:770EB13E push    edi
+                ntdll.dll:770EB13F mov     edi, edx <- edi is the pointer to the user-provided handler
+
+                <...>
                 ntdll.dll:770EB1CD
                 ntdll.dll:770EB1CD loc_770EB1CD:
                 ntdll.dll:770EB1CD imul    ebx, [ebp+arg_0], 0Ch
@@ -136,16 +144,6 @@ namespace Injection {
                 cookie ^ edi; cookie & 0x1F; cookie >> cl
                 - need to find edi
                 - need to find cl (cookie LSB)
-
-
-                ntdll.dll:770EB136 mov     edi, edi
-                ntdll.dll:770EB138 push    ebp
-                ntdll.dll:770EB139 mov     ebp, esp
-                ntdll.dll:770EB13B sub     esp, 0Ch
-                ntdll.dll:770EB13E push    edi
-                ntdll.dll:770EB13F mov     edi, edx
-
-                edi is 2nd arguments to RtlAddVectoredHandler, which is the pointer to the user handler
 
                 cookie ^ pointer; cookie & 0x1F; cookie >> (cookie-lsb) ??
              */
