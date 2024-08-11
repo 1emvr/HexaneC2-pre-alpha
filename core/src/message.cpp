@@ -1,94 +1,95 @@
 #include <core/include/message.hpp>
 namespace Message {
 
-    BOOL PeekPID(PSTREAM Stream) {
+    BOOL PeekPID(_stream *stream) {
         HEXANE
-        UINT Pid = 0;
+        UINT pid = 0;
 
-        x_memcpy(&Pid, Stream->Buffer, 4);
-        if (x_memcmp(&Ctx->Session.PeerId, &Pid, 4) == 0) {
+        x_memcpy(&pid, stream->Buffer, 4);
+        if (x_memcmp(&Ctx->Session.PeerId, &pid, 4) == 0) {
             return TRUE;
         }
 
         return FALSE;
     }
 
-    VOID AddMessage(PSTREAM Outbound) {
+    VOID AddMessage(_stream *out) {
         HEXANE
-        PSTREAM Head = Ctx->Transport.OutboundQueue;
+
+        _stream *head = Ctx->Transport.OutboundQueue;
 
         if (!Ctx->Transport.OutboundQueue) {
-            Ctx->Transport.OutboundQueue = Outbound;
+            Ctx->Transport.OutboundQueue = out;
         } else {
-            while (Head->Next) {
-                Head = Head->Next;
+            while (head->Next) {
+                head = head->Next;
             }
 
-            Head->Next = Outbound;
+            head->Next = out;
         }
     }
 
     VOID ClearQueue() {
         HEXANE
 
-        PSTREAM Head = Ctx->Transport.OutboundQueue;
-        PSTREAM Swap = { };
-        PSTREAM Prev = { };
+        _stream *head = Ctx->Transport.OutboundQueue;
+        _stream *swap = { };
+        _stream *prev = { };
 
-        if (!Head) {
+        if (!head) {
             Ctx->Transport.OutboundQueue = nullptr;
             return;
         }
 
-        while (Head) {
-            if (Head->Ready) {
-                if (Prev) {
-                    Prev->Next = Head->Next;
+        while (head) {
+            if (head->Ready) {
+                if (prev) {
+                    prev->Next = head->Next;
 
                 } else {
-                    Ctx->Transport.OutboundQueue = Head->Next;
+                    Ctx->Transport.OutboundQueue = head->Next;
                 }
+                swap = head;
+                head = head->Next;
 
-                Swap = Head;
-                Head = Head->Next;
-                Stream::DestroyStream(Swap);
+                Stream::DestroyStream(swap);
 
             } else {
-                Prev = Head;
-                Head = Head->Next;
+                prev = head;
+                head = head->Next;
             }
         }
     }
 
-    VOID OutboundQueue(PSTREAM Outbound) {
+    VOID OutboundQueue(_stream *out) {
         HEXANE
 
-        PARSER Parser   = { };
-        PSTREAM Queue   = { };
+        _parser parser = { };
+        _stream *queue = { };
 
-        if (!Outbound) {
+        if (!out) {
             return_defer(ERROR_NO_DATA);
         }
 
-        if (Outbound->Length > MESSAGE_MAX) {
-            QueueSegments(S_CAST(PBYTE, Outbound->Buffer), Outbound->Length);
+        if (out->Length > MESSAGE_MAX) {
+            QueueSegments(B_PTR(out->Buffer), out->Length);
 
         } else {
-            Parser::CreateParser(&Parser, S_CAST(PBYTE, Outbound->Buffer), Outbound->Length);
+            Parser::CreateParser(&parser, B_PTR(out->Buffer), out->Length);
 
-            Queue           = Stream::CreateStream();
-            Queue->PeerId   = __bswapd(S_CAST(ULONG, Parser::UnpackDword(&Parser)));
-            Queue->TaskId   = __bswapd(S_CAST(ULONG, Parser::UnpackDword(&Parser)));
-            Queue->MsgType  = __bswapd(S_CAST(ULONG, Parser::UnpackDword(&Parser)));
+            queue           = Stream::CreateStream();
+            queue->PeerId   = __bswapd(S_CAST(ULONG, Parser::UnpackDword(&parser)));
+            queue->TaskId   = __bswapd(S_CAST(ULONG, Parser::UnpackDword(&parser)));
+            queue->MsgType  = __bswapd(S_CAST(ULONG, Parser::UnpackDword(&parser)));
 
-            Queue->Length   = Parser.Length;
-            Queue->Buffer   = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Queue->Buffer, Queue->Length);
+            queue->Length   = parser.Length;
+            queue->Buffer   = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, queue->Buffer, queue->Length);
 
-            x_memcpy(Queue->Buffer, Parser.Buffer, Queue->Length);
-            AddMessage(Queue);
+            x_memcpy(queue->Buffer, parser.Buffer, queue->Length);
+            AddMessage(queue);
 
-            Parser::DestroyParser(&Parser);
-            Stream::DestroyStream(Outbound);
+            Parser::DestroyParser(&parser);
+            Stream::DestroyStream(out);
         }
 
         defer:
@@ -97,7 +98,7 @@ namespace Message {
     VOID QueueSegments(byte *buffer, uint32_t length) {
         HEXANE
 
-        PSTREAM entry = { };
+        _stream *entry = { };
 
         uint32_t offset     = 0;
         uint32_t peer_id    = 0;
@@ -111,7 +112,7 @@ namespace Message {
                 ? MESSAGE_MAX - SEGMENT_HEADER_SIZE
                 : length;
 
-            entry = S_CAST(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, cb_seg + SEGMENT_HEADER_SIZE));
+            entry = S_CAST(_stream*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, cb_seg + SEGMENT_HEADER_SIZE));
 
             x_memcpy(&peer_id, buffer, 4);
             x_memcpy(&task_id, buffer + 4, 4);
@@ -136,11 +137,11 @@ namespace Message {
     VOID MessageTransmit() {
         HEXANE
 
-        PSTREAM out     = Stream::CreateStream();
-        PSTREAM in      = { };
-        PSTREAM head    = { };
-        PSTREAM swap    = { };
-        PARSER parser   = { };
+        _stream *out    = Stream::CreateStream();
+        _stream *in     = { };
+        _stream *head   = { };
+        _stream *swap   = { };
+        _parser parser  = { };
 
         retry:
 
@@ -227,7 +228,7 @@ namespace Message {
     defer:
     }
 
-    RDATA_SECTION COMMAND_MAP cmd_map[] = {
+    RDATA_SECTION _command_map cmd_map[] = {
         {.Id = CommandDir,          .Function = Commands::DirectoryList},
         {.Id = CommandMods,         .Function = Commands::ProcessModules},
         {.Id = CommandProcess,      .Function = Commands::ProcessList},
@@ -236,11 +237,11 @@ namespace Message {
         {.Id = 0,                   .Function = nullptr}
     };
 
-    VOID CommandDispatch (PSTREAM in) {
+    VOID CommandDispatch (_stream *in) {
         HEXANE
 
-        PARSER parser   = { };
-        ULONG msg_type  = 0;
+        _parser parser = { };
+        ULONG msg_type = 0;
 
         Parser::CreateParser(&parser, B_PTR(in->Buffer), in->Length);
         Parser::UnpackDword(&parser); // throw-away peer id
@@ -267,7 +268,7 @@ namespace Message {
                     }
 
                     if (cmd_map[i].Id == cmd_id) {
-                        const auto cmd = R_CAST(CmdSignature, Ctx->Base.Address + U_PTR(cmd_map[i].Function));
+                        const auto cmd = R_CAST(void(*)(_parser*), Ctx->Base.Address + U_PTR(cmd_map[i].Function));
                         cmd(&parser);
                         break;
                     }
@@ -287,7 +288,7 @@ namespace Message {
                     return_defer(ntstatus);
                 }
 
-                auto (*cmd)(PPARSER) = R_CAST(VOID (*)(PPARSER), exec);
+                auto (*cmd)(_parser*) = R_CAST(void(*)(_parser*), exec);
                 cmd(&parser);
 
                 x_memset(exec, 0, size);

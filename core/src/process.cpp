@@ -98,7 +98,7 @@ namespace Process {
 		}
 	}
 
-	VOID NtCreateUserProcess(PIMAGE image, const char *image_path) {
+	VOID NtCreateUserProcess(_executable *image, const char *image_path) {
 		HEXANE
 
 		LPWSTR w_name			= { };

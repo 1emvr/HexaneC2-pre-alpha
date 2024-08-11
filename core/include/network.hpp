@@ -19,15 +19,15 @@
 #include <core/corelib.hpp>
 
 namespace Http {
-    FUNCTION VOID HttpCallback(PSTREAM Outbound, PSTREAM *Inbound);
+    FUNCTION VOID HttpCallback(_stream *out, _stream **in);
 }
 
 namespace Smb {
-    FUNCTION BOOL PipeRead(PSTREAM Inbound, HANDLE Handle);
-    FUNCTION BOOL PipeWrite(PSTREAM Outbound, HANDLE Handle);
-    FUNCTION VOID PeerConnectIngress (PSTREAM Outbound, PSTREAM *Inbound);
-    FUNCTION VOID PeerConnectEgress(PSTREAM Outbound, PSTREAM *Inbound);
-    FUNCTION VOID SmbPipeReceive(PSTREAM Inbound, HANDLE Handle);
+    FUNCTION BOOL PipeRead(_stream *in, void *handle);
+    FUNCTION BOOL PipeWrite(_stream *out, void *handle);
+    FUNCTION VOID PeerConnectIngress (_stream *out, _stream **in);
+    FUNCTION VOID PeerConnectEgress(_stream *out, _stream **in);
+    FUNCTION VOID SmbPipeReceive(_stream *in, void *handle);
     FUNCTION VOID SmbContextInit(PSMB_PIPE_SEC_ATTR SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr);
     FUNCTION VOID SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr);
 }

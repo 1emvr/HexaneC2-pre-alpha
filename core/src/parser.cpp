@@ -1,18 +1,18 @@
 #include <core/include/parser.hpp>
 namespace Parser {
 
-    VOID ParserBytecpy(PPARSER parser, byte *dst) {
+    VOID ParserBytecpy(_parser *parser, uint8_t *dst) {
         HEXANE
 
-        BYTE byte = Parser::UnpackByte(parser);
+        uint8_t byte = Parser::UnpackByte(parser);
         x_memcpy(dst, &byte, 1);
     }
 
-    VOID ParserStrcpy(PPARSER parser, char **dst, uint32_t *n_out) {
+    VOID ParserStrcpy(_parser *parser, char **dst, uint32_t *n_out) {
         HEXANE
 
-        ULONG length  = 0;
-        LPSTR buffer  = UnpackString(parser, &length);
+        uint32_t length  = 0;
+        char *buffer  = Parser::UnpackString(parser, &length);
 
         if (length) {
             if (n_out) {
@@ -24,11 +24,11 @@ namespace Parser {
         }
     }
 
-    VOID ParserWcscpy(PPARSER parser, wchar_t **dst, uint32_t *n_out) {
+    VOID ParserWcscpy(_parser *parser, wchar_t **dst, uint32_t *n_out) {
         HEXANE
 
-        ULONG length  = 0;
-        LPWSTR buffer  = UnpackWString(parser, &length);
+        uint32_t length  = 0;
+        wchar_t *buffer  = Parser::UnpackWString(parser, &length);
 
         if (length) {
             if (n_out) {
@@ -42,11 +42,11 @@ namespace Parser {
         }
     }
 
-    VOID ParserMemcpy(PPARSER parser, byte **dst, uint32_t *n_out) {
+    VOID ParserMemcpy(_parser *parser, byte **dst, uint32_t *n_out) {
         HEXANE
 
-        ULONG length = 0;
-        PBYTE buffer = UnpackBytes(parser, &length);
+        uint32_t length = 0;
+        uint8_t *buffer = Parser::UnpackBytes(parser, &length);
 
         if (length) {
             if (n_out) {
@@ -58,7 +58,7 @@ namespace Parser {
         }
     }
 
-    VOID CreateParser (PPARSER parser, byte *buffer, uint32_t length) {
+    VOID CreateParser (_parser *parser, byte *buffer, uint32_t length) {
         HEXANE
 
         if (!(parser->Handle = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, length))) {
@@ -72,7 +72,7 @@ namespace Parser {
         parser->LE      = Ctx->LE;
     }
 
-    VOID DestroyParser (PPARSER parser) {
+    VOID DestroyParser (_parser *parser) {
         HEXANE
 
         if (parser) {
@@ -87,7 +87,7 @@ namespace Parser {
         }
     }
 
-    BYTE UnpackByte (PPARSER parser) {
+    BYTE UnpackByte (_parser *parser) {
         uint8_t data = 0;
 
         if (parser->Length >= 1) {
@@ -100,7 +100,7 @@ namespace Parser {
         return data;
     }
 
-    SHORT UnpackShort (PPARSER parser) {
+    SHORT UnpackShort (_parser *parser) {
 
         uint16_t data = 0;
 
@@ -114,7 +114,7 @@ namespace Parser {
         return data;
     }
 
-    ULONG UnpackDword (PPARSER parser) {
+    ULONG UnpackDword (_parser *parser) {
 
         uint32_t data = 0;
 
@@ -132,7 +132,7 @@ namespace Parser {
                : __bswapd(S_CAST(int32_t, data));
     }
 
-    ULONG64 UnpackDword64 (PPARSER parser) {
+    ULONG64 UnpackDword64 (_parser *parser) {
 
         uint64_t data = 0;
 
@@ -150,7 +150,7 @@ namespace Parser {
                : __bswapq(S_CAST(int64_t, data));
     }
 
-    BOOL UnpackBool (PPARSER parser) {
+    BOOL UnpackBool (_parser *parser) {
 
         int32_t data = 0;
 
@@ -168,7 +168,7 @@ namespace Parser {
                : __bswapd(data) != 0;
     }
 
-    PBYTE UnpackBytes (PPARSER parser, uint32_t *n_out) {
+    PBYTE UnpackBytes (_parser *parser, uint32_t *n_out) {
 
         byte *output    = { };
         uint32_t length = 0;
@@ -192,11 +192,11 @@ namespace Parser {
         return output;
     }
 
-    LPSTR UnpackString(PPARSER parser, uint32_t *n_out) {
+    LPSTR UnpackString(_parser *parser, uint32_t *n_out) {
         return R_CAST(char*, UnpackBytes(parser, n_out));
     }
 
-    LPWSTR UnpackWString(PPARSER parser, uint32_t *n_out) {
+    LPWSTR UnpackWString(_parser *parser, uint32_t *n_out) {
         return R_CAST(wchar_t*, UnpackBytes(parser, n_out));
     }
 }

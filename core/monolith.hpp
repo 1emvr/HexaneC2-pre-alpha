@@ -182,7 +182,7 @@ enum MessageType {
     TypeExecute     = 0x7FFFFFFB,
 };
 
-typedef struct {
+struct _executable {
 	LPVOID							lpBuffer;
 	LPVOID							lpHeap;
 	LPVOID							lpBase;
@@ -209,35 +209,30 @@ typedef struct {
 	UNICODE_STRING					Unicode;
 	BOOL                      		Allocated;
 
-} IMAGE, *PIMAGE;
-
+};
 
 typedef struct {
 	PVOID  Buffer;
 	UINT32 Length;
-} BUFFER, *PBUFFER;
+} BUFFER;
 
-
-typedef struct {
+struct _mbs_buffer {
 	LPSTR 	Buffer;
 	ULONG 	Length;
-} A_BUFFER;
+};
 
-
-typedef struct {
+struct _wcs_buffer {
 	LPWSTR 	Buffer;
 	ULONG 	Length;
-} W_BUFFER;
+};
 
-
-typedef struct {
+struct _resource {
     LPVOID  ResLock;
     HGLOBAL hGlobal;
     SIZE_T  Size;
-} RSRC, *PRSRC;
+};
 
-
-typedef struct {
+struct _http_context {
 	LPWSTR  Useragent;
 	LPWSTR  Method;
 	LPWSTR	Address;
@@ -252,9 +247,9 @@ typedef struct {
 	ULONG 	nEndpoints;
 	LPWSTR	*Endpoints;
 	LPWSTR	*Headers;
-} HTTP_CONTEXT, *PHTTP_CONTEXT;
+};
 
-typedef struct _TOKEN_LIST_DATA {
+struct _token_list_data {
 	HANDLE  Handle;
 	LPWSTR  DomainUser;
 	DWORD   dwProcessID;
@@ -264,26 +259,26 @@ typedef struct _TOKEN_LIST_DATA {
 	LPWSTR   lpPassword;
 	LPWSTR   lpDomain;
 
-	_TOKEN_LIST_DATA* Next;
-} TOKEN_LIST_DATA, *PTOKEN_LIST_DATA ;
+	_token_list_data* Next;
+};
 
-typedef struct stream {
+struct _stream {
 	ULONG   PeerId;
 	ULONG   TaskId;
 	ULONG   MsgType;
 	ULONG	Length;
 	LPVOID	Buffer;
 	BOOL 	Ready;
-	stream  *Next;
-} STREAM, *PSTREAM;
+	_stream  *Next;
+};
 
 
-typedef struct {
+struct _parser {
 	LPVOID 	Handle;
     LPVOID  Buffer;
 	ULONG 	Length;
 	BOOL 	LE;
-} PARSER, *PPARSER;
+};
 
 
 typedef struct {
@@ -294,11 +289,11 @@ typedef struct {
 } SMB_PIPE_SEC_ATTR, *PSMB_PIPE_SEC_ATTR;
 
 
-typedef VOID(*CmdSignature)(PPARSER Args);
-typedef struct {
-	int32_t         Id;
-	CmdSignature    Function;
-} COMMAND_MAP;
+typedef void (*_command)(_parser *args);
+struct _command_map{
+	int32_t    	Id;
+	_command 	Function;
+};
 
 
 struct LdrpVectorHandlerEntry {
@@ -317,7 +312,7 @@ struct LdrpVectorHandlerList {
 };
 
 
-struct Module {
+struct _module {
     UNICODE_STRING BaseDllName;
     LPVOID BaseAddress;
     LPVOID Entrypoint;
@@ -325,29 +320,28 @@ struct Module {
 };
 
 
-struct HeapInfo {
+struct _heap_info {
     ULONG_PTR HeapId;
     DWORD ProcessId;
 };
 
 
-struct u32_block {
+struct _u32_block {
     uint32_t v0;
     uint32_t v1;
 };
 
 
-struct Ciphertext {
+struct _ciphertext {
     uint32_t table[64];
 };
 
+struct _hexane{
 
-typedef struct {
-
-	LPVOID 	            Heap;
-	PTEB 	            Teb;
-	BOOL	            Root;
-    BOOL                LE;
+	LPVOID 	Heap;
+	PTEB 	Teb;
+	BOOL 	Root;
+    BOOL   	LE;
 
 	struct {
 		UINT_PTR    Address;
@@ -355,9 +349,9 @@ typedef struct {
 	} Base;
 
 	struct {
-		PTOKEN_LIST_DATA Vault;
-		PTOKEN_LIST_DATA Token;
-		BOOL             Impersonate;
+		_token_list_data *Vault;
+		_token_list_data *Token;
+		bool             Impersonate;
 	} Tokens;
 
 	struct {
@@ -403,8 +397,8 @@ typedef struct {
 		LPVOID	    	EnvProxy;
 		SIZE_T	    	EnvProxyLen;
 		LPSTR 			Domain;
-		PHTTP_CONTEXT 	http;
-        PSTREAM        	OutboundQueue;
+		_http_context 	*http;
+        _stream        	*OutboundQueue;
 	} Transport;
 
 	struct {
@@ -555,11 +549,11 @@ typedef struct {
 
 	} win32;
 
-} HEXANE_CTX;
+};
 
 EXTERN_C WEAK ULONG  		__InstanceOffset;
 #define GLOBAL_OFFSET       (U_PTR(InstStart()) + U_PTR(&__InstanceOffset))
-#define HEXANE 		        HEXANE_CTX* Ctx = R_CAST(HEXANE_CTX*, C_DREF(GLOBAL_OFFSET));
+#define HEXANE 		        _hexane* Ctx = R_CAST(_hexane*, C_DREF(GLOBAL_OFFSET));
 
 #define InitializeObjectAttributes(ptr, name, attr, root, sec )	\
     (ptr)->Length = sizeof( OBJECT_ATTRIBUTES );				\

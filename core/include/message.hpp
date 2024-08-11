@@ -3,13 +3,13 @@
 #include <core/corelib.hpp>
 
 namespace Message {
-    FUNCTION BOOL PeekPID(PSTREAM Stream);
-    FUNCTION VOID CommandDispatch (PSTREAM Inbound);
-    FUNCTION VOID AddMessage(PSTREAM Outbound);
-    FUNCTION VOID ClearQueue(VOID);
-    FUNCTION VOID QueueSegments(PBYTE Buffer, ULONG Length);
-    FUNCTION VOID OutboundQueue(PSTREAM Outbound);
-    FUNCTION VOID MessageTransmit(VOID);
+    FUNCTION BOOL PeekPID(_stream *stream);
+    FUNCTION VOID CommandDispatch (_stream *in);
+    FUNCTION VOID AddMessage(_stream *out);
+    FUNCTION VOID ClearQueue(void);
+    FUNCTION VOID QueueSegments(byte *buffer, uint32_t length);
+    FUNCTION VOID OutboundQueue(_stream *out);
+    FUNCTION VOID MessageTransmit(void);
 }
 #endif //HEXANE_CORELIB_MESSAGE_HPP
 

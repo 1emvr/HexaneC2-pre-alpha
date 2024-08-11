@@ -92,7 +92,7 @@ namespace Opsec {
     VOID SeCheckEnvironment() {
         HEXANE
 
-        PSTREAM entry               = Stream::CreateStreamWithHeaders(TypeCheckin);
+        _stream *entry              = Stream::CreateStreamWithHeaders(TypeCheckin);
         IP_ADAPTER_INFO adapter     = { };
 
         char buffer[MAX_PATH]       = { };
@@ -151,18 +151,18 @@ namespace Opsec {
         Message::OutboundQueue(entry);
     }
 
-    VOID SeImageCheck(PIMAGE img, PIMAGE proc) {
+    VOID SeImageCheck(_executable *source, _executable *target) {
         HEXANE
 
-        if (img->ntHead->Signature != IMAGE_NT_SIGNATURE) {
+        if (source->ntHead->Signature != IMAGE_NT_SIGNATURE) {
             ntstatus = ERROR_INVALID_EXE_SIGNATURE;
             return;
         }
-        if (proc->ntHead->FileHeader.Machine != img->ntHead->FileHeader.Machine) {
+        if (target->ntHead->FileHeader.Machine != source->ntHead->FileHeader.Machine) {
             ntstatus = ERROR_IMAGE_MACHINE_TYPE_MISMATCH;
             return;
         }
-        if (proc->ntHead->OptionalHeader.Subsystem != img->ntHead->OptionalHeader.Subsystem) {
+        if (target->ntHead->OptionalHeader.Subsystem != source->ntHead->OptionalHeader.Subsystem) {
             ntstatus = ERROR_IMAGE_SUBSYSTEM_NOT_PRESENT;
         }
     }

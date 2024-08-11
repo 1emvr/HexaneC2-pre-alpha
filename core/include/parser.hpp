@@ -3,20 +3,19 @@
 #include <core/corelib.hpp>
 
 namespace Parser {
-    FUNCTION VOID ParserBytecpy(PPARSER Parser, PBYTE dst);
-    FUNCTION VOID ParserStrcpy(PPARSER Parser, LPSTR *Dst, ULONG *cbOut);
-    FUNCTION VOID ParserWcscpy(PPARSER Parser, LPWSTR *Dst, ULONG *cbOut);
-    FUNCTION VOID ParserMemcpy(PPARSER Parser, PBYTE *Dst, ULONG *cbOut);
-    FUNCTION VOID CreateParser(PPARSER Parser, PBYTE buffer, ULONG size);
-    FUNCTION VOID DestroyParser(PPARSER Parser);
-    FUNCTION BYTE UnpackByte(PPARSER parser);
-    FUNCTION SHORT UnpackShort(PPARSER parser);
-    FUNCTION ULONG UnpackDword(PPARSER parser);
-    FUNCTION DWORD64 UnpackDword64(PPARSER parser);
-    FUNCTION BOOL UnpackBool(PPARSER parser);
-    FUNCTION PBYTE UnpackBytes(PPARSER parser, PULONG cbOut);
-    FUNCTION LPSTR UnpackString(PPARSER parser, PULONG cbOut);
-    FUNCTION LPWSTR UnpackWString(PPARSER parser, PULONG cbOut);
+    FUNCTION VOID ParserBytecpy(_parser *parser, uint8_t *dst);
+    FUNCTION VOID ParserStrcpy(_parser *parser, char **dst, uint32_t *n_out);
+    FUNCTION VOID ParserWcscpy(_parser *parser, wchar_t **dst, uint32_t *n_out);
+    FUNCTION VOID ParserMemcpy(_parser *parser, uint8_t **dst, uint32_t *n_out);
+    FUNCTION VOID CreateParser(_parser *parser, uint8_t *buffer, uint32_t size);
+    FUNCTION VOID DestroyParser(_parser *parser);
+    FUNCTION BYTE UnpackByte(_parser *parser);
+    FUNCTION SHORT UnpackShort(_parser *parser);
+    FUNCTION ULONG UnpackDword(_parser *parser);
+    FUNCTION DWORD64 UnpackDword64(_parser *parser);
+    FUNCTION BOOL UnpackBool(_parser *parser);
+    FUNCTION PBYTE UnpackBytes(_parser *parser, uint32_t *n_out);
+    FUNCTION LPSTR UnpackString(_parser *parser, uint32_t *n_out);
+    FUNCTION LPWSTR UnpackWString(_parser *parser, uint32_t *n_out);
 }
-
 #endif //HEXANE_PARSER_HPP

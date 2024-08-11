@@ -1,9 +1,9 @@
 #include <core/include/cipher.hpp>
 namespace Xtea {
 
-    u32_block BlockToUint32 (const byte *src) {
+    _u32_block BlockToUint32 (const byte *src) {
 
-        u32_block block = { };
+        _u32_block block = { };
 
         block.v0 = src[0] << 24 | src[1] << 16 | src[2] << 8 | src[3];
         block.v1 = src[4] << 24 | src[5] << 16 | src[6] << 8 | src[7];
@@ -23,7 +23,7 @@ namespace Xtea {
         dst[7] = v1;
     }
 
-    VOID InitCipher (Ciphertext *c, const byte *m_key) {
+    VOID InitCipher (_ciphertext *c, const uint8_t *m_key) {
 
         uint32_t key[4] = { };
         uint32_t sum    = { };
@@ -50,10 +50,9 @@ namespace Xtea {
         }
     }
 
-    VOID XteaEncrypt(Ciphertext *c, byte *dst, byte *src) {
+    VOID XteaEncrypt(_ciphertext *c, byte *dst, byte *src) {
 
-        u32_block block = BlockToUint32(src);
-
+        _u32_block block = BlockToUint32(src);
         for (auto i = 0; i < NROUNDS;) {
             block.v0 += (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ c->table[i];
             i++;
@@ -65,10 +64,9 @@ namespace Xtea {
         Uint32ToBlock(block.v0, block.v1, dst);
     }
 
-    VOID XteaDecrypt(Ciphertext *c, byte *dst, byte *src) {
+    VOID XteaDecrypt(_ciphertext *c, uint8_t *dst, uint8_t *src) {
 
-        u32_block block = BlockToUint32(src);
-
+        _u32_block block = BlockToUint32(src);
         for (auto i = NROUNDS; i > 0;) {
             i--;
             block.v1 -= (block.v0 << 4 ^ block.v0 >> 5) + block.v0 ^ c->table[i];
@@ -80,10 +78,10 @@ namespace Xtea {
         Uint32ToBlock(block.v0, block.v1, dst);
     }
 
-    PBYTE *XteaDivide (byte *data, size_t n_data, size_t *n_out) {
+    PBYTE *XteaDivide (uint8_t *data, size_t n_data, size_t *n_out) {
         HEXANE
 
-        byte **sections = { };
+        uint8_t **sections = { };
         size_t sectionSize  = 8;
         size_t n = (n_data + sectionSize - 1) / sectionSize;
         *n_out = n;
@@ -117,10 +115,10 @@ namespace Xtea {
         return sections;
     }
 
-    VOID XteaCrypt(PBYTE data, SIZE_T n_data, PBYTE key, BOOL encrypt) {
+    VOID XteaCrypt(uint8_t *data, size_t n_data, const uint8_t *key, const bool encrypt) {
         HEXANE
 
-        Ciphertext *text = { };
+        _ciphertext *text = { };
         size_t n_sect    = { };
         uint64_t offset  = 0;
 
@@ -131,7 +129,7 @@ namespace Xtea {
             key = Ctx->Config.Key;
         }
 
-        if (!(text = S_CAST(Ciphertext *, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(Ciphertext))))) {
+        if (!(text = S_CAST(_ciphertext*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_ciphertext))))) {
             return;
         }
 
@@ -152,9 +150,9 @@ namespace Xtea {
                 XteaDecrypt(text, buffer, sections[i]);
             }
 
-            MmPatchData(j, data, (j + offset), buffer, (j), sizeof(uint64_t));
-            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, buffer);
+            Memory::PatchMemory(data, buffer, offset, 0, sizeof(uint64_t));
 
+            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, buffer);
             offset += sizeof(uint64_t);
         }
 

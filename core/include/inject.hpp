@@ -3,16 +3,15 @@
 #include <core/corelib.hpp>
 
 struct _threadless {
-    A_BUFFER Parent;
-    A_BUFFER Module;
-    A_BUFFER Export;
-    A_BUFFER Loader;
-    A_BUFFER Opcode;
+    _mbs_buffer Parent;
+    _mbs_buffer Module;
+    _mbs_buffer Export;
+    _mbs_buffer Loader;
+    _mbs_buffer Opcode;
 };
 
 namespace Injection {
-
-    FUNCTION VOID Threadless(_threadless Threadless, LPVOID shellcode, SIZE_T cbShellcode, SIZE_T ccbShellcode);
+    FUNCTION VOID Threadless(_threadless threadless, void *shellcode, size_t n_shellcode, size_t total_length);
 
     namespace Veh {
         FUNCTION LPVOID GetFirstHandler(wchar_t *name, const char *signature, const char *mask);

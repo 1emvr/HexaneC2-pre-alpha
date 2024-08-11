@@ -25,24 +25,24 @@ namespace Stream {
         return buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] <<24);
     }
 
-    PSTREAM CreateStreamWithHeaders(uint32_t msg_type) {
+    _stream * CreateStreamWithHeaders(uint32_t msg_type) {
 
         HEXANE
-        PSTREAM stream = CreateStream();
+        _stream *stream = CreateStream();
 
-        PackDword(stream, Ctx->Session.PeerId);
-        PackDword(stream, Ctx->Session.CurrentTaskId);
-        PackDword(stream, msg_type);
+        Stream::PackDword(stream, Ctx->Session.PeerId);
+        Stream::PackDword(stream, Ctx->Session.CurrentTaskId);
+        Stream::PackDword(stream, msg_type);
 
         return stream;
     }
 
-    PSTREAM CreateStream () {
+    _stream* CreateStream () {
         HEXANE
 
-        PSTREAM stream = { };
+        _stream *stream = { };
         if (
-            !(stream            = S_CAST(PSTREAM, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, sizeof(STREAM)))) ||
+            !(stream            = S_CAST(_stream *, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, sizeof(_stream)))) ||
             !(stream->Buffer    = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, sizeof(uint8_t)))) {
             return_defer(ntstatus);
         }
@@ -54,7 +54,7 @@ namespace Stream {
         return stream;
     }
 
-    VOID Destroystream (PSTREAM stream) {
+    VOID Destroystream (_stream *stream) {
         HEXANE
 
         if (stream) {
@@ -74,7 +74,7 @@ namespace Stream {
         }
     }
 
-    VOID PackByte (PSTREAM stream, uint8_t data) {
+    VOID PackByte (_stream *stream, uint8_t data) {
         HEXANE
 
         if (stream) {
@@ -85,7 +85,7 @@ namespace Stream {
         }
     }
 
-    VOID PackDword64 (PSTREAM stream, uint64_t data) {
+    VOID PackDword64 (_stream *stream, uint64_t data) {
         HEXANE
 
         if (stream) {
@@ -96,7 +96,7 @@ namespace Stream {
         }
     }
 
-    VOID PackDword (PSTREAM stream, uint32_t data) {
+    VOID PackDword (_stream *stream, uint32_t data) {
         HEXANE
 
         if (stream) {
@@ -107,7 +107,7 @@ namespace Stream {
         }
     }
 
-    VOID PackBytes (PSTREAM stream, uint8_t *data, size_t size) {
+    VOID PackBytes (_stream *stream, uint8_t *data, size_t size) {
         HEXANE
 
         if (stream) {
@@ -121,7 +121,7 @@ namespace Stream {
         }
     }
 
-    VOID PackPointer (PSTREAM stream, void *pointer) {
+    VOID PackPointer (_stream *stream, void *pointer) {
 #ifdef _M_X64
         PackDword64(stream, R_CAST(uintptr_t, pointer));
 #elif _M_IX86
@@ -129,11 +129,11 @@ namespace Stream {
 #endif
     }
 
-   VOID PackString (PSTREAM stream, char* data) {
+   VOID PackString (_stream *stream, char* data) {
         PackBytes(stream, R_CAST(uint8_t*, data), x_strlen(data));
     }
 
-    VOID PackWString (PSTREAM stream, wchar_t* data) {
+    VOID PackWString (_stream *stream, wchar_t* data) {
         PackBytes(stream, R_CAST(uint8_t*, data), x_wcslen(data));
     }
 }

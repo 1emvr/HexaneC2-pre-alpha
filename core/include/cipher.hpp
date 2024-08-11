@@ -8,11 +8,11 @@
 #define NROUNDS     (const unsigned int) 64
 
 namespace Xtea {
-    FUNCTION u32_block BlockToUint32 (const byte *src);
+    FUNCTION _u32_block BlockToUint32 (const byte *src);
     FUNCTION VOID Uint32ToBlock (uint32_t v0, uint32_t v1, byte *dst) ;
-    FUNCTION VOID InitCipher (Ciphertext *c, const byte *m_key);
-    FUNCTION VOID XteaEncrypt(Ciphertext *c, byte *dst, byte *src);
-    FUNCTION VOID XteaDecrypt(Ciphertext *c, byte *dst, byte *src);
+    FUNCTION VOID InitCipher (_ciphertxt *c, const byte *m_key);
+    FUNCTION VOID XteaEncrypt(_ciphertxt *c, byte *dst, byte *src);
+    FUNCTION VOID XteaDecrypt(_ciphertxt *c, byte *dst, byte *src);
     FUNCTION PBYTE *XteaDivide (byte *data, size_t cbData, size_t *cbOut);
     FUNCTION VOID XteaCrypt(PBYTE data, SIZE_T cbData, PBYTE key, BOOL encrypt);
 }

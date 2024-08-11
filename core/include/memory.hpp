@@ -6,13 +6,13 @@ namespace Memory {
 
     FUNCTION VOID PatchMemory(byte *dst, byte const *src, int d_offs, int s_offs, size_t n);
     FUNCTION VOID GetProcessHeaps(void *process, uint32_t access, uint32_t pid);
-    FUNCTION PRSRC GetIntResource(HMODULE base, int RsrcId);
+    FUNCTION _resource* GetIntResource(HMODULE base, int RsrcId);
 
     namespace Context {
 
         FUNCTION VOID ResolveApi();
         FUNCTION VOID ContextInit();
-        FUNCTION VOID ContextDestroy(HEXANE_CTX *Ctx);
+        FUNCTION VOID ContextDestroy(_hexane *Ctx);
     }
 
     namespace Modules {
