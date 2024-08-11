@@ -1,200 +1,202 @@
 #include <core/include/parser.hpp>
 namespace Parser {
 
-    VOID ParserBytecpy(PPARSER Parser, PBYTE dst) {
+    VOID ParserBytecpy(PPARSER parser, byte *dst) {
         HEXANE
 
-        BYTE byte = Parser::UnpackByte(Parser);
+        BYTE byte = Parser::UnpackByte(parser);
         x_memcpy(dst, &byte, 1);
     }
 
-    VOID ParserStrcpy(PPARSER Parser, LPSTR *Dst, ULONG *cbOut) {
+    VOID ParserStrcpy(PPARSER parser, char **dst, uint32_t *n_out) {
         HEXANE
 
-        ULONG Length  = 0;
-        LPSTR Buffer  = UnpackString(Parser, &Length);
+        ULONG length  = 0;
+        LPSTR buffer  = UnpackString(parser, &length);
 
-        if (Length) {
-            if (cbOut) {
-                *cbOut = Length;
+        if (length) {
+            if (n_out) {
+                *n_out = length;
             }
-
-            if ((*Dst = S_CAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
-                x_memcpy(*Dst, Buffer, Length);
+            if ((*dst = S_CAST(char*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, length)))) {
+                x_memcpy(*dst, buffer, length);
             }
         }
     }
 
-    VOID ParserWcscpy(PPARSER Parser, LPWSTR *Dst, ULONG *cbOut) {
+    VOID ParserWcscpy(PPARSER parser, wchar_t **dst, uint32_t *n_out) {
         HEXANE
 
-        ULONG Length  = 0;
-        LPWSTR Buffer  = UnpackWString(Parser, &Length);
+        ULONG length  = 0;
+        LPWSTR buffer  = UnpackWString(parser, &length);
 
-        if (Length) {
-            if (cbOut) {
-                *cbOut = Length;
+        if (length) {
+            if (n_out) {
+                *n_out = length;
             }
 
-            if ((*Dst = S_CAST(LPWSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, (Length * sizeof(WCHAR)) + sizeof(WCHAR))))) {
-                x_memcpy(*Dst, Buffer, Length * sizeof(WCHAR));
+            length *= sizeof(wchar_t);
+            if ((*dst = S_CAST(wchar_t*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, length)))) {
+                x_memcpy(*dst, buffer, length);
             }
         }
     }
 
-    VOID ParserMemcpy(PPARSER Parser, PBYTE *Dst, ULONG *cbOut) {
+    VOID ParserMemcpy(PPARSER parser, byte **dst, uint32_t *n_out) {
         HEXANE
 
-        ULONG Length = 0;
-        PBYTE Buffer = UnpackBytes(Parser, &Length);
+        ULONG length = 0;
+        PBYTE buffer = UnpackBytes(parser, &length);
 
-        if (Length) {
-            if (cbOut) {
-                *cbOut = Length;
+        if (length) {
+            if (n_out) {
+                *n_out = length;
             }
-
-            if ((*Dst = S_CAST(PBYTE, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length)))) {
-                x_memcpy(*Dst, Buffer, Length);
+            if ((*dst = B_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, length)))) {
+                x_memcpy(*dst, buffer, length);
             }
         }
     }
 
-    VOID CreateParser (PPARSER Parser, PBYTE Buffer, ULONG Length) {
+    VOID CreateParser (PPARSER parser, byte *buffer, uint32_t length) {
         HEXANE
 
-        if (!(Parser->Handle = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Length))) {
+        if (!(parser->Handle = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, length))) {
             return;
         }
 
-        x_memcpy(Parser->Handle, Buffer, Length);
+        x_memcpy(parser->Handle, buffer, length);
 
-        Parser->Length = Length;
-        Parser->Buffer = Parser->Handle;
-        Parser->LE = Ctx->LE;
+        parser->Length  = length;
+        parser->Buffer  = parser->Handle;
+        parser->LE      = Ctx->LE;
     }
 
-    VOID DestroyParser (PPARSER Parser) {
+    VOID DestroyParser (PPARSER parser) {
         HEXANE
 
-        if (Parser) {
-            if (Parser->Handle) {
+        if (parser) {
+            if (parser->Handle) {
 
-                x_memset(Parser->Handle, 0, Parser->Length);
-                Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Parser->Handle);
+                x_memset(parser->Handle, 0, parser->Length);
+                Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, parser->Handle);
 
-                Parser->Buffer = nullptr;
-                Parser->Handle = nullptr;
+                parser->Buffer = nullptr;
+                parser->Handle = nullptr;
             }
         }
     }
 
-    BYTE UnpackByte (PPARSER Parser) {
-        BYTE intBytes = 0;
+    BYTE UnpackByte (PPARSER parser) {
+        uint8_t data = 0;
 
-        if (Parser->Length >= 1) {
-            x_memcpy(&intBytes, Parser->Buffer, 1);
+        if (parser->Length >= 1) {
+            x_memcpy(&data, parser->Buffer, 1);
 
-            Parser->Buffer = S_CAST(PBYTE, Parser->Buffer) + 1;
-            Parser->Length -= 1;
+            parser->Buffer = B_PTR(parser->Buffer) + 1;
+            parser->Length -= 1;
         }
 
-        return intBytes;
+        return data;
     }
 
-    SHORT UnpackShort (PPARSER Parser) {
+    SHORT UnpackShort (PPARSER parser) {
 
-        SHORT intBytes = 0;
+        uint16_t data = 0;
 
-        if (Parser->Length >= 2) {
-            x_memcpy(&intBytes, Parser->Buffer, 2);
+        if (parser->Length >= 2) {
+            x_memcpy(&data, parser->Buffer, 2);
 
-            Parser->Buffer = S_CAST(PBYTE, Parser->Buffer) + 2;
-            Parser->Length -= 2;
+            parser->Buffer = B_PTR(parser->Buffer) + 2;
+            parser->Length -= 2;
         }
-        return intBytes;
+
+        return data;
     }
 
-    ULONG UnpackDword (PPARSER Parser) {
+    ULONG UnpackDword (PPARSER parser) {
 
-        ULONG intBytes = 0;
+        uint32_t data = 0;
 
-        if (!Parser || Parser->Length < 4) {
+        if (!parser || parser->Length < 4) {
             return 0;
         }
-        x_memcpy(&intBytes, Parser->Buffer, 4);
 
-        Parser->Buffer = S_CAST(PBYTE, Parser->Buffer) + 4;
-        Parser->Length -= 4;
+        x_memcpy(&data, parser->Buffer, 4);
 
-        return (Parser->LE)
-               ? intBytes
-               : __bswapd(S_CAST(ULONG, intBytes));
+        parser->Buffer = B_PTR(parser->Buffer) + 4;
+        parser->Length -= 4;
+
+        return (parser->LE)
+               ? data
+               : __bswapd(S_CAST(int32_t, data));
     }
 
-    ULONG64 UnpackDword64 (PPARSER Parser) {
+    ULONG64 UnpackDword64 (PPARSER parser) {
 
-        ULONG64 intBytes = 0;
+        uint64_t data = 0;
 
-        if (!Parser || Parser->Length < 8) {
+        if (!parser || parser->Length < 8) {
             return 0;
         }
-        x_memcpy(&intBytes, Parser->Buffer, 4);
 
-        Parser->Buffer = S_CAST(PBYTE, Parser->Buffer) + 8;
-        Parser->Length -= 8;
+        x_memcpy(&data, parser->Buffer, 4);
 
-        return (Parser->LE)
-               ? intBytes
-               : __bswapq(S_CAST(ULONG64, intBytes));
+        parser->Buffer = B_PTR(parser->Buffer) + 8;
+        parser->Length -= 8;
+
+        return (parser->LE)
+               ? data
+               : __bswapq(S_CAST(int64_t, data));
     }
 
-    BOOL UnpackBool (PPARSER Parser) {
+    BOOL UnpackBool (PPARSER parser) {
 
-        INT32 intBytes = 0;
+        int32_t data = 0;
 
-        if (!Parser || Parser->Length < 4) {
+        if (!parser || parser->Length < 4) {
             return 0;
         }
-        x_memcpy(&intBytes, Parser->Buffer, 4);
 
-        Parser->Buffer = S_CAST(PBYTE, Parser->Buffer) + 4;
-        Parser->Length -= 4;
+        x_memcpy(&data, parser->Buffer, 4);
 
-        return (Parser->LE)
-               ? intBytes != 0
-               : __bswapd(intBytes) != 0;
+        parser->Buffer = B_PTR(parser->Buffer) + 4;
+        parser->Length -= 4;
+
+        return (parser->LE)
+               ? data != 0
+               : __bswapd(data) != 0;
     }
 
-    PBYTE UnpackBytes (PPARSER Parser, PULONG cbOut) {
+    PBYTE UnpackBytes (PPARSER parser, uint32_t *n_out) {
 
-        ULONG length = 0;
-        PBYTE output = { };
+        byte *output    = { };
+        uint32_t length = 0;
 
-        if (!Parser || Parser->Length < 4) {
+        if (!parser || parser->Length < 4) {
             return nullptr;
         }
 
-        length = UnpackDword(Parser);
-        if (cbOut) {
-            *cbOut = length;
+        length = UnpackDword(parser);
+        if (n_out) {
+            *n_out = length;
         }
 
-        output = S_CAST(PBYTE, Parser->Buffer);
-        if (output == nullptr) {
+        if (!(output = B_PTR(parser->Buffer))) {
             return nullptr;
         }
 
-        Parser->Length -= length;
-        Parser->Buffer = S_CAST(PBYTE, Parser->Buffer) + length;
+        parser->Length -= length;
+        parser->Buffer = B_PTR(parser->Buffer) + length;
 
         return output;
     }
 
-    LPSTR UnpackString(PPARSER Parser, PULONG cbOut) {
-        return R_CAST(LPSTR, UnpackBytes(Parser, cbOut));
+    LPSTR UnpackString(PPARSER parser, uint32_t *n_out) {
+        return R_CAST(char*, UnpackBytes(parser, n_out));
     }
 
-    LPWSTR UnpackWString(PPARSER Parser, PULONG cbOut) {
-        return R_CAST(LPWSTR, UnpackBytes(Parser, cbOut));
+    LPWSTR UnpackWString(PPARSER parser, uint32_t *n_out) {
+        return R_CAST(wchar_t*, UnpackBytes(parser, n_out));
     }
 }

