@@ -63,7 +63,7 @@ func HookVCVars() error {
 		}
 
 		if !info.IsDir() && info.Name() == "vcvars64.bat" {
-			core.VCVarsInstall = filepath.Dir(path)
+			core.VCVarsInstall = path
 			return filepath.SkipDir
 		}
 
