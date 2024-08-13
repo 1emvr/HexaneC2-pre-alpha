@@ -113,6 +113,15 @@ func HookVCVars() error {
 		}
 	}
 
+	if core.Debug {
+		verify := []string{"TMP", "INCLUDE", "LIB", "LIBPATH"}
+
+		for _, key := range verify {
+			value := os.Getenv(key)
+			core.WrapMessage("DBG", fmt.Sprintf("%s=%s\n", key, value))
+		}
+	}
+
 	core.WrapMessage("INF", "msvc environment context loaded")
 	return nil
 }
