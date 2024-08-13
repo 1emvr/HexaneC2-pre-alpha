@@ -1,0 +1,26 @@
+[ERROR:vcvarsall.bat] Error in script usage. The correct usage is:
+Syntax:
+    vcvarsall.bat [arch] [platform_type] [winsdk_version] [-vcvars_ver=vc_version] [-vcvars_spectre_libs=spectre_mode]
+where :
+    [arch]: x86 | amd64 | x86_amd64 | x86_arm | x86_arm64 | amd64_x86 | amd64_arm | amd64_arm64
+    [platform_type]: {empty} | store | uwp
+    [winsdk_version] : full Windows 10 SDK number (e.g. 10.0.10240.0) or "8.1" to use the Windows 8.1 SDK.
+    [vc_version] : {none} for latest installed VC++ compiler toolset |
+                   "14.0" for VC++ 2015 Compiler Toolset |
+                   "14.xx" for the latest 14.xx.yyyyy toolset installed (e.g. "14.11") |
+                   "14.xx.yyyyy" for a specific full version number (e.g. "14.11.25503")
+    [spectre_mode] : {none} for libraries without spectre mitigations |
+                     "spectre" for libraries with spectre mitigations
+
+The store parameter sets environment variables to support Universal Windows Platform application
+development and is an alias for 'uwp'.
+
+For example:
+    vcvarsall.bat x86_amd64
+    vcvarsall.bat x86_amd64 10.0.10240.0
+    vcvarsall.bat x86_arm uwp 10.0.10240.0
+    vcvarsall.bat x86_arm onecore 10.0.10240.0 -vcvars_ver=14.0
+    vcvarsall.bat x64 8.1
+    vcvarsall.bat x64 store 8.1
+
+Please make sure either Visual Studio or C++ Build SKU is installed.

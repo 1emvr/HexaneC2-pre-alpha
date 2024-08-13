@@ -118,7 +118,11 @@ func HookVCVars() error {
 
 		for _, key := range verify {
 			value := os.Getenv(key)
-			core.WrapMessage("DBG", fmt.Sprintf("%s=%s\n", key, value))
+
+			if value == "" {
+				core.WrapMessage("ERR", fmt.Sprintf("env var %s not set", key))
+				return fmt.Errorf(fmt.Sprintf("env var %s not set", key))
+			}
 		}
 	}
 
@@ -170,13 +174,13 @@ func RootInit() error {
 		return err
 	}
 	if core.NetFXSDK == "C:/Program Files(x86)/Windows Kits/NETFXSDK/" {
-		return fmt.Errorf("metahost.h not found anywhere in %s", core.NetFXSDK)
+		return fmt.Errorf("metahost.h not found in %s", core.NetFXSDK)
 	}
 
 	return err
 }
 
-func Run() error {
+func Run() {
 	var (
 		err    error
 		input  string
@@ -188,7 +192,8 @@ func Run() error {
 	go PrintChannel(core.Cb, core.Exit)
 
 	if err = RootInit(); err != nil {
-		return err
+		core.WrapMessage("ERR", err.Error())
+		return
 	}
 
 	for {
@@ -210,5 +215,4 @@ func Run() error {
 			continue
 		}
 	}
-	return nil
 }
