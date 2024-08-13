@@ -201,10 +201,10 @@ namespace Dispatcher {
         }
 
 #ifdef TRANSPORT_HTTP
-        Http::HttpCallback(out, &in);
+        Network::Http::HttpCallback(out, &in);
 #endif
 #ifdef TRANSPORT_PIPE
-        Smb::PeerConnectEgress(out, &in);
+        Network::Smb::PeerConnectEgress(out, &in);
 #endif
 
         Stream::DestroyStream(out);
@@ -223,7 +223,7 @@ namespace Dispatcher {
                 out = swap;
 
                 if (Ctx->Config.IngressPipename) {
-                    Smb::PeerConnectIngress(out, &in);
+                    Network::Smb::PeerConnectIngress(out, &in);
 
                     if (in) {
                         OutboundQueue(in);
