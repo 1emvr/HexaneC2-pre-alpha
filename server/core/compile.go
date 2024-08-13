@@ -338,7 +338,7 @@ func (h *HexaneConfig) CompileSources(module *Module) error {
 	return nil
 }
 
-func (h *HexaneConfig) RunCommand(cmd string) error {
+func RunCommand(cmd string, logname string) error {
 	var (
 		Command *exec.Cmd
 		Log     *os.File
@@ -354,8 +354,7 @@ func (h *HexaneConfig) RunCommand(cmd string) error {
 		Shell, Flag = "bash", "-c"
 	}
 
-	LogName = filepath.Join(LogsPath, strconv.Itoa(int(h.PeerId))+"-error.log")
-
+	LogName = filepath.Join(LogsPath, logname)
 	if Log, err = os.Create(LogName); err != nil {
 		return err
 	}
@@ -375,7 +374,7 @@ func (h *HexaneConfig) RunCommand(cmd string) error {
 	}
 
 	if err = Command.Run(); err != nil {
-		return fmt.Errorf("compilation error. Check %s for details", LogName)
+		return fmt.Errorf("check %s for details", LogName)
 	}
 
 	return nil

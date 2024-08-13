@@ -56,25 +56,9 @@ func (h *HexaneConfig) CreateConfig() {
 	}
 
 	if h.UserConfig.Config.Debug {
-		h.Compiler.Flags = []string{
-			"",
-			"-std=c++23",
-			"-g -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel",
-			"-fno-ident -fpack-struct=8 -falign-functions=1",
-			"-ffunction-sections -fdata-sections -falign-jumps=1 -w",
-			"-falign-labels=1 -fPIC",
-			"-Wl,--no-seh,--enable-stdcall-fixup,--gc-sections",
-		}
+		h.Compiler.Flags = []string{"/MD /O1 /Os /EHa /Zl /NODEFAULTLIB /DEBUG"}
 	} else {
-		h.Compiler.Flags = []string{
-			"",
-			"-std=c++23",
-			"-Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel",
-			"-fno-ident -fpack-struct=8 -falign-functions=1",
-			"-ffunction-sections -fdata-sections -falign-jumps=1 -w",
-			"-falign-labels=1 -fPIC",
-			"-Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections",
-		}
+		h.Compiler.Flags = []string{"/MD /O1 /Os /EHa /Zl /NODEFAULTLIB"}
 	}
 }
 

@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"github.com/spf13/cobra"
 	"hexane_server/core"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -47,6 +49,51 @@ func PrintChannel(cb chan core.Message, exit chan bool) {
 			fmt.Println(fmt.Sprintf("[%s] %s", m.MsgType, m.Msg))
 		}
 	}
+}
+
+func HookVCVars() error {
+	var (
+		err    error
+		vcvars []byte
+	)
+
+	err = filepath.Walk(core.VCVarsInstall, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && info.Name() == "vcvars64.bat" {
+			core.VCVarsInstall = filepath.Dir(path)
+			return filepath.SkipDir
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	if vcvars, err = ioutil.ReadFile(core.VCVarsInstall); err != nil {
+		return err
+	}
+	// hook bat file to write env vars to temp file
+	hook := []byte("set > %TMP%\vcvars.txt")
+
+	if !bytes.Contains(vcvars, hook) {
+		vcvars = append(vcvars, []byte("\n")...)
+		vcvars = append(vcvars, hook...)
+	}
+
+	if err = ioutil.WriteFile(core.VCVarsInstall, vcvars, 0644); err != nil {
+		return err
+	}
+
+	// run the hooked vcvars
+	if err = core.RunCommand(core.VCVarsInstall, "hook_vcvars"); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func RootInit() error {
