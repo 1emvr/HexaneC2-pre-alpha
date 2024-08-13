@@ -1,7 +1,6 @@
 #include <core/include/process.hpp>
 namespace Process {
-
-	ULONG GetProcessIdByName(const char* name) {
+	ULONG GetProcessIdByName(const char *const name) {
 		HEXANE
 
 		HANDLE hSnap = { };
@@ -31,15 +30,12 @@ namespace Process {
 		return 0;
 	}
 
-	HANDLE OpenParentProcess(const char *name) {
+	HANDLE OpenParentProcess(const char *const name) {
 		HEXANE
 
-		HANDLE process  = { };
-		HANDLE snap     = { };
-
-        PROCESSENTRY32 entry    = { };
-        OBJECT_ATTRIBUTES attr  = { };
-		CLIENT_ID cid           = { };
+        PROCESSENTRY32 entry = { };
+		HANDLE process = { };
+		HANDLE snap = { };
 
 		entry.dwSize = sizeof(PROCESSENTRY32);
 		if (!(snap = Ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0))) {
@@ -57,7 +53,6 @@ namespace Process {
 				}
 			}
 		}
-
 		if (snap) {
 			Ctx->Nt.NtClose(snap);
 		}
@@ -65,7 +60,7 @@ namespace Process {
 		return process;
 	}
 
-	NTSTATUS NtOpenProcess(void **pp_process, uint32_t access, uint32_t pid) {
+	NTSTATUS NtOpenProcess(void **pp_process, const uint32_t access, const uint32_t pid) {
 		HEXANE
 
 		CLIENT_ID client			= { };
@@ -78,33 +73,33 @@ namespace Process {
 		return Ctx->Nt.NtOpenProcess(pp_process, access, &attrs, &client);
 	}
 
-	VOID NtCloseUserProcess(PIMAGE proc) {
+	VOID NtCloseUserProcess(_executable *const image) {
 		HEXANE
 
-		if (proc->Attrs) {
-			Ctx->Nt.RtlFreeHeap(proc->lpHeap, 0, proc->Attrs);
-			proc->Attrs = nullptr;
+		if (image->Attrs) {
+			Ctx->Nt.RtlFreeHeap(image->lpHeap, 0, image->Attrs);
+			image->Attrs = nullptr;
 		}
-		if (proc->lpHeap) {
-			Ctx->Nt.RtlDestroyHeap(proc->lpHeap);
-			proc->lpHeap = nullptr;
+		if (image->lpHeap) {
+			Ctx->Nt.RtlDestroyHeap(image->lpHeap);
+			image->lpHeap = nullptr;
 		}
-		if (proc->Params) {
-			Ctx->Nt.RtlDestroyProcessParameters(proc->Params);
-			proc->Params = nullptr;
+		if (image->Params) {
+			Ctx->Nt.RtlDestroyProcessParameters(image->Params);
+			image->Params = nullptr;
 		}
-		if (proc->pHandle) {
-			Ctx->Nt.NtTerminateProcess(proc->pHandle, ERROR_SUCCESS);
+		if (image->pHandle) {
+			Ctx->Nt.NtTerminateProcess(image->pHandle, ERROR_SUCCESS);
 		}
 	}
 
-	VOID NtCreateUserProcess(_executable *image, const char *image_path) {
+	VOID NtCreateUserProcess(_executable *const image, const char *const path) {
 		HEXANE
 
-		LPWSTR w_name			= { };
-		UNICODE_STRING u_name	= { };
+		LPWSTR w_name = { };
+		UNICODE_STRING u_name = { };
 
-		x_mbstowcs(w_name, image_path, x_strlen(image_path));
+		x_mbstowcs(w_name, path, x_strlen(path));
 		Ctx->Nt.RtlInitUnicodeString(&u_name, w_name);
 
 		image->Create = { };
@@ -133,7 +128,7 @@ namespace Process {
 		ntstatus = Ctx->Nt.NtCreateUserProcess(&image->pHandle, &image->pThread, PROCESS_CREATE_ALL_ACCESS_SUSPEND, image->Params, &image->Create, image->Attrs);
 
 	defer:
-		if (ntstatus != ERROR_SUCCESS) {
+		if (!NT_SUCCESS(ntstatus)) {
 			if (image->Attrs) {
 				Ctx->Nt.RtlFreeHeap(image->lpHeap, 0, image->Attrs);
 			}
