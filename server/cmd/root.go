@@ -58,6 +58,7 @@ func HookVCVars() error {
 		env_vars []byte
 	)
 
+	hook := []byte("set > %TMP%/vcvars.txt")
 	err = filepath.Walk(core.VCVarsInstall, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -77,8 +78,6 @@ func HookVCVars() error {
 	if vcvars, err = ioutil.ReadFile(core.VCVarsInstall); err != nil {
 		return err
 	}
-
-	hook := []byte("set > %TMP%/vcvars.txt")
 
 	if !bytes.Contains(vcvars, hook) {
 		vcvars = append(vcvars, []byte("\n")...)
@@ -120,8 +119,7 @@ func HookVCVars() error {
 			value := os.Getenv(key)
 
 			if value == "" {
-				core.WrapMessage("ERR", fmt.Sprintf("env var %s not set", key))
-				return fmt.Errorf(fmt.Sprintf("env var %s not set", key))
+				return fmt.Errorf("env var %s not set", key))
 			}
 		}
 	}
@@ -147,13 +145,16 @@ func RootInit() error {
 	}
 
 	if err = core.CreatePath(core.LogsPath, os.ModePerm); err != nil {
+		core.WrapMessage("ERR", "create logs path failed: "+err.Error())
 		return err
 	}
 	if err = core.CreatePath(core.BuildPath, os.ModePerm); err != nil {
+		core.WrapMessage("ERR", "create build path failed: "+err.Error())
 		return err
 	}
 
 	if err = HookVCVars(); err != nil {
+		core.WrapMessage("ERR", "vcvars error: "+err.Error())
 		return err
 	}
 
@@ -171,6 +172,7 @@ func RootInit() error {
 	})
 
 	if err != nil {
+		core.WrapMessage("ERR", "NETFXSDK error: "+err.Error())
 		return err
 	}
 	if core.NetFXSDK == "C:/Program Files(x86)/Windows Kits/NETFXSDK/" {
@@ -192,13 +194,11 @@ func Run() {
 	go PrintChannel(core.Cb, core.Exit)
 
 	if err = RootInit(); err != nil {
-		core.WrapMessage("ERR", err.Error())
 		return
 	}
 
 	for {
 		if input, err = reader.ReadString('\n'); err != nil {
-			core.WrapMessage("ERR", err.Error())
 			continue
 		}
 
@@ -211,7 +211,6 @@ func Run() {
 		rootCmd.SetArgs(args)
 
 		if err = rootCmd.Execute(); err != nil {
-			core.WrapMessage("ERR", err.Error())
 			continue
 		}
 	}

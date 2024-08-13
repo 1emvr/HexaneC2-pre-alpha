@@ -37,7 +37,7 @@ EXTERN_C LPVOID InstEnd();
 #define __dll_export 							__declspec(dllexport)
 #define __allocate(x) 							__declspec(allocate(".text$" #x ""))
 #define FUNCTION								__declspec(code_seg(".text$B")) __align
-#define __align 								__declspec(align(DEFAULT_SECTION_SIZE))
+#define __align 								__declspec(align(0x1000))
 #define __segment(x) 							__allocate(x) __align
 
 #define LocalHeap								NtCurrentTeb()->ProcessEnvironmentBlock->ProcessHeap
