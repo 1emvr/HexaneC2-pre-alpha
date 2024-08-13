@@ -18,7 +18,7 @@ namespace Injection {
         _code   *opcode;
     };
 
-    FUNCTION VOID Threadless(const _threadless &writer, void *shellcode, size_t n_shellcode, size_t total_length);
+    FUNCTION VOID Threadless(const _threadless &writer, void *shellcode, size_t n_shellcode, size_t total);
 
     namespace Veh {
 
@@ -30,7 +30,7 @@ namespace Injection {
         };
 
         FUNCTION UINT_PTR GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, const char *signature, const char *mask);
-        FUNCTION UINT_PTR PointerEncoder(const uintptr_t &pointer, bool encode);
+        FUNCTION UINT_PTR PointerEncodeDecode(const uintptr_t &pointer, bool encode);
         FUNCTION LONG OverwriteFirstHandler(const _veh_writer &writer);
     }
 }
