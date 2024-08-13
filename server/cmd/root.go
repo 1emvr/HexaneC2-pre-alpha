@@ -63,7 +63,7 @@ func HookVCVars() error {
 			return err
 		}
 
-		if !info.IsDir() && info.Name() == "vcvars64.bat" {
+		if !info.IsDir() && info.Name() == "vcvarsall.bat" {
 			core.VCVarsInstall = path
 			return filepath.SkipDir
 		}
@@ -78,7 +78,7 @@ func HookVCVars() error {
 		return err
 	}
 
-	hook := []byte("set > %TMP%\vcvars.txt")
+	hook := []byte("set > %TMP%/vcvars.txt")
 
 	if !bytes.Contains(vcvars, hook) {
 		vcvars = append(vcvars, []byte("\n")...)
@@ -93,7 +93,8 @@ func HookVCVars() error {
 		return err
 	}
 
-	if env_vars, err = ioutil.ReadFile(core.VCVarsInstall); err != nil {
+	temp_file := filepath.Join(os.TempDir(), "vcvars.txt")
+	if env_vars, err = ioutil.ReadFile(temp_file); err != nil {
 		return err
 	}
 
@@ -136,6 +137,10 @@ func RootInit() error {
 		return err
 	}
 	if err = core.CreatePath(core.BuildPath, os.ModePerm); err != nil {
+		return err
+	}
+
+	if err = HookVCVars(); err != nil {
 		return err
 	}
 

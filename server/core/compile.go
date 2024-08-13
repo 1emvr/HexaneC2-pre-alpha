@@ -16,7 +16,7 @@ import (
 )
 
 func (h *HexaneConfig) StripSymbols(output string) error {
-	return h.RunCommand(h.Compiler.Strip + " " + output)
+	return RunCommand(h.Compiler.Strip+" "+output, strconv.Itoa(int(h.PeerId)))
 }
 
 func (h *HexaneConfig) GetBuildType() string {
@@ -262,7 +262,7 @@ func (h *HexaneConfig) CompileObject(command, output string, targets, flags, inc
 
 	command += fmt.Sprintf(" -o %s ", output)
 
-	if err = h.RunCommand(command); err != nil {
+	if err = RunCommand(command, strconv.Itoa(int(h.PeerId))); err != nil {
 		return err
 	}
 

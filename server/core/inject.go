@@ -2,6 +2,7 @@ package core
 
 import (
 	"os"
+	"strconv"
 )
 
 func (h *HexaneConfig) GetInjectConfig(injType string) ([]string, error) {
@@ -25,7 +26,7 @@ func (h *HexaneConfig) GetInjectConfig(injType string) ([]string, error) {
 				return nil, err
 			}
 
-			if err = h.RunCommand(h.Compiler.Objcopy + " -j .text -O binary " + loader + ".o" + "loader_shc.bin"); err != nil {
+			if err = RunCommand(h.Compiler.Objcopy+" -j .text -O binary "+loader+".o"+"loader_shc.bin", strconv.Itoa(int(h.PeerId))); err != nil {
 				return nil, err
 			}
 
