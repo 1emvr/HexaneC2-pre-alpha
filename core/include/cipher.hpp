@@ -9,7 +9,7 @@
 
 namespace Xtea {
 
-    FUNCTION _u32_block BlockToUint32 (uint8_t const *src);
+    FUNCTION _u32_block BlockToUint32 (uint8_t *src);
     FUNCTION VOID Uint32ToBlock (uint32_t v0, uint32_t v1, uint8_t *dst) ;
     FUNCTION VOID InitCipher (_ciphertext *c, uint8_t *m_key);
     FUNCTION VOID XteaEncrypt(_ciphertext *c, uint8_t *dst, uint8_t *src);

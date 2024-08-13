@@ -3,7 +3,7 @@
 
 namespace Commands {
 
-    VOID DirectoryList (_parser *parser) {
+    VOID DirectoryList (_parser *const parser) {
         HEXANE
 
         _stream *out    = Stream::CreateStreamWithHeaders(TypeResponse);
@@ -74,7 +74,7 @@ namespace Commands {
         if (path) { Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, path); }
     }
 
-    VOID processModules (_parser *parser) {
+    VOID processModules (_parser *const parser) {
         HEXANE
 
         _stream *out                    = Stream::CreateStreamWithHeaders(TypeResponse);
@@ -137,7 +137,7 @@ namespace Commands {
         defer:
     }
 
-    VOID ProcessList(_parser *parser) {
+    VOID ProcessList(_parser *const parser) {
         HEXANE
 
         _stream *stream             = Stream::CreateStreamWithHeaders(TypeResponse);
@@ -211,7 +211,7 @@ namespace Commands {
         if (snapshot) { Ctx->Nt.NtClose(snapshot); }
     }
 
-    VOID Shutdown (_parser *parser) {
+    VOID Shutdown (_parser *const parser) {
         HEXANE
 
         // Send final message

