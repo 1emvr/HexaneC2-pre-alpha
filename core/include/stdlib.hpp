@@ -7,7 +7,7 @@ FUNCTION void *x_memset (void *dst, int val, size_t len);
 FUNCTION void x_strcpy (char *dst, char const *src);
 FUNCTION size_t x_strncmp (const char *str1, const char *str2, size_t len);
 FUNCTION int x_strcmp (const char *str1, const char *str2);
-FUNCTION int x_memcmp (const void *str1, const void *str2, size_t count);
+FUNCTION int x_memcmp (const void *ptr1, const void *ptr2, size_t len);
 FUNCTION size_t x_strlen (const char* str);
 FUNCTION size_t x_wcslen (const wchar_t *s);
 FUNCTION char *x_strcat (char *str1, const char *str2);

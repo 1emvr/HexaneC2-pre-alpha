@@ -1,18 +1,18 @@
 #include <core/include/parser.hpp>
 namespace Parser {
 
-    VOID ParserBytecpy(_parser *parser, uint8_t *dst) {
+    VOID ParserBytecpy(_parser *const parser, uint8_t *const dst) {
         HEXANE
 
-        uint8_t byte = Parser::UnpackByte(parser);
+        const auto byte = UnpackByte(parser);
         x_memcpy(dst, &byte, 1);
     }
 
-    VOID ParserStrcpy(_parser *parser, char **dst, uint32_t *n_out) {
+    VOID ParserStrcpy(_parser *const parser, char **const dst, uint32_t *const n_out) {
         HEXANE
 
-        uint32_t length  = 0;
-        char *buffer  = Parser::UnpackString(parser, &length);
+        uint32_t length = 0;
+        const auto buffer = UnpackString(parser, &length);
 
         if (length) {
             if (n_out) {
@@ -24,11 +24,11 @@ namespace Parser {
         }
     }
 
-    VOID ParserWcscpy(_parser *parser, wchar_t **dst, uint32_t *n_out) {
+    VOID ParserWcscpy(_parser *const parser, wchar_t **const dst, uint32_t *const n_out) {
         HEXANE
 
-        uint32_t length  = 0;
-        wchar_t *buffer  = Parser::UnpackWString(parser, &length);
+        uint32_t length = 0;
+        const auto buffer = UnpackWString(parser, &length);
 
         if (length) {
             if (n_out) {
@@ -42,11 +42,11 @@ namespace Parser {
         }
     }
 
-    VOID ParserMemcpy(_parser *parser, byte **dst, uint32_t *n_out) {
+    VOID ParserMemcpy(_parser *const parser, uint8_t **const dst, uint32_t *const n_out) {
         HEXANE
 
         uint32_t length = 0;
-        uint8_t *buffer = Parser::UnpackBytes(parser, &length);
+        const auto buffer = UnpackBytes(parser, &length);
 
         if (length) {
             if (n_out) {
@@ -58,7 +58,7 @@ namespace Parser {
         }
     }
 
-    VOID CreateParser (_parser *parser, byte *buffer, uint32_t length) {
+    VOID CreateParser (_parser *const parser, const uint8_t *const buffer, const uint32_t length) {
         HEXANE
 
         if (!(parser->Handle = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, length))) {
@@ -72,7 +72,7 @@ namespace Parser {
         parser->LE      = Ctx->LE;
     }
 
-    VOID DestroyParser (_parser *parser) {
+    VOID DestroyParser (_parser *const parser) {
         HEXANE
 
         if (parser) {
@@ -87,7 +87,7 @@ namespace Parser {
         }
     }
 
-    BYTE UnpackByte (_parser *parser) {
+    BYTE UnpackByte (_parser *const parser) {
         uint8_t data = 0;
 
         if (parser->Length >= 1) {
@@ -100,7 +100,7 @@ namespace Parser {
         return data;
     }
 
-    SHORT UnpackShort (_parser *parser) {
+    SHORT UnpackShort (_parser *const parser) {
 
         uint16_t data = 0;
 
@@ -114,7 +114,7 @@ namespace Parser {
         return data;
     }
 
-    ULONG UnpackDword (_parser *parser) {
+    ULONG UnpackDword (_parser *const parser) {
 
         uint32_t data = 0;
 
@@ -132,7 +132,7 @@ namespace Parser {
                : __builtin_bswap32(S_CAST(int32_t, data));
     }
 
-    ULONG64 UnpackDword64 (_parser *parser) {
+    ULONG64 UnpackDword64 (_parser *const parser) {
 
         uint64_t data = 0;
 
@@ -150,7 +150,7 @@ namespace Parser {
                : __builtin_bswap64(S_CAST(int64_t, data));
     }
 
-    BOOL UnpackBool (_parser *parser) {
+    BOOL UnpackBool (_parser *const parser) {
 
         int32_t data = 0;
 
@@ -168,9 +168,9 @@ namespace Parser {
                : __builtin_bswap32(data) != 0;
     }
 
-    PBYTE UnpackBytes (_parser *parser, uint32_t *n_out) {
+    PBYTE UnpackBytes (_parser *const parser, uint32_t *const n_out) {
 
-        byte *output    = { };
+        uint8_t *output = { };
         uint32_t length = 0;
 
         if (!parser || parser->Length < 4) {
@@ -192,11 +192,11 @@ namespace Parser {
         return output;
     }
 
-    LPSTR UnpackString(_parser *parser, uint32_t *n_out) {
+    LPSTR UnpackString(_parser *const parser, uint32_t *const n_out) {
         return R_CAST(char*, UnpackBytes(parser, n_out));
     }
 
-    LPWSTR UnpackWString(_parser *parser, uint32_t *n_out) {
+    LPWSTR UnpackWString(_parser *const parser, uint32_t *const n_out) {
         return R_CAST(wchar_t*, UnpackBytes(parser, n_out));
     }
 }

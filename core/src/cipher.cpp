@@ -1,14 +1,14 @@
 #include <core/include/cipher.hpp>
 namespace Xtea {
 
-    VOID Uint32ToBlock (uint32_t const v0, uint32_t const v1, uint8_t *dst)  {
+    VOID Uint32ToBlock (const uint32_t v0, const uint32_t v1, uint8_t *dst)  {
 
         dst[0] = v0 >> 24; dst[1] = v0 >> 16; dst[2] = v0 >> 8; dst[3] = v0;
         dst[4] = v1 >> 24; dst[5] = v1 >> 16; dst[6] = v1 >> 8;
         dst[7] = v1;
     }
 
-    VOID InitCipher (_ciphertext *c, const uint8_t *m_key) {
+    VOID InitCipher (_ciphertext *const c, const uint8_t *const m_key) {
 
         uint32_t key[4] = { };
         uint32_t sum    = { };
@@ -35,7 +35,7 @@ namespace Xtea {
         }
     }
 
-    VOID XteaEncrypt(_ciphertext const *c, uint8_t *dst, uint8_t const *src) {
+    VOID XteaEncrypt(const _ciphertext *const c, uint8_t *const dst, const uint8_t *const src) {
 
         _u32_block block = {
             block.v0 = src[0] << 24 | src[1] << 16 | src[2] << 8 | src[3],
@@ -53,7 +53,7 @@ namespace Xtea {
         Uint32ToBlock(block.v0, block.v1, dst);
     }
 
-    VOID XteaDecrypt(_ciphertext const *c, uint8_t *dst, uint8_t const *src) {
+    VOID XteaDecrypt(const _ciphertext *const c, uint8_t *const dst, const uint8_t *const src) {
 
         _u32_block block = {
             block.v0 = src[0] << 24 | src[1] << 16 | src[2] << 8 | src[3],
@@ -71,7 +71,7 @@ namespace Xtea {
         Uint32ToBlock(block.v0, block.v1, dst);
     }
 
-    PBYTE *XteaDivide (uint8_t const *data, size_t const n_data, size_t *n_out) {
+    PBYTE *XteaDivide (const uint8_t *const data, const size_t n_data, size_t *const n_out) {
         HEXANE
 
         uint8_t **sections = { };
@@ -109,25 +109,37 @@ namespace Xtea {
         return sections;
     }
 
-    VOID XteaCrypt(uint8_t *data, size_t const n_data, uint8_t const *key, bool const encrypt) {
+    VOID XteaCrypt(uint8_t *const data, const size_t n_data, uint8_t *const m_key, const bool encrypt) {
         HEXANE
 
+<<<<<<< HEAD
         _ciphertext *text   = { };
         uint8_t *buffer     = { };
         uint8_t **sections  = { };
 
         uint32_t offset = 0;
         size_t n_sect   = 0;
+=======
+        _ciphertext *text = { };
+        uint8_t **sections = { };
+        uint8_t *buffer = { };
+        uint8_t *key = { };
 
-        if (!key) {
+        int32_t offset = 0;
+        size_t n_sect = { };
+>>>>>>> 8c187ae578726bbd33eb8c66b2bf016bb71ffba4
+
+        if (!m_key) {
             key = Ctx->Config.Key;
+        } else {
+            key = m_key;
         }
 
         if (!(text = S_CAST(_ciphertext*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_ciphertext))))) {
             return;
         }
-
         InitCipher(text, key);
+
         if (!(sections = XteaDivide(data, n_data, &n_sect))) {
             return;
         }

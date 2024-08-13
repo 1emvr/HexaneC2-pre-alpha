@@ -1,7 +1,7 @@
 #include <core/include/dispatch.hpp>
 namespace Dispatcher {
 
-    __allocate(".text$RDATA") _command_map cmd_map[] = {
+    _code_seg(".rdata") _command_map cmd_map[] = {
         {.Id = CommandDir,          .Function = Commands::DirectoryList},
         {.Id = CommandMods,         .Function = Commands::ProcessModules},
         {.Id = CommandProcess,      .Function = Commands::ProcessList},

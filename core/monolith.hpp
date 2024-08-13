@@ -32,17 +32,14 @@ EXTERN_C LPVOID InstEnd();
 #define U_PTR(x)                                (R_CAST(UINT_PTR, x))
 #define C_DREF(x)                               (*R_CAST(VOID**, x))
 
-#define EXTERN_C 								extern "C"
-#define __prototype(x)                          decltype(x) *x
-#define __dll_export 							__declspec(dllexport)
-#define __allocate(x) 							__declspec(allocate(".text$" #x ""))
-#define FUNCTION								__declspec(code_seg(".text$B")) __align
-#define __align 								__declspec(align(0x1000))
-#define __segment(x) 							__allocate(x) __align
+#define FUNCTION								_text(B)
+#define _prototype(x)                           decltype(x) *x
+#define _dllexport 								__declspec(dllexport)
+#define _code_seg(x)							__attribute__((used, section(x)))
+#define _text(x) 								__attribute__((used, section(".text$" #x "")))
+#define WEAK									__attribute__((weak))
 
-#define LocalHeap								NtCurrentTeb()->ProcessEnvironmentBlock->ProcessHeap
 #define ntstatus 								Ctx->Teb->LastErrorValue
-
 #define PS_ATTR_LIST_SIZE(n)					(sizeof(PS_ATTRIBUTE_LIST) + (sizeof(PS_ATTRIBUTE) * (n - 1)))
 #define MODULE_NAME(mod)						(mod->BaseDllName.Buffer)
 
@@ -174,7 +171,8 @@ typedef VOID (NTAPI* TpPostWork_t)(PTP_WORK ptpWork);
 typedef VOID (NTAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
 
 
-#define GLOBAL_OFFSET       (U_PTR(InstStart()) + U_PTR(&__instance))
+WEAK EXTERN_C uint32_t		__global;
+#define GLOBAL_OFFSET       (U_PTR(InstStart()) + U_PTR(&__global))
 #define HEXANE 		        _hexane* Ctx = R_CAST(_hexane*, C_DREF(GLOBAL_OFFSET));
 
 #define InitializeObjectAttributes(ptr, name, attr, root, sec )	\
@@ -499,102 +497,99 @@ struct _hexane{
 	} CLR;
 
 	struct {
-		__prototype(LoadLibraryA);
-		__prototype(FreeLibrary);
-		__prototype(GetProcessHeap);
-		__prototype(GetProcessHeaps);
-		__prototype(GetProcAddress);
-		__prototype(GetModuleHandleA);
+		_prototype(LoadLibraryA);
+		_prototype(FreeLibrary);
+		_prototype(GetProcessHeap);
+		_prototype(GetProcessHeaps);
+		_prototype(GetProcAddress);
+		_prototype(GetModuleHandleA);
 
-		__prototype(IsWow64Process);
-        __prototype(OpenProcess);
-		__prototype(CreateToolhelp32Snapshot);
-		__prototype(Process32First);
-		__prototype(Process32Next);
-        __prototype(Module32First);
-        __prototype(Module32Next);
-		__prototype(GetCurrentProcessId);
-		__prototype(GetProcessId);
-		__prototype(ImpersonateLoggedOnUser);
-		__prototype(AdjustTokenPrivileges);
+		_prototype(IsWow64Process);
+        _prototype(OpenProcess);
+		_prototype(CreateToolhelp32Snapshot);
+		_prototype(Process32First);
+		_prototype(Process32Next);
+        _prototype(Module32First);
+        _prototype(Module32Next);
+		_prototype(GetCurrentProcessId);
+		_prototype(GetProcessId);
+		_prototype(ImpersonateLoggedOnUser);
+		_prototype(AdjustTokenPrivileges);
 
-		__prototype(GlobalMemoryStatusEx);
-		__prototype(GetComputerNameExA);
-		__prototype(SetLastError);
-		__prototype(GetLastError);
+		_prototype(GlobalMemoryStatusEx);
+		_prototype(GetComputerNameExA);
+		_prototype(SetLastError);
+		_prototype(GetLastError);
 
-        __prototype(RegOpenKeyExA);
-        __prototype(RegCreateKeyExA);
-        __prototype(RegSetValueExA);
-        __prototype(RegCloseKey);
+        _prototype(RegOpenKeyExA);
+        _prototype(RegCreateKeyExA);
+        _prototype(RegSetValueExA);
+        _prototype(RegCloseKey);
 
-		__prototype(ReadFile);
-		__prototype(WriteFile);
-		__prototype(CreateFileW);
-		__prototype(GetFileSizeEx);
-		__prototype(GetFullPathNameA);
-		__prototype(FindFirstFileA);
-		__prototype(FindClose);
-		__prototype(FindNextFileA);
-		__prototype(GetCurrentDirectoryA);
-		__prototype(FileTimeToSystemTime);
-		__prototype(SystemTimeToTzSpecificLocalTime);
-		__prototype(GetLocalTime);
-		__prototype(GetSystemTimeAsFileTime);
+		_prototype(ReadFile);
+		_prototype(WriteFile);
+		_prototype(CreateFileW);
+		_prototype(GetFileSizeEx);
+		_prototype(GetFullPathNameA);
+		_prototype(FindFirstFileA);
+		_prototype(FindClose);
+		_prototype(FindNextFileA);
+		_prototype(GetCurrentDirectoryA);
+		_prototype(FileTimeToSystemTime);
+		_prototype(SystemTimeToTzSpecificLocalTime);
+		_prototype(GetLocalTime);
+		_prototype(GetSystemTimeAsFileTime);
 
-		__prototype(FormatMessageA);
-		__prototype(CreateRemoteThread);
-		__prototype(CreateThread);
-		__prototype(QueueUserAPC);
-		__prototype(GetThreadLocale);
-		__prototype(SleepEx);
+		_prototype(FormatMessageA);
+		_prototype(CreateRemoteThread);
+		_prototype(CreateThread);
+		_prototype(QueueUserAPC);
+		_prototype(GetThreadLocale);
+		_prototype(SleepEx);
 
-		__prototype(WinHttpOpen);
-		__prototype(WinHttpConnect);
-		__prototype(WinHttpOpenRequest);
-		__prototype(WinHttpAddRequestHeaders);
-		__prototype(WinHttpSetOption);
-		__prototype(WinHttpGetProxyForUrl);
-		__prototype(WinHttpGetIEProxyConfigForCurrentUser);
-		__prototype(WinHttpSendRequest);
-		__prototype(WinHttpReceiveResponse);
-		__prototype(WinHttpReadData);
-		__prototype(WinHttpQueryHeaders);
-		__prototype(WinHttpQueryDataAvailable);
-		__prototype(WinHttpCloseHandle);
-		__prototype(GetAdaptersInfo);
+		_prototype(WinHttpOpen);
+		_prototype(WinHttpConnect);
+		_prototype(WinHttpOpenRequest);
+		_prototype(WinHttpAddRequestHeaders);
+		_prototype(WinHttpSetOption);
+		_prototype(WinHttpGetProxyForUrl);
+		_prototype(WinHttpGetIEProxyConfigForCurrentUser);
+		_prototype(WinHttpSendRequest);
+		_prototype(WinHttpReceiveResponse);
+		_prototype(WinHttpReadData);
+		_prototype(WinHttpQueryHeaders);
+		_prototype(WinHttpQueryDataAvailable);
+		_prototype(WinHttpCloseHandle);
+		_prototype(GetAdaptersInfo);
 
-		__prototype(CryptStringToBinaryA);
-		__prototype(CryptBinaryToStringA);
-		__prototype(FindResourceA);
-		__prototype(LoadResource);
-		__prototype(LockResource);
-		__prototype(SizeofResource);
-		__prototype(FreeResource);
+		_prototype(CryptStringToBinaryA);
+		_prototype(CryptBinaryToStringA);
+		_prototype(FindResourceA);
+		_prototype(LoadResource);
+		_prototype(LockResource);
+		_prototype(SizeofResource);
+		_prototype(FreeResource);
 
-		__prototype(CallNamedPipeW);
-		__prototype(CreateNamedPipeW);
-		__prototype(WaitNamedPipeW);
-		__prototype(SetNamedPipeHandleState);
-		__prototype(ConnectNamedPipe);
-		__prototype(TransactNamedPipe);
-		__prototype(DisconnectNamedPipe);
-		__prototype(PeekNamedPipe);
+		_prototype(CallNamedPipeW);
+		_prototype(CreateNamedPipeW);
+		_prototype(WaitNamedPipeW);
+		_prototype(SetNamedPipeHandleState);
+		_prototype(ConnectNamedPipe);
+		_prototype(TransactNamedPipe);
+		_prototype(DisconnectNamedPipe);
+		_prototype(PeekNamedPipe);
 
-		__prototype(GetUserNameA);
-		__prototype(LookupAccountSidW);
-		__prototype(LookupPrivilegeValueA);
-		__prototype(SetEntriesInAclA);
-		__prototype(AllocateAndInitializeSid);
-		__prototype(AddMandatoryAce);
-		__prototype(InitializeSecurityDescriptor);
-		__prototype(SetSecurityDescriptorDacl);
-		__prototype(SetSecurityDescriptorSacl);
-		__prototype(InitializeAcl);
-		__prototype(FreeSid);
-
+		_prototype(GetUserNameA);
+		_prototype(LookupAccountSidW);
+		_prototype(LookupPrivilegeValueA);
+		_prototype(SetEntriesInAclA);
+		_prototype(AllocateAndInitializeSid);
+		_prototype(AddMandatoryAce);
+		_prototype(InitializeSecurityDescriptor);
+		_prototype(SetSecurityDescriptorDacl);
+		_prototype(SetSecurityDescriptorSacl);
+		_prototype(InitializeAcl);
+		_prototype(FreeSid);
 	} win32;
 };
-
-EXTERN_C uint8_t __instance[sizeof(_hexane)];
 #endif
