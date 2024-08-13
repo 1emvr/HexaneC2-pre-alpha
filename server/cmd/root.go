@@ -53,8 +53,9 @@ func PrintChannel(cb chan core.Message, exit chan bool) {
 
 func HookVCVars() error {
 	var (
-		err    error
-		vcvars []byte
+		err      error
+		vcvars   []byte
+		env_vars []byte
 	)
 
 	err = filepath.Walk(core.VCVarsInstall, func(path string, info os.FileInfo, err error) error {
@@ -76,7 +77,7 @@ func HookVCVars() error {
 	if vcvars, err = ioutil.ReadFile(core.VCVarsInstall); err != nil {
 		return err
 	}
-	// hook bat file to write env vars to temp file
+
 	hook := []byte("set > %TMP%\vcvars.txt")
 
 	if !bytes.Contains(vcvars, hook) {
@@ -88,11 +89,30 @@ func HookVCVars() error {
 		return err
 	}
 
-	// run the hooked vcvars
 	if err = core.RunCommand(core.VCVarsInstall, "hook_vcvars"); err != nil {
 		return err
 	}
 
+	if env_vars, err = ioutil.ReadFile(core.VCVarsInstall); err != nil {
+		return err
+	}
+
+	lines := strings.Split(string(env_vars), "\n")
+
+	for _, line := range lines {
+		parts := bytes.SplitN([]byte(line), []byte("="), 2)
+
+		if len(parts) == 2 {
+			k := string(parts[0])
+			v := string(parts[1])
+
+			if err = os.Setenv(k, v); err != nil {
+				return err
+			}
+		}
+	}
+
+	core.WrapMessage("INF", "msvc environment context loaded")
 	return nil
 }
 
