@@ -262,6 +262,7 @@ namespace Dispatcher {
             }
 
             case TypeTasking: {
+
                 auto cmd_id = Parser::UnpackDword(&parser);
                 if (cmd_id == CommandNoJob) {
                     break;
