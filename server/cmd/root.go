@@ -2,11 +2,9 @@ package cmd
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"github.com/spf13/cobra"
 	"hexane_server/core"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -31,101 +29,6 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&core.ShowCommands, "show-commands", "c", false, "debug command mode")
 	rootCmd.PersistentFlags().BoolVarP(&core.ShowConfigs, "show-configs", "j", false, "debug json configs")
 	rootCmd.AddCommand(Implants)
-}
-
-func PrintChannel(cb chan core.Message, exit chan bool) {
-
-	for {
-		select {
-		case x := <-exit:
-			if x {
-				return
-			}
-		case m := <-cb:
-			if !core.Debug && m.MsgType == "DBG" {
-				continue
-			}
-
-			fmt.Println(fmt.Sprintf("[%s] %s", m.MsgType, m.Msg))
-		}
-	}
-}
-
-func HookVCVars() error {
-	var (
-		err      error
-		vcvars   []byte
-		env_vars []byte
-	)
-
-	hook := []byte("set > %TMP%/vcvars.txt")
-	err = filepath.Walk(core.VCVarsInstall, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !info.IsDir() && info.Name() == "vcvarsall.bat" {
-			core.VCVarsInstall = path
-			return filepath.SkipDir
-		}
-
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
-	if vcvars, err = ioutil.ReadFile(core.VCVarsInstall); err != nil {
-		return err
-	}
-
-	if !bytes.Contains(vcvars, hook) {
-		vcvars = append(vcvars, []byte("\n")...)
-		vcvars = append(vcvars, hook...)
-	}
-
-	if err = ioutil.WriteFile(core.VCVarsInstall, vcvars, 0644); err != nil {
-		return err
-	}
-
-	if err = core.RunCommand(core.VCVarsInstall, "hook_vcvars"); err != nil {
-		return err
-	}
-
-	temp_file := filepath.Join(os.TempDir(), "vcvars.txt")
-	if env_vars, err = ioutil.ReadFile(temp_file); err != nil {
-		return err
-	}
-
-	lines := strings.Split(string(env_vars), "\n")
-
-	for _, line := range lines {
-		parts := bytes.SplitN([]byte(line), []byte("="), 2)
-
-		if len(parts) == 2 {
-			k := string(parts[0])
-			v := string(parts[1])
-
-			if err = os.Setenv(k, v); err != nil {
-				return err
-			}
-		}
-	}
-
-	if core.Debug {
-		verify := []string{"TMP", "INCLUDE", "LIB", "LIBPATH"}
-
-		for _, key := range verify {
-			value := os.Getenv(key)
-
-			if value == "" {
-				return fmt.Errorf("env var %s not set", key))
-			}
-		}
-	}
-
-	core.WrapMessage("INF", "msvc environment context loaded")
-	return nil
 }
 
 func RootInit() error {
@@ -153,7 +56,7 @@ func RootInit() error {
 		return err
 	}
 
-	if err = HookVCVars(); err != nil {
+	if err = core.HookVCVars(); err != nil {
 		core.WrapMessage("ERR", "vcvars error: "+err.Error())
 		return err
 	}
@@ -191,9 +94,10 @@ func Run() {
 	)
 
 	fmt.Println(banner)
-	go PrintChannel(core.Cb, core.Exit)
+	go core.PrintChannel(core.Cb, core.Exit)
 
 	if err = RootInit(); err != nil {
+		core.WrapMessage("ERR", err.Error())
 		return
 	}
 
@@ -211,6 +115,7 @@ func Run() {
 		rootCmd.SetArgs(args)
 
 		if err = rootCmd.Execute(); err != nil {
+			core.WrapMessage("ERR", err.Error())
 			continue
 		}
 	}

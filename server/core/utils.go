@@ -2,10 +2,11 @@ package core
 
 import (
 	"bufio"
-	"encoding/hex"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"math/bits"
 	"math/rand"
 	"os"
@@ -47,6 +48,24 @@ func matchB(a, b []byte) bool {
 	return true
 }
 
+func PrintChannel(cb chan Message, exit chan bool) {
+
+	for {
+		select {
+		case x := <-exit:
+			if x {
+				return
+			}
+		case m := <-cb:
+			if !Debug && m.MsgType == "DBG" {
+				continue
+			}
+
+			fmt.Println(fmt.Sprintf("[%s] %s", m.MsgType, m.Msg))
+		}
+	}
+}
+
 func EggHuntDoubleD(data []byte, egg []byte) (int, error) {
 	eggLen := len(egg)
 	dataLen := len(data)
@@ -64,31 +83,6 @@ func EggHuntDoubleD(data []byte, egg []byte) (int, error) {
 		}
 	}
 	return -1, fmt.Errorf("egg was not found")
-}
-
-func ConvertEgg(egg string) ([]byte, error) {
-	var (
-		err     error
-		parts   []string
-		bytes   []byte
-		byteVal []byte
-	)
-
-	parts = strings.Split(strings.ReplaceAll(egg, " ", ""), ",")
-	bytes = make([]byte, len(parts))
-
-	for i, part := range parts {
-		if strings.HasPrefix(part, "0x") {
-			part = part[2:]
-		}
-		if byteVal, err = hex.DecodeString(part); err != nil {
-			return nil, err
-		}
-
-		bytes[i] = byteVal[0]
-	}
-
-	return bytes, nil
 }
 
 func GenerateUuid(n int) string {
@@ -246,6 +240,81 @@ func Clear() {
 	if err := command.Run(); err != nil {
 		panic(err)
 	}
+}
+
+func HookVCVars() error {
+	var (
+		err      error
+		vcvars   []byte
+		env_vars []byte
+	)
+
+	hook := []byte("set > %TMP%/vcvars.txt")
+	err = filepath.Walk(VCVarsInstall, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && info.Name() == "vcvarsall.bat" {
+			VCVarsInstall = path
+			return filepath.SkipDir
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	if vcvars, err = ioutil.ReadFile(VCVarsInstall); err != nil {
+		return err
+	}
+
+	if !bytes.Contains(vcvars, hook) {
+		vcvars = append(vcvars, []byte("\n")...)
+		vcvars = append(vcvars, hook...)
+	}
+
+	if err = ioutil.WriteFile(VCVarsInstall, vcvars, 0644); err != nil {
+		return err
+	}
+
+	if err = RunCommand(VCVarsInstall, "hook_vcvars"); err != nil {
+		return err
+	}
+
+	temp_file := filepath.Join(os.TempDir(), "vcvars.txt")
+	if env_vars, err = ioutil.ReadFile(temp_file); err != nil {
+		return err
+	}
+
+	lines := strings.Split(string(env_vars), "\n")
+
+	for _, line := range lines {
+		parts := bytes.SplitN([]byte(line), []byte("="), 2)
+
+		if len(parts) == 2 {
+			k := string(parts[0])
+			v := string(parts[1])
+
+			if err = os.Setenv(k, v); err != nil {
+				return err
+			}
+		}
+	}
+
+	verify := []string{"TMP", "INCLUDE", "LIB", "LIBPATH"}
+
+	for _, key := range verify {
+		value := os.Getenv(key)
+
+		if value == "" {
+			return fmt.Errorf("env var %s not set", key)
+		}
+	}
+
+	WrapMessage("INF", "msvc environment context loaded")
+	return nil
 }
 
 func (h *HexaneConfig) ReadJson(cfgPath string) error {
