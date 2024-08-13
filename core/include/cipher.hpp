@@ -5,8 +5,8 @@
 #define FNV_OFFSET  (const unsigned int) 2166136261
 #define XTEA_DELTA  (const unsigned int) 0x9E3779B9
 #define NROUNDS     (const unsigned int) 64
-
 #include <core/corelib.hpp>
+
 namespace Xtea {
 
     FUNCTION _u32_block BlockToUint32 (uint8_t const *src);
@@ -17,4 +17,32 @@ namespace Xtea {
     FUNCTION VOID XteaCrypt(uint8_t *data, size_t cbData, uint8_t *key, bool encrypt);
     FUNCTION PBYTE* XteaDivide (uint8_t *data, size_t cbData, size_t *cbOut);
 }
+
+template <uint32_t N>
+struct obfuscator {
+    char m_data[N] = { };
+
+    constexpr explicit obfuscator(const char* data) {
+        for (auto i = 0; i < N; i++) {
+            m_data[i] = data[i] ^ 0x0A;
+        }
+    }
+
+    void deobfuscate(unsigned char *dst) const {
+        int i = 0;
+        do {
+            dst[i] = m_data[i] ^ 0x0A;
+        } while (dst[i - 1]);
+    }
+};
+
+#define OBF(str)                                    \
+    []() -> char* {                                 \
+        constexpr auto size = ARRAY_LEN(str);       \
+        constexpr auto obf = obfuscator<size>(str); \
+        static char original[size];                 \
+                                                    \
+        obf.deobfuscate((unsigned char*)original);  \
+        return original;                            \
+}()
 #endif //HEXANE_CORELIB_CIPHER_HPP

