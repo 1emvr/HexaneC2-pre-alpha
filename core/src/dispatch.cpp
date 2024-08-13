@@ -303,17 +303,6 @@ namespace Dispatcher {
                 }
             }
 
-        case TypeVeh: {
-                const Injection::Veh::_veh_writer writer {
-                    .mod_name   = Parser::UnpackWString(&parser, nullptr),
-                    .signature  = Parser::UnpackString(&parser, nullptr),
-                    .mask       = Parser::UnpackString(&parser, nullptr),
-                    .target     = R_CAST(void*, Parser::UnpackDword64(&parser)),
-                };
-
-                OverwriteFirstHandler(writer);
-            }
-
             default:
                 break;
         }
