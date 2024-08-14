@@ -532,6 +532,8 @@ struct _hexane{
 	struct {
 		_prototype(LoadLibraryA);
 		_prototype(FreeLibrary);
+		_prototype(Heap32ListFirst);
+		_prototype(Heap32ListNext);
 		_prototype(GetProcessHeap);
 		_prototype(GetProcessHeaps);
 		_prototype(GetProcAddress);

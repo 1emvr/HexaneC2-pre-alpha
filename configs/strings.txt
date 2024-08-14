@@ -17,6 +17,8 @@ RtlAllocateHeap
 RtlReAllocateHeap
 RtlFreeHeap
 RtlDestroyHeap
+Heap32ListFirst
+Heap32ListNext
 GetProcessHeap
 GlobalMemoryStatusEx
 LoadLibraryA
