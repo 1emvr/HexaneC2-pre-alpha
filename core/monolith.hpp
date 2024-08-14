@@ -373,7 +373,6 @@ struct _hexane{
 
 	struct {
 		PBYTE	Key;
-		LPSTR	ImplantUuid;
 		LPWSTR  IngressPipename;
 		LPWSTR  EgressPipename;
 		HANDLE  EgressHandle;
