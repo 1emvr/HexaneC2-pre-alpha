@@ -671,6 +671,8 @@ namespace Memory {
             HEXANE
 
             exception->ContextRecord->IP_REG = U_PTR(ExceptionReturn);
+            ntstatus = exception->ExceptionRecord->ExceptionCode;
+
             return EXCEPTION_CONTINUE_EXECUTION;
         }
 
