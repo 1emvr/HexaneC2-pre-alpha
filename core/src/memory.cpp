@@ -379,7 +379,6 @@ namespace Memory {
             const auto mod_hash = Utils::GetHashFromStringA(module_name, x_strlen(module_name));
             const auto fn_hash = Utils::GetHashFromStringA(export_name, x_strlen(export_name));
 
-            // if not loaded, this will loop 3 times to get the symbol
             while (!symbol) {
                 if (!(F_PTR_HASHES(symbol, mod_hash, fn_hash))) {
                     if (reload || !Ctx->win32.LoadLibraryA(S_CAST(const char*, module_name))) {
