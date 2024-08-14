@@ -28,7 +28,7 @@ namespace Memory {
             HEXANE
 
             HANDLE snap = { };
-            HEAPLIST32 heaps = {};
+            HEAPLIST32 heaps = { };
             heaps.dwSize = sizeof(HEAPLIST32);
 
             if (!NT_SUCCESS(Process::NtOpenProcess(&process, access, pid))) {
