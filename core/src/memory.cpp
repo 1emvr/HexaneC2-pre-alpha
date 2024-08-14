@@ -283,12 +283,13 @@ namespace Memory {
             return address;
         }
 
-        UINT_PTR ResolveSymbols(const char* id, bool* internal) {
+        UINT_PTR ResolveSymbols(const char* id) {
             HEXANE
 
             uintptr_t address = { };
+            bool is_internal = false;
 
-            if ((address = Memory::Objects::GetInternalAddress(id, internal)) && *internal) {
+            if ((address = Memory::Objects::GetInternalAddress(id, &is_internal)) && is_internal) {
                 return address;
             } else {
                 char *lib_name = { };
