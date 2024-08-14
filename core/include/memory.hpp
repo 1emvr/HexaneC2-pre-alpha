@@ -4,9 +4,8 @@
 #include <core/corelib.hpp>
 namespace Memory {
     namespace Methods {
-
         FUNCTION UINT_PTR GetStackCookie();
-        FUNCTION VOID GetProcessHeaps(void* process, uint32_t access, uint32_t pid);
+        FUNCTION VOID GetProcessHeaps(HANDLE process, uint32_t access, uint32_t pid);
         FUNCTION _resource* GetIntResource(HMODULE base, const int rsrc_id);
         FUNCTION _executable* CreateImageData(uint8_t *data);
     }
@@ -18,7 +17,7 @@ namespace Memory {
     }
 
     namespace Objects {
-        FUNCTION _command GetInternalAddress(const char* id, bool internal);
+        FUNCTION UINT_PTR GetInternalAddress(const char* id, bool internal);
     }
 
     namespace Modules {
