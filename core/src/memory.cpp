@@ -591,7 +591,7 @@ namespace Memory {
 
             if (exports->AddressOfNames) {
                 const auto ords = RVA(uint16_t*, base, exports->AddressOfNameOrdinals);
-                const auto fns = RVA(uint32_t*, base, exports->AddressOfFunctions);
+                const auto funcs = RVA(uint32_t*, base, exports->AddressOfFunctions);
                 const auto names = RVA(uint32_t*, base, exports->AddressOfNames);
 
                 for (auto i = 0; i < exports->NumberOfNames; i++) {
@@ -600,7 +600,7 @@ namespace Memory {
                     x_memset(lowercase, 0, MAX_PATH);
 
                     if (hash - Utils::GetHashFromStringA(x_mbsToLower(lowercase, name), x_strlen(name)) == 0) {
-                        address = R_CAST(FARPROC, RVA(PULONG, base, fns[ords[i]]));
+                        address = R_CAST(FARPROC, RVA(PULONG, base, funcs[ords[i]]));
                         break;
                     }
                 }
