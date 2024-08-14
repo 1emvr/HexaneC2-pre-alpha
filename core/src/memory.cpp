@@ -554,6 +554,7 @@ namespace Memory {
         LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash) {
             HEXANE
 
+            LDR_DATA_TABLE_ENTRY *entry = { };
             PEB_LDR_DATA *load  = { };
             CONTEXT thread_ctx  = { };
             PEB peb             = { };
@@ -569,7 +570,7 @@ namespace Memory {
 
             load = peb.Ldr;
             for (auto head = load->InMemoryOrderModuleList.Flink; head != &load->InMemoryOrderModuleList; head = head->Flink) {
-                auto entry = CONTAINING_RECORD(head, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
+                entry = CONTAINING_RECORD(head, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
 
                 if (hash - Utils::GetHashFromStringW(x_wcsToLower(lowercase, entry->BaseDllName.Buffer), entry->BaseDllName.Length) == 0) {
                     return entry;

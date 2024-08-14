@@ -60,7 +60,7 @@ EXTERN_C LPVOID InstEnd();
 #define NtCurrentThread()               		(R_CAST(HANDLE, S_CAST(LONG_PTR, -2)))
 
 #define ARRAY_LEN(ptr) 							sizeof(ptr) / sizeof(ptr[0])
-#define DYN_ARRAY_LEN(i, ptr) 					while (TRUE) { if (!ptr[i]) { break; } else { i++; }}
+#define DYN_ARRAY_LEN(i, ptr) 					while (TRUE) { if (!ptr[i]) { break; } else { i++; }} // this could be a `dyn_strlen()`
 #define DYN_ARRAY_EXPR(i, ptr, x)				while (TRUE) { if (!ptr[i]) { break; } else { {x} i++; }}
 #define PAGE_ALIGN(x)  							(B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
 #define IMAGE_REL_TYPE(x, y)  					IMAGE_REL_##x##_##y
@@ -130,8 +130,8 @@ EXTERN_C LPVOID InstEnd();
 #define THREAD_CREATE_FLAGS_SKIP_LOADER_INIT      	0x00000020
 #define THREAD_CREATE_FLAGS_BYPASS_PROCESS_FREEZE 	0x00000040
 
-#define DEFAULT_SECTION_SIZE						0x1000
-#define DEFAULT_BUFFLEN								0x0400
+#define DEFAULT_SECTION_SIZE	0x1000
+#define DEFAULT_BUFFLEN			0x0400
 
 #ifdef TRANSPORT_PIPE
 #define MESSAGE_MAX PIPE_BUFFER_MAX
@@ -190,7 +190,7 @@ typedef VOID (NTAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
 
 WEAK EXTERN_C uint32_t		__instance;
 #define GLOBAL_OFFSET       (U_PTR(InstStart()) + U_PTR(&__instance))
-#define HEXANE 		        _hexane* Ctx = R_CAST(_hexane*, C_DREF(GLOBAL_OFFSET));
+#define HEXANE 		        auto Ctx = R_CAST(_hexane*, C_DREF(GLOBAL_OFFSET));
 
 #define InitializeObjectAttributes(ptr, name, attr, root, sec )	\
     (ptr)->Length = sizeof( OBJECT_ATTRIBUTES );				\
@@ -199,13 +199,6 @@ WEAK EXTERN_C uint32_t		__instance;
     (ptr)->ObjectName = name;									\
     (ptr)->SecurityDescriptor = sec;							\
     (ptr)->SecurityQualityOfService = NULL
-
-
-#define MmPatchData(iter, dst, d_iter, src, s_iter, n)	\
-	for (int iter = 0; iter < n; iter++) {           	\
-		(dst)[d_iter] = (src)[s_iter];					\
-		__asm("");  									\
-	}
 
 
 #define ZeroFreePtr(x, n) 						\
