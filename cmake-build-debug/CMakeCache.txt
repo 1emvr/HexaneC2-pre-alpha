@@ -175,7 +175,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=Hexane-Implant
+CMAKE_PROJECT_NAME:STATIC=hexane_implant
 
 //Path to a program.
 CMAKE_RANLIB:FILEPATH=C:/Program Files/JetBrains/CLion 2024.1.4/bin/mingw/bin/ranlib.exe
@@ -268,6 +268,15 @@ Hexane-Implant_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
 Hexane-Implant_SOURCE_DIR:STATIC=C:/Users/lemur/Github/HexaneC2
+
+//Value Computed by CMake
+hexane_implant_BINARY_DIR:STATIC=C:/Users/lemur/Github/HexaneC2/cmake-build-debug
+
+//Value Computed by CMake
+hexane_implant_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+hexane_implant_SOURCE_DIR:STATIC=C:/Users/lemur/Github/HexaneC2
 
 
 ########################

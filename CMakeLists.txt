@@ -15,7 +15,7 @@ set (SOURCES
         core/src/implant.cpp
         core/src/inject.cpp
         core/src/memory.cpp
-        core/src/message.cpp
+        core/src/dispatch.cpp
         core/src/network.cpp
         core/src/opsec.cpp
         core/src/parser.cpp
@@ -37,7 +37,7 @@ set (INCLUDES
         core/include/implant.hpp
         core/include/inject.hpp
         core/include/memory.hpp
-        core/include/message.hpp
+        core/include/dispatch.hpp
         core/include/names.hpp
         core/include/network.hpp
         core/include/opsec.hpp
