@@ -469,7 +469,6 @@ namespace Memory {
                     if (Utils::GetHashFromStringA(symbol_name, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
                         n_funcs++;
                     }
-
                     object->reloc = object->reloc + sizeof(_reloc);
                 }
             }
