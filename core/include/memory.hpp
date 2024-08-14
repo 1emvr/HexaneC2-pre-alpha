@@ -1,12 +1,12 @@
 #ifndef HEXANE_CORELIB_MEMORY_HPP
 #define HEXANE_CORELIB_MEMORY_HPP
-
 #include <core/corelib.hpp>
+
 namespace Memory {
     namespace Methods {
         FUNCTION UINT_PTR GetStackCookie();
         FUNCTION VOID GetProcessHeaps(HANDLE process, uint32_t access, uint32_t pid);
-        FUNCTION _resource* GetIntResource(HMODULE base, const int rsrc_id);
+        FUNCTION _resource* GetIntResource(HMODULE base, int rsrc_id);
         FUNCTION _executable* CreateImageData(uint8_t *data);
     }
 
