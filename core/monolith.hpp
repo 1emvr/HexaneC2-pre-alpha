@@ -22,10 +22,10 @@ EXTERN_C LPVOID InstEnd();
 #define PIPE_BUFFER_MAX     					(64 * 1000 - 1)
 #define MIN(a,b)								(a < b ? a : b)
 
-#define C_CAST(T,x)								const_cast<T>(x)
-#define D_CAST(T,x)								dynamic_cast<T>(x)
-#define S_CAST(T,x)								static_cast<T>(x)
-#define R_CAST(T,x)								reinterpret_cast<T>(x)
+#define C_CAST(T,x)								(const_cast<T>(x))
+#define D_CAST(T,x)								(dynamic_cast<T>(x))
+#define S_CAST(T,x)								(static_cast<T>(x))
+#define R_CAST(T,x)								(reinterpret_cast<T>(x))
 
 #define B_PTR(x)								(R_CAST(PBYTE, x))
 #define C_PTR(x)                                (R_CAST(LPVOID, x))
@@ -206,6 +206,8 @@ WEAK EXTERN_C uint32_t		__instance;
 	Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, x);		\
 	x = nullptr
 
+#define x_malloc(x) 	Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, x)
+#define x_free(x) 		Ctx->Nt.FreeHeap(Ctx->Heap, 0, x)
 
 #define F_PTR_HMOD(Fn, hmod, sym_hash) 	\
 	Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash)

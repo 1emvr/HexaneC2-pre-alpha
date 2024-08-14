@@ -10,24 +10,6 @@
  * todo: fix server side issues
  */
 
-void* operator new(size_t size) {
-    HEXANE
-
-    void *ptr = { };
-    if (size) {
-        ptr = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, size);
-    }
-    return ptr;
-}
-
-void operator delete(void* ptr) noexcept {
-    HEXANE
-
-    if (ptr) {
-        Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, ptr);
-    }
-}
-
 namespace Memory {
     LPVOID ExceptionReturn = 0;
 
@@ -62,7 +44,6 @@ namespace Memory {
 
             if (Ctx->win32.Heap32ListFirst(snap, &heaps)) {
                 do {
-                    // todo: this - adding new/delete overrides for OOP
                     //_heap_info heap_info = {heaps.th32HeapID, heaps.th32ProcessID};
                     //m_heaps.push_back(heap_info);
                 }
@@ -76,7 +57,7 @@ namespace Memory {
             HRSRC res_info = { };
             _resource* object = { };
 
-            object = S_CAST(_resource*, new _resource);
+            object = S_CAST(_resource*,  x_malloc(sizeof(_resource)));
             if (
                 !(res_info          = Ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA)) ||
                 !(object->hGlobal   = Ctx->win32.LoadResource(base, res_info)) ||
@@ -152,6 +133,7 @@ namespace Memory {
                 RtlFreeHeap(Heap, 0, Ctx);
             }
         }
+
         VOID ResolveApi() {
             HEXANE
 
@@ -489,7 +471,6 @@ namespace Memory {
             }
         }
 
-
         SIZE_T GetFunctionMapSize(_executable *object) {
             HEXANE
 
@@ -532,7 +513,7 @@ namespace Memory {
             uint8_t *next = { };
 
             object->fn_map->size = GetFunctionMapSize(object);
-            object->sec_map = R_CAST(_object_map*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_object_map)));
+            object->sec_map = R_CAST(_object_map*, x_malloc(sizeof(_object_map)));
 
             if (!object->sec_map) {
                 return_defer(ERROR_REPARSE_OBJECT);
@@ -693,7 +674,7 @@ namespace Memory {
 
             size_t read = 0;
             uintptr_t address = 0;
-            auto buffer = R_CAST(uint8_t*, Ctx->Nt.RtlAllocateHeap(GetProcessHeap(), 0, size));
+            auto buffer = R_CAST(uint8_t*, x_malloc(size));
 
             if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void *, start), buffer, size, &read))) {
                 return_defer(ntstatus);
