@@ -2,12 +2,14 @@
 #ifndef ENDIANESS
 #define ENDIANESS 1
 #endif
+
 /*
  * todo: finish bof loader
  * todo: add foliage/silent moonwalk
  * todo: add dark loadlibrary
  * todo: fix server side issues
  */
+
 void* operator new(size_t size) {
     HEXANE
 
@@ -42,6 +44,7 @@ namespace Memory {
         }
 
         VOID GetProcessHeaps(HANDLE process, const uint32_t access, const uint32_t pid) {
+            // todo: add heap list to process package _executable*
             HEXANE
 
             HANDLE snap = { };
@@ -70,21 +73,21 @@ namespace Memory {
         _resource* GetIntResource(HMODULE base, const int rsrc_id) {
             HEXANE
 
-            HRSRC hResInfo = { };
-            _resource* Object = { };
+            HRSRC res_info = { };
+            _resource* object = { };
 
-            Object = S_CAST(_resource*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_resource)));
+            object = S_CAST(_resource*, new _resource);
             if (
-                !(hResInfo          = Ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA)) ||
-                !(Object->hGlobal   = Ctx->win32.LoadResource(base, hResInfo)) ||
-                !(Object->Size      = Ctx->win32.SizeofResource(base, hResInfo)) ||
-                !(Object->ResLock   = Ctx->win32.LockResource(Object->hGlobal))) {
+                !(res_info          = Ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA)) ||
+                !(object->hGlobal   = Ctx->win32.LoadResource(base, res_info)) ||
+                !(object->Size      = Ctx->win32.SizeofResource(base, res_info)) ||
+                !(object->ResLock   = Ctx->win32.LockResource(object->hGlobal))) {
 
-                Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Object);
+                Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, object);
                 return nullptr;
             }
 
-            return Object;
+            return object;
         }
 
         VOID CreateImageData(_executable *image, uint8_t *data) {
