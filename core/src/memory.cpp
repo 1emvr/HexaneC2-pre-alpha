@@ -673,6 +673,7 @@ namespace Memory {
             bool is_internal    = false;
             const auto cmd_id   = Parser::UnpackString(&parser, nullptr);
 
+            // todo : add hashes for commands instead of using OBF()
             if (cmd_id == OBF("NoJob")) {
                 goto defer;
             }
