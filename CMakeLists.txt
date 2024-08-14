@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.26)
 project(hexane_implant)
 
 set(CMAKE_CXX_STANDARD 23)
-
 set(HOME ${CMAKE_SOURCE_DIR})
 set(META "C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um")
 
