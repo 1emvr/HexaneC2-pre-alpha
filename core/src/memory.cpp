@@ -280,7 +280,7 @@ namespace Memory {
             bool success = true;
 
             uintptr_t offset = 0;
-            volatile uint32_t count = 0;
+            uint32_t count = 0;
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
                 object->section     = P_IMAGE_SECTION_HEADER(object->buffer, i);
@@ -316,6 +316,7 @@ namespace Memory {
                         }
                         default:
                             success = false;
+                            break;
                         }
                     }
                     case false:
@@ -370,6 +371,7 @@ namespace Memory {
                         }
                         default:
                             success = false;
+                            break;
                         }
 #else
                     case true: {
@@ -383,6 +385,7 @@ namespace Memory {
                         }
                         default:
                             success = false;
+                            break;
                         }
                     }
                     case false: {
@@ -401,11 +404,13 @@ namespace Memory {
                         }
                         default:
                             success = false;
+                            break;
                         }
                     }
 #endif
                     default:
                         success = false;
+                        break;
                     }
 
                     object->reloc = R_CAST(_reloc*, (U_PTR(object->reloc)  + sizeof(_reloc)));
