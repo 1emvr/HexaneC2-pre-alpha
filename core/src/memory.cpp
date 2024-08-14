@@ -294,20 +294,16 @@ namespace Memory {
         LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash) {
             HEXANE
 
-            PEB peb = {};
-            CONTEXT thread_ctx = {};
-            PEB_LDR_DATA const* load = {};
+            PEB peb = { };
+            CONTEXT thread_ctx = { };
+            PEB_LDR_DATA const* load = { };
 
             size_t read = 0;
-            wchar_t lowercase[MAX_PATH] = {};
+            wchar_t lowercase[MAX_PATH] = { };
 
             if (
                 !Ctx->Nt.NtGetContextThread(NtCurrentThread(), &thread_ctx) ||
-                !Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), REG_PEB_OFFSET(thread_ctx), C_PTR(&peb), sizeof(PEB), &read)) {
-                return nullptr;
-            }
-
-            if (read != sizeof(PEB)) {
+                !Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), REG_PEB_OFFSET(thread_ctx), C_PTR(&peb), sizeof(PEB), &read) || read != sizeof(PEB)) {
                 return nullptr;
             }
 
