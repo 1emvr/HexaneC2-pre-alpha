@@ -79,7 +79,7 @@ namespace Injection {
             HEXANE
 
             uintptr_t encoded = 0;
-            uintptr_t cookie = Memory::GetStackCookie();
+            uintptr_t cookie = Memory::Methods::GetStackCookie();
 
             if (!cookie) {
                 return_defer(ntstatus);

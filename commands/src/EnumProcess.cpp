@@ -5,9 +5,9 @@
 #define UNMANAGED_PROCESS   0
 #define MANAGED_PROCESS     1
 
-VOID EnumProcesses(PPARSER Parser) {
+VOID EnumProcesses(_parser *parser) {
 
-    PSTREAM Stream          = Stream::CreateStreamWithHeaders(TypeResponse);
+    _stream *stream          = Stream::CreateStreamWithHeaders(TypeResponse);
     PROCESSENTRY32 Entries  = { };
     HANDLE Snapshot         = { };
     HANDLE hProcess         = { };
@@ -16,7 +16,7 @@ VOID EnumProcesses(PPARSER Parser) {
     ICLRMetaHost *pMetaHost     = { };
     ICLRRuntimeInfo *pRuntime   = { };
 
-    DWORD Type  = Parser::UnpackDword(Parser);
+    DWORD Type  = Parser::UnpackDword(parser);
     DWORD Size  = 0;
     WCHAR Buffer[1024];
     BOOL Loaded = FALSE;

@@ -36,10 +36,10 @@ EXTERN_C LPVOID InstEnd();
 
 #define FUNCTION								_text(B)
 #define _prototype(x)                           decltype(x) *x
-#define _dllexport 								__declspec(dllexport)
 #define _code_seg(x)							__attribute__((used, section(x)))
 #define _text(x) 								__attribute__((used, section(".text$" #x "")))
 #define WEAK									__attribute__((weak))
+#define DLL_EXPORT 								__declspec(dllexport)
 
 #define ntstatus 								Ctx->Teb->LastErrorValue
 #define PS_ATTR_LIST_SIZE(n)					(sizeof(PS_ATTRIBUTE_LIST) + (sizeof(PS_ATTRIBUTE) * (n - 1)))
@@ -54,16 +54,7 @@ EXTERN_C LPVOID InstEnd();
 #define IMAGE_NT_HEADERS(base, dos)				(R_CAST(PIMAGE_NT_HEADERS, B_PTR(base) + dos->e_lfanew))
 #define IMAGE_EXPORT_DIRECTORY(dos, nt)	    	(R_CAST(PIMAGE_EXPORT_DIRECTORY, (U_PTR(dos) + (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)))
 
-#define MODULE_ENTRY(next)                      (R_CAST(PLDR_MODULE, (B_PTR(next) - sizeof(ULONG)* 4)))
-#define MODULE_LIST                             (R_CAST(PLIST_ENTRY, &(PEB_POINTER)->Ldr->InMemoryOrderModuleList))
-#define BASERELOC_ENTRIES(base, raw, off)		(R_CAST(PBASE_RELOCATION_ENTRY, U_PTR(base) + raw + off))
-#define BASERELOC_BLOCK(base, raw, off)		    (R_CAST(PBASE_RELOCATION_BLOCK, U_PTR(base) + raw + off))
-#define BASERELOC_COUNT(blk)				    ((blk->SizeOfBlock - sizeof(BASE_RELOCATION_BLOCK)) / sizeof(BASE_RELOCATION_ENTRY))
-
 #define RVA(Ty, base, rva)  					(R_CAST(Ty, U_PTR(base) + rva))
-#define SECTION_OFFSET(obj, fHead) 			    (R_CAST(LPVOID, R_CAST(ULONG_PTR, obj->lpBase) + fHead->Sections->VirtualAddress))
-#define SECTION_DATA(obj, fHead) 				(R_CAST(LPVOID, R_CAST(ULONG_PTR, obj->lpBuffer) + fHead->Sections->PointerToRawData))
-
 #define NtCurrentProcess()              		(R_CAST(HANDLE, S_CAST(LONG_PTR, -1)))
 #define NtCurrentThread()               		(R_CAST(HANDLE, S_CAST(LONG_PTR, -2)))
 

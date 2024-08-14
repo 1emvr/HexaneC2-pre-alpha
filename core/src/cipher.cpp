@@ -112,14 +112,6 @@ namespace Xtea {
     VOID XteaCrypt(uint8_t *const data, const size_t n_data, uint8_t *const m_key, const bool encrypt) {
         HEXANE
 
-<<<<<<< HEAD
-        _ciphertext *text   = { };
-        uint8_t *buffer     = { };
-        uint8_t **sections  = { };
-
-        uint32_t offset = 0;
-        size_t n_sect   = 0;
-=======
         _ciphertext *text = { };
         uint8_t **sections = { };
         uint8_t *buffer = { };
@@ -127,7 +119,6 @@ namespace Xtea {
 
         int32_t offset = 0;
         size_t n_sect = { };
->>>>>>> 8c187ae578726bbd33eb8c66b2bf016bb71ffba4
 
         if (!m_key) {
             key = Ctx->Config.Key;

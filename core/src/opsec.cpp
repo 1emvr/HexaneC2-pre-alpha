@@ -154,15 +154,15 @@ namespace Opsec {
     VOID SeImageCheck(const _executable *const source, const _executable *const target) {
         HEXANE
 
-        if (source->ntHead->Signature != IMAGE_NT_SIGNATURE) {
+        if (source->nt_head->Signature != IMAGE_NT_SIGNATURE) {
             ntstatus = ERROR_INVALID_EXE_SIGNATURE;
             return;
         }
-        if (target->ntHead->FileHeader.Machine != source->ntHead->FileHeader.Machine) {
+        if (target->nt_head->FileHeader.Machine != source->nt_head->FileHeader.Machine) {
             ntstatus = ERROR_IMAGE_MACHINE_TYPE_MISMATCH;
             return;
         }
-        if (target->ntHead->OptionalHeader.Subsystem != source->ntHead->OptionalHeader.Subsystem) {
+        if (target->nt_head->OptionalHeader.Subsystem != source->nt_head->OptionalHeader.Subsystem) {
             ntstatus = ERROR_IMAGE_SUBSYSTEM_NOT_PRESENT;
         }
     }

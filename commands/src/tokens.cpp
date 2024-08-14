@@ -108,20 +108,20 @@ namespace Token {
 		return hDuplicate;
 	}
 
-	PTOKEN_LIST_DATA GetToken(DWORD tokenId) {
+	_token_list_data* GetToken(DWORD tokenId) {
 		HEXANE
 
-		PTOKEN_LIST_DATA Head	= Ctx->Tokens.Vault;
-		DWORD Index				= 0;
+		_token_list_data *head = Ctx->Tokens.Vault;
+		uint32_t index = 0;
 
-		for ( ;Index < tokenId && Head && Head->Next; ++Index) {
-			Head = Head->Next;
+		for ( ;index < tokenId && head && head->Next; ++index) {
+			head = head->Next;
 		}
-		if (Index != tokenId) {
+		if (index != tokenId) {
 			return nullptr;
 		}
 
-		return Head;
+		return head;
 	}
 
 	DWORD AddToken(HANDLE hToken, LPWSTR Username, SHORT Type, DWORD Pid, LPWSTR DomainUser, LPWSTR Domain, LPWSTR Password) {
