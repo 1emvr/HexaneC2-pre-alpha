@@ -21,9 +21,8 @@ LSTATUS RegCreateDwordSubkey(HKEY Key, LPSTR Subkey, LPSTR Name, DWORD Value) {
             goto defer;
         }
     }
-    if ((Result = Ctx->win32.RegSetValueExA(hkOpen, Name, 0, REG_DWORD, (CONST PBYTE)&Value, sizeof(DWORD))) != ERROR_SUCCESS) {
-        goto defer;
-    }
+
+    Result = Ctx->win32.RegSetValueExA(hkOpen, Name, 0, REG_DWORD, (CONST PBYTE)&Value, sizeof(DWORD));
 
     defer:
     if (hkOpen) {
