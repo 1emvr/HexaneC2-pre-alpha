@@ -42,6 +42,7 @@ namespace Memory {
 
             if (Heap32ListFirst(snap, &heaps)) {
                 do {
+                    // todo: this -
                     //_heap_info heap_info = {heaps.th32HeapID, heaps.th32ProcessID};
                     //m_heaps.push_back(heap_info);
                 }
