@@ -63,28 +63,7 @@ EXTERN_C LPVOID InstEnd();
 #define DYN_ARRAY_LEN(i, ptr) 					while (TRUE) { if (!ptr[i]) { break; } else { i++; }}
 #define DYN_ARRAY_EXPR(i, ptr, x)				while (TRUE) { if (!ptr[i]) { break; } else { {x} i++; }}
 #define PAGE_ALIGN(x)  							(B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
-
 #define IMAGE_REL_TYPE(x, y)  					IMAGE_REL_##x##_##y
-#if _WIN64
-#define REL32									IMAGE_REL_TYPE(AMD64, REL32)
-#define REL32_1									IMAGE_REL_TYPE(AMD64, REL32_1)
-#define REL32_2									IMAGE_REL_TYPE(AMD64, REL32_2)
-#define REL32_3									IMAGE_REL_TYPE(AMD64, REL32_3)
-#define REL32_4									IMAGE_REL_TYPE(AMD64, REL32_4)
-#define REL32_5									IMAGE_REL_TYPE(AMD64, REL32_5)
-#define ADDR32NB								IMAGE_REL_TYPE(AMD64, ADDR32NB)
-#define ADDR64									IMAGE_REL_TYPE(AMD64, ADDR64)
-#else
-#define REL32									IMAGE_REL_TYPE(AMD64, REL32)
-#define REL32_1									0
-#define REL32_2									0
-#define REL32_3									0
-#define REL32_4									0
-#define REL32_5									0
-#define ADDR32NB								0
-#define ADDR64									0
-#define ADDR64									0
-#endif
 
 #ifdef _M_X64
 #define ENTRYPOINT_REG 							Rcx

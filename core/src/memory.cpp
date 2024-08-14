@@ -321,7 +321,7 @@ namespace Memory {
 
             uint16_t type   = 0;
             uint32_t count  = 0;
-            uint32_t offset = 0;
+            uintptr_t offset = 0;
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
                 object->section     = P_IMAGE_SECTION_HEADER(object->buffer, i);
@@ -344,67 +344,89 @@ namespace Memory {
                     type    = symbol->Type;
 
                     func = C_PTR(ResolveSymbol(object, entry_name, type));
-
-                    if (object->reloc->Type == REL32 && func != nullptr) {
+#if _WIN64
+                    if (object->reloc->Type == IMAGE_REL_AMD64_REL32 && func != nullptr) {
                         *(void**) fn_map = func;
                         offset = (uint32_t) (U_PTR(fn_map) - U_PTR(reloc) - sizeof(uint32_t) );
 
                         *((uintptr_t*)reloc) = offset;
                         count++;
 
-                    } else if (object->reloc->Type == REL32 && func == nullptr) {
+                    } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32 && func == nullptr) {
                         offset = *(uint32_t*) reloc;
                         offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t);
 
                         *(uint32_t*)reloc = offset;
 
-                    } else if (object->reloc->Type == REL32_1 && func == nullptr) {
+                    } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_1 && func == nullptr) {
                         offset = *(uint32_t*) reloc;
                         offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 1;
 
                         *(uint32_t*) reloc = offset;
 
-                    } else if (object->reloc->Type == REL32_2 && func == nullptr) {
+                    } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_2 && func == nullptr) {
                         offset = *(uint32_t*) reloc;
                         offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 2;
 
                         *(uint32_t*) reloc = offset;
 
-                    } else if (object->reloc->Type == REL32_3 && func == nullptr) {
+                    } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_3 && func == nullptr) {
                         offset = *(uint32_t*) reloc;
                         offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 3;
 
                         *(uint32_t*)reloc = offset;
 
-                    } else if (object->reloc->Type == REL32_4 && func == nullptr) {
+                    } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_4 && func == nullptr) {
                         offset = *(uint32_t*) reloc;
                         offset += U_PTR( sym_sec ) - U_PTR( reloc ) - sizeof( UINT32 ) - 4;
 
                         *(uint32_t*) reloc = offset;
 
-                    } else if (object->reloc->Type == REL32_5 && func == nullptr) {
+                    } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_5 && func == nullptr) {
                         offset = *(uint32_t*) reloc;
                         offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 5;
 
                         *(uint32_t*) reloc = offset;
 
-                    } else if (object->reloc->Type == ADDR32NB && func == nullptr) {
+                    } else if (object->reloc->Type == IMAGE_REL_AMD64_ADDR32NB && func == nullptr) {
                         offset = *(uint32_t*) reloc;
                         offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t);
 
                         *(uint32_t*) reloc = offset;
 
-                    } else if (object->reloc->Type == ADDR64 && func == nullptr) {
+                    } else if (object->reloc->Type == IMAGE_REL_AMD64_ADDR64 && func == nullptr) {
                         offset = *(uint64_t*) reloc;
-                        offset += U_PTR( sym_sec );
+                        offset += U_PTR(sym_sec);
 
                         *(uint64_t*) reloc = offset;
-                    } else {
-                        return_defer(ERROR_ILLEGAL_DLL_RELOCATION);
                     }
+#else
+                    if (object->reloc->Type == IMAGE_REL_I386_REL32 && func == nullptr) {
+                        offset = *(uint32_t*) reloc;
+                        offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t);
+
+                        *(uint32_t*) reloc = offset;
+
+                    } else if (object->reloc->Type == IMAGE_REL_I386_DIR32 && func != nullptr) {
+                        *(void**) fn_map = func;
+                        offset = U_PTR(fn_map);
+
+                        *(uint32_t*) reloc = offset;
+                        count++;
+
+                    } else if (object->reloc->Type == IMAGE_REL_I386_DIR32 && func == nullptr) {
+                        offset = *(uint32_t*) reloc;
+                        offset += U_PTR(sym_sec);
+
+                        *(uint32_t*) reloc = offset;
+                    }
+#endif
+                    else {
+                        // something
+                    }
+                    object->reloc = R_CAST(_reloc*, (U_PTR(object->reloc)  + sizeof(_reloc)));
                 }
             }
-            defer:
         }
 
         VOID GetSectionSize() {
@@ -488,7 +510,7 @@ namespace Memory {
 
             object->fn_map = R_CAST(_object_map*, next);
             defer:
-            if (!NT_SUCCESS(ntstatus)) {
+            if (ntstatus != ERROR_SUCCESS) {
                 return false;
             }
 
