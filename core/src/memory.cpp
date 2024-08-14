@@ -347,7 +347,7 @@ namespace Memory {
             return address;
         }
 
-        UINT_PTR LoadExportAddress(const char* const module_name, const char* const export_name) {
+        UINT_PTR LoadExport(const char* const module_name, const char* const export_name) {
             HEXANE
 
             UINT_PTR address = 0;
@@ -364,6 +364,7 @@ namespace Memory {
                     reload++;
                 }
             }
+
             defer:
             return address;
         }

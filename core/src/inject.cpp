@@ -12,7 +12,7 @@ namespace Injection {
         UINT_PTR hook       = 0;
         SIZE_T write        = 0;
 
-        if (!(ex_addr = Memory::Modules::LoadExportAddress(writer.module, writer.exp)) ||
+        if (!(ex_addr = Memory::Modules::LoadExport(writer.module, writer.exp)) ||
             !(process = Process::OpenParentProcess(writer.parent)) ||
             !(hook = Memory::Scanners::RelocateExport(process, C_PTR(ex_addr), n_shellcode))) {
             return;
