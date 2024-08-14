@@ -257,7 +257,6 @@ namespace Dispatcher {
                 Memory::Execute::ExecuteShellcode(parser);
             }
             case TypeObject: {
-                // load a BOF file
                 Injection::LoadObject(parser);
             }
 
