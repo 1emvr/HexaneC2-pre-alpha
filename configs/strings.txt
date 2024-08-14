@@ -10,6 +10,8 @@ NtQueryVirtualMemory
 NtCreateSection
 NtMapViewOfSection
 NtUnmapViewOfSection
+RtlAddVectoredExceptionHandler
+RtlRemoveVectoredExceptionHandler
 RtlCreateHeap
 RtlAllocateHeap
 RtlReAllocateHeap

