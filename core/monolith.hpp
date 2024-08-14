@@ -326,14 +326,6 @@ struct LdrpVectorHandlerList {
 };
 
 
-struct _module {
-    UNICODE_STRING BaseDllName;
-    LPVOID BaseAddress;
-    LPVOID Entrypoint;
-    ULONG Size;
-};
-
-
 struct _heap_info {
     ULONG_PTR HeapId;
     DWORD ProcessId;
@@ -363,6 +355,7 @@ struct _hexane{
 	} Base;
 
 	struct {
+		// todo : finish tokens
 		_token_list_data *Vault;
 		_token_list_data *Token;
 		bool             Impersonate;
