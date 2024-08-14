@@ -10,24 +10,24 @@ LPSTR FormatResultError(LRESULT Result) {
     return Buffer;
 }
 
-LSTATUS RegCreateDwordSubkey(HKEY Key, LPSTR Subkey, LPSTR Name, DWORD Value) {
+LSTATUS RegCreateDwordSubkey(HKEY key, const char* const subkey, const char* const name, uint32_t value) {
     HEXANE
 
-    LSTATUS Result  = 0;
-    HKEY hkOpen     = { };
+    LSTATUS result = 0;
+    HKEY hk_open = { };
 
-    if ((Ctx->win32.RegOpenKeyExA(Key, Subkey, 0, KEY_READ, &hkOpen)) != ERROR_SUCCESS) {
-        if ((Result = Ctx->win32.RegCreateKeyExA(Key, Subkey, 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, nullptr, &hkOpen, nullptr)) != ERROR_SUCCESS) {
+    if (Ctx->win32.RegOpenKeyExA(key, subkey, 0, KEY_READ, &hk_open) != ERROR_SUCCESS) {
+        if ((result = Ctx->win32.RegCreateKeyExA(key, subkey, 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, nullptr, &hk_open, nullptr)) != ERROR_SUCCESS) {
             goto defer;
         }
     }
 
-    Result = Ctx->win32.RegSetValueExA(hkOpen, Name, 0, REG_DWORD, (CONST PBYTE)&Value, sizeof(DWORD));
+    result = Ctx->win32.RegSetValueExA(hk_open, name, 0, REG_DWORD, B_PTR(&value), sizeof(DWORD));
 
     defer:
-    if (hkOpen) {
-        Ctx->win32.RegCloseKey(hkOpen);
+    if (hk_open) {
+        Ctx->win32.RegCloseKey(hk_open);
     }
 
-    return Result;
+    return result;
 }
