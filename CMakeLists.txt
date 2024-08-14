@@ -44,7 +44,7 @@ set (INCLUDES
         core/include/process.hpp
         core/include/stream.hpp
         core/include/utils.hpp
-        commands/include/tokens.hpp
+        core/include/tokens.hpp
         commands/include/registry.hpp
         core/dotnet.hpp
 )
@@ -52,7 +52,7 @@ set (INCLUDES
 set (COMMANDS
         commands/src/EnumProcess.cpp
         commands/src/registry.cpp
-        commands/src/tokens.cpp
+        core/src/tokens.cpp
 )
 
 set (LOADER

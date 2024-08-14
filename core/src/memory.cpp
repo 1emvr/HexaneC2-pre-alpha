@@ -270,7 +270,6 @@ namespace Memory {
 
             char symbol_name[9] = { };
             char *entry_name = { };
-            void *function = { };
             bool success = true;
 
             uintptr_t offset = 0;
@@ -296,7 +295,8 @@ namespace Memory {
                     void *sym_sec = object->sec_map[symbol->SectionNumber - 1].address;
                     void *fn_map  = object->fn_map + sizeof(void*) * count;
 
-                    switch (function = C_PTR(ResolveSymbol(object, entry_name, symbol->Type))) {
+                    void *function = C_PTR(ResolveSymbol(object, entry_name, symbol->Type));
+                    switch (function != nullptr) {
 #if _WIN64
                     case true: {
                         switch (object->reloc->Type == IMAGE_REL_AMD64_REL32) {

@@ -1,6 +1,6 @@
 #ifndef HEXANE_IMPLANT_TOKENS_HPP
 #define HEXANE_IMPLANT_TOKENS_HPP
-#include <core/corelib.hpp>
+#include "core/corelib.hpp"
 
 namespace Token {
 
@@ -11,6 +11,6 @@ namespace Token {
     FUNCTION HANDLE StealProcessToken(HANDLE hTarget, DWORD Pid);
     FUNCTION DWORD AddToken(HANDLE hToken, LPWSTR Username, SHORT Type, DWORD Pid, LPWSTR DomainUser, LPWSTR Domain, LPWSTR Password);
     FUNCTION BOOL RemoveToken(DWORD tokenId);
-    FUNCTION PTOKEN_LIST_DATA GetToken(DWORD tokenId);
+    FUNCTION _token_list_data* GetToken(DWORD tokenId);
 }
 #endif //HEXANE_IMPLANT_TOKENS_HPP
