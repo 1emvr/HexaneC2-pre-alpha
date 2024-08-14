@@ -9,66 +9,63 @@ enable_language(ASM_NASM)
 include_directories(include ${CMAKE_SOURCE_DIR} ${META})
 
 set (SOURCES
-        ${HOME}/core/src/cipher.cpp
-        ${HOME}/core/src/commands.cpp
-        ${HOME}/core/src/stdlib.cpp
-        ${HOME}/core/src/implant.cpp
-        ${HOME}/core/src/inject.cpp
-        ${HOME}/core/src/memory.cpp
-        ${HOME}/core/src/message.cpp
-        ${HOME}/core/src/network.cpp
-        ${HOME}/core/src/opsec.cpp
-        ${HOME}/core/src/parser.cpp
-        ${HOME}/core/src/process.cpp
-        ${HOME}/core/src/start.asm
-        ${HOME}/core/src/stream.cpp
-        ${HOME}/core/src/utils.cpp
-        core/src/start.cpp
+        core/src/cipher.cpp
+        core/src/commands.cpp
+        core/src/stdlib.cpp
+        core/src/implant.cpp
+        core/src/inject.cpp
+        core/src/memory.cpp
+        core/src/message.cpp
+        core/src/network.cpp
+        core/src/opsec.cpp
+        core/src/parser.cpp
+        core/src/process.cpp
+        core/src/start.asm
+        core/src/stream.cpp
+        core/src/utils.cpp
+        commands/src/veh.cpp
 )
 
 set (INCLUDES
-        ${HOME}/core/implant.ld
-        ${HOME}/core/corelib.hpp
-        ${HOME}/core/monolith.hpp
-        ${HOME}/core/ntimports.hpp
-        ${HOME}/core/include/cipher.hpp
-        ${HOME}/core/include/commands.hpp
-        ${HOME}/core/include/stdlib.hpp
-        ${HOME}/core/include/implant.hpp
-        ${HOME}/core/include/inject.hpp
-        ${HOME}/core/include/memory.hpp
-        ${HOME}/core/include/message.hpp
-        ${HOME}/core/include/names.hpp
-        ${HOME}/core/include/network.hpp
-        ${HOME}/core/include/opsec.hpp
-        ${HOME}/core/include/parser.hpp
-        ${HOME}/core/include/process.hpp
-        ${HOME}/core/include/stream.hpp
-        ${HOME}/core/include/utils.hpp
-        "C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um/mscoree.h"
-        "C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um/metahost.h"
+        core/implant.ld
+        core/corelib.hpp
+        core/monolith.hpp
+        core/ntimports.hpp
+        core/include/cipher.hpp
+        core/include/commands.hpp
+        core/include/stdlib.hpp
+        core/include/implant.hpp
+        core/include/inject.hpp
+        core/include/memory.hpp
+        core/include/message.hpp
+        core/include/names.hpp
+        core/include/network.hpp
+        core/include/opsec.hpp
+        core/include/parser.hpp
+        core/include/process.hpp
+        core/include/stream.hpp
+        core/include/utils.hpp
         commands/include/tokens.hpp
         commands/include/registry.hpp
+        core/dotnet.hpp
 )
 
 set (COMMANDS
-        ${HOME}/commands/src/EnumProcess.cpp
-        ${HOME}/commands/src/registry.cpp
-        ${HOME}/commands/src/tokens.cpp
+        commands/src/EnumProcess.cpp
+        commands/src/registry.cpp
+        commands/src/tokens.cpp
 )
 
 set (LOADER
-        ${HOME}/loader/resource.rc
-        ${HOME}/loader/src/dllmain.cpp
-        ${HOME}/loader/src/exemain.cpp
-        ${HOME}/loader/src/resource.cpp
+        loader/resource.rc
+        loader/src/dllmain.cpp
+        loader/src/exemain.cpp
+        loader/src/resource.cpp
 )
 
 set (INJECT
-        ${HOME}/inject/threadless/loader.asm
-        ${HOME}/inject/threadless/OpenFileExecute.cpp
-        core/dotnet.hpp
-        commands/src/veh.cpp
+        inject/threadless/loader.asm
+        inject/threadless/OpenFileExecute.cpp
 )
 
 add_executable(hexane_implant ${SOURCES} ${COMMANDS} ${LOADER} ${INJECT} ${INCLUDES})
