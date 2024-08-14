@@ -448,6 +448,7 @@ namespace Memory {
             } else {
                 char *lib_name = { };
                 char *fn_name = { };
+                // todo: change cmd_map to func_map and add every function
                 /*
                  * ok, hear me out:
                  *      auto name = "__imp_NTDLL$NtAllocateVirtualMemory" or "__Hexane$OpenUserProcess"
@@ -709,7 +710,6 @@ namespace Memory {
             const auto cmd_id   = Parser::UnpackString(&parser, nullptr);
 
             // todo : add hashes for commands instead of using OBF()
-            // maybe formatted strings can use obf
             if (cmd_id == OBF("NoJob")) {
                 goto defer;
             }
