@@ -300,7 +300,6 @@ namespace Memory {
                  *      map[string]string = strings.Split(name, "$")
                  *
                  *      LoadExport(module, function);
-                 *      the implant loads the BOF, so it needs to resolve/relocate everything for it
                  */
 
                 address = Memory::Modules::LoadExport(lib_name, fn_name);
