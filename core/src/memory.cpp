@@ -582,6 +582,11 @@ namespace Memory {
                 object->size    = R_CAST(size_t, PAGE_ALIGN(object->size));
             }
 
+            object->size += object->fn_map->size;
+            if (!NT_SUCCESS(Ctx->Nt.NtAllocateVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->buffer), NULL, &object->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+                return_defer(ntstatus);
+            }
+
             defer:
             if (!NT_SUCCESS(ntstatus)) {
                 Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, object);
