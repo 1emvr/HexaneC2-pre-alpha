@@ -272,7 +272,7 @@ namespace Memory {
                 goto defer;
             }
 
-            for (auto i = 0 ;; i++) {
+            for (uint32_t i = 0 ;; i++) {
                 if (!cmd_map[i].name) {
                     return_defer(ERROR_PROC_NOT_FOUND);
                 }
