@@ -63,17 +63,13 @@ namespace Memory {
             return Object;
         }
 
-        _executable* CreateImageData(uint8_t *data) {
+        VOID CreateImageData(_executable *image, uint8_t *data) {
             HEXANE
 
-            auto *const image = R_CAST(_executable*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_executable)));
-
-            image->buffer = data;
+            image->buffer   = data;
             image->dos_head = P_IMAGE_DOS_HEADER(image->buffer);
-            image->nt_head = P_IMAGE_NT_HEADERS(image->buffer, image->dos_head);
-            image->exports = P_IMAGE_EXPORT_DIRECTORY(image->dos_head, image->nt_head);
-
-            return image;
+            image->nt_head  = P_IMAGE_NT_HEADERS(image->buffer, image->dos_head);
+            image->exports  = P_IMAGE_EXPORT_DIRECTORY(image->dos_head, image->nt_head);
         }
     }
 
@@ -326,9 +322,9 @@ namespace Memory {
             void *sym_sec   = { };
             void *fn_map    = { };
 
-            uint16_t type   = 0;
-            uint32_t count  = 0;
+            uint16_t type = 0;
             uintptr_t offset = 0;
+            volatile uint32_t count = 0;
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
                 object->section     = P_IMAGE_SECTION_HEADER(object->buffer, i);
@@ -349,90 +345,112 @@ namespace Memory {
                     reloc   = object->sec_map[j].address + object->reloc->VirtualAddress;
                     fn_map  = object->fn_map + count * sizeof(void*);
                     sym_sec = object->sec_map[symbol->SectionNumber - 1].address;
+
                     type    = symbol->Type;
+                    func    = C_PTR(ResolveSymbol(object, entry_name, type));
 
-                    func = C_PTR(ResolveSymbol(object, entry_name, type));
+                    switch (func != nullptr) {
 #if _WIN64
-                    if (object->reloc->Type == IMAGE_REL_AMD64_REL32 && func != nullptr) {
-                        *(void**) fn_map = func;
-                        offset = (uint32_t) (U_PTR(fn_map) - U_PTR(reloc) - sizeof(uint32_t) );
+                    case true: {
+                        switch (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
+                        case true: {
+                            *R_CAST(void**, fn_map) = func;
+                            offset = S_CAST(uint32_t, U_PTR(fn_map) - U_PTR(reloc) - sizeof(uint32_t));
 
-                        *((uintptr_t*)reloc) = offset;
-                        count++;
-
-                    } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32 && func == nullptr) {
-                        offset = *(uint32_t*) reloc;
-                        offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t);
-
-                        *(uint32_t*)reloc = offset;
-
-                    } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_1 && func == nullptr) {
-                        offset = *(uint32_t*) reloc;
-                        offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 1;
-
-                        *(uint32_t*) reloc = offset;
-
-                    } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_2 && func == nullptr) {
-                        offset = *(uint32_t*) reloc;
-                        offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 2;
-
-                        *(uint32_t*) reloc = offset;
-
-                    } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_3 && func == nullptr) {
-                        offset = *(uint32_t*) reloc;
-                        offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 3;
-
-                        *(uint32_t*)reloc = offset;
-
-                    } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_4 && func == nullptr) {
-                        offset = *(uint32_t*) reloc;
-                        offset += U_PTR( sym_sec ) - U_PTR( reloc ) - sizeof( UINT32 ) - 4;
-
-                        *(uint32_t*) reloc = offset;
-
-                    } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_5 && func == nullptr) {
-                        offset = *(uint32_t*) reloc;
-                        offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 5;
-
-                        *(uint32_t*) reloc = offset;
-
-                    } else if (object->reloc->Type == IMAGE_REL_AMD64_ADDR32NB && func == nullptr) {
-                        offset = *(uint32_t*) reloc;
-                        offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t);
-
-                        *(uint32_t*) reloc = offset;
-
-                    } else if (object->reloc->Type == IMAGE_REL_AMD64_ADDR64 && func == nullptr) {
-                        offset = *(uint64_t*) reloc;
-                        offset += U_PTR(sym_sec);
-
-                        *(uint64_t*) reloc = offset;
+                            *S_CAST(uintptr_t*, reloc) = offset;
+                            count++;
+                        }
+                        default:
+                            return false;
+                        }
                     }
+                    case false:
+                        switch (object->reloc->Type) {
+                        case IMAGE_REL_AMD64_REL32: {
+                            offset = *S_CAST(uint32_t*, reloc);
+                            offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t);
+
+                            *S_CAST(uint32_t*, reloc) = offset;
+                        }
+                        case IMAGE_REL_AMD64_REL32_1: {
+                            offset = *S_CAST(uint32_t*, reloc);
+                            offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 1;
+
+                            *S_CAST(uint32_t*, reloc) = offset;
+                        }
+                        case IMAGE_REL_AMD64_REL32_2: {
+                            offset = *S_CAST(uint32_t*, reloc);
+                            offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 2;
+
+                            *S_CAST(uint32_t*, reloc) = offset;
+                        }
+                        case IMAGE_REL_AMD64_REL32_3: {
+                            offset = *S_CAST(uint32_t*, reloc);
+                            offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 3;
+
+                            *S_CAST(uint32_t*, reloc) = offset;
+                        }
+                        case IMAGE_REL_AMD64_REL32_4: {
+                            offset = *S_CAST(uint32_t*, reloc);
+                            offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(UINT32) - 4;
+
+                            *S_CAST(uint32_t*, reloc) = offset;
+                        }
+                        case IMAGE_REL_AMD64_REL32_5: {
+                            offset = *S_CAST(uint32_t*, reloc);
+                            offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 5;
+
+                            *S_CAST(uint32_t*, reloc) = offset;
+                        }
+                        case IMAGE_REL_AMD64_ADDR32NB: {
+                            offset = *S_CAST(uint32_t*, reloc);
+                            offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t);
+
+                            *S_CAST(uint32_t*, reloc) = offset;
+                        }
+                        case IMAGE_REL_AMD64_ADDR64: {
+                            offset = *S_CAST(uint64_t*, reloc);
+                            offset += U_PTR(sym_sec);
+
+                            *S_CAST(uint64_t*, reloc) = offset;
+                        }
+                        default:
+                            return false;
+                        }
 #else
-                    if (object->reloc->Type == IMAGE_REL_I386_REL32 && func == nullptr) {
-                        offset = *(uint32_t*) reloc;
-                        offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t);
+                    case true: {
+                        switch (object->reloc->Type == IMAGE_REL_I386_DIR32) {
+                        case true: {
+                            *S_CAST(void**, fn_map) = func;
+                            offset = U_PTR(fn_map);
 
-                        *(uint32_t*) reloc = offset;
+                            *S_CAST(uint32_t*, reloc) = offset;
+                            count++;
+                        }
+                        default:
+                            return false;
+                        }
+                    }
+                    case false: {
+                        switch (object->reloc->Type) {
+                        case IMAGE_REL_I386_REL32: {
+                            offset = *S_CAST(uint32_t*, reloc);
+                            offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t);
 
-                    } else if (object->reloc->Type == IMAGE_REL_I386_DIR32 && func != nullptr) {
-                        *(void**) fn_map = func;
-                        offset = U_PTR(fn_map);
+                            *S_CAST(uint32_t*, reloc) = offset;
+                        }
+                        case IMAGE_REL_I386_DIR32: {
+                            offset = *S_CAST(uint32_t*, reloc);
+                            offset += U_PTR(sym_sec);
 
-                        *(uint32_t*) reloc = offset;
-                        count++;
-
-                    } else if (object->reloc->Type == IMAGE_REL_I386_DIR32 && func == nullptr) {
-                        offset = *(uint32_t*) reloc;
-                        offset += U_PTR(sym_sec);
-
-                        *(uint32_t*) reloc = offset;
+                            *S_CAST(uint32_t*, reloc) = offset;
+                        }
+                        default:
+                            return false;
+                        }
                     }
 #endif
-                    else {
-                        return false;
                     }
-
                     object->reloc = R_CAST(_reloc*, (U_PTR(object->reloc)  + sizeof(_reloc)));
                 }
             }
@@ -804,7 +822,7 @@ namespace Memory {
 
             if (success) {
                 const auto entry = R_CAST(obj_entry, exec);
-                ExceptionReturn = __builtin_extract_return_addr(__builtin_return_address(0)); // meant for the veh handler
+                ExceptionReturn = __builtin_extract_return_addr(__builtin_return_address(0));
                 entry(args, size);
             }
 
