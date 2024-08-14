@@ -159,12 +159,13 @@ namespace Dispatcher {
 
         } else {
             head = Ctx->Transport.OutboundQueue;
+
             while (head) {
                 if (!head->Ready) {
-
                     if (head->Length + MESSAGE_HEADER_SIZE + out->Length > MESSAGE_MAX) {
                         break;
                     }
+
                     if (head->Buffer) {
                         Parser::CreateParser(&parser, B_PTR(head->Buffer), head->Length);
 
