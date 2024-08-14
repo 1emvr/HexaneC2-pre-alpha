@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.26)
-project(Hexane-Implant)
+project(hexane_implant)
 
 set(CMAKE_CXX_STANDARD 23)
 
@@ -72,4 +72,4 @@ set (INJECT
         commands/src/veh.cpp
 )
 
-add_executable(Hexane-Implant ${SOURCES} ${COMMANDS} ${LOADER} ${INJECT} ${INCLUDES})
+add_executable(hexane_implant ${SOURCES} ${COMMANDS} ${LOADER} ${INJECT} ${INCLUDES})
