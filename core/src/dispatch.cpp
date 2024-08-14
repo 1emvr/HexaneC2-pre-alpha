@@ -249,7 +249,6 @@ namespace Dispatcher {
 
             case TypeCheckin: {
                 Ctx->Session.Checkin = TRUE;
-                break;
             }
             case TypeTasking: {
                 Memory::Execute::ExecuteCommand(parser);
