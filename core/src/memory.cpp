@@ -293,7 +293,7 @@ namespace Memory {
             uintptr_t address = { };
             bool is_internal = false;
 
-            if ((address = Memory::Objects::GetInternalAddress(entry_name, &is_internal)) && is_internal) {
+            if ((address = GetInternalAddress(entry_name, &is_internal)) && is_internal) {
                 return address;
             } else {
                 char *lib_name = { };
@@ -306,7 +306,7 @@ namespace Memory {
                  *      LoadExport(module, function);
                  */
 
-                address = Memory::Modules::LoadExport(lib_name, fn_name);
+                address = Modules::LoadExport(lib_name, fn_name);
                 return address;
             }
         }
@@ -316,13 +316,9 @@ namespace Memory {
 
             char symbol_name[9] = { };
             char *entry_name = { };
+            void *function = { };
+            bool success = true;
 
-            void *func      = { };
-            void *reloc     = { };
-            void *sym_sec   = { };
-            void *fn_map    = { };
-
-            uint16_t type = 0;
             uintptr_t offset = 0;
             volatile uint32_t count = 0;
 
@@ -331,7 +327,7 @@ namespace Memory {
                 object->reloc       = R_CAST(_reloc*, U_PTR(object->buffer) + object->section->PointerToRelocations);
 
                 for (auto j = 0; j < object->section->NumberOfRelocations; j++) {
-                    _symbol *symbol = &object->symbol[object->reloc->SymbolTableIndex];
+                    const _symbol *symbol = &object->symbol[object->reloc->SymbolTableIndex];
 
                     if (symbol->First.Value[0] != 0) {
                         x_memset(symbol_name, 0, sizeof(symbol_name));
@@ -342,19 +338,16 @@ namespace Memory {
                         entry_name = R_CAST(char*, B_PTR(object->symbol) + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
                     }
 
-                    reloc   = object->sec_map[j].address + object->reloc->VirtualAddress;
-                    fn_map  = object->fn_map + count * sizeof(void*);
-                    sym_sec = object->sec_map[symbol->SectionNumber - 1].address;
+                    void *reloc   = object->sec_map[j].address + object->reloc->VirtualAddress;
+                    void *sym_sec = object->sec_map[symbol->SectionNumber - 1].address;
+                    void *fn_map  = object->fn_map + sizeof(void*) * count;
 
-                    type    = symbol->Type;
-                    func    = C_PTR(ResolveSymbol(object, entry_name, type));
-
-                    switch (func != nullptr) {
+                    switch (function = C_PTR(ResolveSymbol(object, entry_name, symbol->Type))) {
 #if _WIN64
                     case true: {
                         switch (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
                         case true: {
-                            *R_CAST(void**, fn_map) = func;
+                            *R_CAST(void**, fn_map) = function;
                             offset = S_CAST(uint32_t, U_PTR(fn_map) - U_PTR(reloc) - sizeof(uint32_t));
 
                             *S_CAST(uintptr_t*, reloc) = offset;
@@ -415,7 +408,7 @@ namespace Memory {
                             *S_CAST(uint64_t*, reloc) = offset;
                         }
                         default:
-                            return false;
+                            success = false;
                         }
 #else
                     case true: {
@@ -428,7 +421,7 @@ namespace Memory {
                             count++;
                         }
                         default:
-                            return false;
+                            success = false;
                         }
                     }
                     case false: {
@@ -446,16 +439,19 @@ namespace Memory {
                             *S_CAST(uint32_t*, reloc) = offset;
                         }
                         default:
-                            return false;
+                            success = false;
                         }
                     }
 #endif
+                    default:
+                        success = false;
                     }
+
                     object->reloc = R_CAST(_reloc*, (U_PTR(object->reloc)  + sizeof(_reloc)));
                 }
             }
 
-            return true;
+            return success;
         }
 
         SIZE_T GetFunctionMapSize(_executable *object) {
