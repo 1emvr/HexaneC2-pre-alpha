@@ -312,7 +312,7 @@ namespace Memory {
             }
         }
 
-        VOID BaseRelocation(_executable *object) {
+        BOOL BaseRelocation(_executable *object) {
             HEXANE
 
             char symbol_name[9] = { };
@@ -431,6 +431,8 @@ namespace Memory {
                     object->reloc = R_CAST(_reloc*, (U_PTR(object->reloc)  + sizeof(_reloc)));
                 }
             }
+
+            return true;
         }
 
         VOID GetSectionSize() {
@@ -729,7 +731,7 @@ namespace Memory {
                 return_defer(ntstatus);
             }
 
-            if (!Memory::Objects::BaseRelocation(object, args, arg_size, req_id)) {
+            if (!Memory::Objects::BaseRelocation(object)) {
                 return_defer(ntstatus);
             }
 
