@@ -287,15 +287,10 @@ namespace Memory {
             return address;
         }
 
-        void ntdll$NtAllocateVirtualMemory() {
-
-        }
-
         UINT_PTR ResolveSymbols(const char* id, bool* internal) {
             HEXANE
 
             uintptr_t address = { };
-
 
             if ((address = Memory::Objects::GetInternalAddress(id, internal)) && *internal) {
                 return address;
@@ -372,14 +367,14 @@ namespace Memory {
         UINT_PTR LoadExport(const char* const module_name, const char* const export_name) {
             HEXANE
 
-            UINT_PTR address = 0;
+            UINT_PTR symbol = 0;
             INT reload = 0;
 
             const auto mod_name = Utils::GetHashFromStringA(module_name, x_strlen(module_name));
             const auto fn_name = Utils::GetHashFromStringA(export_name, x_strlen(export_name));
 
-            while (!address) {
-                if (!(F_PTR_HASHES(address, mod_name, fn_name))) {
+            while (!symbol) {
+                if (!(F_PTR_HASHES(symbol, mod_name, fn_name))) {
                     if (reload || !Ctx->win32.LoadLibraryA(S_CAST(const char*, module_name))) {
                         goto defer;
                     }
@@ -388,7 +383,7 @@ namespace Memory {
             }
 
             defer:
-            return address;
+            return symbol;
         }
     }
 
