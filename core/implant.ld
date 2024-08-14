@@ -13,7 +13,7 @@ SECTIONS {
         FILL(0x00);
         . = ALIGN(0x1000);
 
-        __global = .;
+        __instance = .;
         *(.global);
         *(.text$E);
         *(.text$F);

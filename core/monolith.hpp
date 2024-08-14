@@ -78,7 +78,7 @@ EXTERN_C LPVOID InstEnd();
 	#define COFF_PREP_SYMBOL_SIZE   			6
 	#define COFF_PREP_BEACON        			0xd0a409b0  // __Hexane
 	#define COFF_PREP_BEACON_SIZE   			(COFF_PREP_SYMBOL_SIZE + 6)
-	#define GLOBAL_CONTEXT           			0xbfded9c9  // .refptr._instance
+	#define GLOBAL_CONTEXT           			0xbfded9c9  // .refptr.__instance
 #elif _M_IX86
 	#define ENTRYPOINT_REG 						Eax
 	#define PTR_MASK                    		0x7FFF
@@ -92,7 +92,7 @@ EXTERN_C LPVOID InstEnd();
     #define COFF_PREP_SYMBOL_SIZE   			7
     #define COFF_PREP_BEACON        			0x4c20aa4f	// __Hexane
     #define COFF_PREP_BEACON_SIZE   			(COFF_PREP_SYMBOL_SIZE + 6)
-    #define GLOBAL_CONTEXT           			0xb341b5b9	// _instance
+    #define GLOBAL_CONTEXT           			0xb341b5b9	// __instance
 #endif
 
 #define HEAP_NO_COMMIT							0, 0, 0, 0, 0
@@ -178,8 +178,8 @@ typedef VOID (NTAPI* TpPostWork_t)(PTP_WORK ptpWork);
 typedef VOID (NTAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
 
 
-WEAK EXTERN_C uint32_t		__global;
-#define GLOBAL_OFFSET       (U_PTR(InstStart()) + U_PTR(&__global))
+WEAK EXTERN_C uint32_t		__instance;
+#define GLOBAL_OFFSET       (U_PTR(InstStart()) + U_PTR(&__instance))
 #define HEXANE 		        _hexane* Ctx = R_CAST(_hexane*, C_DREF(GLOBAL_OFFSET));
 
 #define InitializeObjectAttributes(ptr, name, attr, root, sec )	\
@@ -271,6 +271,13 @@ struct _executable {
 	_object_map 			*fn_map;
 	_object_map 			*sec_map;
 	_executable 			*next;
+
+	HANDLE 					heap;
+	HANDLE 					handle;
+	HANDLE 					thread;
+	PS_ATTRIBUTE_LIST 		*attrs;
+	RTL_USER_PROCESS_PARAMETERS *params;
+	PS_CREATE_INFO 			create;
 };
 
 typedef struct {
