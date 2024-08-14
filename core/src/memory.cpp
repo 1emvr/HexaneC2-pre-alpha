@@ -266,7 +266,7 @@ namespace Memory {
 
     namespace Objects {
 
-        UINT_PTR GetInternalAddress(const char* id, bool* internal) {
+        UINT_PTR GetInternalAddress(const char* name, bool* internal) {
             HEXANE
 
             uintptr_t address = { };
@@ -277,7 +277,7 @@ namespace Memory {
                     return_defer(ERROR_PROC_NOT_FOUND);
                 }
 
-                if (cmd_map[i].name == id) {
+                if (cmd_map[i].name == name) {
                    *internal = true;
                    address = U_PTR(cmd_map[i].address);
                 }
@@ -301,7 +301,7 @@ namespace Memory {
                 char *fn_name = { };
                 /*
                  * ok, hear me out:
-                 *      auto name = "NTDLL$NtAllocateVirtualMemory"
+                 *      auto name = "__imp_NTDLL$NtAllocateVirtualMemory" or "__Hexane$OpenUserProcess"
                  *      map[string]string = strings.Split(name, "$")
                  *
                  *      LoadExport(module, function);
