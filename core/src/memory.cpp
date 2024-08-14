@@ -730,8 +730,8 @@ namespace Memory {
             HEXANE
 
             bool success = false;
-            void *veh_handler = { };
             char *symbol_name = { };
+            void *veh_handler = { };
             void *exec = { };
 
             if (!(veh_handler = Ctx->Nt.RtlAddVectoredExceptionHandler(1, &Injection::Veh::Debugger))) {
