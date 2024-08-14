@@ -73,7 +73,7 @@ namespace Process {
 		return Ctx->Nt.NtOpenProcess(pp_process, access, &attrs, &client);
 	}
 
-	VOID NtCloseUserProcess(_executable *const image) {
+	VOID CloseUserProcess(_executable *const image) {
 		HEXANE
 
 		if (image->attrs) {
@@ -93,7 +93,7 @@ namespace Process {
 		}
 	}
 
-	VOID NtCreateUserProcess(_executable *const image, const char *const path) {
+	VOID CreateUserProcess(_executable *const image, const char *const path) {
 		HEXANE
 
 		LPWSTR w_name = { };
