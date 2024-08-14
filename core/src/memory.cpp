@@ -341,7 +341,6 @@ namespace Memory {
                         x_memset(name, 0, sizeof(name));
                         x_memcpy(name, symbol->First.Name, 8);
                         symbol_name = name;
-
                     } else {
                         symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols);
                     }
@@ -370,9 +369,9 @@ namespace Memory {
         LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash) {
             HEXANE
 
-            PEB peb = { };
-            CONTEXT thread_ctx = { };
-            PEB_LDR_DATA const* load = { };
+            PEB_LDR_DATA *load  = { };
+            CONTEXT thread_ctx  = { };
+            PEB peb             = { };
 
             size_t read = 0;
             wchar_t lowercase[MAX_PATH] = { };
