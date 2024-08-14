@@ -354,7 +354,7 @@ namespace Memory {
                             count++;
                         }
                         default:
-                            return false;
+                            success = false;
                         }
                     }
                     case false:
