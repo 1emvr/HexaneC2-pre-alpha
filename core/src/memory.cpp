@@ -308,8 +308,47 @@ namespace Memory {
             }
         }
 
-        VOID BaseRelocation() {
+        VOID BaseRelocation(_executable *object) {
+            HEXANE
 
+            char symbol_name[9] = { };
+            char *name = { };
+
+            void *reloc     = { };
+            void *sym_sec   = { };
+            void *fn_map    = { };
+
+            uint16_t type = 0;
+            uint32_t count = 0;
+
+            for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
+                object->section     = P_IMAGE_SECTION_HEADER(object->buffer, i);
+                object->reloc       = R_CAST(_reloc*, U_PTR(object->buffer) + object->section->PointerToRelocations);
+
+                for (auto j = 0; j < object->section->NumberOfRelocations; j++) {
+                    _symbol *symbol = &object->symbol[object->reloc->SymbolTableIndex];
+
+                    if (symbol->First.Value[0] != 0) {
+                        x_memset(symbol_name, 0, sizeof(symbol_name));
+                        x_memcpy(symbol_name, symbol->First.Name, 8);
+                        name = symbol_name;
+                    } else {
+                        name = R_CAST(char*, B_PTR(object->symbol) + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
+                    }
+
+                    reloc   = object->sec_map[j].data + object->reloc->VirtualAddress;
+                    fn_map  = object->fn_map + (count * sizeof(void*));
+                    sym_sec = object->sec_map[symbol->SectionNumber - 1].data;
+                    type    = symbol->Type;
+
+                    // ProcessSymbol
+
+#if _WIN64
+#define ARCH_RELOC_TYPE(x) 
+#else
+#endif
+                }
+            }
         }
 
         VOID GetSectionSize() {
@@ -330,7 +369,6 @@ namespace Memory {
             uint32_t n_funcs    = 0;
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
-
                 object->section    = P_IMAGE_SECTION_HEADER(object->buffer, i);
                 object->reloc      = R_CAST(_reloc*, object->section->PointerToRelocations);
 
@@ -360,7 +398,6 @@ namespace Memory {
             HEXANE
 
             uint8_t *next = { };
-            bool success = true;
 
             object->sec_map = R_CAST(_object_map*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_object_map)));
             object->fn_map->size = Memory::Objects::GetFunctionMapSize(object);
@@ -383,6 +420,7 @@ namespace Memory {
             next = object->buffer;
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
                 object->section = P_IMAGE_SECTION_HEADER(object->buffer, i);
+
                 object->sec_map[i].size = object->section->SizeOfRawData;
                 object->sec_map[i].data = next;
 
@@ -395,10 +433,10 @@ namespace Memory {
             object->fn_map = R_CAST(_object_map*, next);
             defer:
             if (!NT_SUCCESS(ntstatus)) {
-                success = false;
+                return false;
             }
 
-            return success;
+            return true;
         }
     }
 
@@ -610,6 +648,14 @@ namespace Memory {
             }
 
             if (!Memory::Objects::MapSections(object, data)) {
+                return_defer(ntstatus);
+            }
+
+            if (!Memory::Objects::BaseRelocation(object)) {
+                return_defer(ntstatus);
+            }
+
+            if (!Memory::Execute::ExecuteObjectFunction(object, name, args, arg_size, req_id)) {
                 return_defer(ntstatus);
             }
 
