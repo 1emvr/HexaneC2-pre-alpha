@@ -154,6 +154,10 @@ namespace Opsec {
     BOOL SeImageCheckArch(const _executable *const image) {
         HEXANE
 
+        if (image->nt_head->Signature != IMAGE_NT_SIGNATURE) {
+            ntstatus = ERROR_INVALID_EXE_SIGNATURE;
+            return false;
+        }
         if (image->nt_head->FileHeader.Machine != MACHINE_ARCH) {
             ntstatus = ERROR_IMAGE_MACHINE_TYPE_MISMATCH;
             return false;
@@ -165,10 +169,6 @@ namespace Opsec {
     BOOL SeImageCheckCompat(const _executable *const source, const _executable *const target) {
         HEXANE
 
-        if (source->nt_head->Signature != IMAGE_NT_SIGNATURE) {
-            ntstatus = ERROR_INVALID_EXE_SIGNATURE;
-            return false;
-        }
         if (target->nt_head->FileHeader.Machine != source->nt_head->FileHeader.Machine) {
             ntstatus = ERROR_IMAGE_MACHINE_TYPE_MISMATCH;
             return false;
