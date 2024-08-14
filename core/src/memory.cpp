@@ -670,7 +670,7 @@ namespace Memory {
         LONG WINAPI Debugger(EXCEPTION_POINTERS *exception) {
             HEXANE
 
-            exception->ContextRecord->IP_REG = ExceptionReturn;
+            exception->ContextRecord->IP_REG = U_PTR(ExceptionReturn);
             return EXCEPTION_CONTINUE_EXECUTION;
         }
 
