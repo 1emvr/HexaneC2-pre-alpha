@@ -266,7 +266,7 @@ namespace Memory {
             HEXANE
 
             uintptr_t address = { };
-            *internal = FALSE;
+            *internal = false;
 
             if (id == OBF("NoJob")) {
                 goto defer;
@@ -278,7 +278,7 @@ namespace Memory {
                 }
 
                 if (cmd_map[i].name == id) {
-                   *internal = TRUE;
+                   *internal = true;
                    address = U_PTR(cmd_map[i].address);
                 }
             }
@@ -291,18 +291,15 @@ namespace Memory {
             HEXANE
 
             uintptr_t address = { };
-            *internal = false;
 
             if ((address = Memory::Objects::GetInternalAddress(id, internal)) && *internal) {
                 return address;
             } else {
-                HMODULE library = { };
-                auto copy_name  = id;
                 char *lib_name  = { };
+                auto copy_name  = id;
 
-                // get library name
-                // get symbol name
-                // LoadLibraryA
+                address = Memory::Modules::LoadExport(lib_name, copy_name);
+                return address;
             }
         }
     }
@@ -379,7 +376,7 @@ namespace Memory {
 
             while (!address) {
                 if (!(F_PTR_HASHES(address, mod_name, fn_name))) {
-                    if (reload || !Ctx->win32.LoadLibraryA(S_CAST(const char *, module_name))) {
+                    if (reload || !Ctx->win32.LoadLibraryA(S_CAST(const char*, module_name))) {
                         goto defer;
                     }
                     reload++;

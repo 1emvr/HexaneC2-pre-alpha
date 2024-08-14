@@ -36,6 +36,24 @@ struct obfuscator {
     }
 };
 
+template <uint32_t N>
+struct obfuscatorw {
+    wchar_t m_data[N] = { };
+
+    constexpr explicit obfuscatorw(const wchar_t* data) {
+        for (auto i = 0; i < N; i++) {
+            m_data[i] = data[i] ^ 0x0A;
+        }
+    }
+
+    void deobfuscate(wchar_t *dst) const {
+        int i = 0;
+        do {
+            dst[i] = m_data[i] ^ 0x0A;
+        } while (dst[i - 1]);
+    }
+};
+
 #define OBF(str)                                    \
     []() -> char* {                                 \
         constexpr auto size = ARRAY_LEN(str);       \
@@ -44,5 +62,15 @@ struct obfuscator {
                                                     \
         obf.deobfuscate((unsigned char*)original);  \
         return original;                            \
+}()
+
+#define OBFW(str)                                       \
+    []() -> wchar_t* {                                  \
+        constexpr auto size = ARRAY_LEN(str);           \
+        constexpr auto obf = obfuscatorw<size>(str);    \
+        static wchar_t original[size];                  \
+                                                        \
+        obf.deobfuscate((wchar_t*)original);            \
+        return original;                                \
 }()
 #endif //HEXANE_CORELIB_CIPHER_HPP
