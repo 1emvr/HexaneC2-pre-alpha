@@ -287,18 +287,22 @@ namespace Memory {
             return address;
         }
 
+        void ntdll$NtAllocateVirtualMemory() {
+
+        }
+
         UINT_PTR ResolveSymbols(const char* id, bool* internal) {
             HEXANE
 
             uintptr_t address = { };
 
+
             if ((address = Memory::Objects::GetInternalAddress(id, internal)) && *internal) {
                 return address;
             } else {
-                char *lib_name  = { };
-                auto copy_name  = id;
+                char *lib_name = { };
 
-                address = Memory::Modules::LoadExport(lib_name, copy_name);
+                address = Memory::Modules::LoadExport(lib_name, id);
                 return address;
             }
         }
