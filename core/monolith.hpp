@@ -50,9 +50,10 @@ EXTERN_C LPVOID InstEnd();
 #define REG_PEB32(ctx) 						    (R_CAST(LPVOID, R_CAST(ULONG_PTR, ctx.Ebx) + 0x8))
 #define REG_PEB64(ctx) 						    (R_CAST(LPVOID, R_CAST(ULONG_PTR, ctx.Rdx) + 0x10))
 
-#define IMAGE_DOS_HEADER(base)                	(R_CAST(PIMAGE_DOS_HEADER, base))
-#define IMAGE_NT_HEADERS(base, dos)				(R_CAST(PIMAGE_NT_HEADERS, B_PTR(base) + dos->e_lfanew))
-#define IMAGE_EXPORT_DIRECTORY(dos, nt)	    	(R_CAST(PIMAGE_EXPORT_DIRECTORY, (U_PTR(dos) + (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)))
+#define P_IMAGE_DOS_HEADER(base)                (R_CAST(PIMAGE_DOS_HEADER, base))
+#define P_IMAGE_NT_HEADERS(base, dos)			(R_CAST(PIMAGE_NT_HEADERS, B_PTR(base) + dos->e_lfanew))
+#define P_IMAGE_EXPORT_DIRECTORY(dos, nt)	    (R_CAST(PIMAGE_EXPORT_DIRECTORY, (U_PTR(dos) + (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)))
+#define P_IMAGE_SECTION_HEADER(data, i)   		(R_CAST(PIMAGE_SECTION_HEADER, U_PTR(data) + sizeof(IMAGE_FILE_HEADER) + U_PTR(sizeof(IMAGE_SECTION_HEADER) * i)))
 
 #define RVA(Ty, base, rva)  					(R_CAST(Ty, U_PTR(base) + rva))
 #define NtCurrentProcess()              		(R_CAST(HANDLE, S_CAST(LONG_PTR, -1)))
@@ -219,11 +220,43 @@ enum MessageType {
     TypeObject		= 0x7FFFFFFA,
 };
 
+struct _object_map {
+	PBYTE 	data;
+	SIZE_T 	size;
+};
+
+struct _symbol {
+	union {
+		CHAR    Name[8];
+		UINT32  Value[2];
+	} First;
+
+	UINT32 Value;
+	UINT16 SectionNumber;
+	UINT16 Type;
+	UINT8  StorageClass;
+	UINT8  NumberOfAuxSymbols;
+};
+
+struct _reloc {
+	UINT32 VirtualAddress;
+	UINT32 SymbolTableIndex;
+	UINT16 Type;
+};
+
 struct _executable {
 	PBYTE				buffer;
 	PIMAGE_DOS_HEADER	dos_head;
 	PIMAGE_NT_HEADERS	nt_head;
-	_executable 		*next;
+
+	IMAGE_SECTION_HEADER 	*section;
+	IMAGE_EXPORT_DIRECTORY 	*exports;
+
+	_reloc 					*reloc;
+	_symbol 				*symbol;
+	_object_map 			*fn_map;
+	_object_map 			*sec_map;
+	_executable 			*next;
 };
 
 typedef struct {

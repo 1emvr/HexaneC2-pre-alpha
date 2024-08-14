@@ -66,8 +66,9 @@ namespace Memory {
             auto *const image = R_CAST(_executable*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_executable)));
 
             image->buffer = data;
-            image->dos_head = IMAGE_DOS_HEADER(image->buffer);
-            image->nt_head = IMAGE_NT_HEADERS(image->buffer, image->dos_head);
+            image->dos_head = P_IMAGE_DOS_HEADER(image->buffer);
+            image->nt_head = P_IMAGE_NT_HEADERS(image->buffer, image->dos_head);
+            image->exports = P_IMAGE_EXPORT_DIRECTORY(image->dos_head, image->nt_head);
 
             return image;
         }
@@ -315,6 +316,47 @@ namespace Memory {
 
         }
 
+#define IMP_SIZE 6
+#define IMP_SYMBOL __imp_
+#define IMP_SYMBOL_HASH 0x12345678
+
+        SIZE_T GetFunctionMapSize(_executable *object) {
+            HEXANE
+
+            char name[9]        = { };
+            char *symbol_name   = { };
+
+            _symbol *symbol     = { };
+            uint32_t n_funcs    = 0;
+
+            for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
+
+                object->section    = P_IMAGE_SECTION_HEADER(object->buffer, i);
+                object->reloc      = R_CAST(_reloc*, object->section->PointerToRelocations);
+
+                for (auto j = 0; j < object->section->NumberOfRelocations; j++) {
+                    symbol = &object->symbol[object->reloc->SymbolTableIndex];
+
+                    if (symbol->First.Value[0] != 0) {
+                        x_memset(name, 0, sizeof(name));
+                        x_memcpy(name, symbol->First.Name, 8);
+                        symbol_name = name;
+
+                    } else {
+                        symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols);
+                    }
+
+                    if (Utils::GetHashFromStringA(symbol_name, IMP_SIZE) == IMP_SYMBOL_HASH) {
+                        n_funcs++;
+                    }
+
+                    object->reloc = object->reloc + sizeof(_reloc);
+                }
+            }
+
+            return sizeof(void*) * n_funcs;
+        }
+
         VOID MapSections() {
 
         }
@@ -358,9 +400,9 @@ namespace Memory {
             FARPROC address = { };
             char lowercase[MAX_PATH] = { };
 
-            const auto dos_head = IMAGE_DOS_HEADER(base);
-            const auto nt_head = IMAGE_NT_HEADERS(base, dos_head);
-            const auto exports = IMAGE_EXPORT_DIRECTORY(dos_head, nt_head);
+            const auto dos_head = P_IMAGE_DOS_HEADER(base);
+            const auto nt_head = P_IMAGE_NT_HEADERS(base, dos_head);
+            const auto exports = P_IMAGE_EXPORT_DIRECTORY(dos_head, nt_head);
 
             if (exports->AddressOfNames) {
                 const auto ords = RVA(uint16_t*, base, exports->AddressOfNameOrdinals);
@@ -528,9 +570,12 @@ namespace Memory {
             }
 
             defer:
-            if (object) {
+            if (!NT_SUCCESS(ntstatus)) {
                 Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, object);
             }
+
+            object->sec_map = R_CAST(_object_map*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_object_map)));
+            object->fn_map->size = Memory::Objects::GetFunctionMapSize(object);
         }
     }
 }
