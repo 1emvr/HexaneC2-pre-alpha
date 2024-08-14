@@ -3,12 +3,12 @@
 #include <core/corelib.hpp>
 
 _code_seg(".rdata") _command_map cmd_map[] = {
-    { .name = OBF("CommandDir"),          .address = Commands::DirectoryList },
-    { .name = OBF("CommandMods"),         .address = Commands::ProcessModules },
-    { .name = OBF("CommandProcess"),      .address = Commands::ProcessList },
-    { .name = OBF("CommandUpdatePeer"),   .address = Commands::UpdatePeer },
-    { .name = OBF("CommandShutdown"),     .address = Commands::Shutdown },
-    { .name = nullptr,                    .address = nullptr }
+    { .name = OBF("DirectoryList"),     .address = Commands::DirectoryList },
+    { .name = OBF("ProcessModules"),    .address = Commands::ProcessModules },
+    { .name = OBF("ProcessList"),       .address = Commands::ProcessList },
+    { .name = OBF("UpdatePeer"),        .address = Commands::UpdatePeer },
+    { .name = OBF("Shutdown"),          .address = Commands::Shutdown },
+    { .name = nullptr,                  .address = nullptr }
 };
 
 namespace Dispatcher {
