@@ -737,20 +737,13 @@ namespace Memory {
                     uint32_t protection = 0;
 
                     switch (object->section->Characteristics & IMAGE_SCN_MEM_RWX) {
-                    case NULL:
-                        protection = PAGE_NOACCESS;
-                    case IMAGE_SCN_MEM_READ:
-                        protection = PAGE_READONLY;
-                    case IMAGE_SCN_MEM_RX:
-                        protection = PAGE_EXECUTE_READ;
-                    case IMAGE_SCN_MEM_RW:
-                        protection = PAGE_READWRITE;
-                    case IMAGE_SCN_MEM_WRITE:
-                        protection = PAGE_WRITECOPY;
-                    case IMAGE_SCN_MEM_XCOPY:
-                        protection = PAGE_EXECUTE_WRITECOPY;
-                    default:
-                        protection = PAGE_EXECUTE_READWRITE;
+                    case NULL:                  protection = PAGE_NOACCESS;
+                    case IMAGE_SCN_MEM_READ:    protection = PAGE_READONLY;
+                    case IMAGE_SCN_MEM_RX:      protection = PAGE_EXECUTE_READ;
+                    case IMAGE_SCN_MEM_RW:      protection = PAGE_READWRITE;
+                    case IMAGE_SCN_MEM_WRITE:   protection = PAGE_WRITECOPY;
+                    case IMAGE_SCN_MEM_XCOPY:   protection = PAGE_EXECUTE_WRITECOPY;
+                    default: protection = PAGE_EXECUTE_READWRITE;
                     }
 
                     if (object->section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED == IMAGE_SCN_MEM_NOT_CACHED) {
@@ -806,6 +799,10 @@ namespace Memory {
             }
 
             defer:
+            if (veh_handler) {
+                Ctx->Nt.RtlRemoveVectoredExceptionHandler(veh_handler);
+            }
+
             return success;
         }
 
