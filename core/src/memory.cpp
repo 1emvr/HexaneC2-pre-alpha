@@ -284,13 +284,13 @@ namespace Memory {
             return address;
         }
 
-        UINT_PTR ResolveSymbols(const char* id) {
+        UINT_PTR ResolveSymbol(const char* entry_name, const char* const args, size_t args_size, uint32_t req_id) {
             HEXANE
 
             uintptr_t address = { };
             bool is_internal = false;
 
-            if ((address = Memory::Objects::GetInternalAddress(id, &is_internal)) && is_internal) {
+            if ((address = Memory::Objects::GetInternalAddress(entry_name, &is_internal)) && is_internal) {
                 return address;
             } else {
                 char *lib_name = { };
@@ -308,7 +308,7 @@ namespace Memory {
             }
         }
 
-        VOID BaseRelocation(_executable *object) {
+        VOID BaseRelocation(_executable *object, const char* const entry_name, const char* const args, size_t arg_size, uint32_t req_id) {
             HEXANE
 
             char symbol_name[9] = { };
@@ -343,80 +343,68 @@ namespace Memory {
                     sym_sec = object->sec_map[symbol->SectionNumber - 1].data;
                     type    = symbol->Type;
 
-                    // ProcessSymbol()
-                    if (object->reloc->Type == REL32 && func != NULL) {
+                    if (!ResolveSymbol(object, entry_name, args, arg_size, req_id)) {
+                        return_defer(ntstatus);
+                    }
+
+                    if (object->reloc->Type == REL32 && func != nullptr) {
                         *(void**) fn_map = func;
                         offset = (uint32_t) (U_PTR(fn_map) - U_PTR(reloc) - sizeof(uint32_t) );
 
                         *((uintptr_t*)reloc) = offset;
                         count++;
 
-                    } else if (object->reloc->Type == REL32 && func == NULL) {
-                        offset = *( PUINT32 ) ( reloc );
+                    } else if (object->reloc->Type == REL32 && func == nullptr) {
+                        offset = *(uint32_t*) reloc;
+                        offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t);
 
-                        offset += U_PTR( sym_sec ) - U_PTR( reloc ) - sizeof( UINT32 );
+                        *(uint32_t*)reloc = offset;
 
-                        *( ( PUINT32 ) reloc ) = offset;
-                    }
-                    else if ( object->reloc->Type == REL32_1 && func == NULL )
-                    {
-                        offset = *( PUINT32 ) ( reloc );
+                    } else if (object->reloc->Type == REL32_1 && func == nullptr) {
+                        offset = *(uint32_t*) reloc;
+                        offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 1;
 
-                        offset += U_PTR( sym_sec ) - U_PTR( reloc ) - sizeof( UINT32 ) - 1;
+                        *(uint32_t*) reloc = offset;
 
-                        *( ( PUINT32 ) reloc ) = offset;
-                    }
-                    else if ( object->reloc->Type == REL32_2 && func == NULL )
-                    {
-                        offset = *( PUINT32 ) ( reloc );
+                    } else if (object->reloc->Type == REL32_2 && func == nullptr) {
+                        offset = *(uint32_t*) reloc;
+                        offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 2;
 
-                        offset += U_PTR( sym_sec ) - U_PTR( reloc ) - sizeof( UINT32 ) - 2;
+                        *(uint32_t*) reloc = offset;
 
-                        *( ( PUINT32 ) reloc ) = offset;
-                    }
-                    else if ( object->Reloc->Type == REL32_3 && func == NULL )
-                    {
-                        offset = *( PUINT32 ) ( reloc );
+                    } else if (object->reloc->Type == REL32_3 && func == nullptr) {
+                        offset = *(uint32_t*) reloc;
+                        offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 3;
 
-                        offset += U_PTR( sym_sec ) - U_PTR( reloc ) - sizeof( UINT32 ) - 3;
+                        *(uint32_t*)reloc = offset;
 
-                        *( ( PUINT32 ) reloc ) = offset;
-                    }
-                    else if ( object->Reloc->Type == REL32_4 && func == NULL )
-                    {
-                        offset = *( PUINT32 ) ( reloc );
-
+                    } else if (object->reloc->Type == REL32_4 && func == nullptr) {
+                        offset = *(uint32_t*) reloc;
                         offset += U_PTR( sym_sec ) - U_PTR( reloc ) - sizeof( UINT32 ) - 4;
 
-                        *( ( PUINT32 ) reloc ) = offset;
+                        *(uint32_t*) reloc = offset;
+
+                    } else if (object->reloc->Type == REL32_5 && func == nullptr) {
+                        offset = *(uint32_t*) reloc;
+                        offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 5;
+
+                        *(uint32_t*) reloc = offset;
+
+                    } else if (object->reloc->Type == ADDR32NB && func == nullptr) {
+                        offset = *(uint32_t*) reloc;
+                        offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t);
+
+                        *(uint32_t*) reloc = offset;
+
+                    } else if (object->reloc->Type == ADDR64 && func == nullptr) {
+                        offset = *(uint64_t*) reloc;
+                        offset += U_PTR( sym_sec );
+
+                        *(uint64_t*) reloc = offset;
                     }
-                    else if ( object->Reloc->Type == REL32_5 && func == NULL )
-                    {
-                        offset = *( PUINT32 ) ( reloc );
-
-                        offset += U_PTR( sym_sec ) - U_PTR( reloc ) - sizeof( UINT32 ) - 5;
-
-                        *( ( PUINT32 ) reloc ) = offset;
-                    }
-                    else if ( object->Reloc->Type == ADDR32NB && func == NULL )
-                    {
-                        offset = *( PUINT32 ) ( reloc );
-
-                        offset += U_PTR( sym_sec ) - U_PTR( reloc ) - sizeof( UINT32 );
-
-                        *( ( PUINT32 ) reloc ) = offset;
-                    }
-                    else if ( object->Reloc->Type == ADDR64 && func == NULL )
-                    {
-                        offsetLong = *( PUINT64 ) ( reloc );
-
-                        offsetLong += U_PTR( sym_sec );
-
-                        *( ( PUINT64 ) reloc ) = offsetLong;
-                    }
-
                 }
             }
+            defer:
         }
 
         VOID GetSectionSize() {

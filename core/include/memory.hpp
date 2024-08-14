@@ -18,7 +18,7 @@ namespace Memory {
 
     namespace Objects {
         FUNCTION UINT_PTR GetInternalAddress(const char* id, bool internal);
-        FUNCTION UINT_PTR ResolveSymbols(const char* id);
+        FUNCTION UINT_PTR ResolveSymbol(const char* entry_name, const char* const args, size_t args_size, uint32_t req_id);
         FUNCTION BOOL MapSections(_executable *object, const uint8_t *const data);
         FUNCTION VOID BaseRelocation();
         FUNCTION VOID GetSectionSize();

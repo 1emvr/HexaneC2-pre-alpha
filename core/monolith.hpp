@@ -66,14 +66,14 @@ EXTERN_C LPVOID InstEnd();
 
 #define IMAGE_REL_TYPE(x, y)  					IMAGE_REL_##x##_##y
 #if _WIN64
-#define REL32									IMAGE_REL_TYPE("AMD64", "REL32")
-#define REL32_1									IMAGE_REL_TYPE("AMD64", "REL32_1")
-#define REL32_2									IMAGE_REL_TYPE("AMD64", "REL32_2")
-#define REL32_3									IMAGE_REL_TYPE("AMD64", "REL32_3")
-#define REL32_4									IMAGE_REL_TYPE("AMD64", "REL32_4")
-#define REL32_5									IMAGE_REL_TYPE("AMD64", "REL32_5")
-#define ADDR32NB								IMAGE_REL_TYPE("AMD64", "ADDR32NB")
-#define ADDR64									IMAGE_REL_TYPE("AMD64", "ADDR64")
+#define REL32									IMAGE_REL_TYPE(AMD64, REL32)
+#define REL32_1									IMAGE_REL_TYPE(AMD64, REL32_1)
+#define REL32_2									IMAGE_REL_TYPE(AMD64, REL32_2)
+#define REL32_3									IMAGE_REL_TYPE(AMD64, REL32_3)
+#define REL32_4									IMAGE_REL_TYPE(AMD64, REL32_4)
+#define REL32_5									IMAGE_REL_TYPE(AMD64, REL32_5)
+#define ADDR32NB								IMAGE_REL_TYPE(AMD64, ADDR32NB)
+#define ADDR64									IMAGE_REL_TYPE(AMD64, ADDR64)
 #else
 #define REL32									IMAGE_REL_TYPE(AMD64, REL32)
 #define REL32_1									0
