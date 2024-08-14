@@ -121,7 +121,7 @@ namespace Memory {
         }
 
         VOID ContextDestroy(_hexane* Ctx) {
-            // todo: needs expanded
+            // todo: needs expanded to destroy all strings (http/smb context + anything else)
 
             auto RtlFreeHeap = Ctx->Nt.RtlFreeHeap;
             auto Heap = Ctx->Heap;
