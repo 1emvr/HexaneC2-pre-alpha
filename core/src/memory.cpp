@@ -345,9 +345,9 @@ namespace Memory {
                         entry_name = R_CAST(char*, B_PTR(object->symbol) + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
                     }
 
-                    reloc   = object->sec_map[j].data + object->reloc->VirtualAddress;
-                    fn_map  = object->fn_map + (count * sizeof(void*));
-                    sym_sec = object->sec_map[symbol->SectionNumber - 1].data;
+                    reloc   = object->sec_map[j].address + object->reloc->VirtualAddress;
+                    fn_map  = object->fn_map + count * sizeof(void*);
+                    sym_sec = object->sec_map[symbol->SectionNumber - 1].address;
                     type    = symbol->Type;
 
                     func = C_PTR(ResolveSymbol(object, entry_name, type));
@@ -503,12 +503,12 @@ namespace Memory {
                 object->section = P_IMAGE_SECTION_HEADER(object->buffer, i);
 
                 object->sec_map[i].size = object->section->SizeOfRawData;
-                object->sec_map[i].data = next;
+                object->sec_map[i].address = next;
 
                 next += object->section->SizeOfRawData;
                 next = PAGE_ALIGN(next);
 
-                x_memcpy(object->sec_map[i].data, C_PTR(U_PTR(data) + object->section->PointerToRawData), object->section->SizeOfRawData);
+                x_memcpy(object->sec_map[i].address, C_PTR(U_PTR(data) + object->section->PointerToRawData), object->section->SizeOfRawData);
             }
 
             object->fn_map = R_CAST(_object_map*, next);
@@ -750,7 +750,7 @@ namespace Memory {
                         protection |= PAGE_NOCACHE;
                     }
 
-                    if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->sec_map[i].data), &object->sec_map[i].size, protection, nullptr))) {
+                    if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->sec_map[i].address), &object->sec_map[i].size, protection, nullptr))) {
                         return_defer(ntstatus);
                     }
                 }
@@ -774,14 +774,14 @@ namespace Memory {
                 }
 #endif
                 if (x_memcmp(symbol_name, entrypoint, x_strlen(entrypoint)) == 0) {
-                    if (!(exec = object->sec_map[object->symbol[i].SectionNumber - 1].data + object->symbol[i].Value)) {
+                    if (!(exec = object->sec_map[object->symbol[i].SectionNumber - 1].address + object->symbol[i].Value)) {
                         return_defer(ERROR_PROC_NOT_FOUND);
                     }
                 }
             }
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
-                if (U_PTR(exec) >= U_PTR(object->sec_map[i].data) && U_PTR(exec) < U_PTR(object->sec_map[i].data) + object->sec_map[i].size) {
+                if (U_PTR(exec) >= U_PTR(object->sec_map[i].address) && U_PTR(exec) < U_PTR(object->sec_map[i].address) + object->sec_map[i].size) {
 
                     object->section = P_IMAGE_SECTION_HEADER(object->buffer, i);
                     if (object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE == IMAGE_SCN_MEM_EXECUTE) {
