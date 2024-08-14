@@ -426,12 +426,6 @@ namespace Memory {
                     }
 #endif
                     else {
-                        if (func) {
-                            // relocation type not supported
-                        } else {
-                            // type not found
-                        }
-
                         return false;
                     }
 
@@ -737,7 +731,7 @@ namespace Memory {
                 return_defer(ntstatus);
             }
 
-            if (!Memory::Execute::ExecuteObjectFunction(object, name, args, arg_size, req_id)) {
+            if (!Memory::Execute::ExecuteObject(object, name, args, arg_size, req_id)) {
                 return_defer(ntstatus);
             }
 
