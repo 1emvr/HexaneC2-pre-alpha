@@ -343,7 +343,7 @@ namespace Memory {
                     sym_sec = object->sec_map[symbol->SectionNumber - 1].data;
                     type    = symbol->Type;
 
-                    if (!ResolveSymbol(object, entry_name, args, arg_size, req_id)) {
+                    if (!ResolveSymbol(entry_name, args, arg_size, req_id)) {
                         return_defer(ntstatus);
                     }
 
