@@ -285,6 +285,7 @@ namespace Memory {
         }
 
         UINT_PTR ResolveSymbol(_executable *object, const char* entry_name, uint32_t type) {
+            // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/CoffeeLdr.c#L87
             HEXANE
 
             uintptr_t address = { };
