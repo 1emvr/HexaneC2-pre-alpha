@@ -337,6 +337,7 @@ namespace Memory {
                     if (symbol->First.Value[0] != 0) {
                         x_memset(symbol_name, 0, sizeof(symbol_name));
                         x_memcpy(symbol_name, symbol->First.Name, 8);
+
                         entry_name = symbol_name;
                     } else {
                         entry_name = R_CAST(char*, B_PTR(object->symbol) + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
