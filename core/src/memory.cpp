@@ -426,17 +426,20 @@ namespace Memory {
                     }
 #endif
                     else {
-                        // something
+                        if (func) {
+                            // relocation type not supported
+                        } else {
+                            // type not found
+                        }
+
+                        return false;
                     }
+
                     object->reloc = R_CAST(_reloc*, (U_PTR(object->reloc)  + sizeof(_reloc)));
                 }
             }
 
             return true;
-        }
-
-        VOID GetSectionSize() {
-
         }
 
         SIZE_T GetFunctionMapSize(_executable *object) {
