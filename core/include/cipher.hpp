@@ -25,6 +25,7 @@ struct obfuscator {
     constexpr explicit obfuscator(const char* data) {
         for (auto i = 0; i < N; i++) {
             m_data[i] = data[i] ^ 0x0A;
+            // #define CONSTEXPR_KEY 0x0a
         }
     }
 

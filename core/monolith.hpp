@@ -229,32 +229,9 @@ enum MessageType {
 };
 
 struct _executable {
-	LPVOID							buffer;
-	LPVOID							heap;
-	LPVOID							base;
-
-	SIZE_T 							s_image;
-	ULONG							ul_size;
-	ULONG							ul_read;
-	ULONG 							ul_data;
-	ULONG 							ul_heads;
-	WORD 							n_sections;
-	LARGE_INTEGER					ln_sections;
-
-	PIMAGE_DOS_HEADER				dos_head;
-	PIMAGE_NT_HEADERS				nt_head;
-	IMAGE_DATA_DIRECTORY 			relocs;
-	PIMAGE_SECTION_HEADER			sections;
-
-	HANDLE							p_handle;
-	HANDLE							p_thread;
-
-	PS_CREATE_INFO					create_info;
-	PPS_ATTRIBUTE_LIST				attrs;
-	PRTL_USER_PROCESS_PARAMETERS	params;
-	UNICODE_STRING					u_string;
-	BOOL                      		allocated;
-
+	PBYTE				buffer;
+	PIMAGE_DOS_HEADER	dos_head;
+	PIMAGE_NT_HEADERS	nt_head;
 };
 
 typedef struct {

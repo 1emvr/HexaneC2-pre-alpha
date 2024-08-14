@@ -300,7 +300,7 @@ namespace Memory {
                 /*
                  * ok, hear me out:
                  *      auto name = "NTDLL$NtAllocateVirtualMemory"
-                 *      map[][] = strings.Split(name, "$")
+                 *      map[string]string = strings.Split(name, "$")
                  *
                  *      auto module = GetHashFromString(map[0])
                  *      auto function = GetHashFromString(map[1])
