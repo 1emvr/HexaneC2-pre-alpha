@@ -39,6 +39,7 @@ namespace Memory {
     namespace Execute {
         FUNCTION VOID ExecuteCommand(_parser &parser);
         FUNCTION VOID ExecuteShellcode(_parser &parser);
+        FUNCTION VOID LoadObject(_parser &parser);
     }
 }
 #endif //HEXANE_CORELIB_MEMORY_HPP

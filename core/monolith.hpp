@@ -223,6 +223,7 @@ struct _executable {
 	PBYTE				buffer;
 	PIMAGE_DOS_HEADER	dos_head;
 	PIMAGE_NT_HEADERS	nt_head;
+	_executable 		*next;
 };
 
 typedef struct {
@@ -353,6 +354,8 @@ struct _hexane{
 		UINT_PTR    Address;
 		ULONG	    Size;
 	} Base;
+
+	_executable *Coffs;
 
 	struct {
 		// todo : finish tokens

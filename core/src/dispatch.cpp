@@ -258,6 +258,7 @@ namespace Dispatcher {
             }
             case TypeObject: {
                 // load a BOF file
+                Memory::Execute::LoadObject(parser)
             }
 
             default:
