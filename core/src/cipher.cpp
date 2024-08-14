@@ -147,7 +147,7 @@ namespace Xtea {
                 XteaDecrypt(text, buffer, sections[i]);
             }
 
-            Memory::PatchMemory(data, buffer, offset, 0, sizeof(uint64_t));
+            x_memcpy(C_PTR(data+offset), C_PTR(buffer), sizeof(uint64_t));
 
             Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, buffer);
             offset += sizeof(uint64_t);
