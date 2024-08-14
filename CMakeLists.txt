@@ -50,7 +50,6 @@ set (INCLUDES
 )
 
 set (COMMANDS
-        commands/src/EnumProcess.cpp
         commands/src/registry.cpp
         core/src/tokens.cpp
 )
