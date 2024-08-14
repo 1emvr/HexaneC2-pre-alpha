@@ -343,9 +343,7 @@ namespace Memory {
                     sym_sec = object->sec_map[symbol->SectionNumber - 1].data;
                     type    = symbol->Type;
 
-                    if (!ResolveSymbol(entry_name, args, arg_size, req_id)) {
-                        return_defer(ntstatus);
-                    }
+                    func = C_PTR(ResolveSymbol(entry_name, args, arg_size, req_id));
 
                     if (object->reloc->Type == REL32 && func != nullptr) {
                         *(void**) fn_map = func;
@@ -401,6 +399,8 @@ namespace Memory {
                         offset += U_PTR( sym_sec );
 
                         *(uint64_t*) reloc = offset;
+                    } else {
+                        return_defer(ERROR_ILLEGAL_DLL_RELOCATION);
                     }
                 }
             }
@@ -707,7 +707,7 @@ namespace Memory {
                 return_defer(ntstatus);
             }
 
-            if (!Memory::Objects::BaseRelocation(object)) {
+            if (!Memory::Objects::BaseRelocation(object, args, arg_size, req_id)) {
                 return_defer(ntstatus);
             }
 
