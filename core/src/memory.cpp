@@ -424,12 +424,12 @@ namespace Memory {
         UINT_PTR SignatureScan(const uintptr_t start, const uint32_t size, const char* signature, const char* mask) {
             HEXANE
 
-            uintptr_t address = 0;
             size_t read = 0;
-
+            uintptr_t address = 0;
             auto buffer = R_CAST(uint8_t*, Ctx->Nt.RtlAllocateHeap(GetProcessHeap(), 0, size));
-            if (!NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void *, start), buffer, size, &read))) {
-                return 0;
+
+            if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void *, start), buffer, size, &read))) {
+                return_defer(ntstatus);
             }
 
             for (auto i = 0; i < size; i++) {
@@ -441,7 +441,10 @@ namespace Memory {
 
             x_memset(buffer, 0, size);
 
-            Ctx->Nt.RtlFreeHeap(GetProcessHeap(), 0, buffer);
+            defer:
+            if (buffer) {
+                Ctx->Nt.RtlFreeHeap(GetProcessHeap(), 0, buffer);
+            }
             return address;
         }
     }
