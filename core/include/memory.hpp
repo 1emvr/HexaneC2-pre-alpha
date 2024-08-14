@@ -18,6 +18,8 @@ namespace Memory {
 
     namespace Objects {
         FUNCTION UINT_PTR GetInternalAddress(const char* id, bool internal);
+        FUNCTION VOID BaseRelocation();
+        FUNCTION VOID GetSectionSize();
     }
 
     namespace Modules {

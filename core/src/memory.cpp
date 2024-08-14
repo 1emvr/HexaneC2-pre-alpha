@@ -306,6 +306,14 @@ namespace Memory {
                 return address;
             }
         }
+
+        VOID BaseRelocation() {
+
+        }
+
+        VOID GetSectionSize() {
+
+        }
     }
 
     namespace Modules {
