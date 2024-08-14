@@ -62,6 +62,7 @@ EXTERN_C LPVOID InstEnd();
 #define ARRAY_LEN(ptr) 							sizeof(ptr) / sizeof(ptr[0])
 #define DYN_ARRAY_LEN(i, ptr) 					while (TRUE) { if (!ptr[i]) { break; } else { i++; }}
 #define DYN_ARRAY_EXPR(i, ptr, x)				while (TRUE) { if (!ptr[i]) { break; } else { {x} i++; }}
+#define PAGE_ALIGN(x)  							(C_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
 
 
 #ifdef _M_X64
@@ -245,12 +246,13 @@ struct _reloc {
 };
 
 struct _executable {
-	PBYTE				buffer;
-	PIMAGE_DOS_HEADER	dos_head;
-	PIMAGE_NT_HEADERS	nt_head;
+	PBYTE					buffer;
+	PIMAGE_DOS_HEADER		dos_head;
+	PIMAGE_NT_HEADERS		nt_head;
 
 	IMAGE_SECTION_HEADER 	*section;
 	IMAGE_EXPORT_DIRECTORY 	*exports;
+	SIZE_T 					size;
 
 	_reloc 					*reloc;
 	_symbol 				*symbol;

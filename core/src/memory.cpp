@@ -556,10 +556,11 @@ namespace Memory {
             }
         }
 
-        VOID LoadObject(_parser &parser) {
+        VOID LoadObject(const char *const name, void* const data, void* const args, size_t arg_size, uint32_t req_id) {
             HEXANE
 
-            _executable *object = Memory::Methods::CreateImageData(B_PTR(parser.Buffer));
+            _executable *object = Memory::Methods::CreateImageData(B_PTR(data));
+            void *next = { };
 
             object->next    = Ctx->Coffs;
             Ctx->Coffs      = object;
@@ -568,13 +569,23 @@ namespace Memory {
                 return_defer(ntstatus);
             }
 
+            object->sec_map = R_CAST(_object_map*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_object_map)));
+            object->fn_map->size = Memory::Objects::GetFunctionMapSize(object);
+
+            if (!object->sec_map) {
+                return_defer(ERROR_REPARSE_OBJECT);
+            }
+
+            for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
+                object->section = P_IMAGE_SECTION_HEADER(data, i);
+                object->size    += object->section->SizeOfRawData;
+                object->size    = R_CAST(size_t, PAGE_ALIGN(object->size));
+            }
+
             defer:
             if (!NT_SUCCESS(ntstatus)) {
                 Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, object);
             }
-
-            object->sec_map = R_CAST(_object_map*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_object_map)));
-            object->fn_map->size = Memory::Objects::GetFunctionMapSize(object);
         }
     }
 }
