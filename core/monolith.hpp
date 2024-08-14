@@ -65,6 +65,7 @@ EXTERN_C LPVOID InstEnd();
 #define PAGE_ALIGN(x)  							(B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
 #define IMAGE_REL_TYPE(x, y)  					IMAGE_REL_##x##_##y
 
+// todo: hash COFF_PREP_SYMBOL, BEACON_SYMBOL and GLOBAL_CONTEXT names
 #ifdef _M_X64
 	#define IP_REG								Rip
 	#define ENTRYPOINT_REG 						Rcx
