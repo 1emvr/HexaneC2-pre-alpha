@@ -108,8 +108,8 @@ namespace Injection {
         UINT_PTR PointerEncodeDecode(uintptr_t const &pointer, const bool encode) {
             HEXANE
 
+            const auto cookie = Memory::Methods::GetStackCookie();
             uintptr_t encoded = 0;
-            uintptr_t cookie = Memory::Methods::GetStackCookie();
 
             if (!cookie) {
                 return_defer(ntstatus);
@@ -137,6 +137,12 @@ namespace Injection {
             }
 
             return Ctx->Nt.NtWriteVirtualMemory(NtCurrentProcess(), C_PTR(handler), writer.target, sizeof(uintptr_t), nullptr);
+        }
+
+        LONG WINAPI Debugger(EXCEPTION_POINTERS *execption) {
+            HEXANE
+
+            return EXCEPTION_CONTINUE_EXECUTION;
         }
     }
 }

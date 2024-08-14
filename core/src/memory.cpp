@@ -211,7 +211,6 @@ namespace Memory {
                 return_defer(ERROR_PROC_NOT_FOUND);
             }
             defer:
-
         }
 
         VOID ContextInit() {
@@ -480,8 +479,8 @@ namespace Memory {
 
             uint8_t *next = { };
 
+            object->fn_map->size = GetFunctionMapSize(object);
             object->sec_map = R_CAST(_object_map*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_object_map)));
-            object->fn_map->size = Memory::Objects::GetFunctionMapSize(object);
 
             if (!object->sec_map) {
                 return_defer(ERROR_REPARSE_OBJECT);
@@ -726,7 +725,7 @@ namespace Memory {
             char *symbol_name = { };
             void *exec = { };
 
-            if (!(veh_handler = Ctx->Nt.RtlAddVectoredExceptionHandler(1, &Inject::Debugger))) {
+            if (!(veh_handler = Ctx->Nt.RtlAddVectoredExceptionHandler(1, &Injection::Veh::Debugger))) {
                 return_defer(ERROR_INVALID_EXCEPTION_HANDLER);
             }
 
@@ -805,6 +804,5 @@ namespace Memory {
 
             return success;
         }
-
     }
 }

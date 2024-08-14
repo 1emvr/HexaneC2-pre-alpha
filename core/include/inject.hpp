@@ -30,6 +30,7 @@ namespace Injection {
         FUNCTION UINT_PTR GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, const char *signature, const char *mask);
         FUNCTION UINT_PTR PointerEncodeDecode(const uintptr_t &pointer, bool encode);
         FUNCTION LONG OverwriteFirstHandler(const _veh_writer &writer);
+        FUNCTION LONG WINAPI Debugger(EXCEPTION_POINTERS *exception);
     }
 }
 #endif //HEXANE_IMPLANT_INJECT_HPP
