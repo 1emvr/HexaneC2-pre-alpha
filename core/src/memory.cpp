@@ -373,18 +373,19 @@ namespace Memory {
         UINT_PTR LoadExport(const char* const module_name, const char* const export_name) {
             HEXANE
 
-            UINT_PTR symbol = 0;
-            INT reload = 0;
+            uintptr_t symbol = 0;
+            int reload = 0;
 
             const auto mod_hash = Utils::GetHashFromStringA(module_name, x_strlen(module_name));
             const auto fn_hash = Utils::GetHashFromStringA(export_name, x_strlen(export_name));
 
+            // if not loaded, this will loop 3 times to get the symbol
             while (!symbol) {
                 if (!(F_PTR_HASHES(symbol, mod_hash, fn_hash))) {
                     if (reload || !Ctx->win32.LoadLibraryA(S_CAST(const char*, module_name))) {
                         goto defer;
                     }
-                    reload++;
+                    reload = 1;
                 }
             }
 
