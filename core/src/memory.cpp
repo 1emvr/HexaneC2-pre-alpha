@@ -2,6 +2,12 @@
 #ifndef ENDIANESS
 #define ENDIANESS 1
 #endif
+/*
+ * todo: finish bof loader
+ * todo: add foliage/silent moonwalk
+ * todo: add dark loadlibrary
+ * todo: fix server side issues
+ */
 
 namespace Memory {
     LPVOID ExceptionReturn = 0;
