@@ -685,8 +685,7 @@ namespace Memory {
 
             defer:
             if (address) {
-                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &address, &size, MEM_FREE))) {
-                    return_defer(ntstatus);
+                    ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &address, &size, MEM_FREE);
                 }
             }
         }
