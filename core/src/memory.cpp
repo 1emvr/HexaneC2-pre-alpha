@@ -284,7 +284,7 @@ namespace Memory {
             return address;
         }
 
-        UINT_PTR ResolveSymbol(const char* entry_name, const char* const args, size_t args_size, uint32_t req_id) {
+        UINT_PTR ResolveSymbol(_executable *object, const char* entry_name, uint32_t type) {
             HEXANE
 
             uintptr_t address = { };
@@ -308,11 +308,11 @@ namespace Memory {
             }
         }
 
-        VOID BaseRelocation(_executable *object, const char* const entry_name, const char* const args, size_t arg_size, uint32_t req_id) {
+        VOID BaseRelocation(_executable *object) {
             HEXANE
 
             char symbol_name[9] = { };
-            char *name = { };
+            char *entry_name = { };
 
             void *func      = { };
             void *reloc     = { };
@@ -333,9 +333,9 @@ namespace Memory {
                     if (symbol->First.Value[0] != 0) {
                         x_memset(symbol_name, 0, sizeof(symbol_name));
                         x_memcpy(symbol_name, symbol->First.Name, 8);
-                        name = symbol_name;
+                        entry_name = symbol_name;
                     } else {
-                        name = R_CAST(char*, B_PTR(object->symbol) + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
+                        entry_name = R_CAST(char*, B_PTR(object->symbol) + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
                     }
 
                     reloc   = object->sec_map[j].data + object->reloc->VirtualAddress;
@@ -343,7 +343,7 @@ namespace Memory {
                     sym_sec = object->sec_map[symbol->SectionNumber - 1].data;
                     type    = symbol->Type;
 
-                    func = C_PTR(ResolveSymbol(entry_name, args, arg_size, req_id));
+                    func = C_PTR(ResolveSymbol(object, entry_name, type));
 
                     if (object->reloc->Type == REL32 && func != nullptr) {
                         *(void**) fn_map = func;
