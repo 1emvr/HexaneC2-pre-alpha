@@ -37,6 +37,7 @@ namespace Memory {
     }
 
     namespace Execute {
+        FUNCTION BOOL ExecuteObject(_executable *object, const char *const entry, const void *args, uint32_t size_t, uint32_t req_id);
         FUNCTION VOID ExecuteCommand(_parser &parser);
         FUNCTION VOID ExecuteShellcode(_parser &parser);
         FUNCTION VOID LoadObject(_parser &parser);

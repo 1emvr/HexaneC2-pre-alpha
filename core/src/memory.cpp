@@ -711,7 +711,12 @@ namespace Memory {
                 }
             }
 
-        VOID LoadObject(const char *const name, uint8_t* const data, void* const args, size_t arg_size, uint32_t req_id) {
+        BOOL ExecuteObject(_executable *object, const char *const entry, const void *args, uint32_t size_t, uint32_t req_id) {
+
+            return true;
+        }
+
+        VOID LoadObject(const char *const entry, uint8_t* const data, void* const args, size_t arg_size, uint32_t req_id) {
             HEXANE
 
             _executable *object = Memory::Methods::CreateImageData(B_PTR(data));
@@ -731,12 +736,12 @@ namespace Memory {
                 return_defer(ntstatus);
             }
 
-            if (!Memory::Execute::ExecuteObject(object, name, args, arg_size, req_id)) {
+            if (!Memory::Execute::ExecuteObject(object, entry, args, arg_size, req_id)) {
                 return_defer(ntstatus);
             }
 
             defer:
-            if (!NT_SUCCESS(ntstatus)) {
+            if (ntstatus != ERROR_SUCCESS) {
                 Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, object);
             }
         }
