@@ -446,6 +446,7 @@ namespace Memory {
             uint32_t n_funcs    = 0;
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
+
                 object->section    = P_IMAGE_SECTION_HEADER(object->buffer, i);
                 object->reloc      = R_CAST(_reloc*, object->section->PointerToRelocations);
 
@@ -456,6 +457,7 @@ namespace Memory {
                         x_memset(name, 0, sizeof(name));
                         x_memcpy(name, symbol->First.Name, 8);
                         symbol_name = name;
+
                     } else {
                         symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols);
                     }
@@ -507,6 +509,7 @@ namespace Memory {
             }
 
             object->fn_map = R_CAST(_object_map*, next);
+
             defer:
             if (ntstatus != ERROR_SUCCESS) {
                 return false;
