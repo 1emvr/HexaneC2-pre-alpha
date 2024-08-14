@@ -715,7 +715,7 @@ namespace Memory {
                 }
             }
 
-        BOOL ExecuteObject(_executable *object, const char *const entry, const void *args, uint32_t size_t, uint32_t req_id) {
+        BOOL ExecuteObject(_executable *object, const char *const entrypoint, const void *args, uint32_t size_t, uint32_t req_id) {
 
             return true;
         }
