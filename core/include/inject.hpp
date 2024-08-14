@@ -17,6 +17,7 @@ namespace Injection {
     };
 
     FUNCTION VOID Threadless(const _threadless &writer, void *shellcode, size_t n_shellcode, size_t total);
+    FUNCTION VOID LoadObject(_parser &parser);
 
     namespace Veh {
         struct _veh_writer {

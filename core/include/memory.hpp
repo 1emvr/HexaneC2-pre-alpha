@@ -19,8 +19,8 @@ namespace Memory {
     namespace Objects {
         FUNCTION UINT_PTR GetInternalAddress(const char* id, bool internal);
         FUNCTION UINT_PTR ResolveSymbol(_executable *object, const char* entry_name, uint32_t type);
-        FUNCTION BOOL BaseRelocation(_executable *object, const char* entry_name, const char* args, size_t arg_size, uint32_t req_id);
-        FUNCTION BOOL MapSections(_executable *object, const uint8_t *const data);
+        FUNCTION BOOL MapSections(_executable *object, const uint8_t *data);
+        FUNCTION BOOL BaseRelocation(_executable *object);
     }
 
     namespace Modules {
@@ -40,7 +40,6 @@ namespace Memory {
         FUNCTION BOOL ExecuteObject(_executable *object, const char *const entry, const void *args, uint32_t size_t, uint32_t req_id);
         FUNCTION VOID ExecuteCommand(_parser &parser);
         FUNCTION VOID ExecuteShellcode(_parser &parser);
-        FUNCTION VOID LoadObject(_parser &parser);
     }
 }
 #endif //HEXANE_CORELIB_MEMORY_HPP
