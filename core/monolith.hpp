@@ -318,7 +318,6 @@ struct _proxy {
 
 struct _http_context {
 	HINTERNET 	handle;
-	LPWSTR 		endpoint;
 	LPWSTR  	useragent;
 	LPWSTR  	method;
 	LPWSTR		address;
