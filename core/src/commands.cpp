@@ -20,7 +20,7 @@ namespace Commands {
 
 
         query = Parser::UnpackString(parser, nullptr);
-        path = R_CAST(char*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, MAX_PATH));
+        path = R_CAST(char*, x_malloc(MAX_PATH));
 
         if (query[0] == PERIOD) {
             if (!(length = Ctx->win32.GetCurrentDirectoryA(MAX_PATH, path))) {
@@ -71,7 +71,7 @@ namespace Commands {
 
         defer:
         if (file) { Ctx->win32.FindClose(file); }
-        if (path) { Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, path); }
+        if (path) { x_free(path); }
     }
 
     VOID ProcessModules (_parser *const parser) {
@@ -231,7 +231,7 @@ namespace Commands {
 
         if (Ctx->Config.IngressPipename) {
             x_memset(Ctx->Config.IngressPipename, 0, nameLength);
-            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, Ctx->Config.IngressPipename);
+            x_free(Ctx->Config.IngressPipename);
         }
 
         Parser::ParserWcscpy(parser, &Ctx->Config.IngressPipename, nullptr);

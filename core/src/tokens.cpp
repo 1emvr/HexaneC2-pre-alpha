@@ -131,7 +131,7 @@ namespace Token {
 		_token_list_data *entry	= { };
 		DWORD Index				= 0;
 
-		entry = R_CAST(_token_list_data*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_token_list_data)));
+		entry = R_CAST(_token_list_data*, x_malloc(sizeof(_token_list_data)));
 
 		entry->Handle		= token;
 		entry->lpUser		= username;
@@ -196,31 +196,31 @@ namespace Token {
 
 				if (entry->DomainUser) {
 					x_memset(entry->DomainUser, 0, x_wcslen(entry->DomainUser) * sizeof(wchar_t));
-					Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, entry->DomainUser);
+					x_free(entry->DomainUser);
 					entry->DomainUser = nullptr;
 				}
 
 				if (entry->lpUser) {
 					x_memset(entry->lpUser, 0, x_wcslen(entry->lpUser) * sizeof(wchar_t));
-					Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, entry->lpUser);
+					x_free(entry->lpUser);
 					entry->lpUser = nullptr;
 				}
 
 				if (entry->lpDomain) {
 					x_memset(entry->lpDomain, 0, x_wcslen(entry->lpDomain) * sizeof(wchar_t));
-					Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, entry->lpDomain);
+					x_free(entry->lpDomain);
 					entry->lpDomain = nullptr;
 				}
 
 				if (entry->lpPassword) {
 					x_memset(entry->lpPassword, 0, x_wcslen(entry->lpPassword) * sizeof(wchar_t));
-					Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, entry->lpPassword);
+					x_free(entry->lpPassword);
 					entry->lpPassword = nullptr;
 				}
 
 				x_memset(entry, 0, sizeof(_token_list_data));
-				Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, entry);
 
+				x_free(entry);
 				return TRUE;
 			}
 

@@ -84,7 +84,7 @@ namespace Dispatcher {
             queue->MsgType  = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
 
             queue->Length   = parser.Length;
-            queue->Buffer   = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, queue->Buffer, queue->Length);
+            queue->Buffer   = x_realloc(queue->Buffer, queue->Length);
 
             x_memcpy(queue->Buffer, parser.Buffer, queue->Length);
             AddMessage(queue);
@@ -114,7 +114,7 @@ namespace Dispatcher {
                 ? MESSAGE_MAX - SEGMENT_HEADER_SIZE
                 : length;
 
-            queue = S_CAST(_stream*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, cb_seg + SEGMENT_HEADER_SIZE));
+            queue = S_CAST(_stream*, x_malloc(cb_seg + SEGMENT_HEADER_SIZE));
 
             x_memcpy(&peer_id, buffer, 4);
             x_memcpy(&task_id, buffer + 4, 4);
@@ -177,7 +177,7 @@ namespace Dispatcher {
                             Stream::PackBytes(out, B_PTR(head->Buffer), head->Length);
 
                         } else {
-                            out->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, 0, out->Buffer, out->Length + head->Length);
+                            out->Buffer = x_realloc(out->Buffer, out->Length + head->Length);
                             x_memcpy(B_PTR(out->Buffer) + out->Length, head->Buffer, head->Length);
 
                             out->Length += head->Length;

@@ -206,8 +206,9 @@ WEAK EXTERN_C uint32_t		__instance;
 	Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, x);		\
 	x = nullptr
 
-#define x_malloc(x) 	Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, x)
-#define x_free(x) 		Ctx->Nt.FreeHeap(Ctx->Heap, 0, x)
+#define x_malloc(size) 			Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, size)
+#define x_realloc(ptr, size) 	Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, ptr, size)
+#define x_free(size) 			Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, size)
 
 #define F_PTR_HMOD(Fn, hmod, sym_hash) 	\
 	Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash)

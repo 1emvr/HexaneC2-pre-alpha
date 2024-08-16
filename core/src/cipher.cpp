@@ -80,18 +80,17 @@ namespace Xtea {
 
         *n_out = n;
 
-        if (!(sections = S_CAST(uint8_t**, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, n * sizeof(uint8_t*))))) {
+        if (!(sections = S_CAST(uint8_t**, x_malloc(n * sizeof(uint8_t*))))) {
             return nullptr;
         }
-
         for (size_t i = 0; i < n; i++) {
-            if (!(sections[i] = B_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sec_size)))) {
+            if (!(sections[i] = B_PTR(x_malloc(sec_size)))) {
 
                 for (auto j = 0; j < i; j++) {
-                    Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, sections[j]);
+                    x_free(sections[j]);
                 }
 
-                Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, sections);
+                x_free(sections);
                 return_defer(ERROR_NOT_ENOUGH_MEMORY);
             }
 
@@ -126,7 +125,7 @@ namespace Xtea {
             key = m_key;
         }
 
-        if (!(text = S_CAST(_ciphertext*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_ciphertext))))) {
+        if (!(text = S_CAST(_ciphertext*, x_malloc(sizeof(_ciphertext))))) {
             return;
         }
         InitCipher(text, key);
@@ -138,7 +137,7 @@ namespace Xtea {
         x_memset(data, 0, n_data);
 
         for (auto i = 0; i < n_sect; i++) {
-            if (!(buffer = B_PTR(Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, 8)))) {
+            if (!(buffer = B_PTR(x_malloc(8)))) {
                 return;
             }
             if (encrypt) {
@@ -149,15 +148,15 @@ namespace Xtea {
 
             x_memcpy(C_PTR(data+offset), C_PTR(buffer), sizeof(uint64_t));
 
-            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, buffer);
+            x_free(buffer);
             offset += sizeof(uint64_t);
         }
 
         for (uint64_t i = 0; i < n_sect; i++) {
-            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, sections[i]);
+            x_free(sections[i]);
         }
 
-        Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, sections);
-        Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, text);
+        x_free(sections);
+        x_free(text);
     }
 }

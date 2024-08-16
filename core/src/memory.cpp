@@ -64,7 +64,7 @@ namespace Memory {
                 !(object->Size      = Ctx->win32.SizeofResource(base, res_info)) ||
                 !(object->ResLock   = Ctx->win32.LockResource(object->hGlobal))) {
 
-                Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, object);
+                x_free(object);
                 return nullptr;
             }
 
@@ -691,7 +691,7 @@ namespace Memory {
 
             defer:
             if (buffer) {
-                Ctx->Nt.RtlFreeHeap(GetProcessHeap(), 0, buffer);
+                x_free(buffer);
             }
             return address;
         }

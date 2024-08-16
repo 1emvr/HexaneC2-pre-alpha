@@ -3,16 +3,15 @@
 LPSTR FormatResultError(LRESULT Result) {
     HEXANE
 
-    char *message = { };
     char buffer[MAX_PATH] = { };
+    char *message = R_CAST(char*, x_malloc(MAX_PATH));
 
     uint32_t flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
-    message = R_CAST(char*, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, MAX_PATH));
 
     Ctx->win32.FormatMessageA(flags, nullptr, Result, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), R_CAST(LPSTR, buffer), 0, nullptr);
     x_memcpy(message, buffer, MAX_PATH);
 
-    Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, buffer);
+    x_free(buffer);
     return message;
 }
 

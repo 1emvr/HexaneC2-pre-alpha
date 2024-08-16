@@ -42,8 +42,8 @@ namespace Stream {
 
         _stream *stream = { };
         if (
-            !(stream            = S_CAST(_stream *, Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, sizeof(_stream)))) ||
-            !(stream->Buffer    = Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, sizeof(uint8_t)))) {
+            !(stream            = S_CAST(_stream *, x_malloc(sizeof(_stream)))) ||
+            !(stream->Buffer    = x_malloc(sizeof(uint8_t)))) {
             return_defer(ntstatus);
         }
 
@@ -61,7 +61,7 @@ namespace Stream {
             if (stream->Buffer) {
 
                 x_memset(stream->Buffer, 0, stream->Length);
-                Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, stream->Buffer);
+                x_free(stream->Buffer);
 
                 stream->Buffer  = nullptr;
                 stream->PeerId  = 0;
@@ -70,7 +70,7 @@ namespace Stream {
                 stream->Length  = 0;
             }
 
-            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, stream);
+            x_free(stream);
         }
     }
 
@@ -78,7 +78,7 @@ namespace Stream {
         HEXANE
 
         if (stream) {
-            stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(uint8_t));
+            stream->Buffer = x_realloc(stream->Buffer, stream->Length + sizeof(uint8_t));
 
             x_memcpy(B_PTR(stream->Buffer) + stream->Length, &data, sizeof(uint8_t));
             stream->Length += sizeof(uint8_t);
@@ -89,7 +89,7 @@ namespace Stream {
         HEXANE
 
         if (stream) {
-            stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(uint64_t));
+            stream->Buffer = x_realloc(stream->Buffer, stream->Length + sizeof(uint64_t));
 
             PackInt64(B_PTR(stream->Buffer) + stream->Length, data);
             stream->Length += sizeof(uint64_t);
@@ -100,7 +100,7 @@ namespace Stream {
         HEXANE
 
         if (stream) {
-            stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + sizeof(uint32_t));
+            stream->Buffer = x_realloc(stream->Buffer, stream->Length + sizeof(uint32_t));
 
             PackInt32(B_PTR(stream->Buffer) + stream->Length, data);
             stream->Length += sizeof(uint32_t);
@@ -113,7 +113,7 @@ namespace Stream {
         if (stream) {
             if (size) {
                 PackDword(stream, S_CAST(uint32_t, size));
-                stream->Buffer = Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, stream->Buffer, stream->Length + size);
+                stream->Buffer = x_realloc(stream->Buffer, stream->Length + size);
 
                 x_memcpy(S_CAST(PBYTE, stream->Buffer) + stream->Length, data, size);
                 stream->Length += size;
