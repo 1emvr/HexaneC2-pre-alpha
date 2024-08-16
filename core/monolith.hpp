@@ -201,10 +201,7 @@ WEAK EXTERN_C uint32_t		__instance;
     (ptr)->SecurityQualityOfService = NULL
 
 
-#define ZeroFreePtr(x, n) 						\
-	x_memset(x, 0, n); 							\
-	Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, x);		\
-	x = nullptr
+#define ZeroFreePtr(x, n) 		x_memset(x, 0, n); x_free(x); x = nullptr
 
 #define x_malloc(size) 			Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, size)
 #define x_realloc(ptr, size) 	Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, ptr, size)

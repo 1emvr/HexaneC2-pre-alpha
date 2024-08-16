@@ -28,6 +28,7 @@ namespace Http {
 
             if (!Ctx->win32.WinHttpAddRequestHeaders(request->req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
                 success = false;
+                break;
             })
         }
 
@@ -44,10 +45,10 @@ namespace Http {
         uint32_t total = 0;
         uint32_t length = 0;
         do {
-            if (
-                !(Ctx->win32.WinHttpQueryDataAvailable(request->req_handle, R_CAST(LPDWORD, &length)))) {
+            if (!(Ctx->win32.WinHttpQueryDataAvailable(request->req_handle, R_CAST(LPDWORD, &length)))) {
                 return_defer(ntstatus);
             }
+
             if (!buffer) {
                 buffer = x_malloc(length + 1);
             }
@@ -58,7 +59,6 @@ namespace Http {
             }
 
             x_memset(buffer, 0, length + 1);
-
             if (!Ctx->win32.WinHttpReadData(request, buffer, length, R_CAST(LPDWORD, &read))) {
                 return_defer(ntstatus);
             }
