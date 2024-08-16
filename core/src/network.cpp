@@ -1,18 +1,6 @@
 #include <core/include/network.hpp>
 namespace Http {
 
-    struct _request {
-        HINTERNET conn_handle;
-        HINTERNET req_handle;
-        LPWSTR endpoint;
-    };
-
-    struct _proxy_context {
-        WINHTTP_CURRENT_USER_IE_PROXY_CONFIG    proxy_config;
-        WINHTTP_AUTOPROXY_OPTIONS               autoproxy;
-        WINHTTP_PROXY_INFO                      proxy_info;
-    };
-
     BOOL SetHeaders(_request *request) {
         HEXANE
 
@@ -78,6 +66,7 @@ namespace Http {
 
     _request* CreateRequestContext() {
         HEXANE
+        // creates global http session for context
 
         _request *request = R_CAST(_request*, x_malloc(sizeof(_request)));
         uint32_t n_endpoint = 0;
@@ -116,8 +105,8 @@ namespace Http {
     }
 
     _proxy_context* CreateProxyContext(_request *request) {
-        // _proxy_context is a temporary store and can be discarded
         HEXANE
+        // _proxy_context is a temporary store and can be discarded
 
         _proxy_context *proxy_ctx = R_CAST(_proxy_context*, x_malloc(sizeof(_proxy_context)));
         uint32_t flags  = 0;
