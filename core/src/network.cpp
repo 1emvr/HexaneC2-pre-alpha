@@ -327,9 +327,9 @@ namespace Smb {
                     return false;
                 }
             }
-
             total += read;
-        } while (total < in->Length);
+        }
+        while (total < in->Length);
         return true;
     }
 
@@ -343,9 +343,9 @@ namespace Smb {
             if (!Ctx->win32.WriteFile(handle, B_PTR(out->Buffer) + total, MIN((out->Length - total), PIPE_BUFFER_MAX), R_CAST(LPDWORD, &write), nullptr)) {
                 return false;
             }
-
             total += write;
-        } while (total < out->Length);
+        }
+        while (total < out->Length);
         return true;
     }
 
