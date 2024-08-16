@@ -276,8 +276,8 @@ namespace Smb {
         SID_IDENTIFIER_AUTHORITY sid_auth = SECURITY_WORLD_SID_AUTHORITY;
         SID_IDENTIFIER_AUTHORITY sid_label = SECURITY_MANDATORY_LABEL_AUTHORITY;
 
-        EXPLICIT_ACCESSA access = {};
-        PACL acl = {};
+        EXPLICIT_ACCESSA access = { };
+        PACL acl = { };
 
         x_memset(SmbSecAttr, 0, sizeof(SMB_PIPE_SEC_ATTR));
         x_memset(SecAttr, 0, sizeof(PSECURITY_ATTRIBUTES));
