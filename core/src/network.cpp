@@ -1,25 +1,6 @@
 #include <core/include/network.hpp>
 namespace Http {
 
-    BOOL SetHeaders(_request *request) {
-        HEXANE
-
-
-        if (Ctx->Transport.http->headers) {
-
-            DYN_ARRAY_EXPR(
-                n_headers, Ctx->Transport.http->headers,
-                header = Ctx->Transport.http->headers[n_headers];
-
-            if (!Ctx->win32.WinHttpAddRequestHeaders(request->req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
-                success = false;
-                break;
-            })
-        }
-
-        return success;
-    }
-
     VOID HttpDownload(_request *request, _stream **stream) {
         HEXANE
 
@@ -215,13 +196,13 @@ namespace Http {
         }
 
         if (Ctx->Transport.http->headers) {
-            // a pointless macro but it looks nicer/slightly less typing
             DYN_ARRAY_EXPR(
+                // a pointless macro but it looks nicer/slightly less typing
                 n_headers, Ctx->Transport.http->headers,
                 header = Ctx->Transport.http->headers[n_headers];
 
-            if (!Ctx->win32.WinHttpAddRequestHeaders(request->req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
-                return_defer(ntstatus);
+                if (!Ctx->win32.WinHttpAddRequestHeaders(request->req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
+                    return_defer(ntstatus);
             })
         }
 
