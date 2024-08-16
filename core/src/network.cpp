@@ -156,7 +156,6 @@ namespace Http {
             proxy->autoproxy.fAutoLogonIfChallenged = TRUE;
 
             if (Ctx->win32.WinHttpGetProxyForUrl(Ctx->Transport.http->Handle, request->endpoint, &proxy->autoproxy, &proxy->proxy_info)) {
-
                 Ctx->Transport.EnvProxyLen  = sizeof(WINHTTP_PROXY_INFO);
                 Ctx->Transport.EnvProxy     = x_malloc(Ctx->Transport.EnvProxyLen);
 
@@ -165,10 +164,10 @@ namespace Http {
             } else {
                 if (Ctx->win32.WinHttpGetIEProxyConfigForCurrentUser(&proxy->proxy_config)) {
                     if (proxy->proxy_config.lpszProxy != nullptr && x_wcslen(proxy->proxy_config.lpszProxy) != 0) {
-                        proxy->proxy_info.dwAccessType     = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
-                        proxy->proxy_info.lpszProxy        = proxy->proxy_config.lpszProxy;
-                        proxy->proxy_info.lpszProxyBypass  = proxy->proxy_config.lpszProxyBypass;
-                        Ctx->Transport.EnvProxyLen  = sizeof(WINHTTP_PROXY_INFO);
+                        proxy->proxy_info.dwAccessType      = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
+                        proxy->proxy_info.lpszProxy         = proxy->proxy_config.lpszProxy;
+                        proxy->proxy_info.lpszProxyBypass   = proxy->proxy_config.lpszProxyBypass;
+                        Ctx->Transport.EnvProxyLen          = sizeof(WINHTTP_PROXY_INFO);
 
                         Ctx->Transport.EnvProxy = x_malloc(Ctx->Transport.EnvProxyLen);
                         x_memcpy(Ctx->Transport.EnvProxy, &proxy->proxy_info, Ctx->Transport.EnvProxyLen);
