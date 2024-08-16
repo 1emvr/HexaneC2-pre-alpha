@@ -37,13 +37,12 @@ namespace Network {
     }
 
     namespace Smb {
-        FUNCTION BOOL PipeRead(_stream *in, void *handle);
-        FUNCTION BOOL PipeWrite(_stream *out, void *handle);
+        FUNCTION BOOL PipeRead(HANDLE handle, _stream *in);
+        FUNCTION BOOL PipeWrite(HANDLE handle, _stream *out);
+        FUNCTION VOID SmbContextDestroy(const PSMB_PIPE_SEC_ATTR SmbSecAttr);
+        FUNCTION VOID SmbContextInit(SMB_PIPE_SEC_ATTR *const SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr);
         FUNCTION VOID PeerConnectIngress (_stream *out, _stream **in);
         FUNCTION VOID PeerConnectEgress(_stream *out, _stream **in);
-        FUNCTION VOID SmbPipeReceive(_stream *in, void *handle);
-        FUNCTION VOID SmbContextInit(PSMB_PIPE_SEC_ATTR SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr);
-        FUNCTION VOID SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr);
     }
 }
 #endif //HEXANE_CORELIB_NETWORK_HPP

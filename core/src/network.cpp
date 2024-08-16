@@ -315,14 +315,14 @@ namespace Smb {
         }
     }
 
-    BOOL PipeRead(_stream *in, HANDLE handle) {
+    BOOL PipeRead(HANDLE handle, _stream *in) {
         HEXANE
 
         uint32_t read = 0;
         uint32_t total = 0;
 
         do {
-            if (!Ctx->win32.ReadFile(handle, B_PTR(in->Buffer) + total, MIN((in->Length - total), PIPE_BUFFER_MAX), R_CAST(LPDWORD, &read), nullptr)) {
+            if (!Ctx->win32.ReadFile(Ctx->Config.EgressHandle, B_PTR(in->Buffer) + total, MIN((in->Length - total), PIPE_BUFFER_MAX), R_CAST(LPDWORD, &read), nullptr)) {
                 if (ntstatus == ERROR_NO_DATA) {
                     return false;
                 }
@@ -333,14 +333,14 @@ namespace Smb {
         return true;
     }
 
-    BOOL PipeWrite(_stream *out, HANDLE handle) {
+    BOOL PipeWrite(HANDLE handle, _stream *out) {
         HEXANE
 
         uint32_t total = 0;
         uint32_t write = 0;
 
         do {
-            if (!Ctx->win32.WriteFile(handle, B_PTR(out->Buffer) + total, MIN((out->Length - total), PIPE_BUFFER_MAX), R_CAST(LPDWORD, &write), nullptr)) {
+            if (!Ctx->win32.WriteFile(Ctx->Config.EgressHandle, B_PTR(out->Buffer) + total, MIN((out->Length - total), PIPE_BUFFER_MAX), R_CAST(LPDWORD, &write), nullptr)) {
                 return false;
             }
             total += write;
@@ -351,25 +351,25 @@ namespace Smb {
 
     VOID PeerConnectIngress (_stream *out, _stream **in) {
         HEXANE
+        // ingress, the peer creates the handle
+        // egress, the peer waits for parent's handle
 
-        HANDLE handle               = Ctx->Config.IngressPipename;
-        SMB_PIPE_SEC_ATTR smb_attr  = { };
-        SECURITY_ATTRIBUTES sec_attr = { };
+        SECURITY_ATTRIBUTES sec_attr    = { };
+        SMB_PIPE_SEC_ATTR smb_attr      = { };
+        HANDLE handle                   = { };
 
-        ULONG n_bytes   = 0;
-        ULONG msg_length = 0;
-        ULONG peer_id   = 0;
+        ULONG msg_length    = 0;
+        ULONG peer_id       = 0;
+        ULONG n_bytes       = 0;
 
-        if (!handle) {
-            SmbContextInit(&smb_attr, &sec_attr);
-            if (!(handle = Ctx->win32.CreateNamedPipeW(Ctx->Config.IngressPipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
-                return_defer(ntstatus);
-            }
+        SmbContextInit(&smb_attr, &sec_attr);
+        if (!(handle = Ctx->win32.CreateNamedPipeW(Ctx->Config.IngressPipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
+            return_defer(ntstatus);
+        }
 
-            SmbContextDestroy(&smb_attr);
-            if (!Ctx->win32.ConnectNamedPipe(handle, nullptr)) {
-                return_defer(ERROR_BROKEN_PIPE);
-            }
+        SmbContextDestroy(&smb_attr);
+        if (!Ctx->win32.ConnectNamedPipe(handle, nullptr)) {
+            return_defer(ERROR_BROKEN_PIPE);
         }
 
         if (!Ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, &n_bytes, nullptr)) {
@@ -390,14 +390,14 @@ namespace Smb {
             (*in)->Buffer = x_malloc(msg_length);
             (*in)->Length = msg_length;
 
-            PipeRead(*in, handle);
+            PipeRead(*in);
 
         } else {
             return_defer(ERROR_INSUFFICIENT_BUFFER);
         }
 
         if (out) {
-            if (!PipeWrite(out, handle)) {
+            if (!PipeWrite(out)) {
                 return_defer(ERROR_WRITE_FAULT);
             }
         }
@@ -408,11 +408,9 @@ namespace Smb {
     VOID PeerConnectEgress(_stream *out, _stream **in) {
         HEXANE
 
-        auto handle = Ctx->Config.EgressHandle;
         auto pipename = Ctx->Config.EgressPipename;
-
-        if (!(handle = Ctx->win32.CreateFileW(pipename, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr))) {
-            if (handle == INVALID_HANDLE_VALUE && ntstatus == ERROR_PIPE_BUSY) {
+        if (!(Ctx->Config.EgressHandle = Ctx->win32.CreateFileW(pipename, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr))) {
+            if (Ctx->Config.EgressHandle == INVALID_HANDLE_VALUE && ntstatus == ERROR_PIPE_BUSY) {
 
                 if (!Ctx->win32.WaitNamedPipeW(pipename, 5000)) {
                     return_defer(ERROR_NOT_READY);
@@ -422,17 +420,17 @@ namespace Smb {
             }
         }
 
-        if (Ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, &(*in)->Length, nullptr)) {
+        if (Ctx->win32.PeekNamedPipe(Ctx->Config.EgressHandle, nullptr, 0, nullptr, &(*in)->Length, nullptr)) {
             if ((*in)->Length > 0) {
 
-                if (!PipeRead(*in, handle)) {
+                if (!PipeRead(*in)) {
                     return_defer(ntstatus);
                 }
             } else {
                 return_defer(ERROR_INSUFFICIENT_BUFFER);
             }
         }
-        if (!PipeWrite(out, handle)) {
+        if (!PipeWrite(out)) {
             return_defer(ntstatus);
         }
 
