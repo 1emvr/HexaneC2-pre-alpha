@@ -72,6 +72,8 @@ namespace Http {
         (*stream) = S_CAST(_stream*, x_malloc(sizeof(_stream)));
         (*stream)->Buffer = download;
         (*stream)->Length = total;
+
+        defer:
     }
 
     _request* CreateRequestContext() {
