@@ -105,8 +105,8 @@ namespace Http {
 
     _proxy_context* CreateProxyContext(_request *request) {
         HEXANE
-        // _proxy_context is a temporary store and can be discarded
 
+        // _proxy_context is a temporary store and can be discarded
         _proxy_context *proxy_ctx = R_CAST(_proxy_context*, x_malloc(sizeof(_proxy_context)));
 
         if (Ctx->Transport.bProxy) {
