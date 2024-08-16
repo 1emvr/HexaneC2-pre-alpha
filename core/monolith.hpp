@@ -310,21 +310,26 @@ struct _resource {
     SIZE_T  Size;
 };
 
+struct _proxy {
+	LPWSTR	address;
+	LPWSTR	username;
+	LPWSTR	password;
+};
+
 struct _http_context {
-	LPWSTR  Useragent;
-	LPWSTR  Method;
-	LPWSTR	Address;
-	INT 	Port;
-	LPWSTR	ProxyAddress;
-	LPWSTR	ProxyUsername;
-	LPWSTR	ProxyPassword;
-	LPCWSTR	Accept;
-	ULONG	Access;
-	ULONG 	Flags;
-	HINTERNET	Handle;
-	ULONG 	nEndpoints;
-	LPWSTR	*Endpoints;
-	LPWSTR	*Headers;
+	HINTERNET 	handle;
+	LPWSTR 		endpoint;
+	LPWSTR  	useragent;
+	LPWSTR  	method;
+	LPWSTR		address;
+	INT 		port;
+	LPCWSTR		accept;
+	ULONG		access;
+	ULONG 		flags;
+	INT 		n_endpoints;
+	LPWSTR		*endpoints;
+	LPWSTR		*headers;
+	_proxy		*proxy;
 };
 
 struct _token_list_data {
