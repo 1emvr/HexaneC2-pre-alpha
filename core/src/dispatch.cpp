@@ -241,7 +241,7 @@ namespace Dispatcher {
         _parser parser = { };
 
         Parser::CreateParser(&parser, B_PTR(in->buffer), in->length);
-        Parser::UnpackDword(&parser); // throw-away pid todo: maybe generate new pid every task?
+        Parser::UnpackDword(&parser); // todo: maybe generate new pid every task?
 
         Ctx->session.current_taskid = Parser::UnpackDword(&parser);
 
