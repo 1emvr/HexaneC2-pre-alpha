@@ -61,28 +61,28 @@ namespace Parser {
     VOID CreateParser (_parser *const parser, const uint8_t *const buffer, const uint32_t length) {
         HEXANE
 
-        if (!(parser->Handle = x_malloc(length))) {
+        if (!(parser->handle = x_malloc(length))) {
             return;
         }
 
-        x_memcpy(parser->Handle, buffer, length);
+        x_memcpy(parser->handle, buffer, length);
 
         parser->Length  = length;
-        parser->Buffer  = parser->Handle;
-        parser->LE      = Ctx->LE;
+        parser->buffer  = parser->handle;
+        parser->little      = Ctx->little;
     }
 
     VOID DestroyParser (_parser *const parser) {
         HEXANE
 
         if (parser) {
-            if (parser->Handle) {
+            if (parser->handle) {
 
-                x_memset(parser->Handle, 0, parser->Length);
-                Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, parser->Handle);
+                x_memset(parser->handle, 0, parser->Length);
+                x_free(parser->handle);
 
-                parser->Buffer = nullptr;
-                parser->Handle = nullptr;
+                parser->buffer = nullptr;
+                parser->handle = nullptr;
             }
         }
     }
@@ -91,9 +91,9 @@ namespace Parser {
         uint8_t data = 0;
 
         if (parser->Length >= 1) {
-            x_memcpy(&data, parser->Buffer, 1);
+            x_memcpy(&data, parser->buffer, 1);
 
-            parser->Buffer = B_PTR(parser->Buffer) + 1;
+            parser->buffer = B_PTR(parser->buffer) + 1;
             parser->Length -= 1;
         }
 
@@ -105,9 +105,9 @@ namespace Parser {
         uint16_t data = 0;
 
         if (parser->Length >= 2) {
-            x_memcpy(&data, parser->Buffer, 2);
+            x_memcpy(&data, parser->buffer, 2);
 
-            parser->Buffer = B_PTR(parser->Buffer) + 2;
+            parser->buffer = B_PTR(parser->buffer) + 2;
             parser->Length -= 2;
         }
 
@@ -122,12 +122,12 @@ namespace Parser {
             return 0;
         }
 
-        x_memcpy(&data, parser->Buffer, 4);
+        x_memcpy(&data, parser->buffer, 4);
 
-        parser->Buffer = B_PTR(parser->Buffer) + 4;
+        parser->buffer = B_PTR(parser->buffer) + 4;
         parser->Length -= 4;
 
-        return (parser->LE)
+        return (parser->little)
                ? data
                : __builtin_bswap32(S_CAST(int32_t, data));
     }
@@ -140,12 +140,12 @@ namespace Parser {
             return 0;
         }
 
-        x_memcpy(&data, parser->Buffer, 4);
+        x_memcpy(&data, parser->buffer, 4);
 
-        parser->Buffer = B_PTR(parser->Buffer) + 8;
+        parser->buffer = B_PTR(parser->buffer) + 8;
         parser->Length -= 8;
 
-        return (parser->LE)
+        return (parser->little)
                ? data
                : __builtin_bswap64(S_CAST(int64_t, data));
     }
@@ -158,12 +158,12 @@ namespace Parser {
             return 0;
         }
 
-        x_memcpy(&data, parser->Buffer, 4);
+        x_memcpy(&data, parser->buffer, 4);
 
-        parser->Buffer = B_PTR(parser->Buffer) + 4;
+        parser->buffer = B_PTR(parser->buffer) + 4;
         parser->Length -= 4;
 
-        return (parser->LE)
+        return (parser->little)
                ? data != 0
                : __builtin_bswap32(data) != 0;
     }
@@ -182,12 +182,12 @@ namespace Parser {
             *n_out = length;
         }
 
-        if (!(output = B_PTR(parser->Buffer))) {
+        if (!(output = B_PTR(parser->buffer))) {
             return nullptr;
         }
 
         parser->Length -= length;
-        parser->Buffer = B_PTR(parser->Buffer) + length;
+        parser->buffer = B_PTR(parser->buffer) + length;
 
         return output;
     }

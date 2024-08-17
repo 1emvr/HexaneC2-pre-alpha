@@ -30,8 +30,8 @@ namespace Stream {
         HEXANE
         _stream *stream = CreateStream();
 
-        Stream::PackDword(stream, Ctx->Session.PeerId);
-        Stream::PackDword(stream, Ctx->Session.CurrentTaskId);
+        Stream::PackDword(stream, Ctx->session.peer_id);
+        Stream::PackDword(stream, Ctx->session.current_taskid);
         Stream::PackDword(stream, msg_type);
 
         return stream;
@@ -43,12 +43,12 @@ namespace Stream {
         _stream *stream = { };
         if (
             !(stream            = S_CAST(_stream *, x_malloc(sizeof(_stream)))) ||
-            !(stream->Buffer    = x_malloc(sizeof(uint8_t)))) {
+            !(stream->buffer    = x_malloc(sizeof(uint8_t)))) {
             return_defer(ntstatus);
         }
 
-        stream->Length 	= 0;
-        stream->Next 	= nullptr;
+        stream->length 	= 0;
+        stream->next 	= nullptr;
 
         defer:
         return stream;
@@ -58,16 +58,16 @@ namespace Stream {
         HEXANE
 
         if (stream) {
-            if (stream->Buffer) {
+            if (stream->buffer) {
 
-                x_memset(stream->Buffer, 0, stream->Length);
-                x_free(stream->Buffer);
+                x_memset(stream->buffer, 0, stream->length);
+                x_free(stream->buffer);
 
-                stream->Buffer  = nullptr;
-                stream->PeerId  = 0;
-                stream->TaskId  = 0;
-                stream->MsgType = 0;
-                stream->Length  = 0;
+                stream->buffer      = nullptr;
+                stream->peer_id     = 0;
+                stream->task_id     = 0;
+                stream->msg_type    = 0;
+                stream->length      = 0;
             }
 
             x_free(stream);
@@ -78,10 +78,10 @@ namespace Stream {
         HEXANE
 
         if (stream) {
-            stream->Buffer = x_realloc(stream->Buffer, stream->Length + sizeof(uint8_t));
+            stream->buffer = x_realloc(stream->buffer, stream->length + sizeof(uint8_t));
 
-            x_memcpy(B_PTR(stream->Buffer) + stream->Length, &data, sizeof(uint8_t));
-            stream->Length += sizeof(uint8_t);
+            x_memcpy(B_PTR(stream->buffer) + stream->length, &data, sizeof(uint8_t));
+            stream->length += sizeof(uint8_t);
         }
     }
 
@@ -89,10 +89,10 @@ namespace Stream {
         HEXANE
 
         if (stream) {
-            stream->Buffer = x_realloc(stream->Buffer, stream->Length + sizeof(uint64_t));
+            stream->buffer = x_realloc(stream->buffer, stream->length + sizeof(uint64_t));
 
-            PackInt64(B_PTR(stream->Buffer) + stream->Length, data);
-            stream->Length += sizeof(uint64_t);
+            PackInt64(B_PTR(stream->buffer) + stream->length, data);
+            stream->length += sizeof(uint64_t);
         }
     }
 
@@ -100,10 +100,10 @@ namespace Stream {
         HEXANE
 
         if (stream) {
-            stream->Buffer = x_realloc(stream->Buffer, stream->Length + sizeof(uint32_t));
+            stream->buffer = x_realloc(stream->buffer, stream->length + sizeof(uint32_t));
 
-            PackInt32(B_PTR(stream->Buffer) + stream->Length, data);
-            stream->Length += sizeof(uint32_t);
+            PackInt32(B_PTR(stream->buffer) + stream->length, data);
+            stream->length += sizeof(uint32_t);
         }
     }
 
@@ -113,10 +113,10 @@ namespace Stream {
         if (stream) {
             if (size) {
                 PackDword(stream, S_CAST(uint32_t, size));
-                stream->Buffer = x_realloc(stream->Buffer, stream->Length + size);
+                stream->buffer = x_realloc(stream->buffer, stream->length + size);
 
-                x_memcpy(S_CAST(PBYTE, stream->Buffer) + stream->Length, data, size);
-                stream->Length += size;
+                x_memcpy(S_CAST(PBYTE, stream->buffer) + stream->length, data, size);
+                stream->length += size;
             }
         }
     }

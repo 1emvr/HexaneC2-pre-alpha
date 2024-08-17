@@ -46,7 +46,7 @@ namespace Utils {
 
             SYSTEMTIME SystemTime = {0};
 
-            uint32_t WorkingHours = Ctx->Config.WorkingHours;
+            uint32_t WorkingHours = Ctx->config.hours;
             uint16_t StartHour = 0;
             uint16_t StartMinute = 0;
             uint16_t EndHour = 0;
@@ -98,9 +98,9 @@ namespace Utils {
 
             SYSTEMTIME SystemTime = { };
 
-            uint32_t WorkingHours = Ctx->Config.WorkingHours;
-            uint32_t Sleeptime = Ctx->Config.Sleeptime * 1000;
-            uint32_t Variation = (Ctx->Config.Jitter * Sleeptime) / 100;
+            uint32_t WorkingHours = Ctx->config.hours;
+            uint32_t Sleeptime = Ctx->config.sleeptime * 1000;
+            uint32_t Variation = (Ctx->config.jitter * Sleeptime) / 100;
             uint32_t Random = 0;
 
             uint16_t StartHour = 0;

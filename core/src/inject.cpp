@@ -57,8 +57,8 @@ namespace Injection {
 
         _executable* object = Memory::Methods::CreateImageData(B_PTR(data));
 
-        object->next = Ctx->Coffs;
-        Ctx->Coffs = object;
+        object->next = Ctx->coffs;
+        Ctx->coffs = object;
 
         if (!Opsec::SeImageCheckArch(object)) {
             return_defer(ntstatus);
@@ -78,7 +78,7 @@ namespace Injection {
 
     defer:
         if (ntstatus != ERROR_SUCCESS) {
-            Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, object);
+            Ctx->Nt.RtlFreeHeap(Ctx->heap, 0, object);
         }
     }
 
@@ -98,7 +98,7 @@ namespace Injection {
             match += 0xD;
             handlers = R_CAST(LdrpVectorHandlerList*, *R_CAST(int32_t * , match + (match + 0x3) + 0x7));
 
-            if (!NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void*, handlers->First), &handler, sizeof(void *), nullptr))) {
+            if (!NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void*, handlers->first), &handler, sizeof(void *), nullptr))) {
                 handler = 0;
                 return_defer(ntstatus);
             }

