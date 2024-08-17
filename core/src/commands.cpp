@@ -227,13 +227,13 @@ namespace Commands {
     VOID UpdatePeer(_parser *parser) {
         HEXANE
 
-        auto nameLength = x_wcslen(Ctx->Config.IngressPipename) * sizeof(WCHAR);
+        auto nameLength = x_wcslen(Ctx->config.ingress_pipe) * sizeof(WCHAR);
 
-        if (Ctx->Config.IngressPipename) {
-            x_memset(Ctx->Config.IngressPipename, 0, nameLength);
-            x_free(Ctx->Config.IngressPipename);
+        if (Ctx->config.ingress_pipe) {
+            x_memset(Ctx->config.IngressPipename, 0, nameLength);
+            x_free(Ctx->config.IngressPipename);
         }
 
-        Parser::ParserWcscpy(parser, &Ctx->Config.IngressPipename, nullptr);
+        Parser::ParserWcscpy(parser, &Ctx->config.IngressPipename, nullptr);
     }
 }

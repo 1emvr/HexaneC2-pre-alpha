@@ -41,7 +41,7 @@ EXTERN_C LPVOID InstEnd();
 #define WEAK									__attribute__((weak))
 #define DLL_EXPORT 								__declspec(dllexport)
 
-#define ntstatus 								Ctx->Teb->LastErrorValue
+#define ntstatus 								Ctx->teb->LastErrorValue
 #define PS_ATTR_LIST_SIZE(n)					(sizeof(PS_ATTRIBUTE_LIST) + (sizeof(PS_ATTRIBUTE) * (n - 1)))
 #define MODULE_NAME(mod)						(mod->BaseDllName.Buffer)
 
@@ -203,9 +203,9 @@ WEAK EXTERN_C uint32_t		__instance;
 
 #define ZeroFreePtr(x, n) 		x_memset(x, 0, n); x_free(x); x = nullptr
 
-#define x_malloc(size) 			Ctx->Nt.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, size)
-#define x_realloc(ptr, size) 	Ctx->Nt.RtlReAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, ptr, size)
-#define x_free(size) 			Ctx->Nt.RtlFreeHeap(Ctx->Heap, 0, size)
+#define x_malloc(size) 			Ctx->Nt.RtlAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, size)
+#define x_realloc(ptr, size) 	Ctx->Nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, ptr, size)
+#define x_free(size) 			Ctx->Nt.RtlFreeHeap(Ctx->heap, 0, size)
 
 #define F_PTR_HMOD(Fn, hmod, sym_hash) 	\
 	Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash)
@@ -290,24 +290,24 @@ struct _executable {
 };
 
 typedef struct {
-	PVOID  Buffer;
-	UINT32 Length;
+	PVOID  buffer;
+	UINT32 length;
 } BUFFER;
 
 struct _mbs_buffer {
-	LPSTR 	Buffer;
-	ULONG 	Length;
+	LPSTR 	buffer;
+	ULONG 	length;
 };
 
 struct _wcs_buffer {
-	LPWSTR 	Buffer;
-	ULONG 	Length;
+	LPWSTR 	buffer;
+	ULONG 	length;
 };
 
 struct _resource {
-    LPVOID  ResLock;
-    HGLOBAL hGlobal;
-    SIZE_T  Size;
+    LPVOID  res_lock;
+    HGLOBAL h_global;
+    SIZE_T  size;
 };
 
 struct _proxy {
@@ -340,42 +340,41 @@ struct _http_context {
 };
 
 struct _token_list_data {
-	HANDLE  Handle;
-	LPWSTR  DomainUser;
-	DWORD   dwProcessID;
-	SHORT   Type;
+	HANDLE  handle;
+	LPWSTR  domain_user;
+	DWORD   pid;
+	SHORT   type;
 
-	LPWSTR   lpUser;
-	LPWSTR   lpPassword;
-	LPWSTR   lpDomain;
+	LPWSTR   username;
+	LPWSTR   password;
+	LPWSTR   domain;
 
 	_token_list_data* Next;
 };
 
 struct _stream {
-	ULONG   PeerId;
-	ULONG   TaskId;
-	ULONG   MsgType;
-	ULONG	Length;
-	LPVOID	Buffer;
-	BOOL 	Ready;
-	_stream  *Next;
+	ULONG   peer_id;
+	ULONG   task_id;
+	ULONG   msg_type;
+	ULONG	length;
+	LPVOID	buffer;
+	BOOL 	ready;
+	_stream  *next;
 };
 
 
 struct _parser {
-	LPVOID 	Handle;
-    LPVOID  Buffer;
+	LPVOID 	handle;
+    LPVOID  buffer;
 	ULONG 	Length;
-	BOOL 	LE;
+	BOOL 	little;
 };
 
-
 typedef struct {
-	PSID					Sid;
-	PSID					SidLow;
-	PACL					pAcl;
-	PSECURITY_DESCRIPTOR	SecDesc;
+	PSID					sid;
+	PSID					sid_low;
+	PACL					p_acl;
+	PSECURITY_DESCRIPTOR	sec_desc;
 } SMB_PIPE_SEC_ATTR, *PSMB_PIPE_SEC_ATTR;
 
 
@@ -389,24 +388,24 @@ struct _command_map{
 
 
 struct LdrpVectorHandlerEntry {
-    LdrpVectorHandlerEntry 		*Flink;
-    LdrpVectorHandlerEntry 		*Blink;
-    uint64_t 					Unknown1;
-    uint64_t 					Unknown2;
-    PVECTORED_EXCEPTION_HANDLER Handler;
+    LdrpVectorHandlerEntry 		*flink;
+    LdrpVectorHandlerEntry 		*blink;
+    uint64_t 					unknown1;
+    uint64_t 					unknown2;
+    PVECTORED_EXCEPTION_HANDLER handler;
 };
 
 
 struct LdrpVectorHandlerList {
-    LdrpVectorHandlerEntry *First;
-    LdrpVectorHandlerEntry *Last;
-    SRWLOCK 				Lock;
+    LdrpVectorHandlerEntry *first;
+    LdrpVectorHandlerEntry *last;
+    SRWLOCK 				lock;
 };
 
 
 struct _heap_info {
-    ULONG_PTR HeapId;
-    DWORD ProcessId;
+    ULONG_PTR heap_id;
+    DWORD pid;
 };
 
 
@@ -422,24 +421,25 @@ struct _ciphertext {
 
 struct _hexane{
 
-	LPVOID 	Heap;
-	PTEB 	Teb;
-	BOOL 	Root;
-    BOOL   	LE;
+	PTEB 	teb;
+	LPVOID 	heap;
+	BOOL 	root;
+    BOOL   	little;
 
 	struct {
-		UINT_PTR    Address;
-		ULONG	    Size;
-	} Base;
+		UINT_PTR    address;
+		ULONG	    size;
+	} base;
 
-	_executable *Coffs;
+	_executable *coffs;
+	_smb_context *peers;
 
 	struct {
 		// todo : finish tokens
-		_token_list_data *Vault;
-		_token_list_data *Token;
-		bool             Impersonate;
-	} Tokens;
+		_token_list_data *vault;
+		_token_list_data *token;
+		bool             impersonate;
+	} tokens;
 
 	struct {
 		HMODULE ntdll;
@@ -449,40 +449,40 @@ struct _hexane{
 		HMODULE advapi;
 		HMODULE iphlpapi;
 		HMODULE mscoree;
-	} Modules;
+	} modules;
 
 	struct {
-		PBYTE	Key;
-		LPSTR	Hostname;
-		ULONG	Sleeptime;
-		ULONG	Jitter;
-		ULONG 	WorkingHours;
-		ULONG64	Killdate;
-	} Config;
+		PBYTE	key;
+		LPSTR	hostname;
+		ULONG	sleeptime;
+		ULONG	jitter;
+		ULONG 	hours;
+		ULONG64	killdate;
+	} config;
 
 	struct {
-		INT		Retry;
-		BOOL	Checkin;
-		ULONG	Ppid;
-		ULONG	Pid;
-		ULONG	Tid;
-		WORD	Architecture;
-		ULONG	OSVersion;
-		ULONG	CurrentTaskId;
-        ULONG	PeerId;
-	} Session;
+		INT		retry;
+		BOOL	checkin;
+		ULONG	ppid;
+		ULONG	pid;
+		ULONG	tid;
+		WORD	arch;
+		ULONG	version;
+		ULONG	current_taskid;
+        ULONG	peer_id;
+	} session;
 
 	struct {
-		BOOL  	    	bSSL;
-		BOOL	    	bProxy;
-		BOOL	    	bEnvProxy;
-		BOOL	    	bEnvProxyCheck;
-		LPVOID	    	EnvProxy;
-		SIZE_T	    	EnvProxyLen;
-		LPSTR 			Domain;
+		BOOL  	    	b_ssl;
+		BOOL	    	b_proxy;
+		BOOL	    	b_envproxy;
+		BOOL	    	b_envproxy_check;
+		LPVOID	    	env_proxy;
+		SIZE_T	    	env_proxylen;
+		LPSTR 			domain;
 		_http_context 	*http;
-        _stream        	*OutboundQueue;
-	} Transport;
+        _stream        	*outbound_queue;
+	} transport;
 
 	struct {
 		NtFreeVirtualMemory_t NtFreeVirtualMemory;

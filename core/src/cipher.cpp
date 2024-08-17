@@ -120,7 +120,7 @@ namespace Xtea {
         size_t n_sect = { };
 
         if (!m_key) {
-            key = Ctx->Config.Key;
+            key = Ctx->config.key;
         } else {
             key = m_key;
         }

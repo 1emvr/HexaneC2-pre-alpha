@@ -5,9 +5,9 @@ namespace Dispatcher {
         HEXANE
 
         uint32_t pid = 0;
-        x_memcpy(&pid, stream->Buffer, 4);
+        x_memcpy(&pid, stream->buffer, 4);
 
-        if (x_memcmp(&Ctx->Session.PeerId, &pid, 4) == 0) {
+        if (x_memcmp(&Ctx->session.peer_id, &pid, 4) == 0) {
             return TRUE;
         }
 
@@ -17,47 +17,47 @@ namespace Dispatcher {
     VOID AddMessage(_stream *const out) {
         HEXANE
 
-        _stream *head = Ctx->Transport.OutboundQueue;
+        _stream *head = Ctx->transport.outbound_queue;
 
-        if (!Ctx->Transport.OutboundQueue) {
-            Ctx->Transport.OutboundQueue = out;
+        if (!Ctx->transport.outbound_queue) {
+            Ctx->transport.outbound_queue = out;
         } else {
-            while (head->Next) {
-                head = head->Next;
+            while (head->next) {
+                head = head->next;
             }
 
-            head->Next = out;
+            head->next = out;
         }
     }
 
     VOID ClearQueue() {
         HEXANE
 
-        _stream *head = Ctx->Transport.OutboundQueue;
+        _stream *head = Ctx->transport.outbound_queue;
         _stream *swap = { };
         _stream *prev = { };
 
         if (!head) {
-            Ctx->Transport.OutboundQueue = nullptr;
+            Ctx->transport.outbound_queue = nullptr;
             return;
         }
 
         while (head) {
-            if (head->Ready) {
+            if (head->ready) {
                 if (prev) {
-                    prev->Next = head->Next;
+                    prev->next = head->next;
 
                 } else {
-                    Ctx->Transport.OutboundQueue = head->Next;
+                    Ctx->transport.outbound_queue = head->next;
                 }
                 swap = head;
-                head = head->Next;
+                head = head->next;
 
                 Stream::DestroyStream(swap);
 
             } else {
                 prev = head;
-                head = head->Next;
+                head = head->next;
             }
         }
     }
@@ -72,21 +72,21 @@ namespace Dispatcher {
             return_defer(ERROR_NO_DATA);
         }
 
-        if (out->Length > MESSAGE_MAX) {
-            QueueSegments(B_PTR(out->Buffer), out->Length);
+        if (out->length > MESSAGE_MAX) {
+            QueueSegments(B_PTR(out->buffer), out->length);
 
         } else {
-            Parser::CreateParser(&parser, B_PTR(out->Buffer), out->Length);
+            Parser::CreateParser(&parser, B_PTR(out->buffer), out->length);
 
             queue           = Stream::CreateStream();
-            queue->PeerId   = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
-            queue->TaskId   = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
-            queue->MsgType  = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
+            queue->peer_id   = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
+            queue->task_id   = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
+            queue->msg_type  = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
 
-            queue->Length   = parser.Length;
-            queue->Buffer   = x_realloc(queue->Buffer, queue->Length);
+            queue->length   = parser.Length;
+            queue->buffer   = x_realloc(queue->buffer, queue->length);
 
-            x_memcpy(queue->Buffer, parser.Buffer, queue->Length);
+            x_memcpy(queue->buffer, parser.buffer, queue->length);
             AddMessage(queue);
 
             Parser::DestroyParser(&parser);
@@ -119,9 +119,9 @@ namespace Dispatcher {
             x_memcpy(&peer_id, buffer, 4);
             x_memcpy(&task_id, buffer + 4, 4);
 
-            queue->PeerId    = peer_id;
-            queue->TaskId    = task_id;
-            queue->MsgType   = TypeSegment;
+            queue->peer_id    = peer_id;
+            queue->task_id    = task_id;
+            queue->msg_type   = TypeSegment;
 
             Stream::PackDword(queue, index);
             Stream::PackDword(queue, n_seg);
@@ -146,7 +146,7 @@ namespace Dispatcher {
         _parser parser  = { };
 
         retry:
-        if (!Ctx->Transport.OutboundQueue) {
+        if (!Ctx->transport.outbound_queue) {
 
 #if defined(TRANSPORT_SMB)
             return_defer(ERROR_SUCCESS);
@@ -158,36 +158,36 @@ namespace Dispatcher {
 #endif
 
         } else {
-            head = Ctx->Transport.OutboundQueue;
+            head = Ctx->transport.outbound_queue;
 
             while (head) {
-                if (!head->Ready) {
-                    if (head->Length + MESSAGE_HEADER_SIZE + out->Length > MESSAGE_MAX) {
+                if (!head->ready) {
+                    if (head->length + MESSAGE_HEADER_SIZE + out->length > MESSAGE_MAX) {
                         break;
                     }
 
-                    if (head->Buffer) {
-                        Parser::CreateParser(&parser, B_PTR(head->Buffer), head->Length);
+                    if (head->buffer) {
+                        Parser::CreateParser(&parser, B_PTR(head->buffer), head->length);
 
-                        Stream::PackDword(out, head->PeerId);
-                        Stream::PackDword(out, head->TaskId);
-                        Stream::PackDword(out, head->MsgType);
+                        Stream::PackDword(out, head->peer_id);
+                        Stream::PackDword(out, head->task_id);
+                        Stream::PackDword(out, head->msg_type);
 
-                        if (Ctx->Root) {
-                            Stream::PackBytes(out, B_PTR(head->Buffer), head->Length);
+                        if (Ctx->root) {
+                            Stream::PackBytes(out, B_PTR(head->buffer), head->length);
 
                         } else {
-                            out->Buffer = x_realloc(out->Buffer, out->Length + head->Length);
-                            x_memcpy(B_PTR(out->Buffer) + out->Length, head->Buffer, head->Length);
+                            out->buffer = x_realloc(out->buffer, out->length + head->length);
+                            x_memcpy(B_PTR(out->buffer) + out->length, head->buffer, head->length);
 
-                            out->Length += head->Length;
+                            out->length += head->length;
                         }
                     } else {
                         return_defer(ERROR_NO_DATA);
                     }
-                    head->Ready = TRUE;
+                    head->ready = TRUE;
                 }
-                head = head->Next;
+                head = head->next;
             }
         }
 
@@ -214,7 +214,7 @@ namespace Dispatcher {
                 in = out;
                 out = swap;
 
-                if (Ctx->Config.IngressPipename) {
+                if (Ctx->config.IngressPipename) {
                     Network::Smb::PeerConnectIngress(out, &in);
 
                     if (in) {
@@ -224,10 +224,10 @@ namespace Dispatcher {
                 Stream::DestroyStream(out);
             }
         } else {
-            head = Ctx->Transport.OutboundQueue;
+            head = Ctx->transport.outbound_queue;
             while (head) {
-                head->Ready = FALSE;
-                head = head->Next;
+                head->ready = FALSE;
+                head = head->next;
             }
         }
 
@@ -239,16 +239,16 @@ namespace Dispatcher {
 
         _parser parser = { };
 
-        Parser::CreateParser(&parser, B_PTR(in->Buffer), in->Length);
+        Parser::CreateParser(&parser, B_PTR(in->buffer), in->length);
         Parser::UnpackDword(&parser); // throw-away pid todo: maybe generate new pid every task?
 
-        Ctx->Session.CurrentTaskId = Parser::UnpackDword(&parser);
+        Ctx->session.current_taskid = Parser::UnpackDword(&parser);
 
         auto msg_type = Parser::UnpackDword(&parser);
         switch (msg_type) {
 
             case TypeCheckin: {
-                Ctx->Session.Checkin = TRUE;
+                Ctx->session.checkin = TRUE;
             }
             case TypeTasking: {
                 Memory::Execute::ExecuteCommand(parser);
