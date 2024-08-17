@@ -374,11 +374,13 @@ namespace Smb {
         // save the handle
         if (!Ctx->config.IngressHandle) {
             SmbContextInit(&smb_attr, &sec_attr);
+
             if (!(handle = Ctx->win32.CreateNamedPipeW(Ctx->config.IngressPipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
                 return_defer(ntstatus);
             }
 
             SmbContextDestroy(&smb_attr);
+
             if (!Ctx->win32.ConnectNamedPipe(handle, nullptr)) {
                 return_defer(ntstatus);
             }
