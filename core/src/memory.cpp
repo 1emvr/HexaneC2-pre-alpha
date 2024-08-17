@@ -693,6 +693,7 @@ namespace Memory {
             if (buffer) {
                 x_free(buffer);
             }
+
             return address;
         }
     }
@@ -763,10 +764,10 @@ namespace Memory {
         BOOL ExecuteObject(_executable *object, const char *entrypoint, char *args, uint32_t size, uint32_t req_id) {
             HEXANE
 
-            bool success = false;
-            char *symbol_name = { };
-            void *veh_handler = { };
-            void *exec = { };
+            bool success        = false;
+            char *symbol_name   = { };
+            void *veh_handler   = { };
+            void *exec          = { };
 
             if (!(veh_handler = Ctx->Nt.RtlAddVectoredExceptionHandler(1, &Injection::Veh::Debugger))) {
                 return_defer(ERROR_INVALID_EXCEPTION_HANDLER);
