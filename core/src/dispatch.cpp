@@ -191,6 +191,7 @@ namespace Dispatcher {
             }
         }
 
+        // todo: clarify what this is supposed to be
 #ifdef TRANSPORT_HTTP
         Network::Http::HttpCallback(out, &in);
 #endif
@@ -202,7 +203,7 @@ namespace Dispatcher {
         out = nullptr;
 
         if (in) {
-            //todo: do not clear the queue, just remove n entries
+            // todo: do not clear the queue, just remove n entries that succeeded
             ClearQueue();
 
             if (PeekPID(in)) {
@@ -214,7 +215,7 @@ namespace Dispatcher {
                 in = out;
                 out = swap;
 
-                if (Ctx->config.IngressPipename) {
+                if (Ctx->peers->ingress_name) {
                     Network::Smb::PeerConnectIngress(out, &in);
 
                     if (in) {
