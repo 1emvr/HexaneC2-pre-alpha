@@ -1,7 +1,7 @@
 #include <core/include/network.hpp>
 namespace Http {
 
-    VOID HttpDownload(_request *request, _stream **stream) {
+    VOID HttpSendRequest(_request *request, _stream **stream) {
         HEXANE
 
         void *buffer   = { };
@@ -223,7 +223,7 @@ namespace Http {
             return_defer(status);
         }
 
-        HttpDownload(request, in);
+        HttpSendRequest(request, in);
 
         defer:
         if (request) {

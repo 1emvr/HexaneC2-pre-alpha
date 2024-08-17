@@ -3,18 +3,8 @@
 
 #define INTERNET_OPEN_TYPE_PROXY                3
 #define WINHTTP_FLAG_BYPASS_PROXY_CACHE     	0x00000100
-#define WINHTTP_FLAG_REFRESH                	WINHTTP_FLAG_BYPASS_PROXY_CACHE
 #define WINHTTP_FLAG_SECURE                 	0x00800000
-
-#define WINHTTP_NO_REFERER                  	NULL
-#define WINHTTP_NO_ADDITIONAL_HEADERS       	NULL
-#define INTERNET_OPEN_TYPE_PRECONFIG			0
-#define HTTP_QUERY_CONTENT_LENGTH			    5
 #define INTERNET_ERROR_BASE				        12000
-#define INTERNET_FLAG_RELOAD				    0x80000000
-#define INTERNET_FLAG_IGNORE_CERT_CN_INVALID	0x00001000
-#define INTERNET_FLAG_IGNORE_CERT_DATE_INVALID	0x00002000
-#define ERROR_HTTP_HEADER_NOT_FOUND			    (INTERNET_ERROR_BASE + 150)
 #include <core/corelib.hpp>
 
 struct _request {
@@ -32,7 +22,7 @@ struct _proxy_context {
 namespace Network {
     namespace Http {
         FUNCTION BOOL SetHeaders(_request *request);
-        FUNCTION VOID HttpDownload(_request *request, _stream **stream);
+        FUNCTION VOID HttpSendRequest(_request *request, _stream **stream);
         FUNCTION VOID HttpCallback(const _stream *const out, _stream **in);
     }
 
