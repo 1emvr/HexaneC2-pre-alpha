@@ -195,14 +195,18 @@ namespace Http {
         }
 
         if (Ctx->transport.http->headers) {
-            DYN_ARRAY_EXPR(
-                // a pointless macro but it looks nicer/slightly less typing
-                n_headers, Ctx->transport.http->headers,
-                header = Ctx->transport.http->headers[n_headers];
+            while (true) {
+                if (!Ctx->transport.http->headers[n_headers]) { break; }
+                else {
 
-                if (!Ctx->win32.WinHttpAddRequestHeaders(request->req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
-                    return_defer(ntstatus);
-            })
+                    header = Ctx->transport.http->headers[n_headers];
+                    if (!Ctx->win32.WinHttpAddRequestHeaders(request->req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
+                        return_defer(ntstatus);
+                    }
+
+                    n_headers++;
+                }
+            }
         }
 
         if (
