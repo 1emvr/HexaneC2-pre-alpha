@@ -4,10 +4,9 @@
 #define INTERNET_OPEN_TYPE_PROXY                3
 #define WINHTTP_FLAG_BYPASS_PROXY_CACHE     	0x00000100
 #define WINHTTP_FLAG_SECURE                 	0x00800000
-#define INTERNET_ERROR_BASE				        12000
 #include <core/corelib.hpp>
 
-struct _request {
+struct _request_context {
     HINTERNET conn_handle;
     HINTERNET req_handle;
     LPWSTR endpoint;
@@ -21,9 +20,11 @@ struct _proxy_context {
 
 namespace Network {
     namespace Http {
-        FUNCTION BOOL SetHeaders(_request *request);
-        FUNCTION VOID HttpSendRequest(_request *request, _stream **stream);
+        FUNCTION BOOL SetHeaders(HINTERNET *request);
+        FUNCTION VOID HttpSendRequest(HINTERNET request, _stream **stream);
         FUNCTION VOID HttpCallback(const _stream *const out, _stream **in);
+        FUNCTION _request_context* CreateRequestContext();
+        FUNCTION _proxy_context* CreateProxyContext(_request_context *req_ctx);
     }
 
     namespace Smb {
