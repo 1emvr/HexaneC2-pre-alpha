@@ -327,11 +327,13 @@ namespace Smb {
         uint32_t total = 0;
 
         do {
-            if (!Ctx->win32.ReadFile(handle, B_PTR(in->buffer) + total, MIN((in->length - total), PIPE_BUFFER_MAX), R_CAST(LPDWORD, &read), nullptr)) {
+            auto length = MIN((in->length - total), PIPE_BUFFER_MAX);
+            if (!Ctx->win32.ReadFile(handle, B_PTR(in->buffer) + total, length, R_CAST(LPDWORD, &read), nullptr)) {
                 if (ntstatus == ERROR_NO_DATA) {
                     return false;
                 }
             }
+
             total += read;
         }
         while (total < in->length);
@@ -345,9 +347,11 @@ namespace Smb {
         uint32_t write = 0;
 
         do {
-            if (!Ctx->win32.WriteFile(handle, B_PTR(out->buffer) + total, MIN((out->length - total), PIPE_BUFFER_MAX), R_CAST(LPDWORD, &write), nullptr)) {
+            auto length = MIN((out->length - total), PIPE_BUFFER_MAX);
+            if (!Ctx->win32.WriteFile(handle, B_PTR(out->buffer) + total, , R_CAST(LPDWORD, &write), nullptr)) {
                 return false;
             }
+
             total += write;
         }
         while (total < out->length);
