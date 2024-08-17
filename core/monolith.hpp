@@ -316,6 +316,14 @@ struct _proxy {
 	LPWSTR	password;
 };
 
+struct _smb_context {
+	HANDLE ingress_handle;
+	HANDLE egress_handle;
+	LPWSTR ingress_name;
+	LPWSTR egress_name;
+	_smb_context *next;
+};
+
 struct _http_context {
 	HINTERNET 	handle;
 	LPWSTR  	useragent;
@@ -445,9 +453,6 @@ struct _hexane{
 
 	struct {
 		PBYTE	Key;
-		LPWSTR  IngressPipename;
-		LPWSTR  EgressPipename;
-		HANDLE  EgressHandle;
 		LPSTR	Hostname;
 		ULONG	Sleeptime;
 		ULONG	Jitter;
