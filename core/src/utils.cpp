@@ -96,51 +96,51 @@ namespace Utils {
         ULONG RandomSleepTime() {
             HEXANE
 
-            SYSTEMTIME SystemTime = { };
+            SYSTEMTIME sys_time = { };
 
-            uint32_t WorkingHours = Ctx->config.hours;
-            uint32_t Sleeptime = Ctx->config.sleeptime * 1000;
-            uint32_t Variation = (Ctx->config.jitter * Sleeptime) / 100;
-            uint32_t Random = 0;
+            uint32_t work_hours = Ctx->config.hours;
+            uint32_t sleeptime = Ctx->config.sleeptime * 1000;
+            uint32_t variation = (Ctx->config.jitter * sleeptime) / 100;
+            uint32_t random = 0;
 
-            uint16_t StartHour = 0;
-            uint16_t StartMinute = 0;
-            uint16_t EndHour = 0;
-            uint16_t EndMinute = 0;
+            uint16_t start_hour = 0;
+            uint16_t start_min = 0;
+            uint16_t end_hour = 0;
+            uint16_t end_min = 0;
 
             if (!Utils::Time::InWorkingHours()) {
-                if (Sleeptime) {
+                if (sleeptime) {
 
-                    Sleeptime = 0;
-                    StartHour = (WorkingHours >> 17) & 0b011111;
-                    StartMinute = (WorkingHours >> 11) & 0b111111;
-                    EndHour = (WorkingHours >> 6) & 0b011111;
-                    EndMinute = (WorkingHours >> 0) & 0b111111;
+                    sleeptime = 0;
+                    start_hour = (work_hours >> 17) & 0b011111;
+                    start_min = (work_hours >> 11) & 0b111111;
+                    end_hour = (work_hours >> 6) & 0b011111;
+                    end_min = (work_hours >> 0) & 0b111111;
 
-                    Ctx->win32.GetLocalTime(&SystemTime);
+                    Ctx->win32.GetLocalTime(&sys_time);
 
-                    if (SystemTime.wHour == EndHour && SystemTime.wMinute > EndMinute || SystemTime.wHour > EndHour) {
-                        Sleeptime += (24 - SystemTime.wHour - 1) * 60 + (60 - SystemTime.wMinute);
-                        Sleeptime += StartHour * 60 + StartMinute;
+                    if (sys_time.wHour == end_hour && sys_time.wMinute > end_min || sys_time.wHour > end_hour) {
+                        sleeptime += (24 - sys_time.wHour - 1) * 60 + (60 - sys_time.wMinute);
+                        sleeptime += start_hour * 60 + start_min;
                     } else {
-                        Sleeptime += (StartHour - SystemTime.wHour) * 60 + (StartMinute - SystemTime.wMinute);
+                        sleeptime += (start_hour - sys_time.wHour) * 60 + (start_min - sys_time.wMinute);
                     }
 
-                    Sleeptime *= MS_PER_SECOND;
+                    sleeptime *= MS_PER_SECOND;
                 }
-            } else if (Variation) {
+            } else if (variation) {
 
-                Random = RandomNumber32();
-                Random = Random % Variation;
+                random = RandomNumber32();
+                random = random % variation;
 
                 if (RandomBool()) {
-                    Sleeptime += Random;
+                    sleeptime += random;
                 } else {
-                    Sleeptime -= Random;
+                    sleeptime -= random;
                 }
             }
 
-            return Sleeptime;
+            return sleeptime;
         }
 
         ULONG RandomSeed() {
