@@ -235,6 +235,7 @@ namespace Http {
 }
 
 namespace Smb {
+    // read first, write second?
 
     VOID SmbContextDestroy(const PSMB_PIPE_SEC_ATTR SmbSecAttr) {
         HEXANE
@@ -377,7 +378,7 @@ namespace Smb {
 
             if (
                 !Ctx->win32.ReadFile(handle, &peer_id, sizeof(uint32_t), &n_bytes, nullptr) ||
-                Ctx->session.peer_id != peer_id) {
+                (Ctx->session.peer_id != peer_id)) {
                 return_defer(ntstatus);
             }
 
