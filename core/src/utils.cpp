@@ -30,8 +30,8 @@ namespace Utils {
         ULONG64 GetTimeNow() {
             HEXANE
 
-            FILETIME FileTime = {};
-            LARGE_INTEGER LargeInt = {};
+            FILETIME FileTime       = { };
+            LARGE_INTEGER LargeInt  = { };
 
             Ctx->win32.GetSystemTimeAsFileTime(&FileTime);
 
@@ -44,13 +44,13 @@ namespace Utils {
         BOOL InWorkingHours() {
             HEXANE
 
-            SYSTEMTIME SystemTime = {0};
+            SYSTEMTIME SystemTime = { };
 
-            uint32_t WorkingHours = Ctx->config.hours;
-            uint16_t StartHour = 0;
-            uint16_t StartMinute = 0;
-            uint16_t EndHour = 0;
-            uint16_t EndMinute = 0;
+            uint32_t WorkingHours   = Ctx->config.hours;
+            uint16_t StartHour      = 0;
+            uint16_t StartMinute    = 0;
+            uint16_t EndHour        = 0;
+            uint16_t EndMinute      = 0;
 
             if (((WorkingHours >> 22) & 1) == 0) {
                 return TRUE;
@@ -190,6 +190,5 @@ namespace Utils {
 
             return seed % 2 == 0 ? TRUE : FALSE;
         }
-
     }
 }
