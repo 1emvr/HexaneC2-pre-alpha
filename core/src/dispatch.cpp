@@ -139,10 +139,8 @@ namespace Dispatcher {
     VOID MessageTransmit() {
         HEXANE
 
-        _stream *out    = Stream::CreateStream();
-        _stream *in     = { };
-        _stream *head   = { };
-        _stream *swap   = { };
+        _stream *out = Stream::CreateStream();
+        _stream *in, *head, *swap = { };
         _parser parser  = { };
 
         retry:
@@ -159,8 +157,8 @@ namespace Dispatcher {
 
         } else {
             head = Ctx->transport.outbound_queue;
-
             while (head) {
+
                 if (!head->ready) {
                     if (head->length + MESSAGE_HEADER_SIZE + out->length > MESSAGE_MAX) {
                         break;
@@ -185,8 +183,10 @@ namespace Dispatcher {
                     } else {
                         return_defer(ERROR_NO_DATA);
                     }
+
                     head->ready = TRUE;
                 }
+
                 head = head->next;
             }
         }
