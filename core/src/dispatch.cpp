@@ -139,22 +139,23 @@ namespace Dispatcher {
     VOID MessageTransmit() {
         HEXANE
 
-        _stream *out = Stream::CreateStream();
-        _stream *in, *head, *swap = { };
+        _stream *out    = Stream::CreateStream();
+        _stream *in     = { };
+        _stream *head   = { };
+        _stream *swap   = { };
         _parser parser  = { };
 
         retry:
         if (!Ctx->transport.outbound_queue) {
 
-#if defined(TRANSPORT_SMB)
+#if     defined(TRANSPORT_SMB)
             return_defer(ERROR_SUCCESS);
-#elif defined(TRANSPORT_HTTP)
+#elif   defined(TRANSPORT_HTTP)
             PSTREAM entry = Stream::CreateStreamWithHeaders(TypeTasking);
 
             OutboundQueue(entry);
             goto retry;
 #endif
-
         } else {
             head = Ctx->transport.outbound_queue;
             while (head) {
