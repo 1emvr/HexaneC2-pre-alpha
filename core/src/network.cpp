@@ -175,7 +175,9 @@ namespace Http {
         uint32_t n_headers  = 0;
         uint32_t n_status   = sizeof(uint32_t);
 
-        Ctx->transport.http->method = OBFW(L"GET"); // todo: dynamic method selection/context-based?
+        // todo: reverting tokens during http operations
+        // todo: dynamic method selection/context-based?
+        Ctx->transport.http->method = OBFW(L"GET");
 
         if (
             !(request = CreateRequestContext()) ||
