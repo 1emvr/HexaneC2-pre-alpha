@@ -215,10 +215,10 @@ namespace Http {
         }
 
         if (Ctx->transport.http->headers) {
-            uint32_t n_headers = 0;
+            const wchar_t* header   = { };
+            uint32_t n_headers      = 0;
 
             while (true) {
-                const wchar_t* header = { };
                 if (!(header = Ctx->transport.http->headers[n_headers])) {
                     break;
                 }
@@ -331,7 +331,7 @@ namespace Smb {
         }
     }
 
-    BOOL PipeRead(const HANDLE handle, const _stream *in) {
+    BOOL PipeRead(void *const handle, const _stream *in) {
         HEXANE
 
         uint32_t read = 0;
@@ -352,7 +352,7 @@ namespace Smb {
         return true;
     }
 
-    BOOL PipeWrite(const HANDLE handle, const _stream *out) {
+    BOOL PipeWrite(void *const handle, const _stream *out) {
         HEXANE
 
         uint32_t total = 0;
