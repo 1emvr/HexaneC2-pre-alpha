@@ -382,24 +382,28 @@ namespace Smb {
     BOOL PeekClientMessage(HANDLE handle, _stream &stream, int32_t &offset) {
         HEXANE
 
-        _stream header  = { };
+        _stream search  = { };
         int32_t current = 0;
         uint32_t read   = 0;
 
         while (true) {
-            if (!Ctx->win32.PeekNamedPipe(handle, &header, 0x10, R_CAST(LPDWORD, &read), nullptr, nullptr) || read == 0) {
+            if (!Ctx->win32.PeekNamedPipe(handle, &search, 0x10, R_CAST(LPDWORD, &read), nullptr, nullptr) || read < 0x10) {
                 return false;
             }
 
-            if (header.peer_id == Ctx->session.peer_id) {
-                auto total = S_CAST(int32_t, 0x10 + header.length);
+            if (search.peer_id == Ctx->session.peer_id) {
+                auto total = S_CAST(int32_t, 0x10 + search.length);
                 current += total;
 
-                Ctx->win32.SetFilePointer(handle, current, nullptr, FILE_CURRENT);
+                Ctx->win32.SetFilePointer(handle, current, nullptr, FILE_BEGIN);
             } else {
-                x_memcpy(&stream , &header, 0x10);
+                x_memcpy(&stream , &search, 0x10);
                 x_memcpy(&offset , &current, sizeof(int32_t));
                 return true;
+            }
+
+            if (current >= read) {
+                return false;
             }
         }
     }
