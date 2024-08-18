@@ -339,17 +339,16 @@ namespace Smb {
         }
     }
 
-    BOOL PipeRead(HANDLE handle, _stream **in) {
+    BOOL PipeRead(HANDLE handle, _stream *in) {
         HEXANE
 
         uint32_t read = 0;
         uint32_t total = 0;
 
         do {
-            auto length     = MIN(((*in)->length - total), PIPE_BUFFER_MAX);
-            (*in)->buffer   = B_PTR(x_malloc((*in)->length));
+            auto length     = MIN((in->length - total), PIPE_BUFFER_MAX);
 
-            if (!Ctx->win32.ReadFile(handle, B_PTR((*in)->buffer) + total, length, R_CAST(LPDWORD, &read), nullptr)) {
+            if (!Ctx->win32.ReadFile(handle, B_PTR(in->buffer) + total, length, R_CAST(LPDWORD, &read), nullptr)) {
                 if (ntstatus == ERROR_NO_DATA) {
                     return false;
                 }
@@ -357,7 +356,7 @@ namespace Smb {
 
             total += read;
         }
-        while (total < (*in)->length);
+        while (total < in->length);
         return true;
     }
 
@@ -458,8 +457,10 @@ namespace Smb {
                     x_memset(&search              , 0, sizeof(_stream));
 
                     SetFilePointer(peer->ingress_handle, offset, nullptr, FILE_BEGIN);
+                    stream->buffer = B_PTR(x_malloc(stream->length));
 
                     if (!ProcessClientMessage(peer->ingress_handle, &stream)) {
+                        x_free(stream->buffer);
                         x_free(stream);
                         return_defer(ntstatus);
                     }
