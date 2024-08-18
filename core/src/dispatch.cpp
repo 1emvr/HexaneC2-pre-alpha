@@ -140,6 +140,8 @@ namespace Dispatcher {
         HEXANE
 
         // todo: refactor this to work with the new queue process
+        // maybe tag message in/out (0/1)?
+
         _stream *head   = Ctx->transport.outbound_queue;
         _parser parser  = { };
         bool success    = true;
