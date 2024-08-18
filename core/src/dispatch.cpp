@@ -151,7 +151,6 @@ namespace Dispatcher {
 
                 if (head->buffer) {
                     Parser::CreateParser(&parser, B_PTR(head->buffer), head->length);
-
                     Stream::PackDword(out, head->peer_id);
                     Stream::PackDword(out, head->task_id);
                     Stream::PackDword(out, head->msg_type);
@@ -166,7 +165,7 @@ namespace Dispatcher {
                         out->length += head->length;
                     }
                 } else {
-                    ntstatus = ERROR_NO_DATA;
+                    ntstatus = ERROR_INVALID_USER_BUFFER;
                     return false;
                 }
 
