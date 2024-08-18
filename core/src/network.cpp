@@ -190,9 +190,7 @@ namespace Http {
         _proxy_context proxy_ctx = { };
         _request_context req_ctx = { };
 
-        wchar_t *header     = { };
         uint32_t status     = 0;
-        uint32_t n_headers  = 0;
         uint32_t n_status   = sizeof(uint32_t);
 
         // todo: reverting tokens during http operations
@@ -217,12 +215,14 @@ namespace Http {
         }
 
         if (Ctx->transport.http->headers) {
+            uint32_t n_headers = 0;
+
             while (true) {
-                if (!Ctx->transport.http->headers[n_headers]) {
+                const wchar_t* header = { };
+                if (!(header = Ctx->transport.http->headers[n_headers])) {
                     break;
                 }
 
-                header = Ctx->transport.http->headers[n_headers];
                 if (!Ctx->win32.WinHttpAddRequestHeaders(req_ctx.req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
                     return_defer(ntstatus);
                 }
