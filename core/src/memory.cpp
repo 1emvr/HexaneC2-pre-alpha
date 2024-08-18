@@ -728,10 +728,9 @@ namespace Memory {
             uintptr_t address   = { };
 
             bool is_internal    = false;
-            const auto cmd_id   = Parser::UnpackString(&parser, nullptr);
+            const auto cmd_id   = Parser::UnpackDword(&parser);
 
-            // todo : add uint32 hashes for commands instead of using OBF()
-            if (cmd_id == OBF("NoJob")) {
+            if (cmd_id == NOJOB) {
                 goto defer;
             }
 

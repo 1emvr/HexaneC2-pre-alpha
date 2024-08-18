@@ -156,6 +156,7 @@ namespace Dispatcher {
                     Stream::PackDword(out, head->msg_type);
 
                     if (Ctx->root) {
+                        // if message reached the exit node, prepare the header for the server, adding message body length
                         Stream::PackBytes(out, B_PTR(head->buffer), head->length);
 
                     } else {
@@ -205,15 +206,20 @@ namespace Dispatcher {
         }
 
 #if     defined(TRANSPORT_HTTP)
-        Network::Http::HttpCallback(out, &in);
+            Network::Http::HttpCallback(out, &in);
 #elif   defined(TRANSPORT_PIPE)
-        Network::Smb::SmbSend(out);
+            Network::Smb::SmbSend(out);
+            Network::Smb::SmbReceive(&in);
 #endif
 
         Stream::DestroyStream(out);
 
         if (in) {
-            // todo: refactor again
+            if (!PeekPeerId(in)) {
+                OutboundQueue(in);
+            } else {
+                CommandDispatch(in);
+            }
         } else {
             head = Ctx->transport.outbound_queue;
             while (head) {

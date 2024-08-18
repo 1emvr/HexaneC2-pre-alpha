@@ -5,8 +5,6 @@ import (
 	"strings"
 )
 
-// todo: implement implant multitasking
-
 var (
 	CommandMap = map[string]uint32{
 		"dir":      CommandDir,
