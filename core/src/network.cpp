@@ -436,13 +436,13 @@ namespace Smb {
                 int32_t offset  = 0;
 
                 while (PeekClientMessage(peer->ingress_handle, search, offset)) {
-                    SetFilePointer(peer->ingress_handle, offset, nullptr, FILE_BEGIN);
 
                     x_memcpy(&stream->peer_id     , &search.peer_id, sizeof(uint32_t));
                     x_memcpy(&stream->task_id     , &search.task_id, sizeof(uint32_t));
                     x_memcpy(&stream->msg_type    , &search.msg_type, sizeof(uint32_t));
                     x_memcpy(&stream->length      , &search.length, sizeof(uint32_t));
 
+                    SetFilePointer(peer->ingress_handle, offset, nullptr, FILE_BEGIN);
                     if (!ProcessClientMessage(peer->ingress_handle, &stream)) {
                         x_free(stream);
                         return_defer(ntstatus);
