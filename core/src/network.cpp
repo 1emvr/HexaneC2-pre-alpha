@@ -387,12 +387,13 @@ namespace Smb {
         uint32_t read   = 0;
         bool success    = true;
 
-        // on ingress, peer should still check if message if for him
-        // on egress should not pull his own message off the pipe
         while (true) {
             if (!Ctx->win32.PeekNamedPipe(handle, &search, 0x10, R_CAST(LPDWORD, &read), nullptr, nullptr) || read < 0x10) {
                 success(false);
             }
+
+            // on egress, peer should not pull his own message off the pipe
+            // on ingress, client shouldn't put his own message on the pipe anyway so this is safe.
 
             if (!ingress && search.peer_id == Ctx->session.peer_id) {
                 auto total = S_CAST(int32_t, 0x10 + search.length);
