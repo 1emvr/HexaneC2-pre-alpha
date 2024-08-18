@@ -6,10 +6,15 @@ namespace Clients {
 
         // just fucking send it...
         for (auto client = Ctx->clients; client; client = client->next) {
-            uint8_t bound = 0;
+            _stream *in     = Stream::CreateStream();
+            uint8_t bound   = 0;
             uint32_t total  = 0;
+            uint32_t read   = 0;
 
-            //0 peer_id task_id msg_type buffer
+            if (!in) {
+                return_defer(ntstatus);
+            }
+
             if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, nullptr, 0, nullptr, R_CAST(LPDWORD, &total), nullptr)) {
                 continue;
             }
@@ -20,18 +25,15 @@ namespace Clients {
                 }
 
                 if (bound == 0) {
-                    _stream *in     = Stream::CreateStream();
-                    void *buffer    = x_malloc(total);
+                    void *buffer = x_malloc(total);
 
-                    if (!in) {
-                        continue;
-                    }
-                    if (!Ctx->win32.ReadFile(client->pipe_handle, buffer, total, nullptr, nullptr)) {
+                    if (!Ctx->win32.ReadFile(client->pipe_handle, buffer, total, R_CAST(LPDWORD, &read), nullptr) || read != total) {
                         Stream::DestroyStream(in);
+
                         if (buffer) {
                             x_free(buffer);
-                            continue;
                         }
+                        continue;
                     }
 
                     in->buffer = buffer;
