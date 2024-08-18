@@ -459,7 +459,7 @@ namespace Smb {
 
                     SetFilePointer(peer->ingress_handle, offset, nullptr, FILE_BEGIN);
 
-                    if (!ProcessClientMessage(peer->ingress_handle, stream)) {
+                    if (!ProcessClientMessage(peer->ingress_handle, &stream)) {
                         x_free(stream);
                         return_defer(ntstatus);
                     }
