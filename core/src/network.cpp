@@ -379,13 +379,13 @@ namespace Smb {
         return true;
     }
 
-    BOOL PeekClientMessage(HANDLE handle, _stream &stream) {
+    BOOL PeekClientMessage(HANDLE handle, _stream &stream, bool ingress) {
         HEXANE
 
         _stream search  = { };
         int32_t current = 0;
         uint32_t read   = 0;
-        bool success    = false;
+        bool success    = true;
 
         // on ingress, peer should still check if message if for him
         // on egress should not pull his own message off the pipe
@@ -394,16 +394,15 @@ namespace Smb {
                 success(false);
             }
 
-            if (search.peer_id == Ctx->session.peer_id) {
+            if (!ingress && search.peer_id == Ctx->session.peer_id) {
                 auto total = S_CAST(int32_t, 0x10 + search.length);
                 current += total;
 
                 Ctx->win32.SetFilePointer(handle, current, nullptr, FILE_BEGIN);
-            } else {
-                x_memcpy(&stream , &search, 0x10);
-                success(true);
+                continue;
             }
 
+            x_memcpy(&stream , &search, 0x10);
             if (current >= read) {
                 success(false);
             }

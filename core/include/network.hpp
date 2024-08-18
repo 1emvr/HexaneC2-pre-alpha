@@ -32,7 +32,7 @@ namespace Network {
         FUNCTION VOID SmbContextInit(SMB_PIPE_SEC_ATTR *SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr);
         FUNCTION BOOL PipeRead(HANDLE handle, _stream *in);
         FUNCTION BOOL PipeWrite(HANDLE handle, _stream *out);
-        FUNCTION BOOL PeekClientMessage(HANDLE handle, _stream &stream);
+        FUNCTION BOOL PeekClientMessage(HANDLE handle, _stream &stream, bool ingress);
         FUNCTION VOID PeerConnectIngress (_stream *out, _stream **in);
         FUNCTION VOID PeerConnectEgress(_stream *out, _stream **in);
     }
