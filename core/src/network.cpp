@@ -382,7 +382,7 @@ namespace Smb {
                 uint32_t total = sizeof(uint32_t) * 4 + header.length;
                 current += total;
 
-                SetFilePointer(handle, total, NULL, FILE_CURRENT);
+                SetFilePointer(handle, total, nullptr, FILE_CURRENT);
             } else {
                 stream = header;
                 offset = current;
