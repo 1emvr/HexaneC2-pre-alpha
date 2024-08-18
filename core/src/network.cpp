@@ -439,7 +439,6 @@ namespace Smb {
                     x_memcpy(&queue->task_id     , &search.task_id, sizeof(uint32_t));
                     x_memcpy(&queue->msg_type    , &search.msg_type, sizeof(uint32_t));
                     x_memcpy(&queue->length      , &search.length, sizeof(uint32_t));
-                    x_memset(&search             , 0, sizeof(_stream));
 
                     queue->buffer = B_PTR(x_malloc(queue->length));
 
