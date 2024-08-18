@@ -404,22 +404,6 @@ namespace Smb {
         }
     }
 
-    BOOL ProcessClientMessage(HANDLE handle, _stream **stream) {
-        HEXANE
-
-        uint32_t read = 0;
-        uint32_t length = 0;
-
-        if (!Ctx->win32.PeekNamedPipe(handle, &length, sizeof(uint32_t), R_CAST(LPDWORD, &read), nullptr, nullptr) || read == 0) {
-            return false;
-        }
-        if (!PipeRead(handle, stream)) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
     VOID PeerConnectIngress (_stream *out, _stream **in) {
         HEXANE
 
@@ -459,7 +443,7 @@ namespace Smb {
                     SetFilePointer(peer->ingress_handle, offset, nullptr, FILE_BEGIN);
                     stream->buffer = B_PTR(x_malloc(stream->length));
 
-                    if (!ProcessClientMessage(peer->ingress_handle, &stream)) {
+                    if (!PipeRead(peer->ingress_handle, stream)) {
                         x_free(stream->buffer);
                         x_free(stream);
                         return_defer(ntstatus);

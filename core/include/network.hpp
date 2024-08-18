@@ -22,18 +22,18 @@ namespace Network {
     namespace Http {
         FUNCTION BOOL SetHeaders(HINTERNET *request);
         FUNCTION VOID HttpSendRequest(HINTERNET request, _stream **stream);
-        FUNCTION VOID HttpCallback(const _stream *const out, _stream **in);
+        FUNCTION VOID HttpCallback(_stream *out, _stream **in);
         FUNCTION _request_context* CreateRequestContext();
         FUNCTION _proxy_context* CreateProxyContext(_request_context *req_ctx);
     }
 
     namespace Smb {
         FUNCTION VOID SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr);
-        FUNCTION VOID SmbContextInit(SMB_PIPE_SEC_ATTR *const SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr);
-        FUNCTION BOOL PipeRead(HANDLE handle, _stream **in);
+        FUNCTION VOID SmbContextInit(SMB_PIPE_SEC_ATTR *SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr);
+        FUNCTION BOOL PipeRead(HANDLE handle, _stream *in);
         FUNCTION BOOL PipeWrite(HANDLE handle, _stream *out);
         FUNCTION BOOL PeekClientMessage(HANDLE handle, _stream &stream, int32_t &offset);
-        FUNCTION BOOL ProcessClientMessage(HANDLE handle, _stream **stream);
+        FUNCTION BOOL ProcessClientMessage(HANDLE handle, _stream *stream);
         FUNCTION VOID PeerConnectIngress (_stream *out, _stream **in);
         FUNCTION VOID PeerConnectEgress(_stream *out, _stream **in);
     }
