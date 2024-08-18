@@ -146,6 +146,7 @@ namespace Dispatcher {
         _parser parser  = { };
 
         retry:
+        // todo: this will fail infinitely on smb as no new messages will be read in
         if (!Ctx->transport.outbound_queue) {
 
 #if     defined(TRANSPORT_SMB)
@@ -185,7 +186,7 @@ namespace Dispatcher {
                         return_defer(ERROR_NO_DATA);
                     }
 
-                    head->ready = TRUE;
+                    head->ready = true;
                 }
 
                 head = head->next;
