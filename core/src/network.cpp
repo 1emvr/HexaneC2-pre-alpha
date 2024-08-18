@@ -386,16 +386,22 @@ namespace Smb {
         int32_t current = 0;
         uint32_t read   = 0;
         bool success    = true;
+        /*
+            on egress pipe, peer should not pull his own message off the pipe but check for messages meant for him
+            mark messages inbound (1) or outbound (0):
+                    1 MY_ID -> pull the message
+                    0 MY_ID -> we placed this, do not pull
 
+            on ingress pipe, client shouldn't put his own message on the pipe anyway so this is safe.
+        */
         while (true) {
-            if (!Ctx->win32.PeekNamedPipe(handle, &search, 0x10, R_CAST(LPDWORD, &read), nullptr, nullptr) || read < 0x10) {
-                success(false);
+            if (!Ctx->win32.PeekNamedPipe(handle, &search, 0x10, R_CAST(LPDWORD, &read), nullptr, nullptr) || read == 0) {
+                success_(false);
             }
 
-            // on egress pipe, peer should not pull his own message off the pipe but check for messages meant for him
-            // mark messages inbound (1) or outbound (0): 1 MY_ID -> pull the message / 0 MY_ID -> we placed this, do not pull
-
-            // on ingress pipe, client shouldn't put his own message on the pipe anyway so this is safe.
+            if (read < 0x10) {
+                success_(false);
+            }
 
             if (!ingress && search.peer_id == Ctx->session.peer_id) {
                 auto total = S_CAST(int32_t, 0x10 + search.length);
@@ -406,9 +412,7 @@ namespace Smb {
             }
 
             x_memcpy(&stream , &search, 0x10);
-            if (current >= read) {
-                success(false);
-            }
+            success_(true);
         }
 
         defer:

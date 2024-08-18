@@ -226,7 +226,7 @@ WEAK EXTERN_C uint32_t		__instance;
 #define return_defer(x)	\
 	ntstatus = x; goto defer
 
-#define success(x) \
+#define success_(x) \
     success = x; goto defer
 
 enum MessageType {
