@@ -135,8 +135,8 @@ namespace Dispatcher {
         bool success    = true;
 
         while (head) {
-            // if a message is inbound , don't process it
             if (B_PTR(head->buffer)[0] != 0) {
+                // if a message is inbound , don't process it
                 continue;
             }
             if (head->buffer) {
