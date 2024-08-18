@@ -201,11 +201,11 @@ namespace Dispatcher {
             return_defer(ERROR_SUCCESS);
 #else
             auto entry = Stream::CreateStreamWithHeaders(TypeTasking);
-            OutboundQueue(entry);
+            Dispatcher::OutboundQueue(entry);
             goto retry;
 #endif
         } else {
-            if (!PrepareEgressMessage(out)) {
+            if (!Dispatcher::PrepareEgressMessage(out)) {
                 return_defer(ntstatus);
             }
         }
