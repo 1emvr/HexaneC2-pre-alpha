@@ -392,8 +392,10 @@ namespace Smb {
                 success(false);
             }
 
-            // on egress, peer should not pull his own message off the pipe
-            // on ingress, client shouldn't put his own message on the pipe anyway so this is safe.
+            // on egress pipe, peer should not pull his own message off the pipe but check for messages meant for him
+            // mark messages inbound (1) or outbound (0): 1 MY_ID -> pull the message / 0 MY_ID -> we placed this, do not pull
+
+            // on ingress pipe, client shouldn't put his own message on the pipe anyway so this is safe.
 
             if (!ingress && search.peer_id == Ctx->session.peer_id) {
                 auto total = S_CAST(int32_t, 0x10 + search.length);
@@ -438,7 +440,7 @@ namespace Smb {
                 }
 
                 _stream search = { };
-                while (PeekClientMessage(peer->ingress_handle, search)) {
+                while (PeekClientMessage(peer->ingress_handle, search, true)) {
                     auto queue = R_CAST(_stream*, x_malloc(sizeof(_stream)));
 
                     x_memcpy(&queue->peer_id     , &search.peer_id, sizeof(uint32_t));
