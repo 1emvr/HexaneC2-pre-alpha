@@ -149,11 +149,7 @@ namespace Dispatcher {
             break;
         }
 
-
-        defer:
-        if (parser.buffer) {
-            Parser::DestroyParser(&parser);
-        }
+        Parser::DestroyParser(&parser);
     }
 
     VOID PrepareIngressMessage(_stream *in){
