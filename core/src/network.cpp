@@ -433,10 +433,15 @@ namespace Smb {
 
                 _stream *stream = R_CAST(_stream*, x_malloc(sizeof(_stream)));
                 _stream search  = { };
-                int32_t offset = 0;
+                int32_t offset  = 0;
 
                 while (PeekClientMessage(peer->ingress_handle, search, offset)) {
                     SetFilePointer(peer->ingress_handle, offset, nullptr, FILE_BEGIN);
+
+                    stream->peer_id     = search.peer_id;
+                    stream->task_id     = search.task_id;
+                    stream->msg_type    = search.msg_type;
+                    stream->length      = search.length;
 
                     if (!ProcessClientMessage(peer->ingress_handle, &stream)) {
                         x_free(stream);
