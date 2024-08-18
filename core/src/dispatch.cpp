@@ -136,7 +136,7 @@ namespace Dispatcher {
         }
     }
 
-    BOOL PackageStream(_stream *out) {
+    BOOL PackageQueueItem(_stream *out) {
         HEXANE
 
         // todo: refactor this to work with the new queue list process
@@ -200,15 +200,14 @@ namespace Dispatcher {
             goto retry;
 #endif
         } else {
-            if (!PackageStream(out)) {
+            if (!PackageQueueItem(out)) {
                 return_defer(ntstatus);
             }
         }
 
-#ifdef TRANSPORT_HTTP
+#if     defined(TRANSPORT_HTTP)
         Network::Http::HttpCallback(out, &in);
-#endif
-#ifdef TRANSPORT_PIPE
+#elif   defined(TRANSPORT_PIPE)
         Network::Smb::PeerConnectEgress(out, &in);
 #endif
 
