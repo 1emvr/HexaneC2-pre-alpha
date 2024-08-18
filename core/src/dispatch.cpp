@@ -138,6 +138,9 @@ namespace Dispatcher {
             if (B_PTR(head->buffer)[0] != 0) {
                 continue; // if a message is inbound , don't process it
             }
+            if (head->length + MESSAGE_HEADER_SIZE + out->length > MESSAGE_MAX) {
+                break;
+            }
             if (head->buffer) {
                 Parser::CreateParser(&parser, B_PTR(head->buffer), head->length);
                 Stream::PackDword(out, head->peer_id);
