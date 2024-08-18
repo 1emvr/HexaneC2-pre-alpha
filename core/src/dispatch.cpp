@@ -101,7 +101,7 @@ namespace Dispatcher {
         uint32_t index      = 1;
 
         const auto n_seg = (length + MESSAGE_MAX - 1) / MESSAGE_MAX;
-        const auto m_max = MESSAGE_MAX - SEGMENT_HEADER_SIZE;
+        constexpr auto m_max = MESSAGE_MAX - SEGMENT_HEADER_SIZE;
 
         while (length > 0) {
             cb_seg  = length > m_max ? m_max : length;
