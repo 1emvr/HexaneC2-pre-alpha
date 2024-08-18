@@ -5,6 +5,9 @@ namespace Clients {
         HEXANE
 
         _stream *in     = { };
+        _client *client = { };
+        _client *head   = { };
+
         void *handle    = { };
         void *buffer    = { };
 
@@ -12,6 +15,7 @@ namespace Clients {
         uint32_t read   = 0;
         bool success    = true;
 
+        // first contact
         if (!(handle = Ctx->win32.CreateFileW(pipe_name, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr))) {
             if (handle == INVALID_HANDLE_VALUE) {
                 success_(false);
@@ -46,6 +50,33 @@ namespace Clients {
             }
         }
         while (true);
+
+        client              = R_CAST(_client*, x_malloc(sizeof(_client)));
+        client->pipe_name   = R_CAST(wchar_t*, x_malloc(x_wcslen(pipe_name) * sizeof(wchar_t)));
+        client->pipe_handle = handle;
+
+        x_memcpy(&client->peer_id, R_CAST(void*, Dispatcher::PeekPeerId(in)), sizeof(uint32_t));
+        x_memcpy(client->pipe_name, pipe_name, x_wcslen(pipe_name) * sizeof(wchar_t));
+
+        if (!Ctx->clients) {
+            Ctx->clients = client;
+        }
+
+        else {
+            head = Ctx->clients;
+            do {
+                if (head) {
+                    if (head->next) {
+                        head = head->next;
+                    }
+                    else {
+                        head->next = client;
+                        break;
+                    }
+                }
+            }
+            while (true);
+        }
 
         defer:
         return success;
