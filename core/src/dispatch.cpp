@@ -142,6 +142,7 @@ namespace Dispatcher {
         // todo: refactor this to work with the new queue process
         _stream *head   = Ctx->transport.outbound_queue;
         _parser parser  = { };
+        bool success    = true;
 
         while (head) {
             if (!head->ready) {
@@ -165,8 +166,8 @@ namespace Dispatcher {
                         out->length += head->length;
                     }
                 } else {
-                    ntstatus = ERROR_INVALID_USER_BUFFER;
-                    return false;
+                    success = false;
+                    return_defer(ERROR_INVALID_USER_BUFFER);
                 }
 
                 head->ready = true;
@@ -175,7 +176,9 @@ namespace Dispatcher {
             head = head->next;
         }
 
-        return true;
+        defer:
+        Parser::DestroyParser(&parser);
+        return success;
     }
 
     VOID MessageTransmit() {
@@ -214,8 +217,7 @@ namespace Dispatcher {
         out = nullptr;
 
         if (in) {
-            // todo: do not clear the queue, just remove n entries that succeeded
-            ClearQueue();
+            ClearQueue(); // todo: do not clear the queue, just remove n entries that succeeded
 
             if (PeekPID(in)) {
                 CommandDispatch(in);
