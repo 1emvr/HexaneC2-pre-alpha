@@ -181,7 +181,7 @@ namespace Dispatcher {
 #ifdef TRANSPORT_SMB
             return_defer(ERROR_SUCCESS);
 #else
-            auto entry = Stream::CreateStreamWithHeaders(TypeTasking);
+            const auto entry = Stream::CreateStreamWithHeaders(TypeTasking);
             Dispatcher::OutboundQueue(entry);
             goto retry;
 #endif
