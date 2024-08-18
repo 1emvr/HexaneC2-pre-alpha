@@ -14,7 +14,6 @@ namespace Clients {
             if (!in) {
                 return_defer(ntstatus);
             }
-
             if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, nullptr, 0, nullptr, R_CAST(LPDWORD, &total), nullptr)) {
                 continue;
             }
@@ -41,6 +40,8 @@ namespace Clients {
 
                     Dispatcher::OutboundQueue(in);
                 }
+            } else {
+                continue;
             }
 
             for (auto message = Ctx->transport.outbound_queue; message; message = message->next) {
