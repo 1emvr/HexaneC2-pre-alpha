@@ -193,8 +193,6 @@ namespace Clients {
                             Dispatcher::RemoveMessage(message);
                         }
                     }
-                } else {
-                    continue;
                 }
             }
         }
