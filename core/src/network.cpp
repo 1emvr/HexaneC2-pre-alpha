@@ -385,8 +385,10 @@ namespace Smb {
         _stream search  = { };
         int32_t current = 0;
         uint32_t read   = 0;
-        bool success    = true;
+        bool success    = false;
 
+        // on ingress, peer should still check if message if for him
+        // on egress should not pull his own message off the pipe
         while (true) {
             if (!Ctx->win32.PeekNamedPipe(handle, &search, 0x10, R_CAST(LPDWORD, &read), nullptr, nullptr) || read < 0x10) {
                 success(false);
