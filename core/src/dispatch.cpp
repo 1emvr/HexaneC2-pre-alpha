@@ -157,7 +157,7 @@ namespace Dispatcher {
                 }
             } else {
                 success = false;
-                return_defer(ERROR_INVALID_USER_BUFFER);
+                return_defer(ERROR_INVALID_DATA);
             }
 
             head->self = head;
@@ -191,7 +191,7 @@ namespace Dispatcher {
     VOID MessageTransmit() {
         HEXANE
 
-        _stream *out    = Stream::CreateStream();
+        _stream *out    = { };
         _stream *in     = { };
 
         retry:
@@ -204,6 +204,7 @@ namespace Dispatcher {
             goto retry;
 #endif
         } else {
+            out = Stream::CreateStream();
             if (!Dispatcher::PrepareEgressMessage(out)) {
                 return_defer(ntstatus);
             }
