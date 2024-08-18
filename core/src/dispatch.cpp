@@ -139,7 +139,7 @@ namespace Dispatcher {
     BOOL PackageQueueItem(_stream *out) {
         HEXANE
 
-        // todo: refactor this to work with the new queue list process
+        // todo: refactor this to work with the new queue process
         _stream *head   = Ctx->transport.outbound_queue;
         _parser parser  = { };
 
