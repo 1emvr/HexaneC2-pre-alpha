@@ -63,6 +63,7 @@ namespace Stream {
                 x_memset(stream->buffer, 0, stream->length);
                 x_free(stream->buffer);
 
+                stream->self        = nullptr;
                 stream->buffer      = nullptr;
                 stream->peer_id     = 0;
                 stream->task_id     = 0;

