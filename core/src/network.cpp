@@ -418,7 +418,6 @@ namespace Smb {
 
         while (peer) {
             if (peer->ingress_name) {
-                _stream search = { };
 
                 if (!peer->ingress_handle) {
                     SmbContextInit(&smb_attr, &sec_attr);
@@ -432,6 +431,7 @@ namespace Smb {
                     }
                 }
 
+                _stream search = { };
                 while (PeekClientMessage(peer->ingress_handle, search)) {
                     auto queue = R_CAST(_stream*, x_malloc(sizeof(_stream)));
 
