@@ -377,6 +377,13 @@ struct LdrpVectorHandlerList {
     SRWLOCK 				lock;
 };
 
+struct _client {
+	DWORD 	peer_id;
+	HANDLE 	pipe_handle;
+	LPWSTR 	pipe_name;
+	_client *next;
+};
+
 struct _heap_info {
     ULONG_PTR heap_id;
     DWORD pid;
@@ -415,6 +422,7 @@ struct _hexane{
 	} base;
 
 	_executable *coffs;
+	_client *clients;
 
 	struct {
 		// todo : finish tokens

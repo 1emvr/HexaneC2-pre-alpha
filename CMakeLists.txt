@@ -23,6 +23,7 @@ set (SOURCES
         core/src/start.asm
         core/src/stream.cpp
         core/src/utils.cpp
+        core/src/clients.cpp
 )
 
 set (INCLUDES
@@ -47,6 +48,7 @@ set (INCLUDES
         core/include/tokens.hpp
         commands/include/registry.hpp
         core/dotnet.hpp
+        core/include/clients.hpp
 )
 
 set (COMMANDS

