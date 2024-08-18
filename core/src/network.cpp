@@ -438,10 +438,10 @@ namespace Smb {
                 while (PeekClientMessage(peer->ingress_handle, search, offset)) {
                     SetFilePointer(peer->ingress_handle, offset, nullptr, FILE_BEGIN);
 
-                    stream->peer_id     = search.peer_id;
-                    stream->task_id     = search.task_id;
-                    stream->msg_type    = search.msg_type;
-                    stream->length      = search.length;
+                    x_memcpy(&stream->peer_id     , &search.peer_id, sizeof(uint32_t));
+                    x_memcpy(&stream->task_id     , &search.task_id, sizeof(uint32_t));
+                    x_memcpy(&stream->msg_type    , &search.msg_type, sizeof(uint32_t));
+                    x_memcpy(&stream->length      , &search.length, sizeof(uint32_t));
 
                     if (!ProcessClientMessage(peer->ingress_handle, &stream)) {
                         x_free(stream);
