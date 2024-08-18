@@ -435,7 +435,7 @@ namespace Smb {
 
                 if (!peer->ingress_handle) {
                     SmbContextInit(&smb_attr, &sec_attr);
-                    if (!(peer->ingress_handle = Ctx->win32.CreateNamedPipeW(peer->ingress_name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
+                    if (!(peer->ingress_handle = Ctx->win32.CreateNamedPipeW(peer->ingress_name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
                         return_defer(ntstatus);
                     }
 
