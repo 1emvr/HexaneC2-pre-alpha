@@ -379,13 +379,15 @@ namespace Smb {
         return true;
     }
 
-    VOID MoveFilePointer(HANDLE handle, int32_t offset, int32_t *current) {
+    BOOL MoveFilePointer(HANDLE handle, int32_t offset, int32_t *current) {
         HEXANE
 
-        auto total = offset;
-        *current += total;
+        *current += offset;
+        if (!Ctx->win32.SetFilePointer(handle, *current, nullptr, FILE_BEGIN)) {
+            return false;
+        }
 
-        Ctx->win32.SetFilePointer(handle, *current, nullptr, FILE_BEGIN);
+        return true;
     }
 
     BOOL PeekClientMessage(HANDLE handle, _stream &stream, bool ingress) {
@@ -407,7 +409,9 @@ namespace Smb {
 
             if (!ingress) {
                 if (!search.inbound) {
-                    MoveFilePointer(handle, S_CAST(int32_t, 0x11 + search.length), &current);
+                    if (!MoveFilePointer(handle, S_CAST(int32_t, 0x11 + search.length), &current)) {
+                        success_(false);
+                    }
                     continue;
 
                 } else {
@@ -416,7 +420,9 @@ namespace Smb {
                 }
             } else {
                 if (search.inbound) {
-                    MoveFilePointer(handle, S_CAST(int32_t, 0x11 + search.length), &current);
+                    if (!MoveFilePointer(handle, S_CAST(int32_t, 0x11 + search.length), &current)) {
+                        success_(false);
+                    }
                     continue;
 
                 } else {
