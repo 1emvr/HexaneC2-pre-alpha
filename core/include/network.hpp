@@ -33,6 +33,7 @@ namespace Network {
         FUNCTION BOOL PipeRead(HANDLE handle, _stream *in);
         FUNCTION BOOL PipeWrite(HANDLE handle, _stream *out);
         FUNCTION BOOL PipeSend (_stream *out);
+        FUNCTION BOOL PipeReceive(_stream **in);
     }
 }
 #endif //HEXANE_CORELIB_NETWORK_HPP
