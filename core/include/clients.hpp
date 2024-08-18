@@ -3,6 +3,6 @@
 #include <core/corelib.hpp>
 
 namespace Clients {
-    FUNCTION VOID ClientPush();
+    FUNCTION VOID PushClients();
 }
 #endif //HEXANE_IMPLANT_CLIENTS_HPP

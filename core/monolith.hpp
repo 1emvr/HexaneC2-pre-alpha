@@ -406,6 +406,7 @@ struct _stream {
 	ULONG		length;
 	LPVOID		buffer;
 	BOOL 		ready;
+	_stream 	*self;
 	_stream  	*next;
 };
 

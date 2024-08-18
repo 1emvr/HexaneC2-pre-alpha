@@ -37,7 +37,7 @@ func ResponseWorker(body []byte) ([]byte, error) {
 				return []byte("200 ok"), fmt.Errorf("ProcessParser: %v", err)
 			}
 		} else {
-			WrapMessage("ERR", fmt.Sprintf("could not find peer in the database: %d", parser.PeerId))
+			err = fmt.Errorf("could not find peer in the database: %d", parser.PeerId)
 			rsp = []byte("200 ok")
 		}
 	}
