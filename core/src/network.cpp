@@ -407,7 +407,7 @@ namespace Smb {
         return success;
     }
 
-    BOOL PipeReceive(_stream **in) {
+    BOOL PipeReceive(_stream** in) {
         HEXANE
 
         uint32_t total      = 0;
@@ -422,6 +422,7 @@ namespace Smb {
                     success_(false);
                 }
                 if (Ctx->session.peer_id != peer_id) {
+                    ntstatus = ERROR_INVALID_PARAMETER;
                     success_(false);
                 }
                 if (!Ctx->win32.ReadFile(Ctx->transport.pipe_handle, &msg_size, sizeof(uint32_t), R_CAST(LPDWORD, &total), nullptr)) {
