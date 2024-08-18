@@ -33,7 +33,6 @@ namespace Network {
         FUNCTION BOOL PipeRead(HANDLE handle, _stream *in);
         FUNCTION BOOL PipeWrite(HANDLE handle, _stream *out);
         FUNCTION BOOL PeekClientMessage(HANDLE handle, _stream &stream, int32_t &offset);
-        FUNCTION BOOL ProcessClientMessage(HANDLE handle, _stream *stream);
         FUNCTION VOID PeerConnectIngress (_stream *out, _stream **in);
         FUNCTION VOID PeerConnectEgress(_stream *out, _stream **in);
     }
