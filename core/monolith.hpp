@@ -203,9 +203,9 @@ WEAK EXTERN_C uint32_t		__instance;
 
 #define ZeroFreePtr(x, n) 		x_memset(x, 0, n); x_free(x); x = nullptr
 
-#define x_malloc(size) 			Ctx->Nt.RtlAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, size)
-#define x_realloc(ptr, size) 	Ctx->Nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, ptr, size)
-#define x_free(size) 			Ctx->Nt.RtlFreeHeap(Ctx->heap, 0, size)
+#define x_malloc(size) 			Ctx->nt.RtlAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, size)
+#define x_realloc(ptr, size) 	Ctx->nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, ptr, size)
+#define x_free(size) 			Ctx->nt.RtlFreeHeap(Ctx->heap, 0, size)
 
 #define F_PTR_HMOD(Fn, hmod, sym_hash) 	\
 	Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash)
@@ -531,11 +531,11 @@ struct _hexane{
 
 		RtlGetVersion_t RtlGetVersion;
 		NtQuerySystemInformation_t NtQuerySystemInformation;
-	} Nt;
+	} nt;
 
 	struct {
 		CLRCreateInstance_t CLRCreateInstance;
-	} CLR;
+	} clr;
 
 	struct {
 		_prototype(LoadLibraryA);

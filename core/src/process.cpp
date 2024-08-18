@@ -16,7 +16,7 @@ namespace Process {
 			while (Ctx->win32.Process32Next(hSnap, &entry)) {
 
 				if (x_strncmp(name, entry.szExeFile, x_strlen(entry.szExeFile)) == 0) {
-					Ctx->Nt.NtClose(hSnap);
+					Ctx->nt.NtClose(hSnap);
 					return entry.th32ProcessID;
 				}
 			}
@@ -24,7 +24,7 @@ namespace Process {
 
 		defer:
 		if (hSnap) {
-			Ctx->Nt.NtClose(hSnap);
+			Ctx->nt.NtClose(hSnap);
 		}
 
 		return 0;
@@ -54,7 +54,7 @@ namespace Process {
 			}
 		}
 		if (snap) {
-			Ctx->Nt.NtClose(snap);
+			Ctx->nt.NtClose(snap);
 		}
 
 		return process;
@@ -70,26 +70,26 @@ namespace Process {
 		client.UniqueThread = nullptr;
 
         InitializeObjectAttributes(&attrs, nullptr, 0, nullptr, nullptr);
-		return Ctx->Nt.NtOpenProcess(pp_process, access, &attrs, &client);
+		return Ctx->nt.NtOpenProcess(pp_process, access, &attrs, &client);
 	}
 
 	VOID CloseUserProcess(_executable *const image) {
 		HEXANE
 
 		if (image->attrs) {
-			Ctx->Nt.RtlFreeHeap(image->heap, 0, image->attrs);
+			Ctx->nt.RtlFreeHeap(image->heap, 0, image->attrs);
 			image->attrs = nullptr;
 		}
 		if (image->heap) {
-			Ctx->Nt.RtlDestroyHeap(image->heap);
+			Ctx->nt.RtlDestroyHeap(image->heap);
 			image->heap = nullptr;
 		}
 		if (image->params) {
-			Ctx->Nt.RtlDestroyProcessParameters(image->params);
+			Ctx->nt.RtlDestroyProcessParameters(image->params);
 			image->params = nullptr;
 		}
 		if (image->handle) {
-			Ctx->Nt.NtTerminateProcess(image->handle, ERROR_SUCCESS);
+			Ctx->nt.NtTerminateProcess(image->handle, ERROR_SUCCESS);
 		}
 	}
 
@@ -100,7 +100,7 @@ namespace Process {
 		UNICODE_STRING u_name = { };
 
 		x_mbstowcs(w_name, path, x_strlen(path));
-		Ctx->Nt.RtlInitUnicodeString(&u_name, w_name);
+		Ctx->nt.RtlInitUnicodeString(&u_name, w_name);
 
 		image->create = { };
 		image->create.Size = sizeof(image->create);
@@ -111,13 +111,13 @@ namespace Process {
 		image->attrs = nullptr;
 
 		//TODO: fix this to not always create suspended
-		if (!NT_SUCCESS(ntstatus = Ctx->Nt.RtlCreateProcessParametersEx(&image->params, &u_name, nullptr, DESKTOP_ENVIRONMENT_NULL, RTL_USER_PROCESS_PARAMETERS_NORMALIZED))) {
+		if (!NT_SUCCESS(ntstatus = Ctx->nt.RtlCreateProcessParametersEx(&image->params, &u_name, nullptr, DESKTOP_ENVIRONMENT_NULL, RTL_USER_PROCESS_PARAMETERS_NORMALIZED))) {
 			return_defer(ntstatus);
 		}
 
 		if (
-			!(image->heap = Ctx->Nt.RtlCreateHeap(HEAP_GROWABLE, HEAP_NO_COMMIT)) ||
-			!(image->attrs = S_CAST(PPS_ATTRIBUTE_LIST, Ctx->Nt.RtlAllocateHeap(image->heap, HEAP_ZERO_MEMORY, PS_ATTR_LIST_SIZE(1))))) {
+			!(image->heap = Ctx->nt.RtlCreateHeap(HEAP_GROWABLE, HEAP_NO_COMMIT)) ||
+			!(image->attrs = S_CAST(PPS_ATTRIBUTE_LIST, Ctx->nt.RtlAllocateHeap(image->heap, HEAP_ZERO_MEMORY, PS_ATTR_LIST_SIZE(1))))) {
 			return_defer(ERROR_NOT_ENOUGH_MEMORY);
 		}
 
@@ -126,15 +126,15 @@ namespace Process {
 		image->attrs->Attributes[0].Value 		= R_CAST(ULONG_PTR, u_name.Buffer);
 		image->attrs->Attributes[0].Size 		= u_name.Length;
 
-		ntstatus = Ctx->Nt.NtCreateUserProcess(&image->handle, &image->thread, PROCESS_CREATE_ALL_ACCESS_SUSPEND, image->params, &image->create, image->attrs);
+		ntstatus = Ctx->nt.NtCreateUserProcess(&image->handle, &image->thread, PROCESS_CREATE_ALL_ACCESS_SUSPEND, image->params, &image->create, image->attrs);
 
 	defer:
 		if (ntstatus != ERROR_SUCCESS) {
 			if (image->attrs) {
-				Ctx->Nt.RtlFreeHeap(image->heap, 0, image->attrs);
+				Ctx->nt.RtlFreeHeap(image->heap, 0, image->attrs);
 			}
 			if (image->heap) {
-				Ctx->Nt.RtlDestroyHeap(image->heap);
+				Ctx->nt.RtlDestroyHeap(image->heap);
 			}
 		}
 	}
