@@ -388,12 +388,12 @@ namespace Smb {
         uint32_t read = 0;
 
         while (true) {
-            if (!Ctx->win32.PeekNamedPipe(handle, &header, sizeof(uint32_t) * 4, R_CAST(LPDWORD, &read), nullptr, 0) || read == 0) {
+            if (!Ctx->win32.PeekNamedPipe(handle, &header, 0x10, R_CAST(LPDWORD, &read), nullptr, nullptr) || read == 0) {
                 return false;
             }
 
             if (header.peer_id == Ctx->session.peer_id) {
-                int32_t total = sizeof(uint32_t) * 4 + header.length;
+                int32_t total = 0x10 + header.length;
                 current += total;
 
                 SetFilePointer(handle, total, nullptr, FILE_CURRENT);
