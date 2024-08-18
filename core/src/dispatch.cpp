@@ -145,7 +145,7 @@ namespace Dispatcher {
 
         while (head) {
             if (!head->ready) {
-                if (head->length + MESSAGE_HEADER_SIZE + out->length > MESSAGE_MAX) {
+                if (head->length + MESSAGE_HEADER_SIZE + out->length + 4 > MESSAGE_MAX) {
                     break;
                 }
 
