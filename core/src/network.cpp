@@ -443,6 +443,7 @@ namespace Smb {
                     x_memcpy(&stream->length      , &search.length, sizeof(uint32_t));
 
                     SetFilePointer(peer->ingress_handle, offset, nullptr, FILE_BEGIN);
+
                     if (!ProcessClientMessage(peer->ingress_handle, &stream)) {
                         x_free(stream);
                         return_defer(ntstatus);
