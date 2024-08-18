@@ -42,6 +42,26 @@ namespace Http {
         defer:
     }
 
+    VOID DestroyRequestContext(_request_context *req_ctx) {
+        HEXANE
+
+        if (req_ctx) {
+            if (req_ctx->req_handle) { Ctx->win32.WinHttpCloseHandle(req_ctx->req_handle); }
+            if (req_ctx->conn_handle) { Ctx->win32.WinHttpCloseHandle(req_ctx->conn_handle); }
+            if (req_ctx->endpoint) { x_free(req_ctx->endpoint); }
+        }
+    }
+
+    VOID DestroyProxyContext(_proxy_context *proxy_ctx) {
+        HEXANE
+
+        if (proxy_ctx) {
+            if (proxy_ctx->proxy_config.lpszProxy) { x_free(proxy_ctx->proxy_config.lpszProxy); }
+            if (proxy_ctx->proxy_config.lpszProxyBypass) { x_free(proxy_ctx->proxy_config.lpszProxyBypass); }
+            if (proxy_ctx->proxy_config.lpszAutoConfigUrl) { x_free(proxy_ctx->proxy_config.lpszAutoConfigUrl); }
+        }
+    }
+
     _request_context* CreateRequestContext() {
         HEXANE
 
@@ -233,16 +253,8 @@ namespace Http {
         HttpSendRequest(req_ctx->req_handle, in);
 
         defer:
-        if (req_ctx) {
-            if (req_ctx->req_handle) { Ctx->win32.WinHttpCloseHandle(req_ctx->req_handle); }
-            if (req_ctx->conn_handle) { Ctx->win32.WinHttpCloseHandle(req_ctx->conn_handle); }
-            if (req_ctx->endpoint) { x_free(req_ctx->endpoint); }
-        }
-        if (proxy_ctx) {
-            if (proxy_ctx->proxy_config.lpszProxy) { x_free(proxy_ctx->proxy_config.lpszProxy); }
-            if (proxy_ctx->proxy_config.lpszProxyBypass) { x_free(proxy_ctx->proxy_config.lpszProxyBypass); }
-            if (proxy_ctx->proxy_config.lpszAutoConfigUrl) { x_free(proxy_ctx->proxy_config.lpszAutoConfigUrl); }
-        }
+        DestroyRequestContext(req_ctx);
+        DestroyProxyContext(proxy_ctx);
     }
 }
 
