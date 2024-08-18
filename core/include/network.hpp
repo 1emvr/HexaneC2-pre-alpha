@@ -23,8 +23,8 @@ namespace Network {
         FUNCTION BOOL SetHeaders(HINTERNET *request);
         FUNCTION VOID HttpSendRequest(HINTERNET request, _stream **stream);
         FUNCTION VOID HttpCallback(_stream *out, _stream **in);
-        FUNCTION _request_context* CreateRequestContext();
-        FUNCTION _proxy_context* CreateProxyContext(_request_context *req_ctx);
+        FUNCTION VOID CreateRequestContext(_request_context* req_ctx);
+        FUNCTION VOID CreateProxyContext(_proxy_context *proxy_ctx, _request_context *req_ctx);
     }
 
     namespace Smb {

