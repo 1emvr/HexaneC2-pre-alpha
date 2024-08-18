@@ -463,6 +463,7 @@ namespace Smb {
                         return_defer(ntstatus);
                     }
 
+                    x_memset(&search, 0, sizeof(_stream));
                     Dispatcher::OutboundQueue(stream);
                 }
 
