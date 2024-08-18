@@ -455,6 +455,7 @@ namespace Smb {
                     x_memcpy(&stream->task_id     , &search.task_id, sizeof(uint32_t));
                     x_memcpy(&stream->msg_type    , &search.msg_type, sizeof(uint32_t));
                     x_memcpy(&stream->length      , &search.length, sizeof(uint32_t));
+                    x_memset(&search              , 0, sizeof(_stream));
 
                     SetFilePointer(peer->ingress_handle, offset, nullptr, FILE_BEGIN);
 
@@ -463,7 +464,6 @@ namespace Smb {
                         return_defer(ntstatus);
                     }
 
-                    x_memset(&search, 0, sizeof(_stream));
                     Dispatcher::OutboundQueue(stream);
                 }
 
