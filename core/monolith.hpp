@@ -404,8 +404,7 @@ struct _stream {
 	ULONG   	task_id;
 	ULONG   	msg_type;
 	ULONG		length;
-	LPVOID		buffer;
-	LPVOID 		*targets;
+	PBYTE		buffer;
 	BOOL 		ready;
 	_stream  	*next;
 };
@@ -417,16 +416,15 @@ struct _hexane{
 	BOOL 	root;
     BOOL   	little;
 
+	_executable *coffs;
+	_client *clients;
+
 	struct {
 		UINT_PTR    address;
 		ULONG	    size;
 	} base;
 
-	_executable *coffs;
-	_client *clients;
-
 	struct {
-		// todo : finish tokens
 		_token_list_data *vault;
 		_token_list_data *token;
 		bool             impersonate;
