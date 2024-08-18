@@ -393,7 +393,7 @@ namespace Smb {
             }
 
             if (header.peer_id == Ctx->session.peer_id) {
-                int32_t total = 0x10 + header.length;
+                auto total = S_CAST(int32_t, 0x10 + header.length);
                 current += total;
 
                 SetFilePointer(handle, total, nullptr, FILE_CURRENT);
