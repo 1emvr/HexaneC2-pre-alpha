@@ -19,6 +19,7 @@ namespace Clients {
 
             else if (ntstatus == ERROR_PIPE_BUSY) {
                 if (!Ctx->win32.WaitNamedPipeW(pipe_name, 5000)) {
+                    Ctx->nt.NtClose(handle);
                     success_(false);
                 }
             }
@@ -26,7 +27,7 @@ namespace Clients {
         do {
             if (Ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, R_CAST(LPDWORD, &total), nullptr)) {
                 if (total) {
-                    if (!(in = Stream::CreateStream()) || !(buffer = x_malloc(total))) {
+                    if (!(buffer = x_malloc(total)) || !(in = Stream::CreateStream())) {
                         Ctx->nt.NtClose(handle);
                         success_(false);
                     }
@@ -38,6 +39,9 @@ namespace Clients {
 
                     in->buffer = buffer;
                     in->length += total;
+
+                    Dispatcher::OutboundQueue(in);
+                    break;
                 }
             }
         }
