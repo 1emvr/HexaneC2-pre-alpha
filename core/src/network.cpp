@@ -466,7 +466,7 @@ namespace Smb {
                 peer = peer->next;
                 head = Ctx->transport.outbound_queue;
 
-                SetFilePointer(peer->ingress_handle, 0, NULL, FILE_BEGIN);
+                SetFilePointer(peer->ingress_handle, 0, nullptr, FILE_BEGIN);
             }
         }
 
