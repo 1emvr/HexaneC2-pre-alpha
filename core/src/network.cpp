@@ -398,9 +398,7 @@ namespace Smb {
 
                 SetFilePointer(handle, total, nullptr, FILE_CURRENT);
             } else {
-                auto header_size = 0x10;
-
-                x_memcpy(&stream , &header, header_size);
+                x_memcpy(&stream , &header, 0x10);
                 x_memcpy(&offset , &current, sizeof(int32_t));
                 return true;
             }
