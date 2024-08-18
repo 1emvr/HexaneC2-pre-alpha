@@ -407,6 +407,7 @@ struct _ciphertext {
 };
 
 struct _stream {
+	BYTE 		inbound;
 	ULONG   	peer_id;
 	ULONG   	task_id;
 	ULONG   	msg_type;

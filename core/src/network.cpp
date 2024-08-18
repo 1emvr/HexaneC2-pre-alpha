@@ -385,7 +385,7 @@ namespace Smb {
         _stream search  = { };
         int32_t current = 0;
         uint32_t read   = 0;
-        bool success    = true;
+        bool success    = false;
         /*
             on egress pipe, peer should not pull his own message off the pipe but check for messages meant for him
             mark messages inbound (1) or outbound (0):
@@ -403,16 +403,26 @@ namespace Smb {
                 success_(false);
             }
 
-            if (!ingress && search.peer_id == Ctx->session.peer_id) {
-                auto total = S_CAST(int32_t, 0x10 + search.length);
-                current += total;
+            if (!ingress) {
+                if (search.peer_id == Ctx->session.peer_id && !search.inbound) {
+                    auto total = S_CAST(int32_t, 0x10 + search.length);
+                    current += total;
 
-                Ctx->win32.SetFilePointer(handle, current, nullptr, FILE_BEGIN);
-                continue;
+                    Ctx->win32.SetFilePointer(handle, current, nullptr, FILE_BEGIN);
+                    continue;
+
+                } else if (search.inbound){
+                    x_memcpy(&stream , &search, 0x10);
+                    success_(true);
+                }
+            } else {
+                if (search.inbound) {
+                    continue;
+                } else {
+                    x_memcpy(&stream , &search, 0x10);
+                    success_(true);
+                }
             }
-
-            x_memcpy(&stream , &search, 0x10);
-            success_(true);
         }
 
         defer:
