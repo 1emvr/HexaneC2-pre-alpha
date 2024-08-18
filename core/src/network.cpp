@@ -325,6 +325,7 @@ namespace Smb {
 
         do {
             auto length = MIN((in->length - total), PIPE_BUFFER_MAX);
+
             if (!Ctx->win32.ReadFile(handle, B_PTR(in->buffer) + total, length, R_CAST(LPDWORD, &read), nullptr)) {
                 if (ntstatus == ERROR_NO_DATA) {
                     return false;
@@ -345,7 +346,8 @@ namespace Smb {
 
         do {
             auto length = MIN((out->length - total), PIPE_BUFFER_MAX);
-            if (!Ctx->win32.WriteFile(handle, B_PTR(out->buffer) + total, , R_CAST(LPDWORD, &write), nullptr)) {
+
+            if (!Ctx->win32.WriteFile(handle, B_PTR(out->buffer) + total, length, R_CAST(LPDWORD, &write), nullptr)) {
                 return false;
             }
 
@@ -362,14 +364,13 @@ namespace Smb {
         uint32_t current = 0;
         uint32_t read = 0;
 
-        // locate the offset to a client message
         while (true) {
             if (!Ctx->win32.PeekNamedPipe(handle, &header, sizeof(_stream), R_CAST(LPDWORD, &read), NULL, NULL) || read == 0) {
                 return false;
             }
 
             if (header.peer_id == Ctx->session.peer_id) {
-                uint32_t total = sizeof(_stream) + header.length;
+                uint32_t total = sizeof(uint32_t) * 4 + header.length;
                 current += total;
 
                 SetFilePointer(handle, total, NULL, FILE_CURRENT);
@@ -384,10 +385,16 @@ namespace Smb {
     BOOL ProcessClientMessage(HANDLE handle, _stream& stream) {
         HEXANE
 
-        uint8_t read = 0;
+        uint32_t read = 0;
+        uint32_t length = 0;
+
+        stream = R_CAST(_stream*, x_malloc(sizeof(_stream)));
         stream.buffer = R_CAST(uint8_t*, x_malloc(stream.length));
 
-        if (!Ctx->win32.ReadFile(handle, stream.buffer, stream.length, R_CAST(LPDWORD, &read), NULL)) {
+        if (!Ctx->win32.PeekNamedPipe(handle, &length, sizeof(uint32_t), R_CAST(LPDWORD, &read), NULL, NULL) || read == 0) {
+            return false;
+        }
+        if (!PipeRead(handle, &stream)) {
             return false;
         } else {
             return true;
@@ -405,6 +412,10 @@ namespace Smb {
 
         while (peer) {
             if (peer->ingress_name) {
+
+                _stream stream = { };
+                uint32_t offset = 0;
+
                 if (!peer->ingress_handle) {
 
                     SmbContextInit(&smb_attr, &sec_attr);
@@ -417,9 +428,6 @@ namespace Smb {
                         return_defer(ntstatus);
                     }
                 }
-
-                _stream stream = { };
-                uint32_t offset = 0;
 
                 while (PeekClientMessage(peer->ingress_handle, stream, offset)) {
                     SetFilePointer(peer->ingress_handle, offset, NULL, FILE_BEGIN);
@@ -434,8 +442,9 @@ namespace Smb {
 
                 while (head) {
                     if (head->peer_id == peer->peer_id) {
-                        // todo: search outbound_queue and find messages for peers
-
+                        if (!PipeWrite(peer->ingress_handle, *in)) {
+                            return_defer(ntstatus);
+                        }
                     }
 
                     head = head->next;
