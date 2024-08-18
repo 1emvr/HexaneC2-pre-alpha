@@ -4,9 +4,12 @@ namespace Clients {
     VOID PushClients() {
         HEXANE
 
-        // just fucking send it...
         for (auto client = Ctx->clients; client; client = client->next) {
+            // just fucking send it...
+
             _stream *in     = { };
+            void *buffer    = { };
+
             uint8_t bound   = 0;
             uint32_t total  = 0;
             uint32_t read   = 0;
@@ -21,17 +24,15 @@ namespace Clients {
                 }
 
                 if (bound == 0) {
-                    if (!(in = Stream::CreateStream())) {
+
+                    if (!(buffer = x_malloc(total)) || !(in = Stream::CreateStream())) {
                         return_defer(ntstatus);
                     }
-                    void *buffer = x_malloc(total);
 
                     if (!Ctx->win32.ReadFile(client->pipe_handle, buffer, total, R_CAST(LPDWORD, &read), nullptr) || read != total) {
                         Stream::DestroyStream(in);
+                        x_free(buffer);
 
-                        if (buffer) {
-                            x_free(buffer);
-                        }
                         continue;
                     }
 
