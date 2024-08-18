@@ -118,7 +118,7 @@ EXTERN_C LPVOID InstEnd();
 #define FLG_HEAP_ENABLE_FREE_CHECK				0x00000040
 #define FLG_HEAP_VALIDATE_PARAMETERS			0x40000000
 
-#define MESSAGE_HEADER_SIZE 					(sizeof(uint32_t) * 3)
+#define HEADER_SIZE 							(sizeof(uint32_t) * 3)
 #define SEGMENT_HEADER_SIZE 					((sizeof(uint32_t) * 6) + sizeof(uint32_t))
 #define HTTP_REQUEST_MAX 						0x300000
 

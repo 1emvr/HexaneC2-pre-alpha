@@ -139,7 +139,7 @@ namespace Dispatcher {
                 continue; // if a message is inbound , don't process it
             }
             if (head->buffer) {
-                if (head->length + MESSAGE_HEADER_SIZE + out->length + 4 > MESSAGE_MAX) {
+                if (head->length + HEADER_SIZE + out->length + 4 > MESSAGE_MAX) {
                     break;
                 }
 
