@@ -53,9 +53,9 @@ namespace Clients {
 
         client              = R_CAST(_client*, x_malloc(sizeof(_client)));
         client->pipe_name   = R_CAST(wchar_t*, x_malloc(x_wcslen(pipe_name) * sizeof(wchar_t)));
+        client->peer_id     = Dispatcher::PeekPeerId(in);
         client->pipe_handle = handle;
 
-        x_memcpy(&client->peer_id, R_CAST(void*, Dispatcher::PeekPeerId(in)), sizeof(uint32_t));
         x_memcpy(client->pipe_name, pipe_name, x_wcslen(pipe_name) * sizeof(wchar_t));
 
         if (!Ctx->clients) {
@@ -125,7 +125,7 @@ namespace Clients {
 
             for (auto message = Ctx->transport.outbound_queue; message; message = message->next) {
 
-                if (message->buffer && B_PTR(message->buffer)[0] != 0) {
+                if (message->buffer && B_PTR(message->buffer)[0] == 1) {
                     if (Dispatcher::PeekPeerId(message) == client->peer_id) {
 
                         if (Network::Smb::PipeWrite(client->pipe_handle, message)) {

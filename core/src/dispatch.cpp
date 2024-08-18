@@ -146,7 +146,7 @@ namespace Dispatcher {
                 Stream::PackDword(out, head->msg_type);
 
                 if (Ctx->root) {
-                    // if message has reached exit node, prepare final header for server by appending msg body length
+                    // if message has reached exit node, prepare final header for server by prepending msg body length
                     Stream::PackBytes(out, B_PTR(head->buffer), head->length);
 
                 } else {
