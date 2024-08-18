@@ -106,7 +106,7 @@ namespace Http {
         }
     }
 
-    VOID CreateProxyContext(_proxy_context *proxy_ctx, const _request_context *req_ctx) {
+    VOID CreateProxyContext(_proxy_context *const proxy_ctx, const _request_context *const req_ctx) {
         HEXANE
 
         if (Ctx->transport.b_proxy) {
@@ -175,12 +175,6 @@ namespace Http {
         }
 
         defer:
-        if (ntstatus != ERROR_SUCCESS) {
-            if (proxy_ctx) {
-                x_free(proxy_ctx);
-                proxy_ctx = nullptr;
-            }
-        }
     }
 
     VOID SelectMethod(LPWSTR method) {
