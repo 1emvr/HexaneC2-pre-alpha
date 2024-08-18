@@ -60,20 +60,19 @@ namespace Clients {
 
         if (!Ctx->clients) {
             Ctx->clients = client;
-        }
 
-        else {
+        } else {
             head = Ctx->clients;
             do {
                 if (head) {
                     if (head->next) {
                         head = head->next;
-                    }
-                    else {
+                    } else {
                         head->next = client;
                         break;
                     }
                 }
+                else break;
             }
             while (true);
         }
