@@ -24,7 +24,6 @@ namespace Clients {
                 }
 
                 if (bound == 0) {
-
                     if (!(buffer = x_malloc(total)) || !(in = Stream::CreateStream())) {
                         return_defer(ntstatus);
                     }
