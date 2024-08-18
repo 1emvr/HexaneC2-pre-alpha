@@ -383,9 +383,9 @@ namespace Smb {
     BOOL PeekClientMessage(HANDLE handle, _stream &stream, int32_t &offset) {
         HEXANE
 
-        _stream header = { };
+        _stream header  = { };
         int32_t current = 0;
-        uint32_t read = 0;
+        uint32_t read   = 0;
 
         while (true) {
             if (!Ctx->win32.PeekNamedPipe(handle, &header, 0x10, R_CAST(LPDWORD, &read), nullptr, nullptr) || read == 0) {
