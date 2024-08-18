@@ -26,7 +26,7 @@ namespace Dispatcher {
         }
     }
 
-    VOID RemoveMessage(_stream *target) {
+    VOID RemoveMessage(const _stream *target) {
         HEXANE
 
         _stream *head = Ctx->transport.outbound_queue;
