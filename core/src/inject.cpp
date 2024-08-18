@@ -4,7 +4,6 @@
 
 namespace Injection {
 
-
     VOID Threadless(const _threadless &writer, void *const shellcode, size_t n_shellcode, size_t total) {
         HEXANE
 

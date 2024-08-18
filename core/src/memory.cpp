@@ -15,6 +15,17 @@ namespace Memory {
 
     namespace Methods {
 
+        BOOL MoveFilePointer(HANDLE handle, int32_t offset, int32_t* current) {
+            HEXANE
+
+            *current += offset;
+            if (!Ctx->win32.SetFilePointer(handle, *current, nullptr, FILE_BEGIN)) {
+                return false;
+            }
+
+            return true;
+        }
+
         UINT_PTR GetStackCookie() {
             HEXANE
 

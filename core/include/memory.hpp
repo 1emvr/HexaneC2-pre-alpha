@@ -4,6 +4,7 @@
 
 namespace Memory {
     namespace Methods {
+        FUNCTION BOOL MoveFilePointer(HANDLE handle, int32_t offset, int32_t* current);
         FUNCTION UINT_PTR GetStackCookie();
         FUNCTION VOID GetProcessHeaps(HANDLE process, uint32_t access, uint32_t pid);
         FUNCTION _resource* GetIntResource(HMODULE base, int rsrc_id);
