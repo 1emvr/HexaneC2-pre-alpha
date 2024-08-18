@@ -160,6 +160,7 @@ namespace Dispatcher {
                         Stream::PackBytes(out, B_PTR(head->buffer), head->length);
 
                     } else {
+                        // else send to the next client as-is
                         out->buffer = x_realloc(out->buffer, out->length + head->length);
                         x_memcpy(B_PTR(out->buffer) + out->length, head->buffer, head->length);
 
