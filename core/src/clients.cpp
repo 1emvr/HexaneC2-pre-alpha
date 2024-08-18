@@ -48,10 +48,8 @@ namespace Clients {
 
                 if (message->buffer && B_PTR(message->buffer)[0] != 0) {
                     if (Dispatcher::PeekPeerId(message) == client->peer_id) {
-                        auto success = true;
-                        // writing logic
 
-                        if (success) {
+                        if (Network::Smb::PipeWrite(client->pipe_handle, message)) {
                             Dispatcher::RemoveMessage(message);
                         }
                     }
