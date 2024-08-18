@@ -91,6 +91,7 @@ WriteFile
 FindFirstFileA
 FindNextFileA
 FindClose
+SetFilePointer
 GetThreadLocale
 GetCurrentDirectoryA
 SystemFunction033

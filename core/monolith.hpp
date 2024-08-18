@@ -574,6 +574,7 @@ struct _hexane{
 		_prototype(WriteFile);
 		_prototype(CreateFileW);
 		_prototype(GetFileSizeEx);
+        _prototype(SetFilePointer);
 		_prototype(GetFullPathNameA);
 		_prototype(FindFirstFileA);
 		_prototype(FindClose);

