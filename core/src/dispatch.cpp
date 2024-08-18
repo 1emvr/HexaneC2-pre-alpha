@@ -148,14 +148,10 @@ namespace Dispatcher {
                 Stream::PackDword(out, head->task_id);
                 Stream::PackDword(out, head->msg_type);
 
-                // if message has reached exit node, prepare final header for server by prepending msg body length
-                // else leave as-is for the next client
-
                 if (Ctx->root) {
                     Stream::PackBytes(out, B_PTR(head->buffer), head->length);
                 } else {
                     out->buffer = x_realloc(out->buffer, out->length + head->length);
-
                     x_memcpy(B_PTR(out->buffer) + out->length, head->buffer, head->length);
                     out->length += head->length;
                 }
@@ -164,7 +160,6 @@ namespace Dispatcher {
                 return_defer(ERROR_INVALID_DATA);
             }
 
-            out->self = head;
             head = head->next;
         }
 

@@ -405,8 +405,8 @@ struct _stream {
 	ULONG   	msg_type;
 	ULONG		length;
 	LPVOID		buffer;
+	LPVOID 		*targets;
 	BOOL 		ready;
-	_stream 	*self;
 	_stream  	*next;
 };
 
