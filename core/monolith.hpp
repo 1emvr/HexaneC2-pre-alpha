@@ -317,10 +317,8 @@ struct _proxy {
 };
 
 struct _smb_context {
-	HANDLE ingress_handle;
-	HANDLE egress_handle;
 	LPWSTR ingress_name;
-	LPWSTR egress_name;
+	HANDLE ingress_handle;
 	_smb_context *next;
 };
 
@@ -352,15 +350,6 @@ struct _token_list_data {
 	_token_list_data* Next;
 };
 
-struct _stream {
-	ULONG   peer_id;
-	ULONG   task_id;
-	ULONG   msg_type;
-	ULONG	length;
-	LPVOID	buffer;
-	BOOL 	ready;
-	_stream  *next;
-};
 
 
 struct _parser {

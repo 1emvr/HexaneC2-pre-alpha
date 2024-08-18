@@ -1,7 +1,17 @@
 #ifndef HEXANE_CORELIB_STREAM_HPP
 #define HEXANE_CORELIB_STREAM_HPP
-
 #include <core/corelib.hpp>
+
+struct _stream {
+	ULONG   	peer_id;
+	ULONG   	task_id;
+	ULONG   	msg_type;
+	ULONG		length;
+	LPVOID		buffer;
+	BOOL 		ready;
+	_stream  	*next;
+};
+
 namespace Stream {
 
 	FUNCTION UINT32 ExtractU32 (uint8_t const *buffer);
