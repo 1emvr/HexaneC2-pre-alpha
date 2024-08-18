@@ -131,8 +131,9 @@ namespace Clients {
                         head->next = client;
                         break;
                     }
+                } else {
+                    break;
                 }
-                else break;
             }
             while (true);
         }
