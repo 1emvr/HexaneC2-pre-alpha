@@ -395,7 +395,7 @@ namespace Smb {
                 auto total = S_CAST(int32_t, 0x10 + header.length);
                 current += total;
 
-                SetFilePointer(handle, total, nullptr, FILE_CURRENT);
+                SetFilePointer(handle, current, nullptr, FILE_CURRENT);
             } else {
                 x_memcpy(&stream , &header, 0x10);
                 x_memcpy(&offset , &current, sizeof(int32_t));
