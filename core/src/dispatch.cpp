@@ -101,13 +101,11 @@ namespace Dispatcher {
         uint32_t index      = 1;
 
         const auto n_seg = (length + MESSAGE_MAX - 1) / MESSAGE_MAX;
+        const auto m_max = MESSAGE_MAX - SEGMENT_HEADER_SIZE;
 
         while (length > 0) {
-            cb_seg = length > MESSAGE_MAX - SEGMENT_HEADER_SIZE
-                ? MESSAGE_MAX - SEGMENT_HEADER_SIZE
-                : length;
-
-            queue = S_CAST(_stream*, x_malloc(cb_seg + SEGMENT_HEADER_SIZE));
+            cb_seg  = length > m_max ? m_max : length;
+            queue   = S_CAST(_stream*, x_malloc(cb_seg + SEGMENT_HEADER_SIZE));
 
             x_memcpy(&peer_id, buffer, 4);
             x_memcpy(&task_id, buffer + 4, 4);
