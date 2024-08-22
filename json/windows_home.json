@@ -29,9 +29,9 @@
 
 		"Dependencies": [],
 		"Sources": [
-			"cipher.cpp", "commands.cpp", "stdlib.cpp", "inject.cpp", "memory.cpp", "dispatch.cpp",
-			"network.cpp", "opsec.cpp", "parser.cpp", "process.cpp", "start.asm", "stream.cpp",
-			"utils.cpp", "implant.cpp"
+			"cipher.cpp", "clients.cpp", "commands.cpp", "dispatch.cpp", "implant.cpp",
+			"inject.cpp", "memory.cpp", "network.cpp", "opsec.cpp", "parser.cpp",
+			"process.cpp", "stdlib.cpp", "stream.cpp", "tokens.cpp", "utils.cpp"
 		],
 		"LoadedModules": [
 			"crypt32", "winhttp", "advapi32", "iphlpapi", "mscoree"
