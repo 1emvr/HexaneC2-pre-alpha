@@ -57,7 +57,7 @@ struct obfuscatorw {
     }
 };
 
-#define OBF(str)                                    \
+#define OBF(str)(                                   \
     []() -> char* {                                 \
         constexpr auto size = ARRAY_LEN(str);       \
         constexpr auto obf = obfuscator<size>(str); \
@@ -65,9 +65,9 @@ struct obfuscatorw {
                                                     \
         obf.deobfuscate((unsigned char*)original);  \
         return original;                            \
-}()
+}())
 
-#define OBFW(str)                                       \
+#define OBFW(str)(                                      \
     []() -> wchar_t* {                                  \
         constexpr auto size = ARRAY_LEN(str);           \
         constexpr auto obf = obfuscatorw<size>(str);    \
@@ -75,5 +75,5 @@ struct obfuscatorw {
                                                         \
         obf.deobfuscate((wchar_t*)original);            \
         return original;                                \
-}()
+}())
 #endif //HEXANE_CORELIB_CIPHER_HPP
