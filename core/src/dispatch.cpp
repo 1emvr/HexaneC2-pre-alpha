@@ -202,8 +202,7 @@ namespace Dispatcher {
         Dispatcher::PrepareIngressMessage(in);
 
         Clients::PushClients();
-
-    defer:
+        defer:
     }
 
     VOID CommandDispatch (const _stream *const in) {

@@ -1,4 +1,4 @@
-#include "core/include/tokens.hpp"
+#include "commands/include/tokens.hpp"
 namespace Token {
 
 	BOOL RevertToken() {

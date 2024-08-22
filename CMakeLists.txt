@@ -45,17 +45,16 @@ set (INCLUDES
         core/include/process.hpp
         core/include/stream.hpp
         core/include/utils.hpp
-        core/include/tokens.hpp
+        commands/include/tokens.hpp
         commands/include/registry.hpp
-        core/dotnet.hpp
         core/include/clients.hpp
         core/corelib.hpp
-        core/configs.hpp
+        core/dotnet.hpp
 )
 
 set (COMMANDS
         commands/src/registry.cpp
-        core/src/tokens.cpp
+        commands/src/tokens.cpp
 )
 
 set (LOADER
