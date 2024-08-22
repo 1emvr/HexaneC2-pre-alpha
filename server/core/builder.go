@@ -115,18 +115,22 @@ func (h *HexaneConfig) BuildSource() error {
 func (h *HexaneConfig) RunBuild() error {
 	var err error
 
+	WrapMessage("DBG", "creating build directory")
 	if err = CreatePath(h.Compiler.BuildDirectory, os.ModePerm); err != nil {
 		return fmt.Errorf("error creating payload directory - " + err.Error())
 	}
 
+	WrapMessage("DBG", "generating config data")
 	if err = h.GenerateConfigBytes(); err != nil {
 		return fmt.Errorf("error generating config data - " + err.Error())
 	}
 
+	WrapMessage("DBG", "generating string hashes")
 	if err = GenerateHashes(HashStrings, HashHeader); err != nil {
 		return fmt.Errorf("error generating string hashes - " + err.Error())
 	}
 
+	WrapMessage("DBG", "building sources")
 	if err = h.BuildSource(); err != nil {
 		return fmt.Errorf("error generating implant - " + err.Error())
 	}

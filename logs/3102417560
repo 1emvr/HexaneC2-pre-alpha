@@ -1,0 +1,48 @@
+In file included from ../core/corelib.hpp:7,
+                 from ../core/include/parser.hpp:4,
+                 from C:\Users\lemur\Github\HexaneC2\core\src\parser.cpp:1:
+../core/include/commands.hpp:17:15: error: 'DIRECTORYLIST' was not declared in this scope
+   17 |     { .name = DIRECTORYLIST,    .address = Commands::DirectoryList },
+      |               ^~~~~~~~~~~~~
+../core/include/commands.hpp:17:15: note: the macro 'DIRECTORYLIST' had not yet been defined
+In file included from ../core/corelib.hpp:12:
+../core/include/names.hpp:131: note: it was later defined here
+  131 | #define DIRECTORYLIST 0x74c70a90
+      | 
+../core/include/commands.hpp:18:15: error: 'PROCESSMODULES' was not declared in this scope
+   18 |     { .name = PROCESSMODULES,   .address = Commands::ProcessModules },
+      |               ^~~~~~~~~~~~~~
+../core/include/commands.hpp:18:15: note: the macro 'PROCESSMODULES' had not yet been defined
+../core/include/names.hpp:132: note: it was later defined here
+  132 | #define PROCESSMODULES 0xabc99bef
+      | 
+../core/include/commands.hpp:19:15: error: 'PROCESSLIST' was not declared in this scope
+   19 |     { .name = PROCESSLIST,      .address = Commands::ProcessList },
+      |               ^~~~~~~~~~~
+../core/include/commands.hpp:19:15: note: the macro 'PROCESSLIST' had not yet been defined
+../core/include/names.hpp:133: note: it was later defined here
+  133 | #define PROCESSLIST 0xfaf9db36
+      | 
+../core/include/commands.hpp:20:15: error: 'ADDPEER' was not declared in this scope
+   20 |     { .name = ADDPEER,                  .address = Commands::AddPeer },
+      |               ^~~~~~~
+../core/include/commands.hpp:20:15: note: the macro 'ADDPEER' had not yet been defined
+../core/include/names.hpp:135: note: it was later defined here
+  135 | #define ADDPEER 0x9a544a08
+      | 
+../core/include/commands.hpp:21:19: error: 'REMOVEPEER' was not declared in this scope
+   21 |         { .name = REMOVEPEER,           .address = Commands::RemovePeer },
+      |                   ^~~~~~~~~~
+../core/include/commands.hpp:21:19: note: the macro 'REMOVEPEER' had not yet been defined
+../core/include/names.hpp:136: note: it was later defined here
+  136 | #define REMOVEPEER 0x3ae19261
+      | 
+../core/include/commands.hpp:22:19: error: 'SHUTDOWN' was not declared in this scope
+   22 |         { .name = SHUTDOWN,         .address = Commands::Shutdown },
+      |                   ^~~~~~~~
+../core/include/commands.hpp:22:19: note: the macro 'SHUTDOWN' had not yet been defined
+../core/include/names.hpp:134: note: it was later defined here
+  134 | #define SHUTDOWN 0xf8206a4b
+      | 
+ 
+ 

@@ -1,6 +1,6 @@
 In file included from ../core/corelib.hpp:7,
-                 from ../core/include/memory.hpp:4,
-                 from C:\Users\lemur\Github\HexaneC2\core\src\memory.cpp:1:
+                 from ../core/include/stdlib.hpp:4,
+                 from C:\Users\lemur\Github\HexaneC2\core\src\stdlib.cpp:1:
 ../core/include/commands.hpp:17:15: error: 'DIRECTORYLIST' was not declared in this scope
    17 |     { .name = DIRECTORYLIST,    .address = Commands::DirectoryList },
       |               ^~~~~~~~~~~~~

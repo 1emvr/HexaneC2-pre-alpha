@@ -1,7 +1,6 @@
 package core
 
 import (
-	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -124,7 +123,7 @@ func WriteFile(name string, data []byte) error {
 		outFile *os.File
 	)
 
-	if outFile, err = os.OpenFile(name, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644); err != nil {
+	if outFile, err = os.OpenFile(name, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644); err != nil {
 		return err
 	}
 	defer func() {
@@ -133,14 +132,8 @@ func WriteFile(name string, data []byte) error {
 		}
 	}()
 
-	WrapMessage("DBG", "creating "+name)
-
-	writer := bufio.NewWriter(outFile)
-	if _, err = writer.WriteString(string(data)); err != nil {
-		return err
-	}
-
-	if err = writer.Flush(); err != nil {
+	fmt.Println(name)
+	if _, err = outFile.WriteString(string(data)); err != nil {
 		return err
 	}
 
