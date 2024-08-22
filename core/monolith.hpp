@@ -192,8 +192,8 @@ typedef VOID (NTAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
 #define __builtin_bswap64 __bswapq
 #endif
 
-WEAK EXTERN_C uint32_t		__instance;
-#define GLOBAL_OFFSET       (U_PTR(InstStart()) + U_PTR(&__instance))
+WEAK EXTERN_C uintptr_t		__instance;
+#define GLOBAL_OFFSET       	(U_PTR(InstStart()) + U_PTR(&__instance))
 #define HEXANE 		        auto Ctx = R_CAST(_hexane*, C_DREF(GLOBAL_OFFSET));
 
 #define InitializeObjectAttributes(ptr, name, attr, root, sec )	\
