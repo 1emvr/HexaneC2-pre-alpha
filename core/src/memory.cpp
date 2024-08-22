@@ -10,6 +10,8 @@
  */
 
 namespace Memory {
+    LPVOID ExceptionReturn = 0;
+
     namespace Methods {
 
         BOOL MoveFilePointer(HANDLE handle, int32_t offset, int32_t* current) {

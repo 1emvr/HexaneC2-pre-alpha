@@ -4,8 +4,6 @@
 #include <core/corelib.hpp>
 
 namespace Memory {
-    LPVOID ExceptionReturn = 0;
-
     namespace Methods {
         FUNCTION BOOL MoveFilePointer(HANDLE handle, int32_t offset, int32_t* current);
         FUNCTION UINT_PTR GetStackCookie();
