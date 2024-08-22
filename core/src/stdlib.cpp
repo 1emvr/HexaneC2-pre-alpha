@@ -75,7 +75,7 @@ size_t x_strlen (const char* str) {
     auto len = 0;
     const auto s_str = str;
 
-    while (s_str[len] != 0x00) {
+    while (*s_str) {
         len++;
     }
 
