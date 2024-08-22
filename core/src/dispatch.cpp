@@ -178,6 +178,7 @@ namespace Dispatcher {
 
         retry:
         if (!Ctx->transport.outbound_queue) {
+
 #ifdef TRANSPORT_SMB
             return_defer(ERROR_SUCCESS);
 #else
