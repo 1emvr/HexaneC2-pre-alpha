@@ -5,12 +5,13 @@
 #include <core/dotnet.hpp>
 
 namespace Commands {
-	FUNCTION VOID DirectoryList (_parser *parser);
+    FUNCTION VOID DirectoryList (_parser *parser);
 	FUNCTION VOID ProcessModules (_parser *parser);
 	FUNCTION VOID ProcessList(_parser *parser);
 	FUNCTION VOID AddPeer(_parser *parser);
 	FUNCTION VOID RemovePeer(_parser *parser);
 	FUNCTION VOID Shutdown (_parser *parser);
+    FUNCTION UINT_PTR GetCommandAddress(uint32_t name, bool* internal);
 }
 
 #endif //HEXANE_CORELIB_COMMANDS_HPP

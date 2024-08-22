@@ -1,4 +1,6 @@
 #include <core/include/implant.hpp>
+__text(F) uint8_t __config[1024] = { 0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41, };
+
 namespace Implant {
 
     VOID MainRoutine() {
@@ -38,7 +40,6 @@ namespace Implant {
         Memory::Context::ContextDestroy(Ctx);
     }
 
-    __text(F) uint8_t __config[1024] = { 0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41, };
     VOID ReadConfig() {
         HEXANE
 

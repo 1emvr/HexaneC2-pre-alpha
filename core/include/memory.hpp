@@ -19,8 +19,8 @@ namespace Memory {
     }
 
     namespace Objects {
-        FUNCTION BOOL BaseRelocation(_executable *object);
         FUNCTION UINT_PTR GetInternalAddress(uint32_t name, bool* internal);
+        FUNCTION BOOL BaseRelocation(_executable *object);
         FUNCTION UINT_PTR ResolveSymbol(_executable *object, uint32_t entry_name, uint32_t type);
         FUNCTION SIZE_T GetFunctionMapSize(_executable *object);
         FUNCTION BOOL MapSections(_executable *object, const uint8_t *data);
