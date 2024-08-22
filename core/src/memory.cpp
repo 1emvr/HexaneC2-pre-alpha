@@ -561,18 +561,20 @@ namespace Memory {
         }
 
         LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash) {
-            __debugbreak();
-            HEXANE
+            // todo: replace PEB_POINTER with custom impl
 
             auto peb = R_CAST(PPEB, PEB_POINTER);
             auto head = peb->Ldr->InMemoryOrderModuleList;
 
-            for (auto next = head.Flink; next != &head; next = next->Flink) {
-                auto entry = CONTAINING_RECORD(next->Flink, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
-
+            for (auto entry = head.Flink; entry != &head; entry = entry->Flink) {
                 wchar_t lowercase[MAX_PATH] = { };
-                if (hash - Utils::GetHashFromStringW(x_wcsToLower(lowercase, entry->BaseDllName.Buffer), entry->BaseDllName.Length) == 0) {
-                    return entry;
+
+                auto mod = CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
+                auto name = mod->BaseDllName;
+
+                __debugbreak();
+                if (hash - Utils::GetHashFromStringW(x_wcsToLower(lowercase, name.Buffer), name.Length) == 0) {
+                    return mod;
                 }
             }
 
