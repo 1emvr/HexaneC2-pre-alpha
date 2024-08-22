@@ -783,7 +783,7 @@ namespace Memory {
             void *veh_handler   = { };
             void *exec          = { };
 
-            if (!(veh_handler = Ctx->nt.RtlAddVectoredExceptionHandler(1, &Injection::Veh::Debugger))) {
+            if (!(veh_handler = Ctx->nt.RtlAddVectoredExceptionHandler(1, &Memory::Execute::Debugger))) {
                 return_defer(ERROR_INVALID_EXCEPTION_HANDLER);
             }
 
