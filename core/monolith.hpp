@@ -38,6 +38,7 @@ EXTERN_C LPVOID InstEnd();
 #define _prototype(x)                               decltype(x) *x
 #define _code_seg(x)							    __attribute__((used, section(x)))
 #define _text(x) 								    __attribute__((used, section(".text$" #x "")))
+#define _noinline									__attribute__((noinline))
 #define DLL_EXPORT 								    __declspec(dllexport)
 
 #define ntstatus 								    Ctx->teb->LastErrorValue
