@@ -1,7 +1,0 @@
-C:\Users\lemur\CLionProjects\HexaneC2\core\src\memory.cpp: In function 'BOOL Memory::Execute::ExecuteObject(_executable*, const char*, char*, uint32_t, uint32_t)':
-C:\Users\lemur\CLionProjects\HexaneC2\core\src\memory.cpp:786:92: error: 'Debugger' is not a member of 'Injection::Veh'; did you mean 'Memory::Execute::Debugger'?
-  786 |             if (!(veh_handler = Ctx->nt.RtlAddVectoredExceptionHandler(1, &Injection::Veh::Debugger))) {
-      |                                                                                            ^~~~~~~~
-C:\Users\lemur\CLionProjects\HexaneC2\core\src\memory.cpp:718:21: note: 'Memory::Execute::Debugger' declared here
-  718 |         LONG WINAPI Debugger(EXCEPTION_POINTERS *exception) {
-      |                     ^~~~~~~~

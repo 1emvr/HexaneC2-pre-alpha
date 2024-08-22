@@ -153,7 +153,7 @@ namespace Dispatcher {
         Parser::DestroyParser(&parser);
     }
 
-    VOID PrepareIngressMessage(_stream *in){
+    VOID PrepareIngressMessage(_stream *in) {
         HEXANE
 
         if (in) {
