@@ -70,7 +70,7 @@ char *x_strcat (char *const str1, const char *const str2) {
     return str1;
 }
 
-__noinline size_t x_strlen (const char* str) {
+size_t x_strlen (const char* str) {
 
     auto len = 0;
     const auto s_str = str;
@@ -82,7 +82,7 @@ __noinline size_t x_strlen (const char* str) {
     return len;
 }
 
-__noinline size_t x_wcslen (const wchar_t *const s) {
+size_t x_wcslen (const wchar_t *const s) {
 
     size_t len = 0;
     const auto s_str = s;

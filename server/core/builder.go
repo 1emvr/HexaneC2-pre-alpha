@@ -85,12 +85,11 @@ func (h *HexaneConfig) BuildSource() error {
 		return fmt.Errorf("h.CompileSources - " + err.Error())
 	}
 
-	flags = h.Compiler.Flags
 	if module.LinkerScript != "" {
 		flags = append(flags, module.LinkerScript)
 	}
 
-	if err = h.CompileObject(h.Compiler.Mingw, module.OutputName, module.Components, flags, module.Files.IncludeDirectories, nil); err != nil {
+	if err = h.CompileObject(h.Compiler.Linker, module.OutputName, module.Components, flags, module.Files.IncludeDirectories, nil); err != nil {
 		return err
 	}
 
