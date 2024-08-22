@@ -7,6 +7,7 @@ namespace Implant {
         do {
             Opsec::SleepObf();
             Opsec::SeRuntimeCheck();
+
             if (!Opsec::CheckTime()) {
                 continue;
             }
