@@ -13,14 +13,4 @@ namespace Commands {
 	FUNCTION VOID Shutdown (_parser *parser);
 }
 
-_code_seg(".rdata") _command_map cmd_map[] = {
-	{.name = DIRECTORYLIST, .address = Commands::DirectoryList  },
-	{.name = PROCESSMODULES,.address = Commands::ProcessModules },
-	{.name = PROCESSLIST,	.address = Commands::ProcessList    },
-	{.name = ADDPEER,		.address = Commands::AddPeer        },
-	{.name = REMOVEPEER,	.address = Commands::RemovePeer     },
-	{.name = SHUTDOWN,		.address = Commands::Shutdown       },
-	{.name = 0,				.address = nullptr					}
-};
-
 #endif //HEXANE_CORELIB_COMMANDS_HPP
