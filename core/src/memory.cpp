@@ -734,7 +734,7 @@ namespace Memory {
                 goto defer;
             }
 
-            if (!(address = Objects::GetInternalAddress(cmd_id, &is_internal)) || !is_internal) {
+            if (!(address = Memory::Objects::GetInternalAddress(cmd_id, &is_internal)) || !is_internal) {
                 return_defer(ntstatus);
                 // todo: error_transmit("command not found : %s")
             }

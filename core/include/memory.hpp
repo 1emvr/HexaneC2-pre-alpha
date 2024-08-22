@@ -1,6 +1,10 @@
 #ifndef HEXANE_CORELIB_MEMORY_HPP
 #define HEXANE_CORELIB_MEMORY_HPP
-#include <core/corelib.hpp>
+
+#include <core/monolith.hpp>
+#include <core/include/process.hpp>
+#include <core/include/commands.hpp>
+#include <core/include/names.hpp>
 
 namespace Memory {
     namespace Methods {

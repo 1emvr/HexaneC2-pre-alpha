@@ -101,7 +101,7 @@ namespace Clients {
                         success_(false);
                     }
 
-                    in->buffer = buffer;
+                    in->buffer = B_PTR(buffer);
                     in->length += total;
 
                     Dispatcher::OutboundQueue(in);
@@ -173,7 +173,7 @@ namespace Clients {
                     continue;
                 }
 
-                in->buffer = buffer;
+                in->buffer = B_PTR(buffer);
                 in->length += total;
 
                 Dispatcher::OutboundQueue(in);

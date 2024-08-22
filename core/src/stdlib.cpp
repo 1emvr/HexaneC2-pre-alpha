@@ -20,7 +20,7 @@ void *x_memset (void *const dst, const int val, size_t len) {
 
 void x_strcpy (char *dst, const char *src) {
 
-    while ((*dst = *src) != NULTERM) {
+    while ((*dst = *src) != 0x0) {
         dst++;
         src++;
     }

@@ -1,15 +1,15 @@
-#ifndef HEXANE_CORELIB_MESSAGE_HPP
-#define HEXANE_CORELIB_MESSAGE_HPP
-#include <core/corelib.hpp>
+#ifndef HEXANE_CORELIB_DISPATCH_HPP
+#define HEXANE_CORELIB_DISPATCH_HPP
 
-_code_seg(".rdata") _command_map cmd_map[] = {
-    { .name = DIRECTORYLIST,            .address = Commands::DirectoryList },
-    { .name = PROCESSMODULES,           .address = Commands::ProcessModules },
-    { .name = PROCESSLIST,              .address = Commands::ProcessList },
-    { .name = SHUTDOWN,                 .address = Commands::Shutdown },
-    { .name = UPDATEPEER,               .address = Commands::UpdatePeer },
-    { .name = nullptr,                  .address = nullptr }
-};
+#include <core/monolith.hpp>
+#include <core/include/names.hpp>
+#include <core/include/memory.hpp>
+#include <core/include/inject.hpp>
+#include <core/include/stream.hpp>
+#include <core/include/parser.hpp>
+#include <core/include/network.hpp>
+#include <core/include/clients.hpp>
+#include <core/include/utils.hpp>
 
 namespace Dispatcher {
     FUNCTION DWORD PeekPeerId(const _stream *stream);
@@ -21,5 +21,5 @@ namespace Dispatcher {
     FUNCTION VOID MessageTransmit();
     FUNCTION VOID CommandDispatch (const _stream *in);
 }
-#endif //HEXANE_CORELIB_MESSAGE_HPP
+#endif //HEXANE_CORELIB_DISPATCH_HPP
 

@@ -43,7 +43,7 @@ namespace Stream {
         _stream *stream = { };
         if (
             !(stream            = S_CAST(_stream *, x_malloc(sizeof(_stream)))) ||
-            !(stream->buffer    = x_malloc(sizeof(uint8_t)))) {
+            !(stream->buffer    = B_PTR(x_malloc(sizeof(uint8_t))))) {
             return_defer(ntstatus);
         }
 
@@ -79,7 +79,7 @@ namespace Stream {
         HEXANE
 
         if (stream) {
-            stream->buffer = x_realloc(stream->buffer, stream->length + sizeof(uint8_t));
+            stream->buffer = B_PTR(x_realloc(stream->buffer, stream->length + sizeof(uint8_t)));
 
             x_memcpy(B_PTR(stream->buffer) + stream->length, &data, sizeof(uint8_t));
             stream->length += sizeof(uint8_t);
@@ -90,7 +90,7 @@ namespace Stream {
         HEXANE
 
         if (stream) {
-            stream->buffer = x_realloc(stream->buffer, stream->length + sizeof(uint64_t));
+            stream->buffer = B_PTR(x_realloc(stream->buffer, stream->length + sizeof(uint64_t)));
 
             PackInt64(B_PTR(stream->buffer) + stream->length, data);
             stream->length += sizeof(uint64_t);
@@ -101,7 +101,7 @@ namespace Stream {
         HEXANE
 
         if (stream) {
-            stream->buffer = x_realloc(stream->buffer, stream->length + sizeof(uint32_t));
+            stream->buffer = B_PTR(x_realloc(stream->buffer, stream->length + sizeof(uint32_t)));
 
             PackInt32(B_PTR(stream->buffer) + stream->length, data);
             stream->length += sizeof(uint32_t);
@@ -114,7 +114,7 @@ namespace Stream {
         if (stream) {
             if (size) {
                 PackDword(stream, S_CAST(uint32_t, size));
-                stream->buffer = x_realloc(stream->buffer, stream->length + size);
+                stream->buffer = B_PTR(x_realloc(stream->buffer, stream->length + size));
 
                 x_memcpy(S_CAST(PBYTE, stream->buffer) + stream->length, data, size);
                 stream->length += size;

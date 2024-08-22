@@ -1,6 +1,7 @@
 #ifndef HEXANE_CORELIB_STREAM_HPP
 #define HEXANE_CORELIB_STREAM_HPP
-#include <core/corelib.hpp>
+#include <core/monolith.hpp>
+#include <core/include/stdlib.hpp>
 
 namespace Stream {
 

@@ -1,5 +1,6 @@
 #include <core/include/dispatch.hpp>
 namespace Dispatcher {
+
     DWORD PeekPeerId(const _stream *const stream) {
         HEXANE
 

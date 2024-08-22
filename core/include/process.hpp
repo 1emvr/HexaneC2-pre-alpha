@@ -1,7 +1,9 @@
 #ifndef HEXANE_CORELIB_PROCESS_HPP
 #define HEXANE_CORELIB_PROCESS_HPP
 
-#include <core/corelib.hpp>
+#include <core/monolith.hpp>
+#include <core/include/stdlib.hpp>
+
 namespace Process {
 
 	FUNCTION ULONG GetProcessIdByName(char *name);
