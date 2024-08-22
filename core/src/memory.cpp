@@ -291,6 +291,7 @@ namespace Memory {
         BOOL BaseRelocation(_executable *object) {
             HEXANE
 
+            _symbol *symbol ={ };
             char symbol_name[9] = { };
             char *entry_name = { };
             bool success = true;
@@ -303,8 +304,8 @@ namespace Memory {
                 object->reloc       = R_CAST(_reloc*, U_PTR(object->buffer) + object->section->PointerToRelocations);
 
                 for (auto j = 0; j < object->section->NumberOfRelocations; j++) {
-                    const _symbol *symbol = &object->symbol[object->reloc->SymbolTableIndex];
 
+                    symbol = &object->symbol[object->reloc->SymbolTableIndex];
                     if (symbol->First.Value[0] != 0) {
                         x_memset(symbol_name, 0, sizeof(symbol_name));
                         x_memcpy(symbol_name, symbol->First.Name, 8);
@@ -314,15 +315,16 @@ namespace Memory {
                         entry_name = R_CAST(char*, B_PTR(object->symbol) + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
                     }
 
-                    void *reloc   = object->sec_map[j].address + object->reloc->VirtualAddress;
-                    void *sym_sec = object->sec_map[symbol->SectionNumber - 1].address;
-                    void *fn_map  = object->fn_map + sizeof(void*) * count;
+                    void *reloc     = object->sec_map[j].address + object->reloc->VirtualAddress;
+                    void *sym_sec   = object->sec_map[symbol->SectionNumber - 1].address;
+                    void *fn_map    = object->fn_map + sizeof(void*) * count;
+                    void *function  = C_PTR(ResolveSymbol(object, entry_name, symbol->Type));
 
-                    void *function = C_PTR(ResolveSymbol(object, entry_name, symbol->Type));
                     switch (function != nullptr) {
 #if _WIN64
                     case true: {
                         switch (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
+
                         case true: {
                             *R_CAST(void**, fn_map) = function;
                             offset = S_CAST(uint32_t, U_PTR(fn_map) - U_PTR(reloc) - sizeof(uint32_t));
@@ -331,11 +333,11 @@ namespace Memory {
                             count++;
                         }
                         default:
-                            success = false;
-                            break;
+                            success_(false);
                         }
                     }
                     case false:
+
                         switch (object->reloc->Type) {
                         case IMAGE_REL_AMD64_REL32: {
                             offset = *S_CAST(uint32_t*, reloc);
@@ -386,8 +388,7 @@ namespace Memory {
                             *S_CAST(uint64_t*, reloc) = offset;
                         }
                         default:
-                            success = false;
-                            break;
+                            success_(false);
                         }
 #else
                     case true: {
@@ -400,8 +401,7 @@ namespace Memory {
                             count++;
                         }
                         default:
-                            success = false;
-                            break;
+                            success_(false);
                         }
                     }
                     case false: {
@@ -419,24 +419,23 @@ namespace Memory {
                             *S_CAST(uint32_t*, reloc) = offset;
                         }
                         default:
-                            success = false;
-                            break;
+                            success_(false);
                         }
                     }
 #endif
                     default:
-                        success = false;
-                        break;
+                        success_(false);
                     }
 
                     object->reloc = R_CAST(_reloc*, (U_PTR(object->reloc)  + sizeof(_reloc)));
                 }
             }
 
+            defer:
             return success;
         }
 
-        UINT_PTR GetInternalAddress(const char* name, bool* internal) {
+        UINT_PTR GetInternalAddress(const uint32_t name, bool* internal) {
             HEXANE
 
             uintptr_t address = { };
@@ -457,7 +456,7 @@ namespace Memory {
             return address;
         }
 
-        UINT_PTR ResolveSymbol(_executable *object, const char* entry_name, uint32_t type) {
+        UINT_PTR ResolveSymbol(_executable *object, const uint32_t entry_name, uint32_t type) {
             // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/CoffeeLdr.c#L87
             HEXANE
 

@@ -1,9 +1,11 @@
 #ifndef HEXANE_CORELIB_OPSEC_HPP
 #define HEXANE_CORELIB_OPSEC_HPP
 
-#include <core/corelib.hpp>
-namespace Opsec {
+#include <core/monolith.hpp>
+#include <core/include/dispatch.hpp>
+#include <core/include/stream.hpp>
 
+namespace Opsec {
     FUNCTION BOOL CheckTime();
     FUNCTION VOID SeCheckDebugger();
     FUNCTION VOID SeCheckSandbox();

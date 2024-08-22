@@ -11,7 +11,6 @@ namespace Implant {
                 continue;
             }
 
-            // checkin might have failed first try but message data is still in the queue
             if (!Ctx->session.checkin && !Ctx->transport.outbound_queue) {
                 Opsec::SeCheckEnvironment();
 

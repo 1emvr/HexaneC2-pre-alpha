@@ -22,7 +22,7 @@ namespace Memory {
     }
 
     namespace Objects {
-        FUNCTION UINT_PTR GetInternalAddress(const char* id, bool internal);
+        FUNCTION UINT_PTR GetInternalAddress(const uint32_t id, bool internal);
         FUNCTION UINT_PTR ResolveSymbol(_executable *object, const char* entry_name, uint32_t type);
         FUNCTION BOOL MapSections(_executable *object, const uint8_t *data);
         FUNCTION BOOL BaseRelocation(_executable *object);

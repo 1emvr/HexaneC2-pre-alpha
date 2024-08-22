@@ -359,7 +359,7 @@ typedef void (*_command)(_parser *args);
 typedef void (*obj_entry)(char* args, uint32_t size);
 
 struct _command_map{
-	char    	*name;
+	uint32_t    name;
 	_command 	address;
 };
 

