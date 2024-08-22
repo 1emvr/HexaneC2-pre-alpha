@@ -9,14 +9,14 @@ namespace Opsec {
             Opsec::SeCheckDebugger();
             if (ntstatus != ERROR_SUCCESS) {
 
-                Utils::Random::Timeout(SECONDS(1));
+                Utils::Time::Timeout(SECONDS(1));
                 return_defer(ERROR_BAD_ENVIRONMENT);
             }
 #endif
             Opsec::SeCheckSandbox();
             if (ntstatus != ERROR_SUCCESS) {
 
-                Utils::Random::Timeout(SECONDS(1));
+                Utils::Time::Timeout(SECONDS(1));
                 return_defer(ERROR_BAD_ENVIRONMENT);
             }
             break;
@@ -183,6 +183,6 @@ namespace Opsec {
     }
 
     VOID SleepObf() {
-        Utils::Random::Timeout(Utils::Random::RandomSleepTime());
+        Utils::Time::Timeout(Utils::Random::RandomSleepTime());
     }
 }
