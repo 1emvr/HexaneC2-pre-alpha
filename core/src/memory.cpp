@@ -439,6 +439,7 @@ namespace Memory {
             return success;
         }
 
+        EXTERN_C _command_map cmd_map[];
         UINT_PTR GetInternalAddress(const uint32_t name, bool* internal) {
             HEXANE
 
