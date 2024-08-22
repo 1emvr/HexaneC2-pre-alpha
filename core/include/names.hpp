@@ -132,5 +132,6 @@
 #define PROCESSMODULES 0xabc99bef
 #define PROCESSLIST 0xfaf9db36
 #define SHUTDOWN 0xf8206a4b
-#define UPDATEPEER 0x7690ec08
+#define ADDPEER 0x9a544a08
+#define REMOVEPEER 0x3ae19261
 #define NOJOB 0x4dc972bd

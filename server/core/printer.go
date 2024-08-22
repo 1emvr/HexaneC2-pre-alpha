@@ -29,7 +29,9 @@ func (w *WriteChannel) ParseTable(parser *Parser) {
 					heads = []string{"Mode", "Length", "LastWriteTime", "Name"}
 					row := make([]string, 4)
 
-					for parser.MsgLength != 0 {
+					length := parser.ParseDword()
+
+					for length != 0 {
 						IsDir := parser.ParseDword()
 
 						if IsDir != 0 {

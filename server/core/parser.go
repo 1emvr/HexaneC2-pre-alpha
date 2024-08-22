@@ -15,7 +15,6 @@ func CreateParser(buffer []byte) *Parser {
 	parser.PeerId = parser.ParseDword()
 	parser.TaskId = parser.ParseDword()
 	parser.MsgType = parser.ParseDword()
-	parser.MsgLength = parser.ParseDword()
 
 	return parser
 }

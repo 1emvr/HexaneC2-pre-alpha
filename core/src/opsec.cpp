@@ -46,30 +46,30 @@ namespace Opsec {
     VOID SeCheckDebugger() {
         HEXANE
 
-        PVOID pHeapBase             = { };
-        ULONG HeapFlagsOffset       = 0;
-        ULONG HeapForceFlagsOffset  = 0;
-        BOOL VistaOrGreater         = Ctx->session.version >= WIN_VERSION_2008;
+        PVOID heap_base             = { };
+        ULONG flags_offset          = 0;
+        ULONG force_flags_offset    = 0;
+        BOOL vista_or_greater       = Ctx->session.version >= WIN_VERSION_2008;
 
         BOOL m_x32                  = FALSE;
-        PPEB pPeb                   = PEB_POINTER;
+        PPEB peb                    = PEB_POINTER;
 
         Ctx->win32.IsWow64Process(NtCurrentProcess(), &m_x32);
 
 #if _WIN64
-        pHeapBase = !m_x32
-                    ? C_PTR(*(ULONG_PTR*)(B_PTR(pPeb) + 0x18))
-                    : C_PTR(*(ULONG_PTR*)(B_PTR(pPeb) + 0x1030));
+        heap_base = !m_x32
+                    ? C_PTR(*(ULONG_PTR*)(B_PTR(peb) + 0x18))
+                    : C_PTR(*(ULONG_PTR*)(B_PTR(peb) + 0x1030));
 
-        HeapFlagsOffset 		= VistaOrGreater ? 0x40 : 0x0C;
-        HeapForceFlagsOffset 	= VistaOrGreater ? 0x44 : 0x10;
+        flags_offset 		= vista_or_greater ? 0x40 : 0x0C;
+        force_flags_offset 	= vista_or_greater ? 0x44 : 0x10;
 #else
-        pHeapBase               = C_PTR(*R_CAST(ULONG_PTR*, R_CAST(PBYTE, pPeb) + 0x30));
-        HeapFlagsOffset         = VistaOrGreater ? 0x70 : 0x14;
-        HeapForceFlagsOffset    = VistaOrGreater ? 0x74 : 0x18;
+        heap_base               = C_PTR(*R_CAST(ULONG_PTR*, R_CAST(PBYTE, peb) + 0x30));
+        flags_offset         = vista_or_greater ? 0x70 : 0x14;
+        force_flags_offset    = vista_or_greater ? 0x74 : 0x18;
 #endif
-        auto HeapFlags          = R_CAST(ULONG_PTR*, S_CAST(PBYTE, pHeapBase) + HeapFlagsOffset);
-        auto HeapForceFlags     = R_CAST(ULONG_PTR*, S_CAST(PBYTE, pHeapBase) + HeapForceFlagsOffset);
+        auto HeapFlags          = R_CAST(ULONG_PTR*, S_CAST(PBYTE, heap_base) + flags_offset);
+        auto HeapForceFlags     = R_CAST(ULONG_PTR*, S_CAST(PBYTE, heap_base) + force_flags_offset);
 
         ((*HeapFlags & ~HEAP_GROWABLE) || (*HeapForceFlags != 0))
             ? ntstatus = (ERROR_DEVICE_ALREADY_ATTACHED)

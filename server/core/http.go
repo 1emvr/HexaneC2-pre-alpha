@@ -34,7 +34,7 @@ func (h *HexaneConfig) ServerRoutine(c *gin.Context) {
 		WrapMessage("ERR", err.Error())
 	}
 
-	if rsp, err = ResponseWorker(body); err != nil {
+	if rsp, err = ParseMessage(body); err != nil {
 		WrapMessage("ERR", err.Error())
 	}
 

@@ -6,7 +6,7 @@ import (
 
 const HeaderLength = 12
 
-func ResponseWorker(body []byte) ([]byte, error) {
+func ParseMessage(body []byte) ([]byte, error) {
 	var (
 		err    error
 		config *HexaneConfig
@@ -22,9 +22,6 @@ func ResponseWorker(body []byte) ([]byte, error) {
 		if parser.MsgLength < HeaderLength && parser.MsgType != TypeTasking {
 			return nil, fmt.Errorf("msg length too small: %d", parser.MsgLength)
 		}
-		if parser.MsgType != TypeTasking {
-			parser.MsgLength += 4
-		}
 
 		body = body[HeaderLength+parser.MsgLength:]
 
@@ -33,12 +30,11 @@ func ResponseWorker(body []byte) ([]byte, error) {
 				return []byte("200 ok"), fmt.Errorf("SqliteInsertParser: %v", err)
 			}
 
-			if rsp, err = config.ProcessParser(parser); err != nil {
+			if rsp, err = config.ProcessTask(parser); err != nil {
 				return []byte("200 ok"), fmt.Errorf("ProcessParser: %v", err)
 			}
 		} else {
-			err = fmt.Errorf("could not find peer in the database: %d", parser.PeerId)
-			rsp = []byte("200 ok")
+			return []byte("200 ok"), fmt.Errorf("could not find peer in the database: %d", parser.PeerId)
 		}
 	}
 

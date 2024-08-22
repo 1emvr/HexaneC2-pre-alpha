@@ -24,12 +24,12 @@
 
 	"Builder": {
 		"OutputName": "windows_home",
-		"RootDirectory": "C:/Users/lemur/CLionProjects/HexaneC2/core",
+		"RootDirectory": "C:/Users/lemur/Github/HexaneC2/core",
 		"LinkerScript": "implant.ld",
 
 		"Dependencies": [],
 		"Sources": [
-			"cipher.cpp", "commands.cpp", "cruntime.cpp", "inject.cpp", "memory.cpp", "message.cpp",
+			"cipher.cpp", "commands.cpp", "stdlib.cpp", "inject.cpp", "memory.cpp", "dispatch.cpp",
 			"network.cpp", "opsec.cpp", "parser.cpp", "process.cpp", "start.asm", "stream.cpp",
 			"utils.cpp", "implant.cpp"
 		],

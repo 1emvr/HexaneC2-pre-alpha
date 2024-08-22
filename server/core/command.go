@@ -50,7 +50,7 @@ func (h *HexaneConfig) DispatchCommand() (*Stream, error) {
 	}
 }
 
-func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
+func (h *HexaneConfig) ProcessTask(parser *Parser) ([]byte, error) {
 	var (
 		stream *Stream
 		err    error
@@ -74,6 +74,7 @@ func (h *HexaneConfig) ProcessParser(parser *Parser) ([]byte, error) {
 		WrapMessage("DBG", fmt.Sprintf("response from: %d", parser.PeerId))
 
 		h.WriteChan.ParseTable(parser)
+
 		if stream, err = h.DispatchCommand(); err != nil {
 			return nil, err
 		}
