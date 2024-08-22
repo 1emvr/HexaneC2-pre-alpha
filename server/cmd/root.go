@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/cobra"
 	"hexane_server/core"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -54,27 +53,6 @@ func RootInit() error {
 	if err = core.CreatePath(core.BuildPath, os.ModePerm); err != nil {
 		core.WrapMessage("ERR", "create build path failed: "+err.Error())
 		return err
-	}
-
-	err = filepath.Walk(core.NetFXSDK, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !info.IsDir() && info.Name() == "metahost.h" {
-			core.NetFXSDK = filepath.Dir(path)
-			return filepath.SkipDir
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		core.WrapMessage("ERR", "NETFXSDK error: "+err.Error())
-		return err
-	}
-	if core.NetFXSDK == "C:/Program Files(x86)/Windows Kits/NETFXSDK/" {
-		return fmt.Errorf("metahost.h not found in %s", core.NetFXSDK)
 	}
 
 	return err
