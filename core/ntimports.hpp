@@ -524,7 +524,7 @@ typedef ULONG LOGICAL;
 		USHORT Type : 4;
 	} BASE_RELOCATION_ENTRY, * PBASE_RELOCATION_ENTRY;
 
-
+/*
 	typedef struct _LDR_MODULE {
 		LIST_ENTRY      InLoadOrderModuleList;
 		LIST_ENTRY      InMemoryOrderModuleList;
@@ -540,6 +540,7 @@ typedef ULONG LOGICAL;
 		LIST_ENTRY      HashTableEntry;
 		ULONG           TimeDateStamp;
 	} LDR_MODULE, * PLDR_MODULE;
+*/
 
 
 	typedef struct _PEB_LDR_DATA {

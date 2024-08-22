@@ -563,14 +563,13 @@ namespace Memory {
         LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash) {
             // todo: replace PEB_POINTER with custom impl
 
-            auto peb = R_CAST(PPEB, PEB_POINTER);
-            auto head = peb->Ldr->InMemoryOrderModuleList;
+            const auto head = R_CAST(PLIST_ENTRY, &(PEB_POINTER)->Ldr->InMemoryOrderModuleList);
 
-            for (auto entry = head.Flink; entry != &head; entry = entry->Flink) {
+            for (auto next = head->Flink; next != head; next = next->Flink) {
                 wchar_t lowercase[MAX_PATH] = { };
 
-                auto mod = CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
-                auto name = mod->BaseDllName;
+                const auto mod = R_CAST(LDR_DATA_TABLE_ENTRY*, B_PTR(next) - sizeof(uint32_t) * 4);
+                const auto name = mod->BaseDllName;
 
                 __debugbreak();
                 if (hash - Utils::GetHashFromStringW(x_wcsToLower(lowercase, name.Buffer), name.Length) == 0) {
