@@ -56,7 +56,8 @@ func HashUTF16(name []byte) uint32 {
 
 	hash := sum32
 	for i := 0; i < len(name); i += 2 {
-		hash ^= uint32(name[i])
+		code_point := uint32(name[i]) | uint32(name[i+1])<<8
+		hash ^= code_point
 		hash *= prime32
 	}
 
@@ -96,13 +97,8 @@ func CreateHashMacro(str string) string {
 
 func NewCipher(key []byte) (*Cipher, error) {
 
-	k := len(key)
-
-	switch k {
-	default:
-		return nil, KeySizeError(k)
-	case 16:
-		break
+	if len(key) != 16 {
+		return nil, KeySizeError(len(key))
 	}
 
 	c := new(Cipher)
@@ -113,12 +109,12 @@ func NewCipher(key []byte) (*Cipher, error) {
 
 func XteaDivide(data []byte) [][]byte {
 	var (
-		sections    [][]byte
-		sectionSize = 8
+		sections [][]byte
+		size     = 8
 	)
 
-	for i := 0; i < len(data); i += sectionSize {
-		end := i + sectionSize
+	for i := 0; i < len(data); i += size {
+		end := i + size
 		sections = append(sections, data[i:end])
 	}
 
