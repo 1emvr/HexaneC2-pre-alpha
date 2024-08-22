@@ -1,2 +1,0 @@
-C:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\lemur\CLionProjects\HexaneC2\build\memory.cpp.o:memory.cpp:(.rdata$.refptr.cmd_map[.refptr.cmd_map]+0x0): undefined reference to `cmd_map'
-collect2.exe: error: ld returned 1 exit status
