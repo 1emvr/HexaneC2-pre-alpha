@@ -33,27 +33,36 @@ func CryptCreateKey(length int) []byte {
 	return str
 }
 
-func GetHashFromString(str string) string {
+func CreateHashMacro(str string) string {
+
+	macro := strings.ToUpper(strings.TrimRight(str, "\n"))
+	hash := GetHashFromString(str)
+
+	return fmt.Sprintf("#define %s 0x%x", strings.Split(macro, ".")[0], hash)
+}
+
+func GetHashFromString(str string) uint32 {
 	var (
 		name    string
 		sum32   = uint32(2166136261)
 		prime32 = uint32(16777619)
 	)
 
-	if strings.HasSuffix(strings.ToLower(str), ".dll") {
-		name = string(EncodeUTF16(strings.ToLower(str)))
+	lower := strings.ToLower(str)
+
+	if strings.HasSuffix(lower, ".dll") {
+		name = string(EncodeUTF16(lower))
 	} else {
-		name = strings.ToLower(str)
+		name = lower
 	}
 
 	hash := sum32
-	for i := 0; i < len(str); i++ {
+	for i := 0; i < len(name); i++ {
 		hash ^= uint32(name[i])
 		hash *= prime32
 	}
 
-	macro := strings.TrimRight(str, "\n")
-	return fmt.Sprintf("#define %s 0x%x", strings.ToUpper(strings.Split(macro, ".")[0]), hash)
+	return hash
 }
 
 func NewCipher(key []byte) (*Cipher, error) {

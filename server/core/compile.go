@@ -120,7 +120,7 @@ func GenerateHashes(stringsFile string, outFile string) error {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		hash := GetHashFromString(line)
+		hash := CreateHashMacro(line)
 		hashes = append(hashes, hash)
 	}
 
