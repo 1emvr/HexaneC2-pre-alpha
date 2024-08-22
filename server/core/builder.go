@@ -41,7 +41,6 @@ func (h *HexaneConfig) GetModuleConfig(config *JsonConfig) (*Module, error) {
 		Definitions:   map[string][]byte{transport: nil},
 
 		Files: &Sources{
-			Sources:            config.Builder.Sources,
 			Dependencies:       config.Builder.Dependencies,
 			IncludeDirectories: append(config.Builder.IncludeDirectories, "../"),
 		},

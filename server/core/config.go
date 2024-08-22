@@ -112,10 +112,6 @@ func ReadConfig(cfgPath string) error {
 		if h.UserConfig.Builder.OutputName == "" {
 			return fmt.Errorf("config:: - an output name must be provided")
 		}
-		if h.UserConfig.Builder.Sources == nil || len(h.UserConfig.Builder.Sources) == 0 {
-			return fmt.Errorf("implant::builder - builder must specify source files")
-		}
-
 		if h.UserConfig.Loader == nil {
 			h.BuildType = BuildTypeShellcode
 		} else {

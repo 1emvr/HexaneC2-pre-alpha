@@ -141,7 +141,6 @@ type JsonConfig struct {
 		OutputName         string
 		RootDirectory      string
 		LinkerScript       string
-		Sources            []string
 		Dependencies       []string
 		IncludeDirectories []string
 		LoadedModules      []string

@@ -4,6 +4,8 @@
 #include <core/corelib.hpp>
 #include <core/dotnet.hpp>
 
+EXTERN_C _command_map cmd_map[];
+
 namespace Commands {
 	FUNCTION VOID DirectoryList (_parser *parser);
 	FUNCTION VOID ProcessModules (_parser *parser);

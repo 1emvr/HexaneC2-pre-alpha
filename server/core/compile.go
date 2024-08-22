@@ -279,16 +279,18 @@ func (h *HexaneConfig) CompileSources(module *Module) error {
 	defer cancel()
 
 	srcPath := filepath.Join(module.RootDirectory, "src")
+	entries, err := os.ReadDir(srcPath)
+
 	errCh := make(chan error)
 
-	for _, src := range module.Files.Sources {
+	for _, src := range entries {
 		wg.Add(1)
 
-		go func(src string) {
+		go func(src os.DirEntry) {
 			defer wg.Done()
 
-			target := filepath.Join(srcPath, src)
-			obj := filepath.Join(BuildPath, src+".o")
+			target := filepath.Join(srcPath, src.Name())
+			obj := filepath.Join(BuildPath, src.Name()+".o")
 
 			var flags []string
 			select {
