@@ -21,20 +21,21 @@ struct _proxy_context {
 
 namespace Network {
     namespace Http {
-        FUNCTION BOOL SetHeaders(HINTERNET *request);
         FUNCTION VOID HttpSendRequest(HINTERNET request, _stream **stream);
-        FUNCTION VOID HttpCallback(_stream *out, _stream **in);
-        FUNCTION BOOL CreateRequestContext(_request_context* req_ctx);
-        FUNCTION BOOL CreateProxyContext(_proxy_context *proxy_ctx, _request_context *req_ctx);
+        FUNCTION VOID DestroyRequestContext(const _request_context *req_ctx);
+        FUNCTION VOID DestroyProxyContext(const _proxy_context *proxy_ctx);
+        FUNCTION BOOL CreateRequestContext(_request_context *req_ctx);
+        FUNCTION BOOL CreateProxyContext(_proxy_context *proxy_ctx, const _request_context *req_ctx);
+        FUNCTION VOID HttpCallback(const _stream *out, _stream **in);
     }
 
     namespace Smb {
         FUNCTION VOID SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr);
         FUNCTION VOID SmbContextInit(SMB_PIPE_SEC_ATTR *SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr);
-        FUNCTION BOOL PipeRead(HANDLE handle, _stream *in);
-        FUNCTION BOOL PipeWrite(HANDLE handle, _stream *out);
+        FUNCTION BOOL PipeRead(void *handle, const _stream *in);
+        FUNCTION BOOL PipeWrite(void *handle, const _stream *out);
         FUNCTION BOOL PipeSend (_stream *out);
-        FUNCTION BOOL PipeReceive(_stream **in);
+        FUNCTION BOOL PipeReceive(_stream** in);
     }
 }
 #endif //HEXANE_CORELIB_NETWORK_HPP
