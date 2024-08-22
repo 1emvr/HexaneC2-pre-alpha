@@ -5,7 +5,7 @@ namespace Commands {
         HEXANE
 
         _stream *out = Stream::CreateStreamWithHeaders(TypeResponse);
-        Stream::PackString(out, OBF("DirectoryList"));
+        Stream::PackDword(out, DIRECTORYLIST);
 
         ULONG length = { };
         LPSTR query = { };
@@ -77,7 +77,7 @@ namespace Commands {
         HEXANE
 
         _stream *out = Stream::CreateStreamWithHeaders(TypeResponse);
-        Stream::PackString(out, OBF("ProcessModules"));
+        Stream::PackDword(out, PROCESSMODULES);
 
         PPEB_LDR_DATA loads             = { };
         PROCESS_BASIC_INFORMATION pbi   = { };
