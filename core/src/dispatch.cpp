@@ -189,9 +189,7 @@ namespace Dispatcher {
         }
 
         out = Stream::CreateStream();
-        if (!Dispatcher::PrepareEgressMessage(out)) {
-            return_defer(ntstatus);
-        }
+        Dispatcher::PrepareEgressMessage(out);
 
 #ifdef TRANSPORT_HTTP
         Network::Http::HttpCallback(out, &in);
