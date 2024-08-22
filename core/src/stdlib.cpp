@@ -158,7 +158,6 @@ char *x_mbsToLower(char *const dst, const char *const src) {
 
 size_t x_mbstowcs (wchar_t *dst, const char *src, const size_t size) {
 
-    // todo : what the fuck happened here??
     auto count = size;
     while (--count) {
         if (!(*dst++ = *src++)) {

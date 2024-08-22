@@ -38,7 +38,6 @@ func (h *HexaneConfig) CreateConfig() {
 
 	h.Compiler.BuildDirectory = filepath.Join(RootDirectory, "payload/"+h.UserConfig.Builder.OutputName)
 
-	// todo: find a better way to do this that's cross-platform
 	h.Compiler.Debug = h.UserConfig.Config.Debug
 	h.Compiler.Arch = h.UserConfig.Config.Arch
 	h.Compiler.Mingw = "x86_64-w64-mingw32-g++"
@@ -176,7 +175,6 @@ func ReadConfig(cfgPath string) error {
 				return fmt.Errorf("implant::network::http - invalid tcp port %d", httpConfig.Port)
 			}
 			if httpConfig.Endpoints == nil {
-				// todo: add default endpoints from seclists or smth
 				return fmt.Errorf("implant::network::http - at least 1 http endpoint must be provided")
 			}
 			if httpConfig.Useragent == "" {

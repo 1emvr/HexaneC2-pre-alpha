@@ -4,10 +4,9 @@
 #endif
 
 /*
- * todo: finish bof loader
  * todo: add foliage/silent moonwalk
  * todo: add dark loadlibrary
- * todo: fix server side issues
+ * todo: error responses
  */
 
 namespace Memory {
@@ -37,7 +36,6 @@ namespace Memory {
         }
 
         VOID GetProcessHeaps(HANDLE process, const uint32_t access, const uint32_t pid) {
-            // todo: add heap list to process package _executable*
             HEXANE
 
             HANDLE snap = { };
