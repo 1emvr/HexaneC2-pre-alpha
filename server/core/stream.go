@@ -23,15 +23,15 @@ func EncodeUTF16(s string) []byte {
 		encoded string
 	)
 
-	if !strings.HasSuffix(s, "\x00\x00") {
-		s += "\x00\x00"
-	}
-
 	uni := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
 
 	if encoded, err = uni.NewEncoder().String(s); err != nil {
 		WrapMessage("ERR", "failed to convert UTF16: "+s)
 		encoded = ""
+	}
+
+	if !strings.HasSuffix(encoded, "\x00\x00") {
+		encoded += "\x00\x00"
 	}
 
 	return []byte(encoded)

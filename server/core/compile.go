@@ -275,15 +275,18 @@ func (h *HexaneConfig) CompileSources(module *Module) error {
 		wg  sync.WaitGroup
 	)
 
+	errCh := make(chan error)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	srcPath := filepath.Join(module.RootDirectory, "src")
 	entries, err := os.ReadDir(srcPath)
 
-	errCh := make(chan error)
-
 	for _, src := range entries {
+		if ".idea" == src.Name() {
+			continue
+		}
+
 		wg.Add(1)
 
 		go func(src os.DirEntry) {

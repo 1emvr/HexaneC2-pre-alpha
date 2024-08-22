@@ -572,7 +572,7 @@ namespace Memory {
                 const auto name = mod->BaseDllName;
 
                 __debugbreak();
-                if (hash - Utils::GetHashFromStringW(x_wcsToLower(lowercase, name.Buffer), name.Length) == 0) {
+                if (hash - Utils::GetHashFromStringW(x_wcsToLower(lowercase, name.Buffer), name.Length * sizeof(wchar_t)) == 0) {
                     return mod;
                 }
             }

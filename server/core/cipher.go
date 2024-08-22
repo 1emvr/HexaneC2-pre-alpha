@@ -56,8 +56,7 @@ func HashUTF16(name []byte) uint32 {
 
 	hash := sum32
 	for i := 0; i < len(name); i += 2 {
-		code_point := uint32(name[i]) | uint32(name[i+1])<<8
-		hash ^= code_point
+		hash ^= uint32(name[i])
 		hash *= prime32
 	}
 

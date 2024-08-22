@@ -29,7 +29,7 @@ namespace Utils {
 
     ULONG GetHashFromStringA(char const *string, size_t length) {
 
-        auto hash = FNV_OFFSET;
+        uint32_t hash = FNV_OFFSET;
         if (string) {
             for (auto i = 0; i < length; i++) {
                 hash ^= string[i];
@@ -41,7 +41,7 @@ namespace Utils {
 
     ULONG GetHashFromStringW(wchar_t const *string, size_t length) {
 
-        auto hash = FNV_OFFSET;
+        uint32_t hash = FNV_OFFSET;
         if (string) {
             for (auto i = 0; i < length; i++) {
                 hash ^= string[i];

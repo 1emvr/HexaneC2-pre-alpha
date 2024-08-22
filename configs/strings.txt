@@ -1,5 +1,4 @@
 ntdll.dll
-KERNEL32.DLL
 KERNEL32.dll
 NtFreeVirtualMemory
 NtAllocateVirtualMemory
