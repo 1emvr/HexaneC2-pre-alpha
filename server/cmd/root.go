@@ -56,11 +56,6 @@ func RootInit() error {
 		return err
 	}
 
-	if err = core.HookVCVars(); err != nil {
-		core.WrapMessage("ERR", "vcvars error: "+err.Error())
-		return err
-	}
-
 	err = filepath.Walk(core.NetFXSDK, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err

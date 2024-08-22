@@ -2,11 +2,9 @@ package core
 
 import (
 	"bufio"
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math/bits"
 	"math/rand"
 	"os"
@@ -240,81 +238,6 @@ func Clear() {
 	if err := command.Run(); err != nil {
 		panic(err)
 	}
-}
-
-func HookVCVars() error {
-	var (
-		err      error
-		vcvars   []byte
-		env_vars []byte
-	)
-
-	hook := []byte("set > %TMP%/vcvars.txt")
-	err = filepath.Walk(VCVarsInstall, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !info.IsDir() && info.Name() == "vcvarsall.bat" {
-			VCVarsInstall = path
-			return filepath.SkipDir
-		}
-
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
-	if vcvars, err = ioutil.ReadFile(VCVarsInstall); err != nil {
-		return err
-	}
-
-	if !bytes.Contains(vcvars, hook) {
-		vcvars = append(vcvars, []byte("\n")...)
-		vcvars = append(vcvars, hook...)
-	}
-
-	if err = ioutil.WriteFile(VCVarsInstall, vcvars, 0644); err != nil {
-		return err
-	}
-
-	if err = RunCommand(VCVarsInstall, "hook_vcvars"); err != nil {
-		return err
-	}
-
-	temp_file := filepath.Join(os.TempDir(), "vcvars.txt")
-	if env_vars, err = ioutil.ReadFile(temp_file); err != nil {
-		return err
-	}
-
-	lines := strings.Split(string(env_vars), "\n")
-
-	for _, line := range lines {
-		parts := bytes.SplitN([]byte(line), []byte("="), 2)
-
-		if len(parts) == 2 {
-			k := string(parts[0])
-			v := string(parts[1])
-
-			if err = os.Setenv(k, v); err != nil {
-				return err
-			}
-		}
-	}
-
-	verify := []string{"TMP", "INCLUDE", "LIB", "LIBPATH"}
-
-	for _, key := range verify {
-		value := os.Getenv(key)
-
-		if value == "" {
-			return fmt.Errorf("env var %s not set", key)
-		}
-	}
-
-	WrapMessage("INF", "msvc environment context loaded")
-	return nil
 }
 
 func (h *HexaneConfig) ReadJson(cfgPath string) error {
