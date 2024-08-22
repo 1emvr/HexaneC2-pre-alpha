@@ -192,6 +192,7 @@ typedef VOID (NTAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
 #endif
 
 EXTERN_C uintptr_t			__instance;
+
 #define GLOBAL_OFFSET      	(U_PTR(InstStart()) + U_PTR(&__instance))
 #define HEXANE 		        auto Ctx = R_CAST(_hexane*, C_DREF(GLOBAL_OFFSET));
 
@@ -627,4 +628,5 @@ struct _hexane{
 		_prototype(FreeSid);
 	} win32;
 };
+
 #endif

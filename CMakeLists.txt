@@ -50,6 +50,7 @@ set (INCLUDES
         core/dotnet.hpp
         core/include/clients.hpp
         core/corelib.hpp
+        core/configs.hpp
 )
 
 set (COMMANDS

