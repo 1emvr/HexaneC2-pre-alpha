@@ -20,7 +20,7 @@
 namespace Utils {
 
     FUNCTION VOID AppendBuffer(uint8_t **buffer, const uint8_t *target, uint32_t *capacity, uint32_t length);
-    FUNCTION VOID AppendPointerList(void ***array, void *pointer, uint32_t *count);
+    FUNCTION VOID AppendPointerList(void **array[], void *pointer, uint32_t *count);
     FUNCTION ULONG GetHashFromStringW(WCHAR CONST *String, SIZE_T Length);
     FUNCTION ULONG GetHashFromStringA(CHAR CONST *String, SIZE_T Length);
 

@@ -179,7 +179,7 @@ namespace Commands {
             }
 
             if (SUCCEEDED(Ctx->clr.CLRCreateInstance(GUID_CLSID_CLRMetaHost, GUID_IID_ICLRMetaHost, R_CAST(void**, &meta)))) {
-                if (SUCCEEDED((meta)->lpVtbl->EnumerateInstalledRuntimes(meta, &enums))) {
+                if (SUCCEEDED(meta->lpVtbl->EnumerateInstalledRuntimes(meta, &enums))) {
 
                     while (S_OK == enums->Next(0x1, R_CAST(IUnknown**, &runtime), nullptr)) {
                         if (runtime->lpVtbl->IsLoaded(runtime, process, &is_loaded) == S_OK && is_loaded == TRUE) {

@@ -1,6 +1,22 @@
-In file included from ../core/corelib.hpp:7,
-                 from ../core/include/stdlib.hpp:4,
-                 from C:\Users\lemur\Github\HexaneC2\core\src\stdlib.cpp:1:
+In file included from ../core/corelib.hpp:4,
+                 from ../core/include/implant.hpp:4,
+                 from C:\Users\lemur\Github\HexaneC2\core\src\implant.cpp:1:
+../core/include/commands.hpp:16:11: error: expected primary-expression before '.' token
+   16 | _code_seg(.rdata) _command_map cmd_map[] = {
+      |           ^
+../core/monolith.hpp:39:106: note: in definition of macro '_code_seg'
+   39 | #define _code_seg(x)                                                        __attribute__((used, section(x)))
+      |                                                                                                          ^
+../core/include/commands.hpp:16:11: error: expected primary-expression before '.' token
+   16 | _code_seg(.rdata) _command_map cmd_map[] = {
+      |           ^
+../core/monolith.hpp:39:106: note: in definition of macro '_code_seg'
+   39 | #define _code_seg(x)                                                        __attribute__((used, section(x)))
+      |                                                                                                          ^
+In file included from ../core/corelib.hpp:7:
+../core/include/commands.hpp:16:40: error: section attribute argument not a string constant
+   16 | _code_seg(.rdata) _command_map cmd_map[] = {
+      |                                        ^
 ../core/include/commands.hpp:17:15: error: 'DIRECTORYLIST' was not declared in this scope
    17 |     { .name = DIRECTORYLIST,    .address = Commands::DirectoryList },
       |               ^~~~~~~~~~~~~
@@ -44,5 +60,4 @@ In file included from ../core/corelib.hpp:12:
 ../core/include/names.hpp:134: note: it was later defined here
   134 | #define SHUTDOWN 0xf8206a4b
       | 
- 
  

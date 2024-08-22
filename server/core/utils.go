@@ -132,7 +132,6 @@ func WriteFile(name string, data []byte) error {
 		}
 	}()
 
-	fmt.Println(name)
 	if _, err = outFile.WriteString(string(data)); err != nil {
 		return err
 	}

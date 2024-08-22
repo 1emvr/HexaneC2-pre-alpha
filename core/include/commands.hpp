@@ -22,4 +22,5 @@ _code_seg(".rdata") _command_map cmd_map[] = {
 	{ .name = SHUTDOWN,         .address = Commands::Shutdown },
     { .name = 0,                .address = nullptr }
 };
+
 #endif //HEXANE_CORELIB_COMMANDS_HPP

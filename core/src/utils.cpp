@@ -14,10 +14,10 @@ namespace Utils {
         *capacity += length;
     }
 
-    VOID AppendPointerList(void ***array, void *pointer, uint32_t *count) {
+    VOID AppendPointerList(void **array[], void *pointer, uint32_t *count) {
        HEXANE
 
-        void **new_list = R_CAST(void**, x_realloc(*array, (*count + 1) * sizeof(void*)));
+        const auto new_list = R_CAST(void**, x_realloc(*array, (*count + 1) * sizeof(void*)));
         if (!new_list) {
             return;
         }
