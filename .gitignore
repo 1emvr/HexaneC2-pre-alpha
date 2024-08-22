@@ -3,6 +3,7 @@
 *.o
 *.log
 *.dll
+.cache
 .idea
 .vs
 cmake-build-debug

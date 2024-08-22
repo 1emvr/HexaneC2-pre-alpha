@@ -24,6 +24,7 @@ namespace Implant {
 
             if (ntstatus != ERROR_SUCCESS) {
                 Ctx->session.retry++;
+
                 if (Ctx->session.retry == 3) {
                     break;
                 }
