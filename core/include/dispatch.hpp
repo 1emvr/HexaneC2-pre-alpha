@@ -1,15 +1,7 @@
 #ifndef HEXANE_CORELIB_DISPATCH_HPP
 #define HEXANE_CORELIB_DISPATCH_HPP
 
-#include <core/monolith.hpp>
-#include <core/include/names.hpp>
-#include <core/include/memory.hpp>
-#include <core/include/inject.hpp>
-#include <core/include/stream.hpp>
-#include <core/include/parser.hpp>
-#include <core/include/network.hpp>
-#include <core/include/clients.hpp>
-#include <core/include/utils.hpp>
+#include <core/corelib.hpp>
 
 namespace Dispatcher {
     FUNCTION DWORD PeekPeerId(const _stream *stream);

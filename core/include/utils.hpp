@@ -15,8 +15,7 @@
 #define BSLASH          0x5C
 #define ASTER           0x2A
 
-#include <core/monolith.hpp>
-#include <core/include/stdlib.hpp>
+#include <core/corelib.hpp>
 
 namespace Utils {
 

@@ -1,9 +1,7 @@
 #ifndef HEXANE_IMPLANT_INJECT_HPP
 #define HEXANE_IMPLANT_INJECT_HPP
 
-#include <core/monolith.hpp>
-#include <core/include/opsec.hpp>
-#include <core/include/memory.hpp>
+#include <core/corelib.hpp>
 
 namespace Injection {
     struct _code {

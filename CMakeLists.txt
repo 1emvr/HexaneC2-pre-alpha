@@ -49,6 +49,7 @@ set (INCLUDES
         commands/include/registry.hpp
         core/dotnet.hpp
         core/include/clients.hpp
+        core/corelib.hpp
 )
 
 set (COMMANDS

@@ -1,5 +1,8 @@
 #include <core/include/implant.hpp>
 namespace Implant {
+    _text(F) BYTE __config[1024] = {
+        0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41,
+    };
 
     VOID MainRoutine() {
         HEXANE

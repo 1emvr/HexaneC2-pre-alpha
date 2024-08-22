@@ -1,9 +1,7 @@
 #ifndef HEXANE_IMPLANT_TOKENS_HPP
 #define HEXANE_IMPLANT_TOKENS_HPP
 
-#include <core/monolith.hpp>
-#include <core/include/stdlib.hpp>
-#include <core/include/process.hpp>
+#include <core/corelib.hpp>
 
 namespace Token {
 

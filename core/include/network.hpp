@@ -5,11 +5,7 @@
 #define WINHTTP_FLAG_BYPASS_PROXY_CACHE     	0x00000100
 #define WINHTTP_FLAG_SECURE                 	0x00800000
 
-#include <core/monolith.hpp>
-#include <core/include/stdlib.hpp>
-#include <core/include/cipher.hpp>
-#include <core/include/stream.hpp>
-#include <core/include/utils.hpp>
+#include <core/corelib.hpp>
 
 struct _request_context {
     HINTERNET conn_handle;

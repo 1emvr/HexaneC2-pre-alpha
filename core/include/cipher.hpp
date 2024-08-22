@@ -6,8 +6,7 @@
 #define XTEA_DELTA  (const unsigned int) 0x9E3779B9
 #define NROUNDS     (const unsigned int) 64
 
-#include <core/monolith.hpp>
-#include <core/include/stdlib.hpp>
+#include <core/corelib.hpp>
 
 namespace Xtea {
 
