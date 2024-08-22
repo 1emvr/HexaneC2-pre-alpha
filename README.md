@@ -1,5 +1,5 @@
-HexaneC2 BYOS (Bring your own Sleep/Spoofing)
+HexaneC2
 
-- anything that uses ContextInit() must include start.asm + xxx.ld
-- corelib does not need any context. It only references Ctx-> and the main module should be the one that provides it
-- corelib would need to have it's definitions for TXT_SECTION(lib, x) specified separately between both translation units
+This framework is a compilation of every publicly available resource I could think of with some very minimal UI/UX features. The implant is not completely undetectable. There are plenty of IOCs that are intrinsic to the methods used here. If you know what they are, go ahead and change it :^)
+
+This is meant to be a platform for malware developers to build from and tweak as they need. Mainly for myself.
