@@ -17,15 +17,15 @@ namespace Commands {
         _stream *out = Stream::CreateStreamWithHeaders(TypeResponse);
         Stream::PackDword(out, DIRECTORYLIST);
 
-        ULONG length = { };
-        LPSTR query = { };
-        LPSTR path = { };
+        ULONG length    = { };
+        LPSTR query     = { };
+        LPSTR path      = { };
 
-        WIN32_FIND_DATAA head = { };
-        ULARGE_INTEGER file_size = { };
-        SYSTEMTIME access_time = { };
-        SYSTEMTIME sys_time = { };
-        HANDLE file = { };
+        WIN32_FIND_DATAA head       = { };
+        ULARGE_INTEGER file_size    = { };
+        SYSTEMTIME access_time      = { };
+        SYSTEMTIME sys_time         = { };
+        HANDLE file                 = { };
 
 
         query = Parser::UnpackString(parser, nullptr);
