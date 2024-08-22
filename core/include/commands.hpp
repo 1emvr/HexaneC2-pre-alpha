@@ -20,11 +20,11 @@ namespace Commands {
 }
 
 _code_seg(".rdata") _command_map cmd_map[] = {
-    { .name = DIRECTORYLIST,            .address = Commands::DirectoryList },
-    { .name = PROCESSMODULES,           .address = Commands::ProcessModules },
-    { .name = PROCESSLIST,              .address = Commands::ProcessList },
-    { .name = SHUTDOWN,                 .address = Commands::Shutdown },
-    { .name = UPDATEPEER,               .address = Commands::UpdatePeer },
-    { .name = nullptr,                  .address = nullptr }
+    { .name = DIRECTORYLIST,    .address = Commands::DirectoryList },
+    { .name = PROCESSMODULES,   .address = Commands::ProcessModules },
+    { .name = PROCESSLIST,      .address = Commands::ProcessList },
+    { .name = SHUTDOWN,         .address = Commands::Shutdown },
+    { .name = UPDATEPEER,  	.address = Commands::UpdatePeer },
+    { .name = 0,                .address = nullptr }
 };
 #endif //HEXANE_CORELIB_COMMANDS_HPP

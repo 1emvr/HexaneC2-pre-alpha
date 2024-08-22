@@ -38,7 +38,6 @@ EXTERN_C LPVOID InstEnd();
 #define _prototype(x)                           decltype(x) *x
 #define _code_seg(x)							__attribute__((used, section(x)))
 #define _text(x) 								__attribute__((used, section(".text$" #x "")))
-#define WEAK									__attribute__((weak))
 #define DLL_EXPORT 								__declspec(dllexport)
 
 #define ntstatus 								Ctx->teb->LastErrorValue
@@ -192,8 +191,8 @@ typedef VOID (NTAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
 #define __builtin_bswap64 __bswapq
 #endif
 
-WEAK EXTERN_C uintptr_t		__instance;
-#define GLOBAL_OFFSET       	(U_PTR(InstStart()) + U_PTR(&__instance))
+EXTERN_C uintptr_t			__instance;
+#define GLOBAL_OFFSET      	(U_PTR(InstStart()) + U_PTR(&__instance))
 #define HEXANE 		        auto Ctx = R_CAST(_hexane*, C_DREF(GLOBAL_OFFSET));
 
 #define InitializeObjectAttributes(ptr, name, attr, root, sec )	\

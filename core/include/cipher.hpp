@@ -5,7 +5,9 @@
 #define FNV_OFFSET  (const unsigned int) 2166136261
 #define XTEA_DELTA  (const unsigned int) 0x9E3779B9
 #define NROUNDS     (const unsigned int) 64
+
 #include <core/monolith.hpp>
+#include <core/include/stdlib.hpp>
 
 namespace Xtea {
 
