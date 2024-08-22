@@ -1,6 +1,32 @@
 #include <core/include/utils.hpp>
 namespace Utils {
 
+    VOID AppendBuffer(uint8_t **buffer, const uint8_t *const target, uint32_t *capacity, const uint32_t length) {
+        HEXANE
+
+        const auto new_buffer = B_PTR(x_realloc(*buffer, *capacity + length));
+        if (!new_buffer) {
+            return;
+        }
+
+        *buffer = new_buffer;
+        x_memcpy(B_PTR(*buffer) + *capacity, target, length);
+        *capacity += length;
+    }
+
+    VOID AppendPointerList(void ***array, void *pointer, uint32_t *count) {
+       HEXANE
+
+        void **new_list = R_CAST(void**, x_realloc(*array, (*count + 1) * sizeof(void*)));
+        if (!new_list) {
+            return;
+        }
+
+        *array = new_list;
+        (*array)[*count] = pointer;
+        (*count)++;
+    }
+
     ULONG GetHashFromStringA(char const *string, size_t length) {
 
         auto hash = FNV_OFFSET;
