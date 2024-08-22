@@ -10,8 +10,6 @@
  */
 
 namespace Memory {
-    LPVOID ExceptionReturn = 0;
-
     namespace Methods {
 
         BOOL MoveFilePointer(HANDLE handle, int32_t offset, int32_t* current) {
@@ -80,13 +78,16 @@ namespace Memory {
             return object;
         }
 
-        VOID CreateImageData(_executable *image, uint8_t *data) {
+        _executable* CreateImageData(uint8_t *data) {
             HEXANE
+            _executable *image = R_CAST(_executable*, x_malloc(sizeof(_executable)));
 
             image->buffer   = data;
             image->dos_head = P_IMAGE_DOS_HEADER(image->buffer);
             image->nt_head  = P_IMAGE_NT_HEADERS(image->buffer, image->dos_head);
             image->exports  = P_IMAGE_EXPORT_DIRECTORY(image->dos_head, image->nt_head);
+
+            return image;
         }
     }
 

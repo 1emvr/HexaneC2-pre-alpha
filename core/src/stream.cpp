@@ -54,7 +54,7 @@ namespace Stream {
         return stream;
     }
 
-    VOID Destroystream (_stream *stream) {
+    VOID DestroyStream (_stream *stream) {
         HEXANE
 
         if (stream) {

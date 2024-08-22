@@ -1,5 +1,6 @@
 #include <core/include/process.hpp>
 namespace Process {
+
 	ULONG GetProcessIdByName(const char *const name) {
 		HEXANE
 
