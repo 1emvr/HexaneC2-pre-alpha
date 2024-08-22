@@ -61,7 +61,7 @@ namespace Clients {
         return success;
     }
 
-    BOOL AddClient(const wchar_t *pipe_name) {
+    BOOL AddClient(const wchar_t *pipe_name, const uint32_t peer_id) {
         HEXANE
 
         _stream *in     = { };
@@ -111,11 +111,10 @@ namespace Clients {
         }
         while (true);
 
-        client              = R_CAST(_client*, x_malloc(sizeof(_client)));
-        client->pipe_name   = R_CAST(wchar_t*, x_malloc(x_wcslen(pipe_name) * sizeof(wchar_t)));
-        client->peer_id     = Dispatcher::PeekPeerId(in);
+        client = R_CAST(_client*, x_malloc(sizeof(_client)));
         client->pipe_handle = handle;
 
+        x_memcpy(&client->peer_id, &peer_id, sizeof(uint32_t));
         x_memcpy(client->pipe_name, pipe_name, x_wcslen(pipe_name) * sizeof(wchar_t));
 
         if (!Ctx->clients) {

