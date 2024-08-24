@@ -4,16 +4,12 @@ namespace Utils {
     LPVOID RandomSelect(void** ptr_array) {
         int i = 0;
 
-#pragma optimize("", off)
         while (true) {
-            if (!ptr_array[i]) { break; }
+            if (!ptr_array[i]) {
+                i--; return ptr_array[i % Utils::Random::RandomNumber32()];
+            }
             i++;
         }
-
-        if (i > 0) { i -= 1; }
-#pragma optimize("", on)
-
-        return ptr_array[i % Utils::Random::RandomNumber32()];
     }
 
     VOID AppendBuffer(uint8_t **buffer, const uint8_t *const target, uint32_t *capacity, const uint32_t length) {
