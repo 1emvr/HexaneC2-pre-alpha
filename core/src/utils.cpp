@@ -3,12 +3,16 @@ namespace Utils {
 
     LPVOID RandomSelect(void** ptr_array) {
         int i = 0;
+
+#pragma optimize("", off)
         while (true) {
             if (!ptr_array[i]) { break; }
             i++;
         }
 
         if (i > 0) { i -= 1; }
+#pragma optimize("", on)
+
         return ptr_array[i % Utils::Random::RandomNumber32()];
     }
 
