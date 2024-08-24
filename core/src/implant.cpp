@@ -183,22 +183,18 @@ namespace Implant {
             Parser::ParserWcscpy(&parser, &Ctx->transport.http->endpoints[i], nullptr);
         }
 
-        __debugbreak();
         Ctx->transport.http->endpoints[Ctx->transport.http->n_endpoints] = nullptr;
 
         Parser::ParserStrcpy(&parser, &Ctx->transport.domain, nullptr);
         Ctx->transport.b_proxy = Parser::UnpackBool(&parser);
 
         if (Ctx->transport.b_proxy) {
+            Ctx->transport.http->proxy = R_CAST(_proxy*, x_malloc(sizeof(_proxy)));
             Ctx->transport.http->access = INTERNET_OPEN_TYPE_PROXY;
 
             Parser::ParserWcscpy(&parser, &Ctx->transport.http->proxy->address, nullptr );
             Parser::ParserWcscpy(&parser, &Ctx->transport.http->proxy->username, nullptr );
             Parser::ParserWcscpy(&parser, &Ctx->transport.http->proxy->password, nullptr );
-
-        } else {
-            Ctx->transport.http->proxy->username = nullptr;
-            Ctx->transport.http->proxy->password = nullptr;
         }
 #endif
 #ifdef TRANSPORT_PIPE

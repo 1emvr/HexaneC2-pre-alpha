@@ -81,11 +81,14 @@ namespace Network {
                 success_(false);
             }
 
+            __debugbreak();
             if (Ctx->transport.http->endpoints) {
                 RANDOM_SELECT(endpoint, Ctx->transport.http->endpoints);
 
                 req_ctx->endpoint = R_CAST(wchar_t*, x_malloc((x_wcslen(endpoint)+ 1) * sizeof(wchar_t)));
                 x_memcpy(req_ctx->endpoint, endpoint, (x_wcslen(endpoint) + 1) * sizeof(wchar_t));
+            } else {
+                success_(false);
             }
 
             Ctx->transport.http->flags = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
@@ -186,8 +189,8 @@ namespace Network {
             uint32_t n_status   = sizeof(uint32_t);
 
             wchar_t *methods[] = {
-                OBFW(L"GET"),
-                OBFW(L"POST"),
+                (wchar_t*)L"GET",
+                (wchar_t*)L"POST"
             };
 
             RANDOM_SELECT(Ctx->transport.http->method, methods);

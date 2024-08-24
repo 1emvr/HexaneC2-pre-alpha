@@ -206,7 +206,7 @@ typedef VOID (NTAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
     (ptr)->SecurityQualityOfService = NULL
 
 #define RANDOM_SELECT(ptr, arr)                         \
-        auto i = 0;										\
+        int i = 0;										\
         DYN_ARRAY_LEN(i, arr);							\
         ptr = arr[i % Utils::Random::RandomNumber32()]
 
