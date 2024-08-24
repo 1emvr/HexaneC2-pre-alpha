@@ -65,7 +65,7 @@ EXTERN_C LPVOID InstEnd();
 #define NtCurrentThread()               		    (R_CAST(HANDLE, S_CAST(LONG_PTR, -2)))
 
 #define ARRAY_LEN(ptr) 							    sizeof(ptr) / sizeof(ptr[0])
-#define DYN_ARRAY_LEN(i, ptr) 					    while (TRUE) { if (!ptr[i]) { break; } else { i++; }} // this could be a `dyn_strlen()`
+#define DYN_ARRAY_LEN(i, ptr) 					    while (TRUE) { if (!ptr[i]) { i -= 1; break; } else { i++; }} // this could be a `dyn_strlen()`
 #define DYN_ARRAY_EXPR(i, ptr, x)				    while (TRUE) { if (!ptr[i]) { break; } else { {x} i++; }}
 #define PAGE_ALIGN(x)  							    (B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
 #define IMAGE_REL_TYPE(x, y)  					    IMAGE_REL_##x##_##y
