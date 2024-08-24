@@ -81,7 +81,6 @@ namespace Network {
                 success_(false);
             }
 
-            __debugbreak();
             if (Ctx->transport.http->endpoints) {
                 endpoint = R_CAST(wchar_t*, Utils::RandomSelect(R_CAST(void**, Ctx->transport.http->endpoints)));
 

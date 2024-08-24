@@ -156,6 +156,7 @@ namespace Dispatcher {
     VOID PrepareIngressMessage(_stream *in) {
         HEXANE
 
+        __debugbreak();
         if (in) {
             if (PeekPeerId(in) != Ctx->session.peer_id) {
                 OutboundQueue(in);
