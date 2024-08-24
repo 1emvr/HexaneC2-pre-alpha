@@ -1,5 +1,5 @@
 [package]
-name = "rust_server"
+name = "hexane-server"
 version = "0.1.0"
 edition = "2021"
 
