@@ -10,3 +10,4 @@ cmake-build-debug
 logs
 build
 payload
+rust_server/target

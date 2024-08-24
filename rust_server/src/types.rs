@@ -101,13 +101,13 @@ struct Network {
 }
 
 #[derive(Debug, Clone)]
-struct Smb {
+struct SmbConfig {
     egress_pipename:    String,
     egress_peer:        String,
 }
 
 #[derive(Debug, Clone)]
-struct Proxy {
+struct ProxyConfig {
     address:    String,
     port:       String,
     proto:      String,
@@ -123,7 +123,7 @@ struct HttpConfig {
     port:       i32,
     endpoints:  Vec<String>,
     headers:    Vec<String>,
-    proxy:      Option<Proxy>,
+    proxy:      Option<ProxyConfig>,
     handle:     Option<App<None>>,
     sig_term:   Option<Sender<bool>>,
     ready:      Option<Sender<bool>>,
@@ -173,7 +173,7 @@ struct LoaderConfig {
 }
 
 #[derive(Debug, Clone)]
-struct Implant {
+struct ImplantConfig {
     network_profile:    Box<dyn std::any::Any + Send + Sync>,
     profile_type_id:    u32,
     current_task_id:    u32,
@@ -186,7 +186,7 @@ struct Implant {
 }
 
 #[derive(Debug, Clone)]
-struct Compiler {
+struct CompilerConfig {
     debug:              bool,
     arch:               String,
     mingw:              String,
@@ -209,7 +209,7 @@ struct WriteChannel {
 
 #[derive(Debug, Clone)]
 struct HexaneConfig {
-    current_task_id:    u32,
+    current_taskid:     u32,
     peer_id:            u32,
     group_id:           i32,
     build_type:         i32,
@@ -222,10 +222,10 @@ struct HexaneConfig {
     shellcode:          Vec<u8>,
     config_bytes:       Vec<u8>,
     active:             bool,
-    implant:            Option<Implant>,
-    compiler:           Option<Compiler>,
-    user_session:       Option<Session>,
     user_config:        Option<JsonConfig>,
+    implant_config:     Option<ImplantConfig>,
+    compiler_config:    Option<CompilerConfig>,
+    user_session:       Option<Session>,
     next:               Option<Box<HexaneConfig>>,
 }
 
