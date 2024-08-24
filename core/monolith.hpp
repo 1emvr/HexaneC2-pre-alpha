@@ -465,9 +465,9 @@ struct _hexane{
 	struct {
 		_http_context 	*http;
 		_stream        	*outbound_queue;
-		HANDLE		pipe_handle;
-		LPWSTR		pipe_name;
-		LPSTR 		domain;
+		HANDLE		    pipe_handle;
+		LPWSTR		    pipe_name;
+		LPSTR 		    domain;
 		LPVOID	    	env_proxy;
 		SIZE_T	    	env_proxylen;
 		BOOL  	    	b_ssl;
