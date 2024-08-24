@@ -83,10 +83,21 @@ namespace Network {
 
             __debugbreak();
             if (Ctx->transport.http->endpoints) {
-                RANDOM_SELECT(endpoint, Ctx->transport.http->endpoints);
-                req_ctx->endpoint = R_CAST(wchar_t*, x_malloc((x_wcslen(endpoint)+ 1) * sizeof(wchar_t)));
+                int i = 0;
 
+                while (true) {
+                    if (!Ctx->transport.http->endpoints[i]) {
+                        break;
+                    }
+                    i++;
+                }
+
+                if (i > 0) { i--; }
+                endpoint = Ctx->transport.http->endpoints[i % Utils::Random::RandomNumber32()];
+
+                req_ctx->endpoint = R_CAST(wchar_t*, x_malloc((x_wcslen(endpoint)+ 1) * sizeof(wchar_t)));
                 x_memcpy(req_ctx->endpoint, endpoint, (x_wcslen(endpoint) + 1) * sizeof(wchar_t));
+
             } else {
                 success_(false);
             }
