@@ -1,5 +1,6 @@
-use std::fmt::Debug;
-use std::io::{Write};
+mod implants;
+
+use clap::Parser;
 use std::io;
 
 const BANNER: &str = r#"
@@ -10,6 +11,7 @@ const BANNER: &str = r#"
 |_| |_|\___/_/\_\__,_|_| |_|\___\____/|_____|
 "#;
 
+
 pub struct Client {
     // todo: implement with crossterm
 }
@@ -19,29 +21,21 @@ impl Client {
         println!("{}", BANNER);
     }
 
-    fn implants(args: Vec<&str>) {
-        println!("{}", args);
-    }
-
-    fn help() {
-        println!("help menu")
-    }
-
     pub fn run_client() {
         Self::print_banner();
 
-        let mut input = String::new();
-        while input.as_str() != "exit" {
-            println!(" > ");
+        let mut input = String::new().split_whitespace();
+        let select = input.next().unwrap_or_default();
+        let collect: Vec<&str> = select.collect();
 
-            io::stdin().read_line(&mut input).expect("error reading user input");
-            let args: Vec<&str> = input.split(" ").collect();
-
-            match input.as_str() {
-                "implant"   => Self::implants(args),
-                "help"      => Self::help(),
-                _ => println!("invalid input")
+        if select == "implant" {
+            if let Some((command, args)) = collect.split_first() {
+                match *command {
+                    _ => println!("invalid arguments")
+                }
             }
+        } else {
+            println!("invalid arguments");
         }
     }
 }

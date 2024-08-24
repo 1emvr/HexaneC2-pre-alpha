@@ -4,6 +4,6 @@ mod server;
 
 use client::Client;
 fn main() {
-    Client::RunClient();
+    Client::run_client();
 }
 
