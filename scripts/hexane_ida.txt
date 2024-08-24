@@ -1,3 +1,4 @@
+// ========== HEXANE TYPES ========== //
 
 struct _proxy {
 	unsigned __int16*	address;
@@ -32,19 +33,61 @@ struct _stream {
 	_stream*            next;
 };
 
+struct _object_map {
+	unsigned __int8* 	address;
+	unsigned long 	    size;
+};
+
+struct _symbol {
+	char                Name[8];
+	unsigned __int32    Value;
+	unsigned __int16    SectionNumber;
+	unsigned __int16    Type;
+	unsigned __int8     StorageClass;
+	unsigned __int8     NumberOfAuxSymbols;
+};
+
+struct _reloc {
+	unsigned __int32 VirtualAddress;
+	unsigned __int32 SymbolTableIndex;
+	unsigned __int16 Type;
+};
+
+struct _executable {
+	unsigned __int8*		        buffer;
+	IMAGE_DOS_HEADER*		        dos_head;
+	IMAGE_NT_HEADERS*		        nt_head;
+
+	IMAGE_SECTION_HEADER*           section;
+	IMAGE_EXPORT_DIRECTORY*         exports;
+	unsigned long 		            size;
+
+	_reloc*                         reloc;
+	_symbol*                        symbol;
+	_object_map*                    fn_map;
+	_object_map*                    sec_map;
+	_executable*                    next;
+
+	void* 					        heap;
+	void* 					        handle;
+	void* 					        thread;
+	PS_ATTRIBUTE_LIST*              attrs;
+	RTL_USER_PROCESS_PARAMETERS*    params;
+	PS_CREATE_INFO 			        create;
+};
 
 struct _hexane{
-	void* teb;
-	void* heap;
-	bool root;
-    bool little;
-	void** coffs;
-	void** clients;
-	unsigned __int64 address;
-	unsigned __int32 size;
-	void** vault;
-	void*** token;
-	bool impersonate;
+	void*               teb;
+	void*               heap;
+	bool                root;
+    bool                little;
+	_executable*        coffs;
+	_client*            clients;
+	unsigned __int64    address;
+	unsigned __int32    size;
+	void**              vault;
+	void***             token;
+	bool                impersonate;
 
 	void* ntdll;
 	void* kernel32;
@@ -212,4 +255,171 @@ struct _hexane{
 	void* SetSecurityDescriptorSacl;
 	void* InitializeAcl;
 	void* FreeSid;
+};
+
+// ========== WIN32 TYPES ========== //
+
+struct IMAGE_DOS_HEADER {
+     unsigned __int16 e_magic;
+     unsigned __int16 e_cblp;
+     unsigned __int16 e_cp;
+     unsigned __int16 e_crlc;
+     unsigned __int16 e_cparhdr;
+     unsigned __int16 e_minalloc;
+     unsigned __int16 e_maxalloc;
+     unsigned __int16 e_ss;
+     unsigned __int16 e_sp;
+     unsigned __int16 e_csum;
+     unsigned __int16 e_ip;
+     unsigned __int16 e_cs;
+     unsigned __int16 e_lfarlc;
+     unsigned __int16 e_ovno;
+     unsigned __int16 e_res[4];
+     unsigned __int16 e_oemid;
+     unsigned __int16 e_oeminfo;
+     unsigned __int16 e_res2[10];
+     int e_lfanew;
+};
+
+typedef struct IMAGE_FILE_HEADER {
+  unsigned __int16 Machine;
+  unsigned __int16 NumberOfSections;
+  unsigned __int32 TimeDateStamp;
+  unsigned __int32 PointerToSymbolTable;
+  unsigned __int32 NumberOfSymbols;
+  unsigned __int16 SizeOfOptionalHeader;
+  unsigned __int16 Characteristics;
+};
+
+struct IMAGE_DATA_DIRECTORY {
+  unsigned __int32 VirtualAddress;
+  unsigned __int32 Size;
+};
+
+struct IMAGE_OPTIONAL_HEADER {
+  unsigned __int16 Magic;
+  unsigned __int8 MajorLinkerVersion;
+  unsigned __int8  MinorLinkerVersion;
+  unsigned __int32 SizeOfCode;
+  unsigned __int32 SizeOfInitializedData;
+  unsigned __int32 SizeOfUninitializedData;
+  unsigned __int32 AddressOfEntryPoint;
+  unsigned __int32 BaseOfCode;
+  unsigned __int32 BaseOfData;
+  unsigned __int32 ImageBase;
+  unsigned __int32 SectionAlignment;
+  unsigned __int32 FileAlignment;
+  unsigned __int16 MajorOperatingSystemVersion;
+  unsigned __int16 MinorOperatingSystemVersion;
+  unsigned __int16 MajorImageVersion;
+  unsigned __int16 MinorImageVersion;
+  unsigned __int16 MajorSubsystemVersion;
+  unsigned __int16 MinorSubsystemVersion;
+  unsigned __int32 Win32VersionValue;
+  unsigned __int32 SizeOfImage;
+  unsigned __int32 SizeOfHeaders;
+  unsigned __int32 CheckSum;
+  unsigned __int16 Subsystem;
+  unsigned __int16 DllCharacteristics;
+  unsigned __int32 SizeOfStackReserve;
+  unsigned __int32 SizeOfStackCommit;
+  unsigned __int32 SizeOfHeapReserve;
+  unsigned __int32 SizeOfHeapCommit;
+  unsigned __int32 LoaderFlags;
+  unsigned __int32 NumberOfRvaAndSizes;
+  IMAGE_DATA_DIRECTORY DataDirectory[16];
+};
+
+struct IMAGE_NT_HEADERS {
+    unsigned __int32 Signature;
+    IMAGE_FILE_HEADER FileHeader;
+    IMAGE_OPTIONAL_HEADER OptionalHeader;
+};
+
+struct IMAGE_SECTION_HEADER {
+  unsigned __int8 Name[8];
+  unsigned __int32 VirtualSize;
+  unsigned __int32 VirtualAddress;
+  unsigned __int32 SizeOfRawData;
+  unsigned __int32 PointerToRawData;
+  unsigned __int32 PointerToRelocations;
+  unsigned __int32 PointerToLinenumbers;
+  unsigned __int16 NumberOfRelocations;
+  unsigned __int16 NumberOfLinenumbers;
+  unsigned __int32 Characteristics;
+};
+
+struct IMAGE_EXPORT_DIRECTORY {
+  unsigned __int32 Characteristics;
+  unsigned __int32 TimeDateStamp;
+  unsigned __int16 MajorVersion;
+  unsigned __int16 MinorVersion;
+  unsigned __int32 Name;
+  unsigned __int32 Base;
+  unsigned __int32 NumberOfFunctions;
+  unsigned __int32 NumberOfNames;
+  unsigned __int32 AddressOfFunctions;
+  unsigned __int32 AddressOfNames;
+  unsigned __int32 AddressOfNameOrdinals;
+};
+
+struct PS_ATTRIBUTE {
+	unsigned long long  Attribute;
+	unsigned long       Size;
+	unsigned long long  Value;
+	unsigned long*      ReturnLength;
+};
+
+struct PS_ATTRIBUTE_LIST {
+	unsigned long TotalLength;
+	PS_ATTRIBUTE Attributes[1];
+};
+
+
+	struct UNICODE_STRING {
+		USHORT Length;
+		USHORT MaximumLength;
+		P
+		WSTR  Buffer;
+	};
+
+struct CURDIR {
+	UNICODE_STRING DosPath;
+	void* Handle;
+};
+
+struct RTL_USER_PROCESS_PARAMETERS {
+	unsigned __int32    MaximumLength;
+	unsigned __int32    Length;
+	unsigned __int32    Flags;
+	unsigned __int32    DebugFlags;
+	void*               ConsoleHandle;
+	unsigned __int32    ConsoleFlags;
+	void*               StandardInput;
+	void*               StandardOutput;
+	void*               StandardError;
+	CURDIR              CurrentDirectory;
+	UNICODE_STRING      DllPath;
+	UNICODE_STRING      ImagePathName;
+	UNICODE_STRING      CommandLine;
+	unsigned __int16*   Environment;
+	unsigned __int32    StartingX;
+	unsigned __int32    StartingY;
+	unsigned __int32    CountX;
+	unsigned __int32    CountY;
+	unsigned __int32    CountCharsX;
+	unsigned __int32    CountCharsY;
+	unsigned __int32    FillAttribute;
+	unsigned __int32    WindowFlags;
+	unsigned __int32    ShowWindowFlags;
+	UNICODE_STRING      WindowTitle;
+	UNICODE_STRING      DesktopInfo;
+	UNICODE_STRING      ShellInfo;
+	UNICODE_STRING      RuntimeData;
+	RTL_DRIVE_LETTER_CURDIR CurrentDirectories[RTL_MAX_DRIVE_LETTERS];
+	unsigned __int32_PTR EnvironmentSize;
+	unsigned __int32_PTR EnvironmentVersion;
+	void*               PackageDependencyData;
+	unsigned __int32    ProcessGroupId;
+	unsigned __int32    LoaderThreads;
 };
