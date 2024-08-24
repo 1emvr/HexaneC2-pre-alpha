@@ -98,19 +98,20 @@ namespace Memory {
         VOID ContextInit() {
             // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
 
-            _hexane instance = { };
-            size_t region_size = 0;
-            void *region = { };
+            _hexane instance    = { };
+            size_t region_size  = 0;
+            void *region        = { };
 
             instance.teb = NtCurrentTeb();
             instance.heap = instance.teb->ProcessEnvironmentBlock->ProcessHeap;
 
-            instance.teb->LastErrorValue = ERROR_SUCCESS;
-            instance.base.address = U_PTR(InstStart());
-            instance.base.size = U_PTR(InstEnd()) - instance.base.address;
+            instance.teb->LastErrorValue    = ERROR_SUCCESS;
+            __debugbreak();
+            instance.base.address           = U_PTR(InstStart());
+            instance.base.size              = U_PTR(InstEnd()) - instance.base.address;
 
-            region = C_PTR(GLOBAL_OFFSET);
-            region_size = sizeof(region);
+            region      = C_PTR(instance.base.address + &__global);
+            region_size = sizeof(void*);
 
             if (
                 !(instance.modules.ntdll = M_PTR(NTDLL)) ||

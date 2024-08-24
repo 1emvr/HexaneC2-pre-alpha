@@ -10,10 +10,10 @@ SECTIONS {
         *(.text$B);
         *(.rdata*);
 
-        FILL(0x00);
+        FILL(0X00);
         . = ALIGN(0x1000);
 
-        __instance = .;
+        __global = .;
         *(.global);
         *(.text$E);
         *(.text$F);

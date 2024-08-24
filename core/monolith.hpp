@@ -2,8 +2,10 @@
 #define HEXANE_MONOLITH_HPP
 #include <core/ntimports.hpp>
 
+EXTERN_C ULONG __global;
 EXTERN_C LPVOID InstStart();
 EXTERN_C LPVOID InstEnd();
+
 
 #define WIN_VERSION_UNKNOWN                         0
 #define WIN_VERSION_XP                              1
@@ -21,6 +23,9 @@ EXTERN_C LPVOID InstEnd();
 #define MAX_PATH 								    260
 #define PIPE_BUFFER_MAX     					    (64 * 1000 - 1)
 #define MIN(a,b)								    (a < b ? a : b)
+
+#define GLOBAL_OFFSET								(U_PTR(InstStart()) + U_PTR(&__global))
+#define HEXANE 		    							auto Ctx = R_CAST(_hexane*, (C_PTR(GLOBAL_OFFSET)));
 
 #define C_CAST(T,x)								    (const_cast<T>(x))
 #define D_CAST(T,x)								    (dynamic_cast<T>(x))
@@ -191,11 +196,6 @@ typedef VOID (NTAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
 #define __builtin_bswap32 __bswapd
 #define __builtin_bswap64 __bswapq
 #endif
-
-EXTERN_C uintptr_t			__instance;
-
-#define GLOBAL_OFFSET      	(U_PTR(InstStart()) + U_PTR(&__instance))
-#define HEXANE 		        auto Ctx = R_CAST(_hexane*, C_DREF(GLOBAL_OFFSET));
 
 #define InitializeObjectAttributes(ptr, name, attr, root, sec )	\
     (ptr)->Length = sizeof( OBJECT_ATTRIBUTES );				\
