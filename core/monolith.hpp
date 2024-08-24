@@ -216,8 +216,8 @@ typedef VOID (NTAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
 #define x_realloc(ptr, size) 	                Ctx->nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, ptr, size)
 #define x_free(size) 			                Ctx->nt.RtlFreeHeap(Ctx->heap, 0, size)
 
-#define F_PTR_HMOD(Fn, hmod, sym_hash)			Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash)
-#define F_PTR_HASHES(Fn, mod_hash, sym_hash)	Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash)
+#define F_PTR_HMOD(Fn, hmod, sym_hash)			(Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash))
+#define F_PTR_HASHES(Fn, mod_hash, sym_hash)	(Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash))
 #define M_PTR(mod_hash)							Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash))
 #define NT_ASSERT(Fn)							Fn; if (NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) return
 
