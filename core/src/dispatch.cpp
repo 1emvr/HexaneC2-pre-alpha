@@ -6,7 +6,7 @@ namespace Dispatcher {
 
         uint32_t pid = 0;
 
-        x_memcpy(&pid, B_PTR(stream->buffer) + 1, 4);
+        x_memcpy(&pid, B_PTR(stream->buffer), 4);
         return pid;
     }
 
