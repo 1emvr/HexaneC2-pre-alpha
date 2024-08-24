@@ -84,8 +84,8 @@ namespace Network {
             __debugbreak();
             if (Ctx->transport.http->endpoints) {
                 RANDOM_SELECT(endpoint, Ctx->transport.http->endpoints);
-
                 req_ctx->endpoint = R_CAST(wchar_t*, x_malloc((x_wcslen(endpoint)+ 1) * sizeof(wchar_t)));
+
                 x_memcpy(req_ctx->endpoint, endpoint, (x_wcslen(endpoint) + 1) * sizeof(wchar_t));
             } else {
                 success_(false);
