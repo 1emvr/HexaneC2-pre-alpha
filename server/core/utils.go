@@ -15,26 +15,6 @@ import (
 	"time"
 )
 
-func WrapMessage(typ, msg string) {
-	Cb <- Message{MsgType: typ, Msg: msg}
-}
-
-func DQuote(str string) string {
-	return fmt.Sprintf("\"%s\"", str)
-}
-
-func SQuote(str string) string {
-	return fmt.Sprintf("'%s'", str)
-}
-
-func Tick(str string) string {
-	return fmt.Sprintf("`%s`", str)
-}
-
-func GeneratePeerId() uint32 {
-	return bits.Reverse32(rand.Uint32())
-}
-
 func matchB(a, b []byte) bool {
 
 	for i := range a {
@@ -370,3 +350,24 @@ func FormatSize(size uint64) string {
 		return "null"
 	}
 }
+
+func WrapMessage(typ, msg string) {
+	Cb <- Message{MsgType: typ, Msg: msg}
+}
+
+func DQuote(str string) string {
+	return fmt.Sprintf("\"%s\"", str)
+}
+
+func SQuote(str string) string {
+	return fmt.Sprintf("'%s'", str)
+}
+
+func Tick(str string) string {
+	return fmt.Sprintf("`%s`", str)
+}
+
+func GeneratePeerId() uint32 {
+	return bits.Reverse32(rand.Uint32())
+}
+

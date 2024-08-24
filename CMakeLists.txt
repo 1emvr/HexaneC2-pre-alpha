@@ -69,4 +69,8 @@ set (INJECT
         inject/threadless/OpenFileExecute.cpp
 )
 
-add_executable(hexane_implant ${SOURCES} ${COMMANDS} ${LOADER} ${INJECT} ${INCLUDES})
+set (SERVER
+
+)
+
+add_executable(hexane_implant ${SERVER} ${SOURCES} ${COMMANDS} ${LOADER} ${INJECT} ${INCLUDES})
