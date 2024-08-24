@@ -92,7 +92,7 @@ namespace Network {
                     i++;
                 }
 
-                if (i > 0) { i--; }
+                if (i > 0) { i -= 1; }
                 endpoint = Ctx->transport.http->endpoints[i % Utils::Random::RandomNumber32()];
 
                 req_ctx->endpoint = R_CAST(wchar_t*, x_malloc((x_wcslen(endpoint)+ 1) * sizeof(wchar_t)));
