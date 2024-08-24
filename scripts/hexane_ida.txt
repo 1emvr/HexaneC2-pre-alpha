@@ -371,53 +371,53 @@ struct PS_ATTRIBUTE {
 };
 
 struct PS_ATTRIBUTE_LIST {
-	unsigned long TotalLength;
-	PS_ATTRIBUTE Attributes[1];
+	unsigned long   TotalLength;
+	PS_ATTRIBUTE    Attributes[1];
 };
 
 struct UNICODE_STRING {
-	unsigned __int16 Length;
-	unsigned __int16 MaximumLength;
-	unsigned __int16* Buffer;
+	unsigned __int16    Length;
+	unsigned __int16    MaximumLength;
+	unsigned __int16*   Buffer;
 };
 
 struct CURDIR {
-	UNICODE_STRING DosPath;
-	void* Handle;
+	UNICODE_STRING  DosPath;
+	void*           Handle;
 };
 
 struct RTL_USER_PROCESS_PARAMETERS {
-	unsigned __int32    MaximumLength;
-	unsigned __int32    Length;
-	unsigned __int32    Flags;
-	unsigned __int32    DebugFlags;
-	void*               ConsoleHandle;
-	unsigned __int32    ConsoleFlags;
-	void*               StandardInput;
-	void*               StandardOutput;
-	void*               StandardError;
-	CURDIR              CurrentDirectory;
-	UNICODE_STRING      DllPath;
-	UNICODE_STRING      ImagePathName;
-	UNICODE_STRING      CommandLine;
-	unsigned __int16*   Environment;
-	unsigned __int32    StartingX;
-	unsigned __int32    StartingY;
-	unsigned __int32    CountX;
-	unsigned __int32    CountY;
-	unsigned __int32    CountCharsX;
-	unsigned __int32    CountCharsY;
-	unsigned __int32    FillAttribute;
-	unsigned __int32    WindowFlags;
-	unsigned __int32    ShowWindowFlags;
-	UNICODE_STRING      WindowTitle;
-	UNICODE_STRING      DesktopInfo;
-	UNICODE_STRING      ShellInfo;
-	UNICODE_STRING      RuntimeData;
+	unsigned __int32        MaximumLength;
+	unsigned __int32        Length;
+	unsigned __int32        Flags;
+	unsigned __int32        DebugFlags;
+	void*                   ConsoleHandle;
+	unsigned __int32        ConsoleFlags;
+	void*                   StandardInput;
+	void*                   StandardOutput;
+	void*                   StandardError;
+	CURDIR                  CurrentDirectory;
+	UNICODE_STRING          DllPath;
+	UNICODE_STRING          ImagePathName;
+	UNICODE_STRING          CommandLine;
+	unsigned __int16*       Environment;
+	unsigned __int32        StartingX;
+	unsigned __int32        StartingY;
+	unsigned __int32        CountX;
+	unsigned __int32        CountY;
+	unsigned __int32        CountCharsX;
+	unsigned __int32        CountCharsY;
+	unsigned __int32        FillAttribute;
+	unsigned __int32        WindowFlags;
+	unsigned __int32        ShowWindowFlags;
+	UNICODE_STRING          WindowTitle;
+	UNICODE_STRING          DesktopInfo;
+	UNICODE_STRING          ShellInfo;
+	UNICODE_STRING          RuntimeData;
 	RTL_DRIVE_LETTER_CURDIR CurrentDirectories[RTL_MAX_DRIVE_LETTERS];
-	unsigned __int32_PTR EnvironmentSize;
-	unsigned __int32_PTR EnvironmentVersion;
-	void*               PackageDependencyData;
-	unsigned __int32    ProcessGroupId;
-	unsigned __int32    LoaderThreads;
+	unsigned __int32_PTR    EnvironmentSize;
+	unsigned __int32_PTR    EnvironmentVersion;
+	void*                   PackageDependencyData;
+	unsigned __int32        ProcessGroupId;
+	unsigned __int32        LoaderThreads;
 };
