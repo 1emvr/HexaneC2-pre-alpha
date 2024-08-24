@@ -25,7 +25,7 @@ EXTERN_C LPVOID InstEnd();
 #define MIN(a,b)								    (a < b ? a : b)
 
 #define GLOBAL_OFFSET								(U_PTR(InstStart()) + U_PTR(&__global))
-#define HEXANE 		    							auto Ctx = R_CAST(_hexane*, (C_PTR(GLOBAL_OFFSET)));
+#define HEXANE 		    							auto Ctx = R_CAST(_hexane*, C_DREF(C_PTR(GLOBAL_OFFSET)));
 
 #define C_CAST(T,x)								    (const_cast<T>(x))
 #define D_CAST(T,x)								    (dynamic_cast<T>(x))

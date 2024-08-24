@@ -1,0 +1,11 @@
+ld: C:\Users\lemur\CLionProjects\HexaneC2\build\windows_work.exe:.text: section below image base
+ld: C:\Users\lemur\CLionProjects\HexaneC2\build\windows_work.exe:/4: section below image base
+ld: C:\Users\lemur\CLionProjects\HexaneC2\build\windows_work.exe:/15: section below image base
+ld: C:\Users\lemur\CLionProjects\HexaneC2\build\windows_work.exe:/27: section below image base
+ld: C:\Users\lemur\CLionProjects\HexaneC2\build\windows_work.exe:/43: section below image base
+ld: C:\Users\lemur\CLionProjects\HexaneC2\build\windows_work.exe:/55: section below image base
+ld: C:\Users\lemur\CLionProjects\HexaneC2\build\windows_work.exe:/69: section below image base
+ld: C:\Users\lemur\CLionProjects\HexaneC2\build\windows_work.exe:/85: section below image base
+ld: C:\Users\lemur\CLionProjects\HexaneC2\build\windows_work.exe:/100: section below image base
+ld: C:\Users\lemur\CLionProjects\HexaneC2\build\windows_work.exe:/116: section below image base
+ld: C:\Users\lemur\CLionProjects\HexaneC2\build\windows_work.exe:.data: section below image base
