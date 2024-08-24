@@ -375,13 +375,11 @@ struct PS_ATTRIBUTE_LIST {
 	PS_ATTRIBUTE Attributes[1];
 };
 
-
-	struct UNICODE_STRING {
-		USHORT Length;
-		USHORT MaximumLength;
-		P
-		WSTR  Buffer;
-	};
+struct UNICODE_STRING {
+	unsigned __int16 Length;
+	unsigned __int16 MaximumLength;
+	unsigned __int16* Buffer;
+};
 
 struct CURDIR {
 	UNICODE_STRING DosPath;
