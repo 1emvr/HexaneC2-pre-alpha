@@ -7,3 +7,6 @@
 .idea
 .vs
 cmake-build-debug
+logs
+build
+payload

