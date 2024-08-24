@@ -33,65 +33,51 @@ func CryptCreateKey(length int) []byte {
 	return str
 }
 
-func HashUTF8(name []byte) uint32 {
+const (
+	fnv_offset = uint32(2166136261)
+	fnv_prime  = uint32(16777619)
+)
+
+func GetHashFromString(str string, is_unicode bool) uint32 {
 	var (
-		sum32   = uint32(2166136261)
-		prime32 = uint32(16777619)
+		length int
+		offset int
+		hash   = fnv_offset
 	)
 
-	hash := sum32
-	for i := 0; i < len(name); i++ {
-		hash ^= uint32(name[i])
-		hash *= prime32
+	if is_unicode {
+		length = len(str) - 2
+		offset = 2
+	} else {
+		length = len(str)
+		offset = 1
 	}
 
+	for i := 0; i < length; i += offset {
+		hash ^= uint32(str[i])
+		hash *= fnv_prime
+	}
 	return hash
 }
 
-func HashUTF16(name []byte) uint32 {
+func CreateHashMacro(str string) string {
 	var (
-		sum32   = uint32(2166136261)
-		prime32 = uint32(16777619)
+		name       []byte
+		is_unicode bool
 	)
 
-	hash := sum32
-	for i := 0; i < len(name); i += 2 {
-		hash ^= uint32(name[i])
-		hash *= prime32
-	}
-
-	return hash
-}
-
-func GetHashFromString(str string) uint32 {
-	var (
-		name      []byte
-		isUnicode bool
-	)
-
+	macro := strings.ToUpper(strings.TrimRight(str, "\n"))
 	lower := strings.ToLower(str)
 
 	if strings.HasSuffix(lower, ".dll") {
 		name = EncodeUTF16(lower)
-		isUnicode = true
+		is_unicode = true
 	} else {
 		name = []byte(lower)
-		isUnicode = false
+		is_unicode = false
 	}
 
-	if isUnicode {
-		return HashUTF16(name)
-	} else {
-		return HashUTF8(name)
-	}
-}
-
-func CreateHashMacro(str string) string {
-
-	macro := strings.ToUpper(strings.TrimRight(str, "\n"))
-	hash := GetHashFromString(str)
-
-	return fmt.Sprintf("#define %s 0x%x", strings.Split(macro, ".")[0], hash)
+	return fmt.Sprintf("#define %s 0x%x", strings.Split(macro, ".")[0], GetHashFromString(string(name), is_unicode))
 }
 
 func NewCipher(key []byte) (*Cipher, error) {

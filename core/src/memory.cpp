@@ -571,8 +571,7 @@ namespace Memory {
                 const auto mod = R_CAST(LDR_DATA_TABLE_ENTRY*, B_PTR(next) - sizeof(uint32_t) * 4);
                 const auto name = mod->BaseDllName;
 
-                __debugbreak();
-                if (hash - Utils::GetHashFromStringW(x_wcsToLower(lowercase, name.Buffer), name.Length * sizeof(wchar_t)) == 0) {
+                if (hash - Utils::GetHashFromStringW(x_wcsToLower(lowercase, name.Buffer), x_wcslen(name.Buffer)) == 0) {
                     return mod;
                 }
             }

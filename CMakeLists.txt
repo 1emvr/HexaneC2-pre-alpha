@@ -70,6 +70,7 @@ set (INJECT
 )
 
 set (SERVER
+        test/fnv_test.cpp
 
 )
 
