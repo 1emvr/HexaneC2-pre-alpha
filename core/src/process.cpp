@@ -103,7 +103,6 @@ namespace Process {
 		x_mbstowcs(w_name, path, x_strlen(path));
 		Ctx->nt.RtlInitUnicodeString(&u_name, w_name);
 
-		image->create = { };
 		image->create.Size = sizeof(image->create);
 		image->create.State = PsCreateInitialState;
 
