@@ -41,7 +41,7 @@ fn main() {
         return;
     }
 
-    run(opt);
+    run_hexane(opt);
 }
 
 fn wrap_message(level: &str, message: &str) {
@@ -55,7 +55,7 @@ fn create_path(path: &str) -> io::Result<()> {
     Ok(())
 }
 
-fn run(opt: Opt) {
+fn run_hexane(opt: Opt) {
     let (sender, receiver) = mpsc::channel();
     let reader = io::stdin();
 
@@ -89,7 +89,7 @@ fn run(opt: Opt) {
 
 fn execute_command(args: &[&str], opt: &Opt) -> Result<(), String> {
     // Here you would implement your commands logic based on the args and opt
-    wrap_message("CMD", &format!("Executing command: {:?}", args));
+    wrap_message("DBG", &format!("Executing command: {:?}", args));
     Ok(())
 }
 
