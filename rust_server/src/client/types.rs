@@ -21,11 +21,6 @@ const STRIP:    &str = "strip";
 const NASM:     &str = "nasm";
 const LINKER:   &str = "ld";
 
-pub struct LinkedList<T> {
-    pub(crate) head: Option<T>,
-    pub(crate) next: Option<LinkedList<T>>,
-}
-
 #[derive(Deserialize)]
 #[serde(tag = "Type", content = "Config")]
 pub enum NetworkConfig {
