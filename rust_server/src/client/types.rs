@@ -25,6 +25,15 @@ pub struct UserSession {
     pub(crate) username: String,
     pub(crate) is_admin: bool,
 }
+pub struct SavedPayloads {
+    pub(crate) head:   Option<Hexane>,
+    pub(crate) group:  Option<i8>,
+}
+
+pub struct SavedServers {
+    pub(crate) head:   Option<HttpConfig>,
+    pub(crate) group:  Option<i8>,
+}
 
 #[derive(Deserialize)]
 #[serde(tag = "Type", content = "Config")]
@@ -46,9 +55,9 @@ pub struct HttpConfig {
     pub(crate) useragent:  String,
     pub(crate) port:       String,
     pub(crate) endpoints:  Vec<String>,
-    pub(crate) headers:    Vec<String>,
-    pub(crate) proxy:      ProxyConfig,
-    pub(crate) next:       HttpConfig,
+    pub(crate) headers:    Option<Vec<String>>,
+    pub(crate) proxy:      Option<ProxyConfig>,
+    pub(crate) next:       Option<Box<HttpConfig>>,
 }
 
 #[derive(Deserialize)]
@@ -151,12 +160,3 @@ pub struct Hexane {
     pub(crate) next:           Option<Box<Hexane>>,
 }
 
-pub struct SavedPayloads {
-    pub(crate) head:   Hexane,
-    pub(crate) group:  i8,
-}
-
-pub struct SavedServers {
-    head:   HttpConfig,
-    group:  i8,
-}

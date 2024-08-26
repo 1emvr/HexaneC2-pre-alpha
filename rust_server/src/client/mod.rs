@@ -33,6 +33,8 @@ impl Client {
     pub fn run_client() {
         println!("{}", BANNER);
 
+        Self::debug = true;
+
         loop {
             let mut input = String::new();
 
@@ -103,7 +105,7 @@ impl Client {
         };
 
         Self::save_payload(instance, 1);
-        if Client::debug {
+        if Self::debug {
             println!("saved: {}", &instance.builder.output_name);
         }
 
