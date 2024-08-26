@@ -1,41 +1,72 @@
 mod implants;
+mod utils;
+mod types;
 
+use std::fs;
 use clap::Parser;
-use std::io;
+use std::io::{self, Write};
+use clap::builder::UnknownArgumentValueParser;
+use serde::Deserialize;
+use serde::ser::Impossible;
+use serde_json::Result;
+use crate::client::types::JsonData;
 
 const BANNER: &str = r#"
- _                                 ___ ____
-| |__   _____  ____ _ _ __   ___  / __\___ \
-| '_ \ / _ \ \/ / _` | '_ \ / _ \/ /    __) |
-| | | |  __/>  < (_| | | | |  __/ /___ / __/
-|_| |_|\___/_/\_\__,_|_| |_|\___\____/|_____|
-"#;
+██╗  ██╗███████╗██╗  ██╗ █████╗ ███╗   ██╗███████╗ ██████╗██████╗
+██║  ██║██╔════╝╚██╗██╔╝██╔══██╗████╗  ██║██╔════╝██╔════╝╚════██╗
+███████║█████╗   ╚███╔╝ ███████║██╔██╗ ██║█████╗  ██║      █████╔╝
+██╔══██║██╔══╝   ██╔██╗ ██╔══██║██║╚██╗██║██╔══╝  ██║     ██╔═══╝
+██║  ██║███████╗██╔╝ ██╗██║  ██║██║ ╚████║███████╗╚██████╗███████╗
+╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝╚══════╝"#;
 
 
-pub struct Client {
-    // todo: implement with crossterm
+struct Client {
+    debug: bool,
+    show_compiler: bool,
 }
-
 impl Client {
-    fn print_banner() {
-        println!("{}", BANNER);
+    fn read_json(file_path: &String) {
+
+        let contents = fs::read_to_string(file_path).expect("invalid file path");
+        let json: JsonData = serde_json::from_str(contents.as_str()).expect("invalid json syntax");
+
     }
 
     pub fn run_client() {
-        Self::print_banner();
+        println!("{}", BANNER);
 
-        let mut input = String::new().split_whitespace();
-        let select = input.next().unwrap_or_default();
-        let collect: Vec<&str> = select.collect();
+        loop {
+            let mut input = String::new();
 
-        if select == "implant" {
-            if let Some((command, args)) = collect.split_first() {
-                match *command {
-                    _ => println!("invalid arguments")
-                }
+            print!(" > ");
+            io::stdout().flush().unwrap();
+            io::stdin().read_line(&mut input).unwrap();
+
+            let input = input.trim(); // remove any inner/outer whitespace
+            if input.is_empty() {
+                continue;
             }
-        } else {
-            println!("invalid arguments");
+
+            let args: Vec<String> = input.split_whitespace().collect();
+            println!("{:?}", args);
+
+            match args[0].as_str() {
+                "load" => {
+                    Self::read_json(&args[1]);
+                    todo!()
+                },
+                "ls" => {
+                    todo!()
+                },
+                "rm" => {
+                    todo!()
+                },
+                "i" => {
+                    todo!()
+                },
+                _ => println!("invalid input")
+            }
+
         }
     }
 }

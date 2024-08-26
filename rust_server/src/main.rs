@@ -1,4 +1,3 @@
-mod types;
 mod client;
 mod server;
 
