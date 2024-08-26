@@ -14,6 +14,11 @@ const COMMAND_NO_JOB:       u32 = 0x00000003;
 const COMMAND_SHUTDOWN:     u32 = 0x00000004;
 const COMMAND_UPDATE_PEER:  u32 = 0x00000005;
 
+struct UserSession {
+    username: String,
+    is_admin: bool,
+}
+
 #[derive(Deserialize)]
 #[serde(tag = "Type", content = "Config")]
 pub enum NetworkConfig {
@@ -126,7 +131,7 @@ pub struct Hexane {
     active:         bool,
 
     compiler:       CompilerConfig,
-    user_session:   SessionConfig,
+    user_session:   UserSession,
     json_data:      JsonData,
     next:           Hexane,
 }
