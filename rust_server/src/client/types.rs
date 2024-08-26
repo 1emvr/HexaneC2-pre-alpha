@@ -21,18 +21,9 @@ const STRIP:    &str = "strip";
 const NASM:     &str = "nasm";
 const LINKER:   &str = "ld";
 
-pub struct UserSession {
-    pub(crate) username: String,
-    pub(crate) is_admin: bool,
-}
-pub struct SavedPayloads {
-    pub(crate) head:   Option<Hexane>,
-    pub(crate) group:  Option<i8>,
-}
-
-pub struct SavedServers {
-    pub(crate) head:   Option<HttpConfig>,
-    pub(crate) group:  Option<i8>,
+pub struct LinkedList<T> {
+    pub(crate) head: Option<T>,
+    pub(crate) next: Option<LinkedList<T>>,
 }
 
 #[derive(Deserialize)]
@@ -57,7 +48,6 @@ pub struct HttpConfig {
     pub(crate) endpoints:  Vec<String>,
     pub(crate) headers:    Option<Vec<String>>,
     pub(crate) proxy:      Option<ProxyConfig>,
-    pub(crate) next:       Option<Box<HttpConfig>>,
 }
 
 #[derive(Deserialize)]
@@ -139,6 +129,11 @@ pub struct CompilerConfig {
     pub(crate) compiler_flags:     Vec<String>,
 }
 
+pub struct UserSession {
+    pub(crate) username: String,
+    pub(crate) is_admin: bool,
+}
+
 pub struct Hexane {
     pub(crate) current_taskid: u32,
     pub(crate) peer_id:        u32,
@@ -157,6 +152,5 @@ pub struct Hexane {
     pub(crate) builder:        BuilderConfig,
     pub(crate) loader:         LoaderConfig,
     pub(crate) user_session:   UserSession,
-    pub(crate) next:           Option<Box<Hexane>>,
 }
 

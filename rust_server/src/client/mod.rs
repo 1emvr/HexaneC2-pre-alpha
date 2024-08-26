@@ -11,7 +11,7 @@ use std::io::{self, Write};
 use std::sync::Mutex;
 use lazy_static::lazy_static;
 use serde_json::Error;
-use crate::client::types::{Hexane, CompilerConfig, JsonData, UserSession, SavedPayloads, SavedServers};
+use crate::client::types::{Hexane, HttpConfig, CompilerConfig, JsonData, UserSession, LinkedList};
 
 const BANNER: &str = r#"
 ██╗  ██╗███████╗██╗  ██╗ █████╗ ███╗   ██╗███████╗ ██████╗██████╗
@@ -22,12 +22,22 @@ const BANNER: &str = r#"
 ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝╚══════╝"#;
 
 lazy_static! {
-    static ref SAVED_PAYLOADS: Mutex<Vec<SavedPayloads>> = Mutex::new(Vec::new());
+    static ref PAYLOADS: Mutex<Vec<LinkedList<Hexane>>> = Mutex::new(Vec::new());
+    static ref SERVERS: Mutex<Vec<LinkedList<Hexane>>> = Mutex::new(Vec::new());
 }
 
-struct Client {
-    debug: bool,
-    show_compiler: bool,
+impl LinkedList<Hexane> {
+    pub fn new() -> LinkedList<Hexane> {
+        LinkedList {
+            head: None,
+            next: None,
+        }
+    }
+}
+
+pub struct Client {
+    pub(crate) debug: bool,
+    pub(crate) show_compiler: bool,
 }
 impl Client {
     pub fn run_client() {
@@ -101,7 +111,6 @@ impl Client {
                 username: String::from(""),
                 is_admin: false,
             },
-            next: None,
         };
 
         Self::save_payload(instance, 1);
@@ -113,12 +122,12 @@ impl Client {
     }
 
     fn save_payload(instance: Hexane, group_id: i8) {
-        let new_payload = SavedPayloads {
+        let new_payload = LinkedList<Hexane> {
             head: instance,
-            group: group_id,
+            next: group_id,
         };
 
-        let mut payloads = SAVED_PAYLOADS.lock().unwrap();
+        let mut payloads = PAYLOADS.lock().unwrap();
         payloads.push(new_payload);
     }
 }
