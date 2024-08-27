@@ -1,58 +1,55 @@
 {
-	"Config": {
-		"Arch": "amd64",
-		"Debug": true,
-		"Hostname": "LENOVO-WRKSTN-L",
-		"Sleeptime": 3,
-		"Jitter": 10
+	"config": {
+		"architecture": "amd64",
+		"debug": true,
+		"hostname": "LENOVO-WRKSTN-L",
+		"sleeptime": 3,
+		"jitter": 10
 	},
 
-	"Network": {
-		"Type": "http",
-		"Config": {
-			"Useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
-			"Address": "192.168.10.166",
-			"Port": 80,
+	"network": {
+		"type": "http",
+		"config": {
+			"useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+			"address": "192.168.10.166",
+			"port": 80,
 
-			"Endpoints": [
+			"endpoints": [
 				"/endpoint0","/endpoint1", "/endpoint2", "/endpoint3", "/endpoint4",
 				"/endpoint5", "/endpoint6", "/endpoint7", "/endpoint8", "/endpoint9"
 			]
 		}
 	},
 
-	"Builder": {
-		"OutputName": "windows_work",
-		"RootDirectory": "C:/Users/lemur/CLionProjects/HexaneC2/core",
-		"LinkerScript": "implant.ld",
+	"builder": {
+		"output_name": "windows_work",
+		"root_directory": "C:/Users/lemur/CLionProjects/HexaneC2/core",
+		"linker_script": "implant.ld",
 
-		"Dependencies": [],
-		"LoadedModules": [
+		"dependencies": [],
+		"loaded_modules": [
 			"crypt32", "winhttp", "advapi32", "iphlpapi", "mscoree"
-		],
-
-		"ConfigEgg": "0xde,0xad,0xbe,0xef"
+		]
 	},
 
-	"Loader": {
-		"RootDirectory": "C:/Users/lemur/CLionProjects/HexaneC2/loader",
-		"LinkerScript": "loader.ld",
-		"RsrcScript": "resource.rc",
-		"RsrcBinary": "lolwat.bin",
+	"loader": {
+		"root_directory": "C:/Users/lemur/CLionProjects/HexaneC2/loader",
+		"linker_script": "loader.ld",
+		"rsrc_script": "resource.rc",
 
-		"Dependencies":[],
-		"Sources": [
+		"dependencies":[],
+		"sources": [
 			"dllmain.cpp", "resource.cpp"
 		],
 
-		"Injection": {
-			"Type": "threadless",
-			"Config": {
-				"TargetProc": "blobrunner64.exe",
-				"TargetModule":"kernel32.dll",
-				"TargetFunc":"OpenFile",
-				"LoaderAsm": "C:/Users/lemur/CLionProjects/HexaneC2/inject/threadless/loader.asm",
-				"Execute":"C:/Users/lemur/CLionProjects/HexaneC2/inject/threadless/OpenFileExecute.cpp"
+		"injection": {
+			"type": "threadless",
+			"config": {
+				"target_process": "blobrunner64.exe",
+				"target_module":"kernel32.dll",
+				"target_function":"OpenFile",
+				"loader_assembly": "C:/Users/lemur/CLionProjects/HexaneC2/inject/threadless/loader.asm",
+				"execute_object":"C:/Users/lemur/CLionProjects/HexaneC2/inject/threadless/OpenFileExecute.cpp"
 			}
 		}
 	}

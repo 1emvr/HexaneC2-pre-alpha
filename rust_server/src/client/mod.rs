@@ -48,7 +48,9 @@ pub fn run_client() {
             "load" => {
                 let mut instance = map_json_config(&args[1]).expect("TODO: panic message");
 
+                println!("returned instance: {:?}", instance);
                 setup_instance(&mut instance);
+
                 setup_server(&instance);
                 instances.push(instance);
 
