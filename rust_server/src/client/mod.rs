@@ -81,23 +81,15 @@ pub fn run_client() {
 fn map_json_config(file_path: &String) -> Result<Hexane> {
     let json_file = "./json/".to_owned() + file_path.as_str();
 
-    let contents = fs::read_to_string(json_file.as_str()).expect("fs::read_to_string");
-    match contents {
-        Ok(contents) => contents,
-        Err(e) => {
-            eprintln!("error reading file {json_file}: {e:?}");
-            Err(e)
-        }
-    };
+    let contents = fs::read_to_string(json_file.as_str()).map_error(|err| {
+        eprintln!("fs::read_to_string: {err}");
+        Err(err)
+    });
 
-    let json_data = serde_json::from_str(contents.as_str()).expect("serde_json::from_str");
-    let data = match json_data {
-        Ok(json_data) => json_data,
-        Err(e) => {
-            eprintln!("error reading json data: {e:?}");
-            Err(e)
-        }
-    };
+    let json_data = serde_json::from_str(contents.as_str()).map_error(|err| {
+        eprintln!("serde_json::from_str: {err}");
+        Err(err)
+    });
 
     let group_id = 0;
     let instance = Hexane {
