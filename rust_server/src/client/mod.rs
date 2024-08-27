@@ -5,9 +5,8 @@ use std::fs;
 use clap::Parser;
 
 use serde_json;
-use serde_json::Result;
+use serde_json::{Result, Error};
 use serde::Deserialize;
-use serde::ser::Error;
 
 use std::io::{self, Write};
 use lazy_static::lazy_static;
@@ -78,18 +77,33 @@ pub fn run_client() {
     }
 }
 
+#[derive(Error, Debug)]
+pub enum JsonError {
+    #[error("error reading file")]
+    InvalidFile(String),
+
+    #[error("error parsing json")]
+    InvalidJson(String),
+}
+
 fn map_json_config(file_path: &String) -> Result<Hexane> {
 
     let json_file = "./json/".to_owned() + file_path.as_str();
-    let contents = fs::read_to_string(&json_file).map_err(|err| {
-        eprintln!("error reading json file {json_file}: {err}");
-        err
-    });
+    let contents = match fs::read_to_string(&json_file) {
+        Ok(contents) => contents,
+        Err(err) => {
+            eprintln!("error reading {json_file}: {err}");
+            return err;
+        }
+    };
 
-    let json_data: JsonData = serde_json::from_str(contents.unwrap().as_str()).map_err(|err| {
-        eprintln!("error parsing json data: {err}");
-        err
-    })?;
+    let json_data: JsonData = match serde_json::from_str(contents.as_str()) {
+        Ok(json_data) => json_data,
+        Err(err) => {
+            eprintln!("error parsing json data: {err}");
+            return err;
+        }
+    };
 
     let group_id = 0;
     let instance = Hexane {
