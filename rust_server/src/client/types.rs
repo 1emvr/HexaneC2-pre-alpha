@@ -130,22 +130,22 @@ pub struct UserSession {
 }
 
 pub struct Hexane {
-    pub(crate) current_taskid: u32,
-    pub(crate) peer_id:        u32,
-    pub(crate) group_id:       i32,
-    pub(crate) build_type:     i32,
+    pub(crate) current_taskid:  u32,
+    pub(crate) peer_id:         u32,
+    pub(crate) group_id:        i32,
+    pub(crate) build_type:      i32,
 
-    pub(crate) crypt_key:      Vec<u8>,
-    pub(crate) shellcode:      Vec<u8>,
-    pub(crate) config_data:    Vec<u8>,
-    pub(crate) network_type:   u32,
-    pub(crate) active:         bool,
+    pub(crate) crypt_key:       Vec<u8>,
+    pub(crate) shellcode:       Vec<u8>,
+    pub(crate) config_data:     Vec<u8>,
+    pub(crate) network_type:    u32,
+    pub(crate) active:          bool,
 
-    pub(crate) main:           MainConfig,
-    pub(crate) compiler:       CompilerConfig,
-    pub(crate) network:        NetworkConfig,
-    pub(crate) builder:        BuilderConfig,
-    pub(crate) loader:         LoaderConfig,
-    pub(crate) user_session:   UserSession,
+    pub(crate) main:            MainConfig,
+    pub(crate) compiler:        CompilerConfig,
+    pub(crate) network:         NetworkConfig,
+    pub(crate) builder:         BuilderConfig,
+    pub(crate) loader:          LoaderConfig,
+    pub(crate) user_session:    UserSession,
+    pub(crate) next:            Option<Box<Hexane>>,
 }
-
