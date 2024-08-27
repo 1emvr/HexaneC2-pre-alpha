@@ -49,6 +49,7 @@ pub fn run_client() {
                 let mut instance = map_json_config(&args[1]).expect("TODO: panic message");
 
                 setup_instance(&mut instance);
+                setup_server(&instance);
                 instances.push(instance);
 
             },
@@ -63,6 +64,10 @@ fn setup_instance(instance: &mut Hexane) {
 
 }
 
+fn setup_server(instance: &Hexane) {
+
+}
+
 fn map_json_config(file_path: &String) -> Result<Hexane, Error> {
 
     let contents = fs::read_to_string(file_path).expect("invalid file path");
@@ -70,22 +75,18 @@ fn map_json_config(file_path: &String) -> Result<Hexane, Error> {
 
     let group_id = 0;
     let instance = Hexane {
-        current_taskid: 0,
-        peer_id:        0,
-        group_id,
-        build_type:     0,
-        crypt_key:      vec![],
-        shellcode:      vec![],
-        config_data:    vec![],
-        network_type:   0,
-        active:         false,
-        main:           json_data.config,
+
+        current_taskid: 0, peer_id: 0, group_id, build_type: 0, network_type: 0,
+        crypt_key: vec![], shellcode: vec![], config_data: vec![],
+        active: false,
 
         compiler: CompilerConfig {
             file_extension:     String::from(""),
             build_directory:    String::from(""),
             compiler_flags:     vec![],
         },
+
+        main:       json_data.config,
         network:    json_data.network,
         builder:    json_data.builder,
         loader:     json_data.loader,
@@ -94,7 +95,6 @@ fn map_json_config(file_path: &String) -> Result<Hexane, Error> {
             username: String::from(""),
             is_admin: false,
         },
-        next: None,
     };
 
     Ok(instance)

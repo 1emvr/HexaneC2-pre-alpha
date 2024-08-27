@@ -147,5 +147,4 @@ pub struct Hexane {
     pub(crate) builder:         BuilderConfig,
     pub(crate) loader:          LoaderConfig,
     pub(crate) user_session:    UserSession,
-    pub(crate) next:            Option<Box<Hexane>>,
 }
