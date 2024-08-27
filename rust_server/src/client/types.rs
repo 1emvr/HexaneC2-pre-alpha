@@ -1,3 +1,5 @@
+use clap::Parser;
+use lazy_static::lazy_static;
 use serde::Deserialize;
 
 const NETWORK_HTTP:         u32 = 0x00000001;
@@ -21,6 +23,17 @@ const STRIP:    &str = "strip";
 const NASM:     &str = "nasm";
 const LINKER:   &str = "ld";
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+pub struct Args {
+    /// run with simple debug messages
+    #[arg(short, long)]
+    pub(crate) debug: bool,
+    /// run with compiler output
+    #[arg(short, long)]
+    pub(crate) show_compiler: bool,
+}
+
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "snake_case", tag = "type", content = "config")]
 pub enum NetworkConfig {
@@ -38,9 +51,9 @@ pub enum InjectConfig {
 #[serde(rename = "http")]
 pub struct HttpConfig {
     pub(crate) address:    String,
-    pub(crate) domain:     String,
     pub(crate) port:       i32,
     pub(crate) endpoints:  Vec<String>,
+    pub(crate) domain:     Option<String>,
     pub(crate) useragent:  Option<String>,
     pub(crate) headers:    Option<Vec<String>>,
     pub(crate) proxy:      Option<ProxyConfig>,
@@ -117,7 +130,7 @@ pub struct JsonData {
 }
 
 #[derive(Debug)]
-pub struct Parser {
+pub struct MessageParser {
     pub(crate) endian:     i8,
     pub(crate) peer_id:    u32,
     pub(crate) task_id:    u32,
@@ -156,6 +169,6 @@ pub struct Hexane {
     pub(crate) compiler:        CompilerConfig,
     pub(crate) network:         NetworkConfig,
     pub(crate) builder:         BuilderConfig,
-    pub(crate) loader:          LoaderConfig,
+    pub(crate) loader:          Option<LoaderConfig>,
     pub(crate) user_session:    UserSession,
 }

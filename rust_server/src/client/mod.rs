@@ -9,7 +9,8 @@ use serde_json::Error;
 use serde::Deserialize;
 
 use std::io::{self, Write};
-use crate::client::types::{Hexane, JsonData, CompilerConfig, UserSession};
+use lazy_static::lazy_static;
+use crate::client::types::{Hexane, JsonData, CompilerConfig, UserSession, Args};
 
 const BANNER: &str = r#"
 ██╗  ██╗███████╗██╗  ██╗ █████╗ ███╗   ██╗███████╗ ██████╗██████╗
@@ -18,6 +19,12 @@ const BANNER: &str = r#"
 ██╔══██║██╔══╝   ██╔██╗ ██╔══██║██║╚██╗██║██╔══╝  ██║     ██╔═══╝
 ██║  ██║███████╗██╔╝ ██╗██║  ██║██║ ╚████║███████╗╚██████╗███████╗
 ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝╚══════╝"#;
+
+lazy_static! {
+    pub(crate) static ref ARGS: Args           = Args::parse();
+    pub(crate) static ref DEBUG: bool          = ARGS.debug;
+    pub(crate) static ref SHOW_COMPILER: bool  = ARGS.show_compiler;
+}
 
 fn print_banner() {
     println!("{}", BANNER);
@@ -28,10 +35,17 @@ fn cursor() {
     io::stdout().flush().unwrap();
 }
 
-pub fn run_client() {
+fn init() {
     print_banner();
-    let mut instances: Vec<Hexane> = Vec::new();
 
+    if *DEBUG { println!("running in debug mode") }
+    if *SHOW_COMPILER { println!("running with compiler output") }
+}
+
+pub fn run_client() {
+    init();
+
+    let mut instances: Vec<Hexane> = Vec::new();
     loop {
         cursor();
 
@@ -48,12 +62,10 @@ pub fn run_client() {
             "load" => {
                 let mut instance = map_json_config(&args[1]).expect("TODO: panic message");
 
-                println!("returned instance: {:?}", instance);
                 setup_instance(&mut instance);
-
                 setup_server(&instance);
-                instances.push(instance);
 
+                instances.push(instance);
             },
 
             "exit" => break,
@@ -72,7 +84,7 @@ fn setup_server(instance: &Hexane) {
 
 fn map_json_config(file_path: &String) -> Result<Hexane, Error> {
 
-    let contents = fs::read_to_string(file_path).expect("invalid file path");
+    let contents = fs::read_to_string("./json/".to_owned() + file_path.as_str()).expect("invalid file path");
     let json_data: JsonData = serde_json::from_str(contents.as_str()).expect("invalid json syntax");
 
     let group_id = 0;

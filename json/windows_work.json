@@ -2,6 +2,7 @@
 	"config": {
 		"architecture": "amd64",
 		"debug": true,
+		"encrypt": false,
 		"hostname": "LENOVO-WRKSTN-L",
 		"sleeptime": 3,
 		"jitter": 10
