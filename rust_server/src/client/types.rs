@@ -1,6 +1,6 @@
 use clap::Parser;
-use lazy_static::lazy_static;
 use serde::Deserialize;
+use crate::client::error::{Result, Error};
 
 const NETWORK_HTTP:         u32 = 0x00000001;
 const NETWORK_PIPE:         u32 = 0x00000002;

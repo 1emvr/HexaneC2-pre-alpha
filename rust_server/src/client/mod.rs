@@ -1,18 +1,19 @@
 mod utils;
 mod types;
+mod error;
 
 use std::fs;
 use clap::Parser;
 
 use serde_json;
-use serde_json::Result;
-use serde_json::Result as JsonResult;
 use serde::Deserialize;
-use serde::ser::Error;
 
 use std::io::{self, Write};
+use clap::builder::Str;
 use lazy_static::lazy_static;
-use crate::client::types::{Hexane, JsonData, CompilerConfig, UserSession, Args};
+
+use self::error::{Error, Result};
+use self::types::{Args, Hexane, JsonData, CompilerConfig, UserSession};
 
 const BANNER: &str = r#"
 ██╗  ██╗███████╗██╗  ██╗ █████╗ ███╗   ██╗███████╗ ██████╗██████╗
@@ -67,7 +68,8 @@ pub fn run_client() {
                         instances.push(instance);
                     }
                     Err(err)=> {
-                        println!("failed to load json config: {err}")
+                        println!("failed to load json config: {err}");
+                        continue;
                     }
                 }
             },
@@ -81,25 +83,15 @@ pub fn run_client() {
 fn map_json_config(file_path: &String) -> Result<Hexane> {
     let json_file = "./json/".to_owned() + file_path.as_str();
 
-    let contents = fs::read_to_string(json_file.as_str()).expect("fs::read_to_string");
-    match contents {
-        Ok(contents) => contents,
-        Err(e) => {
-            eprintln!("error reading file {json_file}: {e:?}");
-            Err(e)
-        }
-    };
+    let contents = fs::read_to_string(json_file.as_str())
+        .map_err(|err| { return Err("error reading json file: {err}") });
 
-    let json_data = serde_json::from_str(contents.as_str()).expect("serde_json::from_str");
-    let data = match json_data {
-        Ok(json_data) => json_data,
-        Err(e) => {
-            eprintln!("error reading json data: {e:?}");
-            Err(e)
-        }
-    };
+    let json_data: Result<JsonData> = serde_json::from_str(&contents)
+        .map_err(|err| { return Err("error parsing json data: {err}") })?;
 
     let group_id = 0;
+    let data = json_data?;
+
     let instance = Hexane {
 
         current_taskid: 0, peer_id: 0, group_id, build_type: 0, network_type: 0,
@@ -112,10 +104,10 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
             compiler_flags:     vec![],
         },
 
-        main:       json_data.config,
-        network:    json_data.network,
-        builder:    json_data.builder,
-        loader:     json_data.loader,
+        main:       data.config,
+        network:    data.network,
+        builder:    data.builder,
+        loader:     data.loader,
 
         user_session: UserSession {
             username: String::from(""),
