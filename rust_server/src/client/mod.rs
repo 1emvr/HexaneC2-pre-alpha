@@ -6,7 +6,6 @@ use clap::Parser;
 
 use serde_json;
 use serde_json::Result;
-use serde_json::Result as JsonResult;
 use serde::Deserialize;
 use serde::ser::Error;
 
@@ -67,7 +66,8 @@ pub fn run_client() {
                         instances.push(instance);
                     }
                     Err(err)=> {
-                        println!("failed to load json config: {err}")
+                        println!("failed to load json config: {err}");
+                        continue;
                     }
                 }
             },
@@ -79,16 +79,16 @@ pub fn run_client() {
 }
 
 fn map_json_config(file_path: &String) -> Result<Hexane> {
-    let json_file = "./json/".to_owned() + file_path.as_str();
 
-    let contents = fs::read_to_string(json_file.as_str()).map_error(|err| {
-        eprintln!("fs::read_to_string: {err}");
-        Err(err)
+    let json_file = "./json/".to_owned() + file_path.as_str();
+    let contents = fs::read_to_string(&json_file).map_err(|err| {
+        eprintln!("error reading json file {json_file}: {err}");
+        err
     });
 
-    let json_data = serde_json::from_str(contents.as_str()).map_error(|err| {
-        eprintln!("serde_json::from_str: {err}");
-        Err(err)
+    let json_data: JsonData = serde_json::from_str(&contents).map_err(|err| {
+        eprintln!("error parsing json data: {err}");
+        err
     });
 
     let group_id = 0;
