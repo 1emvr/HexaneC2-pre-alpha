@@ -128,6 +128,24 @@ impl LinkedList<Hexane> {
             }
         }
     }
+
+    pub fn collect(&self) -> Vec<Hexane> {
+        let mut result = Vec::<Hexane>::new();
+        if self.next.is_none() {
+            return result;
+        }
+
+        let mut node = self.next.unwrap();
+        unsafe {
+           result.push(node.as_mut().head.unwrap());
+
+            while node.as_mut().next.is_some() {
+                node = node.as_mut().next.unwrap();
+                result.push(node.as_mut().head.unwrap());
+            }
+        }
+        result
+    }
 }
 
 fn map_json_config(file_path: &String) -> Result<Hexane, Error> {
