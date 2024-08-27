@@ -46,18 +46,21 @@ pub fn run_client() {
         let args: Vec<String> = input.split_whitespace().map(str::to_string).collect();
         match args[0].as_str() {
             "load" => {
-                let instance = map_json_config(&args[1]).expect("TODO: panic message");
+                let mut instance = map_json_config(&args[1]).expect("TODO: panic message");
+
+                setup_instance(&mut instance);
                 instances.push(instance);
 
-                if let Some(first) = instances.get_mut(0) {
-                    first.group_id = 0;
-                }
             },
 
             "exit" => break,
             _ => println!("invalid input")
         }
     }
+}
+
+fn setup_instance(instance: &mut Hexane) {
+
 }
 
 fn map_json_config(file_path: &String) -> Result<Hexane, Error> {
