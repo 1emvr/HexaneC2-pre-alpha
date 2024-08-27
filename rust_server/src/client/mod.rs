@@ -86,10 +86,10 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
         err
     });
 
-    let json_data: JsonData = serde_json::from_str(&contents).map_err(|err| {
+    let json_data: JsonData = serde_json::from_str(contents.unwrap().as_str()).map_err(|err| {
         eprintln!("error parsing json data: {err}");
         err
-    });
+    })?;
 
     let group_id = 0;
     let instance = Hexane {
