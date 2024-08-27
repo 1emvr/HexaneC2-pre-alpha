@@ -22,14 +22,14 @@ const NASM:     &str = "nasm";
 const LINKER:   &str = "ld";
 
 #[derive(Deserialize, Debug)]
-#[serde(tag = "Type", content = "Config")]
+#[serde(rename_all = "snake_case", tag = "type", content = "config")]
 pub enum NetworkConfig {
     Http(HttpConfig),
     Smb(SmbConfig),
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(rename = "injection", tag = "type", content = "config")]
+#[serde(rename_all = "snake_case", tag = "type", content = "config")]
 pub enum InjectConfig {
     Threadless(Threadless),
 }
@@ -39,7 +39,7 @@ pub enum InjectConfig {
 pub struct HttpConfig {
     pub(crate) address:    String,
     pub(crate) domain:     String,
-    pub(crate) port:       String,
+    pub(crate) port:       i32,
     pub(crate) endpoints:  Vec<String>,
     pub(crate) useragent:  Option<String>,
     pub(crate) headers:    Option<Vec<String>>,
@@ -57,8 +57,8 @@ pub struct SmbConfig {
 #[serde(rename = "proxy")]
 pub struct ProxyConfig {
     pub(crate) address:    String,
-    pub(crate) port:       String,
     pub(crate) proto:      String,
+    pub(crate) port:       i32,
     pub(crate) username:   Option<String>,
     pub(crate) password:   Option<String>,
 }
