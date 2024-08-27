@@ -1,8 +1,10 @@
+use crate::client::run_client;
+
 mod client;
 mod server;
+mod test;
 
-use client::Client;
 fn main() {
-    Client::run_client();
+    run_client();
 }
 
