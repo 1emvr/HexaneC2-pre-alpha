@@ -81,18 +81,20 @@ pub fn run_client() {
 fn map_json_config(file_path: &String) -> Result<Hexane> {
     let json_file = "./json/".to_owned() + file_path.as_str();
 
-    let contents = match fs::read_to_string(json_file.as_str()).expect("file path error") {
+    let contents = fs::read_to_string(json_file.as_str()).expect("fs::read_to_string");
+    match contents {
         Ok(contents) => contents,
         Err(e) => {
-            eprintln!("error reading file {json_file}: {e}");
+            eprintln!("error reading file {json_file}: {e:?}");
             Err(e)
         }
     };
 
-    let json_data = match serde_json::from_str(contents.as_str()).expect("invalid json syntax") {
+    let json_data = serde_json::from_str(contents.as_str()).expect("serde_json::from_str");
+    let data = match json_data {
         Ok(json_data) => json_data,
         Err(e) => {
-            eprintln!("error reading json data: {e}");
+            eprintln!("error reading json data: {e:?}");
             Err(e)
         }
     };
