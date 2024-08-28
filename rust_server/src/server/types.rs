@@ -41,15 +41,13 @@ pub struct Args {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "lowercase")]
-pub enum Network {
-    Http(Http),
-    Smb(Smb),
+pub enum NetworkConfig {
+    Http(HttpConfig),
+    Smb(SmbConfig),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "lowercase")]
-pub enum Injection {
+pub enum InjectionConfig {
     Threadless(ThreadlessInject),
     Threadpool(ThreadpoolInject),
 }
@@ -68,24 +66,24 @@ pub struct ThreadpoolInject{
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Smb {
+pub struct SmbConfig {
     pub(crate) egress_pipe: String,
     pub(crate) egress_peer: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Http {
+pub struct HttpConfig {
     pub(crate) address:    String,
     pub(crate) port:       u16,
     pub(crate) endpoints:  Vec<String>,
     pub(crate) domain:     Option<String>,
     pub(crate) useragent:  Option<String>,
     pub(crate) headers:    Option<Vec<String>>,
-    pub(crate) proxy:      Option<Proxy>,
+    pub(crate) proxy:      Option<ProxyConfig>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Proxy {
+pub struct ProxyConfig {
     pub(crate) address:    String,
     pub(crate) proto:      String,
     pub(crate) port:       u16,
@@ -94,7 +92,7 @@ pub struct Proxy {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Config {
+pub struct MainConfig {
     pub(crate) debug:          bool,
     pub(crate) encrypt:        bool,
     pub(crate) architecture:   String,
@@ -106,7 +104,7 @@ pub struct Config {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Builder {
+pub struct BuilderConfig {
     pub(crate) output_name:            String,
     pub(crate) root_directory:         String,
     pub(crate) linker_script:          String,
@@ -116,21 +114,21 @@ pub struct Builder {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Loader {
+pub struct LoaderConfig {
     pub(crate) root_directory: String,
     pub(crate) linker_script:  String,
     pub(crate) rsrc_script:    String,
-    pub(crate) injection:      Injection,
     pub(crate) sources:        Vec<String>,
     pub(crate) dependencies:   Option<Vec<String>>,
+    pub(crate) injection:      InjectionConfig,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct JsonData {
-    pub(crate) config:  Config,
-    pub(crate) network: Network,
-    pub(crate) builder: Builder,
-    pub(crate) loader:  Option<Loader>,
+    pub(crate) config:  MainConfig,
+    pub(crate) network: NetworkConfig,
+    pub(crate) builder: BuilderConfig,
+    pub(crate) loader:  Option<LoaderConfig>,
 }
 
 #[derive(Debug)]
@@ -169,10 +167,10 @@ pub struct Hexane {
     pub(crate) network_type:    u32,
     pub(crate) active:          bool,
 
-    pub(crate) main:            Config,
+    pub(crate) main:            MainConfig,
     pub(crate) compiler:        Compiler,
-    pub(crate) network:         Network,
-    pub(crate) builder:         Builder,
-    pub(crate) loader:          Option<Loader>,
+    pub(crate) network:         NetworkConfig,
+    pub(crate) builder:         BuilderConfig,
+    pub(crate) loader:          Option<LoaderConfig>,
     pub(crate) user_session:    UserSession,
 }
