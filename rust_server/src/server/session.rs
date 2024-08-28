@@ -6,8 +6,16 @@ use crate::server::types::{Args, Message, UserSession};
 
 use clap::Parser;
 use lazy_static::lazy_static;
-use crate::server::BANNER;
 use crate::server::utils::print_channel;
+
+const BANNER: &str = r#"
+██╗  ██╗███████╗██╗  ██╗ █████╗ ███╗   ██╗███████╗ ██████╗██████╗
+██║  ██║██╔════╝╚██╗██╔╝██╔══██╗████╗  ██║██╔════╝██╔════╝╚════██╗
+███████║█████╗   ╚███╔╝ ███████║██╔██╗ ██║█████╗  ██║      █████╔╝
+██╔══██║██╔══╝   ██╔██╗ ██╔══██║██║╚██╗██║██╔══╝  ██║     ██╔═══╝
+██║  ██║███████╗██╔╝ ██╗██║  ██║██║ ╚████║███████╗╚██████╗███████╗
+╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝╚══════╝"#;
+
 
 lazy_static! {
     pub(crate) static ref SESSION: Mutex<UserSession> = Mutex::new(UserSession{
