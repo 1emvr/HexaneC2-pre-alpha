@@ -1,6 +1,7 @@
 mod utils;
 mod types;
 mod error;
+mod config;
 
 use serde_json;
 use serde::Deserialize;
@@ -11,8 +12,8 @@ use std::io::{self, Write};
 
 use self::error::{Error, Result};
 use self::types::{Hexane, JsonData, Compiler, UserSession};
-use self::utils::{cursor, wrap_message, DEBUG, SHOW_COMPILER, CURDIR};
-use self::utils::{print_channel, stop_print_channel};
+use self::utils::{cursor, wrap_message, print_channel, stop_print_channel};
+use self::config::{DEBUG, SHOW_COMPILER, CURDIR};
 
 const BANNER: &str = r#"
 ██╗  ██╗███████╗██╗  ██╗ █████╗ ███╗   ██╗███████╗ ██████╗██████╗
@@ -22,9 +23,6 @@ const BANNER: &str = r#"
 ██║  ██║███████╗██╔╝ ██╗██║  ██║██║ ╚████║███████╗╚██████╗███████╗
 ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝╚══════╝"#;
 
-lazy_static!(
-    static ref SESSION: UserSession = UserSession{ .username = "lemur", .is_admin = true },
-);
 
 fn init() {
     println!("{}", BANNER);

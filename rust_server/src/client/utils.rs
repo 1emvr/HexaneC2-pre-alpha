@@ -1,26 +1,14 @@
-use crossbeam_channel::{unbounded, Receiver, Sender, select};
-use std::io::Write;
-use std::path::PathBuf;
-use std::sync::Mutex;
-use std::{env, io};
+use crossbeam_channel::{select};
 use colored::*;
 
-use clap::Parser;
+use std::io;
+use std::io::Write;
+
+use crate::client::config::{SESSION, CHANNEL, DEBUG, EXIT};
 use crate::client::types::{Args, Message};
 
-use lazy_static::lazy_static;
-lazy_static! {
-    pub(crate) static ref CHANNEL: (Sender<Message>, Receiver<Message>) = unbounded();
-    pub(crate) static ref EXIT: (Sender<()>, Receiver<()>)              = unbounded();
-
-    pub(crate) static ref ARGS: Args            = Args::parse();
-    pub(crate) static ref DEBUG: bool           = ARGS.debug;
-    pub(crate) static ref SHOW_COMPILER: bool   = ARGS.show_compiler;
-    pub(crate) static ref CURDIR: PathBuf       = env::current_dir().unwrap();
-}
-
 pub fn cursor() {
-    print!(" > ");
+    print!(format!("{} >", *SESSION.username));
     io::stdout().flush().unwrap();
 }
 
