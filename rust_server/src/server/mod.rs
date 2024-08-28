@@ -55,7 +55,7 @@ pub fn run_client() {
 
 fn load_instance(args: Vec<String>) {
 
-    if args.len() < 2 {
+    if args.len() != 2 {
         wrap_message("error", format!("invalid input: {} arguments", args.len()))
     }
     match map_json_config(&args[1]) {
