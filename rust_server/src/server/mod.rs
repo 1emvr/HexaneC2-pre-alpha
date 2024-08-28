@@ -18,7 +18,7 @@ use self::types::{Hexane, JsonData, Compiler, UserSession};
 use self::utils::{cursor, wrap_message, stop_print_channel};
 
 lazy_static!(
-    static ref instances: Mutex<Vec<Hexane>> = Mutex::new(vec![]);
+    static ref INSTANCES: Mutex<Vec<Hexane>> = Mutex::new(vec![]);
 );
 
 pub fn run_client() {
@@ -68,7 +68,7 @@ fn load_instance(args: Vec<String>) {
             let ext         = instance.compiler.file_extension.as_str();
 
             wrap_message("info", format!("{}/{}.{} is ready", build_dir, name, ext));
-            instances.lock().unwrap().push(instance);
+            INSTANCES.lock().unwrap().push(instance);
         }
         Err(err)=> {
             wrap_message("error", format!("map_json_config: {:?}", err))
