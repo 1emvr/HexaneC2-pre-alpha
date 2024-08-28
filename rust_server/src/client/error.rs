@@ -1,4 +1,4 @@
-use serde::de::{self, Deserialize, Deserializer};
+use serde::de::{Deserialize, Deserializer, Error as DeError};
 use derive_more::From;
 
 pub type Result<T> = core::result::Result<T, Error>;
@@ -9,18 +9,18 @@ pub enum Error {
     Custom(String),
 
     #[from]
-    Io(std::io::Error),
+    SerdeJson(serde::Error),
 
     #[from]
-    SerdeJson(serde_json::Error),
+    Io(std::io::Error),
 }
 
-impl Error {
-    pub fn custom(val: impl std::fmt::Display) -> Self { Self::custom(val.to_string()) }
-}
+impl<'de> Deserialize<'de> for Error {
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
+    where D: Deserializer<'de>, {
 
-impl From<&str> for Error {
-    fn from(val: &str) -> Self { Self::custom(val.to_string()) }
+        let msg = String::deserialize(deserializer)?;
+    }
 }
 
 impl core::fmt::Display for Error {
@@ -29,15 +29,15 @@ impl core::fmt::Display for Error {
     }
 }
 
-impl<'de> Deserialize<'de> for Error {
-    fn deserialize<Dsr>(ds: Dsr) -> core::result::Result<Self, Dsr::Error> where Dsr: Deserializer<'de>, {
-        let json_err: core::result::Result<serde_json::Error, Dsr::Error> = Deserialize::deserialize(ds);
+impl Error {
+    pub fn custom(val: impl std::fmt::Display) -> Self {
+        Self::custom(val.to_string())
+    }
+}
 
-        match json_err {
-            Ok(err) => Ok(Error::SerdeJson(err)),
-            Err(_) => Err(de::Error::custom("failed to deserialize into error"))
-
-        }
+impl From<&str> for Error {
+    fn from(val: &str) -> Self {
+        Self::custom(val.to_string())
     }
 }
 
