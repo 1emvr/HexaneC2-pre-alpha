@@ -1,7 +1,7 @@
-use crate::client::run_client;
+use crate::server::run_client;
 
-mod client;
 mod server;
+mod listener;
 
 fn main() {
     run_client();

@@ -4,11 +4,13 @@ use colored::*;
 use std::io;
 use std::io::Write;
 
-use crate::client::config::{SESSION, CHANNEL, DEBUG, EXIT};
-use crate::client::types::{Args, Message};
+use crate::server::config::{SESSION, CHANNEL, DEBUG, EXIT};
+use crate::server::types::{Message};
 
 pub fn cursor() {
-    print!(format!("{} >", *SESSION.username));
+    let session = SESSION.lock().unwrap();
+
+    print!(format!("{} >", session.username));
     io::stdout().flush().unwrap();
 }
 
