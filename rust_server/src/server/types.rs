@@ -1,6 +1,13 @@
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 
+const MINGW:                &str = "x86_64-w64-mingw32-g++";
+const OBJCOPY:              &str = "objcopy";
+const WINDRES:              &str = "windres";
+const STRIP:                &str = "strip";
+const NASM:                 &str = "nasm";
+const LINKER:               &str = "ld";
+
 const NETWORK_HTTP:         u32 = 0x00000001;
 const NETWORK_PIPE:         u32 = 0x00000002;
 
@@ -14,13 +21,6 @@ const COMMAND_MODS:         u32 = 0x00000002;
 const COMMAND_NO_JOB:       u32 = 0x00000003;
 const COMMAND_SHUTDOWN:     u32 = 0x00000004;
 const COMMAND_UPDATE_PEER:  u32 = 0x00000005;
-
-const MINGW:    &str = "x86_64-w64-mingw32-g++";
-const OBJCOPY:  &str = "objcopy";
-const WINDRES:  &str = "windres";
-const STRIP:    &str = "strip";
-const NASM:     &str = "nasm";
-const LINKER:   &str = "ld";
 
 #[derive(Debug)]
 pub struct Message {
@@ -76,7 +76,7 @@ pub struct Smb {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Http {
     pub(crate) address:    String,
-    pub(crate) port:       u32,
+    pub(crate) port:       u16,
     pub(crate) endpoints:  Vec<String>,
     pub(crate) domain:     Option<String>,
     pub(crate) useragent:  Option<String>,
@@ -88,7 +88,7 @@ pub struct Http {
 pub struct Proxy {
     pub(crate) address:    String,
     pub(crate) proto:      String,
-    pub(crate) port:       u32,
+    pub(crate) port:       u16,
     pub(crate) username:   Option<String>,
     pub(crate) password:   Option<String>,
 }
