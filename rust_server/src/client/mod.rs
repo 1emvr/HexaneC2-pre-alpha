@@ -2,13 +2,14 @@ mod utils;
 mod types;
 mod error;
 
-use std::fs;
+use std::{env, fs};
 use clap::Parser;
 
 use serde_json;
 use serde::Deserialize;
 
 use std::io::{self, Write};
+use std::path::PathBuf;
 use clap::builder::Str;
 use lazy_static::lazy_static;
 
@@ -24,9 +25,10 @@ const BANNER: &str = r#"
 ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝╚══════╝"#;
 
 lazy_static! {
-    pub(crate) static ref ARGS: Args           = Args::parse();
-    pub(crate) static ref DEBUG: bool          = ARGS.debug;
-    pub(crate) static ref SHOW_COMPILER: bool  = ARGS.show_compiler;
+    pub(crate) static ref ARGS: Args            = Args::parse();
+    pub(crate) static ref DEBUG: bool           = ARGS.debug;
+    pub(crate) static ref SHOW_COMPILER: bool   = ARGS.show_compiler;
+    pub(crate) static ref CURDIR: PathBuf       = env::current_dir().unwrap();
 }
 
 fn cursor() {
@@ -81,9 +83,9 @@ pub fn run_client() {
 }
 
 fn map_json_config(file_path: &String) -> Result<Hexane> {
-    let json_file = "./json/".to_owned() + file_path.as_str();
+    let json_file = CURDIR.join("json").join(file_path);
 
-    let contents: String = fs::read_to_string(json_file.as_str()).map_err(Error::Io)?;
+    let contents: String = fs::read_to_string(json_file).map_err(Error::Io)?;
     let json_data: Result<JsonData> = serde_json::from_str(contents.as_str()).map_err(Error::SerdeJson)?;
 
     let group_id = 0;

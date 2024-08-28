@@ -1,6 +1,5 @@
 use clap::Parser;
 use serde::Deserialize;
-use crate::client::error::{Result, Error};
 
 const NETWORK_HTTP:         u32 = 0x00000001;
 const NETWORK_PIPE:         u32 = 0x00000002;
@@ -29,46 +28,44 @@ pub struct Args {
     /// run with simple debug messages
     #[arg(short, long)]
     pub(crate) debug: bool,
+
     /// run with compiler output
     #[arg(short, long)]
     pub(crate) show_compiler: bool,
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(rename_all = "snake_case", tag = "type", content = "config")]
-pub enum NetworkConfig {
-    Http(HttpConfig),
-    Smb(SmbConfig),
+#[serde(tag = "type", content = "config")]
+pub enum Network {
+    Http(Http),
+    Smb(Smb),
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(rename_all = "snake_case", tag = "type", content = "config")]
-pub enum InjectConfig {
+#[serde(tag = "type", content = "config")]
+pub enum Injection {
     Threadless(Threadless),
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(rename = "http")]
-pub struct HttpConfig {
+pub struct Http {
     pub(crate) address:    String,
     pub(crate) port:       i32,
     pub(crate) endpoints:  Vec<String>,
     pub(crate) domain:     Option<String>,
     pub(crate) useragent:  Option<String>,
     pub(crate) headers:    Option<Vec<String>>,
-    pub(crate) proxy:      Option<ProxyConfig>,
+    pub(crate) proxy:      Option<Proxy>,
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(rename = "smb")]
-pub struct SmbConfig {
+pub struct Smb {
     pub(crate) egress_name: String,
     pub(crate) egress_peer: String,
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(rename = "proxy")]
-pub struct ProxyConfig {
+pub struct Proxy {
     pub(crate) address:    String,
     pub(crate) proto:      String,
     pub(crate) port:       i32,
@@ -77,7 +74,6 @@ pub struct ProxyConfig {
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(rename = "threadless")]
 pub struct Threadless {
     pub(crate) target_process:     String,
     pub(crate) target_module:      String,
@@ -87,8 +83,7 @@ pub struct Threadless {
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(rename = "config")]
-pub struct MainConfig {
+pub struct Config {
     pub(crate) debug:          bool,
     pub(crate) encrypt:        bool,
     pub(crate) architecture:   String,
@@ -100,8 +95,7 @@ pub struct MainConfig {
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(rename = "builder")]
-pub struct BuilderConfig {
+pub struct Builder {
     pub(crate) output_name:            String,
     pub(crate) root_directory:         String,
     pub(crate) linker_script:          String,
@@ -111,22 +105,21 @@ pub struct BuilderConfig {
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(rename = "loader")]
-pub struct LoaderConfig {
+pub struct Loader {
     pub(crate) root_directory: String,
     pub(crate) linker_script:  String,
     pub(crate) rsrc_script:    String,
-    pub(crate) injection:      InjectConfig,
+    pub(crate) injection:      Injection,
     pub(crate) sources:        Vec<String>,
     pub(crate) dependencies:   Option<Vec<String>>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct JsonData {
-    pub(crate) config:     MainConfig,
-    pub(crate) network:    NetworkConfig,
-    pub(crate) builder:    BuilderConfig,
-    pub(crate) loader:     Option<LoaderConfig>,
+    pub(crate) config:     Config,
+    pub(crate) network:    Network,
+    pub(crate) builder:    Builder,
+    pub(crate) loader:     Option<Loader>,
 }
 
 #[derive(Debug)]
@@ -140,7 +133,7 @@ pub struct MessageParser {
 }
 
 #[derive(Debug)]
-pub struct CompilerConfig {
+pub struct Compiler {
     pub(crate) file_extension:     String,
     pub(crate) build_directory:    String,
     pub(crate) compiler_flags:     Vec<String>,
@@ -165,10 +158,10 @@ pub struct Hexane {
     pub(crate) network_type:    u32,
     pub(crate) active:          bool,
 
-    pub(crate) main:            MainConfig,
-    pub(crate) compiler:        CompilerConfig,
-    pub(crate) network:         NetworkConfig,
-    pub(crate) builder:         BuilderConfig,
-    pub(crate) loader:          Option<LoaderConfig>,
+    pub(crate) main:            Config,
+    pub(crate) compiler:        Compiler,
+    pub(crate) network:         Network,
+    pub(crate) builder:         Builder,
+    pub(crate) loader:          Option<Loader>,
     pub(crate) user_session:    UserSession,
 }
