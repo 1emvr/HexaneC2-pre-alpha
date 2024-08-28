@@ -11,6 +11,7 @@ use std::io::{self, Write};
 use self::error::{Error, Result};
 use self::types::{Hexane, JsonData, Compiler, UserSession};
 use self::utils::{cursor, wrap_message, DEBUG, SHOW_COMPILER, CURDIR};
+use self::utils::{print_channel, stop_print_channel};
 
 const BANNER: &str = r#"
 ██╗  ██╗███████╗██╗  ██╗ █████╗ ███╗   ██╗███████╗ ██████╗██████╗
@@ -21,8 +22,11 @@ const BANNER: &str = r#"
 ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝╚══════╝"#;
 
 use lazy_static::lazy_static;
-use serde_json::json;
-use crate::client::utils::{print_channel, stop_print_channel};
+lazy_static!(
+    static ref SESSION: UserSession = UserSession{ .username = "lemur", .is_admin = true },
+);
+
+
 
 fn init() {
     println!("{}", BANNER);
