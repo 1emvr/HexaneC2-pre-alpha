@@ -67,13 +67,26 @@ pub struct Http {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
-pub enum Injection {
-    Threadless(ThreadlessInject),
-    Threadpool(ThreadpoolInject),
+pub enum InjectionType {
+    Threadless,
+    Threadpool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct ThreadlessInject {
+#[serde(untagged)]
+pub enum InjectionOptions {
+    Threadless(Threadless),
+    Threadpool(Threadpool),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Injection {
+    pub r#type: InjectionType,
+    pub options: InjectionOptions,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Threadless {
     pub(crate) target_process:     String,
     pub(crate) target_module:      String,
     pub(crate) target_function:    String,
@@ -82,7 +95,7 @@ pub struct ThreadlessInject {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct ThreadpoolInject{
+pub struct Threadpool{
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -108,15 +121,6 @@ pub struct Builder {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Proxy {
-    pub(crate) address:    String,
-    pub(crate) proto:      String,
-    pub(crate) port:       u16,
-    pub(crate) username:   Option<String>,
-    pub(crate) password:   Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
 pub struct Loader {
     pub(crate) root_directory: String,
     pub(crate) linker_script:  String,
@@ -124,6 +128,15 @@ pub struct Loader {
     pub(crate) injection:      Injection,
     pub(crate) sources:        Vec<String>,
     pub(crate) dependencies:   Option<Vec<String>>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Proxy {
+    pub(crate) address:    String,
+    pub(crate) proto:      String,
+    pub(crate) port:       u16,
+    pub(crate) username:   Option<String>,
+    pub(crate) password:   Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
