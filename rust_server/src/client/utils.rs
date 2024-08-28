@@ -3,6 +3,7 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use std::{env, io};
+use colored::*;
 
 use clap::Parser;
 use crate::client::types::{Args, Message};
@@ -34,10 +35,14 @@ pub fn print_channel() {
             },
             recv(receiver) -> message => {
                 if let Ok(m) = message {
-                    if !*DEBUG && m.msg_type == "DBG" {
+                    if !*DEBUG && m.msg_type == "dbg" {
                         continue;
                     }
-                    println!("[{}] {}", m.msg_type, m.msg);
+                    let fmt_msg = match m.msg_type.as_str() {
+                        "err" => format!("{}", m.msg_type.red()),
+                        _       => m.msg_type,
+                    };
+                    println!("[{}] {}", fmt_msg, m.msg);
                     cursor();
                 }
             }
@@ -47,10 +52,7 @@ pub fn print_channel() {
 
 pub fn wrap_message(typ: &str, msg: String) {
     let sender = &CHANNEL.0;
-    let message = Message {
-        msg_type: typ.to_string(),
-        msg: msg.to_string(),
-    };
+    let message = Message { msg_type: typ.to_string(), msg: msg.to_string(),};
 
     sender.send(message).unwrap();
 }

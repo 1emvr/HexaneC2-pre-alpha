@@ -22,10 +22,11 @@ const BANNER: &str = r#"
 
 use lazy_static::lazy_static;
 use serde_json::json;
-use crate::client::utils::print_channel;
+use crate::client::utils::{print_channel, stop_print_channel};
 
 fn init() {
     println!("{}", BANNER);
+    thread::spawn(|| { print_channel(); });
 
     if *DEBUG { println!("running in debug mode") }
     if *SHOW_COMPILER { println!("running with compiler output") }
@@ -33,7 +34,6 @@ fn init() {
 
 pub fn run_client() {
     init();
-    thread::spawn(|| { print_channel(); });
 
     let mut instances: Vec<Hexane> = Vec::new();
     loop {
@@ -48,11 +48,11 @@ pub fn run_client() {
         }
 
         let args: Vec<String> = input.split_whitespace().map(str::to_string).collect();
-
         match args[0].as_str() {
+
             "load" => {
                 if args.len() < 2 {
-                    wrap_message("ERR", format!("invalid input: {} arguments", args.len()));
+                    wrap_message("err", format!("invalid input: {} arguments", args.len()));
                     continue;
                 }
                 match map_json_config(&args[1]) {
@@ -63,7 +63,7 @@ pub fn run_client() {
                         instances.push(instance);
                     }
                     Err(err)=> {
-                        wrap_message("ERR", format!("map_json_config: {}", err));
+                        wrap_message("err", format!("map_json_config: {}", err));
                         continue;
                     }
                 }
@@ -71,11 +71,13 @@ pub fn run_client() {
 
             "exit" => break,
             _ => {
-                wrap_message("ERR", format!("invalid input: {}", args[0]));
+                wrap_message("err", format!("invalid input: {}", args[0]));
                 continue;
             }
         }
     }
+
+    stop_print_channel();
 }
 
 fn map_json_config(file_path: &String) -> Result<Hexane> {
