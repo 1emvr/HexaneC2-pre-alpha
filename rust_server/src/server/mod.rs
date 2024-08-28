@@ -41,7 +41,15 @@ pub fn run_client() {
             "load" => {
                 load_instance(args);
             },
-
+            "ls" => {
+                todo!()
+            }
+            "rm" => {
+                todo!()
+            }
+            "i" => {
+                todo!()
+            }
             "exit" => break,
             _ => {
                 wrap_message("error", format!("invalid input: {}", args[0]));
