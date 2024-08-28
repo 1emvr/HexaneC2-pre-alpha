@@ -9,8 +9,9 @@ use crate::server::types::{Message};
 
 pub fn cursor() {
     let session = SESSION.lock().unwrap();
+    let username = session.username.as_str();
 
-    print!(format!("{} >", session.username));
+    print!("{} > ", username);
     io::stdout().flush().unwrap();
 }
 
