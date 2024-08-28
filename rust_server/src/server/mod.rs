@@ -3,6 +3,7 @@ mod types;
 mod error;
 mod session;
 
+use std::fs;
 use serde_json;
 use serde::Deserialize;
 
