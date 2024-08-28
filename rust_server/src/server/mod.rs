@@ -6,19 +6,24 @@ mod session;
 use std::fs;
 use serde_json;
 use serde::Deserialize;
+use lazy_static::lazy_static;
 
 use std::io::{self, Write};
 use core::fmt::Display;
+use std::sync::Mutex;
 
 use self::error::{Error, Result};
 use self::session::{init, CURDIR};
 use self::types::{Hexane, JsonData, Compiler, UserSession};
 use self::utils::{cursor, wrap_message, stop_print_channel};
 
+lazy_static!(
+    static ref instances: Mutex<Vec<Hexane>> = Mutex::new(vec![]);
+);
+
 pub fn run_client() {
     init();
 
-    let mut instances: Vec<Hexane> = Vec::new();
     loop {
         cursor();
 
@@ -34,27 +39,7 @@ pub fn run_client() {
         match args[0].as_str() {
 
             "load" => {
-                if args.len() < 2 {
-                    wrap_message("error", format!("invalid input: {} arguments", args.len()));
-                    continue;
-                }
-                match map_json_config(&args[1]) {
-                    Ok(mut instance) => {
-                        setup_instance(&mut instance);
-                        setup_server(&instance);
-
-                        let build_dir   = instance.compiler.build_directory.as_str();
-                        let name        = instance.builder.output_name.as_str();
-                        let ext         = instance.compiler.file_extension.as_str();
-
-                        wrap_message("info", format!("{}/{}.{} is ready", build_dir, name, ext));
-                        instances.push(instance);
-                    }
-                    Err(err)=> {
-                        wrap_message("error", format!("map_json_config: {:?}", err));
-                        continue;
-                    }
-                }
+                load_instance(args);
             },
 
             "exit" => break,
@@ -68,10 +53,42 @@ pub fn run_client() {
     stop_print_channel();
 }
 
-fn map_json_config(file_path: &String) -> Result<Hexane> {
-    let json_file = CURDIR.join("json").join(file_path);
+fn load_instance(args: Vec<String>) {
 
+    if args.len() < 2 {
+        wrap_message("error", format!("invalid input: {} arguments", args.len()))
+    }
+    match map_json_config(&args[1]) {
+        Ok(mut instance) => {
+            setup_instance(&mut instance);
+            setup_server(&instance);
+
+            let build_dir   = instance.compiler.build_directory.as_str();
+            let name        = instance.builder.output_name.as_str();
+            let ext         = instance.compiler.file_extension.as_str();
+
+            wrap_message("info", format!("{}/{}.{} is ready", build_dir, name, ext));
+            instances.lock().unwrap().push(instance);
+        }
+        Err(err)=> {
+            wrap_message("error", format!("map_json_config: {:?}", err))
+        }
+    }
+}
+
+fn setup_instance(instance: &mut Hexane) {
+
+}
+
+fn setup_server(instance: &Hexane) {
+
+}
+
+fn map_json_config(file_path: &String) -> Result<Hexane> {
+
+    let json_file = CURDIR.join("json").join(file_path);
     let contents = fs::read_to_string(json_file).map_err(Error::Io)?;
+
     let json_data = match serde_json::from_str::<JsonData>(contents.as_str()) {
         Ok(data)    => data,
         Err(e)      => {
@@ -107,11 +124,4 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
     Ok(instance)
 }
 
-fn setup_instance(instance: &mut Hexane) {
-
-}
-
-fn setup_server(instance: &Hexane) {
-
-}
 
