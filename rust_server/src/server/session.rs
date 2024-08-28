@@ -33,8 +33,8 @@ lazy_static! {
 }
 
 pub fn init() {
-    println!("{}", BANNER);
     thread::spawn(|| { print_channel(); });
+    println!("{}", BANNER);
 
     if *DEBUG { println!("running in debug mode") }
     if *SHOW_COMPILER { println!("running with compiler output") }
