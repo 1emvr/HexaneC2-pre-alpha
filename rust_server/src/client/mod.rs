@@ -4,6 +4,7 @@ mod error;
 
 use serde_json;
 use serde::Deserialize;
+use lazy_static::lazy_static;
 
 use std::{fs, thread};
 use std::io::{self, Write};
@@ -21,12 +22,9 @@ const BANNER: &str = r#"
 ██║  ██║███████╗██╔╝ ██╗██║  ██║██║ ╚████║███████╗╚██████╗███████╗
 ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝╚══════╝"#;
 
-use lazy_static::lazy_static;
 lazy_static!(
     static ref SESSION: UserSession = UserSession{ .username = "lemur", .is_admin = true },
 );
-
-
 
 fn init() {
     println!("{}", BANNER);
