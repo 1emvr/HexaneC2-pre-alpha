@@ -4,7 +4,7 @@ use colored::*;
 use std::io;
 use std::io::Write;
 
-use crate::server::config::{SESSION, CHANNEL, DEBUG, EXIT};
+use crate::server::session::{SESSION, CHANNEL, DEBUG, EXIT};
 use crate::server::types::{Message};
 
 pub fn cursor() {

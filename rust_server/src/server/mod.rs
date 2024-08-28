@@ -1,7 +1,7 @@
 mod utils;
 mod types;
 mod error;
-mod config;
+mod session;
 
 use serde_json;
 use serde::Deserialize;
@@ -9,11 +9,10 @@ use lazy_static::lazy_static;
 
 use std::{fs, thread};
 use std::io::{self, Write};
-
 use self::error::{Error, Result};
 use self::types::{Hexane, JsonData, Compiler, UserSession};
 use self::utils::{cursor, wrap_message, print_channel, stop_print_channel};
-use self::config::{DEBUG, SHOW_COMPILER, CURDIR};
+use self::session::{get_session, DEBUG, SHOW_COMPILER, CURDIR};
 
 const BANNER: &str = r#"
 ██╗  ██╗███████╗██╗  ██╗ █████╗ ███╗   ██╗███████╗ ██████╗██████╗
@@ -30,6 +29,8 @@ fn init() {
 
     if *DEBUG { println!("running in debug mode") }
     if *SHOW_COMPILER { println!("running with compiler output") }
+
+    get_session();
 }
 
 pub fn run_client() {

@@ -22,7 +22,7 @@ lazy_static! {
     pub(crate) static ref CURDIR: PathBuf       = env::current_dir().unwrap();
 }
 
-fn get_session() {
+pub fn get_session() {
     let mut session = SESSION.lock().unwrap();
 
     session.username = String::from("lemur");
