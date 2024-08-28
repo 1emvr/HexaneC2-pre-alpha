@@ -10,11 +10,9 @@ use serde::Deserialize;
 
 use std::io::{self, Write};
 use std::path::PathBuf;
-use clap::builder::Str;
-use lazy_static::lazy_static;
 
 use self::error::{Error, Result};
-use self::types::{Args, Hexane, JsonData, CompilerConfig, UserSession};
+use self::types::{Args, Hexane, JsonData, Compiler, UserSession};
 
 const BANNER: &str = r#"
 ██╗  ██╗███████╗██╗  ██╗ █████╗ ███╗   ██╗███████╗ ██████╗██████╗
@@ -24,6 +22,7 @@ const BANNER: &str = r#"
 ██║  ██║███████╗██╔╝ ██╗██║  ██║██║ ╚████║███████╗╚██████╗███████╗
 ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝╚══════╝"#;
 
+use lazy_static::lazy_static;
 lazy_static! {
     pub(crate) static ref ARGS: Args            = Args::parse();
     pub(crate) static ref DEBUG: bool           = ARGS.debug;
@@ -97,7 +96,7 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
         crypt_key: vec![], shellcode: vec![], config_data: vec![],
         active: false,
 
-        compiler: CompilerConfig {
+        compiler: Compiler {
             file_extension:     String::from(""),
             build_directory:    String::from(""),
             compiler_flags:     vec![],

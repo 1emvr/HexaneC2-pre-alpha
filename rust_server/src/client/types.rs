@@ -35,22 +35,22 @@ pub struct Args {
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(tag = "type", content = "config")]
+#[serde(tag = "type", content = "options")]
 pub enum Network {
-    Http(Http),
-    Smb(Smb),
+    http(Http),
+    smb(Smb),
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(tag = "type", content = "config")]
+#[serde(tag = "type", content = "options")]
 pub enum Injection {
-    Threadless(Threadless),
+    threadless(Threadless),
 }
 
 #[derive(Deserialize, Debug)]
 pub struct Http {
     pub(crate) address:    String,
-    pub(crate) port:       i32,
+    pub(crate) port:       u32,
     pub(crate) endpoints:  Vec<String>,
     pub(crate) domain:     Option<String>,
     pub(crate) useragent:  Option<String>,
@@ -60,7 +60,7 @@ pub struct Http {
 
 #[derive(Deserialize, Debug)]
 pub struct Smb {
-    pub(crate) egress_name: String,
+    pub(crate) egress_pipe: String,
     pub(crate) egress_peer: String,
 }
 
@@ -68,7 +68,7 @@ pub struct Smb {
 pub struct Proxy {
     pub(crate) address:    String,
     pub(crate) proto:      String,
-    pub(crate) port:       i32,
+    pub(crate) port:       u32,
     pub(crate) username:   Option<String>,
     pub(crate) password:   Option<String>,
 }
@@ -90,8 +90,8 @@ pub struct Config {
     pub(crate) hostname:       String,
     pub(crate) working_hours:  Option<String>,
     pub(crate) killdate:       Option<String>,
-    pub(crate) sleeptime:      i32,
-    pub(crate) jitter:         i8,
+    pub(crate) sleeptime:      u32,
+    pub(crate) jitter:         u8,
 }
 
 #[derive(Deserialize, Debug)]
@@ -116,15 +116,15 @@ pub struct Loader {
 
 #[derive(Deserialize, Debug)]
 pub struct JsonData {
-    pub(crate) config:     Config,
-    pub(crate) network:    Network,
-    pub(crate) builder:    Builder,
-    pub(crate) loader:     Option<Loader>,
+    pub(crate) config:  Config,
+    pub(crate) network: Network,
+    pub(crate) builder: Builder,
+    pub(crate) loader:  Option<Loader>,
 }
 
 #[derive(Debug)]
 pub struct MessageParser {
-    pub(crate) endian:     i8,
+    pub(crate) endian:     u8,
     pub(crate) peer_id:    u32,
     pub(crate) task_id:    u32,
     pub(crate) msg_type:   u32,

@@ -10,7 +10,7 @@
 
 	"network": {
 		"type": "http",
-		"config": {
+		"options": {
 			"useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
 			"address": "192.168.10.166",
 			"port": 80,
@@ -45,7 +45,7 @@
 
 		"injection": {
 			"type": "threadless",
-			"config": {
+			"options": {
 				"target_process": "blobrunner64.exe",
 				"target_module":"kernel32.dll",
 				"target_function":"OpenFile",
