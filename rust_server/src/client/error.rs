@@ -9,10 +9,10 @@ pub enum Error {
     Custom(String),
 
     #[from]
-    SerdeJson(serde::Error),
+    Io(std::io::Error),
 
     #[from]
-    Io(std::io::Error),
+    SerdeJson(serde_json::Error),
 }
 
 impl<'de> Deserialize<'de> for Error {
@@ -20,6 +20,7 @@ impl<'de> Deserialize<'de> for Error {
     where D: Deserializer<'de>, {
 
         let msg = String::deserialize(deserializer)?;
+        Ok(Error::custom(msg))
     }
 }
 

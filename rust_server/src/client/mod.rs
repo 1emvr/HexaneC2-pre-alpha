@@ -84,10 +84,10 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
     let json_file = "./json/".to_owned() + file_path.as_str();
 
     let contents = fs::read_to_string(json_file.as_str())
-        .map_err(|err| { return Err("error reading json file: {err}") });
+        .map_err(|err| return Err(Error::Custom(format!("error reading json file: {err}"))))?;
 
-    let json_data: Result<JsonData> = serde_json::from_str(contents.unwrap().as_str())
-        .map_err(|err| { return Err("error parsing json data: {err}") })?;
+    let json_data: Result<JsonData> = serde_json::from_str(contents.as_str())
+        .map_err(|err| { return Err(Error::SerdeJson(err)) })?;
 
     let group_id = 0;
     let data = json_data?;
