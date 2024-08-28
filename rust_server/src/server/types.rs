@@ -28,25 +28,45 @@ pub struct Message {
     pub(crate) msg: String,
 }
 
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
-pub struct Args {
-    /// run with simple debug messages
-    #[arg(short, long)]
-    pub(crate) debug: bool,
-
-    /// run with compiler output
-    #[arg(short, long)]
-    pub(crate) show_compiler: bool,
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "lowercase")]
+pub enum NetworkType {
+    Http,
+    Smb,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub enum Network {
+#[serde(untagged)]
+pub enum NetworkOptions {
     Http(Http),
     Smb(Smb),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct Network {
+    pub r#type:     NetworkType,
+    pub options:    NetworkOptions,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Smb {
+    pub(crate) egress_peer: String,
+    pub(crate) egress_pipe: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Http {
+    pub(crate) address:    String,
+    pub(crate) port:       u16,
+    pub(crate) endpoints:  Vec<String>,
+    pub(crate) domain:     Option<String>,
+    pub(crate) useragent:  Option<String>,
+    pub(crate) headers:    Option<Vec<String>>,
+    pub(crate) proxy:      Option<Proxy>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "lowercase")]
 pub enum Injection {
     Threadless(ThreadlessInject),
     Threadpool(ThreadpoolInject),
@@ -63,32 +83,6 @@ pub struct ThreadlessInject {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ThreadpoolInject{
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Smb {
-    pub(crate) egress_pipe: String,
-    pub(crate) egress_peer: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Http {
-    pub(crate) address:    String,
-    pub(crate) port:       u16,
-    pub(crate) endpoints:  Vec<String>,
-    pub(crate) domain:     Option<String>,
-    pub(crate) useragent:  Option<String>,
-    pub(crate) headers:    Option<Vec<String>>,
-    pub(crate) proxy:      Option<Proxy>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Proxy {
-    pub(crate) address:    String,
-    pub(crate) proto:      String,
-    pub(crate) port:       u16,
-    pub(crate) username:   Option<String>,
-    pub(crate) password:   Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -111,6 +105,15 @@ pub struct Builder {
     pub(crate) loaded_modules:         Option<Vec<String>>,
     pub(crate) dependencies:           Option<Vec<String>>,
     pub(crate) include_directories:    Option<Vec<String>>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Proxy {
+    pub(crate) address:    String,
+    pub(crate) proto:      String,
+    pub(crate) port:       u16,
+    pub(crate) username:   Option<String>,
+    pub(crate) password:   Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

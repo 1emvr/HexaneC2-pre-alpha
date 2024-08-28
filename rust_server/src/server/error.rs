@@ -12,7 +12,10 @@ pub enum Error {
     Io(std::io::Error),
 
     #[from]
-    SerdeJson(serde_json::Error),
+    SerdeJson(serde_json::error::Error),
+}
+
+impl std::error::Error for Error {
 }
 
 impl<'de> Deserialize<'de> for Error {
@@ -41,5 +44,3 @@ impl From<&str> for Error {
         Self::custom(val.to_string())
     }
 }
-
-impl std::error::Error for Error {}

@@ -23,11 +23,11 @@ pub fn print_channel() {
             },
             recv(receiver) -> message => {
                 if let Ok(m) = message {
-                    if !*DEBUG && m.msg_type == "dbg" {
+                    if !*DEBUG && m.msg_type == "debug" {
                         continue;
                     }
                     let fmt_msg = match m.msg_type.as_str() {
-                        "err" => format!("{}", m.msg_type.red()),
+                        "error" => format!("{}", m.msg_type.red()),
                         _       => m.msg_type,
                     };
                     println!("[{}] {}", fmt_msg, m.msg);

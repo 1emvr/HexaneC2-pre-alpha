@@ -8,10 +8,12 @@ use serde_json;
 use serde::Deserialize;
 
 use std::io::{self, Write};
+use core::fmt::Display;
+
 use self::error::{Error, Result};
+use self::session::{init, CURDIR};
 use self::types::{Hexane, JsonData, Compiler, UserSession};
 use self::utils::{cursor, wrap_message, stop_print_channel};
-use self::session::{init, CURDIR};
 
 pub fn run_client() {
     init();
@@ -33,7 +35,7 @@ pub fn run_client() {
 
             "load" => {
                 if args.len() < 2 {
-                    wrap_message("err", format!("invalid input: {} arguments", args.len()));
+                    wrap_message("error", format!("invalid input: {} arguments", args.len()));
                     continue;
                 }
                 match map_json_config(&args[1]) {
@@ -44,7 +46,7 @@ pub fn run_client() {
                         instances.push(instance);
                     }
                     Err(err)=> {
-                        wrap_message("err", format!("map_json_config: {:?}", err));
+                        wrap_message("error", format!("map_json_config: {:?}", err));
                         continue;
                     }
                 }
@@ -52,7 +54,7 @@ pub fn run_client() {
 
             "exit" => break,
             _ => {
-                wrap_message("err", format!("invalid input: {}", args[0]));
+                wrap_message("error", format!("invalid input: {}", args[0]));
                 continue;
             }
         }
@@ -64,12 +66,16 @@ pub fn run_client() {
 fn map_json_config(file_path: &String) -> Result<Hexane> {
     let json_file = CURDIR.join("json").join(file_path);
 
-    let contents: String = fs::read_to_string(json_file).map_err(Error::Io)?;
-    let json_data: Result<JsonData> = serde_json::from_str(contents.as_str()).map_err(Error::SerdeJson)?;
+    let contents = fs::read_to_string(json_file).map_err(Error::Io)?;
+    let json_data = match serde_json::from_str::<JsonData>(contents.as_str()) {
+        Ok(data)    => data,
+        Err(e)      => {
+            wrap_message("debug", format!("{}", contents));
+            return Err(Error::SerdeJson(e))
+        }
+    };
 
     let group_id = 0;
-    let data = json_data?;
-
     let instance = Hexane {
 
         current_taskid: 0, peer_id: 0, group_id, build_type: 0, network_type: 0,
@@ -82,10 +88,10 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
             compiler_flags:     vec![],
         },
 
-        main:       data.config,
-        network:    data.network,
-        builder:    data.builder,
-        loader:     data.loader,
+        main:       json_data.config,
+        network:    json_data.network,
+        builder:    json_data.builder,
+        loader:     json_data.loader,
 
         user_session: UserSession {
             username: String::from(""),
