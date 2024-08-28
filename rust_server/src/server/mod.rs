@@ -41,15 +41,7 @@ pub fn run_client() {
             "load" => {
                 load_instance(args);
             },
-            "ls" => {
-                todo!()
-            }
-            "rm" => {
-                todo!()
-            }
-            "i" => {
-                todo!()
-            }
+
             "exit" => break,
             _ => {
                 wrap_message("error", format!("invalid input: {}", args[0]));
@@ -71,6 +63,7 @@ fn load_instance(args: Vec<String>) {
             setup_instance(&mut instance);
             setup_server(&instance);
 
+            // todo: add configuration and builder
             let build_dir   = instance.compiler.build_directory.as_str();
             let name        = instance.builder.output_name.as_str();
             let ext         = instance.compiler.file_extension.as_str();
