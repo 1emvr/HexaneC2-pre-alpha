@@ -27,7 +27,7 @@ fn print_channel(receiver: Receiver<Message>, exit: Receiver<()>, debug: bool) {
     }
 }
 
-fn wrap_message(sender: &Sender<Message>, typ: &str, msg: &str) {
+fn wrap_message(typ: &str, msg: &str, sender: &Sender<Message>) {
     let message = Message {
         msg_type: typ.to_string(),
         msg: msg.to_string(),
