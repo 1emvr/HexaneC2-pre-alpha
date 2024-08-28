@@ -2,17 +2,15 @@ mod utils;
 mod types;
 mod error;
 
-use std::{env, fs};
-use clap::Parser;
-
 use serde_json;
 use serde::Deserialize;
 
+use std::{fs, thread};
 use std::io::{self, Write};
-use std::path::PathBuf;
 
 use self::error::{Error, Result};
-use self::types::{Args, Hexane, JsonData, Compiler, UserSession};
+use self::types::{Hexane, JsonData, Compiler, UserSession};
+use self::utils::{cursor, wrap_message, DEBUG, SHOW_COMPILER, CURDIR};
 
 const BANNER: &str = r#"
 ██╗  ██╗███████╗██╗  ██╗ █████╗ ███╗   ██╗███████╗ ██████╗██████╗
@@ -23,17 +21,8 @@ const BANNER: &str = r#"
 ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝╚══════╝"#;
 
 use lazy_static::lazy_static;
-lazy_static! {
-    pub(crate) static ref ARGS: Args            = Args::parse();
-    pub(crate) static ref DEBUG: bool           = ARGS.debug;
-    pub(crate) static ref SHOW_COMPILER: bool   = ARGS.show_compiler;
-    pub(crate) static ref CURDIR: PathBuf       = env::current_dir().unwrap();
-}
-
-fn cursor() {
-    print!(" > ");
-    io::stdout().flush().unwrap();
-}
+use serde_json::json;
+use crate::client::utils::print_channel;
 
 fn init() {
     println!("{}", BANNER);
@@ -44,6 +33,7 @@ fn init() {
 
 pub fn run_client() {
     init();
+    thread::spawn(|| { print_channel(); });
 
     let mut instances: Vec<Hexane> = Vec::new();
     loop {
@@ -61,6 +51,10 @@ pub fn run_client() {
 
         match args[0].as_str() {
             "load" => {
+                if args.len() < 2 {
+                    wrap_message("ERR", format!("invalid input: {} arguments", args.len()));
+                    continue;
+                }
                 match map_json_config(&args[1]) {
                     Ok(mut instance) => {
                         setup_instance(&mut instance);
@@ -69,14 +63,17 @@ pub fn run_client() {
                         instances.push(instance);
                     }
                     Err(err)=> {
-                        println!("failed to load json config: {err}");
+                        wrap_message("ERR", format!("map_json_config: {}", err));
                         continue;
                     }
                 }
             },
 
             "exit" => break,
-            _ => println!("invalid input")
+            _ => {
+                wrap_message("ERR", format!("invalid input: {}", args[0]));
+                continue;
+            }
         }
     }
 }

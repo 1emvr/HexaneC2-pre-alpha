@@ -22,6 +22,12 @@ const STRIP:    &str = "strip";
 const NASM:     &str = "nasm";
 const LINKER:   &str = "ld";
 
+#[derive(Debug)]
+pub struct Message {
+    pub(crate) msg_type: String,
+    pub(crate) msg: String,
+}
+
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
@@ -35,16 +41,18 @@ pub struct Args {
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "snake_case")]
 #[serde(tag = "type", content = "options")]
 pub enum Network {
-    http(Http),
-    smb(Smb),
+    Http(Http),
+    Smb(Smb),
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "snake_case")]
 #[serde(tag = "type", content = "options")]
 pub enum Injection {
-    threadless(Threadless),
+    Threadless(Threadless),
 }
 
 #[derive(Deserialize, Debug)]

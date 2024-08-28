@@ -1,14 +1,32 @@
-use crossbeam_channel::{unbounded, Receiver, select};
-use crossbeam_channel::Sender;
-use crate::client::cursor;
+use crossbeam_channel::{unbounded, Receiver, Sender, select};
+use std::io::Write;
+use std::path::PathBuf;
+use std::sync::Mutex;
+use std::{env, io};
 
-#[derive(Debug)]
-pub struct Message {
-    pub(crate) msg_type: String,
-    pub(crate) msg: String,
+use clap::Parser;
+use crate::client::types::{Args, Message};
+
+use lazy_static::lazy_static;
+lazy_static! {
+    pub(crate) static ref CHANNEL: (Sender<Message>, Receiver<Message>) = unbounded();
+    pub(crate) static ref EXIT: (Sender<()>, Receiver<()>)              = unbounded();
+
+    pub(crate) static ref ARGS: Args            = Args::parse();
+    pub(crate) static ref DEBUG: bool           = ARGS.debug;
+    pub(crate) static ref SHOW_COMPILER: bool   = ARGS.show_compiler;
+    pub(crate) static ref CURDIR: PathBuf       = env::current_dir().unwrap();
 }
 
-fn print_channel(receiver: Receiver<Message>, exit: Receiver<()>, debug: bool) {
+pub fn cursor() {
+    print!(" > ");
+    io::stdout().flush().unwrap();
+}
+
+pub fn print_channel() {
+    let receiver    = &CHANNEL.1;
+    let exit        = &EXIT.1;
+
     loop {
         select! {
             recv(exit) -> _ => {
@@ -16,7 +34,7 @@ fn print_channel(receiver: Receiver<Message>, exit: Receiver<()>, debug: bool) {
             },
             recv(receiver) -> message => {
                 if let Ok(m) = message {
-                    if !debug && m.msg_type == "DBG" {
+                    if !*DEBUG && m.msg_type == "DBG" {
                         continue;
                     }
                     println!("[{}] {}", m.msg_type, m.msg);
@@ -27,11 +45,17 @@ fn print_channel(receiver: Receiver<Message>, exit: Receiver<()>, debug: bool) {
     }
 }
 
-fn wrap_message(typ: &str, msg: &str, sender: &Sender<Message>) {
+pub fn wrap_message(typ: &str, msg: String) {
+    let sender = &CHANNEL.0;
     let message = Message {
         msg_type: typ.to_string(),
         msg: msg.to_string(),
     };
 
     sender.send(message).unwrap();
+}
+
+pub fn stop_print_channel() {
+    let sender = &EXIT.0;
+    sender.send(()).unwrap();
 }
