@@ -1,5 +1,5 @@
 use clap::Parser;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 const NETWORK_HTTP:         u32 = 0x00000001;
 const NETWORK_PIPE:         u32 = 0x00000002;
@@ -40,22 +40,40 @@ pub struct Args {
     pub(crate) show_compiler: bool,
 }
 
-#[derive(Deserialize, Debug)]
-#[serde(rename_all = "snake_case")]
-#[serde(tag = "type", content = "options")]
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "lowercase")]
 pub enum Network {
     Http(Http),
     Smb(Smb),
 }
 
-#[derive(Deserialize, Debug)]
-#[serde(rename_all = "snake_case")]
-#[serde(tag = "type", content = "options")]
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "lowercase")]
 pub enum Injection {
-    Threadless(Threadless),
+    Threadless(ThreadlessInject),
+    Threadpool(ThreadpoolInject),
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ThreadlessInject {
+    pub(crate) target_process:     String,
+    pub(crate) target_module:      String,
+    pub(crate) target_function:    String,
+    pub(crate) loader_assembly:    String,
+    pub(crate) execute_object:     String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ThreadpoolInject{
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Smb {
+    pub(crate) egress_pipe: String,
+    pub(crate) egress_peer: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Http {
     pub(crate) address:    String,
     pub(crate) port:       u32,
@@ -66,13 +84,7 @@ pub struct Http {
     pub(crate) proxy:      Option<Proxy>,
 }
 
-#[derive(Deserialize, Debug)]
-pub struct Smb {
-    pub(crate) egress_pipe: String,
-    pub(crate) egress_peer: String,
-}
-
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Proxy {
     pub(crate) address:    String,
     pub(crate) proto:      String,
@@ -81,16 +93,7 @@ pub struct Proxy {
     pub(crate) password:   Option<String>,
 }
 
-#[derive(Deserialize, Debug)]
-pub struct Threadless {
-    pub(crate) target_process:     String,
-    pub(crate) target_module:      String,
-    pub(crate) target_function:    String,
-    pub(crate) loader_assembly:    String,
-    pub(crate) execute_object:     String,
-}
-
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     pub(crate) debug:          bool,
     pub(crate) encrypt:        bool,
@@ -102,7 +105,7 @@ pub struct Config {
     pub(crate) jitter:         u8,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Builder {
     pub(crate) output_name:            String,
     pub(crate) root_directory:         String,
@@ -112,7 +115,7 @@ pub struct Builder {
     pub(crate) include_directories:    Option<Vec<String>>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Loader {
     pub(crate) root_directory: String,
     pub(crate) linker_script:  String,
@@ -122,7 +125,7 @@ pub struct Loader {
     pub(crate) dependencies:   Option<Vec<String>>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct JsonData {
     pub(crate) config:  Config,
     pub(crate) network: Network,
