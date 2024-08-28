@@ -43,11 +43,11 @@ pub fn run_client() {
                         setup_instance(&mut instance);
                         setup_server(&instance);
 
+                        let build_dir   = instance.compiler.build_directory.as_str();
                         let name        = instance.builder.output_name.as_str();
-                        let directory   = instance.compiler.build_directory.as_str();
-                        let extension   = instance.compiler.file_extension.as_str();
+                        let ext         = instance.compiler.file_extension.as_str();
 
-                        wrap_message("info", format!("{}/{}.{} is ready", name, directory, extension));
+                        wrap_message("info", format!("{}/{}.{} is ready", build_dir, name, ext));
                         instances.push(instance);
                     }
                     Err(err)=> {
