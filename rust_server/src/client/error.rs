@@ -1,9 +1,9 @@
+use serde::de::{self, Deserialize, Deserializer};
 use derive_more::From;
-use core::fmt::Formatter;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
-#[derive(Debug, From)]
+#[derive(Debug, serde::Deserialize, From)]
 pub enum Error {
     #[from]
     Custom(String),
@@ -24,8 +24,20 @@ impl From<&str> for Error {
 }
 
 impl core::fmt::Display for Error {
-    fn fmt(&self, fmt: &mut Formatter) -> core::result::Result<(), core::fmt::Error> {
+    fn fmt(&self, fmt: &mut core::fmt::Formatter) -> core::result::Result<(), core::fmt::Error> {
         write!(fmt, "{self:?}")
+    }
+}
+
+impl<'de> Deserialize<'de> for Error {
+    fn deserialize<Dsr>(ds: Dsr) -> core::result::Result<Self, Dsr::Error> where Dsr: Deserializer<'de>, {
+        let json_err: core::result::Result<serde_json::Error, Dsr::Error> = Deserialize::deserialize(ds);
+
+        match json_err {
+            Ok(err) => Ok(Error::SerdeJson(err)),
+            Err(_) => Err(de::Error::custom("failed to deserialize into error"))
+
+        }
     }
 }
 
