@@ -44,7 +44,7 @@ pub fn run_client() {
                         instances.push(instance);
                     }
                     Err(err)=> {
-                        wrap_message("err", format!("map_json_config: {}", err));
+                        wrap_message("err", format!("map_json_config: {:?}", err));
                         continue;
                     }
                 }
