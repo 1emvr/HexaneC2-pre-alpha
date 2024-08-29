@@ -35,7 +35,7 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
 
     wrap_message("info", format!("{} is ready", instance.builder.output_name));
     INSTANCES.lock().unwrap().push(instance);
-    // todo: insert db
+    // todo: insert to db
 
     Ok(())
 }
@@ -59,7 +59,7 @@ pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
 
 pub(crate) fn interact_instance(args: Vec<String>) -> Result<()> {
     todo!()
-    // get channels/db saved to disk
+    // todo: get channels + saved messages from db
 }
 
 #[derive(Debug)]
