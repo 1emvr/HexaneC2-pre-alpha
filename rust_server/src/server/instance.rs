@@ -47,6 +47,7 @@ pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
 
         wrap_message("info", format!("{} removed", instances[pos].builder.output_name));
         instances.remove(pos);
+        // todo: remove from db
 
         Ok(())
     } else {
