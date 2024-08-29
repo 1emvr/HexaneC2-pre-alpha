@@ -1,15 +1,16 @@
-use std::str::FromStr;
 use rand::Rng;
+use std::str::FromStr;
 
 use crate::server::INSTANCES;
 use crate::server::session::{SESSION, USERAGENT};
 use crate::server::types::{InjectionOptions, NetworkOptions, TRANSPORT_PIPE, TRANSPORT_HTTP, Config, Compiler, Network, Builder, Loader, UserSession};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
-use crate::{return_error, length_check_defer};
 use crate::server::error::{Error, Result};
 use crate::server::utils::wrap_message;
 use crate::server::config::map_config;
 use crate::server::stream::Stream;
+
+use crate::{return_error, length_check_defer};
 
 const BUILD_DLL: u32 = 0;
 const BUILD_SHC: u32 = 1;
