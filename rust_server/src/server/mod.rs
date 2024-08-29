@@ -6,7 +6,6 @@ mod cipher;
 mod stream;
 mod session;
 mod instance;
-mod listener;
 mod parser;
 
 use serde_json;
