@@ -55,6 +55,9 @@ pub fn init() {
     if *SHOW_COMPILER { wrap_message("info", "running with compiler output".to_string()) }
 
     get_session();
+
+    let session = SESSION.lock().unwrap();
+    println!("Session after update: {:?}", *session);
 }
 
 pub fn get_session() {
