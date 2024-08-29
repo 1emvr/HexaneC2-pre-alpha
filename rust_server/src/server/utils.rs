@@ -136,7 +136,7 @@ pub(crate) fn find_double_u32(data: &[u8], egg: &[u8]) -> Result<usize> {
 }
 
 
-fn run_command(cmd: &str, logname: &str) -> Result<()> {
+pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
     let shell   = if cfg!(target_os = "windows") { "cmd" } else { "bash" };
     let flag    = if cfg!(target_os = "windows") { "/c" } else { "-c" };
 

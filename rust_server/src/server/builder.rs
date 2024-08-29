@@ -1,18 +1,14 @@
 use std::collections::HashMap;
-use std::fs::{self, File, OpenOptions};
-use std::io::{self, BufRead, BufReader, Read, Seek, SeekFrom, Write};
-use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::path::{Path};
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
 use std::thread;
-use pelite::pe::headers::SectionHeader;
-use pelite::PeFile;
-use crate::return_error;
-use crate::server::stream::Stream;
-use crate::server::error::{Error, Result};
-use crate::server::utils::{create_cpp_array, create_hash_macro, find_double_u32};
-use crate::server::types::{Hexane, TRANSPORT_HTTP, TRANSPORT_PIPE};
+use std::fs;
+
+use crate::server::error::{Result};
+use crate::server::session::CURDIR;
+use crate::server::utils::{create_cpp_array, run_command};
+use crate::server::types::{Hexane};
 
 pub(crate) const MINGW:     String = String::from("x86_64-w64-mingw32-g++");
 pub(crate) const OBJCOPY:   String = String::from("objcopy");
@@ -52,7 +48,7 @@ fn generate_definitions(defs: HashMap<String, Vec<u8>>) -> String {
     definitions
 }
 
-pub(crate) fn compile_object(instance: &Hexane, mut command: String, output: &str, targets: Vec<String>, flags: Vec<String>, includes: Vec<String>, mut definitions: HashMap<String, Vec<u8>>) -> Result<()> {
+fn compile_object(instance: &Hexane, mut command: String, output: &str, targets: Vec<String>, flags: Vec<String>, includes: Vec<String>, mut definitions: HashMap<String, Vec<u8>>) -> Result<()> {
     if definitions.is_empty() {
         definitions = HashMap::new();
     }
@@ -82,14 +78,16 @@ pub(crate) fn compile_object(instance: &Hexane, mut command: String, output: &st
     run_command(&command, &instance.peer_id.to_string())
 }
 
-fn compile_sources(instance: &Hexane, target: &mut CompileTarget) -> Result<()> {
-    let src_path    = Path::new(&target.root_directory).join("src");
+// todo: define build path and logs path
+// todo: do we really need multithreaded build?
+
+fn compile_sources(instance: &Hexane, compile: &mut CompileTarget) -> Result<()> {
+    let src_path    = Path::new(&compile.root_directory).join("src");
     let entries     = fs::read_dir(src_path)?;
 
-    let (sender, receiver) = channel();
-    let arc_mux = Arc::new(Mutex::new(()));
-
-    let mut handles = vec![];
+    let (err_send, err_recv)    = channel();
+    let atoms                   = Arc::new(Mutex::new(()));
+    let mut handles             = vec![];
 
     for entry in entries {
         let src = entry?;
@@ -98,10 +96,10 @@ fn compile_sources(instance: &Hexane, target: &mut CompileTarget) -> Result<()> 
             continue;
         }
 
-        let target  = src.path();
-        let output  = Path::new("BuildPath").join(target.file_name().unwrap()).with_extension("o");
+        let path    = src.path();
+        let output  = Path::new(&CURDIR+"/build").join(compile.file_name().unwrap()).with_extension("o");
 
-        let flags = match target.extension().and_then(|ext| ext.to_str()) {
+        let flags = match path.extension().and_then(|ext| ext.to_str()) {
             Some("asm") => vec!["-f win64".to_string()],
             Some("cpp") => {
                 let mut flags = instance.compiler.compiler_flags.clone();
@@ -111,35 +109,35 @@ fn compile_sources(instance: &Hexane, target: &mut CompileTarget) -> Result<()> 
             _ => continue,
         };
 
-        let arc_mux_clone   = Arc::clone(&arc_mux);
-        let sender_clone    = sender.clone();
-        let mut components  = target.components.clone();
+        let atoms_clone     = Arc::clone(&atoms);
+        let err_send_clone  = err_send.clone();
+        let mut components  = compile.components.clone();
 
         let handle = thread::spawn(move || {
-            let _guard = arc_mux_clone.lock().unwrap();
+            let _guard = atoms_clone.lock().unwrap();
 
-            let result = match target.extension().and_then(|ext| ext.to_str()) {
-                Some("asm") => compile_object(instance, NASM, output.to_str().unwrap(), vec![target.to_str().unwrap().to_string()], flags, vec![], HashMap::new()),
-                Some("cpp") => compile_object(instance, MINGW, output.to_str().unwrap(), vec![target.to_str().unwrap().to_string()], flags, target.includes.unwrap().clone(), target.definitions.clone()),
+            let result = match compile.extension().and_then(|ext| ext.to_str()) {
+                Some("asm") => compile_object(instance, NASM, output.to_str().unwrap(), vec![compile.to_str().unwrap().to_string()], flags, vec![], HashMap::new()),
+                Some("cpp") => compile_object(instance, MINGW, output.to_str().unwrap(), vec![compile.to_str().unwrap().to_string()], flags, compile.includes, compile.definitions),
                 _ => Ok(()),
             };
 
             match result {
                 Ok(_) => components.push(output.to_str().unwrap().to_string()),
-                Err(e) => sender_clone.send(e).unwrap(),
+                Err(e) => err_send_clone.send(e).unwrap(),
             }
         });
 
         handles.push(handle);
     }
 
-    drop(sender);
+    drop(err_send);
 
     for handle in handles {
         handle.join().unwrap();
     }
 
-    if let Ok(err) = receiver.try_recv() {
+    if let Ok(err) = err_recv.try_recv() {
         return Err(err);
     }
 
