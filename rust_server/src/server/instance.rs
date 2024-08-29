@@ -279,6 +279,8 @@ pub(crate) fn print_instance(args: Vec<String>) -> Result<()> {
     for instance in instances.iter() {
         if instance.builder.output_name.as_str() == name {
             dbg!(instance);
+            wrap_message("info", format!("configuration for {name}"));
+
             break;
         }
     }
