@@ -35,6 +35,7 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
 
     wrap_message("info", format!("{} is ready", instance.builder.output_name));
     INSTANCES.lock().unwrap().push(instance);
+    // todo: insert db
 
     Ok(())
 }
