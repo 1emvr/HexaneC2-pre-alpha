@@ -165,6 +165,7 @@ impl Hexane {
     }
 
     fn generate_config_bytes(self: &mut Hexane) -> Result<()> {
+        // todo: should this really be exclusive to Hexane?
         self.crypt_key = crypt_create_key(16);
 
         let mut patch = self.create_binary_patch()?;
