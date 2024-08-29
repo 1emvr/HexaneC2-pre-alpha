@@ -153,6 +153,8 @@ fn check_instance(instance: &mut Hexane) -> Result<()> {
 
                 if let Some(proto) = &proxy.proto {
                     if proto.is_empty() { return_error!("proxy protocol must be provided") }
+                } else {
+                    return_error!("proxy protocol must be provided")
                 }
             }
         },
