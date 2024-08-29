@@ -56,8 +56,7 @@ pub fn list_instances() -> Result<()> {
     Ok(())
 }
 
-    pub fn debug_hexane(instance: &Hexane) {
-        // Print the main Hexane properties
+    pub fn hexane_debug(instance: &Hexane) {
         let mut hexane_table = Table::new();
         hexane_table.set_format(*format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
 
@@ -75,18 +74,18 @@ pub fn list_instances() -> Result<()> {
         println!("Hexane Properties:");
         hexane_table.printstd();
 
-        instance.print_config_table();
-        instance.print_compiler_table();
-        instance.print_network_table();
-        instance.print_builder_table();
+        print_config_table(&instance);
+        print_compiler_table(&instance);
+        print_network_table(&instance);
+        print_builder_table(&instance);
 
         if let Some(loader) = &instance.loader {
-            loader.print_loader_table();
+            print_loader_table(loader);
         } else {
             println!("Loader: None");
         }
 
-        instance.print_user_session_table();
+        print_user_session_table(&instance);
     }
 
     fn print_config_table(instance: &Hexane) {

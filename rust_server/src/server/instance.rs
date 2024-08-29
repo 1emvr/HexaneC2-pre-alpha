@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use rand::Rng;
 
-use crate::{length_check, return_error};
+use crate::{return_error};
 use crate::server::INSTANCES;
 use crate::server::session::USERAGENT;
 use crate::server::error::{Error, Result};
@@ -32,7 +32,7 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     }
 
     if instance.main.debug {
-        dbg!(&instance);
+        hexane_debug(&instance);
     }
     wrap_message("info", format!("{} is ready", instance.builder.output_name));
     INSTANCES.lock().unwrap().push(instance);
