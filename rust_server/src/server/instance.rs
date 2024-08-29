@@ -24,14 +24,14 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     }
 
     let mut instance = match crate::server::config::map_config(&args[2]) {
-        Ok(instance)    => instance,
-        Err(e)          =>  return Err(e),
+        Ok(instance) => instance,
+        Err(e) => return Err(e),
     };
 
     instance.check_config()?;
     instance.setup_instance()?;
 
-    if instance.network_type == *TRANSPORT_HTTP {
+    if instance.network_type != *TRANSPORT_PIPE {
         instance.setup_listener()?;
     }
 
@@ -46,7 +46,7 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
 }
 
 impl Hexane {
-    fn setup_self(&mut self) -> Result<()> {
+    fn setup_instance(&mut self) -> Result<()> {
         let mut rng = rand::thread_rng();
 
         if self.main.debug {
@@ -59,6 +59,7 @@ impl Hexane {
         self.group_id = 0;
 
         // todo: build process
+        // run_build(self);
 
         Ok(())
     }
@@ -136,9 +137,9 @@ impl Hexane {
         if let Some(loader) = &mut self.loader {
             self.build_type = *BUILD_DLL;
 
-            if loader.root_directory.is_empty() { return_error!("loader field detected but root directory must be provided")}
+            if loader.root_directory.is_empty() { return_error!("loader field detected but root_directory must be provided")}
             if loader.sources.is_empty()        { return_error!("loader field detected but sources must be provided")}
-            if loader.rsrc_script.is_empty()    { return_error!("loader field detected but rsrc script must be provided")}
+            if loader.rsrc_script.is_empty()    { return_error!("loader field detected but rsrc_script must be provided")}
 
             if let Some(linker) = &loader.linker_script {
                 if linker.is_empty() { return_error!("loader ld field detected but linker script must be provided")}
@@ -146,11 +147,11 @@ impl Hexane {
 
             match &mut loader.injection.options {
                 InjectionOptions::Threadless(threadless) => {
-                    if threadless.execute_object.is_empty()     { return_error!("loader field detected 'threadless injection' but an execute_object must be provided")}
-                    if threadless.loader_assembly.is_empty()    { return_error!("loader field detected 'threadless injection' but a loader assembly must be provided")}
-                    if threadless.target_process.is_empty()     { return_error!("loader field detected 'threadless injection' but a target process must be provided")}
-                    if threadless.target_module.is_empty()      { return_error!("laoder field detected 'threadless injection' but a target module must be provided")}
-                    if threadless.target_function.is_empty()    { return_error!("laoder field detected 'threadless injection' but a target function must be provided")}
+                    if threadless.execute_object.is_empty()     { return_error!("loader field detected 'threadless' injection but an execute_object must be provided")}
+                    if threadless.loader_assembly.is_empty()    { return_error!("loader field detected 'threadless' injection but a loader_assembly must be provided")}
+                    if threadless.target_process.is_empty()     { return_error!("loader field detected 'threadless' injection but a target_process must be provided")}
+                    if threadless.target_module.is_empty()      { return_error!("loader field detected 'threadless' injection but a target_module must be provided")}
+                    if threadless.target_function.is_empty()    { return_error!("loader field detected 'threadless' injection but a target_function must be provided")}
                 },
                 InjectionOptions::Threadpool(_) => {
                     return_error!("threadpool injection not yet supported")
