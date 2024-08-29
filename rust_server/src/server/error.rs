@@ -1,3 +1,4 @@
+use std::num::ParseIntError;
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use derive_more::From;
 
@@ -17,6 +18,9 @@ pub enum Error {
 
     #[from]
     Io(std::io::Error),
+
+    #[from]
+    ParseInt(ParseIntError),
 
     #[from]
     SerdeJson(serde_json::error::Error),
