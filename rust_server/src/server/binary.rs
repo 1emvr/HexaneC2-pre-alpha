@@ -8,23 +8,23 @@ use crate::return_error;
 use crate::server::error::{Result, Error};
 use crate::server::utils::find_double_u32;
 
-struct Section<'a> {
+struct Section {
     data:       Vec<u8>,
-    section:    &'a SectionHeader,
+    section:    SectionHeader,
 }
 
-fn get_section_header<'a> (target_path: &str, target_section: &str) -> Result<Section<'a>> {
+fn get_section_header (target_path: &str, target_section: &str) -> Result<Section> {
     let mut read_file = File::open(target_path)?;
     let mut read_data = Vec::new();
 
     read_file.read_to_end(&mut read_data)?;
 
     let pe_file = PeFile::from_bytes(&read_data)?;
-    let mut found: Option<&SectionHeader> = None;
+    let mut found: Option<SectionHeader> = None;
 
     for entry in pe_file.section_headers() {
         if entry.name()?.to_string() == target_section {
-            found = Some(entry);
+            found = Some(entry.clone());
             break;
         }
     }

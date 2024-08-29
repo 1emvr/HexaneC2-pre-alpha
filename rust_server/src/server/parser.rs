@@ -3,19 +3,20 @@ use std::convert::TryInto;
 
 pub struct Parser {
     msg_buffer: Vec<u8>,
+    pointer:    usize,
     big_endian: bool,
     msg_length: u32,
     peer_id:    u32,
     task_id:    u32,
     msg_type:   u32,
 }
-
 impl Parser {
     pub fn create_parser(buffer: Vec<u8>) -> Parser {
         let mut parser = Parser {
             msg_buffer: buffer,
             big_endian: true,
             msg_length: 0,
+            pointer:    0,
             peer_id:    0,
             task_id:    0,
             msg_type:   0,
@@ -31,9 +32,9 @@ impl Parser {
 
     pub fn parse_byte(&mut self) -> Vec<u8> {
         if self.msg_length >= 1 {
-            let buffer = self.msg_buffer[..1].to_vec();
+            let buffer = self.msg_buffer[self.pointer..self.pointer+1].to_vec();
 
-            self.msg_buffer = self.msg_buffer[1..].to_vec();
+            self.pointer += 1;
             self.msg_length -= 1;
 
             buffer
@@ -49,9 +50,9 @@ impl Parser {
 
     pub fn parse_dword(&mut self) -> u32 {
         if self.msg_length >= 4 {
-            let buffer = &self.msg_buffer[..4];
+            let buffer = &self.msg_buffer[self.pointer..self.pointer+4].to_vec();
 
-            self.msg_buffer = self.msg_buffer[4..].to_vec();
+            self.pointer += 4;
             self.msg_length -= 4;
 
             if self.big_endian {
@@ -66,9 +67,9 @@ impl Parser {
 
     pub fn parse_dword64(&mut self) -> u64 {
         if self.msg_length >= 8 {
-            let buffer = &self.msg_buffer[..8];
+            let buffer = &self.msg_buffer[self.pointer..self.pointer+8].to_vec();
 
-            self.msg_buffer = self.msg_buffer[8..].to_vec();
+            self.pointer += 8;
             self.msg_length -= 8;
 
             if self.big_endian {
@@ -85,9 +86,9 @@ impl Parser {
         let size = self.parse_dword() as usize;
 
         if size > 0 && self.msg_length as usize >= size {
-            let buffer = self.msg_buffer[..size].to_vec();
+            let buffer = self.msg_buffer[self.pointer..self.pointer+size].to_vec();
 
-            self.msg_buffer = self.msg_buffer[size..].to_vec();
+            self.pointer += size;
             self.msg_length -= size as u32;
 
             buffer
