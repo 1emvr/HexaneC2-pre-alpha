@@ -18,6 +18,50 @@ pub fn cursor() {
     io::stdout().flush().unwrap();
 }
 
+fn encode_utf16(s: &str) -> Vec<u8> {
+    s.encode_utf16()
+        .flat_map(|c| c.to_le_bytes())
+        .collect()
+}
+
+pub fn print_channel() {
+    let receiver    = &CHANNEL.1;
+    let exit        = &EXIT.1;
+
+    loop {
+        select! {
+            recv(exit) -> _ => {
+                break;
+            },
+            recv(receiver) -> message => {
+                if let Ok(m) = message {
+                    if !*DEBUG && m.msg_type == "debug" {
+                        continue;
+                    }
+                    let fmt_msg = match m.msg_type.as_str() {
+                        "error" => format!("{}", m.msg_type.red()),
+                        _       => m.msg_type,
+                    };
+                    println!("[{}] {}", fmt_msg, m.msg);
+                    cursor();
+                }
+            }
+        }
+    }
+}
+
+pub fn wrap_message(typ: &str, msg: String) {
+    let sender = &CHANNEL.0;
+    let message = Message { msg_type: typ.to_string(), msg: msg.to_string(),};
+
+    sender.send(message).unwrap();
+}
+
+pub fn stop_print_channel() {
+    let sender = &EXIT.0;
+    sender.send(()).unwrap();
+}
+
 pub(crate) fn get_embedded_strings(str_list: Vec<String>) -> Vec<u8> {
     let mut stream = Stream::new();
     for s in str_list {
@@ -91,49 +135,6 @@ pub(crate) fn find_double_u32(data: &[u8], egg: &[u8]) -> Result<usize> {
     Err(Error::Custom("egg was not found".to_string()))
 }
 
-pub fn print_channel() {
-    let receiver    = &CHANNEL.1;
-    let exit        = &EXIT.1;
-
-    loop {
-        select! {
-            recv(exit) -> _ => {
-                break;
-            },
-            recv(receiver) -> message => {
-                if let Ok(m) = message {
-                    if !*DEBUG && m.msg_type == "debug" {
-                        continue;
-                    }
-                    let fmt_msg = match m.msg_type.as_str() {
-                        "error" => format!("{}", m.msg_type.red()),
-                        _       => m.msg_type,
-                    };
-                    println!("[{}] {}", fmt_msg, m.msg);
-                    cursor();
-                }
-            }
-        }
-    }
-}
-
-pub fn wrap_message(typ: &str, msg: String) {
-    let sender = &CHANNEL.0;
-    let message = Message { msg_type: typ.to_string(), msg: msg.to_string(),};
-
-    sender.send(message).unwrap();
-}
-
-pub fn stop_print_channel() {
-    let sender = &EXIT.0;
-    sender.send(()).unwrap();
-}
-
-fn encode_utf16(s: &str) -> Vec<u8> {
-    s.encode_utf16()
-        .flat_map(|c| c.to_le_bytes())
-        .collect()
-}
 
 fn run_command(cmd: &str, logname: &str) -> Result<()> {
     let shell   = if cfg!(target_os = "windows") { "cmd" } else { "bash" };
@@ -156,3 +157,4 @@ fn run_command(cmd: &str, logname: &str) -> Result<()> {
 
     Ok(())
 }
+
