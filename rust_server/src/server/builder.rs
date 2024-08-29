@@ -77,7 +77,7 @@ fn compile_object(mut compile_target: CompileTarget) -> Result<()> {
     run_command(&compile_target.command, &compile_target.peer_id.to_string())
 }
 
-fn compile_sources(instance: &Hexane, compile: &mut CompileTarget) -> Result<()> {
+fn compile_sources(compile: &mut CompileTarget) -> Result<()> {
     let src_path = Path::new(&compile.root_directory).join("src");
     let entries: Vec<_> = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
 
@@ -113,8 +113,9 @@ fn compile_sources(instance: &Hexane, compile: &mut CompileTarget) -> Result<()>
         let result = {
             let _guard = atoms_clone.lock().unwrap();
             match path.extension().and_then(|ext| ext.to_str()) {
+
                 Some("asm") => {
-                    let compile_target = CompileTarget {
+                    let target = CompileTarget {
                         command:        "nasm".to_string(),
                         root_directory: "".to_string(),
                         output_name:    output.to_string_lossy().to_string(),
@@ -126,10 +127,11 @@ fn compile_sources(instance: &Hexane, compile: &mut CompileTarget) -> Result<()>
                         flags,
                     };
 
-                    compile_object(compile_target)
+                    compile_object(target)
                 }
+
                 Some("cpp") => {
-                    let compile_target = CompileTarget {
+                    let target = CompileTarget {
                         command:        "x86_64-w64-mingw32-g++".to_string(),
                         root_directory: "".to_string(),
                         output_name:    output.to_string_lossy().to_string(),
@@ -141,7 +143,7 @@ fn compile_sources(instance: &Hexane, compile: &mut CompileTarget) -> Result<()>
                         flags,
                     };
 
-                    compile_object(compile_target)
+                    compile_object(target)
                 }
                 _ => Ok(()),
             }
