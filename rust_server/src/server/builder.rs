@@ -93,16 +93,6 @@ fn compile_sources(compile: &mut CompileTarget) -> Result<()> {
             .join(compile.output_name.clone())
             .with_extension("o");
 
-        let flags = match path.extension().and_then(|ext| ext.to_str()) {
-            Some("asm") => vec!["-f win64".to_string()],
-            Some("cpp") => {
-                let mut flags = compile.flags.clone();
-                flags.push("-c".to_string());
-                flags
-            }
-            _ => return,
-        };
-
         let atoms_clone     = Arc::clone(&atoms);
         let err_clone       = err_send.clone();
         let inc_clone       = compile.includes.clone();
@@ -114,6 +104,8 @@ fn compile_sources(compile: &mut CompileTarget) -> Result<()> {
             match path.extension().and_then(|ext| ext.to_str()) {
 
                 Some("asm") => {
+                    let flags = vec!["-f win64".to_string()];
+
                     let target = CompileTarget {
                         command:        "nasm".to_string(),
                         root_directory: "".to_string(),
@@ -130,6 +122,9 @@ fn compile_sources(compile: &mut CompileTarget) -> Result<()> {
                 }
 
                 Some("cpp") => {
+                    let mut flags = compile.flags.clone();
+                    flags.push("-c".to_string());
+
                     let target = CompileTarget {
                         command:        "x86_64-w64-mingw32-g++".to_string(),
                         root_directory: "".to_string(),
