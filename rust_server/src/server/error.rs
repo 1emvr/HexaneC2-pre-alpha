@@ -14,11 +14,13 @@ macro_rules! return_error {
 
 #[macro_export]
 macro_rules! invalid_input {
-    ($arg:expr) => { wrap_message("error", format!("invalid input: {}", $arg)); };
+    ($arg:expr) => {
+        wrap_message("error", format!("invalid input: {}", $arg))
+    };
 }
 
 #[macro_export]
-macro_rules! length_check {
+macro_rules! length_check_continue {
     ($arg:expr, $len:expr) => {
         if $arg.len() < $len {
             wrap_message("error", format!("invalid arguments: {}", $len));
@@ -27,8 +29,16 @@ macro_rules! length_check {
     };
 }
 
-pub type Result<T> = core::result::Result<T, Error>;
+#[macro_export]
+macro_rules! length_check_defer {
+    ($arg:expr, $len:expr) => {
+        if $arg.len() < $len {
+            return_error!("invalid arguments: {}", $len)
+        }
+    };
+}
 
+pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug, From)]
 pub enum Error {

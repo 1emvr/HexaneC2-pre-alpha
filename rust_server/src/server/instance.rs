@@ -1,13 +1,12 @@
 use std::str::FromStr;
 use rand::Rng;
 
-use crate::{return_error};
 use crate::server::INSTANCES;
 use crate::server::session::USERAGENT;
 use crate::server::error::{Error, Result};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
-use crate::server::format::hexane_debug;
 use crate::server::types::{InjectionOptions, NetworkOptions, TRANSPORT_PIPE, TRANSPORT_HTTP, Config, Compiler, Network, Builder, Loader, UserSession};
+use crate::{return_error, length_check_defer};
 use crate::server::utils::wrap_message;
 use crate::server::stream::Stream;
 
@@ -15,9 +14,7 @@ const BUILD_DLL: u32 = 0;
 const BUILD_SHC: u32 = 1;
 
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
-    if args.len() != 3 {
-        return_error!("invalid input: {} arguments", args.len())
-    }
+    length_check_defer!(args, 3);
 
     let mut instance = match crate::server::config::map_config(&args[2]) {
         Ok(instance) => instance,
@@ -32,7 +29,7 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     }
 
     if instance.main.debug {
-        hexane_debug(&instance);
+        dbg!(&instance);
     }
     wrap_message("info", format!("{} is ready", instance.builder.output_name));
     INSTANCES.lock().unwrap().push(instance);
@@ -41,9 +38,7 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
 }
 
 pub fn remove_instance(args: Vec<String>) -> Result<()> {
-    if args.len() != 3 {
-        return_error!("invalid input: {} arguments", args.len())
-    }
+    length_check_defer!(args, 3);
 
     let mut instances = INSTANCES.lock().map_err(|e| e.to_string())?;
     if let Some(pos) = instances.iter().position(|instance| instance.builder.output_name == args[2]) {

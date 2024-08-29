@@ -25,7 +25,7 @@ use self::session::{init};
 use self::utils::{cursor, wrap_message, stop_print_channel};
 use self::instance::{Hexane, load_instance, interact_instance, remove_instance};
 use crate::server::format::list_instances;
-use crate::{invalid_input, length_check};
+use crate::{invalid_input, length_check_continue};
 
 lazy_static!(
     static ref INSTANCES: Mutex<Vec<Hexane>> = Mutex::new(vec![]);
@@ -50,13 +50,13 @@ pub fn run_client() {
         if args[0].as_str() == "exit" {
             break;
         } else {
-            length_check!(args, 2);
+            length_check_continue!(args, 2);
         }
 
         match args[0].as_str() {
             "implant" => {
 
-                length_check!(args, 2);
+                length_check_continue!(args, 2);
                 match args[1].as_str() {
                     "ls"    => { list_instances().unwrap_or_else(|e| wrap_message("error", e.to_string())) },
                     "load"  => { load_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
@@ -68,7 +68,7 @@ pub fn run_client() {
             },
 
             "listener" => {
-                length_check!(args, 2);
+                length_check_continue!(args, 2);
                 match args[1].as_str() {
 
                     // todo: "attach" - find implant by name and attach an associated listener
