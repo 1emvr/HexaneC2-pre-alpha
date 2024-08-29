@@ -33,7 +33,7 @@ fn get_section_header(target_path: &str, target_section: &str) -> Result<Section
             data:       read_data,
             section:    section_header,
         }),
-        None => Err(Error::Custom(format!("cannot find target section: {target}")))
+        None => Err(Error::Custom(format!("cannot find target section: {target_section}")))
     }
 }
 
