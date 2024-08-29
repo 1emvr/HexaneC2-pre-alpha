@@ -177,8 +177,8 @@ impl Hexane {
         let mut stream = Stream::new();
 
         match instance.network_type {
-            TRANSPORT_HTTP => stream.pack_byte(TRANSPORT_HTTP),
-            TRANSPORT_PIPE => stream.pack_byte(TRANSPORT_PIPE),
+            TRANSPORT_HTTP => stream.pack_byte(*TRANSPORT_HTTP),
+            TRANSPORT_PIPE => stream.pack_byte(*TRANSPORT_PIPE),
             _ => return_error!("invalid network type"),
         }
 
