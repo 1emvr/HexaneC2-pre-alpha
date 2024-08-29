@@ -79,20 +79,18 @@ fn compile_object(instance: &Hexane, mut command: String, output: &str, targets:
 }
 
 // todo: define build path and logs path
-// todo: do we really need multithreaded build?
-
 fn compile_sources(instance: &Hexane, compile: &mut CompileTarget) -> Result<()> {
+
     let src_path    = Path::new(&compile.root_directory).join("src");
     let entries     = fs::read_dir(src_path)?;
 
-    let (err_send, err_recv)    = channel();
     let atoms                   = Arc::new(Mutex::new(()));
+    let (err_send, err_recv)    = channel();
     let mut handles             = vec![];
 
     for entry in entries {
-        let src = entry?;
-
-        if src.file_name() == ".idea" {
+        let src = entry.unwrap();
+        if !src.metadata()?.is_file() {
             continue;
         }
 
@@ -111,20 +109,23 @@ fn compile_sources(instance: &Hexane, compile: &mut CompileTarget) -> Result<()>
 
         let atoms_clone     = Arc::clone(&atoms);
         let err_send_clone  = err_send.clone();
+
+        let includes        = compile.includes.clone();
         let mut components  = compile.components.clone();
 
+        // todo: does this really need to be multithreaded?
         let handle = thread::spawn(move || {
             let _guard = atoms_clone.lock().unwrap();
 
             let result = match compile.extension().and_then(|ext| ext.to_str()) {
-                Some("asm") => compile_object(instance, NASM, output.to_str().unwrap(), vec![compile.to_str().unwrap().to_string()], flags, vec![], HashMap::new()),
-                Some("cpp") => compile_object(instance, MINGW, output.to_str().unwrap(), vec![compile.to_str().unwrap().to_string()], flags, compile.includes, compile.definitions),
+                Some("asm") => compile_object(instance, NASM, output.to_str().unwrap(), vec![path], flags, vec![], HashMap::new()),
+                Some("cpp") => compile_object(instance, MINGW, output.to_str().unwrap(), vec![path], flags, includes.unwrap(), &compile.definitions),
                 _ => Ok(()),
             };
 
             match result {
-                Ok(_) => components.push(output.to_str().unwrap().to_string()),
-                Err(e) => err_send_clone.send(e).unwrap(),
+                Ok(_)   => components.push(output.to_str().unwrap().to_string()),
+                Err(e)  => err_send_clone.send(e).unwrap(),
             }
         });
 
