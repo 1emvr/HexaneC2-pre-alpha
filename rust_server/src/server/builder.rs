@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
 use std::{env, thread};
 use std::fs;
-
+use crate::return_error;
 use crate::server::error::{Result};
 use crate::server::session::CURDIR;
 use crate::server::utils::{create_cpp_array, run_command};
@@ -103,7 +103,7 @@ fn compile_sources(instance: &Hexane, compile: &mut CompileTarget) -> Result<()>
                 let mut flags = instance.compiler.compiler_flags.clone();
                 flags.push_str("-c".to_str());
                 flags
-            }
+            },
             _ => continue,
         };
 
@@ -140,7 +140,7 @@ fn compile_sources(instance: &Hexane, compile: &mut CompileTarget) -> Result<()>
     }
 
     if let Ok(err) = err_recv.try_recv() {
-        return Err(err);
+        return_error!("{}" ,err);
     }
 
     Ok(())
