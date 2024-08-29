@@ -8,6 +8,7 @@ use std::sync::mpsc::channel;
 use std::thread;
 use pelite::pe::headers::SectionHeader;
 use pelite::PeFile;
+use crate::return_error;
 use crate::server::stream::Stream;
 use crate::server::error::{Error, Result};
 use crate::server::utils::{create_cpp_array, create_hash_macro, find_double_u32};
@@ -86,7 +87,8 @@ fn compile_sources(instance: &Hexane, target: &mut CompileTarget) -> Result<()> 
     let entries     = fs::read_dir(src_path)?;
 
     let (sender, receiver) = channel();
-    let arc_mux     = Arc::new(Mutex::new(()));
+    let arc_mux = Arc::new(Mutex::new(()));
+
     let mut handles = vec![];
 
     for entry in entries {
@@ -160,7 +162,7 @@ fn run_command(cmd: &str, logname: &str) -> Result<()> {
     log_file.write_all(&output.stderr)?;
 
     if !output.status.success() {
-        return Err(Error::Custom(format!("check {} for details", log_path.display())));
+        return_error!("check {} for details", log_path.display());
     }
 
     Ok(())
