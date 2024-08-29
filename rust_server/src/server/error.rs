@@ -1,4 +1,7 @@
+use core::fmt;
 use std::num::ParseIntError;
+use std::error::Error as StdError;
+
 use serde::de::{Deserialize, Deserializer};
 use derive_more::From;
 
@@ -26,52 +29,19 @@ macro_rules! length_check {
 
 pub type Result<T> = core::result::Result<T, Error>;
 
+
 #[derive(Debug, From)]
 pub enum Error {
-    #[from]
-    Custom(String),
-
-    #[from]
-    Io(std::io::Error),
-
-    #[from]
-    ParseInt(ParseIntError),
-
-    #[from]
-    SerdeJson(serde_json::error::Error),
-
-    #[from]
-    KeySize(KeySizeError),
-}
-
-#[derive(Debug)]
-pub struct KeySizeError(pub usize);
-
-impl std::error::Error for KeySizeError {}
-impl std::fmt::Display for KeySizeError {
-    fn fmt(&self, fmt: &mut core::fmt::Formatter) -> core::result::Result<(), core::fmt::Error> {
-        write!(fmt, "invalid key size: {}", self.0)
-    }
-}
-
-
-impl<'de> Deserialize<'de> for Error {
-    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
-    where D: Deserializer<'de>,
-    {
-        let msg = String::deserialize(deserializer)?;
-        Ok(Error::custom(msg))
-    }
-}
-
-impl core::fmt::Display for Error {
-    fn fmt(&self, fmt: &mut core::fmt::Formatter) -> core::result::Result<(), core::fmt::Error> {
-        write!(fmt, "{self:?}")
-    }
+    #[from] Io(std::io::Error),
+    #[from] ParseInt(ParseIntError),
+    #[from] SerdeJson(serde_json::error::Error),
+    #[from] KeySize(KeySizeError),
+    #[from] PeLite(pelite::Error),
+    #[from] Custom(String),
 }
 
 impl Error {
-    pub fn custom(val: impl std::fmt::Display) -> Self {
+    pub fn custom(val: impl fmt::Display) -> Self {
         Self::Custom(val.to_string())
     }
 }
@@ -82,8 +52,44 @@ impl From<&str> for Error {
     }
 }
 
-impl From<KeySizeError> for Error {
-    fn from(err: KeySizeError) -> Self {
-        Error::KeySize(err)
+impl fmt::Display for Error {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> core::result::Result<(), fmt::Error> {
+        write!(fmt, "{self:?}")
     }
 }
+
+impl From<&[u8]> for Error {
+    fn from(slice: &[u8]) -> Self {
+        match std::str::from_utf8(slice) {
+            Ok(s)   => Error::Custom(s.to_string()),
+            Err(_)  => Error::Custom(format!("invalid UTF-8 sequence: {:?}", slice)),
+        }
+    }
+}
+
+impl From<Box<dyn StdError>> for Error {
+    fn from(error: Box<dyn std::error::Error>) -> Self {
+        Error::Custom(error.to_string())
+    }
+}
+
+#[derive(Debug)]
+pub struct KeySizeError(pub usize);
+
+impl StdError for KeySizeError {}
+
+impl fmt::Display for KeySizeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "invalid key size: {}", self.0)
+    }
+}
+
+impl<'de> Deserialize<'de> for Error {
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
+    where D: Deserializer<'de>,
+    {
+        let msg = String::deserialize(deserializer)?;
+        Ok(Error::custom(msg))
+    }
+}
+
