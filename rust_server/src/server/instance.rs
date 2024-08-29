@@ -270,24 +270,6 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     Ok(())
 }
 
-pub(crate) fn print_instance(args: Vec<String>) -> Result<()> {
-    length_check_defer!(args, 3);
-
-    let name = &args[2];
-    let instances = INSTANCES.lock().unwrap();
-
-    for instance in instances.iter() {
-        if instance.builder.output_name.as_str() == name {
-            dbg!(instance);
-            wrap_message("info", format!("configuration for {name}"));
-
-            break;
-        }
-    }
-
-    Ok(())
-}
-
 pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
     length_check_defer!(args, 3);
 

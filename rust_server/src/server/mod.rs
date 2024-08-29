@@ -61,7 +61,6 @@ pub fn run_client() {
                 match args[1].as_str() {
                     "ls"    => { list_instances().unwrap_or_else(|e| wrap_message("error", e.to_string())) },
                     "load"  => { load_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
-                    "print" => { print_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string()))}
                     "rm"    => { remove_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
                     "i"     => { interact_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
 
