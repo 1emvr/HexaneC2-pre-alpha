@@ -22,7 +22,6 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
         Err(e)          => return Err(e),
     };
 
-    instance.check_config()?;
     instance.setup_instance()?;
 
     let ref session = SESSION.lock().unwrap();
@@ -84,22 +83,23 @@ impl Hexane {
     fn setup_instance(&mut self) -> Result<()> {
         let mut rng = rand::thread_rng();
 
+        self.peer_id = rng.random::<u32>();
+        self.group_id = 0;
+
         if self.main.debug {
             self.compiler.compiler_flags = String::from("-std=c++23 -g -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin -Wl,--no-seh,--enable-stdcall-fixup,--gc-sections");
         } else {
             self.compiler.compiler_flags = String::from("-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC  -fno-builtin -Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections");
         }
 
-        self.peer_id = rng.random::<u32>();
-        self.group_id = 0;
-
+        self.check_config()?;
+        self.generate_config_bytes()?;
         // todo: build process
-        // run_build(self);
 
         Ok(())
     }
 
-    fn generate_config_bytes(self: &mut Hexane) -> Result<()> {
+    fn generate_config_bytes(&mut self) -> Result<()> {
         self.crypt_key = crypt_create_key(16);
 
         let mut patch = self.create_binary_patch()?;
