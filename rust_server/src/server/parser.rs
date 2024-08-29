@@ -5,9 +5,9 @@ pub struct Parser {
     msg_buffer: Vec<u8>,
     big_endian: bool,
     msg_length: u32,
-    peer_id: u32,
-    task_id: u32,
-    msg_type: u32,
+    peer_id:    u32,
+    task_id:    u32,
+    msg_type:   u32,
 }
 
 impl Parser {

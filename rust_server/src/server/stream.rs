@@ -56,6 +56,7 @@ impl Stream {
 
 fn encode_utf8(s: &str) -> Vec<u8> {
     let mut string = s.to_owned();
+
     if !string.ends_with('\x00') {
         string.push('\x00');
     }
@@ -65,6 +66,7 @@ fn encode_utf8(s: &str) -> Vec<u8> {
 
 fn encode_utf16(s: &str) -> Vec<u8> {
     let (mut encoded, _, _) = UTF_16LE.encode(s);
+
     if !encoded.ends_with(&[0x00, 0x00]) {
         encoded.to_mut().extend_from_slice(&[0x00, 0x00]);
     }
@@ -74,6 +76,7 @@ fn encode_utf16(s: &str) -> Vec<u8> {
 
 fn decode_utf16(bytes: &[u8]) -> Result<String, FromUtf16Error> {
     let mut utf16 = Vec::with_capacity(bytes.len() / 2);
+
     for chunk in bytes.chunks(2) {
         utf16.push(u16::from_le_bytes([chunk[0], chunk[1]]));
     }
