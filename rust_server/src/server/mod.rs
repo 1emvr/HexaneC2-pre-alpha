@@ -26,7 +26,6 @@ use self::utils::{cursor, wrap_message, stop_print_channel};
 use self::instance::{Hexane, load_instance, interact_instance, remove_instance};
 use crate::server::format::list_instances;
 use crate::{invalid_input, length_check_continue};
-use crate::server::instance::print_instance;
 
 lazy_static!(
     static ref INSTANCES: Mutex<Vec<Hexane>> = Mutex::new(vec![]);
