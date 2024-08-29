@@ -280,6 +280,8 @@ pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
     let mut instances = INSTANCES.lock().map_err(|e| e.to_string())?;
     if let Some(pos) = instances.iter().position(|instance| instance.builder.output_name == args[2]) {
         instances.remove(pos);
+
+        println!("{} removed", instances[pos].builder.output_name);
         Ok(())
     } else {
         Err(Error::Custom("Implant not found".to_string()))

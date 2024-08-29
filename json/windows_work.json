@@ -37,7 +37,6 @@
 		"linker_script": "loader.ld",
 		"rsrc_script": "resource.rc",
 
-		"dependencies":[],
 		"sources": [
 			"dllmain.cpp", "resource.cpp"
 		],
