@@ -1,4 +1,8 @@
+use std::{fs, thread};
+use std::path::Path;
 use std::str::FromStr;
+use std::sync::{Arc, Mutex};
+use std::sync::mpsc::channel;
 use rand::Rng;
 
 use crate::return_error;
@@ -9,6 +13,7 @@ use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::types::{Hexane, InjectionOptions, NetworkOptions, TRANSPORT_PIPE, TRANSPORT_HTTP};
 use crate::server::utils::wrap_message;
 use crate::server::stream::Stream;
+use crate::server::builder::{compile_object, MINGW, NASM};
 
 use lazy_static::lazy_static;
 lazy_static!(
@@ -46,7 +51,6 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
 
 impl Hexane {
     fn generate_config_bytes(self: &mut Hexane) -> Result<()> {
-        // todo: should this really be exclusive to Hexane?
         self.crypt_key = crypt_create_key(16);
 
         let mut patch = self.create_binary_patch()?;
@@ -83,7 +87,6 @@ impl Hexane {
     }
 
     fn check_config(&mut self) -> Result<()> {
-        // check config
         if self.main.hostname.is_empty()                    { return_error!("a valid hostname must be provided") }
         if self.main.architecture.is_empty()                { return_error!("a valid architecture must be provided") }
         if self.main.jitter < 0 || self.main.jitter > 100   { return_error!("jitter cannot be less than 0% or greater than 100%") }
@@ -109,7 +112,6 @@ impl Hexane {
             if inc.is_empty() { return_error!("builder include_directories field found but include directories must be provided") }
         }
 
-        // check network
         match &mut self.network.options {
             NetworkOptions::Http(http) => {
 
@@ -147,7 +149,6 @@ impl Hexane {
             }
         }
 
-        // check loader
         if let Some(loader) = &mut self.loader {
             self.build_type = *BUILD_DLL;
 
@@ -178,6 +179,7 @@ impl Hexane {
         Ok(())
     }
 
+
     fn create_binary_patch(&self) -> Result<Vec<u8>> {
         let mut stream = Stream::new();
 
@@ -189,7 +191,11 @@ impl Hexane {
             return_error!("invalid network type")
         }
 
-        stream.pack_dword(1);
+        if self.main.architecture == "amd64" {
+            stream.pack_dword(1);
+        } else {
+            stream.pack_dword(0);
+        }
 
         if let Some(modules) = &self.builder.loaded_modules {
             for module in modules {

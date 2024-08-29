@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 use std::fs::{self, File, OpenOptions};
-use std::io::{self, BufRead, BufReader, Read, Write};
+use std::io::{self, BufRead, BufReader, Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
 use std::thread;
-
+use pelite::pe::headers::SectionHeader;
+use pelite::PeFile;
 use crate::server::stream::Stream;
 use crate::server::error::{Error, Result};
 use crate::server::utils::{create_cpp_array, create_hash_macro, find_double_u32};
@@ -19,7 +20,7 @@ pub(crate) const STRIP:     String = String::from("strip");
 pub(crate) const NASM:      String = String::from("nasm");
 pub(crate) const LINKER:    String = String::from("ld");
 
-struct Module {
+struct CompileTarget {
     root_directory: String,
     includes:       Option<Vec<String>>,
     definitions:    HashMap<String, Vec<u8>>,
@@ -50,7 +51,7 @@ fn generate_definitions(defs: HashMap<String, Vec<u8>>) -> String {
     definitions
 }
 
-fn compile_object(instance: &Hexane, mut command: String, output: &str, targets: Vec<String>, flags: Vec<String>, includes: Vec<String>, mut definitions: HashMap<String, Vec<u8>>) -> Result<()> {
+pub(crate) fn compile_object(instance: &Hexane, mut command: String, output: &str, targets: Vec<String>, flags: Vec<String>, includes: Vec<String>, mut definitions: HashMap<String, Vec<u8>>) -> Result<()> {
     if definitions.is_empty() {
         definitions = HashMap::new();
     }
@@ -80,47 +81,8 @@ fn compile_object(instance: &Hexane, mut command: String, output: &str, targets:
     run_command(&command, &instance.peer_id.to_string())
 }
 
-fn embed_section_data(path: &str, data: &[u8], sec_size: usize) -> Result<()> {
-    let mut read_file = OpenOptions::new().read(true).write(true).open(path)?;
-    let mut read_data = Vec::new();
-
-    read_file.read_to_end(&mut read_data)?;
-
-    let offset = find_double_u32(&read_data, &[0x41, 0x41, 0x41, 0x41]).map_err({
-        return Err(Error::Custom("pattern not found".to_string()))
-    });
-
-    if data.len() > sec_size {
-        return Err(Error::Custom(format!("data is longer than {} bytes", sec_size)))
-    }
-
-    read_data[offset..offset + data.len()].copy_from_slice(data);
-
-    if sec_size > data.len() {
-        read_data[offset + data.len()..offset + sec_size].fill(0x00);
-    }
-
-    read_file.write_all(&read_data)?;
-    Ok(())
-}
-
-fn copy_section_data(instance: &Hexane, path: &str, out: &str, target: &str) -> Result<()> {
-    let read_file   = File::open(path)?;
-    let pe_file     = pelite::File::parse(&read_file)?;
-    let section     = pe_file.sections.iter().find(|s| s.name == target).map_err({
-            return Err(Error::Custom("could not parse PE sections"))
-    });
-
-    let mut out_data = vec![0; section.size as usize];
-    read_file.read_to_end(&mut out_data, section.pointer_to_raw_data as u64)?;
-
-    fs::write(out, out_data)?;
-    Ok(())
-}
-
-
-fn compile_sources(instance: &Hexane, module: &mut Module) -> Result<()> {
-    let src_path    = Path::new(&module.root_directory).join("src");
+fn compile_sources(instance: &Hexane, target: &mut CompileTarget) -> Result<()> {
+    let src_path    = Path::new(&target.root_directory).join("src");
     let entries     = fs::read_dir(src_path)?;
 
     let (sender, receiver) = channel();
@@ -141,7 +103,7 @@ fn compile_sources(instance: &Hexane, module: &mut Module) -> Result<()> {
             Some("asm") => vec!["-f win64".to_string()],
             Some("cpp") => {
                 let mut flags = instance.compiler.compiler_flags.clone();
-                flags.push("-c".to_string());
+                flags.push_str("-c".to_str());
                 flags
             }
             _ => continue,
@@ -149,14 +111,14 @@ fn compile_sources(instance: &Hexane, module: &mut Module) -> Result<()> {
 
         let arc_mux_clone   = Arc::clone(&arc_mux);
         let sender_clone    = sender.clone();
-        let mut components  = module.components.clone();
+        let mut components  = target.components.clone();
 
         let handle = thread::spawn(move || {
             let _guard = arc_mux_clone.lock().unwrap();
 
             let result = match target.extension().and_then(|ext| ext.to_str()) {
                 Some("asm") => compile_object(instance, NASM, output.to_str().unwrap(), vec![target.to_str().unwrap().to_string()], flags, vec![], HashMap::new()),
-                Some("cpp") => compile_object(instance, MINGW, output.to_str().unwrap(), vec![target.to_str().unwrap().to_string()], flags, module.includes.unwrap().clone(), module.definitions.clone()),
+                Some("cpp") => compile_object(instance, MINGW, output.to_str().unwrap(), vec![target.to_str().unwrap().to_string()], flags, target.includes.unwrap().clone(), target.definitions.clone()),
                 _ => Ok(()),
             };
 
@@ -181,7 +143,6 @@ fn compile_sources(instance: &Hexane, module: &mut Module) -> Result<()> {
 
     Ok(())
 }
-
 
 fn run_command(cmd: &str, logname: &str) -> Result<()> {
     let shell   = if cfg!(target_os = "windows") { "cmd" } else { "bash" };
