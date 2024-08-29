@@ -3,6 +3,7 @@ use std::path::{Path};
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
 use std::{env, thread};
+use rayon::prelude::*;
 use std::fs;
 
 use crate::return_error;
@@ -46,7 +47,7 @@ fn compile_object(instance: &Hexane, mut command: String, output: &str, targets:
         definitions = HashMap::new();
     }
 
-    if instance.main.debug && command != *LINKER {
+    if instance.main.debug && command != "ld" {
         definitions.insert("DEBUG".to_string(), vec![]);
     }
 
@@ -74,15 +75,14 @@ fn compile_object(instance: &Hexane, mut command: String, output: &str, targets:
 // todo: define build path and logs path
 fn compile_sources(instance: &Hexane, compile: &mut CompileTarget) -> Result<()> {
 
-    let src_path    = Path::new(&compile.root_directory).join("src");
-    let entries     = fs::read_dir(src_path)?;
+    let src_path = Path::new(&compile.root_directory).join("src");
+    let entries: Vec<_> = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
 
     let atoms                   = Arc::new(Mutex::new(()));
     let (err_send, err_recv)    = channel();
     let mut handles             = vec![];
 
-    for entry in entries {
-        let src = entry?;
+    entries.par_iter().for_each(|src| {
         if !src.metadata()?.is_file() {
             continue;
         }
@@ -124,7 +124,7 @@ fn compile_sources(instance: &Hexane, compile: &mut CompileTarget) -> Result<()>
         });
 
         handles.push(handle);
-    }
+    });
 
     drop(err_send);
 
