@@ -31,7 +31,7 @@ impl Cipher {
     }
 }
 
-fn crypt_create_key(length: usize) -> Vec<u8> {
+pub fn crypt_create_key(length: usize) -> Vec<u8> {
     let seed = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
     let mut rng = StdRng::seed_from_u64(seed as u64);
     let mut key = vec![0u8; length];
@@ -87,7 +87,7 @@ fn xtea_divide(data: &[u8]) -> Vec<&[u8]> {
     data.chunks(BLOCK_SIZE).collect()
 }
 
-fn crypt_xtea(config: &[u8], key: &[u8], encrypt: bool) -> Result<Vec<u8>, Box<dyn Error>> {
+pub fn crypt_xtea(config: &[u8], key: &[u8], encrypt: bool) -> Result<Vec<u8>, Box<dyn Error>> {
     let cipher = new_cipher(key)?;
     let sections = xtea_divide(config);
     let mut out = Vec::with_capacity(config.len());

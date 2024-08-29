@@ -3,6 +3,7 @@ mod types;
 mod error;
 mod session;
 mod cipher;
+mod stream;
 
 use std::fs;
 use serde_json;
@@ -15,6 +16,7 @@ use core::fmt::Display;
 use std::sync::Mutex;
 
 use crate::return_error;
+use self::cipher::{crypt_create_key, crypt_xtea};
 use self::error::{Error, Result};
 use self::session::{init, USERAGENT, CURDIR};
 use self::types::{Hexane, JsonData, Compiler, UserSession, InjectionOptions, NetworkOptions};
@@ -100,10 +102,29 @@ fn setup_instance(instance: &mut Hexane) -> Result<()> {
     }
 
     let mut rng = rand::thread_rng();
+
     instance.peer_id = rng.gen::<u32>();
+    instance.crypt_key = crypt_create_key(16);
 
     Ok(())
 }
+impl Hexane {
+    pub fn generate_config_bytes(&mut self) -> Result<()> {
+        self.crypt_key = crypt_create_key(16);
+
+        let mut patch = self.create_binary_patch()?;
+        if self.main.encrypt {
+            let patch_cpy = patch.clone();
+            patch = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
+        }
+
+        self.config_data = patch;
+
+        Ok(())
+    }
+}
+
+
 
 fn check_instance(instance: &mut Hexane) -> Result<()> {
     // check config

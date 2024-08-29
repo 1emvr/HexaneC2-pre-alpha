@@ -12,3 +12,5 @@ crossbeam-channel = "0.5.13"
 derive_more = { version = "1.0.0", features = ["from"] }
 colored = "2.1.0"
 rand = "0.9.0-alpha.2"
+byteorder = "1.5.0"
+encoding_rs = "0.8.34"
