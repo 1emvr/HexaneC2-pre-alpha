@@ -6,6 +6,7 @@ use crate::server::INSTANCES;
 use crate::server::session::USERAGENT;
 use crate::server::error::{Error, Result};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
+use crate::server::format::hexane_debug;
 use crate::server::types::{InjectionOptions, NetworkOptions, TRANSPORT_PIPE, TRANSPORT_HTTP, Config, Compiler, Network, Builder, Loader, UserSession};
 use crate::server::utils::wrap_message;
 use crate::server::stream::Stream;
@@ -30,13 +31,10 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
         instance.setup_listener()?;
     }
 
-    let build_dir   = instance.compiler.build_directory.as_str();
-    let name        = instance.builder.output_name.as_str();
-    let ext         = instance.compiler.file_extension.as_str();
-
-    wrap_message("info", format!("{}/{}.{} is ready", build_dir, name, ext));
-    dbg!(&instance);
-
+    if instance.main.debug {
+        hexane_debug(&instance);
+    }
+    wrap_message("info", format!("{} is ready", instance.builder.output_name));
     INSTANCES.lock().unwrap().push(instance);
 
     Ok(())
