@@ -113,10 +113,11 @@ impl Hexane {
                     if domain.is_empty() { return_error!("domain name field found but domain name must be provided") }
                 }
 
+                // todo: proxy should not be exclusive to http (socks5, ftp, smtp etc)
                 if let Some(proxy) = &http.proxy {
+                    if proxy.proto.is_empty()               { return_error!("proxy protocol must be provided") }
                     if proxy.address.is_empty()             { return_error!("proxy field detected but proxy address must be provided") }
                     if proxy.port < 0 || proxy.port > 65535 { return_error!("proxy field detected but proxy port must be between 0-65535") }
-                    if proxy.proto.is_empty()               { return_error!("proxy protocol must be provided") }
 
                     if let Some(username) = &proxy.username {
                         if username.is_empty() { return_error!("proxy username field detected but the username was not provided") }
