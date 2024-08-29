@@ -95,7 +95,7 @@ impl Hexane {
         self.check_config()?;
         self.generate_config_bytes()?;
         // todo: build process
-        // todo: write config to db
+        // todo: add config db write/delete
 
         Ok(())
     }
