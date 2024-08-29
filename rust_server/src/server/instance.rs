@@ -6,7 +6,7 @@ use crate::server::session::{SESSION, USERAGENT};
 use crate::server::error::{Error, Result};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::types::{InjectionOptions, NetworkOptions, TRANSPORT_PIPE, TRANSPORT_HTTP, Config, Compiler, Network, Builder, Loader, UserSession};
-use crate::{return_error, length_check_defer, length_check_continue};
+use crate::{return_error, length_check_defer};
 use crate::server::utils::wrap_message;
 use crate::server::stream::Stream;
 
