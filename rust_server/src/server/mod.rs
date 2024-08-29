@@ -46,9 +46,10 @@ pub fn run_client() {
         }
 
         let args: Vec<String> = input.split_whitespace().map(str::to_string).collect();
-
         if args[0].as_str() == "exit" {
             break;
+        } else if args[0].as_str() == "help" {
+            print_help();
         } else {
             length_check_continue!(args, 2);
         }
@@ -86,4 +87,8 @@ pub fn run_client() {
     }
 
     stop_print_channel();
+}
+
+pub fn print_help() {
+
 }
