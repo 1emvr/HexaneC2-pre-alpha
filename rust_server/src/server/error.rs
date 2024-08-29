@@ -3,6 +3,13 @@ use derive_more::From;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
+#[macro_export]
+macro_rules! return_error {
+    ($($arg:tt)*) => {
+        return Err(Error::Custom(format!($($arg)*)))
+    };
+}
+
 #[derive(Debug, From)]
 pub enum Error {
     #[from]

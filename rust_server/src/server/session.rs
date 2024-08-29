@@ -43,6 +43,7 @@ lazy_static! {
     pub(crate) static ref DEBUG: bool           = ARGS.debug;
     pub(crate) static ref SHOW_COMPILER: bool   = ARGS.show_compiler;
     pub(crate) static ref CURDIR: PathBuf       = env::current_dir().unwrap();
+    pub(crate) static ref USERAGENT: String     = String::from("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36");
 }
 
 pub fn init() {

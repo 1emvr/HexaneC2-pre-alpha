@@ -114,7 +114,7 @@ pub struct Config {
 pub struct Builder {
     pub(crate) output_name:            String,
     pub(crate) root_directory:         String,
-    pub(crate) linker_script:          String,
+    pub(crate) linker_script:          Option<String>,
     pub(crate) loaded_modules:         Option<Vec<String>>,
     pub(crate) dependencies:           Option<Vec<String>>,
     pub(crate) include_directories:    Option<Vec<String>>,
@@ -161,7 +161,7 @@ pub struct MessageParser {
 pub struct Compiler {
     pub(crate) file_extension:     String,
     pub(crate) build_directory:    String,
-    pub(crate) compiler_flags:     Vec<String>,
+    pub(crate) compiler_flags:     String,
 }
 
 #[derive(Debug)]
