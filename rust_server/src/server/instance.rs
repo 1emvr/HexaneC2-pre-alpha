@@ -15,6 +15,28 @@ const BUILD_DLL: u32 = 0;
 const BUILD_SHC: u32 = 1;
 
 
+pub fn get_config_by_name<'a> (name: &str) -> Result<&'a Hexane> {
+    let instances = INSTANCES.lock().unwrap();
+
+    for instance in instances.iter() {
+        if instance.builder.output_name.as_str() == name {
+            return Ok(instance);
+        }
+    }
+    return_error!("instance {name} not found")
+}
+
+pub fn get_config_by_pid<'a> (pid: u32) -> Result<&'a Hexane> {
+    let instances = INSTANCES.lock().unwrap();
+
+    for instance in instances.iter() {
+        if instance.peer_id == pid {
+            return Ok(instance);
+        }
+    }
+    return_error!("instance {pid} not found")
+}
+
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     length_check_defer!(args, 3);
 
@@ -294,27 +316,5 @@ impl Hexane {
 
         Ok(stream.buffer)
     }
-}
-
-pub(crate) fn get_config_by_name<'a> (name: &str) -> Result<&'a Hexane> {
-    let instances = INSTANCES.lock().unwrap();
-
-    for instance in instances.iter() {
-        if instance.builder.output_name.as_str() == name {
-            return Ok(instance);
-        }
-    }
-    return_error!("instance {name} not found")
-}
-
-pub(crate) fn get_config_by_pid<'a> (pid: u32) -> Result<&'a Hexane> {
-    let instances = INSTANCES.lock().unwrap();
-
-    for instance in instances.iter() {
-        if instance.peer_id == pid {
-            return Ok(instance);
-        }
-    }
-    return_error!("instance {pid} not found")
 }
 
