@@ -8,6 +8,7 @@ use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::{return_error, length_check_defer};
 use crate::server::error::{Error, Result};
 use crate::server::utils::wrap_message;
+use crate::server::config::map_config;
 use crate::server::stream::Stream;
 
 const BUILD_DLL: u32 = 0;
@@ -17,7 +18,7 @@ const BUILD_SHC: u32 = 1;
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     length_check_defer!(args, 3);
 
-    let mut instance = match crate::server::config::map_config(&args[2]) {
+    let mut instance = match map_config(&args[2]) {
         Ok(instance)    => instance,
         Err(e)          => return Err(e),
     };
