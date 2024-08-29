@@ -143,6 +143,10 @@ impl Hexane {
                 if linker.is_empty() { return_error!("loader ld field detected but linker script must be provided")}
             }
 
+            if let Some(deps) = &loader.dependencies {
+                if deps.is_empty() { return_error!("loader dependencies field found but dependencies must be provided") }
+            }
+
             match &mut loader.injection.options {
                 InjectionOptions::Threadless(threadless) => {
                     if threadless.execute_object.is_empty()     { return_error!("loader field detected 'threadless' injection but an execute_object must be provided")}
