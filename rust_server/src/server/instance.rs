@@ -280,7 +280,7 @@ pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
     let mut instances = INSTANCES.lock().map_err(|e| e.to_string())?;
     if let Some(pos) = instances.iter().position(|instance| instance.builder.output_name == args[2]) {
 
-        println!("{} removed", instances[pos].builder.output_name);
+        wrap_message("info", format!("{} removed", instances[pos].builder.output_name));
         instances.remove(pos);
 
         Ok(())
