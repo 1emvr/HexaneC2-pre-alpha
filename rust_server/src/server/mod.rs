@@ -20,10 +20,10 @@ use core::fmt::Display;
 use std::str::FromStr;
 use std::sync::Mutex;
 
-use crate::invalid_input;
 use self::session::{init};
 use self::utils::{cursor, wrap_message, stop_print_channel};
 use self::instance::{Hexane, load_instance, interact_instance, list_instances, remove_instance};
+use crate::{invalid_input, length_check};
 
 lazy_static!(
     static ref INSTANCES: Mutex<Vec<Hexane>> = Mutex::new(vec![]);
@@ -48,15 +48,13 @@ pub fn run_client() {
         if args[0].as_str() == "exit" {
             break;
         } else {
-            if args.len() < 2 {
-                invalid_input!(args.join(" ").to_string());
-                continue;
-            }
+            length_check!(args, 2);
         }
 
         match args[0].as_str() {
-
             "implant" => {
+
+                length_check!(args, 2);
                 match args[1].as_str() {
                     "load"  => { load_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
                     "ls"    => { list_instances(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
@@ -68,6 +66,7 @@ pub fn run_client() {
             },
 
             "listener" => {
+                length_check!(args, 2);
                 match args[1].as_str() {
 
                     // todo: "attach" - find implant by name and attach an associated listener

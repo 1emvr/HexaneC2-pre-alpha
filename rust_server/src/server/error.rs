@@ -2,6 +2,28 @@ use std::num::ParseIntError;
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use derive_more::From;
 
+#[macro_export]
+macro_rules! return_error {
+    ($($arg:tt)*) => {
+        return Err(Error::Custom(format!($($arg)*)))
+    };
+}
+
+#[macro_export]
+macro_rules! invalid_input {
+    ($arg:expr) => { wrap_message("error", format!("invalid input: {}", $arg)); };
+}
+
+#[macro_export]
+macro_rules! length_check {
+    ($arg:expr, $len:expr) => {
+        if $arg.len() > $len {
+            wrap_message("error", format!("invalid arguments: {}", $len));
+            continue;
+        }
+    };
+}
+
 pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug, From)]
@@ -20,18 +42,6 @@ pub enum Error {
 
     #[from]
     KeySize(KeySizeError),
-}
-
-#[macro_export]
-macro_rules! return_error {
-    ($($arg:tt)*) => {
-        return Err(Error::Custom(format!($($arg)*)))
-    };
-}
-
-#[macro_export]
-macro_rules! invalid_input {
-    ($arg:expr) => { wrap_message("error", format!("invalid input: {}", $arg)); };
 }
 
 #[derive(Debug)]
