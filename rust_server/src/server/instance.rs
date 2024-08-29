@@ -57,17 +57,7 @@ pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
 
 pub(crate) fn interact_instance(args: Vec<String>) -> Result<()> {
     todo!()
-}
-
-pub(crate) fn get_config_by_name<'a> (name: &str) -> Result<&'a Hexane> {
-    let instances = INSTANCES.lock().unwrap();
-
-    for instance in instances.iter() {
-        if instance.builder.output_name.as_str() == name {
-            return Ok(instance);
-        }
-    }
-    return_error!("instance {name} not found")
+    // get channels/db saved to disk
 }
 
 #[derive(Debug)]
@@ -300,5 +290,27 @@ impl Hexane {
 
         Ok(stream.buffer)
     }
+}
+
+pub(crate) fn get_config_by_name<'a> (name: &str) -> Result<&'a Hexane> {
+    let instances = INSTANCES.lock().unwrap();
+
+    for instance in instances.iter() {
+        if instance.builder.output_name.as_str() == name {
+            return Ok(instance);
+        }
+    }
+    return_error!("instance {name} not found")
+}
+
+pub(crate) fn get_config_by_pid<'a> (pid: u32) -> Result<&'a Hexane> {
+    let instances = INSTANCES.lock().unwrap();
+
+    for instance in instances.iter() {
+        if instance.peer_id == pid {
+            return Ok(instance);
+        }
+    }
+    return_error!("instance {pid} not found")
 }
 
