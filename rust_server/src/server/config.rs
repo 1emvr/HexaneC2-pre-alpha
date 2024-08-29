@@ -8,9 +8,34 @@ use crate::server::stream::Stream;
 use crate::server::types::{Compiler, Hexane, InjectionOptions, JsonData, NetworkOptions, UserSession, TRANSPORT_HTTP, TRANSPORT_PIPE};
 use crate::server::session::{CURDIR, USERAGENT};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
+use crate::server::{setup_listener, INSTANCES};
 use crate::server::utils::wrap_message;
 
-pub(crate) fn setup_instance(instance: &mut Hexane) -> crate::server::error::Result<()> {
+pub(crate) fn load_instance(args: Vec<String>) -> crate::server::error::Result<()> {
+
+    if args.len() != 2 {
+        wrap_message("error", format!("invalid input: {} arguments", args.len()))
+    }
+    let mut instance = match map_config(&args[1]) {
+        Ok(instance)    => instance,
+        Err(e)          =>  return Err(e),
+    };
+
+    // todo: listener setup
+    setup_instance(&mut instance)?;
+    setup_listener(&mut instance)?;
+
+    let build_dir   = instance.compiler.build_directory.as_str();
+    let name        = instance.builder.output_name.as_str();
+    let ext         = instance.compiler.file_extension.as_str();
+
+    wrap_message("info", format!("{}/{}.{} is ready", build_dir, name, ext));
+    INSTANCES.lock().unwrap().push(instance);
+
+    Ok(())
+}
+
+fn setup_instance(instance: &mut Hexane) -> crate::server::error::Result<()> {
     let mut rng = rand::thread_rng();
 
     if instance.main.debug {
