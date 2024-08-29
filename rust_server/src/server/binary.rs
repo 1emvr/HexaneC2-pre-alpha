@@ -60,7 +60,7 @@ fn embed_section_data(target_path: &str, target_section: &str, data: &[u8]) -> R
     }
 
     if offset + data.len() > size {
-        return_error!("data is too long to be written to the offset. this would write OOB")
+        return_error!("data is too long to be written to the offset of 'AAAA'. this would write OOB")
     }
 
     section_data.data[offset..offset + data.len()].copy_from_slice(data);
