@@ -1,9 +1,9 @@
 use std::fs;
-use std::str::FromStr;
-use crate::server::session::{CURDIR};
+use crate::server::instance::Hexane;
 use crate::server::error::{Result, Error};
-use crate::server::types::{Compiler, Hexane, JsonData, UserSession};
+use crate::server::types::{Compiler, JsonData, UserSession};
 use crate::server::utils::wrap_message;
+use crate::server::session::{CURDIR};
 
 
 pub(crate) fn map_config(file_path: &String) -> Result<Hexane> {

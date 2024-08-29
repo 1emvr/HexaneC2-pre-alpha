@@ -172,7 +172,7 @@ impl Hexane {
         }
 
         if let Some(loader) = &mut self.loader {
-            self.build_type = *BUILD_DLL;
+            self.build_type = BUILD_DLL;
 
             if loader.root_directory.is_empty() { return_error!("loader field detected but root_directory must be provided")}
             if loader.sources.is_empty()        { return_error!("loader field detected but sources must be provided")}
@@ -195,7 +195,7 @@ impl Hexane {
                 }
             }
         } else {
-            self.build_type = *BUILD_SHC;
+            self.build_type = BUILD_SHC;
         }
 
         Ok(())

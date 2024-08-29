@@ -1,5 +1,5 @@
 use std::num::ParseIntError;
-use serde::de::{Deserialize, Deserializer, Error as DeError};
+use serde::de::{Deserialize, Deserializer};
 use derive_more::From;
 
 #[macro_export]

@@ -7,7 +7,7 @@ use std::env;
 use std::fs;
 
 use crate::return_error;
-use crate::server::error::Result;
+use crate::server::error::{Error, Result};
 use crate::server::utils::{create_cpp_array, run_command};
 
 struct CompileTarget {
