@@ -5,6 +5,8 @@ mod session;
 mod config;
 mod cipher;
 mod stream;
+mod instance;
+mod listener;
 
 use serde_json;
 use serde::Deserialize;
@@ -19,8 +21,8 @@ use std::sync::Mutex;
 use crate::invalid_input;
 use self::types::{Hexane};
 use self::session::{init};
-use self::config::{load_instance};
 use self::utils::{cursor, wrap_message, stop_print_channel};
+use self::instance::load_instance;
 
 lazy_static!(
     static ref INSTANCES: Mutex<Vec<Hexane>> = Mutex::new(vec![]);
