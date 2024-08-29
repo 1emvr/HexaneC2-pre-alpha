@@ -29,7 +29,7 @@ impl Stream {
 
     pub fn pack_bytes(&mut self, data: &[u8]) {
         let len = data.len() as u32;
-        self.pack_dword(len);  // Pack the length of the byte array
+        self.pack_dword(len);
         self.buffer.extend_from_slice(data);
     }
 
@@ -59,6 +59,7 @@ fn encode_utf8(s: &str) -> Vec<u8> {
     if !string.ends_with('\x00') {
         string.push('\x00');
     }
+
     string.into_bytes()
 }
 
@@ -67,6 +68,7 @@ fn encode_utf16(s: &str) -> Result<Vec<u8>, FromUtf16Error> {
     if !encoded.ends_with(&[0x00, 0x00]) {
         encoded.extend_from_slice(&[0x00, 0x00]);
     }
+
     Ok(encoded)
 }
 
@@ -75,5 +77,6 @@ fn decode_utf16(bytes: &[u8]) -> Result<String, FromUtf16Error> {
     for chunk in bytes.chunks(2) {
         utf16.push(u16::from_le_bytes([chunk[0], chunk[1]]));
     }
+
     String::from_utf16(&utf16)
 }
