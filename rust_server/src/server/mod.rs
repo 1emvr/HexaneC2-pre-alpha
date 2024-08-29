@@ -21,7 +21,7 @@ use self::types::{Hexane};
 use self::session::{init};
 use self::error::{Result};
 use self::utils::{cursor, wrap_message, stop_print_channel};
-use self::config::{check_instance, setup_instance, map_config};
+use self::config::{setup_instance, map_config};
 
 lazy_static!(
     static ref INSTANCES: Mutex<Vec<Hexane>> = Mutex::new(vec![]);

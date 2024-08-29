@@ -10,7 +10,22 @@ use crate::server::session::{CURDIR, USERAGENT};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::utils::wrap_message;
 
-pub fn map_config(file_path: &String) -> crate::server::error::Result<Hexane> {
+pub(crate) fn setup_instance(instance: &mut Hexane) -> crate::server::error::Result<()> {
+    let mut rng = rand::thread_rng();
+
+    if instance.main.debug {
+        instance.compiler.compiler_flags = String::from("-std=c++23 -g -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin -Wl,--no-seh,--enable-stdcall-fixup,--gc-sections");
+    } else {
+        instance.compiler.compiler_flags = String::from("-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC  -fno-builtin -Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections");
+    }
+
+    instance.peer_id = rng.random::<u32>();
+    instance.group_id = 0;
+
+    Ok(())
+}
+
+fn map_config(file_path: &String) -> crate::server::error::Result<Hexane> {
 
     let json_file = CURDIR.join("json").join(file_path);
     let contents = fs::read_to_string(json_file).map_err(Error::Io)?;
@@ -51,22 +66,7 @@ pub fn map_config(file_path: &String) -> crate::server::error::Result<Hexane> {
     Ok(instance)
 }
 
-pub(crate) fn setup_instance(instance: &mut Hexane) -> crate::server::error::Result<()> {
-    let mut rng = rand::thread_rng();
-
-    if instance.main.debug {
-        instance.compiler.compiler_flags = String::from("-std=c++23 -g -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin -Wl,--no-seh,--enable-stdcall-fixup,--gc-sections");
-    } else {
-        instance.compiler.compiler_flags = String::from("-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC  -fno-builtin -Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections");
-    }
-
-    instance.peer_id = rng.random::<u32>();
-    instance.group_id = 0;
-
-    Ok(())
-}
-
-pub(crate) fn check_instance(instance: &mut Hexane) -> crate::server::error::Result<()> {
+fn check_instance(instance: &mut Hexane) -> crate::server::error::Result<()> {
     // check config
     {
         if instance.main.hostname.is_empty()                        { return_error!("a valid hostname must be provided") }
@@ -164,7 +164,7 @@ pub(crate) fn check_instance(instance: &mut Hexane) -> crate::server::error::Res
     Ok(())
 }
 
-pub fn generate_config_bytes(instance: &mut Hexane) -> crate::server::error::Result<()> {
+fn generate_config_bytes(instance: &mut Hexane) -> crate::server::error::Result<()> {
     instance.crypt_key = crypt_create_key(16);
 
     let mut patch = instance.create_binary_patch()?;
@@ -177,7 +177,7 @@ pub fn generate_config_bytes(instance: &mut Hexane) -> crate::server::error::Res
     Ok(())
 }
 
-pub fn create_binary_patch(instance: &Hexane) -> crate::server::error::Result<Vec<u8>> {
+fn create_binary_patch(instance: &Hexane) -> crate::server::error::Result<Vec<u8>> {
     let mut stream = Stream::new();
 
     match instance.network_type {
