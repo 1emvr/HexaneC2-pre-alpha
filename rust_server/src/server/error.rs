@@ -20,7 +20,7 @@ macro_rules! invalid_input {
 #[macro_export]
 macro_rules! length_check {
     ($arg:expr, $len:expr) => {
-        if $arg.len() > $len {
+        if $arg.len() < $len {
             wrap_message("error", format!("invalid arguments: {}", $len));
             continue;
         }
