@@ -1,21 +1,26 @@
 use std::collections::HashMap;
-use std::path::{Path};
+use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
-use std::{env, thread};
 use rayon::prelude::*;
+use std::env;
 use std::fs;
 
 use crate::return_error;
-use crate::server::error::{Result};
+use crate::server::error::Result;
 use crate::server::utils::{create_cpp_array, run_command};
-use crate::server::types::{Hexane};
+use crate::server::types::Hexane;
 
 struct CompileTarget {
+    command:        String,
     root_directory: String,
+    output_name:    String,
+    components:     Vec<String>,
+    flags:          Vec<String>,
     includes:       Option<Vec<String>>,
     definitions:    HashMap<String, Vec<u8>>,
-    components:     Vec<String>,
+    peer_id:        u32,
+    debug:          bool,
 }
 
 fn generate_includes(includes: Vec<String>) -> String {
@@ -42,100 +47,115 @@ fn generate_definitions(defs: HashMap<String, Vec<u8>>) -> String {
     definitions
 }
 
-fn compile_object(instance: &Hexane, mut command: String, output: &str, targets: Vec<String>, flags: Vec<String>, includes: Vec<String>, mut definitions: HashMap<String, Vec<u8>>) -> Result<()> {
-    if definitions.is_empty() {
-        definitions = HashMap::new();
+fn compile_object(mut compile_target: CompileTarget) -> Result<()> {
+    if compile_target.debug && compile_target.command != "ld" && compile_target.command != "nasm" {
+        compile_target
+            .definitions
+            .insert("DEBUG".to_string(), vec![]);
     }
 
-    if instance.main.debug && command != "ld" {
-        definitions.insert("DEBUG".to_string(), vec![]);
+    if let Some(includes) = &compile_target.includes {
+        if !includes.is_empty() {
+            compile_target.command += &generate_includes(includes.clone());
+        }
     }
 
-    if !includes.is_empty() {
-        command += &generate_includes(includes);
+    if !compile_target.components.is_empty() {
+        compile_target.command += &generate_arguments(compile_target.components.clone());
     }
 
-    if !targets.is_empty() {
-        command += &generate_arguments(targets);
+    if !compile_target.flags.is_empty() {
+        compile_target.command += &generate_arguments(compile_target.flags.clone());
     }
 
-    if !flags.is_empty() {
-        command += &generate_arguments(flags);
+    for (k, v) in &compile_target.definitions {
+        compile_target.command += &generate_definitions(HashMap::from([(k.clone(), v.clone())]));
     }
 
-    for (k, v) in definitions.iter() {
-        command += &generate_definitions(HashMap::from([(k.clone(), v.clone())]));
-    }
+    compile_target.command += &format!(" -o {} ", compile_target.output_name);
 
-    command += &format!(" -o {} ", output);
-
-    run_command(&command, &instance.peer_id.to_string())
+    run_command(&compile_target.command, &compile_target.peer_id.to_string())
 }
 
-// todo: define build path and logs path
 fn compile_sources(instance: &Hexane, compile: &mut CompileTarget) -> Result<()> {
-
     let src_path = Path::new(&compile.root_directory).join("src");
     let entries: Vec<_> = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
 
-    let atoms                   = Arc::new(Mutex::new(()));
-    let (err_send, err_recv)    = channel();
-    let mut handles             = vec![];
+    let (err_send, err_recv) = channel();
+    let atoms = Arc::new(Mutex::new(()));
 
     entries.par_iter().for_each(|src| {
-        if !src.metadata()?.is_file() {
-            continue;
+        if !src.metadata().map_or(false, |m| m.is_file()) {
+            return;
         }
 
-        let path    = src.path();
-        let output  = Path::new(&env::current_dir()? +"/build").join(compile.file_name().unwrap()).with_extension("o");
+        let path = src.path();
+        let output = Path::new(&env::current_dir().unwrap().join("build"))
+            .join(compile.output_name.clone())
+            .with_extension("o");
 
         let flags = match path.extension().and_then(|ext| ext.to_str()) {
             Some("asm") => vec!["-f win64".to_string()],
             Some("cpp") => {
-                let mut flags = instance.compiler.compiler_flags.clone();
-                flags.push_str("-c".to_str());
+                let mut flags = compile.flags.clone();
+                flags.push("-c".to_string());
                 flags
-            },
-            _ => continue,
+            }
+            _ => return,
         };
 
         let atoms_clone     = Arc::clone(&atoms);
-        let err_clone  = err_send.clone();
-
-        let includes        = compile.includes.clone();
+        let err_clone       = err_send.clone();
+        let inc_clone       = compile.includes.clone();
         let mut components  = compile.components.clone();
+        let def_clone       = compile.definitions.clone();
 
-        // todo: does this really need to be multithreaded?
-        let handle = thread::spawn(move || {
+        let result = {
             let _guard = atoms_clone.lock().unwrap();
+            match path.extension().and_then(|ext| ext.to_str()) {
+                Some("asm") => {
+                    let compile_target = CompileTarget {
+                        command:        "nasm".to_string(),
+                        root_directory: "".to_string(),
+                        output_name:    output.to_string_lossy().to_string(),
+                        components:     vec![path.to_string_lossy().to_string()],
+                        includes:       Some(vec![]),
+                        definitions:    HashMap::new(),
+                        peer_id:        compile.peer_id,
+                        debug:          compile.debug,
+                        flags,
+                    };
 
-            // todo: add config file extension
-            let result = match compile.extension().and_then(|ext| ext.to_str()) {
-                Some("asm") => compile_object(instance, "nasm", output.to_str().unwrap(), vec![path], flags, vec![], HashMap::new()),
-                Some("cpp") => compile_object(instance, "x86_64-w64-mingw32-g++", output.to_str().unwrap(), vec![path], flags, includes.unwrap(), &compile.definitions),
-                _ => Ok(())
-            };
+                    compile_object(compile_target)
+                }
+                Some("cpp") => {
+                    let compile_target = CompileTarget {
+                        command:        "x86_64-w64-mingw32-g++".to_string(),
+                        root_directory: "".to_string(),
+                        output_name:    output.to_string_lossy().to_string(),
+                        components:     vec![path.to_string_lossy().to_string()],
+                        includes:       inc_clone,
+                        definitions:    def_clone,
+                        peer_id:        compile.peer_id,
+                        debug:          compile.debug,
+                        flags,
+                    };
 
-            match result {
-                Ok(_)   => components.push(output.to_str().unwrap().to_string()),
-                Err(e)  => err_clone.send(e).unwrap(),
+                    compile_object(compile_target)
+                }
+                _ => Ok(()),
             }
-        });
+        };
 
-        handles.push(handle);
+        match result {
+            Ok(_) => components.push(output.to_str().unwrap().to_string()),
+            Err(e) => err_clone.send(e).unwrap(),
+        }
     });
 
-    drop(err_send);
-
-    for handle in handles {
-        handle.join().unwrap();
-    }
-
     if let Ok(err) = err_recv.try_recv() {
-        return_error!("{}" ,err);
+        return_error!("{}", err);
     }
 
     Ok(())
 }
-
