@@ -89,9 +89,7 @@ fn compile_sources(compile: &mut CompileTarget) -> Result<()> {
         }
 
         let path = src.path();
-        let output = Path::new(&env::current_dir().unwrap().join("build"))
-            .join(compile.output_name.clone())
-            .with_extension("o");
+        let output = Path::new(&env::current_dir().unwrap().join("build")).join(compile.output_name.clone()).with_extension("o");
 
         let atoms_clone     = Arc::clone(&atoms);
         let err_clone       = err_send.clone();
