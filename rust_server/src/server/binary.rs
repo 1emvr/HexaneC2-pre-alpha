@@ -3,7 +3,7 @@ use pelite::PeFile;
 
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
-
+use crate::return_error;
 use crate::server::error::{Result, Error};
 use crate::server::utils::find_double_u32;
 
@@ -33,7 +33,7 @@ fn get_section_header(target_path: &str, target_section: &str) -> Result<Section
             data:       read_data,
             section:    section_header,
         }),
-        None => Err(Error::Custom(format!("cannot find target section: {target_section}")))
+        None => return_error!("cannot find target section: {target_section}")
     }
 }
 
@@ -60,7 +60,7 @@ fn embed_section_data(target_path: &str, target_section: &str, data: &[u8]) -> R
     }
 
     if offset + data.len() > size {
-        return Err(Error::Custom("data is too long to be written to the offset. this would write OOB"))
+        return_error!("data is too long to be written to the offset. this would write OOB")
     }
 
     section_data.data[offset..offset + data.len()].copy_from_slice(data);

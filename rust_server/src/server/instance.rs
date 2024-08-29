@@ -173,7 +173,6 @@ impl Hexane {
         Ok(())
     }
 
-
     fn create_binary_patch(&self) -> Result<Vec<u8>> {
         let mut stream = Stream::new();
 
