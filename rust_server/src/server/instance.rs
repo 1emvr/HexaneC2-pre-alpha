@@ -1,8 +1,4 @@
-use std::{fs, thread};
-use std::path::Path;
 use std::str::FromStr;
-use std::sync::{Arc, Mutex};
-use std::sync::mpsc::channel;
 use rand::Rng;
 
 use crate::return_error;
@@ -13,7 +9,6 @@ use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::types::{Hexane, InjectionOptions, NetworkOptions, TRANSPORT_PIPE, TRANSPORT_HTTP};
 use crate::server::utils::wrap_message;
 use crate::server::stream::Stream;
-use crate::server::builder::{compile_object, MINGW, NASM};
 
 use lazy_static::lazy_static;
 lazy_static!(
@@ -92,9 +87,8 @@ impl Hexane {
         if self.main.jitter < 0 || self.main.jitter > 100   { return_error!("jitter cannot be less than 0% or greater than 100%") }
         if self.main.sleeptime < 0                          { return_error!("sleeptime cannot be less than zero. wtf are you doing?") }
 
-        // check builder
-        if self.builder.output_name.is_empty()      { return_error!("a name for the build must be provided") }
-        if self.builder.root_directory.is_empty()   { return_error!("a root directory for implant files must be provided") }
+        if self.builder.output_name.is_empty()              { return_error!("a name for the build must be provided") }
+        if self.builder.root_directory.is_empty()           { return_error!("a root directory for implant files must be provided") }
 
         if let Some(linker_script) = &self.builder.linker_script {
             if linker_script.is_empty() { return_error!("linker_script field found but linker script path must be provided") }
