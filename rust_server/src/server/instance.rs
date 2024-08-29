@@ -2,7 +2,7 @@ use std::str::FromStr;
 use rand::Rng;
 
 use crate::server::INSTANCES;
-use crate::server::session::USERAGENT;
+use crate::server::session::{SESSION, USERAGENT};
 use crate::server::error::{Error, Result};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::types::{InjectionOptions, NetworkOptions, TRANSPORT_PIPE, TRANSPORT_HTTP, Config, Compiler, Network, Builder, Loader, UserSession};
@@ -23,6 +23,10 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
 
     instance.check_config()?;
     instance.setup_instance()?;
+
+    let ref session = SESSION.lock().unwrap();
+    instance.user_session.username = session.username.clone();
+    instance.user_session.is_admin = session.is_admin.clone();
 
     if instance.network_type != *TRANSPORT_PIPE {
         instance.setup_listener()?;
