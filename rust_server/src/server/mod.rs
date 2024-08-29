@@ -49,21 +49,10 @@ pub fn run_client() {
                 }
 
                 match args[1].as_str() {
-                    "load" => {
-                        load_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string()))
-                    },
-
-                    "ls" => {
-                        todo!();
-                    }
-
-                    "rm" => {
-                        todo!();
-                    }
-
-                    "i" => {
-                        todo!();
-                    }
+                    "load"  => { load_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
+                    "ls"    => { todo!(); },
+                    "rm"    => { todo!(); },
+                    "i"     => { todo!(); }
 
                     _ => invalid_input!(args.join(" ").to_string())
                 }
@@ -76,9 +65,8 @@ pub fn run_client() {
                 }
 
                 match args[1].as_str() {
-                    "load" => {
-
-                    }
+                    // todo: attach - find implant by name and attach an associated listener
+                    "attach" => { },
 
                     _ => invalid_input!(args.join(" ").to_string())
                 }
