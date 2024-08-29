@@ -4,18 +4,11 @@ use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
 use std::{env, thread};
 use std::fs;
+
 use crate::return_error;
 use crate::server::error::{Result};
-use crate::server::session::CURDIR;
 use crate::server::utils::{create_cpp_array, run_command};
 use crate::server::types::{Hexane};
-
-pub(crate) const MINGW:     String = String::from("x86_64-w64-mingw32-g++");
-pub(crate) const OBJCOPY:   String = String::from("objcopy");
-pub(crate) const WINDRES:   String = String::from("windres");
-pub(crate) const STRIP:     String = String::from("strip");
-pub(crate) const NASM:      String = String::from("nasm");
-pub(crate) const LINKER:    String = String::from("ld");
 
 struct CompileTarget {
     root_directory: String,
