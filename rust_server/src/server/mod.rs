@@ -204,7 +204,7 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
         compiler: Compiler {
             file_extension:     String::from(""),
             build_directory:    String::from(""),
-            compiler_flags:     vec![],
+            compiler_flags:     String::from(""),
         },
 
         main:       json_data.config,
