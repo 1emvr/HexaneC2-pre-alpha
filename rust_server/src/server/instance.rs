@@ -95,8 +95,6 @@ impl Hexane {
 
         match &mut self.network.options {
             NetworkOptions::Http(http) => {
-
-                if http.port > 65535            { return_error!("http port must be between 0-65535") }
                 if http.address.is_empty()      { return_error!("a valid return url must be provided") }
                 if http.endpoints.is_empty()    { return_error!("at least one valid endpoint must be provided") }
                 if http.useragent.is_none()     { http.useragent = Some(USERAGENT.to_string()); }
@@ -111,7 +109,6 @@ impl Hexane {
 
                 // todo: proxy should not be exclusive to http (socks5, ftp, smtp etc)
                 if let Some(proxy) = &http.proxy {
-                    if proxy.port > 65535       { return_error!("proxy field detected but proxy port must be between 0-65535") }
                     if proxy.address.is_empty() { return_error!("proxy field detected but proxy address must be provided") }
                     if proxy.proto.is_empty()   { return_error!("proxy protocol must be provided") }
 
