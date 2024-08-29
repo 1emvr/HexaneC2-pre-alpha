@@ -39,7 +39,7 @@ impl Stream {
     }
 
     pub fn pack_wstring(&mut self, data: &str) {
-        let encoded = encode_utf16(data).unwrap_or_else(|_| vec![]);
+        let encoded = encode_utf16(data);
         self.pack_bytes(&encoded);
     }
 
@@ -63,13 +63,13 @@ fn encode_utf8(s: &str) -> Vec<u8> {
     string.into_bytes()
 }
 
-fn encode_utf16(s: &str) -> Result<Vec<u8>, FromUtf16Error> {
-    let mut encoded = UTF_16LE.encode(s).unwrap_or_else(|_| vec![]);
+fn encode_utf16(s: &str) -> Vec<u8> {
+    let (mut encoded, _, _) = UTF_16LE.encode(s);
     if !encoded.ends_with(&[0x00, 0x00]) {
-        encoded.extend_from_slice(&[0x00, 0x00]);
+        encoded.to_mut().extend_from_slice(&[0x00, 0x00]);
     }
 
-    Ok(encoded)
+    encoded.into_owned()
 }
 
 fn decode_utf16(bytes: &[u8]) -> Result<String, FromUtf16Error> {

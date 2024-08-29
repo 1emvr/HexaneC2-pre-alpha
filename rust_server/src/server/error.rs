@@ -11,7 +11,7 @@ macro_rules! return_error {
     };
 }
 
-#[derive(Debug, From)]
+#[derive(Debug)]
 pub enum Error {
     #[from]
     Custom(String),

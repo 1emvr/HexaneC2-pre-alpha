@@ -3,7 +3,7 @@ use std::str::FromStr;
 use rand::Rng;
 
 use crate::return_error;
-use crate::server::error::Error;
+use crate::server::error::{Result, Error};
 use crate::server::stream::Stream;
 use crate::server::types::{Compiler, Hexane, InjectionOptions, JsonData, NetworkOptions, UserSession, TRANSPORT_HTTP, TRANSPORT_PIPE};
 use crate::server::session::{CURDIR, USERAGENT};
@@ -11,10 +11,10 @@ use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::{setup_listener, INSTANCES};
 use crate::server::utils::wrap_message;
 
-pub(crate) fn load_instance(args: Vec<String>) -> crate::server::error::Result<()> {
+pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
 
     if args.len() != 2 {
-        wrap_message("error", format!("invalid input: {} arguments", args.len()))
+        return_error!(format!("invalid input: {} arguments", args.len()))
     }
     let mut instance = match map_config(&args[1]) {
         Ok(instance)    => instance,
@@ -35,7 +35,7 @@ pub(crate) fn load_instance(args: Vec<String>) -> crate::server::error::Result<(
     Ok(())
 }
 
-fn setup_instance(instance: &mut Hexane) -> crate::server::error::Result<()> {
+fn setup_instance(instance: &mut Hexane) -> Result<()> {
     let mut rng = rand::thread_rng();
 
     if instance.main.debug {
@@ -50,7 +50,7 @@ fn setup_instance(instance: &mut Hexane) -> crate::server::error::Result<()> {
     Ok(())
 }
 
-fn map_config(file_path: &String) -> crate::server::error::Result<Hexane> {
+fn map_config(file_path: &String) -> Result<Hexane> {
 
     let json_file = CURDIR.join("json").join(file_path);
     let contents = fs::read_to_string(json_file).map_err(Error::Io)?;
@@ -91,7 +91,7 @@ fn map_config(file_path: &String) -> crate::server::error::Result<Hexane> {
     Ok(instance)
 }
 
-fn check_instance(instance: &mut Hexane) -> crate::server::error::Result<()> {
+fn check_instance(instance: &mut Hexane) -> Result<()> {
     // check config
     {
         if instance.main.hostname.is_empty()                        { return_error!("a valid hostname must be provided") }
@@ -189,7 +189,7 @@ fn check_instance(instance: &mut Hexane) -> crate::server::error::Result<()> {
     Ok(())
 }
 
-fn generate_config_bytes(instance: &mut Hexane) -> crate::server::error::Result<()> {
+fn generate_config_bytes(instance: &mut Hexane) -> Result<()> {
     instance.crypt_key = crypt_create_key(16);
 
     let mut patch = instance.create_binary_patch()?;
@@ -202,7 +202,7 @@ fn generate_config_bytes(instance: &mut Hexane) -> crate::server::error::Result<
     Ok(())
 }
 
-fn create_binary_patch(instance: &Hexane) -> crate::server::error::Result<Vec<u8>> {
+fn create_binary_patch(instance: &Hexane) -> Result<Vec<u8>> {
     let mut stream = Stream::new();
 
     match instance.network_type {
