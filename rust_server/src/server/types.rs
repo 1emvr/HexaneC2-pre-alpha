@@ -1,4 +1,5 @@
 use clap::Parser;
+use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
 const MINGW:                &str = "x86_64-w64-mingw32-g++";
@@ -21,6 +22,11 @@ const COMMAND_MODS:         u32 = 0x00000002;
 const COMMAND_NO_JOB:       u32 = 0x00000003;
 const COMMAND_SHUTDOWN:     u32 = 0x00000004;
 const COMMAND_UPDATE_PEER:  u32 = 0x00000005;
+
+lazy_static!(
+    pub(crate) static ref TRANSPORT_HTTP: u32 = 1;
+    pub(crate) static ref TRANSPORT_PIPE: u32 = 0;
+);
 
 #[derive(Debug)]
 pub struct Message {

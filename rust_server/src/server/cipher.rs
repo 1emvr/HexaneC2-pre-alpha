@@ -57,8 +57,8 @@ fn get_hash_from_string(s: &str, is_unicode: bool) -> u32 {
 }
 
 fn create_hash_macro(s: &str) -> String {
-    let macro_name = s.to_uppercase().trim_end().to_string();
-    let lower = s.to_lowercase();
+    let macro_name  = s.to_uppercase().trim_end().to_string();
+    let lower       = s.to_lowercase();
     let (name, is_unicode) = if lower.ends_with(".dll") {
         (encode_utf16(&lower), true)
     } else {
@@ -76,10 +76,11 @@ fn new_cipher(key: &[u8]) -> Result<Cipher, KeySizeError> {
     if key.len() != 16 {
         return Err(KeySizeError(key.len()));
     }
+    let mut cipher = Cipher {
+        table: [0u32; NUM_ROUNDS]
+    };
 
-    let mut cipher = Cipher { table: [0u32; NUM_ROUNDS] };
     init_cipher(&mut cipher, key);
-
     Ok(cipher)
 }
 
@@ -88,17 +89,19 @@ fn xtea_divide(data: &[u8]) -> Vec<&[u8]> {
 }
 
 pub fn crypt_xtea(config: &[u8], key: &[u8], encrypt: bool) -> Result<Vec<u8>, Box<dyn Error>> {
-    let cipher = new_cipher(key)?;
-    let sections = xtea_divide(config);
-    let mut out = Vec::with_capacity(config.len());
+    let cipher      = new_cipher(key)?;
+    let sections    = xtea_divide(config);
+    let mut out     = Vec::with_capacity(config.len());
 
     for section in sections {
         let mut buf = [0u8; BLOCK_SIZE];
-        if encrypt {
+
+        if encrypt  {
             cipher.encrypt(&mut buf, section);
         } else {
             cipher.decrypt(&mut buf, section);
         }
+
         out.extend_from_slice(&buf);
     }
 
@@ -156,16 +159,4 @@ fn init_cipher(c: &mut Cipher, key: &[u8]) {
 
 fn encode_utf16(s: &str) -> Vec<u8> {
     s.encode_utf16().flat_map(|c| c.to_be_bytes()).collect()
-}
-
-fn main() {
-    // Example usage
-    let key = crypt_create_key(16);
-    let data = b"Hello, world!";
-    let encrypted = crypt_xtea(data, &key, true).unwrap();
-    let decrypted = crypt_xtea(&encrypted, &key, false).unwrap();
-
-    println!("Original: {:?}", String::from_utf8_lossy(data));
-    println!("Encrypted: {:?}", encrypted);
-    println!("Decrypted: {:?}", String::from_utf8_lossy(&decrypted));
 }

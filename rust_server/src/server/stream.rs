@@ -3,7 +3,7 @@ use encoding_rs::UTF_16LE;
 use std::string::FromUtf16Error;
 
 pub struct Stream {
-    buffer: Vec<u8>,
+    pub(crate) buffer: Vec<u8>,
 }
 
 impl Stream {
