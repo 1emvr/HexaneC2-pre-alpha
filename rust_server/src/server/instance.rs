@@ -144,7 +144,6 @@ impl Hexane {
         Ok(())
     }
 
-
     fn check_config(&mut self) -> Result<()> {
         if self.main.hostname.is_empty()            { return_error!("a valid hostname must be provided") }
         if self.main.architecture.is_empty()        { return_error!("a valid architecture must be provided") }
