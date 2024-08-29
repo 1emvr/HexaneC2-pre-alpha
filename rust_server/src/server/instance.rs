@@ -70,6 +70,7 @@ impl Hexane {
         Ok(())
     }
 
+
     fn check_config(&mut self) -> Result<()> {
         if self.main.hostname.is_empty()            { return_error!("a valid hostname must be provided") }
         if self.main.architecture.is_empty()        { return_error!("a valid architecture must be provided") }
@@ -284,7 +285,18 @@ pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
     }
 }
 
+
 pub(crate) fn interact_instance(args: Vec<String>) -> Result<()> {
     todo!()
 }
 
+pub(crate) fn get_config_by_name<'a> (name: &str) -> Result<&'a Hexane> {
+    let instances = INSTANCES.lock().unwrap();
+
+    for instance in instances.iter() {
+        if instance.builder.output_name.as_str() == name {
+            return Ok(instance);
+        }
+    }
+    return_error!("instance {name} not found")
+}
