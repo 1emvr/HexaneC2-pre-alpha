@@ -1,4 +1,5 @@
 use std::fs;
+use std::num::ParseIntError;
 use std::str::FromStr;
 use lazy_static::lazy_static;
 use crate::return_error;
@@ -195,13 +196,13 @@ fn create_binary_patch(instance: &Hexane) -> Result<Vec<u8>> {
     }
 
     let working_hours = if let Some(ref hours) = instance.main.working_hours {
-        i32::from_str(hours)?
+        i32::from_str(hours).map_err(Error::ParseInt)?
     } else {
         0
     };
 
     let kill_date = if let Some(ref date) = instance.main.killdate {
-        i64::from_str(date)?
+        i64::from_str(date).map_err(Error::ParseInt)?
     } else {
         0
     };

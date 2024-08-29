@@ -37,13 +37,13 @@ macro_rules! invalid_input {
 #[derive(Debug)]
 pub struct KeySizeError(pub usize);
 
+impl std::error::Error for KeySizeError {}
 impl std::fmt::Display for KeySizeError {
     fn fmt(&self, fmt: &mut core::fmt::Formatter) -> core::result::Result<(), core::fmt::Error> {
         write!(fmt, "invalid key size: {}", self.0)
     }
 }
 
-impl std::error::Error for KeySizeError {}
 
 impl<'de> Deserialize<'de> for Error {
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
