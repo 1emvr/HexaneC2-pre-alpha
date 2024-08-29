@@ -15,6 +15,7 @@ use std::io::{self, Write};
 use core::fmt::Display;
 use std::str::FromStr;
 use std::sync::Mutex;
+
 use crate::invalid_input;
 use self::types::{Hexane};
 use self::session::{init};
