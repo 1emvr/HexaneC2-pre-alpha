@@ -19,7 +19,7 @@ use rand::Rng;
 use std::io::{self, Write};
 use core::fmt::Display;
 use std::str::FromStr;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use self::session::{init};
 use self::utils::{cursor, wrap_message, stop_print_channel};
@@ -28,7 +28,7 @@ use crate::server::format::list_instances;
 use crate::{invalid_input, length_check_continue};
 
 lazy_static!(
-    static ref INSTANCES: Mutex<Vec<Hexane>> = Mutex::new(vec![]);
+    pub(crate) static ref INSTANCES: Arc<Mutex<Vec<Hexane>>> = Arc::new(Mutex::new(vec![]));
 );
 
 pub fn run_client() {

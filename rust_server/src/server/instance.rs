@@ -1,5 +1,6 @@
 use rand::Rng;
 use std::str::FromStr;
+use std::sync::{Arc, Mutex};
 
 use crate::server::INSTANCES;
 use crate::server::session::{SESSION, USERAGENT};
@@ -16,23 +17,23 @@ const BUILD_DLL: u32 = 0;
 const BUILD_SHC: u32 = 1;
 
 
-pub fn get_config_by_name(name: &str) -> Result<&mut Hexane> {
-    let mut instances = INSTANCES.lock().unwrap();
+pub fn get_config_by_name(name: &str) -> Result<Arc<Mutex<Hexane>>> {
+    let instances = INSTANCES.lock().unwrap();
 
-    for instance in instances.iter_mut() {
+    for instance in instances.iter() {
         if instance.builder.output_name.as_str() == name {
-            return Ok(instance);
+            return Ok(Arc::new(Mutex::new(instance)));
         }
     }
     return_error!("instance {name} not found")
 }
 
-pub fn get_config_by_pid(pid: u32) -> Result<&mut Hexane> {
-    let mut instances = INSTANCES.lock().unwrap();
+pub fn get_config_by_pid(pid: u32) -> Result<Arc<Mutex<Hexane>>> {
+    let instances = INSTANCES.lock().unwrap();
 
-    for instance in instances.iter_mut() {
+    for instance in instances.iter() {
         if instance.peer_id == pid {
-            return Ok(instance);
+            return Ok(Arc::new(Mutex::new(instance)));
         }
     }
     return_error!("instance {pid} not found")
