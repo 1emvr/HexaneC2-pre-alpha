@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use rand::Rng;
 
-use crate::return_error;
+use crate::{length_check, return_error};
 use crate::server::INSTANCES;
 use crate::server::session::USERAGENT;
 use crate::server::error::{Error, Result};
@@ -42,10 +42,13 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     Ok(())
 }
 
-pub fn remove_instance(name: &str) -> Result<()> {
-    let mut instances = INSTANCES.lock().map_err(|e| e.to_string())?;
+pub fn remove_instance(args: Vec<String>) -> Result<()> {
+    if args.len() != 3 {
+        return_error!("invalid input: {} arguments", args.len())
+    }
 
-    if let Some(pos) = instances.iter().position(|instance| instance.builder.output_name == name) {
+    let mut instances = INSTANCES.lock().map_err(|e| e.to_string())?;
+    if let Some(pos) = instances.iter().position(|instance| instance.builder.output_name == args[2]) {
         instances.remove(pos);
         Ok(())
     } else {

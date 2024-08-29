@@ -25,6 +25,7 @@ use self::session::{init};
 use self::utils::{cursor, wrap_message, stop_print_channel};
 use self::instance::{Hexane, load_instance, interact_instance, list_instances, remove_instance};
 use crate::{invalid_input, length_check};
+use crate::server::format::list_instances;
 
 lazy_static!(
     static ref INSTANCES: Mutex<Vec<Hexane>> = Mutex::new(vec![]);
@@ -57,8 +58,8 @@ pub fn run_client() {
 
                 length_check!(args, 2);
                 match args[1].as_str() {
+                    "ls"    => { list_instances().unwrap_or_else(|e| wrap_message("error", e.to_string())) },
                     "load"  => { load_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
-                    "ls"    => { list_instances(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
                     "rm"    => { remove_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
                     "i"     => { interact_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) }
 
