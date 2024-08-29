@@ -9,7 +9,6 @@ use std::fs;
 use crate::return_error;
 use crate::server::error::Result;
 use crate::server::utils::{create_cpp_array, run_command};
-use crate::server::types::Hexane;
 
 struct CompileTarget {
     command:        String,
@@ -78,11 +77,11 @@ fn compile_object(mut compile_target: CompileTarget) -> Result<()> {
 }
 
 fn compile_sources(compile: &mut CompileTarget) -> Result<()> {
-    let src_path = Path::new(&compile.root_directory).join("src");
-    let entries: Vec<_> = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
+    let src_path                = Path::new(&compile.root_directory).join("src");
+    let entries: Vec<_>         = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
 
-    let (err_send, err_recv) = channel();
-    let atoms = Arc::new(Mutex::new(()));
+    let atoms                   = Arc::new(Mutex::new(()));
+    let (err_send, err_recv)    = channel();
 
     entries.par_iter().for_each(|src| {
         if !src.metadata().map_or(false, |m| m.is_file()) {
