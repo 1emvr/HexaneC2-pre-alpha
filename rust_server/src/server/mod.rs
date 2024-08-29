@@ -1,12 +1,13 @@
-mod utils;
-mod types;
 mod error;
-mod session;
+mod types;
+mod utils;
 mod config;
 mod cipher;
 mod stream;
+mod session;
 mod instance;
 mod listener;
+mod parser;
 
 use serde_json;
 use serde::Deserialize;
