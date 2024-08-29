@@ -40,6 +40,18 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     Ok(())
 }
 
+pub(crate) fn list_instances(args: Vec<String>) -> Result<()> {
+    todo!()
+}
+
+pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
+    todo!()
+}
+
+pub(crate) fn interact_instance(args: Vec<String>) -> Result<()> {
+    todo!()
+}
+
 #[derive(Debug)]
 pub struct Hexane {
     pub(crate) current_taskid:  u32,

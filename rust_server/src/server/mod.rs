@@ -23,7 +23,7 @@ use std::sync::Mutex;
 use crate::invalid_input;
 use self::session::{init};
 use self::utils::{cursor, wrap_message, stop_print_channel};
-use self::instance::{Hexane, load_instance};
+use self::instance::{Hexane, load_instance, interact_instance, list_instances, remove_instance};
 
 lazy_static!(
     static ref INSTANCES: Mutex<Vec<Hexane>> = Mutex::new(vec![]);
@@ -59,9 +59,9 @@ pub fn run_client() {
             "implant" => {
                 match args[1].as_str() {
                     "load"  => { load_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
-                    "ls"    => { todo!(); },
-                    "rm"    => { todo!(); },
-                    "i"     => { todo!(); }
+                    "ls"    => { list_instances(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
+                    "rm"    => { remove_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
+                    "i"     => { interact_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) }
 
                     _ => invalid_input!(args.join(" ").to_string())
                 }
