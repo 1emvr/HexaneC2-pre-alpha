@@ -23,9 +23,9 @@ use std::sync::Mutex;
 
 use self::session::{init};
 use self::utils::{cursor, wrap_message, stop_print_channel};
-use self::instance::{Hexane, load_instance, interact_instance, list_instances, remove_instance};
-use crate::{invalid_input, length_check};
+use self::instance::{Hexane, load_instance, interact_instance, remove_instance};
 use crate::server::format::list_instances;
+use crate::{invalid_input, length_check};
 
 lazy_static!(
     static ref INSTANCES: Mutex<Vec<Hexane>> = Mutex::new(vec![]);
