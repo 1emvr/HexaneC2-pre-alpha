@@ -13,7 +13,7 @@ use std::io::{self, Write};
 use core::fmt::Display;
 use std::sync::Mutex;
 use crate::return_error;
-use crate::server::types::NetworkOptions;
+use crate::server::types::{InjectionOptions, InjectionType, NetworkOptions};
 use self::error::{Error, Result};
 use self::session::{init, USERAGENT, CURDIR};
 use self::types::{Hexane, JsonData, Compiler, UserSession};
@@ -66,6 +66,10 @@ fn load_instance(args: Vec<String>) -> Result<()> {
                 Ok(setup)   => setup,
                 Err(e)      => return Err(e)
             }
+            match check_instance(&mut instance) {
+                Ok(check)   => check,
+                Err(e)  => return Err(e)
+            }
             setup_server(&instance);
 
             let build_dir   = instance.compiler.build_directory.as_str();
@@ -105,38 +109,41 @@ fn setup_instance(instance: &mut Hexane) -> Result<()> {
     let mut rng = rand::thread_rng();
     instance.peer_id = rng.gen::<u32>();
 
-    match check_instance(instance) {
-        Ok(k)   => k,
-        Err(e)  => return Err(e)
-    }
-
     Ok(())
 }
 
 fn check_instance(instance: &mut Hexane) -> Result<()> {
-    if instance.main.hostname.is_empty()                        { return_error!("a valid hostname must be provided") }
-    if instance.main.architecture.is_empty()                    { return_error!("a valid architecture must be provided") }
-    if instance.main.jitter < 0 || instance.main.jitter > 100   { return_error!("jitter cannot be less than 0% or greater than 100%") }
-    if instance.main.sleeptime < 0                              { return_error!("sleeptime cannot be less than zero. wtf are you doing?") }
-    if instance.builder.output_name.is_empty()                  { return_error!("a name for the build must be provided") }
-    if instance.builder.root_directory.is_empty()               { return_error!("a root directory for implant files must be provided") }
-
-    if let Some(linker_script) = &instance.builder.linker_script {
-        if linker_script.is_empty() { return_error!("linker script field found but linker script path must be provided") }
+    // check config
+    {
+        if instance.main.hostname.is_empty()                        { return_error!("a valid hostname must be provided") }
+        if instance.main.architecture.is_empty()                    { return_error!("a valid architecture must be provided") }
+        if instance.main.jitter < 0 || instance.main.jitter > 100   { return_error!("jitter cannot be less than 0% or greater than 100%") }
+        if instance.main.sleeptime < 0                              { return_error!("sleeptime cannot be less than zero. wtf are you doing?") }
     }
 
-    if let Some(modules) = &instance.builder.loaded_modules {
-        if modules.is_empty() { return_error!("loaded module names field found but module names must be provided") }
+    // check builder
+    {
+        if instance.builder.output_name.is_empty()      { return_error!("a name for the build must be provided") }
+        if instance.builder.root_directory.is_empty()   { return_error!("a root directory for implant files must be provided") }
+
+        if let Some(linker_script) = &instance.builder.linker_script {
+            if linker_script.is_empty() { return_error!("linker script field found but linker script path must be provided") }
+        }
+
+        if let Some(modules) = &instance.builder.loaded_modules {
+            if modules.is_empty() { return_error!("loaded module names field found but module names must be provided") }
+        }
+
+        if let Some(deps) = &instance.builder.dependencies {
+            if deps.is_empty() { return_error!("build dependencies field found but dependencies must be provided") }
+        }
+
+        if let Some(inc) = &instance.builder.include_directories {
+            if inc.is_empty() { return_error!("include directory field found but include directories must be provided") }
+        }
     }
 
-    if let Some(deps) = &instance.builder.dependencies {
-        if deps.is_empty() { return_error!("build dependencies field found but dependencies must be provided") }
-    }
-
-    if let Some(inc) = &instance.builder.include_directories {
-        if inc.is_empty() { return_error!("include directory field found but include directories must be provided") }
-    }
-
+    // check network
     match &mut instance.network.options {
         NetworkOptions::Http(http) => {
 
@@ -170,10 +177,34 @@ fn check_instance(instance: &mut Hexane) -> Result<()> {
                 }
             }
         },
+
         NetworkOptions::Smb(smb) => {
             if smb.egress_peer.is_empty() { return_error!("an implant type of smb must provide the name of it's parent node") }
-        },
-        _ => return_error!("valid network config must be provided")
+        }
+    }
+
+    // check loader
+    if let Some(loader) = &mut instance.loader {
+        if loader.root_directory.is_empty() { return_error!("loader field detected but root directory must be provided")}
+        if loader.sources.is_empty()        { return_error!("loader field detected but sources must be provided")}
+        if loader.rsrc_script.is_empty()    { return_error!("loader field detected but rsrc script must be provided")}
+
+        if let Some(linker) = &loader.linker_script {
+            if linker.is_empty() { return_error!("loader ld field detected but linker script must be provided")}
+        }
+
+        match &mut loader.injection {
+            InjectionOptions::Threadless(threadless) => {
+                if threadless.execute_object.is_empty()     { return_error!("loader field detected 'threadless injection' but an execute_object must be provided")}
+                if threadless.loader_assembly.is_empty()    { return_error!("loader field detected 'threadless injection' but a loader assembly must be provided")}
+                if threadless.target_process.is_empty()     { return_error!("loader field detected 'threadless injection' but a target process must be provided")}
+                if threadless.target_module.is_empty()      { return_error!("laoder field detected 'threadless injection' but a target module must be provided")}
+                if threadless.target_function.is_empty()    { return_error!("laoder field detected 'threadless injection' but a target function must be provided")}
+            },
+            InjectionOptions::Threadpool(_) => {
+                return_error!("threadpool injection not yet supported")
+            }
+        }
     }
 }
 
