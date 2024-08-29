@@ -60,29 +60,21 @@ fn load_instance(args: Vec<String>) -> Result<()> {
     if args.len() != 2 {
         wrap_message("error", format!("invalid input: {} arguments", args.len()))
     }
-    match map_json_config(&args[1]) {
-        Ok(mut instance) => {
-            match setup_instance(&mut instance) {
-                Ok(setup)   => setup,
-                Err(e)      => return Err(e)
-            }
-            match check_instance(&mut instance) {
-                Ok(check)   => check,
-                Err(e)  => return Err(e)
-            }
-            setup_server(&instance);
+    let mut instance = match map_json_config(&args[1]) {
+        Ok(instance)    => instance,
+        Err(e)          =>  return Err(e),
+    };
 
-            let build_dir   = instance.compiler.build_directory.as_str();
-            let name        = instance.builder.output_name.as_str();
-            let ext         = instance.compiler.file_extension.as_str();
+    check_instance(&mut instance)?;
+    setup_instance(&mut instance)?;
+    setup_server(&mut instance)?;
 
-            wrap_message("info", format!("{}/{}.{} is ready", build_dir, name, ext));
-            INSTANCES.lock().unwrap().push(instance)
-        }
-        Err(e)=> {
-            return Err(e)
-        }
-    }
+    let build_dir   = instance.compiler.build_directory.as_str();
+    let name        = instance.builder.output_name.as_str();
+    let ext         = instance.compiler.file_extension.as_str();
+
+    wrap_message("info", format!("{}/{}.{} is ready", build_dir, name, ext));
+    INSTANCES.lock().unwrap().push(instance);
 
     Ok(())
 }
@@ -127,19 +119,19 @@ fn check_instance(instance: &mut Hexane) -> Result<()> {
         if instance.builder.root_directory.is_empty()   { return_error!("a root directory for implant files must be provided") }
 
         if let Some(linker_script) = &instance.builder.linker_script {
-            if linker_script.is_empty() { return_error!("linker script field found but linker script path must be provided") }
+            if linker_script.is_empty() { return_error!("linker_script field found but linker script path must be provided") }
         }
 
         if let Some(modules) = &instance.builder.loaded_modules {
-            if modules.is_empty() { return_error!("loaded module names field found but module names must be provided") }
+            if modules.is_empty() { return_error!("loaded_modules field found but module names must be provided") }
         }
 
         if let Some(deps) = &instance.builder.dependencies {
-            if deps.is_empty() { return_error!("build dependencies field found but dependencies must be provided") }
+            if deps.is_empty() { return_error!("builder dependencies field found but dependencies must be provided") }
         }
 
         if let Some(inc) = &instance.builder.include_directories {
-            if inc.is_empty() { return_error!("include directory field found but include directories must be provided") }
+            if inc.is_empty() { return_error!("builder include_directories field found but include directories must be provided") }
         }
     }
 
@@ -206,10 +198,12 @@ fn check_instance(instance: &mut Hexane) -> Result<()> {
             }
         }
     }
+
+    Ok(())
 }
 
-fn setup_server(instance: &Hexane) {
-
+fn setup_server(instance: &Hexane) -> Result<()> {
+    Ok(())
 }
 
 fn map_json_config(file_path: &String) -> Result<Hexane> {
