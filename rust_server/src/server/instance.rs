@@ -45,6 +45,20 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
 }
 
 impl Hexane {
+    fn generate_config_bytes(self: &mut Hexane) -> Result<()> {
+        // todo: should this really be exclusive to Hexane?
+        self.crypt_key = crypt_create_key(16);
+
+        let mut patch = self.create_binary_patch()?;
+        if self.main.encrypt {
+            let patch_cpy = patch.clone();
+            patch = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
+        }
+
+        self.config_data = patch;
+        Ok(())
+    }
+
     fn setup_instance(&mut self) -> Result<()> {
         let mut rng = rand::thread_rng();
 
@@ -164,20 +178,6 @@ impl Hexane {
         Ok(())
     }
 
-    fn generate_config_bytes(self: &mut Hexane) -> Result<()> {
-        // todo: should this really be exclusive to Hexane?
-        self.crypt_key = crypt_create_key(16);
-
-        let mut patch = self.create_binary_patch()?;
-        if self.main.encrypt {
-            let patch_cpy = patch.clone();
-            patch = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
-        }
-
-        self.config_data = patch;
-        Ok(())
-    }
-
     fn create_binary_patch(&self) -> Result<Vec<u8>> {
         let mut stream = Stream::new();
 
@@ -187,6 +187,14 @@ impl Hexane {
             stream.pack_byte(*TRANSPORT_PIPE);
         } else {
             return_error!("invalid network type")
+        }
+
+        stream.pack_dword(1);
+
+        if let Some(modules) = &self.builder.loaded_modules {
+            for module in modules {
+                stream.pack_string(module);
+            }
         }
 
         stream.pack_bytes(&self.crypt_key);

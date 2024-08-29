@@ -2,12 +2,6 @@ use clap::Parser;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
-const MINGW:                &str = "x86_64-w64-mingw32-g++";
-const OBJCOPY:              &str = "objcopy";
-const WINDRES:              &str = "windres";
-const STRIP:                &str = "strip";
-const NASM:                 &str = "nasm";
-const LINKER:               &str = "ld";
 
 const NETWORK_HTTP:         u32 = 0x00000001;
 const NETWORK_PIPE:         u32 = 0x00000002;

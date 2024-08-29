@@ -43,7 +43,7 @@ pub fn crypt_create_key(length: usize) -> Vec<u8> {
     key
 }
 
-fn get_hash_from_string(s: &str, is_unicode: bool) -> u32 {
+pub(crate) fn get_hash_from_string(s: &str, is_unicode: bool) -> u32 {
     let mut hash = FNV_OFFSET;
     let length = if is_unicode { s.len() - 2 } else { s.len() };
     let offset = if is_unicode { 2 } else { 1 };
@@ -54,22 +54,6 @@ fn get_hash_from_string(s: &str, is_unicode: bool) -> u32 {
     }
 
     hash
-}
-
-fn create_hash_macro(s: &str) -> String {
-    let macro_name  = s.to_uppercase().trim_end().to_string();
-    let lower       = s.to_lowercase();
-    let (name, is_unicode) = if lower.ends_with(".dll") {
-        (encode_utf16(&lower), true)
-    } else {
-        (lower.into_bytes(), false)
-    };
-
-    format!(
-        "#define {} 0x{:x}",
-        macro_name.split('.').next().unwrap(),
-        get_hash_from_string(&String::from_utf8_lossy(&name), is_unicode)
-    )
 }
 
 fn new_cipher(key: &[u8]) -> Result<Cipher, KeySizeError> {
@@ -160,3 +144,4 @@ fn init_cipher(c: &mut Cipher, key: &[u8]) {
 fn encode_utf16(s: &str) -> Vec<u8> {
     s.encode_utf16().flat_map(|c| c.to_be_bytes()).collect()
 }
+

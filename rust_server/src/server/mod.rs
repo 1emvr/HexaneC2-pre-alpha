@@ -7,6 +7,7 @@ mod stream;
 mod session;
 mod instance;
 mod parser;
+mod builder;
 
 use serde_json;
 use serde::Deserialize;
