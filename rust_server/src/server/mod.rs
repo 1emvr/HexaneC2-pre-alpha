@@ -2,6 +2,7 @@ mod utils;
 mod types;
 mod error;
 mod session;
+mod cipher;
 
 use std::fs;
 use serde_json;
@@ -12,11 +13,11 @@ use rand::Rng;
 use std::io::{self, Write};
 use core::fmt::Display;
 use std::sync::Mutex;
+
 use crate::return_error;
-use crate::server::types::{InjectionOptions, InjectionType, NetworkOptions};
 use self::error::{Error, Result};
 use self::session::{init, USERAGENT, CURDIR};
-use self::types::{Hexane, JsonData, Compiler, UserSession};
+use self::types::{Hexane, JsonData, Compiler, UserSession, InjectionOptions, NetworkOptions};
 use self::utils::{cursor, wrap_message, stop_print_channel};
 
 lazy_static!(

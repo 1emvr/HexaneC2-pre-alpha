@@ -20,15 +20,26 @@ pub enum Error {
 
     #[from]
     SerdeJson(serde_json::error::Error),
+
+    #[from]
+    KeySize(KeySizeError),
 }
 
-impl std::error::Error for Error {
+#[derive(Debug)]
+pub struct KeySizeError(pub usize);
+
+impl std::fmt::Display for KeySizeError {
+    fn fmt(&self, fmt: &mut core::fmt::Formatter) -> core::result::Result<(), core::fmt::Error> {
+        write!(fmt, "invalid key size: {}", self.0)
+    }
 }
+
+impl std::error::Error for KeySizeError {}
 
 impl<'de> Deserialize<'de> for Error {
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
-    where D: Deserializer<'de>, {
-
+    where D: Deserializer<'de>,
+    {
         let msg = String::deserialize(deserializer)?;
         Ok(Error::custom(msg))
     }
@@ -42,12 +53,18 @@ impl core::fmt::Display for Error {
 
 impl Error {
     pub fn custom(val: impl std::fmt::Display) -> Self {
-        Self::custom(val.to_string())
+        Self::Custom(val.to_string())
     }
 }
 
 impl From<&str> for Error {
     fn from(val: &str) -> Self {
         Self::custom(val.to_string())
+    }
+}
+
+impl From<KeySizeError> for Error {
+    fn from(err: KeySizeError) -> Self {
+        Error::KeySize(err)
     }
 }
