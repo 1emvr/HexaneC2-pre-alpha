@@ -1,13 +1,12 @@
-use std::cmp::PartialEq;
 use std::str::FromStr;
 use rand::Rng;
 
 use crate::return_error;
 use crate::server::INSTANCES;
 use crate::server::session::USERAGENT;
-use crate::server::types::{Hexane, InjectionOptions, NetworkOptions, TRANSPORT_PIPE, TRANSPORT_HTTP};
-use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::error::{Error, Result};
+use crate::server::cipher::{crypt_create_key, crypt_xtea};
+use crate::server::types::{Hexane, InjectionOptions, NetworkOptions, TRANSPORT_PIPE, TRANSPORT_HTTP};
 use crate::server::utils::wrap_message;
 use crate::server::stream::Stream;
 
