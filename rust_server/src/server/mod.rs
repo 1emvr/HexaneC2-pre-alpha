@@ -5,6 +5,7 @@ mod session;
 mod cipher;
 mod stream;
 mod config;
+mod parser;
 
 use serde_json;
 use serde::Deserialize;

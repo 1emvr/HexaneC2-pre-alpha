@@ -4,13 +4,6 @@ use derive_more::From;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
-#[macro_export]
-macro_rules! return_error {
-    ($($arg:tt)*) => {
-        return Err(Error::Custom(format!($($arg)*)))
-    };
-}
-
 #[derive(Debug)]
 pub enum Error {
     #[from]
@@ -27,6 +20,13 @@ pub enum Error {
 
     #[from]
     KeySize(KeySizeError),
+}
+
+#[macro_export]
+macro_rules! return_error {
+    ($($arg:tt)*) => {
+        return Err(Error::Custom(format!($($arg)*)))
+    };
 }
 
 #[derive(Debug)]
