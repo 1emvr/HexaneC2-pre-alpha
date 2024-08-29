@@ -1,13 +1,8 @@
 use std::fs;
-use std::num::ParseIntError;
 use std::str::FromStr;
-use lazy_static::lazy_static;
-use crate::return_error;
-use crate::server::stream::Stream;
-use crate::server::session::{CURDIR, USERAGENT};
+use crate::server::session::{CURDIR};
 use crate::server::error::{Result, Error};
-use crate::server::cipher::{crypt_create_key, crypt_xtea};
-use crate::server::types::{Compiler, Hexane, InjectionOptions, JsonData, NetworkOptions, UserSession, TRANSPORT_HTTP, TRANSPORT_PIPE};
+use crate::server::types::{Compiler, Hexane, JsonData, UserSession};
 use crate::server::utils::wrap_message;
 
 
@@ -25,7 +20,7 @@ pub(crate) fn map_config(file_path: &String) -> Result<Hexane> {
 
     // todo: group id selection
     let group_id = 0;
-    let mut instance = Hexane {
+    let instance = Hexane {
 
         current_taskid: 0, peer_id: 0, group_id, build_type: 0, network_type: 0,
         crypt_key: vec![], shellcode: vec![], config_data: vec![],

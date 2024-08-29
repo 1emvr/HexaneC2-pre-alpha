@@ -6,16 +6,12 @@ use crate::server::INSTANCES;
 use crate::server::session::USERAGENT;
 use crate::server::error::{Error, Result};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
-use crate::server::types::{Hexane, InjectionOptions, NetworkOptions, TRANSPORT_PIPE, TRANSPORT_HTTP};
+use crate::server::types::{InjectionOptions, NetworkOptions, TRANSPORT_PIPE, TRANSPORT_HTTP, Config, Compiler, Network, Builder, Loader, UserSession};
 use crate::server::utils::wrap_message;
 use crate::server::stream::Stream;
 
-use lazy_static::lazy_static;
-lazy_static!(
-    static ref BUILD_DLL: u32 = 0;
-    static ref BUILD_SHC: u32 = 1;
-);
-
+const BUILD_DLL: u32 = 0;
+const BUILD_SHC: u32 = 1;
 
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     if args.len() != 3 {
@@ -44,6 +40,26 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     Ok(())
 }
 
+#[derive(Debug)]
+pub struct Hexane {
+    pub(crate) current_taskid:  u32,
+    pub(crate) peer_id:         u32,
+    pub(crate) group_id:        u32,
+    pub(crate) build_type:      u32,
+
+    pub(crate) crypt_key:       Vec<u8>,
+    pub(crate) shellcode:       Vec<u8>,
+    pub(crate) config_data:     Vec<u8>,
+    pub(crate) network_type:    u8,
+    pub(crate) active:          bool,
+
+    pub(crate) main:            Config,
+    pub(crate) compiler:        Compiler,
+    pub(crate) network:         Network,
+    pub(crate) builder:         Builder,
+    pub(crate) loader:          Option<Loader>,
+    pub(crate) user_session:    UserSession,
+}
 impl Hexane {
     fn generate_config_bytes(self: &mut Hexane) -> Result<()> {
         self.crypt_key = crypt_create_key(16);
