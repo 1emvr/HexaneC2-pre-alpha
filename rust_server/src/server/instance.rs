@@ -32,7 +32,7 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     }
 
     if instance.main.debug {
-        hexane_debug(&instance);
+        dbg!(&instance);
     }
     wrap_message("info", format!("{} is ready", instance.builder.output_name));
     INSTANCES.lock().unwrap().push(instance);
