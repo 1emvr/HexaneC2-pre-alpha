@@ -4,7 +4,10 @@ use colored::*;
 
 use std::{fs, io};
 use std::io::{BufRead, BufReader, Write};
+use std::path::Path;
+use std::process::Command;
 
+use crate::return_error;
 use crate::server::session::{CHANNEL, DEBUG, EXIT};
 use crate::server::error::{Error, Result};
 use crate::server::types::{Message};
@@ -132,4 +135,24 @@ fn encode_utf16(s: &str) -> Vec<u8> {
         .collect()
 }
 
-// Assuming `get_hash_from_string` is defined elsewhere
+fn run_command(cmd: &str, logname: &str) -> Result<()> {
+    let shell   = if cfg!(target_os = "windows") { "cmd" } else { "bash" };
+    let flag    = if cfg!(target_os = "windows") { "/c" } else { "-c" };
+
+    let log_path = Path::new("LogsPath").join(logname);
+    let mut log_file = File::create(&log_path)?;
+
+    let mut command = Command::new(shell);
+    command.arg(flag).arg(cmd);
+
+    let output = command.output()?;
+
+    log_file.write_all(&output.stdout)?;
+    log_file.write_all(&output.stderr)?;
+
+    if !output.status.success() {
+        return_error!("check {} for details", log_path.display());
+    }
+
+    Ok(())
+}
