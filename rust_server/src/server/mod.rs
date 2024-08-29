@@ -67,6 +67,21 @@ pub fn run_client() {
 
                     _ => invalid_input!(args.join(" ").to_string())
                 }
+            },
+
+            "listener" => {
+                if args.len() < 2 {
+                    invalid_input!(args.join(" ").to_string());
+                    continue;
+                }
+
+                match args[1].as_str() {
+                    "load" => {
+
+                    }
+
+                    _ => invalid_input!(args.join(" ").to_string())
+                }
             }
 
             "exit" => break,
