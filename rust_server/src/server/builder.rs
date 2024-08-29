@@ -117,11 +117,11 @@ fn compile_sources(instance: &Hexane, compile: &mut CompileTarget) -> Result<()>
         let handle = thread::spawn(move || {
             let _guard = atoms_clone.lock().unwrap();
 
-            // todo: add file extension
+            // todo: add config file extension
             let result = match compile.extension().and_then(|ext| ext.to_str()) {
                 Some("asm") => compile_object(instance, "nasm", output.to_str().unwrap(), vec![path], flags, vec![], HashMap::new()),
                 Some("cpp") => compile_object(instance, "x86_64-w64-mingw32-g++", output.to_str().unwrap(), vec![path], flags, includes.unwrap(), &compile.definitions),
-                _ => Ok(()),
+                _ => Ok(())
             };
 
             match result {
