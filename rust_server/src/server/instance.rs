@@ -35,6 +35,8 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     let ext         = instance.compiler.file_extension.as_str();
 
     wrap_message("info", format!("{}/{}.{} is ready", build_dir, name, ext));
+    dbg!(&instance);
+
     INSTANCES.lock().unwrap().push(instance);
 
     Ok(())

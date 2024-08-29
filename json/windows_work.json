@@ -27,7 +27,6 @@
 		"root_directory": "C:/Users/lemur/CLionProjects/HexaneC2/core",
 		"linker_script": "implant.ld",
 
-		"dependencies": [],
 		"loaded_modules": [
 			"crypt32", "winhttp", "advapi32", "iphlpapi", "mscoree"
 		]
