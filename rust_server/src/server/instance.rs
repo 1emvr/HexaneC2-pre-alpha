@@ -253,8 +253,8 @@ impl Hexane {
         stream.pack_dword64(kill_date);
 
         match &self.network.options {
-            NetworkOptions::Http(mut http) => {
-                stream.pack_wstring(&http.useragent.unwrap().as_str());
+            NetworkOptions::Http(ref http) => {
+                stream.pack_wstring(http.useragent.as_ref().unwrap().as_str());
                 stream.pack_wstring(&http.address);
                 stream.pack_dword(http.port as u32);
                 stream.pack_dword(http.endpoints.len() as u32);
@@ -263,20 +263,20 @@ impl Hexane {
                     stream.pack_wstring(endpoint);
                 }
 
-                stream.pack_string(&http.domain.unwrap().as_str());
+                stream.pack_string(http.domain.as_ref().unwrap().as_str());
 
-                if let Some(mut proxy) = &http.proxy {
+                if let Some(ref proxy) = http.proxy {
                     let proxy_url = format!("{}://{}:{}", proxy.proto, proxy.address, proxy.port);
                     stream.pack_dword(1);
                     stream.pack_wstring(&proxy_url);
-                    stream.pack_wstring(&proxy.username.unwrap().as_str());
-                    stream.pack_wstring(&proxy.password.unwrap().as_str());
+                    stream.pack_wstring(proxy.username.as_ref().unwrap().as_str());
+                    stream.pack_wstring(proxy.password.as_ref().unwrap().as_str());
                 } else {
                     stream.pack_dword(0);
                 }
             }
-            NetworkOptions::Smb(mut smb) => {
-                stream.pack_wstring(&smb.egress_pipe.unwrap().as_str());
+            NetworkOptions::Smb(ref smb) => {
+                stream.pack_wstring(smb.egress_pipe.as_ref().unwrap().as_str());
             }
         }
 
