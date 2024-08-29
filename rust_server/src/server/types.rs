@@ -107,7 +107,7 @@ pub struct Config {
     pub(crate) working_hours:  Option<String>,
     pub(crate) killdate:       Option<String>,
     pub(crate) sleeptime:      u32,
-    pub(crate) jitter:         u32,
+    pub(crate) jitter:         u16,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
