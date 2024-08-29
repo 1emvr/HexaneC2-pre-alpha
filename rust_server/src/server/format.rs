@@ -11,7 +11,7 @@ pub fn list_instances() -> Result<()> {
     }
 
     let mut table = Table::new();
-    table.set_titles(row!["gid", "pid", "name", "debug", "type", "address", "hostname", "domain", "proxy", "user", "active"]);
+    table.set_titles(row!["gid", "pid", "name", "debug", "type", "callback", "hostname", "domain", "proxy", "user", "active"]);
 
     for instance in instances.iter() {
         let (address, net_type, domain, proxy) = match &instance.network.options {
