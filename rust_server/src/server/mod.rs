@@ -3,6 +3,8 @@ mod types;
 mod error;
 mod session;
 mod config;
+mod cipher;
+mod stream;
 
 use serde_json;
 use serde::Deserialize;
@@ -13,7 +15,7 @@ use std::io::{self, Write};
 use core::fmt::Display;
 use std::str::FromStr;
 use std::sync::Mutex;
-
+use crate::invalid_input;
 use self::types::{Hexane};
 use self::session::{init};
 use self::config::{load_instance};
@@ -40,9 +42,32 @@ pub fn run_client() {
         let args: Vec<String> = input.split_whitespace().map(str::to_string).collect();
         match args[0].as_str() {
 
-            "load" => {
-                load_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string()))
-            },
+            "implant" => {
+                if args.len() < 2 {
+                    invalid_input!(args.join(" ").to_string());
+                    continue;
+                }
+
+                match args[1].as_str() {
+                    "load" => {
+                        load_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string()))
+                    },
+
+                    "ls" => {
+                        todo!();
+                    }
+
+                    "rm" => {
+                        todo!();
+                    }
+
+                    "i" => {
+                        todo!();
+                    }
+
+                    _ => invalid_input!(args.join(" ").to_string())
+                }
+            }
 
             "exit" => break,
             _ => {

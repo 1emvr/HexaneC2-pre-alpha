@@ -3,25 +3,29 @@ use std::str::FromStr;
 use rand::Rng;
 
 use crate::return_error;
-use crate::server::error::{Result, Error};
 use crate::server::stream::Stream;
+use crate::server::error::{Result, Error};
+use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::types::{Compiler, Hexane, InjectionOptions, JsonData, NetworkOptions, UserSession, TRANSPORT_HTTP, TRANSPORT_PIPE};
 use crate::server::session::{CURDIR, USERAGENT};
-use crate::server::cipher::{crypt_create_key, crypt_xtea};
-use crate::server::{setup_listener, INSTANCES};
 use crate::server::utils::wrap_message;
+use crate::server::INSTANCES;
+
+fn setup_listener(instance: &mut Hexane) -> Result<()> {
+    // todo: listener setup
+    Ok(())
+}
 
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
 
-    if args.len() != 2 {
+    if args.len() != 3 {
         return_error!(format!("invalid input: {} arguments", args.len()))
     }
-    let mut instance = match map_config(&args[1]) {
+    let mut instance = match map_config(&args[2]) {
         Ok(instance)    => instance,
         Err(e)          =>  return Err(e),
     };
 
-    // todo: listener setup
     setup_instance(&mut instance)?;
     setup_listener(&mut instance)?;
 

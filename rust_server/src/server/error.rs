@@ -29,6 +29,11 @@ macro_rules! return_error {
     };
 }
 
+#[macro_export]
+macro_rules! invalid_input {
+    ($arg:expr) => { wrap_message("error", format!("invalid input: {}", $arg)); };
+}
+
 #[derive(Debug)]
 pub struct KeySizeError(pub usize);
 
