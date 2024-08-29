@@ -3,15 +3,72 @@ use rand::Rng;
 
 use crate::server::INSTANCES;
 use crate::server::session::{SESSION, USERAGENT};
-use crate::server::error::{Error, Result};
-use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::types::{InjectionOptions, NetworkOptions, TRANSPORT_PIPE, TRANSPORT_HTTP, Config, Compiler, Network, Builder, Loader, UserSession};
+use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::{return_error, length_check_defer};
+use crate::server::error::{Error, Result};
 use crate::server::utils::wrap_message;
 use crate::server::stream::Stream;
 
 const BUILD_DLL: u32 = 0;
 const BUILD_SHC: u32 = 1;
+
+
+pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
+    length_check_defer!(args, 3);
+
+    let mut instance = match crate::server::config::map_config(&args[2]) {
+        Ok(instance)    => instance,
+        Err(e)          => return Err(e),
+    };
+
+    instance.check_config()?;
+    instance.setup_instance()?;
+
+    let ref session = SESSION.lock().unwrap();
+    instance.user_session.username = session.username.clone();
+    instance.user_session.is_admin = session.is_admin.clone();
+
+    if instance.network_type != *TRANSPORT_PIPE {
+        instance.setup_listener()?;
+    }
+
+    wrap_message("info", format!("{} is ready", instance.builder.output_name));
+    INSTANCES.lock().unwrap().push(instance);
+
+    Ok(())
+}
+
+pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
+    length_check_defer!(args, 3);
+
+    let mut instances = INSTANCES.lock().map_err(|e| e.to_string())?;
+    if let Some(pos) = instances.iter().position(|instance| instance.builder.output_name == args[2]) {
+
+        wrap_message("info", format!("{} removed", instances[pos].builder.output_name));
+        instances.remove(pos);
+
+        Ok(())
+    } else {
+        return_error!("Implant not found")
+    }
+}
+
+
+pub(crate) fn interact_instance(args: Vec<String>) -> Result<()> {
+    todo!()
+}
+
+pub(crate) fn get_config_by_name<'a> (name: &str) -> Result<&'a Hexane> {
+    let instances = INSTANCES.lock().unwrap();
+
+    for instance in instances.iter() {
+        if instance.builder.output_name.as_str() == name {
+            return Ok(instance);
+        }
+    }
+    return_error!("instance {name} not found")
+}
 
 #[derive(Debug)]
 pub struct Hexane {
@@ -245,58 +302,3 @@ impl Hexane {
     }
 }
 
-pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
-    length_check_defer!(args, 3);
-
-    let mut instance = match crate::server::config::map_config(&args[2]) {
-        Ok(instance) => instance,
-        Err(e) => return Err(e),
-    };
-
-    instance.check_config()?;
-    instance.setup_instance()?;
-
-    let ref session = SESSION.lock().unwrap();
-    instance.user_session.username = session.username.clone();
-    instance.user_session.is_admin = session.is_admin.clone();
-
-    if instance.network_type != *TRANSPORT_PIPE {
-        instance.setup_listener()?;
-    }
-
-    wrap_message("info", format!("{} is ready", instance.builder.output_name));
-    INSTANCES.lock().unwrap().push(instance);
-
-    Ok(())
-}
-
-pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
-    length_check_defer!(args, 3);
-
-    let mut instances = INSTANCES.lock().map_err(|e| e.to_string())?;
-    if let Some(pos) = instances.iter().position(|instance| instance.builder.output_name == args[2]) {
-
-        wrap_message("info", format!("{} removed", instances[pos].builder.output_name));
-        instances.remove(pos);
-
-        Ok(())
-    } else {
-        Err(Error::Custom("Implant not found".to_string()))
-    }
-}
-
-
-pub(crate) fn interact_instance(args: Vec<String>) -> Result<()> {
-    todo!()
-}
-
-pub(crate) fn get_config_by_name<'a> (name: &str) -> Result<&'a Hexane> {
-    let instances = INSTANCES.lock().unwrap();
-
-    for instance in instances.iter() {
-        if instance.builder.output_name.as_str() == name {
-            return Ok(instance);
-        }
-    }
-    return_error!("instance {name} not found")
-}
