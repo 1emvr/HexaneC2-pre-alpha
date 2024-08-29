@@ -51,13 +51,14 @@ fn setup_instance(instance: &mut Hexane) -> Result<()> {
     instance.peer_id = rng.random::<u32>();
     instance.group_id = 0;
 
+    // todo: build process
+
     Ok(())
 }
 
 fn map_config(file_path: &String) -> Result<Hexane> {
-
-    let json_file = CURDIR.join("json").join(file_path);
-    let contents = fs::read_to_string(json_file).map_err(Error::Io)?;
+    let json_file   = CURDIR.join("json").join(file_path);
+    let contents    = fs::read_to_string(json_file).map_err(Error::Io)?;
 
     let json_data = match serde_json::from_str::<JsonData>(contents.as_str()) {
         Ok(data)    => data,
