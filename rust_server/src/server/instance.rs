@@ -61,19 +61,6 @@ pub struct Hexane {
     pub(crate) user_session:    UserSession,
 }
 impl Hexane {
-    fn generate_config_bytes(self: &mut Hexane) -> Result<()> {
-        self.crypt_key = crypt_create_key(16);
-
-        let mut patch = self.create_binary_patch()?;
-        if self.main.encrypt {
-            let patch_cpy = patch.clone();
-            patch = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
-        }
-
-        self.config_data = patch;
-        Ok(())
-    }
-
     fn setup_instance(&mut self) -> Result<()> {
         let mut rng = rand::thread_rng();
 
@@ -89,6 +76,19 @@ impl Hexane {
         // todo: build process
         // run_build(self);
 
+        Ok(())
+    }
+
+    fn generate_config_bytes(self: &mut Hexane) -> Result<()> {
+        self.crypt_key = crypt_create_key(16);
+
+        let mut patch = self.create_binary_patch()?;
+        if self.main.encrypt {
+            let patch_cpy = patch.clone();
+            patch = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
+        }
+
+        self.config_data = patch;
         Ok(())
     }
 
