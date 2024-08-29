@@ -1,6 +1,6 @@
 use std::fs;
 use std::str::FromStr;
-
+use lazy_static::lazy_static;
 use crate::return_error;
 use crate::server::stream::Stream;
 use crate::server::session::{CURDIR, USERAGENT};
@@ -10,9 +10,14 @@ use crate::server::types::{Compiler, Hexane, InjectionOptions, JsonData, Network
 use crate::server::utils::wrap_message;
 
 
+lazy_static!(
+    static ref BUILD_DLL: u32 = 0;
+    static ref BUILD_SHC: u32 = 1;
+);
+
 pub(crate) fn map_config(file_path: &String) -> Result<Hexane> {
-    let json_file   = CURDIR.join("json").join(file_path);
-    let contents    = fs::read_to_string(json_file).map_err(Error::Io)?;
+    let json_file = CURDIR.join("json").join(file_path);
+    let contents = fs::read_to_string(json_file).map_err(Error::Io)?;
 
     let json_data = match serde_json::from_str::<JsonData>(contents.as_str()) {
         Ok(data)    => data,
@@ -22,6 +27,7 @@ pub(crate) fn map_config(file_path: &String) -> Result<Hexane> {
         }
     };
 
+    // todo: group id selection
     let group_id = 0;
     let mut instance = Hexane {
 
@@ -125,6 +131,8 @@ fn check_config(instance: &mut Hexane) -> Result<()> {
 
     // check loader
     if let Some(loader) = &mut instance.loader {
+        instance.build_type = &BUILD_DLL;
+
         if loader.root_directory.is_empty() { return_error!("loader field detected but root directory must be provided")}
         if loader.sources.is_empty()        { return_error!("loader field detected but sources must be provided")}
         if loader.rsrc_script.is_empty()    { return_error!("loader field detected but rsrc script must be provided")}
@@ -145,6 +153,8 @@ fn check_config(instance: &mut Hexane) -> Result<()> {
                 return_error!("threadpool injection not yet supported")
             }
         }
+    } else {
+        instance.build_type = &BUILD_SHC;
     }
 
     Ok(())
