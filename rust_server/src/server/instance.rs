@@ -1,3 +1,4 @@
+use std::fmt::format;
 use rand::Rng;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
@@ -16,28 +17,6 @@ use crate::{return_error, length_check_defer};
 const BUILD_DLL: u32 = 0;
 const BUILD_SHC: u32 = 1;
 
-
-pub fn get_config_by_name(name: &str) -> Result<&mut Hexane> {
-    let mut instances = INSTANCES.lock().unwrap();
-
-    for instance in instances.iter_mut() {
-        if instance.builder.output_name.as_str() == name {
-            return Ok(instance);
-        }
-    }
-    return_error!("instance {name} not found")
-}
-
-pub fn get_config_by_pid(pid: u32) -> Result<&Hexane> {
-    let mut instances = INSTANCES.lock().unwrap();
-
-    for instance in instances.iter_mut() {
-        if instance.peer_id == pid {
-            return Ok(instance);
-        }
-    }
-    return_error!("instance {pid} not found")
-}
 
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     length_check_defer!(args, 3);
@@ -318,5 +297,13 @@ impl Hexane {
 
         Ok(stream.buffer)
     }
+}
+
+pub fn get_config_by_name(name: &str) -> Result<&mut Hexane> {
+    INSTANCES.lock().unwrap().iter_mut().find(|config| config.builder.output_name == name).ok_or(Error::Custom(format!("instance {} not found", name)))
+}
+
+pub fn get_config_by_pid<'a> (pid: u32) -> Result<&'a mut Hexane> {
+    INSTANCES.lock().unwrap().iter_mut().find(|config| config.peer_id == pid).ok_or(Error::Custom(format!("instance {} not found", pid)))
 }
 
