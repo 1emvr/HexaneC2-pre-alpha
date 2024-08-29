@@ -286,3 +286,13 @@ impl Hexane {
     }
 }
 
+pub fn remove_instance_by_name(name: &str) -> Result<()> {
+    let mut instances = INSTANCES.lock().map_err(|e| e.to_string())?;
+
+    if let Some(pos) = instances.iter().position(|instance| instance.builder.output_name == name) {
+        instances.remove(pos);
+        Ok(())
+    } else {
+        Err(Error::Custom("Implant not found".to_string()))
+    }
+}
