@@ -40,14 +40,19 @@ pub fn run_client() {
         }
 
         let args: Vec<String> = input.split_whitespace().map(str::to_string).collect();
+
+        if args[0].as_str() == "exit" {
+            break;
+        } else {
+            if args.len() < 2 {
+                invalid_input!(args.join(" ").to_string());
+                continue;
+            }
+        }
+
         match args[0].as_str() {
 
             "implant" => {
-                if args.len() < 2 {
-                    invalid_input!(args.join(" ").to_string());
-                    continue;
-                }
-
                 match args[1].as_str() {
                     "load"  => { load_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
                     "ls"    => { todo!(); },
@@ -59,20 +64,15 @@ pub fn run_client() {
             },
 
             "listener" => {
-                if args.len() < 2 {
-                    invalid_input!(args.join(" ").to_string());
-                    continue;
-                }
-
                 match args[1].as_str() {
-                    // todo: attach - find implant by name and attach an associated listener
-                    "attach" => { },
+
+                    // todo: "attach" - find implant by name and attach an associated listener
+                    "attach" => { todo!() },
 
                     _ => invalid_input!(args.join(" ").to_string())
                 }
             }
 
-            "exit" => break,
             _ => {
                 wrap_message("error", format!("invalid input: {}", args[0]));
                 continue;
