@@ -1,15 +1,16 @@
 use prettytable::{row, Table};
 use crate::server::INSTANCES;
 use crate::server::types::NetworkOptions;
+use crate::server::error::{Result, Error};
 
-pub fn list_instances() -> Result<(), String> {
+pub fn list_instances() -> Result<()> {
     let instances = INSTANCES.lock().map_err(|e| e.to_string())?;
     let mut table = Table::new();
 
     table.set_titles(row!["gid", "pid", "name", "debug", "type", "address", "hostname", "domain", "proxy", "user", "active"]);
 
     if instances.is_empty() {
-        return Err("No active implants available".to_string());
+        return Err(Error::Custom("No active implants available".to_string()))
     }
 
     for instance in instances.iter() {
