@@ -16,10 +16,10 @@ const BUILD_DLL: u32 = 0;
 const BUILD_SHC: u32 = 1;
 
 
-pub fn get_config_by_name<'a> (name: &str) -> Result<&'a Hexane> {
-    let instances = INSTANCES.lock().unwrap();
+pub fn get_config_by_name(name: &str) -> Result<&mut Hexane> {
+    let mut instances = INSTANCES.lock().unwrap();
 
-    for instance in instances.iter() {
+    for instance in instances.iter_mut() {
         if instance.builder.output_name.as_str() == name {
             return Ok(instance);
         }
@@ -27,10 +27,10 @@ pub fn get_config_by_name<'a> (name: &str) -> Result<&'a Hexane> {
     return_error!("instance {name} not found")
 }
 
-pub fn get_config_by_pid<'a> (pid: u32) -> Result<&'a Hexane> {
-    let instances = INSTANCES.lock().unwrap();
+pub fn get_config_by_pid(pid: u32) -> Result<&mut Hexane> {
+    let mut instances = INSTANCES.lock().unwrap();
 
-    for instance in instances.iter() {
+    for instance in instances.iter_mut() {
         if instance.peer_id == pid {
             return Ok(instance);
         }
