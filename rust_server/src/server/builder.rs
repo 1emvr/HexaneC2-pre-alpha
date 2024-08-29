@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::{Path};
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
-use std::thread;
+use std::{env, thread};
 use std::fs;
 
 use crate::server::error::{Result};
@@ -89,13 +89,13 @@ fn compile_sources(instance: &Hexane, compile: &mut CompileTarget) -> Result<()>
     let mut handles             = vec![];
 
     for entry in entries {
-        let src = entry.unwrap();
+        let src = entry?;
         if !src.metadata()?.is_file() {
             continue;
         }
 
         let path    = src.path();
-        let output  = Path::new(&CURDIR+"/build").join(compile.file_name().unwrap()).with_extension("o");
+        let output  = Path::new(&env::current_dir()? +"/build").join(compile.file_name().unwrap()).with_extension("o");
 
         let flags = match path.extension().and_then(|ext| ext.to_str()) {
             Some("asm") => vec!["-f win64".to_string()],
@@ -108,7 +108,7 @@ fn compile_sources(instance: &Hexane, compile: &mut CompileTarget) -> Result<()>
         };
 
         let atoms_clone     = Arc::clone(&atoms);
-        let err_send_clone  = err_send.clone();
+        let err_clone  = err_send.clone();
 
         let includes        = compile.includes.clone();
         let mut components  = compile.components.clone();
@@ -118,14 +118,14 @@ fn compile_sources(instance: &Hexane, compile: &mut CompileTarget) -> Result<()>
             let _guard = atoms_clone.lock().unwrap();
 
             let result = match compile.extension().and_then(|ext| ext.to_str()) {
-                Some("asm") => compile_object(instance, NASM, output.to_str().unwrap(), vec![path], flags, vec![], HashMap::new()),
-                Some("cpp") => compile_object(instance, MINGW, output.to_str().unwrap(), vec![path], flags, includes.unwrap(), &compile.definitions),
+                Some("asm") => compile_object(instance, "nasm", output.to_str().unwrap(), vec![path], flags, vec![], HashMap::new()),
+                Some("cpp") => compile_object(instance, "x86_64-w64-mingw32-g++", output.to_str().unwrap(), vec![path], flags, includes.unwrap(), &compile.definitions),
                 _ => Ok(()),
             };
 
             match result {
                 Ok(_)   => components.push(output.to_str().unwrap().to_string()),
-                Err(e)  => err_send_clone.send(e).unwrap(),
+                Err(e)  => err_clone.send(e).unwrap(),
             }
         });
 
