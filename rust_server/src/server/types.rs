@@ -129,10 +129,10 @@ pub struct Builder {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Loader {
     pub(crate) root_directory: String,
-    pub(crate) linker_script:  String,
     pub(crate) rsrc_script:    String,
     pub(crate) injection:      Injection,
     pub(crate) sources:        Vec<String>,
+    pub(crate) linker_script:  Option<String>,
     pub(crate) dependencies:   Option<Vec<String>>,
 }
 

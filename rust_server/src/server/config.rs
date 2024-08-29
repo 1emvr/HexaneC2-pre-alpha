@@ -108,6 +108,7 @@ fn check_config(instance: &mut Hexane) -> Result<()> {
             if let Some(proxy) = &http.proxy {
                 if proxy.address.is_empty()             { return_error!("proxy field detected but proxy address must be provided") }
                 if proxy.port < 0 || proxy.port > 65535 { return_error!("proxy field detected but proxy port must be between 0-65535") }
+                if proxy.proto.is_empty()               { return_error!("proxy protocol must be provided") }
 
                 if let Some(username) = &proxy.username {
                     if username.is_empty() { return_error!("proxy username field detected but the username was not provided") }
@@ -115,12 +116,6 @@ fn check_config(instance: &mut Hexane) -> Result<()> {
 
                 if let Some(password) = &proxy.password {
                     if password.is_empty() { return_error!("proxy password field detected but the password was not provided") }
-                }
-
-                if let Some(proto) = &proxy.proto {
-                    if proto.is_empty() { return_error!("proxy protocol must be provided") }
-                } else {
-                    return_error!("proxy protocol must be provided")
                 }
             }
         },
@@ -132,7 +127,7 @@ fn check_config(instance: &mut Hexane) -> Result<()> {
 
     // check loader
     if let Some(loader) = &mut instance.loader {
-        instance.build_type = &BUILD_DLL;
+        instance.build_type = *BUILD_DLL;
 
         if loader.root_directory.is_empty() { return_error!("loader field detected but root directory must be provided")}
         if loader.sources.is_empty()        { return_error!("loader field detected but sources must be provided")}
@@ -155,7 +150,7 @@ fn check_config(instance: &mut Hexane) -> Result<()> {
             }
         }
     } else {
-        instance.build_type = &BUILD_SHC;
+        instance.build_type = *BUILD_SHC;
     }
 
     Ok(())
