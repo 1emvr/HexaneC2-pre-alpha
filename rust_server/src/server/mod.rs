@@ -45,38 +45,33 @@ pub fn run_client() {
         let args: Vec<String> = input.split_whitespace().map(str::to_string).collect();
 
         match args[0].as_str() {
-            "exit" => break,
-            "help" => print_help(),
+            "exit"      => break,
+            "help"      => print_help(),
+            "implant"   => {
+
+                length_check_continue!(args, 2);
+                match args[1].as_str() {
+                    "ls"    => { list_instances().unwrap_or_else(|e| wrap_message("error", e.to_string())) },
+                    "load"  => { load_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
+                    "rm"    => { remove_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
+                    "i"     => { interact_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
+
+                    _ => invalid_input!(args.join(" ").to_string())
+                }
+            },
+
+            "listener" => {
+
+                length_check_continue!(args, 2);
+                match args[1].as_str() {
+                    "attach" => { todo!("attack - find implant by name and attack associated listener") },
+
+                    _ => invalid_input!(args.join(" ").to_string())
+                }
+            }
 
             _ => {
-                match args[0].as_str() {
-                    "implant" => {
-
-                        length_check_continue!(args, 2);
-                        match args[1].as_str() {
-                            "ls"    => { list_instances().unwrap_or_else(|e| wrap_message("error", e.to_string())) },
-                            "load"  => { load_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
-                            "rm"    => { remove_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
-                            "i"     => { interact_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
-
-                            _ => invalid_input!(args.join(" ").to_string())
-                        }
-                    },
-
-                    "listener" => {
-
-                        length_check_continue!(args, 2);
-                        match args[1].as_str() {
-                            "attach" => { todo!("attack - find implant by name and attack associated listener") },
-
-                            _ => invalid_input!(args.join(" ").to_string())
-                        }
-                    }
-
-                    _ => {
-                        invalid_input!(format!("invalid input: {}", args[0]));
-                    }
-                }
+                invalid_input!(args.join(" ").to_string());
             }
         }
     }
