@@ -1,7 +1,5 @@
-use std::fmt::format;
 use rand::Rng;
 use std::str::FromStr;
-use std::sync::{Arc, Mutex};
 
 use crate::server::INSTANCES;
 use crate::server::session::{SESSION, USERAGENT};
@@ -107,19 +105,6 @@ impl Hexane {
         Ok(())
     }
 
-    fn generate_config_bytes(&mut self) -> Result<()> {
-        self.crypt_key = crypt_create_key(16);
-
-        let mut patch = self.create_binary_patch()?;
-        if self.main.encrypt {
-            let patch_cpy = patch.clone();
-            patch = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
-        }
-
-        self.config_data = patch;
-        Ok(())
-    }
-
     fn setup_listener(&mut self) -> Result<()> {
         // todo: listener setup
         Ok(())
@@ -150,6 +135,7 @@ impl Hexane {
 
         match &mut self.network.options {
             NetworkOptions::Http(http) => {
+
                 if http.address.is_empty()      { return_error!("a valid return url must be provided") }
                 if http.endpoints.is_empty()    { return_error!("at least one valid endpoint must be provided") }
                 if http.useragent.is_none()     { http.useragent = Some(USERAGENT.to_string()); }
@@ -213,6 +199,19 @@ impl Hexane {
             self.build_type = BUILD_SHC;
         }
 
+        Ok(())
+    }
+
+    fn generate_config_bytes(&mut self) -> Result<()> {
+        self.crypt_key = crypt_create_key(16);
+
+        let mut patch = self.create_binary_patch()?;
+        if self.main.encrypt {
+            let patch_cpy = patch.clone();
+            patch = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
+        }
+
+        self.config_data = patch;
         Ok(())
     }
 
@@ -298,12 +297,3 @@ impl Hexane {
         Ok(stream.buffer)
     }
 }
-
-pub fn get_config_by_name(name: &str) -> Result<&mut Hexane> {
-    INSTANCES.lock().unwrap().iter_mut().find(|config| config.builder.output_name == name).ok_or(Error::Custom(format!("instance {} not found", name)))
-}
-
-pub fn get_config_by_pid<'a> (pid: u32) -> Result<&'a mut Hexane> {
-    INSTANCES.lock().unwrap().iter_mut().find(|config| config.peer_id == pid).ok_or(Error::Custom(format!("instance {} not found", pid)))
-}
-
