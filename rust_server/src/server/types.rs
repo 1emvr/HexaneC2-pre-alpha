@@ -17,10 +17,10 @@ const COMMAND_NO_JOB:       u32 = 0x00000003;
 const COMMAND_SHUTDOWN:     u32 = 0x00000004;
 const COMMAND_UPDATE_PEER:  u32 = 0x00000005;
 
-lazy_static!(
-    pub(crate) static ref TRANSPORT_HTTP: u8 = 0;
-    pub(crate) static ref TRANSPORT_PIPE: u8 = 1;
-);
+pub(crate) enum TransportType {
+    TransportPipe, // is_root = 0;
+    TransportHttp, // is_root = 1;
+}
 
 #[derive(Debug)]
 pub struct Message {

