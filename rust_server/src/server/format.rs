@@ -16,7 +16,10 @@ pub fn list_instances() -> Result<()> {
     table.set_titles(row!["gid", "pid", "name", "debug", "type", "callback", "hostname", "domain", "proxy", "user", "active"]);
 
     for instance in instances.iter() {
-        let Some(network) = &instance.network else { return_error!("list_instances: the network type did not match somehow") };
+        let Some(network) = &instance.network else {
+            return_error!("list_instances: the network type did not match somehow")
+        };
+
         let (address, net_type, domain, proxy) = match &network.options {
 
             NetworkOptions::Http(http) => {
