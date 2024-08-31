@@ -64,7 +64,7 @@ pub fn run_client() {
 
                 length_check_continue!(args, 2);
                 match args[1].as_str() {
-                    "attach" => { todo!("attack - find implant by name and attack associated listener") },
+                    "attach" => { wrap_message("error", format!("listener not yet implemented")) },
 
                     _ => invalid_input!(args.join(" ").to_string())
                 }
