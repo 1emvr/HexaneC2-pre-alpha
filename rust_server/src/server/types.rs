@@ -165,7 +165,7 @@ pub struct Compiler {
     pub(crate) compiler_flags:     String,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct UserSession {
     pub(crate) username: String,
     pub(crate) is_admin: bool,

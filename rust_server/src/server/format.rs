@@ -1,20 +1,23 @@
 use prettytable::{row, Table};
 
+use crate::return_error;
 use crate::server::types::NetworkOptions;
 use crate::server::error::{Result, Error};
 use crate::server::INSTANCES;
 
 pub fn list_instances() -> Result<()> {
     let instances = INSTANCES.lock().map_err(|e| e.to_string())?;
+
     if instances.is_empty() {
-        return Err(Error::Custom("No active implants available".to_string()))
+        return_error!("No active implants available")
     }
 
     let mut table = Table::new();
     table.set_titles(row!["gid", "pid", "name", "debug", "type", "callback", "hostname", "domain", "proxy", "user", "active"]);
 
     for instance in instances.iter() {
-        let (address, net_type, domain, proxy) = match &instance.network.options {
+        let Some(network) = &instance.network else { return_error!("list_instances: the network type did not match somehow") };
+        let (address, net_type, domain, proxy) = match &network.options {
 
             NetworkOptions::Http(http) => {
                 let address     = format!("{}:{}", http.address, http.port);

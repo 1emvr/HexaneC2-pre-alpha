@@ -65,14 +65,15 @@ pub fn map_config(file_path: &String) -> Result<Hexane> {
     let contents    = fs::read_to_string(json_file).map_err(Error::Io)?;
     let json_data   = serde_json::from_str::<JsonData>(contents.as_str())?;
 
-    let mut instance = Hexane::default();
+    let mut instance    = Hexane::default();
+    let session         = SESSION.lock().unwrap();
 
     instance.group_id       = 0;
     instance.main           = json_data.config;
     instance.loader         = json_data.loader;
     instance.builder        = json_data.builder;
     instance.network        = json_data.network;
-    instance.user_session   = **SESSION.lock().unwrap();
+    instance.user_session   = session.clone();
 
     Ok(instance)
 }
@@ -288,10 +289,10 @@ impl Hexane {
         stream.pack_int32(working_hours);
         stream.pack_dword64(kill_date);
 
-        if let Some(options) = self.network.as_mut() {
-            match options {
+        if let Some(network) = self.network.as_mut() {
+            match (&network.r#type, &network.options) {
 
-                NetworkOptions::Http(ref http) => {
+                (NetworkType::Http, NetworkOptions::Http(ref http)) => {
                     stream.pack_wstring(http.useragent.as_ref().unwrap().as_str());
                     stream.pack_wstring(&http.address);
                     stream.pack_dword(http.port as u32);
@@ -312,10 +313,11 @@ impl Hexane {
                     } else {
                         stream.pack_dword(0);
                     }
-                }
-                NetworkOptions::Smb(ref smb) => {
+                },
+                (NetworkType::Smb, NetworkOptions::Smb(ref smb)) => {
                     stream.pack_wstring(smb.egress_pipe.as_ref().unwrap().as_str());
-                }
+                },
+                _ => return_error!("unknown network type found in complete config... how could this happen?")
             }
         }
 
