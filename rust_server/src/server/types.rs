@@ -23,33 +23,21 @@ pub enum CommandType {
     CommandNoJob,
 }
 
-pub(crate) enum TransportType {
-    TransportPipe, // is_root = 0;
-    TransportHttp, // is_root = 1;
-}
-
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum NetworkType {
-    #[default] Http,
+    Http,
     Smb,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]
 pub enum NetworkOptions {
-    #[default] Http(Http),
+    Http(Http),
     Smb(Smb),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "lowercase")]
-pub enum InjectionType {
-    Threadless,
-    Threadpool,
-}
-
-#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Network {
     pub r#type:     NetworkType,
     pub options:    NetworkOptions,
@@ -70,6 +58,13 @@ pub struct Http {
     pub(crate) useragent:  Option<String>,
     pub(crate) headers:    Option<Vec<String>>,
     pub(crate) proxy:      Option<Proxy>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "lowercase")]
+pub enum InjectionType {
+    Threadless,
+    Threadpool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -148,8 +143,8 @@ pub struct Proxy {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct JsonData {
     pub(crate) config:  Config,
-    pub(crate) network: Network,
     pub(crate) builder: Builder,
+    pub(crate) network: Option<Network>, // is option but checked in the config
     pub(crate) loader:  Option<Loader>,
 }
 
