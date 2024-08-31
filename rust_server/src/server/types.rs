@@ -1,48 +1,54 @@
-use clap::Parser;
-use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug)]
+pub enum MessageType {
+    TypeCheckin,
+    TypeTasking,
+    TypeResponse,
+    TypeSegement,
+}
 
-const NETWORK_HTTP:         u32 = 0x00000001;
-const NETWORK_PIPE:         u32 = 0x00000002;
+#[derive(Debug)]
+pub enum CommandType {
+    CommandDir,
+    CommandMods,
+    CommandShutdown,
+    CommandUpdatePeer,
+    CommandNoJob,
+}
 
-const TYPE_CHECKIN:         u32 = 0x7FFFFFFF;
-const TYPE_TASKING:         u32 = 0x7FFFFFFE;
-const TYPE_RESPONSE:        u32 = 0x7FFFFFFD;
-const TYPE_SEGMENT:         u32 = 0x7FFFFFFC;
-
-const COMMAND_DIR:          u32 = 0x00000001;
-const COMMAND_MODS:         u32 = 0x00000002;
-const COMMAND_NO_JOB:       u32 = 0x00000003;
-const COMMAND_SHUTDOWN:     u32 = 0x00000004;
-const COMMAND_UPDATE_PEER:  u32 = 0x00000005;
+pub enum BuildType {
+    BuildLoader,
+    BuildShellcode,
+}
 
 pub(crate) enum TransportType {
     TransportPipe, // is_root = 0;
     TransportHttp, // is_root = 1;
 }
 
-#[derive(Debug)]
-pub struct Message {
-    pub(crate) msg_type: String,
-    pub(crate) msg: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum NetworkType {
-    Http,
+    #[default] Http,
     Smb,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(untagged)]
 pub enum NetworkOptions {
-    Http(Http),
+    #[default] Http(Http),
     Smb(Smb),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "lowercase")]
+pub enum InjectionType {
+    Threadless,
+    Threadpool,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Network {
     pub r#type:     NetworkType,
     pub options:    NetworkOptions,
@@ -54,7 +60,7 @@ pub struct Smb {
     pub(crate) egress_pipe: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Http {
     pub(crate) address:    String,
     pub(crate) port:       u16,
@@ -63,13 +69,6 @@ pub struct Http {
     pub(crate) useragent:  Option<String>,
     pub(crate) headers:    Option<Vec<String>>,
     pub(crate) proxy:      Option<Proxy>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "lowercase")]
-pub enum InjectionType {
-    Threadless,
-    Threadpool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -98,7 +97,13 @@ pub struct Threadless {
 pub struct Threadpool{
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
+pub struct Message {
+    pub(crate) msg_type:    String,
+    pub(crate) msg:         String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Config {
     pub(crate) debug:          bool,
     pub(crate) encrypt:        bool,
@@ -110,7 +115,7 @@ pub struct Config {
     pub(crate) jitter:         u16,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Builder {
     pub(crate) output_name:            String,
     pub(crate) root_directory:         String,
@@ -157,14 +162,14 @@ pub struct MessageParser {
     pub(crate) msg_buffer: Vec<u8>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Compiler {
     pub(crate) file_extension:     String,
     pub(crate) build_directory:    String,
     pub(crate) compiler_flags:     String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct UserSession {
     pub(crate) username: String,
     pub(crate) is_admin: bool,
