@@ -33,19 +33,19 @@ pub struct Args {
 
 lazy_static! {
     pub(crate) static ref SESSION: Mutex<UserSession> = Mutex::new(UserSession{
-        username: String::from(""),
+        username: "".to_owned(),
         is_admin: false
     });
 
-    pub(crate) static ref CHANNEL: (Sender<Message>, Receiver<Message>) = unbounded();
-    pub(crate) static ref EXIT: (Sender<()>, Receiver<()>)              = unbounded();
+    pub(crate) static ref ARGS:             Args        = Args::parse();
+    pub(crate) static ref CURDIR:           PathBuf     = env::current_dir().unwrap();
+    pub(crate) static ref DEBUG:            bool        = ARGS.debug;
+    pub(crate) static ref SHOW_COMPILER:    bool        = ARGS.show_compiler;
 
-    pub(crate) static ref ARGS: Args            = Args::parse();
-    pub(crate) static ref CURDIR: PathBuf       = env::current_dir().unwrap();
-    pub(crate) static ref DEBUG: bool           = ARGS.debug;
-    pub(crate) static ref SHOW_COMPILER: bool   = ARGS.show_compiler;
+    pub(crate) static ref CHANNEL:  (Sender<Message>, Receiver<Message>)    = unbounded();
+    pub(crate) static ref EXIT:     (Sender<()>, Receiver<()>)              = unbounded();
 
-    pub(crate) static ref USERAGENT: String = String::from("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36");
+    pub(crate) static ref USERAGENT: String = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36".to_owned();
 }
 
 
@@ -62,7 +62,7 @@ pub fn init() {
 pub fn get_session() {
     let mut session = SESSION.lock().unwrap();
 
-    session.username = String::from("lemur");
+    session.username = "lemur".to_owned();
     session.is_admin = true;
 }
 

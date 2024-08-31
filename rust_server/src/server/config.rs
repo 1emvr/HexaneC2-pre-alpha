@@ -27,9 +27,9 @@ pub(crate) fn map_config(file_path: &String) -> Result<Hexane> {
         active: false,
 
         compiler: Compiler {
-            file_extension:     String::from(""),
-            build_directory:    String::from(""),
-            compiler_flags:     String::from(""),
+            file_extension:     "".to_owned(),
+            build_directory:    "".to_owned(),
+            compiler_flags:     "".to_owned(),
         },
 
         main:       json_data.config,
@@ -38,7 +38,7 @@ pub(crate) fn map_config(file_path: &String) -> Result<Hexane> {
         loader:     json_data.loader,
 
         user_session: UserSession {
-            username: String::from(""),
+            username: "".to_owned(),
             is_admin: false,
         },
     };

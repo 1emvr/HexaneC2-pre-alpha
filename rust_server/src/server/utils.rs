@@ -72,7 +72,7 @@ pub(crate) fn get_embedded_strings(str_list: Vec<String>) -> Vec<u8> {
 }
 
 pub(crate) fn create_cpp_array(buffer: &[u8], length: usize) -> Vec<u8> {
-    let mut array = String::from("{");
+    let mut array = "{".to_owned();
 
     for (i, &byte) in buffer.iter().enumerate() {
         if i == length - 1 {
