@@ -1,5 +1,4 @@
 extern crate core;
-
 use crate::server::run_client;
 
 mod server;

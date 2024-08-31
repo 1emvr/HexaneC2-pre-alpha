@@ -1,7 +1,6 @@
 mod error;
 mod types;
 mod utils;
-mod config;
 mod cipher;
 mod stream;
 mod session;
@@ -16,13 +15,13 @@ use serde::Deserialize;
 use lazy_static::lazy_static;
 
 use rand::Rng;
-use std::io::{self, Write};
+use std::io::{stdin, Write};
 use core::fmt::Display;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 
 use self::session::{init};
-use self::utils::{cursor, wrap_message, stop_print_channel};
+use self::utils::{wrap_message, stop_print_channel};
 use self::instance::{Hexane, load_instance, interact_instance, remove_instance};
 use crate::server::format::list_instances;
 use crate::{invalid_input, length_check_continue};
@@ -35,10 +34,8 @@ pub fn run_client() {
     init();
 
     loop {
-        cursor();
-
         let mut input = String::new();
-        io::stdin().read_line(&mut input).unwrap();
+        stdin().read_line(&mut input).unwrap();
 
         let input = input.trim();
         if input.is_empty() {
@@ -46,18 +43,17 @@ pub fn run_client() {
         }
 
         let args: Vec<String> = input.split_whitespace().map(str::to_string).collect();
-        if args[0].as_str() == "exit" {
-            break;
-        } else if args[0].as_str() == "help" {
-            print_help();
-        } else {
-            length_check_continue!(args, 2);
+
+        match args[0].as_str() {
+            "exit"  => break,
+            "help"  => print_help(),
+            _       => invalid_input!(args.join(" ").to_string()),
         }
 
         match args[0].as_str() {
             "implant" => {
-
                 length_check_continue!(args, 2);
+
                 match args[1].as_str() {
                     "ls"    => { list_instances().unwrap_or_else(|e| wrap_message("error", e.to_string())) },
                     "load"  => { load_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
@@ -70,12 +66,10 @@ pub fn run_client() {
 
             "listener" => {
                 length_check_continue!(args, 2);
+
                 match args[1].as_str() {
-
-                    // todo: "attach" - find implant by name and attach an associated listener
-                    "attach" => { todo!() },
-
-                    _ => invalid_input!(args.join(" ").to_string())
+                    "attach"    => { todo!("attack - find implant by name and attack associated listener") },
+                    _           => invalid_input!(args.join(" ").to_string())
                 }
             }
 

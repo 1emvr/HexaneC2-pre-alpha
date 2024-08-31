@@ -13,11 +13,6 @@ use crate::server::error::{Error, Result};
 use crate::server::types::{Message};
 use crate::server::stream::Stream;
 
-pub fn cursor() {
-    print!(" > ");
-    io::stdout().flush().unwrap();
-}
-
 fn encode_utf16(s: &str) -> Vec<u8> {
     s.encode_utf16()
         .flat_map(|c| c.to_le_bytes())
@@ -43,7 +38,6 @@ pub fn print_channel() {
                         _       => m.msg_type,
                     };
                     println!("[{}] {}", fmt_msg, m.msg);
-                    cursor();
                 }
             }
         }

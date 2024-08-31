@@ -1,6 +1,12 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
+pub enum BuildType {
+    Loader,
+    Shellcode,
+}
+
+#[derive(Debug)]
 pub enum MessageType {
     TypeCheckin,
     TypeTasking,
@@ -15,11 +21,6 @@ pub enum CommandType {
     CommandShutdown,
     CommandUpdatePeer,
     CommandNoJob,
-}
-
-pub enum BuildType {
-    BuildLoader,
-    BuildShellcode,
 }
 
 pub(crate) enum TransportType {

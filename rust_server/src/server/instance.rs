@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use crate::server::INSTANCES;
 use crate::server::session::{CURDIR, SESSION, USERAGENT};
-use crate::server::types::{InjectionOptions, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, TransportType, JsonData};
+use crate::server::types::{InjectionOptions, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, TransportType, JsonData, BuildType};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::error::{Error, Result};
 use crate::server::utils::wrap_message;
@@ -38,24 +38,6 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     Ok(())
 }
 
-pub fn map_config(file_path: &String) -> Result<Hexane> {
-    let json_file = CURDIR.join("json").join(file_path);
-
-    let contents    = fs::read_to_string(json_file).map_err(Error::Io)?;
-    let json_data   = serde_json::from_str::<JsonData>(contents.as_str())?;
-
-    let mut instance = Hexane::default();
-
-    instance.group_id       = 0;
-    instance.main           = json_data.config;
-    instance.network        = json_data.network;
-    instance.builder        = json_data.builder;
-    instance.loader         = json_data.loader;
-    instance.user_session   = UserSession::default();
-
-    Ok(instance)
-}
-
 pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
     length_check_defer!(args, 3);
 
@@ -76,6 +58,24 @@ pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
 pub(crate) fn interact_instance(args: Vec<String>) -> Result<()> {
     todo!()
     // todo: get channels + saved messages from db
+}
+
+pub fn map_config(file_path: &String) -> Result<Hexane> {
+    let json_file = CURDIR.join("json").join(file_path);
+
+    let contents    = fs::read_to_string(json_file).map_err(Error::Io)?;
+    let json_data   = serde_json::from_str::<JsonData>(contents.as_str())?;
+
+    let mut instance = Hexane::default();
+
+    instance.group_id       = 0;
+    instance.main           = json_data.config;
+    instance.network        = json_data.network;
+    instance.builder        = json_data.builder;
+    instance.loader         = json_data.loader;
+    instance.user_session   = UserSession::default();
+
+    Ok(instance)
 }
 
 
@@ -185,7 +185,7 @@ impl Hexane {
         }
 
         if let Some(loader) = &mut self.loader {
-            self.build_type = BuildType::BuildLoader as u32;
+            self.build_type = BuildType::Loader as u32;
 
             if loader.root_directory.is_empty() { return_error!("loader field detected but root_directory must be provided")}
             if loader.sources.is_empty()        { return_error!("loader field detected but sources must be provided")}
@@ -212,7 +212,7 @@ impl Hexane {
                 }
             }
         } else {
-            self.build_type = BuildType::BuildShellcode as u32;
+            self.build_type = BuildType::Shellcode as u32;
         }
 
         Ok(())
