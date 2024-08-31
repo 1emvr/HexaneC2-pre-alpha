@@ -241,10 +241,8 @@ impl Hexane {
 
         if self.network_type == http {
             stream.pack_byte(http);
-
         } else if self.network_type == smb {
             stream.pack_byte(smb);
-
         } else {
             return_error!("invalid network type")
         }
