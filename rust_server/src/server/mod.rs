@@ -34,8 +34,6 @@ pub fn run_client() {
     init();
 
     loop {
-        print!(" > ");
-
         let mut input = String::new();
         stdin().read_line(&mut input).unwrap();
 
@@ -81,6 +79,8 @@ pub fn run_client() {
                 }
             }
         }
+
+        print!(" > ");
     }
 
     stop_print_channel();
