@@ -113,13 +113,13 @@ namespace Memory {
         VOID ContextDestroy(_hexane* Ctx) {
             // todo: needs expanded to destroy all strings (http/smb context + anything else)
 
-            auto RtlFreeHeap    = Ctx->nt.RtlFreeHeap;
-            auto Heap           = Ctx->heap;
+            auto free = Ctx->nt.RtlFreeHeap;
+            auto heap = Ctx->heap;
 
             x_memset(Ctx, 0, sizeof(_hexane));
 
-            if (RtlFreeHeap) {
-                RtlFreeHeap(Heap, 0, Ctx);
+            if (free) {
+                free(heap, 0, Ctx);
             }
         }
 
@@ -130,18 +130,19 @@ namespace Memory {
         UINT_PTR GetInternalAddress(uint32_t name) {
             HEXANE
 
-            return 0;
+            return 1;
         }
 
         BOOL BaseRelocation(_executable *object) {
             HEXANE
 
-            bool        success         = true;
             char        symbol_name[9]  = { };
             char        *entry_name     = { };
             _symbol     *symbol         = { };
 
-            uint32_t    hash            = 0;
+            bool        success         = true;
+            void        *function       = { };
+
             uintptr_t   offset          = 0;
             uint32_t    count           = 0;
 
@@ -150,6 +151,7 @@ namespace Memory {
                 object->reloc       = R_CAST(_reloc*, U_PTR(object->buffer) + object->section->PointerToRelocations);
 
                 for (auto j = 0; j < object->section->NumberOfRelocations; j++) {
+
                     symbol = &object->symbol[object->reloc->SymbolTableIndex];
 
                     if (symbol->First.Value[0] != 0) {
@@ -161,14 +163,13 @@ namespace Memory {
                         entry_name = R_CAST(char*, B_PTR(object->symbol) + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
                     }
 
-                    hash = Utils::GetHashFromStringA(entry_name, x_strlen(entry_name));
-
                     void *reloc     = object->sec_map[j].address + object->reloc->VirtualAddress;
                     void *target    = object->sec_map[symbol->SectionNumber - 1].address;
                     void *fn_map    = object->fn_map + sizeof(void*) * count;
-                    void *function  = C_PTR(ResolveSymbol(object, hash, symbol->Type));
 
-                    if (!function)
+                    auto hash = Utils::GetHashFromStringA(entry_name, x_strlen(entry_name));
+                    if (!(function = C_PTR(ResolveSymbol(object, hash, symbol->Type)))
+)
 #ifdef WIN64
                     {
                         if (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
@@ -274,6 +275,7 @@ namespace Memory {
             char        *fn_name    = { };
 
             x_assert(address = Memory::Objects::GetInternalAddress(entry_name));
+            address = 1;
 
                 /*
                  * todo: change cmd_map to func_map and add every function
