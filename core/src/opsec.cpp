@@ -41,13 +41,13 @@ namespace Opsec {
     BOOL SeCheckDebugger() {
         HEXANE
 
+        PPEB peb    = PEB_POINTER;
+        BOOL m_x32  = FALSE;
+
         PVOID   heap_base               = { };
         ULONG   flags_offset            = 0;
         ULONG   force_flags_offset      = 0;
         BOOL    vista_or_greater        = Ctx->session.version >= WIN_VERSION_2008;
-
-        BOOL m_x32  = FALSE;
-        PPEB peb    = PEB_POINTER;
 
         Ctx->win32.IsWow64Process(NtCurrentProcess(), &m_x32);
 
