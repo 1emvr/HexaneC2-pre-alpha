@@ -13,7 +13,7 @@ namespace Dispatcher {
     VOID AddMessage(_stream *const out) {
         HEXANE
 
-        _stream *head = Ctx->transport.outbound_queue;
+        auto head = Ctx->transport.outbound_queue;
 
         if (!Ctx->transport.outbound_queue) {
             Ctx->transport.outbound_queue = out;
@@ -61,9 +61,7 @@ namespace Dispatcher {
         _parser parser = { };
         _stream *queue = { };
 
-        if (!out) {
-            return_defer(ERROR_NO_DATA);
-        }
+        x_assert(out);
 
         if (out->length > MESSAGE_MAX) {
             QueueSegments(B_PTR(out->buffer), out->length);
@@ -100,8 +98,8 @@ namespace Dispatcher {
         uint32_t cb_seg     = 0;
         uint32_t index      = 1;
 
-        const auto n_seg = (length + MESSAGE_MAX - 1) / MESSAGE_MAX;
-        constexpr auto m_max = MESSAGE_MAX - SEGMENT_HEADER_SIZE;
+        const auto      n_seg = (length + MESSAGE_MAX - 1) / MESSAGE_MAX;
+        constexpr auto  m_max = MESSAGE_MAX - SEGMENT_HEADER_SIZE;
 
         while (length > 0) {
             cb_seg  = length > m_max ? m_max : length;

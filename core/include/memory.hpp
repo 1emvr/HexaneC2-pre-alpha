@@ -15,11 +15,10 @@ namespace Memory {
     namespace Context {
         FUNCTION VOID ContextInit();
         FUNCTION VOID ContextDestroy(_hexane* Ctx);
-        FUNCTION VOID ResolveApi();
     }
 
     namespace Objects {
-        FUNCTION UINT_PTR GetInternalAddress(uint32_t name, bool* internal);
+        FUNCTION UINT_PTR GetInternalAddress(uint32_t name);
         FUNCTION BOOL BaseRelocation(_executable *object);
         FUNCTION UINT_PTR ResolveSymbol(_executable *object, uint32_t entry_name, uint32_t type);
         FUNCTION SIZE_T GetFunctionMapSize(_executable *object);
@@ -41,8 +40,8 @@ namespace Memory {
 
     namespace Execute {
         FUNCTION LONG WINAPI Debugger(EXCEPTION_POINTERS *exception);
-        FUNCTION VOID ExecuteCommand(_parser &parser);
-        FUNCTION VOID ExecuteShellcode(const _parser& parser);
+        FUNCTION BOOL ExecuteCommand(_parser &parser);
+        FUNCTION BOOL ExecuteShellcode(const _parser& parser);
         FUNCTION BOOL ExecuteObject(_executable *object, const char *entrypoint, char *args, uint32_t size, uint32_t req_id);
     }
 }

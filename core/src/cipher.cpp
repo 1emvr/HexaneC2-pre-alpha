@@ -43,11 +43,8 @@ namespace Xtea {
         };
 
         for (auto i = 0; i < NROUNDS;) {
-            block.v0 += (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ c->table[i];
-            i++;
-
-            block.v1 += (block.v0 << 4 ^ block.v0 >> 5) + block.v0 ^ c->table[i];
-            i++;
+            block.v0 += (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ c->table[i]; i++;
+            block.v1 += (block.v0 << 4 ^ block.v0 >> 5) + block.v0 ^ c->table[i]; i++;
         }
 
         Uint32ToBlock(block.v0, block.v1, dst);
@@ -61,11 +58,8 @@ namespace Xtea {
         };
 
         for (auto i = NROUNDS; i > 0;) {
-            i--;
-            block.v1 -= (block.v0 << 4 ^ block.v0 >> 5) + block.v0 ^ c->table[i];
-
-            i--;
-            block.v0 -= (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ c->table[i];
+            i--; block.v1 -= (block.v0 << 4 ^ block.v0 >> 5) + block.v0 ^ c->table[i];
+            i--; block.v0 -= (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ c->table[i];
         }
 
         Uint32ToBlock(block.v0, block.v1, dst);
@@ -74,15 +68,14 @@ namespace Xtea {
     PBYTE *XteaDivide (const uint8_t *const data, const size_t n_data, size_t *const n_out) {
         HEXANE
 
-        uint8_t **sections = { };
-        constexpr auto sec_size  = 8;
-        const auto n = (n_data + sec_size - 1) / sec_size;
+        uint8_t         **sections  = { };
+        constexpr auto  sec_size    = 8;
+        const auto      n           = (n_data + sec_size - 1) / sec_size;
 
         *n_out = n;
 
-        if (!(sections = S_CAST(uint8_t**, x_malloc(n * sizeof(uint8_t*))))) {
-            return nullptr;
-        }
+        x_assert(sections = S_CAST(uint8_t**, x_malloc(n * sizeof(uint8_t*))));
+
         for (size_t i = 0; i < n; i++) {
             if (!(sections[i] = B_PTR(x_malloc(sec_size)))) {
 
@@ -94,8 +87,8 @@ namespace Xtea {
                 return_defer(ERROR_NOT_ENOUGH_MEMORY);
             }
 
-            const auto end = (i + 1) * sec_size;
-            const auto copy_size = (end > n_data) ? n_data - i * sec_size : sec_size;
+            const auto end          = (i + 1) * sec_size;
+            const auto copy_size    = (end > n_data) ? n_data - i * sec_size : sec_size;
 
             x_memcpy(sections[i], data + i * sec_size, copy_size);
 
@@ -111,35 +104,26 @@ namespace Xtea {
     VOID XteaCrypt(uint8_t *const data, const size_t n_data, uint8_t *const m_key, const bool encrypt) {
         HEXANE
 
-        _ciphertext *text = { };
-        uint8_t **sections = { };
-        uint8_t *buffer = { };
-        uint8_t *key = { };
+        _ciphertext *text       = { };
+        uint8_t     **sections  = { };
+        uint8_t     *buffer     = { };
+        uint8_t     *key        = { };
 
-        int32_t offset = 0;
-        size_t n_sect = { };
+        size_t      n_sect      = { };
+        int32_t     offset      = 0;
 
-        if (!m_key) {
-            key = Ctx->config.key;
-        } else {
-            key = m_key;
-        }
+        m_key ? key = m_key : key = Ctx->config.key;
 
-        if (!(text = S_CAST(_ciphertext*, x_malloc(sizeof(_ciphertext))))) {
-            return;
-        }
+        x_assert(text = S_CAST(_ciphertext*, x_malloc(sizeof(_ciphertext))));
         InitCipher(text, key);
 
-        if (!(sections = XteaDivide(data, n_data, &n_sect))) {
-            return;
-        }
-
+        x_assert(sections = XteaDivide(data, n_data, &n_sect));
         x_memset(data, 0, n_data);
 
+
         for (auto i = 0; i < n_sect; i++) {
-            if (!(buffer = B_PTR(x_malloc(8)))) {
-                return;
-            }
+            x_assert(buffer = B_PTR(x_malloc(8)));
+
             if (encrypt) {
                 XteaEncrypt(text, buffer, sections[i]);
             } else {
@@ -147,16 +131,23 @@ namespace Xtea {
             }
 
             x_memcpy(C_PTR(data+offset), C_PTR(buffer), sizeof(uint64_t));
-
             x_free(buffer);
+
             offset += sizeof(uint64_t);
         }
 
-        for (uint64_t i = 0; i < n_sect; i++) {
-            x_free(sections[i]);
+        defer:
+        if (sections) {
+            for (uint64_t i = 0; i < n_sect; i++) {
+                if (sections[i]) {
+                    x_free(sections[i]);
+                } else {
+                    break;
+                }
+            }
         }
 
-        x_free(sections);
-        x_free(text);
+        if (sections)   { x_free(sections); }
+        if (text)       { x_free(text); }
     }
 }

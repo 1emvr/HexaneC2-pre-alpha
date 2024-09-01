@@ -143,6 +143,44 @@ EXTERN_C LPVOID InstEnd();
 #define MESSAGE_MAX HTTP_REQUEST_MAX
 #endif
 
+#define ZeroFreePtr(x, n) 		                	x_memset(x, 0, n); x_free(x); x = nullptr
+#define x_malloc(size) 			                	Ctx->nt.RtlAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, size)
+#define x_realloc(ptr, size) 	                	Ctx->nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, ptr, size)
+#define x_free(size) 			                	Ctx->nt.RtlFreeHeap(Ctx->heap, 0, size)
+
+#define x_assert(x)     							if (!(x)) goto defer
+#define x_assertb(x) 								if (!(x)) { success = false; goto defer; }
+#define x_ntassert(x)   							ntstatus = x; if (!NT_SUCCESS(ntstatus)) goto defer
+#define x_ntassertb(x)   							ntstatus = x; if (!NT_SUCCESS(ntstatus)) { success = false; goto defer; }
+
+#define F_PTR_HMOD(Fn, hmod, sym_hash)				(Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash))
+#define F_PTR_HASHES(Fn, mod_hash, sym_hash)		(Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash))
+#define M_PTR(mod_hash)								Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash))
+#define NT_ASSERT(Fn)								Fn; if (NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) return
+
+#define return_defer(x)			                	ntstatus = x; goto defer
+#define success_(x)				                	success = x; goto defer
+
+#if	defined(__GNUC__) || defined(__GNUG__)
+#define __builtin_bswap32 __bswapd
+#define __builtin_bswap64 __bswapq
+#endif
+
+#define InitializeObjectAttributes(ptr, name, attr, root, sec )	\
+    (ptr)->Length = sizeof( OBJECT_ATTRIBUTES );				\
+    (ptr)->RootDirectory = root;								\
+    (ptr)->Attributes = attr;									\
+    (ptr)->ObjectName = name;									\
+    (ptr)->SecurityDescriptor = sec;							\
+    (ptr)->SecurityQualityOfService = NULL
+
+#define RANDOM_SELECT(ptr, arr)                         \
+        int i = 0;										\
+        DYN_ARRAY_LEN(i, arr);							\
+        ptr = arr[i % Utils::Random::RandomNumber32()]
+
+
+
 typedef NTSTATUS(NTAPI* NtReadVirtualMemory_t)(HANDLE ProcessHandle, PVOID BaseAddress, PVOID Buffer, SIZE_T BufferSize, PSIZE_T NumberOfBytesRead);
 typedef NTSTATUS(NTAPI* NtWriteVirtualMemory_t)(HANDLE processHandle, PVOID BaseAddress, PVOID Buffer, SIZE_T BufferSize, PSIZE_T NumberOfBytesWritten);
 typedef NTSTATUS(NTAPI* NtAllocateVirtualMemory_t)(HANDLE ProcessHandle, PVOID* BaseAddress, ULONG_PTR ZeroBits, PSIZE_T RegionSize, ULONG AllocationType, ULONG Protect);
@@ -197,38 +235,6 @@ typedef NTSTATUS (NTAPI* TpAllocWork_t)(PTP_WORK* ptpWork, PTP_WORK_CALLBACK cal
 typedef VOID (NTAPI* TpPostWork_t)(PTP_WORK ptpWork);
 typedef VOID (NTAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
 
-
-#if	defined(__GNUC__) || defined(__GNUG__)
-#define __builtin_bswap32 __bswapd
-#define __builtin_bswap64 __bswapq
-#endif
-
-#define InitializeObjectAttributes(ptr, name, attr, root, sec )	\
-    (ptr)->Length = sizeof( OBJECT_ATTRIBUTES );				\
-    (ptr)->RootDirectory = root;								\
-    (ptr)->Attributes = attr;									\
-    (ptr)->ObjectName = name;									\
-    (ptr)->SecurityDescriptor = sec;							\
-    (ptr)->SecurityQualityOfService = NULL
-
-#define RANDOM_SELECT(ptr, arr)                         \
-        int i = 0;										\
-        DYN_ARRAY_LEN(i, arr);							\
-        ptr = arr[i % Utils::Random::RandomNumber32()]
-
-
-#define ZeroFreePtr(x, n) 		                x_memset(x, 0, n); x_free(x); x = nullptr
-#define x_malloc(size) 			                Ctx->nt.RtlAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, size)
-#define x_realloc(ptr, size) 	                Ctx->nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, ptr, size)
-#define x_free(size) 			                Ctx->nt.RtlFreeHeap(Ctx->heap, 0, size)
-
-#define F_PTR_HMOD(Fn, hmod, sym_hash)			(Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash))
-#define F_PTR_HASHES(Fn, mod_hash, sym_hash)	(Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash))
-#define M_PTR(mod_hash)							Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash))
-#define NT_ASSERT(Fn)							Fn; if (NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) return
-
-#define return_defer(x)			                ntstatus = x; goto defer
-#define success_(x)				                success = x; goto defer
 
 enum MessageType {
 	TypeCheckin     = 0x7FFFFFFF,

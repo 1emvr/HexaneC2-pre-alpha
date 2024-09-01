@@ -146,14 +146,14 @@ namespace Clients {
 
         for (auto client = Ctx->clients; client; client = client->next) {
 
-            _stream *in     = { };
-            void *buffer    = { };
+            _stream     *in     = { };
+            void        *buffer = { };
 
-            uint8_t bound   = 0;
-            uint32_t total  = 0;
-            uint32_t read   = 0;
+            uint8_t     bound   = 0;
+            uint32_t    total   = 0;
+            uint32_t    read    = 0;
 
-            if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, R_CAST(LPDWORD, &read), nullptr) || read != sizeof(uint8_t)) {
+            if (Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, R_CAST(LPDWORD, &read), nullptr) || read != sizeof(uint8_t)) {
                 continue;
             }
             if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, nullptr, 0, nullptr, R_CAST(LPDWORD, &total), nullptr)) {
@@ -161,9 +161,9 @@ namespace Clients {
             }
 
             if (bound == 0 && total >= sizeof(uint32_t)) {
-                if (!(buffer = x_malloc(total)) || !(in = Stream::CreateStream())) {
-                    return_defer(ntstatus);
-                }
+
+                x_assert(buffer = x_malloc(total));
+                x_assert(in     = Stream::CreateStream());
 
                 if (!Ctx->win32.ReadFile(client->pipe_handle, buffer, total, R_CAST(LPDWORD, &read), nullptr) || read != total) {
                     Stream::DestroyStream(in);
