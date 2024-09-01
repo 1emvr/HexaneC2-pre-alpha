@@ -1,5 +1,6 @@
 ntdll.dll
 kernel32.dll
+kernelbase.dll
 LoadLibraryA
 FreeLibrary
 Heap32ListFirst
@@ -44,6 +45,7 @@ GetSystemTimeAsFileTime
 FormatMessageA
 CreateRemoteThread
 CreateThread
+ExitThread
 QueueUserAPC
 GetThreadLocale
 SleepEx
@@ -99,6 +101,7 @@ NtUnmapViewOfSection
 NtOpenProcess
 NtCreateUserProcess
 NtTerminateProcess
+NtTerminateThread
 RtlCreateProcessParametersEx
 RtlDestroyProcessParameters
 NtOpenProcessToken
@@ -116,11 +119,15 @@ RtlInitUnicodeString
 RtlAddVectoredExceptionHandler
 RtlRemoveVectoredExceptionHandler
 RtlRandomEx
+NtCreateThreadEx
 NtResumeThread
 NtGetContextThread
 NtSetContextThread
 NtSetInformationThread
 NtWaitForSingleObject
+NtDeviceIoControlFile
+NtOpenFile
+NtOpenThread
 TpAllocWork
 TpPostWork
 TpReleaseWork
@@ -128,6 +135,7 @@ NtTestAlert
 NtClose
 RtlGetVersion
 NtQuerySystemInformation
+SetProcessValidCallTargets
 DirectoryList
 ProcessModules
 ProcessList

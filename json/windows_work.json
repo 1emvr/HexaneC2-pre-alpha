@@ -28,7 +28,7 @@
 		"linker_script": "implant.ld",
 
 		"loaded_modules": [
-			"crypt32", "winhttp", "advapi32", "iphlpapi", "mscoree"
+			"crypt32", "winhttp", "advapi32", "iphlpapi", "kernelbase", "mscoree"
 		]
 	},
 

