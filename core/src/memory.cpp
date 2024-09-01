@@ -3,11 +3,10 @@
 void* operator new(std::size_t size) {
     HEXANE
 
-    void *ptr = { };
-
+    void *ptr = nullptr;
     if (Ctx->heap && Ctx->nt.RtlAllocateHeap) {
-        ptr = Ctx->nt.RtlAllocateHeap(Ctx->heap, 0, size);
 
+        ptr = Ctx->nt.RtlAllocateHeap(Ctx->heap, 0, size);
         if (!ptr) {
             NtCurrentTeb()->LastErrorValue = ERROR_NOT_ENOUGH_MEMORY;
         }
@@ -69,6 +68,7 @@ namespace Memory {
 
         _executable* CreateImageData(uint8_t *data) {
             HEXANE
+
             _executable *image = R_CAST(_executable*, x_malloc(sizeof(_executable)));
 
             image->buffer   = data;
