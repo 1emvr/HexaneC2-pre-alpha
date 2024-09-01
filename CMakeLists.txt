@@ -24,6 +24,7 @@ set (SOURCES
         core/src/stream.cpp
         core/src/utils.cpp
         core/src/clients.cpp
+        core/src/sleep.cpp
 )
 
 set (INCLUDES

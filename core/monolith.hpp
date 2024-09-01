@@ -177,6 +177,7 @@ typedef NTSTATUS(NTAPI* RtlDestroyProcessParameters_t)(PRTL_USER_PROCESS_PARAMET
 typedef NTSTATUS (NTAPI* RtlGetVersion_t)(PRTL_OSVERSIONINFOW lpVersionInformation);
 typedef ULONG (NTAPI* RtlRandomEx_t)(PULONG Seed);
 
+typedef BOOL (WINAPI* SetProcessValidCallTargets_t)(HANDLE hProcess, PVOID VirtualAddress, SIZE_T RegionSize, ULONG NumberOfOffsets, PCFG_CALL_TARGET_INFO OffsetInformation);
 typedef PVOID (NTAPI* RtlAddVectoredExceptionHandler_t)(ULONG First, PVECTORED_EXCEPTION_HANDLER Handler);
 typedef ULONG (NTAPI* RtlRemoveVectoredExceptionHandler_t)(PVOID Handle);
 typedef NTSTATUS(NTAPI* NtGetContextThread_t)(HANDLE ThreadHandle, PCONTEXT ThreadContext);
@@ -523,6 +524,8 @@ struct _hexane{
 
 		RtlGetVersion_t RtlGetVersion;
 		NtQuerySystemInformation_t NtQuerySystemInformation;
+        SetProcessValidCallTargets_t SetProcessValidCallTargets;
+
 	} nt;
 
 	struct {

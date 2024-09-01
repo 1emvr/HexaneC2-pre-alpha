@@ -9,12 +9,12 @@
 #include <accctrl.h>
 #include <winhttp.h>
 #include <wincrypt.h>
+#include <memoryapi.h>
 #include <iphlpapi.h>
 #include <tlhelp32.h>
 #include <type_traits>
 #include <aclapi.h>
 #include <iostream>
-#include <stdio.h>
 #include <float.h>
 #include <math.h>
 #include <array>
@@ -344,6 +344,11 @@ typedef ULONG LOGICAL;
 	} SYSTEM_PROCESS_INFORMATION, * PSYSTEM_PROCESS_INFORMATION;
 
 
+typedef struct __attribute__((packed)) {
+	ULONG ExtendedProcessInfo;
+	ULONG ExtendedProcessInfoBuffer;
+} EXTENDED_PROCESS_INFORMATION, *PEXTENDED_PROCESS_INFORMATION;
+
 #define RTL_MAX_DRIVE_LETTERS 32
 	typedef struct _RTL_USER_PROCESS_PARAMETERS {
 		ULONG MaximumLength;
@@ -507,9 +512,11 @@ typedef ULONG LOGICAL;
 	typedef enum _PROCESSINFOCLASS {
 		ProcessBasicInformation = 0,
 		ProcessDebugPort = 7,
+		ProcessUserModeIOPL = 16,
 		ProcessWow64Information = 26,
 		ProcessImageFileName = 27,
-		ProcessBreakOnTermination = 29
+		ProcessBreakOnTermination = 29,
+		ProcessCookie = 36
 	} PROCESSINFOCLASS;
 
 
