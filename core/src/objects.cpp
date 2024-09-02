@@ -75,7 +75,7 @@ namespace Objects {
                 void *reloc     = object->sec_map[j].address + object->reloc->VirtualAddress;
                 void *fn_map    = object->fn_map + sizeof(void*) * count;
 
-                if (!Memory::ResolveSymbol(object, entry_name, symbol->Type, &function)) {
+                if (!ResolveSymbol(object, entry_name, symbol->Type, &function)) {
                     success_(false);
                 }
 
