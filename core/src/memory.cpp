@@ -166,13 +166,12 @@ namespace Memory {
                     void *fn_map    = object->fn_map + sizeof(void*) * count;
 
                     auto hash = Utils::GetHashFromStringA(entry_name, x_strlen(entry_name));
-                    if (!(function = C_PTR(ResolveSymbol(object, hash, symbol->Type)))
-)
+                    if ((function = C_PTR(ResolveSymbol(object, hash, symbol->Type))))      // if (function != nullptr)
 #ifdef _WIN64
                     {
                         if (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
-                            *R_CAST(void**, fn_map) = function;
-                            *S_CAST(uintptr_t*, reloc) = S_CAST(uint32_t, U_PTR(fn_map) - U_PTR(reloc) - sizeof(uint32_t));
+                            *R_CAST(void**, fn_map)     = function;
+                            *S_CAST(uint32_t*, reloc)   = U_PTR(function) - U_PTR(reloc) - sizeof(uint32_t);
 
                             count++;
 
@@ -180,7 +179,7 @@ namespace Memory {
                             success_(false);
                         }
                     } else {
-                        if (object->reloc->Type == IMAGE_REL_AMD64_REL32 || object->reloc->Type == IMAGE_REL_AMD64_ADDR32NB) {
+                        if (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
                             *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t);
 
                         } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_1) {
@@ -197,6 +196,9 @@ namespace Memory {
 
                         } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_5) {
                             *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t) - 5;
+
+                        } else if (object->reloc->Type == IMAGE_REL_AMD64_ADDR32NB) {
+                            *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t);
 
                         } else if (object->reloc->Type == IMAGE_REL_AMD64_ADDR64) {
                             *S_CAST(uint64_t*, reloc) = *S_CAST(uint64_t*, reloc) + U_PTR(target);
