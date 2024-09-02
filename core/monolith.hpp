@@ -80,11 +80,13 @@ EXTERN_C LPVOID InstEnd();
 	#define DBG_FLAG_OFFSET 					    DBG_FLAG_OFFSET64
 	#define IMAGE_OPT_MAGIC 					    IMAGE_NT_OPTIONAL_HDR64_MAGIC
 	#define MACHINE_ARCH    					    IMAGE_FILE_MACHINE_AMD64
-// __impl_HASHNAME			; already loaded
-// __impl_HexaneHASHNAME	; internal function
-// __impl_CRYPT32$HASHNAME	; loadable
+
+// __impl_HASHNAME					; already loaded
+// __impl_HexaneHASHNAME			; internal function
+// __impl_CRYPT32$HASHNAME			; loadable
+
 	#define COFF_PREP_SYMBOL        			    0xec6ba2a8 	// __impl_
-	#define COFF_PREP_SYMBOL_SIZE   			    6
+	#define COFF_PREP_SYMBOL_SIZE   			    7
 	#define COFF_PREP_BEACON        			    0xd0a409b0  // __impl_Hexane
 	#define COFF_PREP_BEACON_SIZE   			    (COFF_PREP_SYMBOL_SIZE + 6)
 	#define GLOBAL_CONTEXT           			    0xbfded9c9  // .refptr.__instance
@@ -97,9 +99,11 @@ EXTERN_C LPVOID InstEnd();
 	#define DBG_FLAG_OFFSET 						DBG_FLAG_OFFSET32
 	#define IMAGE_OPT_MAGIC 						IMAGE_NT_OPTIONAL_HDR32_MAGIC
 	#define MACHINE_ARCH    						IMAGE_FILE_MACHINE_I386
-// __impl__HASHNAME			; already loaded
-// __impl__HexaneHASHNAME	; internal function
-// __impl__CRYPT32$HASHNAME	; loadable
+
+// __impl__HASHNAME					; already loaded
+// __impl__HexaneHASHNAME			; internal function
+// __impl__CRYPT32$HASHNAME			; loadable
+
     #define COFF_PREP_SYMBOL        				0x79dff807	// __impl__
     #define COFF_PREP_SYMBOL_SIZE   				8
     #define COFF_PREP_BEACON        				0x4c20aa4f	// __impl__Hexane
