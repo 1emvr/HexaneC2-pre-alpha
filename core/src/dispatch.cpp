@@ -90,13 +90,12 @@ namespace Dispatcher {
     VOID QueueSegments(uint8_t *const buffer, uint32_t length) {
         HEXANE
 
-        _stream *queue = { };
-
-        uint32_t offset     = 0;
-        uint32_t peer_id    = 0;
-        uint32_t task_id    = 0;
-        uint32_t cb_seg     = 0;
-        uint32_t index      = 1;
+        _stream     *queue      = { };
+        uint32_t    offset      = 0;
+        uint32_t    peer_id     = 0;
+        uint32_t    task_id     = 0;
+        uint32_t    cb_seg      = 0;
+        uint32_t    index       = 1;
 
         const auto      n_seg = (length + MESSAGE_MAX - 1) / MESSAGE_MAX;
         constexpr auto  m_max = MESSAGE_MAX - SEGMENT_HEADER_SIZE;
