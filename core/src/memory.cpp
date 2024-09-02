@@ -99,7 +99,7 @@ namespace Memory {
             x_assert(F_PTR_HMOD(instance.nt.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP));
             x_assert(F_PTR_HMOD(instance.nt.RtlRandomEx, instance.modules.ntdll, RTLRANDOMEX));
 
-            region = C_PTR(instance.base.address + U_PTR(&__global));
+            region = C_PTR(instance.base.address + U_PTR(&__instance));
             x_assert(C_DREF(region) = instance.nt.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)));
 
             x_memcpy(C_DREF(region), &instance, sizeof(_hexane));
@@ -274,7 +274,7 @@ namespace Memory {
                 goto defer;
             }
 
-            x_assertb(address = Memory::Objects::GetInternalAddress(cmd_id));
+            x_assertb(address = Objects::GetInternalAddress(cmd_id));
 
             cmd = R_CAST(_command, Ctx->base.address + address);
             cmd(&parser);
@@ -346,7 +346,7 @@ namespace Memory {
             }
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSymbols; i++) {
-                if (object->symbol[i].First.Value[0] != 0) {
+                if (object->symbol[i].First.Value[0]) {
                     symbol_name = object->symbol[i].First.Name;
                 } else {
                     symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols + object->symbol[i].First.Value[1]);

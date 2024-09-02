@@ -17,5 +17,6 @@
 #include <core/include/clients.hpp>
 #include <core/include/dispatch.hpp>
 #include <core/include/implant.hpp>
+#include <core/include/objects.hpp>
 
 #endif //CORELIB_HPP

