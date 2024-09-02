@@ -169,7 +169,7 @@ namespace Dispatcher {
         }
     }
 
-    VOID MessageRoutine() {
+    VOID DispatchRoutine() {
         HEXANE
 
         _stream *out    = { };

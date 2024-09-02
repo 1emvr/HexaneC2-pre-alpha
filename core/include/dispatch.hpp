@@ -11,7 +11,7 @@ namespace Dispatcher {
     FUNCTION VOID QueueSegments(uint8_t *buffer, uint32_t length);
     FUNCTION VOID PrepareEgressMessage(_stream *out);
     FUNCTION VOID PrepareIngressMessage(_stream *in);
-    FUNCTION VOID MessageRoutine();
+    FUNCTION VOID DispatchRoutine();
     FUNCTION VOID CommandDispatch (const _stream *in);
 }
 #endif //HEXANE_CORELIB_DISPATCH_HPP

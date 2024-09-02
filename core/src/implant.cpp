@@ -20,7 +20,7 @@ namespace Implant {
                 }
             }
 
-            Dispatcher::MessageRoutine();
+            Dispatcher::DispatchRoutine();
 
             if (ntstatus != ERROR_SUCCESS) {
                 Ctx->session.retry++;
