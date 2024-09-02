@@ -323,8 +323,8 @@ namespace Memory {
 
             x_assert(veh_handler = Ctx->nt.RtlAddVectoredExceptionHandler(1, &Memory::Execute::Debugger));
 
-            for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
-                object->section = SECTION_HEADER(object->buffer, i);
+            for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+                object->section = SECTION_HEADER(object->buffer, sec_index);
 
                 if (object->section->SizeOfRawData > 0) {
                     uint32_t protection = 0;
@@ -343,7 +343,7 @@ namespace Memory {
                         protection |= PAGE_NOCACHE;
                     }
 
-                    x_ntassert(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->sec_map[i].address), &object->sec_map[i].size, protection, nullptr));
+                    x_ntassert(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->sec_map[sec_index].address), &object->sec_map[sec_index].size, protection, nullptr));
                 }
             }
 
@@ -351,11 +351,12 @@ namespace Memory {
                 x_ntassert(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->fn_map), &object->fn_map->size, PAGE_READONLY, nullptr));
             }
 
-            for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSymbols; i++) {
-                if (object->symbol[i].First.Value[0]) {
-                    symbol_name = object->symbol[i].First.Name;
+            for (auto sym_index = 0; sym_index < object->nt_head->FileHeader.NumberOfSymbols; sym_index++) {
+                if (object->symbol[sym_index].First.Value[0]) {
+                    symbol_name = object->symbol[sym_index].First.Name;
+
                 } else {
-                    symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols + object->symbol[i].First.Value[1]);
+                    symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols + object->symbol[sym_index].First.Value[1]);
                 }
 #if _M_IX86
                 if (symbol_name[0] == 0x5F) {
@@ -363,13 +364,13 @@ namespace Memory {
                 }
 #endif
                 if (x_memcmp(symbol_name, entrypoint, x_strlen(entrypoint)) == 0) {
-                    x_assert(exec = object->sec_map[object->symbol[i].SectionNumber - 1].address + object->symbol[i].Value);
+                    x_assert(exec = object->sec_map[object->symbol[sym_index].SectionNumber - 1].address + object->symbol[sym_index].Value);
                 }
             }
 
-            for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
-                if (U_PTR(exec) >= U_PTR(object->sec_map[i].address) && U_PTR(exec) < U_PTR(object->sec_map[i].address) + object->sec_map[i].size) {
-                    object->section = SECTION_HEADER(object->buffer, i);
+            for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+                if (U_PTR(exec) >= U_PTR(object->sec_map[sec_index].address) && U_PTR(exec) < U_PTR(object->sec_map[sec_index].address) + object->sec_map[sec_index].size) {
+                    object->section = SECTION_HEADER(object->buffer, sec_index);
 
                     if ((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) == IMAGE_SCN_MEM_EXECUTE) {
                         success = true;

@@ -98,7 +98,7 @@ namespace Objects {
 #ifdef _WIN64
                 {
                     if (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
-                        *R_CAST(void**, map)     = function;
+                        *R_CAST(void**, map)        = function;
                         *S_CAST(uint32_t*, reloc)   = U_PTR(function) - U_PTR(reloc) - sizeof(uint32_t);
 
                         count++;
@@ -129,20 +129,20 @@ namespace Objects {
                 }
 #else
                 {
-                        if (object->reloc->Type == IMAGE_REL_I386_REL32) {
-                            *S_CAST(void**, map)        = function;
-                            *S_CAST(uint32_t*, reloc)   = U_PTR(map);
+                    if (object->reloc->Type == IMAGE_REL_I386_REL32) {
+                        *S_CAST(void**, map)        = function;
+                        *S_CAST(uint32_t*, reloc)   = U_PTR(map);
 
-                            count++;
-                        }
-                    } else {
-                        if (object->reloc->Type == IMAGE_REL_I386_REL32) {
-                            *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t);
-
-                        } else if (object->reloc->Type == IMAGE_REL_I386_DIR32) {
-                            *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target);
-                        }
+                        count++;
                     }
+                } else {
+                    if (object->reloc->Type == IMAGE_REL_I386_REL32) {
+                        *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t);
+
+                    } else if (object->reloc->Type == IMAGE_REL_I386_DIR32) {
+                        *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target);
+                    }
+                }
 #endif
                 object->reloc = R_CAST(_reloc*, (U_PTR(object->reloc)  + sizeof(_reloc)));
             }
