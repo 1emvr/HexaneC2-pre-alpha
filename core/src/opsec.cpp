@@ -81,8 +81,8 @@ namespace Opsec {
     }
 
     BOOL SeCheckEnvironment() {
-        // todo: add more information to the checkin message
         HEXANE
+        // todo: add more information to the checkin message
 
         _stream         *out    = Stream::CreateStreamWithHeaders(TypeCheckin);
         IP_ADAPTER_INFO adapter = { };
