@@ -47,8 +47,6 @@ set (INCLUDES
         core/include/process.hpp
         core/include/stream.hpp
         core/include/utils.hpp
-        commands/include/tokens.hpp
-        commands/include/registry.hpp
         core/include/clients.hpp
         core/corelib.hpp
         core/dotnet.hpp
@@ -56,6 +54,8 @@ set (INCLUDES
 )
 
 set (COMMANDS
+        commands/include/tokens.hpp
+        commands/include/registry.hpp
         commands/src/registry.cpp
         commands/src/tokens.cpp
 )
@@ -65,6 +65,8 @@ set (LOADER
         loader/src/dllmain.cpp
         loader/src/exemain.cpp
         loader/src/resource.cpp
+        loader/include/resource.hpp
+        loader/include/injectlib.hpp
 )
 
 set (INJECT
