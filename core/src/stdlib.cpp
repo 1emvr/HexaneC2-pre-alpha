@@ -225,3 +225,48 @@ int x_wcsEndsWith (const wchar_t *string, const wchar_t *const end) {
     string = &string[ length1 - length2 ];
     return x_wcscmp(string, end) == 0;
 }
+
+char* x_strtok(char* str, const char* delim) {
+
+    char *token = { };
+    char *span  = { };
+
+    int c   = 0;
+    int sc  = 0;
+
+    if (!str) {
+        return nullptr;
+    }
+
+    while (true) {
+        c = (uint8_t) *str++;
+
+        for (span = (char*)delim; (sc = (uint8_t)*span++) != 0;) {
+            if (c == sc) {
+                break;
+            }
+        }
+
+        if (sc == 0)    { break; }
+        if (c == 0)     { return nullptr; }
+    }
+
+    token = str - 1;
+
+    while (true) {
+        c       = (uint8_t)*str++;
+        span    = (char*)delim;
+
+        do {
+            if ((sc = (uint8_t)*span++) == c) {
+                if (c == 0) {
+                    str = nullptr;
+                } else {
+                    str[-1] = 0;
+                }
+
+                return token;
+            }
+        } while (sc != 0);
+    }
+}

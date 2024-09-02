@@ -33,7 +33,7 @@ namespace Objects {
                 // __impl_Hexane
 
             } else if (symbol_name[i] == '$') {
-                // check for '$' in __impl_LIBNAME$FUNCNAME
+                // __impl_LIBNAME$FUNCNAME
             } else {
                 // __impl_FUNCNAME
             }
