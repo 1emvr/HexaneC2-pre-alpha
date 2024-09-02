@@ -11,8 +11,8 @@ BOOL AddValidCallTarget(void* pointer) {
     size_t                           length      = 0;
     bool                             success     = false;
 
-    dos_head = P_IMAGE_DOS_HEADER(Ctx->base.address);
-    nt_head  = P_IMAGE_NT_HEADERS(Ctx->base.address, dos_head);
+    dos_head = DOS_HEADER(Ctx->base.address);
+    nt_head  = NT_HEADERS(Ctx->base.address, dos_head);
 
     length   = nt_head->OptionalHeader.SizeOfImage;
     length   = (length + 0x1000 - 1) &~ (0x1000 - 1);

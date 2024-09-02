@@ -71,9 +71,9 @@ namespace Memory {
             _executable *image = R_CAST(_executable*, x_malloc(sizeof(_executable)));
 
             image->buffer   = data;
-            image->dos_head = P_IMAGE_DOS_HEADER(image->buffer);
-            image->nt_head  = P_IMAGE_NT_HEADERS(image->buffer, image->dos_head);
-            image->exports  = P_IMAGE_EXPORT_DIRECTORY(image->dos_head, image->nt_head);
+            image->dos_head = DOS_HEADER(image->buffer);
+            image->nt_head  = NT_HEADERS(image->buffer, image->dos_head);
+            image->exports  = EXPORT_DIRECTORY(image->dos_head, image->nt_head);
 
             return image;
         }
@@ -144,8 +144,8 @@ namespace Memory {
             uint32_t    count           = 0;
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
-                object->section     = P_IMAGE_SECTION_HEADER(object->buffer, i);
-                object->reloc       = P_IMAGE_RELOC_SECTION(object->buffer, object->section->PointerToRelocations);
+                object->section     = SECTION_HEADER(object->buffer, i);
+                object->reloc       = RELOC_SECTION(object->buffer, object->section->PointerToRelocations);
 
                 for (auto j = 0; j < object->section->NumberOfRelocations; j++) {
                     symbol = &object->symbol[object->reloc->SymbolTableIndex];
@@ -264,19 +264,20 @@ namespace Memory {
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
 
-                object->section    = P_IMAGE_SECTION_HEADER(object->buffer, i);
+                object->section    = SECTION_HEADER(object->buffer, i);
                 object->reloc      = R_CAST(_reloc*, object->section->PointerToRelocations);
 
                 for (auto j = 0; j < object->section->NumberOfRelocations; j++) {
                     symbol = &object->symbol[object->reloc->SymbolTableIndex];
 
-                    if (symbol->First.Value[0] != 0) {
-                        x_memset(buffer, 0, sizeof(buffer));
-                        x_memcpy(buffer, symbol->First.Name, 8);
-                        symbol_name = buffer;
+                    if (symbol->First.Value[0] == 0) {
+                        symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols);
 
                     } else {
-                        symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols);
+                        x_memset(buffer, 0, sizeof(buffer));
+                        x_memcpy(buffer, symbol->First.Name, 8);
+
+                        symbol_name = buffer;
                     }
                     if (Utils::GetHashFromStringA(symbol_name, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
                         n_funcs++;
@@ -294,13 +295,13 @@ namespace Memory {
 
             uint8_t *next = { };
 
-            object->fn_map->size = GetFunctionMapSize(object);
-            object->sec_map = R_CAST(_object_map*, x_malloc(sizeof(_object_map)));
+            object->fn_map->size    = GetFunctionMapSize(object);
+            object->sec_map         = R_CAST(_object_map*, x_malloc(sizeof(_object_map)));
 
             x_assert(object->sec_map);
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
-                object->section = P_IMAGE_SECTION_HEADER(data, i);
+                object->section = SECTION_HEADER(data, i);
                 object->size    += object->section->SizeOfRawData;
                 object->size    = R_CAST(size_t, PAGE_ALIGN(object->size));
             }
@@ -311,10 +312,9 @@ namespace Memory {
             next = object->buffer;
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
-                object->section = P_IMAGE_SECTION_HEADER(object->buffer, i);
-
-                object->sec_map[i].size = object->section->SizeOfRawData;
-                object->sec_map[i].address = next;
+                object->section             = SECTION_HEADER(object->buffer, i);
+                object->sec_map[i].size     = object->section->SizeOfRawData;
+                object->sec_map[i].address  = next;
 
                 next += object->section->SizeOfRawData;
                 next = PAGE_ALIGN(next);
@@ -361,9 +361,9 @@ namespace Memory {
             FARPROC address             = { };
             char    lowercase[MAX_PATH] = { };
 
-            const auto dos_head = P_IMAGE_DOS_HEADER(base);
-            const auto nt_head  = P_IMAGE_NT_HEADERS(base, dos_head);
-            const auto exports  = P_IMAGE_EXPORT_DIRECTORY(dos_head, nt_head);
+            const auto dos_head = DOS_HEADER(base);
+            const auto nt_head  = NT_HEADERS(base, dos_head);
+            const auto exports  = EXPORT_DIRECTORY(dos_head, nt_head);
 
             if (exports->AddressOfNames) {
                 const auto ords     = RVA(uint16_t*, base, exports->AddressOfNameOrdinals);
@@ -526,7 +526,7 @@ namespace Memory {
             x_assert(veh_handler = Ctx->nt.RtlAddVectoredExceptionHandler(1, &Memory::Execute::Debugger));
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
-                object->section = P_IMAGE_SECTION_HEADER(object->buffer, i);
+                object->section = SECTION_HEADER(object->buffer, i);
 
                 if (object->section->SizeOfRawData > 0) {
                     uint32_t protection = 0;
@@ -571,7 +571,7 @@ namespace Memory {
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
                 if (U_PTR(exec) >= U_PTR(object->sec_map[i].address) && U_PTR(exec) < U_PTR(object->sec_map[i].address) + object->sec_map[i].size) {
-                    object->section = P_IMAGE_SECTION_HEADER(object->buffer, i);
+                    object->section = SECTION_HEADER(object->buffer, i);
 
                     if ((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) == IMAGE_SCN_MEM_EXECUTE) {
                         success = true;
