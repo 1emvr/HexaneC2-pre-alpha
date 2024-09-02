@@ -142,9 +142,8 @@ namespace Memory {
             uint32_t    n_funcs         = 0;
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
-
                 object->section    = SECTION_HEADER(object->buffer, i);
-                object->reloc      = R_CAST(_reloc*, object->section->PointerToRelocations);
+                object->reloc      = RELOC_SECTION(object->buffer, object->section->PointerToRelocations);
 
                 for (auto j = 0; j < object->section->NumberOfRelocations; j++) {
                     symbol = &object->symbol[object->reloc->SymbolTableIndex];
