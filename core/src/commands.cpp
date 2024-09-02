@@ -69,7 +69,7 @@ namespace Commands {
             Stream::PackString(out, head.cFileName);
         } while (Ctx->win32.FindNextFileA(file, &head) != 0);
 
-        Dispatcher::OutboundQueue(out);
+        Dispatcher::MessageQueue(out);
 
         defer:
         if (file) { Ctx->win32.FindClose(file); }
@@ -128,7 +128,7 @@ namespace Commands {
             }
         }
 
-        Dispatcher::OutboundQueue(out);
+        Dispatcher::MessageQueue(out);
         defer:
     }
 
@@ -201,7 +201,7 @@ namespace Commands {
             Ctx->nt.NtClose(process);
         } while (Ctx->win32.Process32Next(snapshot, &entries));
 
-        Dispatcher::OutboundQueue(out);
+        Dispatcher::MessageQueue(out);
 
         defer:
         if (snapshot) {

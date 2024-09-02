@@ -104,7 +104,7 @@ namespace Clients {
                     in->buffer = B_PTR(buffer);
                     in->length += total;
 
-                    Dispatcher::OutboundQueue(in);
+                    Dispatcher::MessageQueue(in);
                     break;
                 }
             }
@@ -144,18 +144,20 @@ namespace Clients {
     VOID PushClients() {
         HEXANE
 
+        _stream     *in     = { };
+        void        *buffer = { };
+
+        uint8_t     bound   = 0;
+        uint32_t    total   = 0;
+        uint32_t    read    = 0;
+
         for (auto client = Ctx->clients; client; client = client->next) {
 
-            _stream     *in     = { };
-            void        *buffer = { };
-
-            uint8_t     bound   = 0;
-            uint32_t    total   = 0;
-            uint32_t    read    = 0;
-
+            // check buffer[0] for outbound/inbound
             if (Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, R_CAST(LPDWORD, &read), nullptr) || read != sizeof(uint8_t)) {
                 continue;
             }
+            // get total length
             if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, nullptr, 0, nullptr, R_CAST(LPDWORD, &total), nullptr)) {
                 continue;
             }
@@ -175,13 +177,14 @@ namespace Clients {
                 in->buffer = B_PTR(buffer);
                 in->length += total;
 
-                Dispatcher::OutboundQueue(in);
+                Dispatcher::MessageQueue(in);
 
             } else {
                 continue;
             }
 
             for (auto message = Ctx->transport.outbound_queue; message; message = message->next) {
+                // todo: prepend outbound messages with 0, inbound with 1
 
                 if (message->buffer && B_PTR(message->buffer)[0] == 1) {
                     if (Dispatcher::PeekPeerId(message) == client->peer_id) {

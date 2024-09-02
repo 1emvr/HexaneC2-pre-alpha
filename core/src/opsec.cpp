@@ -135,7 +135,7 @@ namespace Opsec {
         x_memset(&adapter, 0, sizeof(IP_ADAPTER_INFO));
 
     defer:
-        Dispatcher::OutboundQueue(out);
+        Dispatcher::MessageQueue(out);
         return success;
     }
 

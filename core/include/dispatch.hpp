@@ -7,7 +7,7 @@ namespace Dispatcher {
     FUNCTION DWORD PeekPeerId(const _stream *stream);
     FUNCTION VOID AddMessage(_stream *out);
     FUNCTION VOID RemoveMessage(const _stream *target);
-    FUNCTION VOID OutboundQueue(_stream *out);
+    FUNCTION VOID MessageQueue(_stream *out);
     FUNCTION VOID QueueSegments(uint8_t *buffer, uint32_t length);
     FUNCTION VOID PrepareEgress(_stream *out);
     FUNCTION VOID PrepareIngress(_stream *in);
