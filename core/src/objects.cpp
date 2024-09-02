@@ -6,19 +6,6 @@ namespace Objects {
         HEXANE
 
         bool success = true;
-
-        *function = nullptr;
-        auto hash = Utils::GetHashFromStringA(entry_name, x_strlen(entry_name));
-
-        if (!(*function = C_PTR(Memory::Methods::GetInternalAddress(hash)))){
-
-        }
-        /*
-         * else if (IsImport() && !IncludesLib())
-         * else if (IsImport())
-         */
-
-        defer:
         return success;
     }
 
