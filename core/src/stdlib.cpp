@@ -226,48 +226,72 @@ int x_wcsEndsWith (const wchar_t *string, const wchar_t *const end) {
     return x_wcscmp(string, end) == 0;
 }
 
-char* x_s1tok(char* s1, const char* s2) {
+size_t x_strspn(const char* s, const char* accept) {
 
-    char        *token  = nullptr;
-    char        *span   = nullptr;
-    static char *next   = nullptr;
+    int a = 1;
+    int i = 0;
 
-    int c1  = 0;
-    int c2  = 0;
+    size_t offset = 0;
 
-    if (!s1) { s1 = next; }
-    if (!s1) { return nullptr; }
-
-    while (true) {
-        c1 = (uint8_t) *s1++;
-
-        for (span = (char*)s2; (c2 = (uint8_t)*span++) != 0;) {
-            if (c1 == c2) {
-                break;
+    while (a && *s) {
+        for (a = i = 0; !a && i < x_strlen(accept); i++) {
+            if (*s == accept[i]) {
+                a = 1;
             }
         }
 
-        if (c2 == 0) { break; }
-        if (c1 == 0) { return nullptr; }
+        if (a) {
+            offset++;
+        }
+        s++;
     }
 
-    token = s1 - 1;
+    return offset;
+}
 
-    while (true) {
-        c1      = (uint8_t)*s1++;
-        span    = (char*)s2;
+size_t x_strcspn(const char* s, const char* reject) {
 
-        do {
-            if ((c2 = (uint8_t)*span++) == c1) {
-                if (c1 == 0) {
-                    next = nullptr;
-                } else {
-                    next[-1] = 0;
-                    next = s1;
-                }
+    int a = 1;
+    int i = 0;
 
-                return token;
+    size_t offset = 0;
+
+    while (a && *s) {
+        for (i = 0; a && i < x_strlen(reject); i++) {
+            if (*s == reject[i]) {
+                a = 0;
             }
-        } while (c2 != 0);
+        }
+
+        if (a) {
+            offset++;
+        }
+        s++;
     }
+
+    return offset;
+}
+
+char* x_strtok(char* s1, const char* s2) {
+
+    char *temp = nullptr;
+    char *token = nullptr;
+
+    if (!s1) {
+        s1 = temp;
+    }
+
+    s1 += x_strspn(s1, s2);
+
+    if (*s1) {
+        token = s1;
+        s1 += x_strcspn(s1, s2);
+
+        if (*s1) {
+            *s1++ = 0;
+        }
+    }
+
+    temp = s1;
+    return token;
 }
