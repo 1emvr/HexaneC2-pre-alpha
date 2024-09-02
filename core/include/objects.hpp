@@ -3,6 +3,7 @@
 #include <core/corelib.hpp>
 
 namespace Objects {
+    FUNCTION LPVOID ExceptionReturn = { };
     FUNCTION BOOL BaseRelocation(_executable *object);
     FUNCTION BOOL ResolveSymbol(_executable *object, const char* entry_name, uint32_t type, void** function);
     FUNCTION SIZE_T GetFunctionMapSize(_executable *object);
