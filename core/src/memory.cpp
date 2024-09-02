@@ -213,7 +213,7 @@ namespace Memory {
             uintptr_t   ret     = 0;
             const auto  address = R_CAST(uintptr_t, target);
 
-            for (ret = (address & 0xFFFFFFFFFFF70000) - 0x70000000; ret < address + 0x70000000; ret += 0x10000) {
+            for (ret = (address & ADDRESS_MAX) - VM_MAX; ret < address + VM_MAX; ret += 0x10000) {
                 if (!NT_SUCCESS(Ctx->nt.NtAllocateVirtualMemory(process, R_CAST(void **, &ret), 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ))) {
                     ret = 0;
                 }
