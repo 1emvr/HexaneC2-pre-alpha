@@ -31,8 +31,8 @@ namespace Objects {
         char        buffer[9]       = { };
         uint32_t    n_funcs         = 0;
 
-        for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
-            object->section    = SECTION_HEADER(object->buffer, i);
+        for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            object->section    = SECTION_HEADER(object->buffer, sec_index);
             object->reloc      = RELOC_SECTION(object->buffer, object->section->PointerToRelocations);
 
             for (auto j = 0; j < object->section->NumberOfRelocations; j++) {
@@ -69,11 +69,11 @@ namespace Objects {
         bool        success         = true;
         uint32_t    count           = 0;
 
-        for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
-            object->section     = SECTION_HEADER(object->buffer, i);
+        for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            object->section     = SECTION_HEADER(object->buffer, sec_index);
             object->reloc       = RELOC_SECTION(object->buffer, object->section->PointerToRelocations);
 
-            for (auto j = 0; j < object->section->NumberOfRelocations; j++) {
+            for (auto rel_index = 0; rel_index < object->section->NumberOfRelocations; rel_index++) {
                 symbol = &object->symbol[object->reloc->SymbolTableIndex];
 
                 if (!symbol->First.Value[0]) {
@@ -87,8 +87,8 @@ namespace Objects {
                 }
 
                 void *target    = object->sec_map[symbol->SectionNumber - 1].address;
-                void *reloc     = object->sec_map[j].address + object->reloc->VirtualAddress;
-                void *fn_map    = object->fn_map + sizeof(void*) * count;
+                void *reloc     = object->sec_map[rel_index].address + object->reloc->VirtualAddress;
+                void *map       = object->fn_map + sizeof(void*) * count;
 
                 if (!ResolveSymbol(object, entry_name, symbol->Type, &function)) {
                     success_(false);
@@ -98,7 +98,7 @@ namespace Objects {
 #ifdef _WIN64
                 {
                     if (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
-                        *R_CAST(void**, fn_map)     = function;
+                        *R_CAST(void**, map)     = function;
                         *S_CAST(uint32_t*, reloc)   = U_PTR(function) - U_PTR(reloc) - sizeof(uint32_t);
 
                         count++;
@@ -130,8 +130,8 @@ namespace Objects {
 #else
                 {
                         if (object->reloc->Type == IMAGE_REL_I386_REL32) {
-                            *S_CAST(void**, fn_map)     = function;
-                            *S_CAST(uint32_t*, reloc)   = U_PTR(fn_map);
+                            *S_CAST(void**, map)        = function;
+                            *S_CAST(uint32_t*, reloc)   = U_PTR(map);
 
                             count++;
                         }
@@ -162,26 +162,24 @@ namespace Objects {
 
         x_assert(object->sec_map);
 
-        for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
-            object->section = SECTION_HEADER(data, i);
-            object->size    += object->section->SizeOfRawData;
-            object->size    = R_CAST(size_t, PAGE_ALIGN(object->size));
+        for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            object->section = SECTION_HEADER(data, sec_index);
+            object->size    = R_CAST(size_t, PAGE_ALIGN(object->size)) + object->section->SizeOfRawData;
         }
 
         object->size += object->fn_map->size;
-
         x_ntassert(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->buffer), NULL, &object->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
-        next = object->buffer;
 
-        for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
-            object->section             = SECTION_HEADER(object->buffer, i);
-            object->sec_map[i].size     = object->section->SizeOfRawData;
-            object->sec_map[i].address  = next;
+        next = object->buffer;
+        for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            object->section                     = SECTION_HEADER(object->buffer, sec_index);
+            object->sec_map[sec_index].size     = object->section->SizeOfRawData;
+            object->sec_map[sec_index].address  = next;
 
             next += object->section->SizeOfRawData;
             next = PAGE_ALIGN(next);
 
-            x_memcpy(object->sec_map[i].address, C_PTR(U_PTR(data) + object->section->PointerToRawData), object->section->SizeOfRawData);
+            x_memcpy(object->sec_map[sec_index].address, C_PTR(U_PTR(data) + object->section->PointerToRawData), object->section->SizeOfRawData);
         }
 
         object->fn_map = R_CAST(_object_map*, next);
