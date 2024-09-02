@@ -81,7 +81,7 @@ namespace Opsec {
     }
 
     BOOL SeCheckEnvironment() {
-        // todo: add other information to the checkin message
+        // todo: add more information to the checkin message
         HEXANE
 
         _stream         *out    = Stream::CreateStreamWithHeaders(TypeCheckin);
