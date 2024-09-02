@@ -162,7 +162,7 @@ namespace Clients {
                 continue;
             }
 
-            if (bound == 0 && total >= sizeof(uint32_t)) {
+            if (bound == EGRESS && total >= sizeof(uint32_t)) {
 
                 x_assert(buffer = x_malloc(total));
                 x_assert(in     = Stream::CreateStream());
@@ -186,7 +186,7 @@ namespace Clients {
             for (auto message = Ctx->transport.outbound_queue; message; message = message->next) {
                 // todo: prepend outbound messages with 0, inbound with 1
 
-                if (message->buffer && B_PTR(message->buffer)[0] == 1) {
+                if (message->buffer && B_PTR(message->buffer)[0] == INGRESS) {
                     if (Dispatcher::PeekPeerId(message) == client->peer_id) {
 
                         if (Network::Smb::PipeWrite(client->pipe_handle, message)) {

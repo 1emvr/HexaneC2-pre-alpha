@@ -102,6 +102,8 @@ EXTERN_C LPVOID InstEnd();
     #define GLOBAL_CONTEXT           			0xb341b5b9	// __instance
 #endif
 
+#define EGRESS 										0
+#define INGRESS 									1
 #define HEAP_NO_COMMIT							    0, 0, 0, 0, 0
 #define DESKTOP_ENVIRONMENT_NULL				    0, 0, 0, 0, 0, 0, 0
 #define SMB_SID_SINGLE_WORLD_SUBAUTHORITY		    SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0

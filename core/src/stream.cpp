@@ -29,7 +29,7 @@ namespace Stream {
 
         HEXANE
         _stream *stream = CreateStream();
-
+        Stream::PackByte(stream, EGRESS);
         Stream::PackDword(stream, Ctx->session.peer_id);
         Stream::PackDword(stream, Ctx->session.current_taskid);
         Stream::PackDword(stream, msg_type);
@@ -41,11 +41,8 @@ namespace Stream {
         HEXANE
 
         _stream *stream = { };
-        if (
-            !(stream            = S_CAST(_stream *, x_malloc(sizeof(_stream)))) ||
-            !(stream->buffer    = B_PTR(x_malloc(sizeof(uint8_t))))) {
-            return_defer(ntstatus);
-        }
+        x_assert(stream            = S_CAST(_stream *, x_malloc(sizeof(_stream))));
+        x_assert(stream->buffer    = B_PTR(x_malloc(sizeof(uint8_t))));
 
         stream->length 	= 0;
         stream->next 	= nullptr;

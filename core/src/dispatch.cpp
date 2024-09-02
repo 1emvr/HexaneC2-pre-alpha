@@ -130,7 +130,7 @@ namespace Dispatcher {
             // todo: prepend outbound messages with 0, inbound with 1
 
             if (head->buffer) {
-                if (B_PTR(head->buffer)[0] == 1) {
+                if (B_PTR(head->buffer)[0] == INGRESS) {
                     continue;
                 }
 

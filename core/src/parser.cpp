@@ -69,7 +69,7 @@ namespace Parser {
 
         parser->Length  = length;
         parser->buffer  = parser->handle;
-        parser->little      = Ctx->little;
+        parser->little  = Ctx->little;
     }
 
     VOID DestroyParser (_parser *const parser) {
@@ -102,7 +102,7 @@ namespace Parser {
 
     SHORT UnpackShort (_parser *const parser) {
 
-        uint16_t data = 0;
+        int16_t data = 0;
 
         if (parser->Length >= 2) {
             x_memcpy(&data, parser->buffer, 2);
@@ -170,8 +170,8 @@ namespace Parser {
 
     PBYTE UnpackBytes (_parser *const parser, uint32_t *const n_out) {
 
-        uint8_t *output = { };
-        uint32_t length = 0;
+        uint8_t     *output = { };
+        uint32_t    length  = 0;
 
         if (!parser || parser->Length < 4) {
             return nullptr;
