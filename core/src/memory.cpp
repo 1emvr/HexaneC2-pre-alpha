@@ -161,8 +161,8 @@ namespace Memory {
                         entry_name = R_CAST(char*, B_PTR(object->symbol) + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
                     }
 
-                    void *reloc     = object->sec_map[j].address + object->reloc->VirtualAddress;
                     void *target    = object->sec_map[symbol->SectionNumber - 1].address;
+                    void *reloc     = object->sec_map[j].address + object->reloc->VirtualAddress;
                     void *fn_map    = object->fn_map + sizeof(void*) * count;
 
                     auto hash = Utils::GetHashFromStringA(entry_name, x_strlen(entry_name));
@@ -175,9 +175,6 @@ namespace Memory {
                             *S_CAST(uint32_t*, reloc)   = U_PTR(function) - U_PTR(reloc) - sizeof(uint32_t);
 
                             count++;
-
-                        } else {
-                            success_(false);
                         }
                     } else {
                         if (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
@@ -204,8 +201,6 @@ namespace Memory {
                         } else if (object->reloc->Type == IMAGE_REL_AMD64_ADDR64) {
                             *S_CAST(uint64_t*, reloc) = *S_CAST(uint64_t*, reloc) + U_PTR(target);
 
-                        } else {
-                            success_(false);
                         }
                     }
 #else
@@ -216,17 +211,12 @@ namespace Memory {
 
                             count++;
                         }
-                        else {
-                            success_(false);
-                        }
                     } else {
                         if (object->reloc->Type == IMAGE_REL_I386_REL32) {
                             *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t);
 
                         } else if (object->reloc->Type == IMAGE_REL_I386_DIR32) {
                             *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target);
-                        } else {
-                            success_(false);
                         }
                     }
 #endif
