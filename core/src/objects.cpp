@@ -1,6 +1,27 @@
 #include <core/include/objects.hpp>
 namespace Objects {
 
+    BOOL ResolveSymbol(_executable *object, const char* entry_name, uint32_t type, void** function) {
+        // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/CoffeeLdr.c
+        HEXANE
+
+        bool success = true;
+
+        *function = nullptr;
+        auto hash = Utils::GetHashFromStringA(entry_name, x_strlen(entry_name));
+
+        if (!(*function = C_PTR(Memory::Methods::GetInternalAddress(hash)))){
+
+        }
+        /*
+         * else if (IsImport() && !IncludesLib())
+         * else if (IsImport())
+         */
+
+        defer:
+        return success;
+    }
+
     SIZE_T GetFunctionMapSize(_executable *object) {
         HEXANE
 
@@ -126,27 +147,6 @@ namespace Objects {
                 object->reloc = R_CAST(_reloc*, (U_PTR(object->reloc)  + sizeof(_reloc)));
             }
         }
-
-        defer:
-        return success;
-    }
-
-    BOOL ResolveSymbol(_executable *object, const char* entry_name, uint32_t type, void** function) {
-        // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/CoffeeLdr.c#L87
-        HEXANE
-
-        bool success = true;
-
-        *function = nullptr;
-        auto hash = Utils::GetHashFromStringA(entry_name, x_strlen(entry_name));
-
-        if (!(*function = C_PTR(GetInternalAddress(hash)))){
-
-        }
-        /*
-         * else if (IsImport() && !IncludesLib())
-         * else if (IsImport())
-         */
 
         defer:
         return success;
