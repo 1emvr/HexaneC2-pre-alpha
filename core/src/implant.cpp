@@ -1,6 +1,8 @@
 #include <core/include/implant.hpp>
+// todo: define CFG_LEN macro
+
 namespace Implant {
-    __text(F) uint8_t _config[1024] = { "AAAAAAAA", };
+    __text(F) uint8_t _config[CFG_LEN] = { "AAAAAAAA", };
 
     VOID MainRoutine() {
         HEXANE

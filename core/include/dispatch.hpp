@@ -9,8 +9,8 @@ namespace Dispatcher {
     FUNCTION VOID RemoveMessage(const _stream *target);
     FUNCTION VOID OutboundQueue(_stream *out);
     FUNCTION VOID QueueSegments(uint8_t *buffer, uint32_t length);
-    FUNCTION VOID PrepareEgressMessage(_stream *out);
-    FUNCTION VOID PrepareIngressMessage(_stream *in);
+    FUNCTION VOID PrepareEgress(_stream *out);
+    FUNCTION VOID PrepareIngress(_stream *in);
     FUNCTION VOID DispatchRoutine();
     FUNCTION VOID CommandDispatch (const _stream *in);
 }
