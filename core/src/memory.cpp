@@ -39,6 +39,12 @@ namespace Memory {
 
     namespace Methods {
 
+        UINT_PTR GetInternalAddress(uint32_t name) {
+            HEXANE
+
+            return 1;
+        }
+
         UINT_PTR GetStackCookie() {
             HEXANE
 
@@ -274,7 +280,7 @@ namespace Memory {
                 goto defer;
             }
 
-            x_assertb(address = Objects::GetInternalAddress(cmd_id));
+            x_assertb(address = Memory::Methods::GetInternalAddress(cmd_id));
 
             cmd = R_CAST(_command, Ctx->base.address + address);
             cmd(&parser);

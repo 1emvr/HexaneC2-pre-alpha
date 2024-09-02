@@ -229,7 +229,7 @@ namespace Dispatcher {
                 Memory::Execute::ExecuteShellcode(parser);
                 break;
             case TypeObject:
-                Injection::LoadObject(parser);
+                Objects::LoadObject(parser);
                 break;
 
             default:

