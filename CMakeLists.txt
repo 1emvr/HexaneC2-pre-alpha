@@ -25,6 +25,7 @@ set (SOURCES
         core/src/utils.cpp
         core/src/clients.cpp
         core/src/sleep.cpp
+        core/src/objects.cpp
 )
 
 set (INCLUDES
@@ -51,6 +52,7 @@ set (INCLUDES
         core/include/clients.hpp
         core/corelib.hpp
         core/dotnet.hpp
+        core/include/objects.hpp
 )
 
 set (COMMANDS

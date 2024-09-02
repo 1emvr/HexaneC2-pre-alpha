@@ -17,14 +17,6 @@ namespace Memory {
         FUNCTION VOID ContextDestroy(_hexane* Ctx);
     }
 
-    namespace Objects {
-        FUNCTION UINT_PTR GetInternalAddress(uint32_t name);
-        FUNCTION BOOL BaseRelocation(_executable *object);
-        FUNCTION BOOL ResolveSymbol(_executable *object, const char* entry_name, uint32_t type, void** function);
-        FUNCTION SIZE_T GetFunctionMapSize(_executable *object);
-        FUNCTION BOOL MapSections(_executable *object, const uint8_t *data);
-    }
-
     namespace Modules {
         FUNCTION HMODULE GetModuleAddress(const LDR_DATA_TABLE_ENTRY* entry);
         FUNCTION LDR_DATA_TABLE_ENTRY* GetModuleEntry(uint32_t hash);
