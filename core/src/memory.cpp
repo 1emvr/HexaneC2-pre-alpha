@@ -167,6 +167,7 @@ namespace Memory {
 
                     auto hash = Utils::GetHashFromStringA(entry_name, x_strlen(entry_name));
                     if ((function = C_PTR(ResolveSymbol(object, hash, symbol->Type))))      // if (function != nullptr)
+#undef _WIN64
 #ifdef _WIN64
                     {
                         if (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
@@ -209,24 +210,22 @@ namespace Memory {
                     }
 #else
                     {
-                        if (object->reloc->Type == IMAGE_REL_I386_DIR32) {
+                        if (object->reloc->Type == IMAGE_REL_I386_REL32) {
                             *S_CAST(void**, fn_map)     = function;
                             *S_CAST(uint32_t*, reloc)   = U_PTR(fn_map);
 
                             count++;
-
-                        } else {
+                        }
+                        else {
                             success_(false);
                         }
                     } else {
                         if (object->reloc->Type == IMAGE_REL_I386_REL32) {
                             *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t);
 
-                        }
-                        else if (object->reloc->Type == IMAGE_REL_I386_DIR32) {
+                        } else if (object->reloc->Type == IMAGE_REL_I386_DIR32) {
                             *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target);
-                        }
-                        else {
+                        } else {
                             success_(false);
                         }
                     }
