@@ -5,8 +5,8 @@ void* operator new(size_t size) {
 
     void *ptr = nullptr;
     if (Ctx->heap && Ctx->nt.RtlAllocateHeap) {
-
         ptr = Ctx->nt.RtlAllocateHeap(Ctx->heap, 0, size);
+
         if (!ptr) {
             NtCurrentTeb()->LastErrorValue = ERROR_NOT_ENOUGH_MEMORY;
         }
