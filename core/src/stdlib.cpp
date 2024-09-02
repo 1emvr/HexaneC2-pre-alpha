@@ -229,7 +229,7 @@ int x_wcsEndsWith (const wchar_t *string, const wchar_t *const end) {
 size_t x_strspn(const char* s, const char* accept) {
 
     int a = 1;
-    int i = 0;
+    int i;
 
     size_t offset = 0;
 
@@ -252,7 +252,7 @@ size_t x_strspn(const char* s, const char* accept) {
 size_t x_strcspn(const char* s, const char* reject) {
 
     int a = 1;
-    int i = 0;
+    int i;
 
     size_t offset = 0;
 
