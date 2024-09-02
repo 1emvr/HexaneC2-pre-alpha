@@ -59,6 +59,7 @@ EXTERN_C LPVOID InstEnd();
 #define P_IMAGE_NT_HEADERS(base, dos)			    (R_CAST(PIMAGE_NT_HEADERS, B_PTR(base) + dos->e_lfanew))
 #define P_IMAGE_EXPORT_DIRECTORY(dos, nt)	        (R_CAST(PIMAGE_EXPORT_DIRECTORY, (U_PTR(dos) + (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)))
 #define P_IMAGE_SECTION_HEADER(data, i)   		    (R_CAST(PIMAGE_SECTION_HEADER, U_PTR(data) + sizeof(IMAGE_FILE_HEADER) + U_PTR(sizeof(IMAGE_SECTION_HEADER) * i)))
+#define P_IMAGE_RELOC_SECTION(b, r) 				(R_CAST(_reloc*, C_PTR(U_PTR(b) + r)))
 
 #define RVA(Ty, base, rva)  					    (R_CAST(Ty, U_PTR(base) + rva))
 #define NtCurrentProcess()              		    (R_CAST(HANDLE, S_CAST(LONG_PTR, -1)))

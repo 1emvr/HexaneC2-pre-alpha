@@ -145,27 +145,26 @@ namespace Memory {
 
             for (auto i = 0; i < object->nt_head->FileHeader.NumberOfSections; i++) {
                 object->section     = P_IMAGE_SECTION_HEADER(object->buffer, i);
-                object->reloc       = R_CAST(_reloc*, U_PTR(object->buffer) + object->section->PointerToRelocations);
+                object->reloc       = P_IMAGE_RELOC_SECTION(object->buffer, object->section->PointerToRelocations);
 
                 for (auto j = 0; j < object->section->NumberOfRelocations; j++) {
                     symbol = &object->symbol[object->reloc->SymbolTableIndex];
 
-                    if (symbol->First.Value[0] != 0) {
-                        x_memset(symbol_name, 0, sizeof(symbol_name));
-                        x_memcpy(symbol_name, symbol->First.Name, 8);
-                        entry_name = symbol_name;
+                    if (symbol->First.Value[0] == 0) {
+                        entry_name = R_CAST(char*, B_PTR(object->symbol) + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
 
                     } else {
-                        entry_name = R_CAST(char*, B_PTR(object->symbol) + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
+                        x_memset(symbol_name, 0, sizeof(symbol_name));
+                        x_memcpy(symbol_name, symbol->First.Name, 8);
+
+                        entry_name = symbol_name;
                     }
 
                     void *target    = object->sec_map[symbol->SectionNumber - 1].address;
                     void *reloc     = object->sec_map[j].address + object->reloc->VirtualAddress;
                     void *fn_map    = object->fn_map + sizeof(void*) * count;
 
-                    auto hash = Utils::GetHashFromStringA(entry_name, x_strlen(entry_name));
-
-                    if (!ResolveSymbol(object, hash, symbol->Type, &function)) {
+                    if (!ResolveSymbol(object, entry_name, symbol->Type, &function)) {
                         success_(false);
                     }
 
