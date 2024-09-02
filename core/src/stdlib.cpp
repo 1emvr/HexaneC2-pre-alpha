@@ -226,47 +226,48 @@ int x_wcsEndsWith (const wchar_t *string, const wchar_t *const end) {
     return x_wcscmp(string, end) == 0;
 }
 
-char* x_strtok(char* str, const char* delim) {
+char* x_s1tok(char* s1, const char* s2) {
 
-    char *token = { };
-    char *span  = { };
+    char        *token  = nullptr;
+    char        *span   = nullptr;
+    static char *next   = nullptr;
 
-    int c   = 0;
-    int sc  = 0;
+    int c1  = 0;
+    int c2  = 0;
 
-    if (!str) {
-        return nullptr;
-    }
+    if (!s1) { s1 = next; }
+    if (!s1) { return nullptr; }
 
     while (true) {
-        c = (uint8_t) *str++;
+        c1 = (uint8_t) *s1++;
 
-        for (span = (char*)delim; (sc = (uint8_t)*span++) != 0;) {
-            if (c == sc) {
+        for (span = (char*)s2; (c2 = (uint8_t)*span++) != 0;) {
+            if (c1 == c2) {
                 break;
             }
         }
 
-        if (sc == 0)    { break; }
-        if (c == 0)     { return nullptr; }
+        if (c2 == 0) { break; }
+        if (c1 == 0) { return nullptr; }
     }
 
-    token = str - 1;
+    token = s1 - 1;
 
     while (true) {
-        c       = (uint8_t)*str++;
-        span    = (char*)delim;
+        c1      = (uint8_t)*s1++;
+        span    = (char*)s2;
 
         do {
-            if ((sc = (uint8_t)*span++) == c) {
-                if (c == 0) {
-                    str = nullptr;
+            if ((c2 = (uint8_t)*span++) == c1) {
+                if (c1 == 0) {
+                    next = nullptr;
                 } else {
-                    str[-1] = 0;
+                    next[-1] = 0;
+                    next = s1;
                 }
 
                 return token;
             }
-        } while (sc != 0);
+        } while (c2 != 0);
     }
 }
