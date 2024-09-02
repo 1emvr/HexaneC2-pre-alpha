@@ -4,28 +4,28 @@ namespace Process {
 	ULONG GetProcessIdByName(const char *const name) {
 		HEXANE
 
-		HANDLE hSnap = { };
-		PROCESSENTRY32 entry = { };
+		HANDLE 			snap 	= { };
+		PROCESSENTRY32 	entry 	= { };
 
 		entry.dwSize = sizeof(PROCESSENTRY32);
 
-		if (!(hSnap = Ctx->win32.CreateToolhelp32Snapshot(0x02, 0))) {
+		if (!(snap = Ctx->win32.CreateToolhelp32Snapshot(0x02, 0))) {
 			return_defer(ERROR_INVALID_HANDLE);
 		}
 
-		if (Ctx->win32.Process32First(hSnap, &entry)) {
-			while (Ctx->win32.Process32Next(hSnap, &entry)) {
+		if (Ctx->win32.Process32First(snap, &entry)) {
+			while (Ctx->win32.Process32Next(snap, &entry)) {
 
 				if (x_strncmp(name, entry.szExeFile, x_strlen(entry.szExeFile)) == 0) {
-					Ctx->nt.NtClose(hSnap);
+					Ctx->nt.NtClose(snap);
 					return entry.th32ProcessID;
 				}
 			}
 		}
 
 		defer:
-		if (hSnap) {
-			Ctx->nt.NtClose(hSnap);
+		if (snap) {
+			Ctx->nt.NtClose(snap);
 		}
 
 		return 0;
@@ -34,9 +34,9 @@ namespace Process {
 	HANDLE OpenParentProcess(const char *const name) {
 		HEXANE
 
-        PROCESSENTRY32 entry = { };
-		HANDLE process = { };
-		HANDLE snap = { };
+        PROCESSENTRY32 	entry 	= { };
+		HANDLE 			process = { };
+		HANDLE 			snap 	= { };
 
 		entry.dwSize = sizeof(PROCESSENTRY32);
 		if (!(snap = Ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0))) {
@@ -64,8 +64,8 @@ namespace Process {
 	NTSTATUS NtOpenProcess(void **pp_process, const uint32_t access, const uint32_t pid) {
 		HEXANE
 
-		CLIENT_ID client			= { };
-		OBJECT_ATTRIBUTES attrs     = { };
+		CLIENT_ID 			client	= { };
+		OBJECT_ATTRIBUTES 	attrs 	= { };
 
 		client.UniqueProcess = R_CAST(HANDLE, pid);
 		client.UniqueThread = nullptr;
@@ -97,8 +97,8 @@ namespace Process {
 	VOID CreateUserProcess(_executable *const image, const char *const path) {
 		HEXANE
 
-		LPWSTR w_name = { };
-		UNICODE_STRING u_name = { };
+		LPWSTR 			w_name = { };
+		UNICODE_STRING 	u_name = { };
 
 		x_mbstowcs(w_name, path, x_strlen(path));
 		Ctx->nt.RtlInitUnicodeString(&u_name, w_name);
