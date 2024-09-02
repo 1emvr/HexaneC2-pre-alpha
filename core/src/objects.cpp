@@ -89,7 +89,7 @@ namespace Objects {
                         count++;
                     }
                 } else {
-                    if (object->reloc->Type == IMAGE_REL_AMD64_REL32) {
+                    if (object->reloc->Type == IMAGE_REL_AMD64_REL32 || object->reloc->Type == IMAGE_REL_AMD64_ADDR32NB) {
                         *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t);
 
                     } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_1) {
@@ -106,9 +106,6 @@ namespace Objects {
 
                     } else if (object->reloc->Type == IMAGE_REL_AMD64_REL32_5) {
                         *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t) - 5;
-
-                    } else if (object->reloc->Type == IMAGE_REL_AMD64_ADDR32NB) {
-                        *S_CAST(uint32_t*, reloc) = *S_CAST(uint32_t*, reloc) + U_PTR(target) - U_PTR(reloc) - sizeof(uint32_t);
 
                     } else if (object->reloc->Type == IMAGE_REL_AMD64_ADDR64) {
                         *S_CAST(uint64_t*, reloc) = *S_CAST(uint64_t*, reloc) + U_PTR(target);
