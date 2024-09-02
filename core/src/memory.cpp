@@ -103,7 +103,6 @@ namespace Memory {
             x_assert(instance.modules.ntdll = M_PTR(NTDLL));
             x_assert(F_PTR_HMOD(instance.nt.NtProtectVirtualMemory, instance.modules.ntdll, NTPROTECTVIRTUALMEMORY));
             x_assert(F_PTR_HMOD(instance.nt.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP));
-            x_assert(F_PTR_HMOD(instance.nt.RtlRandomEx, instance.modules.ntdll, RTLRANDOMEX));
 
             region = C_PTR(instance.base.address + U_PTR(&__instance));
             x_assert(C_DREF(region) = instance.nt.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)));
