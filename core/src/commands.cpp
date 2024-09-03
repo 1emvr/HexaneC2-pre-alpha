@@ -159,7 +159,7 @@ namespace Commands {
                 continue;
             }
 
-            if (SUCCEEDED(Ctx->clr.CLRCreateInstance(X_GUID_CLSID_CLRMetaHost, X_GUID_IID_ICLRMetaHost, R_CAST(void**, &meta)))) {
+            if (SUCCEEDED(Ctx->nt.CLRCreateInstance(X_GUID_CLSID_CLRMetaHost, X_GUID_IID_ICLRMetaHost, R_CAST(void**, &meta)))) {
                 if (SUCCEEDED(meta->lpVtbl->EnumerateInstalledRuntimes(meta, &enums))) {
 
                     while (S_OK == enums->Next(0x1, R_CAST(IUnknown**, &runtime), nullptr)) {

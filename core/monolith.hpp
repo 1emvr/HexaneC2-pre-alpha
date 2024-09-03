@@ -553,11 +553,9 @@ struct _hexane{
         SetProcessValidCallTargets_t SetProcessValidCallTargets;
 		NtDeviceIoControlFile_t NtDeviceIoControlFile;
 		NtOpenFile_t NtOpenFile;
-	} nt;
 
-	struct {
 		CLRCreateInstance_t CLRCreateInstance;
-	} clr;
+	} nt;
 
 	struct {
 		__prototype(LoadLibraryA);
