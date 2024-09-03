@@ -58,6 +58,7 @@ set (COMMANDS
         commands/include/registry.hpp
         commands/src/registry.cpp
         commands/src/tokens.cpp
+        commands/src/classes.cpp
 )
 
 set (LOADER

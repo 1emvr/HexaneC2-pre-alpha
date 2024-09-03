@@ -35,7 +35,6 @@ void operator delete[](void* ptr) noexcept {
 
 
 namespace Memory {
-    LPVOID ExceptionReturn = { };
 
     namespace Methods {
 
@@ -310,82 +309,5 @@ namespace Memory {
             return success;
         }
 
-        BOOL ExecuteObject(_executable *object, const char *entrypoint, char *args, uint32_t size, uint32_t req_id) {
-            HEXANE
-
-            bool success        = false;
-            char *symbol_name   = { };
-            void *veh_handler   = { };
-            void *exec          = { };
-
-            x_assert(veh_handler = Ctx->nt.RtlAddVectoredExceptionHandler(1, &Memory::Execute::Debugger));
-
-            for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-                object->section = SECTION_HEADER(object->buffer, sec_index);
-
-                if (object->section->SizeOfRawData > 0) {
-                    uint32_t protection = 0;
-
-                    switch (object->section->Characteristics & IMAGE_SCN_MEM_RWX) {
-                    case NULL:                  protection = PAGE_NOACCESS;
-                    case IMAGE_SCN_MEM_READ:    protection = PAGE_READONLY;
-                    case IMAGE_SCN_MEM_RX:      protection = PAGE_EXECUTE_READ;
-                    case IMAGE_SCN_MEM_RW:      protection = PAGE_READWRITE;
-                    case IMAGE_SCN_MEM_WRITE:   protection = PAGE_WRITECOPY;
-                    case IMAGE_SCN_MEM_XCOPY:   protection = PAGE_EXECUTE_WRITECOPY;
-                    default:                    protection = PAGE_EXECUTE_READWRITE;
-                    }
-
-                    if ((object->section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED) == IMAGE_SCN_MEM_NOT_CACHED) {
-                        protection |= PAGE_NOCACHE;
-                    }
-
-                    x_ntassert(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->sec_map[sec_index].address), &object->sec_map[sec_index].size, protection, nullptr));
-                }
-            }
-
-            if (object->fn_map->size) {
-                x_ntassert(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), R_CAST(void**, &object->fn_map), &object->fn_map->size, PAGE_READONLY, nullptr));
-            }
-
-            for (auto sym_index = 0; sym_index < object->nt_head->FileHeader.NumberOfSymbols; sym_index++) {
-                if (object->symbol[sym_index].First.Value[0]) {
-                    symbol_name = object->symbol[sym_index].First.Name;
-                } else {
-                    symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols + object->symbol[sym_index].First.Value[1]);
-                }
-#if _M_IX86
-                if (symbol_name[0] == 0x5F) {
-                    symbol_name++;
-                }
-#endif
-                if (x_memcmp(symbol_name, entrypoint, x_strlen(entrypoint)) == 0) {
-                    x_assert(exec = object->sec_map[object->symbol[sym_index].SectionNumber - 1].address + object->symbol[sym_index].Value);
-                }
-            }
-
-
-            for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-                if (U_PTR(exec) >= SEC_START(object->sec_map, sec_index) && U_PTR(exec) < SEC_END(object->sec_map, sec_index)) {
-
-                    object->section = SECTION_HEADER(object->buffer, sec_index);
-                    if ((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) == IMAGE_SCN_MEM_EXECUTE) {
-                        success = true;
-                    }
-
-                    break;
-                }
-            }
-
-            if (success) {
-                const auto entry    = R_CAST(obj_entry, exec);
-                ExceptionReturn     = __builtin_extract_return_addr(__builtin_return_address(0));
-                entry(args, size);
-            }
-
-            defer:
-            if (veh_handler) { Ctx->nt.RtlRemoveVectoredExceptionHandler(veh_handler); }
-            return success;
-        }
     }
 }
