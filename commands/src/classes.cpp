@@ -215,6 +215,7 @@ private:
 
     uint32_t hash(const K& key) const {
 
+        // todo: this will not work
         const char* k = reinterpret_cast<const char*>(&key);
         return Utils::GetHashFromStringA(k, x_strlen(k));
     }
@@ -364,7 +365,7 @@ int main() {
     map.insert(2, "two");
     map.insert(3, "three");
 
-    std::string value;
+    String value;
     if (map.find(2, value)) {
         std::cout << "Found: " << value << std::endl;
     } else {
