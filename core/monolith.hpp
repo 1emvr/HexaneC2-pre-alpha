@@ -553,7 +553,6 @@ struct _hexane{
         SetProcessValidCallTargets_t SetProcessValidCallTargets;
 		NtDeviceIoControlFile_t NtDeviceIoControlFile;
 		NtOpenFile_t NtOpenFile;
-
 	} nt;
 
 	struct {
@@ -659,8 +658,6 @@ struct _hexane{
 		__prototype(InitializeAcl);
 		__prototype(FreeSid);
 	} win32;
-
-	_hash_map 	wrappers[];
 };
 
 #endif

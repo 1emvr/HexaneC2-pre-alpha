@@ -1,5 +1,6 @@
 #include <core/include/objects.hpp>
 namespace Objects {
+    FUNCTION LPVOID ExceptionReturn = 0;
 
     LONG WINAPI Debugger(const EXCEPTION_POINTERS* exception) {
         HEXANE
@@ -38,11 +39,11 @@ namespace Objects {
         } else if (type == COFF_IMPL_HASH) {
             for (auto i = 0;; i++) {
 
-                if (!Ctx->wrappers->name[i]) {
+                if (!wrappers->name[i]) {
                     success_(false);
                 }
 
-                if (Ctx->wrappers.name[i] == func) {
+                if (wrappers.name[i] == func) {
                     *function = (void*)wrappers.address[i];
                     success_(true);
                 }
