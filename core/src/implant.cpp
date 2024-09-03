@@ -131,6 +131,18 @@ namespace Implant {
         return success;
     }
 
+    VOID SetWrappers() {
+        HEXANE
+
+        _hash_map wrappers[] = {
+            { 0, 0 },
+        };
+
+        int i = 0;
+        while(wrappers[i].name != 0) {
+            Ctx->wrappers[i] = wrappers[i];
+        }
+    }
 
     BOOL ReadConfig() {
         HEXANE
@@ -248,7 +260,7 @@ namespace Implant {
         x_assertb(F_PTR_HMOD(Ctx->win32.InitializeAcl,                   Ctx->modules.advapi, INITIALIZEACL));
         x_assertb(F_PTR_HMOD(Ctx->win32.FreeSid,                         Ctx->modules.advapi, FREESID));
 
-
+        SetWrappers();
         Ctx->transport.outbound_queue = nullptr;
 
         Ctx->session.peer_id    = Parser::UnpackDword(&parser);
