@@ -225,3 +225,73 @@ int x_wcsEndsWith (const wchar_t *string, const wchar_t *const end) {
     string = &string[ length1 - length2 ];
     return x_wcscmp(string, end) == 0;
 }
+
+size_t x_strspn(const char* s, const char* accept) {
+
+    int a = 1;
+    int i;
+
+    size_t offset = 0;
+
+    while (a && *s) {
+        for (a = i = 0; !a && i < x_strlen(accept); i++) {
+            if (*s == accept[i]) {
+                a = 1;
+            }
+        }
+
+        if (a) {
+            offset++;
+        }
+        s++;
+    }
+
+    return offset;
+}
+
+size_t x_strcspn(const char* s, const char* reject) {
+
+    int a = 1;
+    int i;
+
+    size_t offset = 0;
+
+    while (a && *s) {
+        for (i = 0; a && i < x_strlen(reject); i++) {
+            if (*s == reject[i]) {
+                a = 0;
+            }
+        }
+
+        if (a) {
+            offset++;
+        }
+        s++;
+    }
+
+    return offset;
+}
+
+char* x_strtok(char* s1, const char* s2) {
+
+    char *temp = nullptr;
+    char *token = nullptr;
+
+    if (!s1) {
+        s1 = temp;
+    }
+
+    s1 += x_strspn(s1, s2);
+
+    if (*s1) {
+        token = s1;
+        s1 += x_strcspn(s1, s2);
+
+        if (*s1) {
+            *s1++ = 0;
+        }
+    }
+
+    temp = s1;
+    return token;
+}

