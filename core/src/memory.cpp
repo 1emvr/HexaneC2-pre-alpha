@@ -35,10 +35,6 @@ void operator delete[](void* ptr) noexcept {
 
 
 namespace Memory {
-<<<<<<< HEAD
-
-=======
->>>>>>> fa655a35da8994c5374e91fb02aad479e47a6ec9
     namespace Methods {
 
         UINT_PTR GetInternalAddress(uint32_t name) {

