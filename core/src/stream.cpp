@@ -26,7 +26,6 @@ namespace Stream {
     }
 
     _stream* CreateTaskResponse(uint32_t cmd_id) {
-        HEXANE
 
         auto stream = CreateStreamWithHeaders(TypeResponse);
         Stream::PackDword(stream, cmd_id);
@@ -34,7 +33,6 @@ namespace Stream {
     }
 
     _stream * CreateStreamWithHeaders(uint32_t msg_type) {
-        HEXANE
 
         // response will be [in/out], pid, tid, msg_type, cmd_type, msg_length, msg_buffer
         // tasking will be  [in/out], pid, tid, msg_type
@@ -50,7 +48,6 @@ namespace Stream {
     }
 
     _stream* CreateStream () {
-        HEXANE
 
         _stream *stream = { };
         x_assert(stream            = S_CAST(_stream *, x_malloc(sizeof(_stream))));
@@ -64,7 +61,6 @@ namespace Stream {
     }
 
     VOID DestroyStream (_stream *stream) {
-        HEXANE
 
         if (stream) {
             if (stream->buffer) {
@@ -84,7 +80,6 @@ namespace Stream {
     }
 
     VOID PackByte (_stream *stream, uint8_t data) {
-        HEXANE
 
         if (stream) {
             stream->buffer = B_PTR(x_realloc(stream->buffer, stream->length + sizeof(uint8_t)));
@@ -95,7 +90,6 @@ namespace Stream {
     }
 
     VOID PackDword64 (_stream *stream, uint64_t data) {
-        HEXANE
 
         if (stream) {
             stream->buffer = B_PTR(x_realloc(stream->buffer, stream->length + sizeof(uint64_t)));
@@ -106,7 +100,6 @@ namespace Stream {
     }
 
     VOID PackDword (_stream *stream, uint32_t data) {
-        HEXANE
 
         if (stream) {
             stream->buffer = B_PTR(x_realloc(stream->buffer, stream->length + sizeof(uint32_t)));
@@ -117,7 +110,6 @@ namespace Stream {
     }
 
     VOID PackBytes (_stream *stream, uint8_t *data, size_t size) {
-        HEXANE
 
         if (stream) {
             if (size) {

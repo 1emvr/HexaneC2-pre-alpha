@@ -13,7 +13,6 @@ namespace Utils {
     }
 
     VOID AppendBuffer(uint8_t **buffer, const uint8_t *const target, uint32_t *capacity, const uint32_t length) {
-        HEXANE
 
         const auto new_buffer = B_PTR(x_realloc(*buffer, *capacity + length));
         if (!new_buffer) {
@@ -26,7 +25,6 @@ namespace Utils {
     }
 
     VOID AppendPointerList(void **array[], void *pointer, uint32_t *count) {
-       HEXANE
 
         const auto new_list = R_CAST(void**, x_realloc(*array, (*count + 1) * sizeof(void*)));
         if (!new_list) {
@@ -65,7 +63,6 @@ namespace Utils {
     namespace Time {
 
         ULONG64 GetTimeNow() {
-            HEXANE
 
             FILETIME FileTime       = { };
             LARGE_INTEGER LargeInt  = { };
@@ -79,7 +76,6 @@ namespace Utils {
         }
 
         BOOL InWorkingHours() {
-            HEXANE
 
             SYSTEMTIME SystemTime = { };
 
@@ -111,7 +107,6 @@ namespace Utils {
         }
 
         VOID Timeout(size_t ms) {
-            HEXANE
             // Courtesy of Illegacy & Shubakki:
             // https://www.legacyy.xyz/defenseevasion/windows/2022/07/04/abusing-shareduserdata-for-defense-evasion-and-exploitation.html
 
@@ -131,7 +126,6 @@ namespace Utils {
     namespace Random {
 
         ULONG RandomSleepTime() {
-            HEXANE
 
             SYSTEMTIME sys_time = { };
 
@@ -204,7 +198,6 @@ namespace Utils {
         }
 
         ULONG RandomNumber32() {
-            HEXANE
 
             auto seed = RandomSeed();
 
@@ -218,7 +211,6 @@ namespace Utils {
         }
 
         BOOL RandomBool() {
-            HEXANE
 
             auto seed = RandomSeed();
 

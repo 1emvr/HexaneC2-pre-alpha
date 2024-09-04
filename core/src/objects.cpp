@@ -3,7 +3,6 @@ namespace Objects {
     FUNCTION LPVOID ExceptionReturn = 0;
 
     LONG WINAPI Debugger(const EXCEPTION_POINTERS* exception) {
-        HEXANE
 
         exception->ContextRecord->IP_REG = U_PTR(ExceptionReturn);
         ntstatus = exception->ExceptionRecord->ExceptionCode;
@@ -13,7 +12,6 @@ namespace Objects {
 
     BOOL ResolveSymbol(_executable* object, uint8_t* symbol_name, void** function) {
         // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/CoffeeLdr.c
-        HEXANE
 
         uint32_t    type    = 0;
         uint32_t    func    = 0;
@@ -25,17 +23,8 @@ namespace Objects {
         x_memcpy(&func, symbol_name + sizeof(uint32_t), sizeof(uint32_t));
 
         if (type == COFF_HEXANE_HASH) {
-            for (auto i = 0;; i++) {
+            *function = R_CAST(void*, Commands::GetCommandAddress(func));
 
-                if (!cmd_map[i].name) {
-                    success_(false);
-                }
-
-                if (cmd_map[i].name == func) {
-                    *function = (void*)cmd_map[i].address;
-                    success_(true);
-                }
-            }
         } else if (type == COFF_IMPL_HASH) {
             for (auto i = 0;; i++) {
 
@@ -64,7 +53,6 @@ namespace Objects {
     }
 
     SIZE_T GetFunctionMapSize(_executable* object) {
-        HEXANE
 
         _symbol     *symbol         = { };
         char        *symbol_name    = { };
@@ -100,7 +88,6 @@ namespace Objects {
     }
 
     BOOL BaseRelocation(_executable* object) {
-        HEXANE
 
         char        symbol_name[9]  = { };
         char        *entry_name     = { };
@@ -194,7 +181,6 @@ namespace Objects {
     }
 
     BOOL MapSections(_executable* object, const uint8_t* const data) {
-        HEXANE
 
         uint8_t* next = { };
 
@@ -234,7 +220,6 @@ namespace Objects {
     }
 
     BOOL ExecuteObject(_executable *object, const char *entrypoint, char *args, uint32_t size, uint32_t req_id) {
-        HEXANE
 
         bool success        = false;
         char *symbol_name   = { };
@@ -312,7 +297,6 @@ namespace Objects {
     }
 
     VOID LoadObject(_parser parser) {
-        HEXANE
 
         char        *entrypoint = { };
         uint8_t     *data       = { };

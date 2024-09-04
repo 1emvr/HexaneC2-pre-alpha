@@ -2,7 +2,6 @@
 namespace Clients {
 
     _client* GetClient(const uint32_t peer_id) {
-        HEXANE
 
         auto head = Ctx->clients;
         do {
@@ -20,7 +19,6 @@ namespace Clients {
     }
 
     BOOL RemoveClient(const uint32_t peer_id) {
-        HEXANE
 
         _client *prev       = { };
         _client *head       = Ctx->clients;
@@ -62,7 +60,6 @@ namespace Clients {
     }
 
     BOOL AddClient(const wchar_t *pipe_name, const uint32_t peer_id) {
-        HEXANE
 
         _stream *in     = { };
         _client *client = { };
@@ -142,7 +139,6 @@ namespace Clients {
     }
 
     VOID PushClients() {
-        HEXANE
 
         _stream     *in     = { };
         void        *buffer = { };

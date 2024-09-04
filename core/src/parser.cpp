@@ -2,14 +2,12 @@
 namespace Parser {
 
     VOID ParserBytecpy(_parser *const parser, uint8_t *const dst) {
-        HEXANE
 
         const auto byte = UnpackByte(parser);
         x_memcpy(dst, &byte, 1);
     }
 
     VOID ParserStrcpy(_parser *const parser, char **const dst, uint32_t *const n_out) {
-        HEXANE
 
         uint32_t length = 0;
         const auto buffer = UnpackString(parser, &length);
@@ -25,7 +23,6 @@ namespace Parser {
     }
 
     VOID ParserWcscpy(_parser *const parser, wchar_t **const dst, uint32_t *const n_out) {
-        HEXANE
 
         uint32_t length = 0;
         const auto buffer = UnpackWString(parser, &length);
@@ -43,7 +40,6 @@ namespace Parser {
     }
 
     VOID ParserMemcpy(_parser *const parser, uint8_t **const dst, uint32_t *const n_out) {
-        HEXANE
 
         uint32_t length = 0;
         const auto buffer = UnpackBytes(parser, &length);
@@ -59,7 +55,6 @@ namespace Parser {
     }
 
     VOID CreateParser (_parser *const parser, const uint8_t *const buffer, const uint32_t length) {
-        HEXANE
 
         if (!(parser->handle = x_malloc(length))) {
             return;
@@ -73,7 +68,6 @@ namespace Parser {
     }
 
     VOID DestroyParser (_parser *const parser) {
-        HEXANE
 
         if (parser) {
             if (parser->handle) {

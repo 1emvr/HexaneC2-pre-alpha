@@ -5,7 +5,6 @@ namespace Implant {
     __text(F) uint8_t _config[CFG_SIZE] = { "AAAAAAAA", };
 
     VOID MainRoutine() {
-        HEXANE
 
         do {
             Opsec::SleepObf();
@@ -41,7 +40,6 @@ namespace Implant {
 
 
     BOOL ResolveApi() {
-        HEXANE
         // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
 
         bool            success     = true;
@@ -131,21 +129,7 @@ namespace Implant {
         return success;
     }
 
-    VOID SetWrappers() {
-        HEXANE
-
-        _hash_map wrappers[] = {
-            { 0, 0 },
-        };
-
-        int i = 0;
-        while(wrappers[i].name != 0) {
-            Ctx->wrappers[i] = wrappers[i];
-        }
-    }
-
     BOOL ReadConfig() {
-        HEXANE
 
         bool    success = true;
         _parser parser  = { };

