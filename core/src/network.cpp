@@ -17,7 +17,8 @@ namespace Network {
                 if (!buffer) { buffer = x_malloc(length + 1); }
                 if (!download) {
                     download = x_malloc(length + 1);
-                } else {
+                }
+                else {
                     download = x_realloc(download, total + length + 1);
                 }
 
@@ -76,7 +77,8 @@ namespace Network {
                 req_ctx->endpoint = R_CAST(wchar_t*, x_malloc((x_wcslen(endpoint)+ 1) * sizeof(wchar_t)));
                 x_memcpy(req_ctx->endpoint, endpoint, (x_wcslen(endpoint) + 1) * sizeof(wchar_t));
 
-            } else {
+            }
+            else {
                 success_(false);
             }
 
@@ -105,7 +107,8 @@ namespace Network {
                     x_assert(Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY_USERNAME, Ctx->transport.http->proxy->username, x_wcslen(Ctx->transport.http->proxy->username)));
                     x_assert(Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY_PASSWORD, Ctx->transport.http->proxy->password, x_wcslen(Ctx->transport.http->proxy->password)));
                 }
-            } else if (!Ctx->transport.b_envproxy_check) {
+            }
+            else if (!Ctx->transport.b_envproxy_check) {
                 proxy_ctx->autoproxy.dwFlags                = WINHTTP_AUTOPROXY_AUTO_DETECT;
                 proxy_ctx->autoproxy.dwAutoDetectFlags      = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
                 proxy_ctx->autoproxy.lpszAutoConfigUrl      = nullptr;
@@ -118,8 +121,8 @@ namespace Network {
                     Ctx->transport.env_proxy     = x_malloc(Ctx->transport.env_proxylen);
 
                     x_memcpy(Ctx->transport.env_proxy, &proxy_ctx->proxy_info, Ctx->transport.env_proxylen);
-
-                } else {
+                }
+                else {
                     if (Ctx->win32.WinHttpGetIEProxyConfigForCurrentUser(&proxy_ctx->proxy_config)) {
                         if (proxy_ctx->proxy_config.lpszProxy != nullptr && x_wcslen(proxy_ctx->proxy_config.lpszProxy) != 0) {
                             proxy_ctx->proxy_info.dwAccessType      = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
@@ -132,8 +135,8 @@ namespace Network {
 
                             proxy_ctx->proxy_config.lpszProxy       = nullptr;
                             proxy_ctx->proxy_config.lpszProxyBypass = nullptr;
-
-                        } else if (proxy_ctx->proxy_config.lpszAutoConfigUrl != nullptr && x_wcslen(proxy_ctx->proxy_config.lpszAutoConfigUrl) != 0) {
+                        }
+                        else if (proxy_ctx->proxy_config.lpszAutoConfigUrl != nullptr && x_wcslen(proxy_ctx->proxy_config.lpszAutoConfigUrl) != 0) {
                             proxy_ctx->autoproxy.dwFlags            = WINHTTP_AUTOPROXY_CONFIG_URL;
                             proxy_ctx->autoproxy.lpszAutoConfigUrl  = proxy_ctx->proxy_config.lpszAutoConfigUrl;
                             proxy_ctx->autoproxy.dwAutoDetectFlags  = 0;

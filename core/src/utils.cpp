@@ -153,20 +153,22 @@ namespace Utils {
                     if (sys_time.wHour == end_hour && sys_time.wMinute > end_min || sys_time.wHour > end_hour) {
                         sleeptime += (24 - sys_time.wHour - 1) * 60 + (60 - sys_time.wMinute);
                         sleeptime += start_hour * 60 + start_min;
-                    } else {
+                    }
+                    else {
                         sleeptime += (start_hour - sys_time.wHour) * 60 + (start_min - sys_time.wMinute);
                     }
 
                     sleeptime *= MS_PER_SECOND;
                 }
-            } else if (variation) {
-
+            }
+            else if (variation) {
                 random = RandomNumber32();
                 random = random % variation;
 
                 if (RandomBool()) {
                     sleeptime += random;
-                } else {
+                }
+                else {
                     sleeptime -= random;
                 }
             }

@@ -90,8 +90,8 @@ namespace Opsec {
 
             x_assertb(x_strncmp(Ctx->config.hostname, buffer, x_strlen(Ctx->config.hostname)) == 0);
             Stream::PackString(out, buffer);
-
-        } else {
+        }
+        else {
             Stream::PackDword(out, 0);
         }
 
@@ -103,8 +103,8 @@ namespace Opsec {
 
                 x_assertb(x_strncmp(Ctx->transport.domain, buffer, x_strlen(Ctx->transport.domain)) == 0);
                 Stream::PackString(out, buffer);
-
-            } else {
+            }
+            else {
                 Stream::PackDword(out, 0);
             }
         }
@@ -114,7 +114,8 @@ namespace Opsec {
 
         if (Ctx->win32.GetUserNameA(R_CAST(LPSTR, buffer), &length)) {
             Stream::PackString(out, buffer);
-        } else {
+        }
+        else {
             Stream::PackDword(out, 0);
         }
 
@@ -123,7 +124,8 @@ namespace Opsec {
 
         if (Ctx->win32.GetAdaptersInfo(&adapter, &length) == NO_ERROR) {
             Stream::PackString(out, adapter.IpAddressList.IpAddress.String);
-        } else {
+        }
+        else {
             Stream::PackDword(out, 0);
         }
 

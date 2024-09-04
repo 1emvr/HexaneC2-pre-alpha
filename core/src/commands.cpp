@@ -37,7 +37,8 @@ namespace Commands {
             path[length++]  = ASTER;
             path[length]    = NULTERM;
 
-        } else {
+        }
+        else {
             x_memcpy(path, query, MAX_PATH);
         }
 
@@ -50,7 +51,8 @@ namespace Commands {
             if (head.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                 Stream::PackDword(out, TRUE);
 
-            } else {
+            }
+            else {
                 file_size.HighPart   = head.nFileSizeHigh;
                 file_size.LowPart    = head.nFileSizeLow;
 

@@ -11,7 +11,8 @@ namespace Clients {
                 }
                 head = head->next;
 
-            } else {
+            }
+            else {
                 return nullptr;
             }
         }
@@ -33,7 +34,8 @@ namespace Clients {
             if (head == target) {
                 if (prev) {
                     prev->next = head->next;
-                } else {
+                }
+                else {
                     Ctx->clients = head->next;
                 }
 
@@ -116,18 +118,21 @@ namespace Clients {
 
         if (!Ctx->clients) {
             Ctx->clients = client;
-
-        } else {
+        }
+        else {
             head = Ctx->clients;
+
             do {
                 if (head) {
                     if (head->next) {
                         head = head->next;
-                    } else {
+                    }
+                    else {
                         head->next = client;
                         break;
                     }
-                } else {
+                }
+                else {
                     break;
                 }
             }
@@ -175,7 +180,8 @@ namespace Clients {
 
                 Dispatcher::MessageQueue(in);
 
-            } else {
+            }
+            else {
                 continue;
             }
 

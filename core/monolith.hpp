@@ -443,14 +443,14 @@ struct _hexane{
 	} base;
 
 	struct {
-		HANDLE ntdll;
-		HANDLE kernel32;
-		HANDLE crypt32;
-		HANDLE winhttp;
-		HANDLE advapi;
-		HANDLE iphlpapi;
-		HANDLE mscoree;
-		HANDLE kernbase;
+		HMODULE ntdll;
+		HMODULE kernel32;
+		HMODULE crypt32;
+		HMODULE winhttp;
+		HMODULE advapi;
+		HMODULE iphlpapi;
+		HMODULE mscoree;
+		HMODULE kernbase;
 	} modules;
 
 	struct {

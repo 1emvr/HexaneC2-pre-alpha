@@ -30,8 +30,8 @@ namespace Objects {
 
         }
         else if (type == COFF_IMPL_HASH) {
-            for (auto i = 0;; i++) {
 
+            for (auto i = 0;; i++) {
                 if (!wrappers[i].name) {
                     success_(false);
                 }

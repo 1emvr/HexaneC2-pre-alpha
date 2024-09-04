@@ -15,7 +15,8 @@ namespace Dispatcher {
 
         if (!Ctx->transport.outbound_queue) {
             Ctx->transport.outbound_queue = out;
-        } else {
+        }
+        else {
             while (head->next) {
                 head = head->next;
             }
@@ -36,8 +37,8 @@ namespace Dispatcher {
             if (head == target) {
                 if (prev) {
                     prev->next = head->next;
-
-                } else {
+                }
+                else {
                     Ctx->transport.outbound_queue = head->next;
                 }
 
@@ -59,8 +60,8 @@ namespace Dispatcher {
 
         if (msg->length > MESSAGE_MAX) {
             QueueSegments(B_PTR(msg->buffer), msg->length);
-
-        } else {
+        }
+        else {
             Parser::CreateParser(&parser, B_PTR(msg->buffer), msg->length);
 
             queue            = Stream::CreateStream();
@@ -136,7 +137,8 @@ namespace Dispatcher {
                 // egress to server should prepend msg_buffer with length
                 if (Ctx->root) {
                     Stream::PackBytes(out, B_PTR(head->buffer), head->length);
-                } else {
+                }
+                else {
                     Utils::AppendBuffer(&out->buffer, head->buffer, R_CAST(uint32_t*, &out->length), head->length);
                 }
 
@@ -152,11 +154,14 @@ namespace Dispatcher {
         if (in) {
             if (PeekPeerId(in) != Ctx->session.peer_id) {
                 MessageQueue(in);
-            } else {
+            }
+            else {
                 CommandDispatch(in);
             }
-        } else {
+        }
+        else {
             auto head = Ctx->transport.outbound_queue;
+
             while (head) {
                 head->ready = FALSE;
                 head = head->next;

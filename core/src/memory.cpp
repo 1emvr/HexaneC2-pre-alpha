@@ -35,11 +35,6 @@ void operator delete[](void* ptr) noexcept {
 namespace Memory {
     namespace Methods {
 
-        UINT_PTR GetInternalAddress(uint32_t name) {
-
-            return 1;
-        }
-
         UINT_PTR GetStackCookie() {
 
             uintptr_t cookie = 0;

@@ -124,7 +124,8 @@ namespace Xtea {
 
             if (encrypt) {
                 XteaEncrypt(text, buffer, sections[i]);
-            } else {
+            }
+            else {
                 XteaDecrypt(text, buffer, sections[i]);
             }
 
@@ -139,7 +140,8 @@ namespace Xtea {
             for (uint64_t i = 0; i < n_sect; i++) {
                 if (sections[i]) {
                     x_free(sections[i]);
-                } else {
+                }
+                else {
                     break;
                 }
             }
