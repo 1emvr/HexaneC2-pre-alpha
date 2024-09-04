@@ -25,26 +25,23 @@ EXTERN_C LPVOID InstEnd();
 #define PIPE_BUFFER_MAX  				            (64 * 1000 - 1)
 #define MIN(a,b)								    (a < b ? a : b)
 
-#define GLOBAL_OFFSET								(U_PTR(InstStart()) + U_PTR(&__instance))
-#define Ctx 		    							R_CAST(_hexane*, C_DREF(GLOBAL_OFFSET))
+#define GLOBAL_OFFSET 								(U_PTR(InstStart()) + U_PTR( &__instance))
+#define Ctx           								(R_CAST(_hexane*, C_DREF(GLOBAL_OFFSET)))
 
-#define C_CAST(T,x)								    (const_cast<T>(x))
-#define D_CAST(T,x)								    (dynamic_cast<T>(x))
-#define S_CAST(T,x)								    (static_cast<T>(x))
-#define R_CAST(T,x)								    (reinterpret_cast<T>(x))
+#define C_CAST(T,x) 								(const_cast<T>(x))
+#define D_CAST(T,x) 								(dynamic_cast<T>(x))
+#define S_CAST(T,x) 								(static_cast<T>(x))
+#define R_CAST(T,x) 								(reinterpret_cast<T>(x))
 
 #define B_PTR(x)								    (R_CAST(PBYTE, x))
 #define C_PTR(x)                                    (R_CAST(LPVOID, x))
 #define U_PTR(x)                                    (R_CAST(UINT_PTR, x))
 #define C_DREF(x)                                   (*R_CAST(VOID**, x))
 
-#define U8_PTR(x) 								    (S_CAST(uint8_t*, x))
-
 #define FUNCTION								    __text(B)
-#define __prototype(x)                               decltype(x) *x
+#define __prototype(x)                              decltype(x) *x
 #define __code_seg(x)							    __attribute__((used, section(x)))
 #define __text(x) 								    __attribute__((used, section(".text$" #x "")))
-#define __noinline									__attribute__((noinline))
 #define DLL_EXPORT 								    __declspec(dllexport)
 
 #define ntstatus 								    Ctx->teb->LastErrorValue
@@ -110,7 +107,6 @@ EXTERN_C LPVOID InstEnd();
 #define SMB_SID_SINGLE_WORLD_SUBAUTHORITY		    SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0
 #define SMB_RID_SINGLE_MANDATORY_LOW			    SECURITY_MANDATORY_LOW_RID, 0, 0, 0, 0, 0, 0, 0
 #define PROCESS_CREATE_ALL_ACCESS_SUSPEND		    PROCESS_ALL_ACCESS, THREAD_ALL_ACCESS, nullptr, nullptr, NULL, THREAD_CREATE_FLAGS_CREATE_SUSPENDED
-#define ACCESS_VEH 								    (PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_QUERY_INFORMATION | PROCESS_CREATE_THREAD)
 #define IMAGE_SCN_MEM_RWX						    (IMAGE_SCN_MEM_EXECUTE |IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)
 #define IMAGE_SCN_MEM_RW						    (IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)
 #define IMAGE_SCN_MEM_RX						    (IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_EXECUTE)
@@ -366,10 +362,10 @@ struct _parser {
 };
 
 typedef struct {
-	PSID					sid;
-	PSID					sid_low;
-	PACL					p_acl;
-	PSECURITY_DESCRIPTOR	sec_desc;
+	PSID	sid;
+	PSID	sid_low;
+	PACL	p_acl;
+	PSECURITY_DESCRIPTOR sec_desc;
 } SMB_PIPE_SEC_ATTR, *PSMB_PIPE_SEC_ATTR;
 
 
