@@ -373,13 +373,13 @@ typedef void (*_command)(_parser *args);
 typedef void (*obj_entry)(char* args, uint32_t size);
 
 struct _command_map{
-	uint32_t    name;
+	DWORD    	name;
 	_command 	address;
 };
 
 struct _hash_map{
-	uint32_t    name;
-	uintptr_t	address;
+	DWORD    	name;
+	UINT_PTR	address;
 };
 
 struct LdrpVectorHandlerEntry {
@@ -409,12 +409,12 @@ struct _heap_info {
 };
 
 struct _u32_block {
-    uint32_t v0;
-    uint32_t v1;
+    DWORD v0;
+    DWORD v1;
 };
 
 struct _ciphertext {
-    uint32_t table[64];
+    DWORD table[64];
 };
 
 struct _stream {
@@ -434,30 +434,23 @@ struct _hexane{
 	LPVOID 	heap;
 	BOOL 	root;
     BOOL   	little;
-
 	_executable *coffs;
 	_client 	*clients;
 
 	struct {
-		UINT_PTR    address;
-		ULONG	    size;
+		UINT_PTR   	address;
+		DWORD		size;
 	} base;
 
 	struct {
-		_token_list_data *vault;
-		_token_list_data *token;
-		bool             impersonate;
-	} tokens;
-
-	struct {
-		HMODULE ntdll;
-		HMODULE kernel32;
-		HMODULE crypt32;
-		HMODULE winhttp;
-		HMODULE advapi;
-		HMODULE iphlpapi;
-		HMODULE mscoree;
-		HMODULE kernbase;
+		HANDLE ntdll;
+		HANDLE kernel32;
+		HANDLE crypt32;
+		HANDLE winhttp;
+		HANDLE advapi;
+		HANDLE iphlpapi;
+		HANDLE mscoree;
+		HANDLE kernbase;
 	} modules;
 
 	struct {
