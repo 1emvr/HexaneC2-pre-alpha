@@ -1,17 +1,6 @@
 #include <core/include/utils.hpp>
 namespace Utils {
 
-    LPVOID RandomSelect(void** ptr_array) {
-        int i = 0;
-
-        while (true) {
-            if (!ptr_array[i]) {
-                i--; return ptr_array[i % Utils::Random::RandomNumber32()];
-            }
-            i++;
-        }
-    }
-
     VOID AppendBuffer(uint8_t **buffer, const uint8_t *const target, uint32_t *capacity, const uint32_t length) {
 
         const auto new_buffer = B_PTR(x_realloc(*buffer, *capacity + length));

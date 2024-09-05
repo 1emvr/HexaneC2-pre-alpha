@@ -72,7 +72,7 @@ namespace Network {
             x_assert(req_ctx->conn_handle = Ctx->win32.WinHttpConnect(Ctx->transport.http->handle, Ctx->transport.http->address, Ctx->transport.http->port, 0));
 
             if (Ctx->transport.http->endpoints) {
-                endpoint = R_CAST(wchar_t*, Utils::RandomSelect(R_CAST(void**, Ctx->transport.http->endpoints)));
+                RANDOM_SELECT(endpoint, Ctx->transport.http->endpoints);
 
                 req_ctx->endpoint = R_CAST(wchar_t*, x_malloc((x_wcslen(endpoint)+ 1) * sizeof(wchar_t)));
                 x_memcpy(req_ctx->endpoint, endpoint, (x_wcslen(endpoint) + 1) * sizeof(wchar_t));
@@ -128,9 +128,10 @@ namespace Network {
                             proxy_ctx->proxy_info.dwAccessType      = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
                             proxy_ctx->proxy_info.lpszProxy         = proxy_ctx->proxy_config.lpszProxy;
                             proxy_ctx->proxy_info.lpszProxyBypass   = proxy_ctx->proxy_config.lpszProxyBypass;
-                            Ctx->transport.env_proxylen             = sizeof(WINHTTP_PROXY_INFO);
 
-                            Ctx->transport.env_proxy = x_malloc(Ctx->transport.env_proxylen);
+                            Ctx->transport.env_proxylen     = sizeof(WINHTTP_PROXY_INFO);
+                            Ctx->transport.env_proxy        = x_malloc(Ctx->transport.env_proxylen);
+
                             x_memcpy(Ctx->transport.env_proxy, &proxy_ctx->proxy_info, Ctx->transport.env_proxylen);
 
                             proxy_ctx->proxy_config.lpszProxy       = nullptr;
@@ -142,9 +143,9 @@ namespace Network {
                             proxy_ctx->autoproxy.dwAutoDetectFlags  = 0;
 
                             Ctx->win32.WinHttpGetProxyForUrl(Ctx->transport.http->handle, req_ctx->endpoint, &proxy_ctx->autoproxy, &proxy_ctx->proxy_info);
-                            Ctx->transport.env_proxylen  = sizeof(WINHTTP_PROXY_INFO);
+                            Ctx->transport.env_proxylen     = sizeof(WINHTTP_PROXY_INFO);
+                            Ctx->transport.env_proxy        = x_malloc(Ctx->transport.env_proxylen);
 
-                            Ctx->transport.env_proxy = x_malloc(Ctx->transport.env_proxylen);
                             x_memcpy(Ctx->transport.env_proxy, &proxy_ctx->proxy_info, Ctx->transport.env_proxylen);
                         }
                     }
