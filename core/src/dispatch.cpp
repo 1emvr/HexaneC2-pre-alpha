@@ -56,8 +56,6 @@ namespace Dispatcher {
         _parser parser = { };
         _stream *queue = { };
 
-        x_assert(msg);
-
         if (msg->length > MESSAGE_MAX) {
             QueueSegments(B_PTR(msg->buffer), msg->length);
         }
@@ -78,8 +76,6 @@ namespace Dispatcher {
             Parser::DestroyParser(&parser);
             Stream::DestroyStream(msg);
         }
-
-        defer:
     }
 
     VOID QueueSegments(uint8_t *const buffer, uint32_t length) {
@@ -141,7 +137,6 @@ namespace Dispatcher {
                 else {
                     Utils::AppendBuffer(&out->buffer, head->buffer, R_CAST(uint32_t*, &out->length), head->length);
                 }
-
                 break;
             }
         }

@@ -72,27 +72,26 @@ namespace Xtea {
         const auto      n           = (n_data + sec_size - 1) / sec_size;
 
         *n_out = n;
-
         x_assert(sections = S_CAST(uint8_t**, x_malloc(n * sizeof(uint8_t*))));
 
-        for (size_t i = 0; i < n; i++) {
-            if (!(sections[i] = B_PTR(x_malloc(sec_size)))) {
+        for (auto sec_index = 0; sec_index < n; sec_index++) {
+            if (!(sections[sec_index] = B_PTR(x_malloc(sec_size)))) {
 
-                for (auto j = 0; j < i; j++) {
-                    x_free(sections[j]);
+                for (auto ptr_index = 0; ptr_index < sec_index; ptr_index++) {
+                    x_free(sections[ptr_index]);
                 }
 
                 x_free(sections);
                 return_defer(ERROR_NOT_ENOUGH_MEMORY);
             }
 
-            const auto end          = (i + 1) * sec_size;
-            const auto copy_size    = (end > n_data) ? n_data - i * sec_size : sec_size;
+            const auto end          = (sec_index + 1) * sec_size;
+            const auto copy_size    = (end > n_data) ? n_data - sec_index * sec_size : sec_size;
 
-            x_memcpy(sections[i], data + i * sec_size, copy_size);
+            x_memcpy(sections[sec_index], data + sec_index * sec_size, copy_size);
 
             if (copy_size < sec_size) {
-                x_memset(sections[i] + copy_size, 0, sec_size - copy_size);
+                x_memset(sections[sec_index] + copy_size, 0, sec_size - copy_size);
             }
         }
 
@@ -119,14 +118,14 @@ namespace Xtea {
         x_memset(data, 0, n_data);
 
 
-        for (auto i = 0; i < n_sect; i++) {
+        for (auto sec_index = 0; sec_index < n_sect; sec_index++) {
             x_assert(buffer = B_PTR(x_malloc(8)));
 
             if (encrypt) {
-                XteaEncrypt(text, buffer, sections[i]);
+                XteaEncrypt(text, buffer, sections[sec_index]);
             }
             else {
-                XteaDecrypt(text, buffer, sections[i]);
+                XteaDecrypt(text, buffer, sections[sec_index]);
             }
 
             x_memcpy(C_PTR(data+offset), C_PTR(buffer), sizeof(uint64_t));

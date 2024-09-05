@@ -9,14 +9,14 @@ namespace Parser {
 
     VOID ParserStrcpy(_parser *const parser, char **const dst, uint32_t *const n_out) {
 
-        uint32_t length = 0;
-        const auto buffer = UnpackString(parser, &length);
+        uint32_t length     = 0;
+        const auto buffer   = UnpackString(parser, &length);
 
         if (length) {
             if (n_out) {
                 *n_out = length;
             }
-            if ((*dst = S_CAST(char*, x_malloc(length)))) {
+            if ((*dst = (char*) x_malloc(length))) {
                 x_memcpy(*dst, buffer, length);
             }
         }
@@ -33,10 +33,11 @@ namespace Parser {
             }
 
             length *= sizeof(wchar_t);
-            if ((*dst = S_CAST(wchar_t*, x_malloc(length)))) {
-                x_memcpy(*dst, buffer, length);
-            }
+
+            x_assert(*dst = (wchar_t*) x_malloc(length));
+            x_memcpy(*dst, buffer, length);
         }
+        defer:
     }
 
     VOID ParserMemcpy(_parser *const parser, uint8_t **const dst, uint32_t *const n_out) {
@@ -48,23 +49,23 @@ namespace Parser {
             if (n_out) {
                 *n_out = length;
             }
-            if ((*dst = B_PTR(x_malloc(length)))) {
-                x_memcpy(*dst, buffer, length);
-            }
+
+            x_assert(*dst = B_PTR(x_malloc(length)));
+            x_memcpy(*dst, buffer, length);
         }
+        defer:
     }
 
     VOID CreateParser (_parser *const parser, const uint8_t *const buffer, const uint32_t length) {
 
-        if (!(parser->handle = x_malloc(length))) {
-            return;
-        }
-
+        x_assert(parser->handle = x_malloc(length));
         x_memcpy(parser->handle, buffer, length);
 
         parser->Length  = length;
         parser->buffer  = parser->handle;
         parser->little  = Ctx->little;
+
+        defer:
     }
 
     VOID DestroyParser (_parser *const parser) {

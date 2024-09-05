@@ -50,7 +50,7 @@ namespace Stream {
     _stream* CreateStream () {
 
         _stream *stream = { };
-        x_assert(stream            = S_CAST(_stream *, x_malloc(sizeof(_stream))));
+        x_assert(stream            = (_stream*) x_malloc(sizeof(_stream)));
         x_assert(stream->buffer    = B_PTR(x_malloc(sizeof(uint8_t))));
 
         stream->length 	= 0;
@@ -113,7 +113,7 @@ namespace Stream {
 
         if (stream) {
             if (size) {
-                PackDword(stream, S_CAST(uint32_t, size));
+                PackDword(stream, (uint32_t) size);
                 stream->buffer = B_PTR(x_realloc(stream->buffer, stream->length + size));
 
                 x_memcpy(S_CAST(PBYTE, stream->buffer) + stream->length, data, size);
