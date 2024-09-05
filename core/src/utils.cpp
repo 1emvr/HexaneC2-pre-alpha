@@ -78,10 +78,10 @@ namespace Utils {
                 return TRUE;
             }
 
-            StartHour = (WorkingHours >> 17) & 0b011111;
+            StartHour   = (WorkingHours >> 17) & 0b011111;
             StartMinute = (WorkingHours >> 11) & 0b111111;
-            EndHour = (WorkingHours >> 6) & 0b011111;
-            EndMinute = (WorkingHours >> 0) & 0b111111;
+            EndHour     = (WorkingHours >> 6) & 0b011111;
+            EndMinute   = (WorkingHours >> 0) & 0b111111;
 
             Ctx->win32.GetLocalTime(&SystemTime);
 
@@ -99,10 +99,10 @@ namespace Utils {
             // Courtesy of Illegacy & Shubakki:
             // https://www.legacyy.xyz/defenseevasion/windows/2022/07/04/abusing-shareduserdata-for-defense-evasion-and-exploitation.html
 
-            auto defaultseed = Utils::Random::RandomSeed();
-            auto seed = Ctx->nt.RtlRandomEx(S_CAST(PULONG, &defaultseed));
+            auto defaultseed    = Utils::Random::RandomSeed();
+            auto seed           = Ctx->nt.RtlRandomEx(S_CAST(PULONG, &defaultseed));
 
-            volatile size_t x = INTERVAL(seed);
+            volatile size_t x   = INTERVAL(seed);
             const uintptr_t end = Utils::Random::Timestamp() + (x * ms);
 
             while (Utils::Random::Timestamp() < end) { x += 1; }
@@ -119,23 +119,23 @@ namespace Utils {
             SYSTEMTIME sys_time = { };
 
             uint32_t work_hours = Ctx->config.hours;
-            uint32_t sleeptime = Ctx->config.sleeptime * 1000;
-            uint32_t variation = (Ctx->config.jitter * sleeptime) / 100;
-            uint32_t random = 0;
+            uint32_t sleeptime  = Ctx->config.sleeptime * 1000;
+            uint32_t variation  = (Ctx->config.jitter * sleeptime) / 100;
+            uint32_t random     = 0;
 
             uint16_t start_hour = 0;
-            uint16_t start_min = 0;
-            uint16_t end_hour = 0;
-            uint16_t end_min = 0;
+            uint16_t start_min  = 0;
+            uint16_t end_hour   = 0;
+            uint16_t end_min    = 0;
 
             if (!Utils::Time::InWorkingHours()) {
                 if (sleeptime) {
 
-                    sleeptime = 0;
-                    start_hour = (work_hours >> 17) & 0b011111;
-                    start_min = (work_hours >> 11) & 0b111111;
-                    end_hour = (work_hours >> 6) & 0b011111;
-                    end_min = (work_hours >> 0) & 0b111111;
+                    sleeptime   = 0;
+                    start_hour  = (work_hours >> 17) & 0b011111;
+                    start_min   = (work_hours >> 11) & 0b111111;
+                    end_hour    = (work_hours >> 6) & 0b011111;
+                    end_min     = (work_hours >> 0) & 0b111111;
 
                     Ctx->win32.GetLocalTime(&sys_time);
 
@@ -178,11 +178,11 @@ namespace Utils {
 
         UINT_PTR Timestamp() {
 
-            LARGE_INTEGER time = { };
-            const size_t epoch = 0x019DB1DED53E8000;
-            const size_t ms_ticks = 1000;
+            LARGE_INTEGER time      = { };
+            const size_t epoch      = 0x019DB1DED53E8000;
+            const size_t ms_ticks   = 1000;
 
-            time.u.LowPart = *R_CAST(uint32_t*, 0x7FFE0000 + 0x14);
+            time.u.LowPart  = *R_CAST(uint32_t*, 0x7FFE0000 + 0x14);
             time.u.HighPart = *R_CAST(int32_t*, 0x7FFE0000 + 0x1c);
 
             return (time.QuadPart - epoch) / ms_ticks;
