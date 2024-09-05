@@ -193,8 +193,7 @@ namespace Dispatcher {
 #endif
         Stream::DestroyStream(out);
         Dispatcher::PrepareIngress(in);
-
-        x_assert(Clients::PushClients());
+        Clients::PushClients();
 
         defer:
     }
