@@ -83,7 +83,7 @@ EXTERN_C LPVOID InstEnd();
 	#define COFF_IMPL_HASH      					0x00000001	// __impl_
 	#define COFF_INCL_HASH      					0x00000002	// __impl_$
 	#define COFF_HEXANE_HASH    					0x00000003	// __impl_Hexane
-	#define GLOBAL_CONTEXT           			    0xbfded9c9  // .refptr.__instance
+	#define COFF_CONTEXT_HASH           			0xbfded9c9  // .refptr.__instance
 #elif _M_IX86
 	#define IP_REG									Eip
 	#define ENTRYPOINT_REG 							Eax
@@ -97,7 +97,7 @@ EXTERN_C LPVOID InstEnd();
 	#define COFF_IMPL_HASH      					0x00000001 	// __impl__
 	#define COFF_INCL_HASH      					0x00000002	// __impl__$
 	#define COFF_HEXANE_HASH    					0x00000003	// __impl__Hexane
-	#define GLOBAL_CONTEXT           			    0xbfded9c9  // __instance
+	#define GLOBAL_CONTEXT_HASH           			0xbfded9c9  // __instance
 #endif
 
 #define EGRESS 										0
