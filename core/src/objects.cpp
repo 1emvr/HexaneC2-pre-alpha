@@ -1,7 +1,7 @@
 #include <core/include/objects.hpp>
 namespace Objects {
 
-    LPVOID FunctionReturn = nullptr;
+    LPVOID WrapperReturn = nullptr;
 
     _hash_map wrappers[] = {
         { .name = 0, .address = nullptr },
@@ -26,6 +26,14 @@ namespace Objects {
         Dispatcher::MessageQueue(stream);
 
         return EXCEPTION_CONTINUE_EXECUTION;
+    }
+
+    VOID FunctionWrapper(void *address, void *args, size_t size) {
+
+        void (*function)(char*, uint32_t) = (void(*)(char*, uint32_t)) address;
+        WrapperReturn = __builtin_extract_return_addr(__builtin_return_address(0));
+
+        function((char*)args, size);
     }
 
     BOOL ProcessSymbol(uint8_t* symbol_data, void** function) {
