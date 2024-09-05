@@ -23,7 +23,7 @@ namespace Objects {
     };
 
     BOOL ProcessSymbol(uint8_t* symbol_data, void** function) {
-        // todo: all names and indicators should be hashed server side
+        // todo: all names and indicators should be hashed server side TYPE_HASH:FN_HASH:(OPT)LIB_HASH
 
         uint32_t fn_hash    = 0;
         uint32_t lib_hash   = 0;
