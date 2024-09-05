@@ -17,7 +17,7 @@ namespace Objects {
 
         _stream *stream = Stream::CreateTaskResponse(TypeExecute);
 
-        exception->ContextRecord->IP_REG = (uint64_t)(U_PTR(FunctionReturn));
+        exception->ContextRecord->IP_REG = (uint64_t)(U_PTR(WrapperReturn));
 
         Stream::PackDword(stream, ERROR_UNHANDLED_EXCEPTION);
         Stream::PackDword(stream, exception->ExceptionRecord->ExceptionCode);
@@ -30,7 +30,7 @@ namespace Objects {
 
     VOID FunctionWrapper(void *address, void *args, size_t size) {
 
-        void (*function)(char*, uint32_t) = (void(*)(char*, uint32_t)) address;
+        obj_entry function = (obj_entry) address;
         WrapperReturn = __builtin_extract_return_addr(__builtin_return_address(0));
 
         function((char*)args, size);
