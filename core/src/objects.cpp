@@ -1,5 +1,6 @@
 #include <core/include/objects.hpp>
 namespace Objects {
+
     LPVOID FunctionReturn = nullptr;
 
     _hash_map wrappers[] = {
@@ -23,15 +24,15 @@ namespace Objects {
         Stream::PackPointer(stream, C_PTR(U_PTR(exception->ExceptionRecord->ExceptionAddress)));
 
         Dispatcher::MessageQueue(stream);
+
         return EXCEPTION_CONTINUE_EXECUTION;
     }
 
     BOOL ProcessSymbol(uint8_t* symbol_data, void** function) {
-        // todo: all names and indicators should be hashed server side TYPE_HASH:FN_HASH:(OPT)LIB_HASH
 
         uint32_t type_hash  = 0;
-        uint32_t fn_hash    = 0;
         uint32_t lib_hash   = 0;
+        uint32_t fn_hash    = 0;
 
         bool success = true;
         *function = nullptr;
