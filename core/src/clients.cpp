@@ -137,11 +137,10 @@ namespace Clients {
         return success;
     }
 
-    BOOL PushClients() {
+    VOID PushClients() {
 
         _stream     *in     = { };
         void        *buffer = { };
-	    bool	    success = true;
 
         uint8_t     bound   = 0;
         uint32_t    total   = 0;
@@ -156,8 +155,8 @@ namespace Clients {
             }
 
             if (bound == EGRESS && total >= sizeof(uint32_t)) {
-                x_assertb(buffer = x_malloc(total));
-                x_assertb(in     = Stream::CreateStream());
+                x_assert(buffer = x_malloc(total));
+                x_assert(in     = Stream::CreateStream());
 
                 if (!Ctx->win32.ReadFile(client->pipe_handle, buffer, total, (DWORD*) &read, nullptr) || read != total) {
                     Stream::DestroyStream(in);
@@ -190,6 +189,5 @@ namespace Clients {
         }
 
         defer:
-	    return success;
     }
 }

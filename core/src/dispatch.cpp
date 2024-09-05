@@ -188,13 +188,15 @@ namespace Dispatcher {
 #ifdef TRANSPORT_HTTP
         Network::Http::HttpCallback(out, &in);
 #else
-        Network::Smb::PipeSend(out);
-        Network::Smb::PipeReceive(&in);
+        x_assert(Network::Smb::PipeSend(out));
+        x_assert(Network::Smb::PipeReceive(&in));
 #endif
         Stream::DestroyStream(out);
         Dispatcher::PrepareIngress(in);
 
-        Clients::PushClients();
+        x_assert(Clients::PushClients());
+
+        defer:
     }
 
     VOID CommandDispatch (const _stream *const in) {
