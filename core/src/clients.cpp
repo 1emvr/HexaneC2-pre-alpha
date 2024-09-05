@@ -12,9 +12,7 @@ namespace Clients {
                 head = head->next;
 
             }
-            else {
-                return nullptr;
-            }
+            else { return nullptr; }
         }
         while (true);
     }
@@ -26,9 +24,8 @@ namespace Clients {
         _client *target     = GetClient(peer_id);
         bool    success     = true;
 
-        if (!head || !target) {
-            success_(false);
-        }
+	x_assertb(head);
+	x_assertb(target);
 
         while (head) {
             if (head == target) {
@@ -43,7 +40,6 @@ namespace Clients {
                     x_memset(head->pipe_name, 0, x_wcslen(head->pipe_name));
                     x_free(head->pipe_name);
                 }
-
                 if (head->pipe_handle) {
                     Ctx->nt.NtClose(head->pipe_handle);
                     head->pipe_handle = nullptr;
@@ -110,7 +106,7 @@ namespace Clients {
         }
         while (true);
 
-        client              = (_client*) x_malloc(sizeof(_client));
+        client = (_client*) x_malloc(sizeof(_client));
         client->pipe_handle = handle;
 
         x_memcpy(&client->peer_id, &peer_id, sizeof(uint32_t));
@@ -132,9 +128,7 @@ namespace Clients {
                         break;
                     }
                 }
-                else {
-                    break;
-                }
+                else { break; }
             }
             while (true);
         }
@@ -143,19 +137,18 @@ namespace Clients {
         return success;
     }
 
-    VOID PushClients() {
+    BOOL PushClients() {
 
         _stream     *in     = { };
         void        *buffer = { };
+	    bool	    success = true;
 
         uint8_t     bound   = 0;
         uint32_t    total   = 0;
         uint32_t    read    = 0;
 
         for (auto client = Ctx->clients; client; client = client->next) {
-
-            // check buffer[0] for outbound/inbound
-            if (Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, (DWORD*) &read, nullptr) || read != sizeof(uint8_t)) {
+            if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, (DWORD*) &read, nullptr) || read != sizeof(uint8_t)) {
                 continue;
             }
             if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, nullptr, 0, nullptr, (DWORD*) &total, nullptr)) {
@@ -163,8 +156,8 @@ namespace Clients {
             }
 
             if (bound == EGRESS && total >= sizeof(uint32_t)) {
-                x_assert(buffer = x_malloc(total));
-                x_assert(in     = Stream::CreateStream());
+                x_assertb(buffer = x_malloc(total));
+                x_assertb(in     = Stream::CreateStream());
 
                 if (!Ctx->win32.ReadFile(client->pipe_handle, buffer, total, (DWORD*) &read, nullptr) || read != total) {
                     Stream::DestroyStream(in);
@@ -183,9 +176,8 @@ namespace Clients {
                 continue;
             }
 
+        	// todo: prepend outbound messages with 0, inbound with 1
             for (auto message = Ctx->transport.outbound_queue; message; message = message->next) {
-                // todo: prepend outbound messages with 0, inbound with 1
-
                 if (message->buffer && B_PTR(message->buffer)[0] == INGRESS) {
                     if (Dispatcher::PeekPeerId(message) == client->peer_id) {
 
@@ -198,5 +190,6 @@ namespace Clients {
         }
 
         defer:
+	    return success;
     }
 }

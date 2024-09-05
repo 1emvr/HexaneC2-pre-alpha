@@ -15,20 +15,19 @@ namespace Xtea {
 
         auto delta = XTEA_DELTA;
 
-        for (uint32_t i = 0; i < ARRAY_LEN(key); i++) {
-            uint32_t j = i << 2;
+        for (uint32_t key_index = 0; key_index < ARRAY_LEN(key); key_index++) {
+            uint32_t m_index = key_index << 2;
 
-            key[i] =
-                (uint32_t) m_key[j+0] << 24 | (uint32_t) m_key[j+1] << 16 | (uint32_t) m_key[j+2] << 8  | (uint32_t) m_key[j+3];
+            key[key_index] = (uint32_t) m_key[m_index+0] << 24 | (uint32_t) m_key[m_index+1] << 16 | (uint32_t) m_key[m_index+2] << 8  | (uint32_t) m_key[m_index+3];
         }
 
-        for (uint32_t i = 0; i < NROUNDS;) {
-            c->table[i] = sum + key[sum & 3];
-            i++;
+        for (uint32_t blk_index = 0; blk_index < NROUNDS;) {
+            c->table[blk_index] = sum + key[sum & 3];
+            blk_index++;
 
             sum += delta;
-            c->table[i] = sum + key[sum >> 11 & 3];
-            i++;
+            c->table[blk_index] = sum + key[sum >> 11 & 3];
+            blk_index++;
         }
     }
 
@@ -66,12 +65,12 @@ namespace Xtea {
 
         uint8_t         **sections  = { };
         constexpr auto  sec_size    = 8;
-        const auto      n           = (n_data + sec_size - 1) / sec_size;
+        const auto      n_sec       = (n_data + sec_size - 1) / sec_size;
 
-        *n_out = n;
+        *n_out = n_sec;
         x_assert(sections = (uint8_t**) x_malloc(n * sizeof(uint8_t*)));
 
-        for (auto sec_index = 0; sec_index < n; sec_index++) {
+        for (auto sec_index = 0; sec_index < n_sec; sec_index++) {
             if (!(sections[sec_index] = B_PTR(x_malloc(sec_size)))) {
 
                 for (auto ptr_index = 0; ptr_index < sec_index; ptr_index++) {
@@ -133,9 +132,9 @@ namespace Xtea {
 
         defer:
         if (sections) {
-            for (uint64_t i = 0; i < n_sect; i++) {
-                if (sections[i]) {
-                    x_free(sections[i]);
+            for (uint64_t sec_index = 0; sec_index < n_sect; sec_index++) {
+                if (sections[sec_index]) {
+                    x_free(sections[sec_index]);
                 }
                 else {
                     break;

