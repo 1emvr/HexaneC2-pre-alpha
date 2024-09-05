@@ -81,7 +81,7 @@ namespace Opsec {
         char            buffer[MAX_PATH]    = { };
         bool            success             = true;
 
-        if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, R_CAST(LPSTR, buffer), &length)) {
+        if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, S_CAST(LPSTR, buffer), &length)) {
             x_assertb(x_strncmp(Ctx->config.hostname, buffer, x_strlen(Ctx->config.hostname)) == 0);
             Stream::PackString(out, buffer);
         }
@@ -93,7 +93,7 @@ namespace Opsec {
         length = MAX_PATH;
 
         if (Ctx->transport.domain[0]) {
-            if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, R_CAST(LPSTR, buffer), &length)) {
+            if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, S_CAST(LPSTR, buffer), &length)) {
                 x_assertb(x_strncmp(Ctx->transport.domain, buffer, x_strlen(Ctx->transport.domain)) == 0);
                 Stream::PackString(out, buffer);
             }
@@ -105,7 +105,7 @@ namespace Opsec {
         x_memset(buffer, 0, MAX_PATH);
         length = MAX_PATH;
 
-        if (Ctx->win32.GetUserNameA(R_CAST(LPSTR, buffer), &length)) {
+        if (Ctx->win32.GetUserNameA(S_CAST(LPSTR, buffer), &length)) {
             Stream::PackString(out, buffer);
         }
         else {
