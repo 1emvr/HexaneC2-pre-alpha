@@ -52,7 +52,7 @@ namespace Process {
 		CLIENT_ID 			client	= { };
 		OBJECT_ATTRIBUTES 	attrs 	= { };
 
-		client.UniqueProcess = R_CAST(HANDLE, pid);
+		client.UniqueProcess = (HANDLE) pid;
 		client.UniqueThread = nullptr;
 
         InitializeObjectAttributes(&attrs, nullptr, 0, nullptr, nullptr);
@@ -85,12 +85,12 @@ namespace Process {
 		//TODO: fix CreateUserProcess to not always create suspended
 		x_ntassert(Ctx->nt.RtlCreateProcessParametersEx(&image->params, &u_name, nullptr, DESKTOP_ENVIRONMENT_NULL, RTL_USER_PROCESS_PARAMETERS_NORMALIZED));
 
-		x_assert(image->heap = Ctx->nt.RtlCreateHeap(HEAP_GROWABLE, HEAP_NO_COMMIT));
-		x_assert(image->attrs = S_CAST(PPS_ATTRIBUTE_LIST, Ctx->nt.RtlAllocateHeap(image->heap, HEAP_ZERO_MEMORY, PS_ATTR_LIST_SIZE(1))));
+		x_assert(image->heap 	= Ctx->nt.RtlCreateHeap(HEAP_GROWABLE, HEAP_NO_COMMIT));
+		x_assert(image->attrs 	= (PPS_ATTRIBUTE_LIST) Ctx->nt.RtlAllocateHeap(image->heap, HEAP_ZERO_MEMORY, PS_ATTR_LIST_SIZE(1)));
 
 		image->attrs->TotalLength 				= PS_ATTR_LIST_SIZE(1);
 		image->attrs->Attributes[0].Attribute 	= PS_ATTRIBUTE_IMAGE_NAME;
-		image->attrs->Attributes[0].Value 		= R_CAST(ULONG_PTR, u_name.Buffer);
+		image->attrs->Attributes[0].Value 		= (ULONG_PTR) u_name.Buffer;
 		image->attrs->Attributes[0].Size 		= u_name.Length;
 
 		ntstatus = Ctx->nt.NtCreateUserProcess(&image->handle, &image->thread, PROCESS_CREATE_ALL_ACCESS_SUSPEND, image->params, &image->create, image->attrs);

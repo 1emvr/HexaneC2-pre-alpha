@@ -1,8 +1,8 @@
 #include <core/include/stdlib.hpp>
 void x_memcpy (void *dst, const void *const src, const size_t n) {
 
-    const auto a = S_CAST(uint8_t*, dst);
-    const auto b = S_CAST(const uint8_t*, src);
+    const auto a = (uint8_t*) dst;
+    const auto b = (const uint8_t*) src;
 
     for (size_t i = 0; i < n; i++) {
         a[i] = b[i];
@@ -11,7 +11,7 @@ void x_memcpy (void *dst, const void *const src, const size_t n) {
 
 void *x_memset (void *const dst, const int val, size_t len) {
 
-    auto ptr = S_CAST(uint8_t*, dst);
+    auto ptr = (uint8_t*) dst;
     while (len-- > 0) {
         *ptr++ = val;
     }
@@ -45,13 +45,13 @@ int x_strcmp (const char *str1, const char *str2) {
         str1++; str2++;
     }
 
-    return S_CAST(uint8_t, *str1) - S_CAST(uint8_t, *str2);
+    return (uint8_t) *str1 - (uint8_t) *str2;
 }
 
 int x_memcmp (const void *const ptr1, const void *const ptr2, size_t len) {
 
-    const auto *p1 = S_CAST(const uint8_t*, ptr1);
-    const auto *p2 = S_CAST(const uint8_t*, ptr2);
+    const auto *p1 = (const uint8_t*) ptr1;
+    const auto *p2 = (const uint8_t*) ptr2;
 
     while (len--) {
         if (*p1 != *p2) {
@@ -149,7 +149,7 @@ char *x_mbsToLower(char *const dst, const char *const src) {
 
     const auto len = x_strlen(src);
     for (size_t i = 0; i < len; ++i) {
-        dst[i] = x_toLowerA(S_CAST(uint8_t, src[i]));
+        dst[i] = x_toLowerA((uint8_t) src[i]);
     }
 
     dst[len] = 0x00;

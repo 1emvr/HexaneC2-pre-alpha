@@ -1,14 +1,13 @@
 #include <commands/include/registry.hpp>
 
 LPSTR FormatResultError(LRESULT Result) {
-    HEXANE
 
     char buffer[MAX_PATH] = { };
-    char *message = R_CAST(char*, x_malloc(MAX_PATH));
+    char *message = (char*) x_malloc(MAX_PATH);
 
     uint32_t flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
 
-    Ctx->win32.FormatMessageA(flags, nullptr, Result, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), R_CAST(LPSTR, buffer), 0, nullptr);
+    Ctx->win32.FormatMessageA(flags, nullptr, Result, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR) buffer, 0, nullptr);
     x_memcpy(message, buffer, MAX_PATH);
 
     x_free(buffer);
@@ -16,7 +15,6 @@ LPSTR FormatResultError(LRESULT Result) {
 }
 
 LSTATUS RegCreateDwordSubkey(HKEY key, const char* const subkey, const char* const name, uint32_t value) {
-    HEXANE
 
     LSTATUS result = 0;
     HKEY hk_open = { };

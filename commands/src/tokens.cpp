@@ -125,13 +125,12 @@ namespace Token {
 	}
 
 	DWORD AddToken(HANDLE token, wchar_t* const username, const int16_t type, const uint32_t pid, wchar_t* const domain_user, wchar_t* const domain, wchar_t* const password) {
-		HEXANE
 
 		_token_list_data *head	= { };
 		_token_list_data *entry	= { };
 		DWORD Index				= 0;
 
-		entry = R_CAST(_token_list_data*, x_malloc(sizeof(_token_list_data)));
+		entry = (_token_list_data*) x_malloc(sizeof(_token_list_data));
 
 		entry->handle		= token;
 		entry->username		= username;

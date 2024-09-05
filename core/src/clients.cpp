@@ -89,13 +89,13 @@ namespace Clients {
         }
 
         do {
-            if (Ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, R_CAST(LPDWORD, &total), nullptr)) {
+            if (Ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, (DWORD*) &total, nullptr)) {
                 if (total) {
                     if (!(buffer = x_malloc(total)) || !(in = Stream::CreateStream())) {
                         Ctx->nt.NtClose(handle);
                         success_(false);
                     }
-                    if (!Ctx->win32.ReadFile(handle, buffer, total, R_CAST(LPDWORD, &read), nullptr) || read != total) {
+                    if (!Ctx->win32.ReadFile(handle, buffer, total, (DWORD*) &read, nullptr) || read != total) {
                         Ctx->nt.NtClose(handle);
                         success_(false);
                     }
@@ -110,7 +110,7 @@ namespace Clients {
         }
         while (true);
 
-        client              = R_CAST(_client*, x_malloc(sizeof(_client)));
+        client              = (_client*) x_malloc(sizeof(_client));
         client->pipe_handle = handle;
 
         x_memcpy(&client->peer_id, &peer_id, sizeof(uint32_t));
@@ -155,10 +155,10 @@ namespace Clients {
         for (auto client = Ctx->clients; client; client = client->next) {
 
             // check buffer[0] for outbound/inbound
-            if (Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, R_CAST(LPDWORD, &read), nullptr) || read != sizeof(uint8_t)) {
+            if (Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, (DWORD*) &read, nullptr) || read != sizeof(uint8_t)) {
                 continue;
             }
-            if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, nullptr, 0, nullptr, R_CAST(LPDWORD, &total), nullptr)) {
+            if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, nullptr, 0, nullptr, (DWORD*) &total, nullptr)) {
                 continue;
             }
 
@@ -166,7 +166,7 @@ namespace Clients {
                 x_assert(buffer = x_malloc(total));
                 x_assert(in     = Stream::CreateStream());
 
-                if (!Ctx->win32.ReadFile(client->pipe_handle, buffer, total, R_CAST(LPDWORD, &read), nullptr) || read != total) {
+                if (!Ctx->win32.ReadFile(client->pipe_handle, buffer, total, (DWORD*) &read, nullptr) || read != total) {
                     Stream::DestroyStream(in);
                     x_free(buffer);
 

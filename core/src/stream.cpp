@@ -116,7 +116,7 @@ namespace Stream {
                 PackDword(stream, (uint32_t) size);
                 stream->buffer = B_PTR(x_realloc(stream->buffer, stream->length + size));
 
-                x_memcpy(S_CAST(PBYTE, stream->buffer) + stream->length, data, size);
+                x_memcpy(B_PTR(stream->buffer) + stream->length, data, size);
                 stream->length += size;
             }
         }
@@ -124,17 +124,17 @@ namespace Stream {
 
     VOID PackPointer (_stream *stream, void *pointer) {
 #ifdef _M_X64
-        PackDword64(stream, R_CAST(uintptr_t, pointer));
+        PackDword64(stream, (uintptr_t)pointer);
 #elif _M_IX86
-        PackDword(stream, S_CAST(uintptr_t, pointer));
+        PackDword(stream, (uintptr_t)pointer);
 #endif
     }
 
    VOID PackString (_stream *stream, char* data) {
-        PackBytes(stream, R_CAST(uint8_t*, data), x_strlen(data));
+        PackBytes(stream, (uint8_t*) data, x_strlen(data));
     }
 
     VOID PackWString (_stream *stream, wchar_t* data) {
-        PackBytes(stream, R_CAST(uint8_t*, data), x_wcslen(data));
+        PackBytes(stream, (uint8_t*) data, x_wcslen(data));
     }
 }
