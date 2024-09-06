@@ -416,8 +416,7 @@ namespace Objects {
     }
 
     VOID LoadObject(_parser parser) {
-
-        bool cache = false;
+        // todo: maybe loadable objects in remote processes??
 
         _injection_ctx  inject  = { };
         _coff_params    *params = (_coff_params*) x_malloc(sizeof(_coff_params));
