@@ -87,7 +87,7 @@ namespace Objects {
             }
         }
         else if (Utils::HashStringA(sym_string, x_strlen(sym_string)) == COFF_INSTANCE) {
-            *pointer = R_CAST(_hexane*, GLOBAL_OFFSET);
+            *pointer = (_hexane*) GLOBAL_OFFSET;
             success_(true);
         }
 
@@ -135,7 +135,6 @@ namespace Objects {
         }
 
         for (auto sym_index = 0; sym_index < object->nt_head->FileHeader.NumberOfSymbols; sym_index++) {
-
             if (object->symbol[sym_index].First.Value[0]) {
                 sym_name = object->symbol[sym_index].First.Name;
             }
@@ -204,10 +203,12 @@ namespace Objects {
         char sym_name[9]    = { };
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+
             object->section = SECTION_HEADER(object->buffer, sec_index);
             object->reloc   = RELOC_SECTION(object->buffer, object->section);
 
             for (auto rel_index = 0; rel_index < object->section->NumberOfRelocations; rel_index++) {
+
                 _coff_symbol *symbol = &object->symbol[object->reloc->SymbolTableIndex];
 
                 if (symbol->First.Value[0]) {
@@ -379,7 +380,7 @@ namespace Objects {
             next += object->section->SizeOfRawData;
             next = PAGE_ALIGN(next);
 
-            x_memcpy(object->sec_map[sec_index].address, C_PTR(U_PTR(data) + object->section->SizeOfRawData), object->section->SizeOfRawData);
+            x_memcpy(object->sec_map[sec_index].address, RVA(PBYTE, data, object->section->SizeOfRawData), object->section->SizeOfRawData);
         }
 
         object->fn_map = (_object_map*) next;

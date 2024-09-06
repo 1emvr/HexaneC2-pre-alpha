@@ -26,18 +26,13 @@ EXTERN_C LPVOID InstEnd();
 #define MIN(a,b)								    (a < b ? a : b)
 
 #define GLOBAL_OFFSET 								(U_PTR(InstStart()) + U_PTR( &__instance))
-#define Ctx           								(R_CAST(_hexane*, C_DREF(GLOBAL_OFFSET)))
+#define Ctx           								((_hexane*) C_DREF(GLOBAL_OFFSET))
 
-#define C_CAST(T,x) 								(const_cast<T>(x))
-#define D_CAST(T,x) 								(dynamic_cast<T>(x))
-#define S_CAST(T,x) 								(static_cast<T>(x))
-#define R_CAST(T,x) 								(reinterpret_cast<T>(x))
-
-#define B_PTR(x)								    (R_CAST(PBYTE, x))
-#define C_PTR(x)                                    (R_CAST(LPVOID, x))
-#define U_PTR(x)                                    (R_CAST(UINT_PTR, x))
-#define C_DREF(x)                                   (*R_CAST(VOID**, x))
-#define S_PTR(x)                                    (R_CAST(const char*, x))
+#define B_PTR(x)								    ((PBYTE) 	x)
+#define C_PTR(x)                                    ((LPVOID) 	x)
+#define U_PTR(x)                                    ((UINT_PTR) x)
+#define C_DREF(x)                                   (*(VOID**) 	x)
+#define S_PTR(x)                                    ((const char*) x)
 
 #define FUNCTION								    __text(B)
 #define __prototype(x)                              decltype(x) *x
@@ -49,29 +44,31 @@ EXTERN_C LPVOID InstEnd();
 #define PS_ATTR_LIST_SIZE(n)					    (sizeof(PS_ATTRIBUTE_LIST) + (sizeof(PS_ATTRIBUTE) * (n - 1)))
 #define MODULE_NAME(mod)						    (mod->BaseDllName.Buffer)
 
-#define PEB_POINTER64							    (R_CAST(PPEB, __readgsqword(0x60)))
-#define PEB_POINTER32							    (R_CAST(PPEB, __readfsdword(0x30)))
-#define REG_PEB32(Ctx) 						        (R_CAST(LPVOID, R_CAST(ULONG_PTR, Ctx.Ebx) + 0x8))
-#define REG_PEB64(Ctx) 						        (R_CAST(LPVOID, R_CAST(ULONG_PTR, Ctx.Rdx) + 0x10))
+#define PEB_POINTER64							    ((PPEB) __readgsqword(0x60))
+#define PEB_POINTER32							    ((PPEB) __readfsdword(0x30))
+#define REG_PEB32(Ctx) 						        ((LPVOID) (ULONG_PTR) Ctx.Ebx + 0x8)
+#define REG_PEB64(Ctx) 						        ((LPVOID) (ULONG_PTR) Ctx.Rdx + 0x10)
 
-#define DOS_HEADER(base)                    		(R_CAST(PIMAGE_DOS_HEADER, base))
-#define NT_HEADERS(base, dos)			    		(R_CAST(PIMAGE_NT_HEADERS, B_PTR(base) + dos->e_lfanew))
-#define EXPORT_DIRECTORY(dos, nt)	        		(R_CAST(PIMAGE_EXPORT_DIRECTORY, (U_PTR(dos) + (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)))
-#define SECTION_HEADER(data, i)   		            (R_CAST(PIMAGE_SECTION_HEADER, U_PTR(data) + sizeof(IMAGE_FILE_HEADER) + U_PTR(sizeof(IMAGE_SECTION_HEADER) * i)))
-#define RELOC_SECTION(buffer, section) 			    (R_CAST(_reloc*, C_PTR(U_PTR(buffer) + section->PointerToRelocations)))
-#define SYMBOL_TABLE(buffer, nt_head) 				(R_CAST(_coff_symbol*, U_PTR(buffer) + nt_head->FileHeader.PointerToSymbolTable))
-#define SEC_START(map, index)                       (U_PTR(B_PTR(map[index].address)))
-#define SEC_END(map, index)                         (U_PTR(B_PTR(map[index].address) + map[index].size))
+#define DOS_HEADER(base)                    		RVA(PIMAGE_DOS_HEADER, 			base, 0)
+#define NT_HEADERS(base, dos)			    		RVA(PIMAGE_NT_HEADERS, base, 	dos->e_lfanew)
+#define EXPORT_DIRECTORY(dos, nt)	        		RVA(PIMAGE_EXPORT_DIRECTORY, 	dos, (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)
+#define SECTION_HEADER(data, i)   		            RVA(PIMAGE_SECTION_HEADER, 		data, (sizeof(IMAGE_FILE_HEADER) + sizeof(IMAGE_SECTION_HEADER) * i))
+#define SYMBOL_TABLE(data, nt_head) 				RVA(_coff_symbol*, 				data, nt_head->FileHeader.PointerToSymbolTable)
+#define RELOC_SECTION(data, section) 			    RVA(_reloc*, 					data, section->PointerToRelocations)
 
-#define RVA(Ty, base, rva)  			            (R_CAST(Ty, U_PTR(base) + rva))
-#define NtCurrentProcess()              	        (R_CAST(HANDLE, S_CAST(LONG_PTR, -1)))
-#define NtCurrentThread()               	        (R_CAST(HANDLE, S_CAST(LONG_PTR, -2)))
+#define SEC_START(map, index)                       U_PTR(B_PTR(map[index].address))
+#define SEC_END(map, index)                         U_PTR(B_PTR(map[index].address) + map[index].size)
+#define SIZEOF_SECTIONS(fhead) 						fhead.NumberOfSections * sizeof(IMAGE_SECTION_HEADER)
 
-#define ARRAY_LEN(ptr) 				                sizeof(ptr) / sizeof(ptr[0])
-#define PAGE_ALIGN(x)  				                (B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
+#define RVA(Ty, base, rva)  			            ((Ty) U_PTR(base) + U_PTR(rva))
+#define NtCurrentProcess()              	        ((HANDLE) (LONG_PTR) -1)
+#define NtCurrentThread()               	        ((HANDLE) (LONG_PTR) -2)
+
 #define DYN_ARRAY_LEN(i, ptr) 			            while (true) { if (!ptr[i]) { if (i > 0) { i -= 1; } break; __asm(""); } else { i++; }}
-#define SIZEOF_SECTIONS(file_head) 					file_head.NumberOfSections * sizeof(IMAGE_SECTION_HEADER)
+#define ARRAY_LEN(ptr) 				                sizeof(ptr) / sizeof(ptr[0])
+
 #define RANGE(x, start, end) 						(x >= start && x < end)
+#define PAGE_ALIGN(x)  				                (B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
 
 // todo: hash COFF_PREP_SYMBOL, BEACON_SYMBOL and GLOBAL_CONTEXT names
 #ifdef _M_X64
