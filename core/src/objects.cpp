@@ -120,7 +120,6 @@ namespace Objects {
                     case IMAGE_SCN_MEM_WX:      protect = PAGE_EXECUTE_WRITECOPY;
                     case IMAGE_SCN_MEM_RW:      protect = PAGE_READWRITE;
                     case IMAGE_SCN_MEM_RWX:     protect = PAGE_EXECUTE_READWRITE;
-                    default: success_(false);
                 }
 
                 if ((object->section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED) == IMAGE_SCN_MEM_NOT_CACHED) {
