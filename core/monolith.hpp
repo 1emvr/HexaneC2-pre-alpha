@@ -285,6 +285,7 @@ struct _executable {
 	IMAGE_EXPORT_DIRECTORY 	*exports;
 	SIZE_T 					size;
 
+	uint32_t				task_id;
 	_reloc 					*reloc;
 	_symbol 				*symbol;
 	_object_map 			*fn_map;

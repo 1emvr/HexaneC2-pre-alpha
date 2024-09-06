@@ -323,8 +323,9 @@ namespace Objects {
 
     SIZE_T GetFunctionMapSize(_executable *object) {
 
-        char sym_name[9]    = { };
-        char *buffer        = { };
+        char    sym_name[9] = { };
+        char    *buffer     = { };
+        size_t  counter     = 0;
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
             object->section = (IMAGE_SECTION_HEADER*) object->buffer + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * sec_index);
@@ -342,7 +343,40 @@ namespace Objects {
                 else {
                     buffer = ((char*)object->symbol + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
                 }
+
+                if (Utils::HashStringA(buffer, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
+                    counter++;
+                }
+
+                object->reloc = object->reloc + sizeof(_reloc);
             }
+        }
+
+        return counter;
+    }
+
+    VOID RemoveCoff(_executable *object) {
+
+        _executable *prev = { };
+
+        if (!object) {
+            return;
+        }
+
+        for (auto head = Ctx->coffs; head; head = head->next) {
+            if (head->task_id == object->task_id) {
+                if (prev) {
+                    prev->next = head->next;
+                }
+                else {
+                    Ctx->coffs = head->next;
+                }
+
+                x_memset(object->buffer, 0, object->size);
+                return;
+            }
+
+            prev = head;
         }
     }
 }
