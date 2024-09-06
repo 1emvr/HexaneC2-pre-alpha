@@ -111,6 +111,7 @@ namespace Objects {
 
             if (object->section->SizeOfRawData > 0) {
                 switch (object->section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ| IMAGE_SCN_MEM_WRITE)) {
+
                     case PAGE_NOACCESS:         protect = PAGE_NOACCESS;
                     case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE;
                     case IMAGE_SCN_MEM_READ:    protect = PAGE_READONLY;

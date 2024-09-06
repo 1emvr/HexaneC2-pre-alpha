@@ -49,12 +49,12 @@ EXTERN_C LPVOID InstEnd();
 #define REG_PEB32(Ctx) 						        ((LPVOID) (ULONG_PTR) Ctx.Ebx + 0x8)
 #define REG_PEB64(Ctx) 						        ((LPVOID) (ULONG_PTR) Ctx.Rdx + 0x10)
 
-#define DOS_HEADER(base)                    		((PIMAGE_DOS_HEADER) 			base)
-#define NT_HEADERS(base, dos)			    		RVA(PIMAGE_NT_HEADERS, base, 	dos->e_lfanew)
-#define EXPORT_DIRECTORY(dos, nt)	        		RVA(PIMAGE_EXPORT_DIRECTORY, 	dos, (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)
-#define SECTION_HEADER(data, i)   		            RVA(PIMAGE_SECTION_HEADER, 		data, (sizeof(IMAGE_FILE_HEADER) + sizeof(IMAGE_SECTION_HEADER) * i))
-#define SYMBOL_TABLE(data, nt_head) 				RVA(_coff_symbol*, 				data, nt_head->FileHeader.PointerToSymbolTable)
-#define RELOC_SECTION(data, section) 			    RVA(_reloc*, 					data, section->PointerToRelocations)
+#define DOS_HEADER(base)                    		((PIMAGE_DOS_HEADER) base)
+#define NT_HEADERS(base, dos)			    		RVA(PIMAGE_NT_HEADERS, base, dos->e_lfanew)
+#define EXPORT_DIRECTORY(dos, nt)	        		RVA(PIMAGE_EXPORT_DIRECTORY, dos, (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)
+#define SECTION_HEADER(data, i)   		            RVA(PIMAGE_SECTION_HEADER, data, sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * i))
+#define SYMBOL_TABLE(data, nt_head) 				RVA(_coff_symbol*, data, nt_head->FileHeader.PointerToSymbolTable)
+#define RELOC_SECTION(data, section) 			    RVA(_reloc*, data, section->PointerToRelocations)
 
 #define SEC_START(map, index)                       U_PTR(B_PTR(map[index].address))
 #define SEC_END(map, index)                         U_PTR(B_PTR(map[index].address) + map[index].size)
