@@ -76,8 +76,8 @@ namespace Objects {
                 auto fn_hash    = Utils::HashStringA(function, x_strlen(function));
 
                 x_freesplit(split, count);
-                C_PTR_HASHES(*pointer, lib_hash, fn_hash);
 
+                C_PTR_HASHES(*pointer, lib_hash, fn_hash);
                 success_(*pointer);
             }
             else {
