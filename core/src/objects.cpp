@@ -237,18 +237,12 @@ namespace Objects {
     BOOL BaseRelocation(_executable *object) {
         // todo: turns out the function names come from the binary, not a server message
 
-        bool success        = true;
-        uint32_t type       = 0;
-        uint32_t fn_count   = 0;
-        _symbol *symbol     = { };
-
-        char *name_ptr      = { };
-        char sym_name[9]    = { };
+        uint32_t fn_count = 0;
 
         void *function      = { };
-        void *reloc_addr    = { };
-        void *fmap_addr     = { };
-        void *sec_addr      = { };
+        char *name_ptr      = { };
+        char sym_name[9]    = { };
+        bool success        = true;
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
 
@@ -256,7 +250,7 @@ namespace Objects {
             object->reloc   = (_reloc *) object->buffer + object->section->PointerToRelocations;
 
             for (auto rel_index = 0; rel_index < object->section->NumberOfRelocations; rel_index++) {
-                symbol = &object->symbol[object->reloc->SymbolTableIndex];
+                _symbol *symbol = &object->symbol[object->reloc->SymbolTableIndex];
 
                 if (symbol->First.Value[0]) {
                     x_memset(sym_name, 0, 9);
@@ -268,9 +262,9 @@ namespace Objects {
                     name_ptr = (char *) (object->symbol + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
                 }
 
-                reloc_addr  = object->sec_map[sec_index].address + object->reloc->VirtualAddress;
-                sec_addr    = object->sec_map[symbol->SectionNumber - 1].address;
-                fmap_addr   = object->fn_map + (fn_count * sizeof(void *));
+                void *reloc_addr  = object->sec_map[sec_index].address + object->reloc->VirtualAddress;
+                void *sec_addr    = object->sec_map[symbol->SectionNumber - 1].address;
+                void *fmap_addr   = object->fn_map + (fn_count * sizeof(void *));
 
                 x_assertb(ProcessSymbol(name_ptr, &function));
 #if _WIN64
