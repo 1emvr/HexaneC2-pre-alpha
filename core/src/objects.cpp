@@ -320,4 +320,28 @@ namespace Objects {
         defer:
         return success;
     }
+
+    SIZE_T GetFunctionMapSize(_executable *object) {
+
+        char sym_name[9]    = { };
+        char *buffer        = { };
+
+        for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            object->section = (IMAGE_SECTION_HEADER*) object->buffer + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * sec_index);
+            object->reloc   = (_reloc*) object->buffer + object->section->PointerToRelocations;
+
+            for (auto rel_index = 0; rel_index < object->section->NumberOfRelocations; rel_index++) {
+                _symbol *symbol = &object->symbol[object->reloc->SymbolTableIndex];
+
+                if (symbol->First.Value[0]) {
+                    x_memset(sym_name, 0, sizeof(sym_name));
+                    x_memcpy(sym_name, symbol->First.Name, 8);
+
+                    buffer = sym_name;
+                }
+                else {
+                    buffer = ((char*)object->symbol + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
+            }
+        }
+    }
 }
