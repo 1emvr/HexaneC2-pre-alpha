@@ -347,15 +347,15 @@ namespace Objects {
 
         x_assert(data);
 
-        object          = (_executable*) x_malloc(sizeof(_executable));
+        object = (_executable*) x_malloc(sizeof(_executable));
+
         object->buffer  = B_PTR(data);
         object->nt_head = NT_HEADERS(object->buffer, DOS_HEADER(object->buffer));
+        object->symbol  = SYMBOL_TABLE(object->buffer, object->nt_head);
 
-        object->symbol  = (_coff_symbol*)U_PTR(object->buffer) + object->nt_head->FileHeader.PointerToSymbolTable;
         object->task_id = task_id;
         object->next    = Ctx->coffs;
-
-        Ctx->coffs = object;
+        Ctx->coffs      = object;
 
         x_assert(Opsec::ImageCheckArch(object));
         x_assert(object->sec_map = (_object_map*)x_malloc(sizeof(void*) * sizeof(_object_map)));
