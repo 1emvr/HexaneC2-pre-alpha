@@ -206,8 +206,8 @@ namespace Objects {
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
 
-            object->section = (IMAGE_SECTION_HEADER *) object->buffer + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * sec_index);
-            object->reloc   = (_reloc *) object->buffer + object->section->PointerToRelocations;
+            object->section = SECTION_HEADER(object->buffer, sec_index);
+            object->reloc   = RELOC_SECTION(object->buffer, object->section->PointerToRelocations);
 
             for (auto rel_index = 0; rel_index < object->section->NumberOfRelocations; rel_index++) {
                 _coff_symbol *symbol = &object->symbol[object->reloc->SymbolTableIndex];
@@ -288,8 +288,9 @@ namespace Objects {
         int     counter     = 0;
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            object->section = (IMAGE_SECTION_HEADER*) object->buffer + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * sec_index);
-            object->reloc   = (_reloc*) object->buffer + object->section->PointerToRelocations;
+
+            object->section = SECTION_HEADER(object->buffer, sec_index);
+            object->reloc   = RELOC_SECTION(object->buffer, object->section->PointerToRelocations);
 
             for (auto rel_index = 0; rel_index < object->section->NumberOfRelocations; rel_index++) {
                 _coff_symbol *symbol = &object->symbol[object->reloc->SymbolTableIndex];
@@ -363,8 +364,8 @@ namespace Objects {
         GetFunctionMapSize(object);
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            object->section = (IMAGE_SECTION_HEADER*) object->buffer + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * sec_index);
 
+            object->section = SECTION_HEADER(object->buffer, sec_index);
             object->size    += object->section->SizeOfRawData;
             object->size    = (size_t) U_PTR(PAGE_ALIGN(object->size));
         }
@@ -375,8 +376,8 @@ namespace Objects {
         next = B_PTR(object->base);
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            object->section = (IMAGE_SECTION_HEADER*) object->buffer + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * sec_index);
 
+            object->section                     = SECTION_HEADER(object->buffer, sec_index);
             object->sec_map[sec_index].size     = object->section->SizeOfRawData;
             object->sec_map[sec_index].address  = next;
 
