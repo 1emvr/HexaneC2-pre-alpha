@@ -325,7 +325,7 @@ namespace Objects {
 
         char    sym_name[9] = { };
         char    *buffer     = { };
-        size_t  counter     = 0;
+        int     counter     = 0;
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
             object->section = (IMAGE_SECTION_HEADER*) object->buffer + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * sec_index);
@@ -352,7 +352,7 @@ namespace Objects {
             }
         }
 
-        return counter;
+        return sizeof(void*) * counter;
     }
 
     VOID RemoveCoff(_executable *object) {
