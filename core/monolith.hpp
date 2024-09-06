@@ -236,18 +236,19 @@ typedef VOID (NTAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
 
 
 enum MessageType {
-	TypeCheckin     = 0x7FFFFFFF,
-	TypeTasking     = 0x7FFFFFFE,
-	TypeResponse    = 0x7FFFFFFD,
-	TypeSegment     = 0x7FFFFFFC,
-    TypeExecute     = 0x7FFFFFFB,
-    TypeError		= 0x7FFFFFFA,
+	TypeCheckin    = 0x7FFFFFFF,
+	TypeTasking    = 0x7FFFFFFE,
+	TypeResponse   = 0x7FFFFFFD,
+	TypeSegment    = 0x7FFFFFFC,
+    TypeExecute    = 0x7FFFFFFB,
+	TypeObject		= 0x7FFFFFFA,
+    TypeError		= 0x7FFFFFF9,
 };
 
 enum DX_MEMORY {
-	DX_MEM_DEFAULT  = 0,
-	DX_MEM_WIN32    = 1,
-	DX_MEM_SYSCALL  = 2,
+	DX_MEM_DEFAULT  	= 0,
+	DX_MEM_WIN32 		= 1,
+	DX_MEM_SYSCALL  	= 2,
 };
 
 struct _object_map {

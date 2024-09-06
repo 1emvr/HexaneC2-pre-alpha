@@ -68,7 +68,7 @@ namespace Xtea {
         const auto      n_sec       = (n_data + sec_size - 1) / sec_size;
 
         *n_out = n_sec;
-        x_assert(sections = (uint8_t**) x_malloc(n * sizeof(uint8_t*)));
+        x_assert(sections = (uint8_t**) x_malloc(n_sec * sizeof(uint8_t*)));
 
         for (auto sec_index = 0; sec_index < n_sec; sec_index++) {
             if (!(sections[sec_index] = B_PTR(x_malloc(sec_size)))) {
@@ -124,7 +124,7 @@ namespace Xtea {
                 XteaDecrypt(text, buffer, sections[sec_index]);
             }
 
-            x_memcpy(C_PTR(data+offset), C_PTR(buffer), sizeof(uint64_t));
+            x_memcpy(RVA(uint8_t*, data, offset), C_PTR(buffer), sizeof(uint64_t));
             x_free(buffer);
 
             offset += sizeof(uint64_t);

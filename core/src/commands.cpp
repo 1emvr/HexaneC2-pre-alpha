@@ -147,8 +147,8 @@ namespace Commands {
         x_assert(Ctx->win32.Process32First(snapshot, &entries));
 
         do {
-            bool is_managed  = false;
-            bool is_loaded   = false;
+            BOOL is_managed  = false;
+            BOOL is_loaded   = false;
 
             CLIENT_ID           cid     = { };
             OBJECT_ATTRIBUTES   attr    = { };

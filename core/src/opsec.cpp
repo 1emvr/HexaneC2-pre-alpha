@@ -45,18 +45,18 @@ namespace Opsec {
 
 #if _WIN64
         heap_base = !m_x32
-                    ? C_PTR(*(ULONG_PTR*)(B_PTR(peb) + 0x18))
-                    : C_PTR(*(ULONG_PTR*)(B_PTR(peb) + 0x1030));
+                    ? C_PTR(*RVA(ULONG_PTR*,peb, 0x18))
+                    : C_PTR(*RVA(ULONG_PTR*,peb, 0x1030));
 
         flags_offset 		= vista_or_greater ? 0x40 : 0x0C;
         force_flags_offset 	= vista_or_greater ? 0x44 : 0x10;
 #else
-        heap_base           = C_PTR(*(ULONG_PTR*) B_PTR(peb) + 0x30);
+        heap_base           = C_PTR(*RVA(ULONG_PTR*, peb, 0x30);
         flags_offset        = vista_or_greater ? 0x70 : 0x14;
         force_flags_offset  = vista_or_greater ? 0x74 : 0x18;
 #endif
-        auto HeapFlags      = (ULONG_PTR*) B_PTR(heap_base) + flags_offset;
-        auto HeapForceFlags = (ULONG_PTR*) B_PTR(heap_base) + force_flags_offset;
+        auto HeapFlags      = RVA(ULONG_PTR*, heap_base, flags_offset);
+        auto HeapForceFlags = RVA(ULONG_PTR*, heap_base, force_flags_offset);
 
         return ((*HeapFlags & ~HEAP_GROWABLE) || (*HeapForceFlags != 0));
     }
