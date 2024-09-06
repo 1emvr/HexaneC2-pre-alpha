@@ -1,0 +1,6 @@
+#ifndef HEXANE_IMPLANT_THREADS_HPP
+#define HEXANE_IMPLANT_THREADS_HPP
+#include <core/corelib.hpp>
+
+
+#endif //HEXANE_IMPLANT_THREADS_HPP

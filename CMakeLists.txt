@@ -26,6 +26,7 @@ set (SOURCES
         core/src/clients.cpp
         core/src/sleep.cpp
         core/src/objects.cpp
+        core/src/threads.cpp
 )
 
 set (INCLUDES
@@ -51,6 +52,7 @@ set (INCLUDES
         core/corelib.hpp
         core/dotnet.hpp
         core/include/objects.hpp
+        core/include/threads.hpp
 )
 
 set (COMMANDS
@@ -58,7 +60,6 @@ set (COMMANDS
         commands/include/registry.hpp
         commands/src/registry.cpp
         commands/src/tokens.cpp
-        commands/src/classes.cpp
 )
 
 set (LOADER

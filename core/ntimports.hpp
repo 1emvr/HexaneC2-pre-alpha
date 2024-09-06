@@ -151,6 +151,19 @@ typedef enum _PS_ATTRIBUTE_NUM {
 #define PS_ATTRIBUTE_COMPONENT_FILTER					PsAttributeValue(PsAttributeComponentFilter, FALSE, TRUE, FALSE) // 0x2001D
 #define PS_ATTRIBUTE_ENABLE_OPTIONAL_XSTATE_FEATURES	PsAttributeValue(PsAttributeEnableOptionalXStateFeatures, TRUE, TRUE, FALSE) // 0x3001E
 
+typedef struct _PROC_THREAD_ATTRIBUTE_ENTRY {
+	ULONG_PTR  Attribute;
+	ULONG_PTR  Size;
+	ULONG_PTR* pValue;
+	ULONG_PTR  Unknown;
+} PROC_THREAD_ATTRIBUTE_ENTRY, *PPROC_THREAD_ATTRIBUTE_ENTRY;
+
+
+typedef struct _PROC_THREAD_ATTRIBUTE_LIST {
+	ULONG_PTR                   Length;
+	PROC_THREAD_ATTRIBUTE_ENTRY Entry;
+} PROC_THREAD_ATTRIBUTE_LIST, *PPROC_THREAD_ATTRIBUTE_LIST;
+
 
 typedef struct _IO_STATUS_BLOCK {
 	union {
@@ -159,6 +172,7 @@ typedef struct _IO_STATUS_BLOCK {
 	};
 	ULONG_PTR Information;
 } IO_STATUS_BLOCK, *PIO_STATUS_BLOCK;
+
 
 typedef struct _CLIENT_ID {
 	HANDLE UniqueProcess;

