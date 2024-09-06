@@ -71,10 +71,16 @@ namespace Objects {
                 function    = split[1];
 
                 x_trim(function, 0x40);
-                x_assertb(C_PTR_HASHES(*pointer, Utils::HashStringA(library, x_strlen(library)), Utils::HashStringA(function, x_strlen(function))));
-                x_freesplit(split, count);
+                C_PTR_HASHES(*pointer, Utils::HashStringA(library, x_strlen(library)), Utils::HashStringA(function, x_strlen(function)));
 
-                success_(true);
+                x_freesplit(split, count);
+                if (*pointer) {
+                    success_(true);
+                }
+                else {
+                    success_(false);
+                }
+
             }
             else {
                 function = sym_string + COFF_PREP_SYMBOL_SIZE;
