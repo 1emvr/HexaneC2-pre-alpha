@@ -379,4 +379,9 @@ namespace Objects {
             prev = head;
         }
     }
+
+    VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id) {
+
+
+    }
 }
