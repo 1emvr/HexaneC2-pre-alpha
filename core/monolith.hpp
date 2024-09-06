@@ -256,7 +256,7 @@ struct _object_map {
 	SIZE_T 	size;
 };
 
-struct _symbol {
+struct _coff_symbol {
 	union {
 		CHAR    Name[8];
 		UINT32  Value[2];

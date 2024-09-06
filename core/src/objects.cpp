@@ -210,7 +210,7 @@ namespace Objects {
             object->reloc   = (_reloc *) object->buffer + object->section->PointerToRelocations;
 
             for (auto rel_index = 0; rel_index < object->section->NumberOfRelocations; rel_index++) {
-                _symbol *symbol = &object->symbol[object->reloc->SymbolTableIndex];
+                _coff_symbol *symbol = &object->symbol[object->reloc->SymbolTableIndex];
 
                 if (symbol->First.Value[0]) {
                     x_memset(sym_name, 0, 9);
@@ -292,7 +292,7 @@ namespace Objects {
             object->reloc   = (_reloc*) object->buffer + object->section->PointerToRelocations;
 
             for (auto rel_index = 0; rel_index < object->section->NumberOfRelocations; rel_index++) {
-                _symbol *symbol = &object->symbol[object->reloc->SymbolTableIndex];
+                _coff_symbol *symbol = &object->symbol[object->reloc->SymbolTableIndex];
 
                 if (symbol->First.Value[0]) {
                     x_memset(sym_name, 0, sizeof(sym_name));
@@ -351,7 +351,7 @@ namespace Objects {
         object->buffer  = B_PTR(data);
         object->nt_head = NT_HEADERS(object->buffer, DOS_HEADER(object->buffer));
 
-        object->symbol  = (_symbol*)U_PTR(object->buffer) + object->nt_head->FileHeader.PointerToSymbolTable;
+        object->symbol  = (_coff_symbol*)U_PTR(object->buffer) + object->nt_head->FileHeader.PointerToSymbolTable;
         object->task_id = task_id;
         object->next    = Ctx->coffs;
 
