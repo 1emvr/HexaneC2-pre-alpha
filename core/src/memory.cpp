@@ -191,7 +191,7 @@ namespace Memory {
 
     namespace Scanners {
 
-        BOOL MapScan(_hash_map* map, void** pointer, uint32_t id) {
+        BOOL MapScan(_hash_map* map, uint32_t id, void** pointer) {
 
             for (auto i = 0;; i++) {
                 if (!map[i].name) { break; }
@@ -220,12 +220,24 @@ namespace Memory {
         }
 
         BOOL SigCompare(const uint8_t* data, const char* signature, const char* mask) {
+
             while (*mask && ++mask, ++data, ++signature) {
                 if (*mask == 0x78 && *data != *signature) {
                     return false;
                 }
             }
             return (*mask == 0x00);
+        }
+
+        BOOL SymbolScan(char* string, char symbol, size_t length) {
+
+            for (auto i = 0; i < length - 1; i++) {
+                if (string[i] == symbol) {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         UINT_PTR SignatureScan(void* process, const uintptr_t start, const uint32_t size, const char* signature, const char* mask) {
