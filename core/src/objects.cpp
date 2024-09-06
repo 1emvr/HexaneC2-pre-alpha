@@ -48,7 +48,8 @@ namespace Objects {
 
     BOOL ProcessSymbol(char* sym_string, void** pointer) {
 
-        bool success    = true;
+        bool success = true;
+
         char *library   = { };
         char *function  = { };
 
@@ -69,7 +70,7 @@ namespace Objects {
                 library     = split[0];
                 function    = split[1];
 
-                x_trim(function, '@');
+                x_trim(function, 0x40);
                 x_assertb(C_PTR_HASHES(*pointer, Utils::HashStringA(library, x_strlen(library)), Utils::HashStringA(function, x_strlen(function))));
                 x_freesplit(split, count);
 
@@ -78,7 +79,7 @@ namespace Objects {
             else {
                 function = sym_string + COFF_PREP_SYMBOL_SIZE;
 
-                x_trim(function, '@');
+                x_trim(function, 0x40);
                 success_(Memory::Scanners::MapScan(loader_wrappers, Utils::HashStringA(function, x_strlen(function)), pointer));
             }
         }
