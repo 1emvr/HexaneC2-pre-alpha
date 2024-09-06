@@ -14,11 +14,10 @@ namespace Xtea {
         uint32_t sum    = { };
 
         auto delta = XTEA_DELTA;
-
         for (uint32_t key_index = 0; key_index < ARRAY_LEN(key); key_index++) {
-            uint32_t m_index = key_index << 2;
 
-            key[key_index] = (uint32_t) m_key[m_index+0] << 24 | (uint32_t) m_key[m_index+1] << 16 | (uint32_t) m_key[m_index+2] << 8  | (uint32_t) m_key[m_index+3];
+            auto m_index = key_index << 2;
+            key[key_index] = m_key[m_index+0] << 24 | m_key[m_index+1] << 16 | m_key[m_index+2] << 8  | m_key[m_index+3];
         }
 
         for (uint32_t blk_index = 0; blk_index < NROUNDS;) {
@@ -63,15 +62,13 @@ namespace Xtea {
 
     PBYTE *XteaDivide (const uint8_t *const data, const size_t n_data, size_t *const n_out) {
 
-        uint8_t         **sections  = { };
-        constexpr auto  sec_size    = 8;
-        const auto      n_sec       = (n_data + sec_size - 1) / sec_size;
+        const auto  n_sec       = (n_data + 8 - 1) / 8;
+        uint8_t     **sections  = { };
 
-        *n_out = n_sec;
         x_assert(sections = (uint8_t**) x_malloc(n_sec * sizeof(uint8_t*)));
 
         for (auto sec_index = 0; sec_index < n_sec; sec_index++) {
-            if (!(sections[sec_index] = B_PTR(x_malloc(sec_size)))) {
+            if (!(sections[sec_index] = B_PTR(x_malloc(sizeof(uint8_t) * 8)))) {
 
                 for (auto ptr_index = 0; ptr_index < sec_index; ptr_index++) {
                     x_free(sections[ptr_index]);
@@ -81,15 +78,17 @@ namespace Xtea {
                 return_defer(ERROR_NOT_ENOUGH_MEMORY);
             }
 
-            const auto end          = (sec_index + 1) * sec_size;
-            const auto copy_size    = (end > n_data) ? n_data - sec_index * sec_size : sec_size;
+            const auto end          = (sec_index + 1) * 8;
+            const auto copy_size    = (end > n_data) ? n_data - sec_index * 8 : 8;
 
-            x_memcpy(sections[sec_index], data + sec_index * sec_size, copy_size);
+            x_memcpy(sections[sec_index], data + sec_index * 8, copy_size);
 
-            if (copy_size < sec_size) {
-                x_memset(sections[sec_index] + copy_size, 0, sec_size - copy_size);
+            if (copy_size < 8) {
+                x_memset(sections[sec_index] + copy_size, 0, 8 - copy_size);
             }
         }
+
+        *n_out = n_sec;
 
         defer:
         return sections;
@@ -117,12 +116,7 @@ namespace Xtea {
         for (auto sec_index = 0; sec_index < n_sect; sec_index++) {
             x_assert(buffer = B_PTR(x_malloc(8)));
 
-            if (encrypt) {
-                XteaEncrypt(text, buffer, sections[sec_index]);
-            }
-            else {
-                XteaDecrypt(text, buffer, sections[sec_index]);
-            }
+            encrypt ? XteaEncrypt(text, buffer, sections[sec_index]) : XteaDecrypt(text, buffer, sections[sec_index]);
 
             x_memcpy(RVA(uint8_t*, data, offset), C_PTR(buffer), sizeof(uint64_t));
             x_free(buffer);
@@ -143,6 +137,6 @@ namespace Xtea {
         }
 
         if (sections)   { x_free(sections); }
-        if (text)       { x_free(text); }
+        if (text)       { x_memset(text, 0, sizeof(text)); x_free(text); }
     }
 }

@@ -2,7 +2,6 @@
 namespace Token {
 
 	BOOL RevertToken() {
-		HEXANE
 
 		HANDLE token = { };
 		if (NT_SUCCESS(ntstatus = Ctx->nt.NtSetInformationThread(NtCurrentThread(), ThreadImpersonationToken, &token, sizeof(HANDLE)))) {
@@ -13,7 +12,6 @@ namespace Token {
 	}
 
 	BOOL Tokenimpersonate(bool impersonate) {
-		HEXANE
 
 		BOOL success = FALSE;
 		if (impersonate && !Ctx->tokens.impersonate && Ctx->tokens.token) {
@@ -37,7 +35,6 @@ namespace Token {
 	}
 
 	VOID DuplicateToken(HANDLE orgToken, const uint32_t access, SECURITY_IMPERSONATION_LEVEL level, TOKEN_TYPE type, PHANDLE new_token) {
-		HEXANE
 
 		OBJECT_ATTRIBUTES attrs				= { };
 		SECURITY_QUALITY_OF_SERVICE sqos	= { };
@@ -54,7 +51,6 @@ namespace Token {
 	}
 
 	VOID SetTokenPrivilege(const wchar_t* privilege, bool enable) {
-		HEXANE
 
 		TOKEN_PRIVILEGES token_priv	= { };
 		HANDLE token 				= { };
@@ -81,7 +77,6 @@ namespace Token {
 	}
 
 	HANDLE StealProcessToken(HANDLE target, const uint32_t pid) {
-		HEXANE
 
 		HANDLE hProcess		= { };
 		HANDLE hDuplicate	= { };
@@ -109,7 +104,6 @@ namespace Token {
 	}
 
 	_token_list_data* GetToken(const uint32_t tokenId) {
-		HEXANE
 
 		_token_list_data *head = Ctx->tokens.vault;
 		uint32_t index = 0;
@@ -159,7 +153,6 @@ namespace Token {
 	}
 
 	BOOL RemoveToken(const uint32_t token_id) {
-		HEXANE
 
 		_token_list_data *head	= Ctx->tokens.vault;
 		_token_list_data *entry	= GetToken(token_id);

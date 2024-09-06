@@ -151,6 +151,7 @@ typedef enum _PS_ATTRIBUTE_NUM {
 #define PS_ATTRIBUTE_COMPONENT_FILTER					PsAttributeValue(PsAttributeComponentFilter, FALSE, TRUE, FALSE) // 0x2001D
 #define PS_ATTRIBUTE_ENABLE_OPTIONAL_XSTATE_FEATURES	PsAttributeValue(PsAttributeEnableOptionalXStateFeatures, TRUE, TRUE, FALSE) // 0x3001E
 
+
 typedef struct _IO_STATUS_BLOCK {
 	union {
 		NTSTATUS Status;
