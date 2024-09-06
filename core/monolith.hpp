@@ -70,6 +70,8 @@ EXTERN_C LPVOID InstEnd();
 #define ARRAY_LEN(ptr) 				                sizeof(ptr) / sizeof(ptr[0])
 #define PAGE_ALIGN(x)  				                (B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
 #define DYN_ARRAY_LEN(i, ptr) 			            while (true) { if (!ptr[i]) { if (i > 0) { i -= 1; } break; __asm(""); } else { i++; }}
+#define SIZEOF_SECTIONS(file_head) 					file_head.NumberOfSections * sizeof(IMAGE_SECTION_HEADER)
+#define RANGE(x, start, end) 						(x >= start && x < end)
 
 // todo: hash COFF_PREP_SYMBOL, BEACON_SYMBOL and GLOBAL_CONTEXT names
 #ifdef _M_X64

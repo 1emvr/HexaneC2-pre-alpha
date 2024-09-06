@@ -150,9 +150,9 @@ namespace Objects {
         }
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            if (U_PTR(entrypoint) >= SEC_START(object->sec_map, sec_index) && U_PTR(entrypoint) < SEC_END(object->sec_map, sec_index)) {
+            if (RANGE(U_PTR(entrypoint), SEC_START(object->sec_map, sec_index), SEC_END(object->sec_map, sec_index))) {
 
-                object->section = (IMAGE_SECTION_HEADER*) object->buffer + sizeof(IMAGE_FILE_HEADER) + sizeof(IMAGE_SECTION_HEADER) * sec_index;
+                object->section = SECTION_HEADER(object->buffer, sec_index);
                 x_assertb((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) == IMAGE_SCN_MEM_EXECUTE);
             }
         }
@@ -163,6 +163,7 @@ namespace Objects {
         if (veh_handle) {
             Ctx->nt.RtlRemoveVectoredExceptionHandler(veh_handle);
         }
+
         return success;
     }
 
@@ -183,7 +184,7 @@ namespace Objects {
         x_ntassert(Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE));
 
         if (object->sec_map) {
-            x_memset(object->sec_map, 0, object->nt_head->FileHeader.NumberOfSections * sizeof(IMAGE_SECTION_HEADER));
+            x_memset(object->sec_map, 0, SIZEOF_SECTIONS(object->nt_head->FileHeader));
             x_free(object->sec_map);
 
             object->sec_map = nullptr;
@@ -203,7 +204,6 @@ namespace Objects {
         char sym_name[9]    = { };
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-
             object->section = SECTION_HEADER(object->buffer, sec_index);
             object->reloc   = RELOC_SECTION(object->buffer, object->section);
 
@@ -279,16 +279,15 @@ namespace Objects {
         return success;
     }
 
-    VOID GetFunctionMapSize(_executable *object) {
+    SIZE_T GetFunctionMapSize(_executable *object) {
 
         char    sym_name[9] = { };
         char    *buffer     = { };
         int     counter     = 0;
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-
             object->section = SECTION_HEADER(object->buffer, sec_index);
-            object->reloc   = RELOC_SECTION(object->buffer, object->section->PointerToRelocations);
+            object->reloc   = RELOC_SECTION(object->buffer, object->section);
 
             for (auto rel_index = 0; rel_index < object->section->NumberOfRelocations; rel_index++) {
                 _coff_symbol *symbol = &object->symbol[object->reloc->SymbolTableIndex];
@@ -311,7 +310,7 @@ namespace Objects {
             }
         }
 
-        object->fn_map->size = sizeof(void*) * counter;
+        return sizeof(void*) * counter;
     }
 
     VOID RemoveCoff(_executable *object) {
@@ -359,10 +358,9 @@ namespace Objects {
         x_assert(Opsec::ImageCheckArch(object));
         x_assert(object->sec_map = (_object_map*) x_malloc(sizeof(void*) * sizeof(_object_map)));
 
-        GetFunctionMapSize(object);
+        object->fn_map->size = GetFunctionMapSize(object);
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-
             object->section = SECTION_HEADER(object->buffer, sec_index);
             object->size    += object->section->SizeOfRawData;
             object->size    = (size_t) U_PTR(PAGE_ALIGN(object->size));
@@ -374,7 +372,6 @@ namespace Objects {
         next = B_PTR(object->base);
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-
             object->section                     = SECTION_HEADER(object->buffer, sec_index);
             object->sec_map[sec_index].size     = object->section->SizeOfRawData;
             object->sec_map[sec_index].address  = next;
@@ -391,16 +388,13 @@ namespace Objects {
         x_assert(ExecuteFunction(object, entrypoint, args, args_size));
 
         defer:
-        // todo: saving coff file data
-
         Cleanup(object);
         RemoveCoff(object);
 
+        // todo: saving coff file data
         if (object) {
             x_memset(object, 0, sizeof(_executable));
             x_free(object);
-
-            object = nullptr;
         }
     }
 }
