@@ -358,7 +358,7 @@ namespace Objects {
         Ctx->coffs      = object;
 
         x_assert(Opsec::ImageCheckArch(object));
-        x_assert(object->sec_map = (_object_map*)x_malloc(sizeof(void*) * sizeof(_object_map)));
+        x_assert(object->sec_map = (_object_map*) x_malloc(sizeof(void*) * sizeof(_object_map)));
 
         GetFunctionMapSize(object);
 
