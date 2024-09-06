@@ -82,6 +82,7 @@ namespace Objects {
     }
 
     BOOL ExecuteFunction(_executable *object, uint32_t function, void *args, size_t size) {
+        // todo: still believe I want these functions to be pre-hashed
 
         void        *veh_handle = { };
         void        *entrypoint = { };
@@ -120,10 +121,11 @@ namespace Objects {
         }
 
         if (object->fn_map->size) {
-            x_ntassertb(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &object->fn_map, &object->fn_map->size, PAGE_READONLY, nullptr));
+            x_ntassertb(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &object->fn_map->address, &object->fn_map->size, PAGE_READONLY, nullptr));
         }
 
         for (auto sym_index = 0; sym_index < object->nt_head->FileHeader.NumberOfSymbols; sym_index++) {
+
             if (object->symbol[sym_index].First.Value[0]) {
                 sym_name = object->symbol[sym_index].First.Name;
             }
@@ -134,7 +136,7 @@ namespace Objects {
             const auto name_hash = Utils::GetHashFromStringA(sym_name, x_strlen(sym_name));
 
             if (x_memcmp(&name_hash, &function, sizeof(uint32_t)) == 0) {
-                x_assertb(entrypoint = object->sec_map[object->symbol[sym_index].SectionNumber - 1].address + object->symbol[sym_index].Value);
+                entrypoint = object->sec_map[object->symbol[sym_index].SectionNumber - 1].address + object->symbol[sym_index].Value;
                 break;
             }
         }
@@ -156,5 +158,30 @@ namespace Objects {
             Ctx->nt.RtlRemoveVectoredExceptionHandler(veh_handle);
         }
         return success;
+    }
+
+    VOID Cleanup(_executable *object) {
+
+        void    *pointer    = { };
+        size_t  size        = 0;
+
+        x_assert(object);
+        x_assert(object->buffer);
+
+        x_ntassert(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &object->buffer, &object->size, PAGE_READWRITE, nullptr));
+
+        pointer = object->buffer;
+        size    = object->size;
+
+        x_ntassert(Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE));
+
+        if (object->sec_map) {
+            x_memset(object->sec_map, 0, object->nt_head->FileHeader.NumberOfSections * sizeof(IMAGE_SECTION_HEADER));
+            x_free(object->sec_map);
+
+            object->sec_map = nullptr;
+        }
+
+        defer:
     }
 }
