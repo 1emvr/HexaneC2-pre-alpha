@@ -107,7 +107,7 @@ namespace Objects {
         x_assertb(veh_handle = Ctx->nt.RtlAddVectoredExceptionHandler(1, &ExceptionHandler));
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            object->section = (IMAGE_SECTION_HEADER*) U_PTR(object->buffer) + sizeof(IMAGE_FILE_HEADER) + U_PTR(sizeof(IMAGE_SECTION_HEADER) * sec_index);
+            object->section = SECTION_HEADER(object->buffer, sec_index);
 
             if (object->section->SizeOfRawData > 0) {
                 switch (object->section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ| IMAGE_SCN_MEM_WRITE)) {
