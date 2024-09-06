@@ -214,11 +214,12 @@ namespace Objects {
         size_t  size        = 0;
 
         x_assert(object);
-        x_assert(object->buffer);
+        x_assert(object->base);
 
-        x_ntassert(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &object->buffer, &object->size, PAGE_READWRITE, nullptr));
+        x_ntassert(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &object->base, &object->size, PAGE_READWRITE, nullptr));
+        x_memset(object->base, 0, object->size);
 
-        pointer = object->buffer;
+        pointer = object->base;
         size    = object->size;
 
         x_ntassert(Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE));
@@ -408,9 +409,10 @@ namespace Objects {
         }
 
         object->size += object->fn_map->size;
-        x_ntassert(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &object->base, NULL, &object->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
 
+        x_ntassert(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &object->base, NULL, &object->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
         next = B_PTR(object->base);
+
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
             object->section = (IMAGE_SECTION_HEADER*) object->buffer + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * sec_index);
 
@@ -431,5 +433,12 @@ namespace Objects {
         defer:
         Cleanup(object);
         RemoveCoff(object);
+
+        if (object) {
+            x_memset(object, 0, sizeof(_executable));
+            x_free(object);
+
+            object = nullptr;
+        }
     }
 }
