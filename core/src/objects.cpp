@@ -49,7 +49,6 @@ namespace Objects {
     BOOL ProcessSymbol(char* sym_string, void** pointer) {
 
         bool success    = true;
-
         char *library   = { };
         char *function  = { };
 
