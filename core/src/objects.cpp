@@ -49,11 +49,10 @@ namespace Objects {
     BOOL ProcessSymbol(char* sym_string, void** pointer) {
 
         bool success = true;
+        *pointer = nullptr;
 
         char *library   = { };
         char *function  = { };
-
-        *pointer = nullptr;
 
         if (Utils::HashStringA(sym_string, COFF_PREP_BEACON_SIZE) == COFF_PREP_BEACON) {
 
