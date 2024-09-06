@@ -29,8 +29,8 @@ namespace Objects {
 
         exception->ContextRecord->IP_REG = (uint64_t)(U_PTR(WrapperReturn));
 
-        Stream::PackDword(stream, ERROR_UNHANDLED_EXCEPTION);
-        Stream::PackDword(stream, exception->ExceptionRecord->ExceptionCode);
+        Stream::PackDword(stream,   ERROR_UNHANDLED_EXCEPTION);
+        Stream::PackDword(stream,   exception->ExceptionRecord->ExceptionCode);
         Stream::PackPointer(stream, C_PTR(U_PTR(exception->ExceptionRecord->ExceptionAddress)));
 
         Dispatcher::MessageQueue(stream);
@@ -49,7 +49,6 @@ namespace Objects {
     BOOL ProcessSymbol(char* sym_string, void** pointer) {
 
         bool success    = true;
-        bool import     = false;
 
         char *library   = { };
         char *function  = { };
@@ -76,6 +75,8 @@ namespace Objects {
             success_(false);
         }
         else if (Utils::HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
+
+            bool import = false;
             auto length = x_strlen(sym_string);
 
             for (auto i = COFF_PREP_SYMBOL_SIZE + 1; i < length - 1; i++) {
@@ -96,9 +97,7 @@ namespace Objects {
                 lib_hash   = Utils::HashStringA(library, x_strlen(library));
                 fn_hash    = Utils::HashStringA(function, x_strlen(function));
 
-                for (auto i = 0; i < count; i++) {
-                    x_free(split[i]);
-                }
+                x_freesplit(split, count);
 
                 x_assertb(C_PTR_HASHES(*pointer, lib_hash, fn_hash));
                 success_(true);

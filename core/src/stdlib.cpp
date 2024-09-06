@@ -369,3 +369,12 @@ char** x_split(const char* str, const char* delim, int* count) {
     x_free(temp);
     return result;
 }
+
+void x_freesplit(char** split, int count) {
+
+    for (auto i = 0; i < count; i++) {
+        x_free(split[i]);
+    }
+
+    x_free(split);
+}
