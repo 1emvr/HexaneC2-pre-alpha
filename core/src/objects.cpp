@@ -81,9 +81,12 @@ namespace Objects {
         return success;
     }
 
-    BOOL ExecuteFunction(_executable *object, char *function, void *args, size_t size) {
+    BOOL ExecuteFunction(_executable *object, uint32_t function, void *args, size_t size) {
 
         void        *veh_handle = { };
+        void        *entrypoint = { };
+        char        *sym_name   = { };
+
         uint32_t    protect     = 0;
         uint32_t    bit_mask    = 0;
         bool        success     = true;
@@ -118,6 +121,22 @@ namespace Objects {
 
         if (object->fn_map->size) {
             x_ntassertb(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &object->fn_map, &object->fn_map->size, PAGE_READONLY, nullptr));
+
+            for (auto sym_index = 0; sym_index < object->nt_head->FileHeader.NumberOfSymbols; sym_index++) {
+                if (object->symbol[sym_index].First.Value[0]) {
+                    sym_name = object->symbol[sym_index].First.Name;
+                }
+                else {
+                    sym_name = (char*)(object->symbol + object->nt_head->FileHeader.NumberOfSymbols) + object->symbol[sym_index].First.Value[1];
+                }
+
+                const auto name_hash = Utils::GetHashFromStringA(sym_name, x_strlen(sym_name));
+
+                if (x_memcmp(&name_hash, &function, sizeof(uint32_t)) == 0) {
+                    entrypoint = object->sec_map[object->symbol[sym_index].SectionNumber - 1].address + object->symbol[sym_index].Value;
+                    break;
+                }
+            }
         }
 
         defer:
