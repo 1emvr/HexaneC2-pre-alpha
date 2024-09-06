@@ -164,7 +164,6 @@ EXTERN_C LPVOID InstEnd();
 #define NT_ASSERT(Fn)								Fn; if (NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) return
 
 #define RANDOM_SELECT(ptr, arr)                 	auto a = 0; DYN_ARRAY_LEN(a, arr); ptr = arr[a % Utils::Random::RandomNumber32()]
-#define IX86_SYM_STRIP(x)         					for (auto a = 0; x[a]; a++) { if (x[a] == 0x40) { x[a] = 0; break; }
 
 #define return_defer(x)			                	ntstatus = x; goto defer
 #define success_(x)				                	success = x; goto defer

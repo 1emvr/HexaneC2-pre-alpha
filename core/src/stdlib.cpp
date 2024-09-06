@@ -378,3 +378,12 @@ void x_freesplit(char** split, int count) {
 
     x_free(split);
 }
+
+void x_trim(char* str, char delim) {
+
+    for (auto i = 0; str[i]; i++) {
+        if (str[i] == delim) {
+            str[i] = 0;
+        }
+    }
+}

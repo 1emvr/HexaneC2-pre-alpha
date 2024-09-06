@@ -28,5 +28,6 @@ FUNCTION char* x_strtok(char* str, const char* delim);
 FUNCTION char* x_strdup(const char* s);
 FUNCTION char** x_split(const char* str, const char* delim, int* count);
 FUNCTION void x_freesplit(char** split, int count);
+FUNCTION void x_trim(char* str, char delim);
 
 #endif // HEXANE_CORELIB_MULTITOOL_HPP

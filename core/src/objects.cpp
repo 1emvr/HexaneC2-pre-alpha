@@ -68,9 +68,8 @@ namespace Objects {
 
                 library     = split[0];
                 function    = split[1];
-#if _M_IX86
-                IX86_SYM_STRIP(function);
-#endif
+
+                x_trim(function, '@');
                 x_assertb(C_PTR_HASHES(*pointer, Utils::HashStringA(library, x_strlen(library)), Utils::HashStringA(function, x_strlen(function))));
                 x_freesplit(split, count);
 
@@ -78,9 +77,8 @@ namespace Objects {
             }
             else {
                 function = sym_string + COFF_PREP_SYMBOL_SIZE;
-#if _M_IX86
-                IX86_SYM_STRIP(function);
-#endif
+
+                x_trim(function, '@');
                 success_(Memory::Scanners::MapScan(loader_wrappers, Utils::HashStringA(function, x_strlen(function)), pointer));
             }
         }
