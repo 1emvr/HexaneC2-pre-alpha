@@ -41,8 +41,8 @@ namespace Objects {
     VOID WrapperFunction(void *address, void *args, size_t size) {
 
         auto function = (obj_entry) address;
-        WrapperReturn = __builtin_extract_return_addr(__builtin_return_address(0));
 
+        WrapperReturn = __builtin_extract_return_addr(__builtin_return_address(0));
         function((char*)args, size);
     }
 
