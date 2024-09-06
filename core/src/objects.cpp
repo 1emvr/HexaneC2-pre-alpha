@@ -30,7 +30,7 @@ namespace Objects {
 
     VOID FunctionWrapper(void *address, void *args, size_t size) {
 
-        obj_entry function = (obj_entry) address;
+        auto function = (obj_entry) address;
         WrapperReturn = __builtin_extract_return_addr(__builtin_return_address(0));
 
         function((char*)args, size);
@@ -75,6 +75,49 @@ namespace Objects {
             default: {
                 success_(false);
             }
+        }
+
+        defer:
+        return success;
+    }
+
+    BOOL ExecuteFunction(_executable *object, char *function, void *args, size_t size) {
+
+        void        *veh_handle = { };
+        uint32_t    protect     = 0;
+        uint32_t    bit_mask    = 0;
+        bool        success     = true;
+
+        x_assertb(veh_handle = Ctx->nt.RtlAddVectoredExceptionHandler(1, &ExceptionHandler));
+
+        for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            object->section = (IMAGE_SECTION_HEADER*) U_PTR(object->buffer) + sizeof(IMAGE_FILE_HEADER) + U_PTR(sizeof(IMAGE_SECTION_HEADER) * sec_index);
+
+            if (object->section->SizeOfRawData > 0) {
+                bit_mask = object->section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ| IMAGE_SCN_MEM_WRITE);
+
+                switch (bit_mask) {
+                case PAGE_NOACCESS:         protect = PAGE_NOACCESS;
+                case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE;
+                case IMAGE_SCN_MEM_READ:    protect = PAGE_READONLY;
+                case IMAGE_SCN_MEM_WRITE:   protect = PAGE_WRITECOPY;
+                case IMAGE_SCN_MEM_RX:      protect = PAGE_EXECUTE_READ;
+                case IMAGE_SCN_MEM_WX:      protect = PAGE_EXECUTE_WRITECOPY;
+                case IMAGE_SCN_MEM_RW:      protect = PAGE_READWRITE;
+                case IMAGE_SCN_MEM_RWX:     protect = PAGE_EXECUTE_READWRITE;
+                default: success_(false);
+                }
+
+                if ((object->section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED) == IMAGE_SCN_MEM_NOT_CACHED) {
+                    protect |= PAGE_NOCACHE;
+                }
+
+                x_ntassertb(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &object->sec_map[sec_index].address, &object->sec_map[sec_index].size, protect, nullptr));
+            }
+        }
+
+        if (object->fn_map->size) {
+            x_ntassertb(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &object->fn_map, &object->fn_map->size, PAGE_READONLY, nullptr));
         }
 
         defer:
