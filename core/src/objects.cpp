@@ -181,9 +181,9 @@ namespace Objects {
         size    = object->size;
 
         x_ntassert(Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE));
-
         if (object->sec_map) {
-            x_memset(object->sec_map, 0, SIZEOF_SECTIONS(object->nt_head->FileHeader));
+
+            x_memset(object->sec_map, 0, object->nt_head->FileHeader.NumberOfSections * sizeof (IMAGE_SECTION_HEADER));
             x_free(object->sec_map);
 
             object->sec_map = nullptr;
@@ -231,8 +231,8 @@ namespace Objects {
                     switch (object->reloc->Type) {
                         case IMAGE_REL_AMD64_REL32: {
 
-                            *(void **) fmap_addr        = function;
-                            *(uint32_t *) reloc_addr    = U_PTR(fmap_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
+                            *(void**) fmap_addr        = function;
+                            *(uint32_t*) reloc_addr    = U_PTR(fmap_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
                         }
                         default:
                             break;
@@ -272,7 +272,7 @@ namespace Objects {
                     }
                 }
 #endif
-                object->reloc = object->reloc + sizeof(_reloc);
+                object->reloc += sizeof(_reloc);
             }
         }
 
@@ -287,6 +287,7 @@ namespace Objects {
         int     counter     = 0;
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+
             object->section = SECTION_HEADER(object->buffer, sec_index);
             object->reloc   = RELOC_SECTION(object->buffer, object->section);
 
@@ -300,7 +301,7 @@ namespace Objects {
                     buffer = sym_name;
                 }
                 else {
-                    buffer = ((char*)object->symbol + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
+                    buffer = RVA(char*, object->symbol, object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
                 }
 
                 if (Utils::HashStringA(buffer, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
@@ -351,8 +352,8 @@ namespace Objects {
         object->buffer  = B_PTR(data);
         object->nt_head = NT_HEADERS(object->buffer, DOS_HEADER(object->buffer));
         object->symbol  = SYMBOL_TABLE(object->buffer, object->nt_head);
-
         object->task_id = task_id;
+
         object->next    = Ctx->coffs;
         Ctx->coffs      = object;
 

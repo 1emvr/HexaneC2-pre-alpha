@@ -58,7 +58,6 @@ EXTERN_C LPVOID InstEnd();
 
 #define SEC_START(map, index)                       U_PTR(B_PTR(map[index].address))
 #define SEC_END(map, index)                         U_PTR(B_PTR(map[index].address) + map[index].size)
-#define SIZEOF_SECTIONS(fhead) 						fhead.NumberOfSections * sizeof(IMAGE_SECTION_HEADER)
 
 #define RVA(Ty, base, rva)  			            ((Ty) U_PTR(base) + U_PTR(rva))
 #define NtCurrentProcess()              	        ((HANDLE) (LONG_PTR) -1)
