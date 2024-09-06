@@ -389,7 +389,7 @@ namespace Objects {
         x_assert(ExecuteFunction(object, entrypoint, args, args_size));
 
         defer:
-        // todo: caching _coff_params data
+        // todo: emptying _executable* cache
 
         Cleanup(object);
 
