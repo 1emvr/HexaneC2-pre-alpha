@@ -270,13 +270,14 @@ struct _coff_symbol {
 };
 
 struct _coff_params {
-	PCHAR  entrypoint;
-	DWORD  entrypoint_size;
-	PVOID  data;
-	SIZE_T data_size;
-	PVOID  args;
-	SIZE_T args_size;
-	UINT32 task_id;
+	PCHAR   entrypoint;
+	DWORD   entrypoint_size;
+	PVOID   data;
+	SIZE_T  data_size;
+	PVOID   args;
+	SIZE_T  args_size;
+	UINT32  task_id;
+    BOOL    cache;
 };
 
 struct _reloc {
