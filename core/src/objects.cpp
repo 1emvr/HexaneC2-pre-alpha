@@ -271,6 +271,7 @@ namespace Objects {
                 if (function) {
                     switch (object->reloc->Type) {
                         case IMAGE_REL_AMD64_REL32: {
+
                             *(void **) fmap_addr        = function;
                             *(uint32_t *) reloc_addr    = U_PTR(fmap_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
                         }
@@ -295,6 +296,7 @@ namespace Objects {
                 if (function) {
                     switch (object->reloc->Type) {
                         case IMAGE_REL_I386_DIR32: {
+
                             *(void**) fmap_addr     = function;
                             *(uint32_t*)reloc_addr  = U_PTR(fmap_addr);
                         }
