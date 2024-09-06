@@ -103,8 +103,6 @@ namespace Objects {
         char        *sym_name   = { };
 
         uint32_t    protect     = 0;
-        uint32_t    bit_mask    = 0;
-        uint32_t    name_hash   = 0;
         bool        success     = true;
 
         x_assertb(veh_handle = Ctx->nt.RtlAddVectoredExceptionHandler(1, &ExceptionHandler));
