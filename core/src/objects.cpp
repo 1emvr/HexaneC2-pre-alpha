@@ -143,7 +143,7 @@ namespace Objects {
             }
 
             if (x_memcmp(sym_name, function, x_strlen(function)) == 0) {
-                entrypoint = object->sec_map[object->symbol[sym_index].SectionNumber - 1].address + object->symbol[sym_index].Value;
+                x_assertb(entrypoint = object->sec_map[object->symbol[sym_index].SectionNumber - 1].address + object->symbol[sym_index].Value);
                 break;
             }
         }
@@ -397,5 +397,16 @@ namespace Objects {
             x_memset(object, 0, sizeof(_executable));
             x_free(object);
         }
+    }
+
+    VOID CoffThread(_coff_params *params) {
+
+        x_assert(!params->entrypoint || !params->data);
+
+        defer:
+        x_zerofree(params->entrypoint, params->entrypoint_length);
+        x_zerofree(params->data, params->data_length);
+        x_zerofree(params->args, params->args_size);
+        x_zerofree(params, sizeof(_coff_params));
     }
 }

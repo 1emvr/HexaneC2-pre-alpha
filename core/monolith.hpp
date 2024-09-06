@@ -146,7 +146,7 @@ EXTERN_C LPVOID InstEnd();
 #define MESSAGE_MAX HTTP_REQUEST_MAX
 #endif
 
-#define ZeroFreePtr(x, n) 		                	x_memset(x, 0, n); x_free(x); x = nullptr
+#define x_zerofree(x, n) 		                	if (x) { x_memset(x, 0, n); x_free(x); x = nullptr; }
 #define x_malloc(size) 			                	Ctx->nt.RtlAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, size)
 #define x_realloc(ptr, size) 	                	Ctx->nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, ptr, size)
 #define x_free(size) 			                	Ctx->nt.RtlFreeHeap(Ctx->heap, 0, size)
@@ -269,6 +269,16 @@ struct _coff_symbol {
 	UINT8  NumberOfAuxSymbols;
 };
 
+struct _coff_params {
+	PCHAR  entrypoint;
+	DWORD  entrypoint_length;
+	PVOID  data;
+	SIZE_T data_length;
+	PVOID  args;
+	SIZE_T args_size;
+	UINT32 task_id;
+};
+
 struct _reloc {
 	UINT32 VirtualAddress;
 	UINT32 SymbolTableIndex;
@@ -287,7 +297,7 @@ struct _executable {
 
 	uint32_t				task_id;
 	_reloc 					*reloc;
-	_symbol 				*symbol;
+	_coff_symbol 			*symbol;
 	_object_map 			*fn_map;
 	_object_map 			*sec_map;
 	_executable 			*next;
