@@ -86,7 +86,6 @@ namespace Memory {
             instance.base.size              = U_PTR(InstEnd()) - instance.base.address;
 
             x_assert(instance.modules.ntdll = M_PTR(NTDLL));
-            x_assert(F_PTR_HMOD(instance.nt.NtProtectVirtualMemory, instance.modules.ntdll, NTPROTECTVIRTUALMEMORY));
             x_assert(F_PTR_HMOD(instance.nt.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP));
 
             region = C_PTR(instance.base.address + U_PTR(&__instance));
