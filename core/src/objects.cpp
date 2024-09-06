@@ -25,7 +25,7 @@ namespace Objects {
 
     LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS exception) {
 
-        _stream *stream = Stream::CreateTaskResponse(TypeExecute);
+        _stream *stream = Stream::CreateTaskResponse(TypeError);
 
         exception->ContextRecord->IP_REG = (uint64_t)(U_PTR(WrapperReturn));
 

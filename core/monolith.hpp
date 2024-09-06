@@ -243,7 +243,7 @@ enum MessageType {
 	TypeResponse    = 0x7FFFFFFD,
 	TypeSegment     = 0x7FFFFFFC,
     TypeExecute     = 0x7FFFFFFB,
-    TypeObject		= 0x7FFFFFFA,
+    TypeError		= 0x7FFFFFFA,
 };
 
 enum DX_MEMORY {
