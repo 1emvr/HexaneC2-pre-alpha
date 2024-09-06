@@ -142,9 +142,7 @@ namespace Objects {
                 sym_name = (char*)(object->symbol + object->nt_head->FileHeader.NumberOfSymbols) + object->symbol[sym_index].First.Value[1];
             }
 
-            name_hash = Utils::HashStringA(sym_name, x_strlen(sym_name));
-
-            if (x_memcmp(&name_hash, &function, sizeof(uint32_t)) == 0) {
+            if (x_memcmp(sym_name, function, x_strlen(function)) == 0) {
                 entrypoint = object->sec_map[object->symbol[sym_index].SectionNumber - 1].address + object->symbol[sym_index].Value;
                 break;
             }
