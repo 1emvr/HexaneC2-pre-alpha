@@ -66,18 +66,20 @@ namespace Objects {
                 if (!implant_wrappers[i].name) {
                     break;
                 }
+
                 if (Utils::HashStringA(function, x_strlen(function)) == implant_wrappers[i].name) {
                     *pointer = implant_wrappers[i].address;
                     success_(true);
                 }
             }
+
             success_(false);
         }
         else if (Utils::HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
             auto length = x_strlen(sym_string);
 
             for (auto i = COFF_PREP_SYMBOL_SIZE + 1; i < length - 1; i++) {
-                if (sym_string[i] == 0x24) {
+                if (sym_string[i] == 0x24) { // '$'
                     import = true;
                 }
             }
@@ -112,6 +114,7 @@ namespace Objects {
                     if (!loader_wrappers[i].name) {
                         break;
                     }
+
                     if (fn_hash == loader_wrappers[i].name) {
                         *pointer = loader_wrappers[i].address;
                         success_(true);
@@ -148,9 +151,7 @@ namespace Objects {
             object->section = (IMAGE_SECTION_HEADER*) U_PTR(object->buffer) + sizeof(IMAGE_FILE_HEADER) + U_PTR(sizeof(IMAGE_SECTION_HEADER) * sec_index);
 
             if (object->section->SizeOfRawData > 0) {
-                bit_mask = object->section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ| IMAGE_SCN_MEM_WRITE);
-
-                switch (bit_mask) {
+                switch (object->section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ| IMAGE_SCN_MEM_WRITE)) {
                     case PAGE_NOACCESS:         protect = PAGE_NOACCESS;
                     case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE;
                     case IMAGE_SCN_MEM_READ:    protect = PAGE_READONLY;
@@ -194,10 +195,7 @@ namespace Objects {
             if (U_PTR(entrypoint) >= SEC_START(object->sec_map, sec_index) && U_PTR(entrypoint) < SEC_END(object->sec_map, sec_index)) {
 
                 object->section = (IMAGE_SECTION_HEADER*) object->buffer + sizeof(IMAGE_FILE_HEADER) + sizeof(IMAGE_SECTION_HEADER) * sec_index;
-
-                if ((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) != IMAGE_SCN_MEM_EXECUTE) {
-                    success_(false);
-                }
+                x_assertb((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) == IMAGE_SCN_MEM_EXECUTE);
             }
         }
 
@@ -383,6 +381,34 @@ namespace Objects {
 
     VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id) {
 
+        _executable *object = { };
+        void        *next   = { };
+        bool        success = true;
 
+        x_assertb(data);
+
+        object          = (_executable*) x_malloc(sizeof(_executable));
+        object->buffer  = B_PTR(data);
+        object->nt_head = NT_HEADERS(object->buffer, DOS_HEADER(object->buffer));
+        object->symbol  = (_symbol*)U_PTR(object->buffer) + object->nt_head->FileHeader.PointerToSymbolTable;
+        object->task_id = task_id;
+        object->next    = Ctx->coffs;
+
+        Ctx->coffs = object;
+
+        x_assertb(Opsec::ImageCheckArch(object));
+        x_assertb(object->sec_map = (_object_map*)x_malloc(sizeof(void*) * sizeof(_object_map)));
+        x_assertb(object->fn_map->size = GetFunctionMapSize(object));
+
+        for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            object->section = (IMAGE_SECTION_HEADER*) object->buffer + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * sec_index);
+            object->size    += object->section->SizeOfRawData;
+            object->size    = (size_t) U_PTR(PAGE_ALIGN(object->size));
+        }
+
+        object->size += object->fn_map->size;
+        x_ntassertb(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &object->base, NULL, &object->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+
+        defer:
     }
 }
