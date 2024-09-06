@@ -389,6 +389,8 @@ namespace Objects {
         x_assert(ExecuteFunction(object, entrypoint, args, args_size));
 
         defer:
+        // todo: saving coff file data
+
         Cleanup(object);
         RemoveCoff(object);
 
