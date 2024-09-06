@@ -135,6 +135,7 @@ namespace Objects {
         }
 
         for (auto sym_index = 0; sym_index < object->nt_head->FileHeader.NumberOfSymbols; sym_index++) {
+
             if (object->symbol[sym_index].First.Value[0]) {
                 sym_name = object->symbol[sym_index].First.Name;
             }
