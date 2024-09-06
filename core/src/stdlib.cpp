@@ -249,49 +249,123 @@ size_t x_strspn(const char* s, const char* accept) {
     return offset;
 }
 
-size_t x_strcspn(const char* s, const char* reject) {
+char* x_strchr(const char* str, int c) {
 
-    int a = 1;
-    int i;
-
-    size_t offset = 0;
-
-    while (a && *s) {
-        for (i = 0; a && i < x_strlen(reject); i++) {
-            if (*s == reject[i]) {
-                a = 0;
-            }
+    while (*str) {
+        if (*str == (char)c) {
+            return (char*) str;
         }
-
-        if (a) {
-            offset++;
-        }
-        s++;
+        str++;
     }
 
-    return offset;
+    if (c == 0) {
+        return (char*)str;
+    }
+
+    return nullptr;
 }
 
-char* x_strtok(char* s1, const char* s2) {
+char* x_strtok(char* str, const char* delim) {
 
-    char *temp = nullptr;
-    char *token = nullptr;
+    static char *saved          = { };
+    char        *token_start    = { };
+    char        *token_end      = { };
 
-    if (!s1) {
-        s1 = temp;
+    if (str) { saved = str; }
+    token_start = saved;
+
+    if (!token_start) {
+        saved = nullptr;
+        return nullptr;
     }
 
-    s1 += x_strspn(s1, s2);
+    while (*token_start && x_strchr(delim, *token_start)) {
+        token_start++;
+    }
 
-    if (*s1) {
-        token = s1;
-        s1 += x_strcspn(s1, s2);
+    token_end = token_start;
+    while (*token_end && !x_strchr(delim, *token_end)) {
+        token_end++;
+    }
 
-        if (*s1) {
-            *s1++ = 0;
+    if (*token_end) {
+        *token_end  = 0;
+        saved       = token_end + 1;
+    }
+    else {
+        saved = nullptr;
+    }
+
+    return token_start;
+}
+
+char* x_strdup(const char* str) {
+
+    char*   str2      = { };
+    size_t  length  = 0;
+
+    length  = x_strlen(str);
+    str2    = (char*) x_malloc(length + 1);
+
+    if (!str2) {
+        return nullptr;
+    }
+
+    x_memcpy(str2, str, length + 1);
+    return str2;
+}
+
+char** x_split(const char* str, const char* delim, int* count) {
+
+    char **result   = { };
+    char **temp_res = { };
+
+    char *temp      = { };
+    char *token     = { };
+
+    int size    = 10;
+    int index   = 0;
+
+    x_assert(temp   = x_strdup(str));
+    x_assert(result = (char**) x_malloc(size * sizeof(char*)));
+    x_assert(token  = x_strtok(temp, delim));
+
+    while (token) {
+        if (index > size) {
+            size    *= 2;
+            temp_res = (char**) x_realloc(result, size * sizeof(char*));
+
+            if (!temp_res) {
+                x_free(result);
+                result = nullptr;
+
+                goto defer;
+            }
+
+            result = temp_res;
         }
+
+        result[index] = x_strdup(token);
+
+        if (!result[index]) {
+            for (auto i = 0; i < index; i++) {
+                x_free(result[i]);
+            }
+
+            x_free(result);
+            result = nullptr;
+
+            goto defer;
+        }
+
+        index++;
+        token = x_strtok(0, delim);
     }
 
-    temp = s1;
-    return token;
+    *count = index;
+    result[index] = 0;
+
+    defer:
+    x_free(temp);
+    return result;
 }

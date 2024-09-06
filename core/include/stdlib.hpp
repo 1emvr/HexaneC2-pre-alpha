@@ -23,6 +23,9 @@ FUNCTION size_t x_mbstowcs (wchar_t *dst, const char *src, size_t size);
 FUNCTION size_t x_wcstombs (char *str, const wchar_t *wcs, size_t size);
 FUNCTION int x_mbs_endswith (const char *string, const char *end);
 FUNCTION int x_wcs_endswith (const wchar_t *string, const wchar_t *end);
-FUNCTION char* x_strtok (char* str, const char* delim);
+FUNCTION char* x_strchr(const char* str, int c);
+FUNCTION char* x_strtok(char* str, const char* delim);
+FUNCTION char* x_strdup(const char* s);
+FUNCTION char** x_split(const char* str, const char* delim, int* count);
 
 #endif // HEXANE_CORELIB_MULTITOOL_HPP

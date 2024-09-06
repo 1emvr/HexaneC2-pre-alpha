@@ -20,8 +20,8 @@
 namespace Utils {
     FUNCTION VOID AppendBuffer(uint8_t **buffer, const uint8_t *target, uint32_t *capacity, uint32_t length);
     FUNCTION VOID AppendPointerList(void **array[], void *pointer, uint32_t *count);
-    FUNCTION ULONG GetHashFromStringA(char const *string, size_t length);
-    FUNCTION ULONG GetHashFromStringW(wchar_t const *string, size_t length);
+    FUNCTION ULONG HashStringA(char const *string, size_t length);
+    FUNCTION ULONG HashStringW(wchar_t const *string, size_t length);
 
     namespace Time {
         FUNCTION ULONG64 GetTimeNow();

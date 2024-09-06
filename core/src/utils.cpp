@@ -25,7 +25,7 @@ namespace Utils {
         (*count)++;
     }
 
-    ULONG GetHashFromStringA(char const *string, size_t length) {
+    ULONG HashStringA(char const *string, size_t length) {
 
         auto hash = FNV_OFFSET;
         if (string) {
@@ -37,7 +37,7 @@ namespace Utils {
         return hash;
     }
 
-    ULONG GetHashFromStringW(wchar_t const *string, size_t length) {
+    ULONG HashStringW(wchar_t const *string, size_t length) {
 
         auto hash = FNV_OFFSET;
         if (string) {

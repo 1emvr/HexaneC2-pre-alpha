@@ -37,6 +37,7 @@ EXTERN_C LPVOID InstEnd();
 #define C_PTR(x)                                    (R_CAST(LPVOID, x))
 #define U_PTR(x)                                    (R_CAST(UINT_PTR, x))
 #define C_DREF(x)                                   (*R_CAST(VOID**, x))
+#define S_PTR(x)                                    (R_CAST(const char*, x))
 
 #define FUNCTION								    __text(B)
 #define __prototype(x)                              decltype(x) *x
@@ -80,10 +81,11 @@ EXTERN_C LPVOID InstEnd();
 	#define IMAGE_OPT_MAGIC 					    IMAGE_NT_OPTIONAL_HDR64_MAGIC
 	#define MACHINE_ARCH    					    IMAGE_FILE_MACHINE_AMD64
 
-	#define COFF_IMPL_HASH      					0x00000001	// __impl_
-	#define COFF_INCL_HASH      					0x00000002	// __impl_$
-	#define COFF_HEXANE_HASH    					0x00000003	// __impl_Hexane
-	#define COFF_CONTEXT_HASH           			0xbfded9c9  // .refptr.__instance
+    #define COFF_PREP_SYMBOL                        0xec6ba2a8  // __imp_
+    #define COFF_PREP_SYMBOL_SIZE                   6
+    #define COFF_PREP_BEACON                        0xd0a409b0  // __imp_Beacon
+    #define COFF_PREP_BEACON_SIZE                   (COFF_PREP_SYMBOL_SIZE + 6)
+    #define COFF_INSTANCE                           0xbfded9c9  // .refptr.__instance
 #elif _M_IX86
 	#define IP_REG									Eip
 	#define ENTRYPOINT_REG 							Eax
@@ -94,10 +96,11 @@ EXTERN_C LPVOID InstEnd();
 	#define IMAGE_OPT_MAGIC 						IMAGE_NT_OPTIONAL_HDR32_MAGIC
 	#define MACHINE_ARCH    						IMAGE_FILE_MACHINE_I386
 
-	#define COFF_IMPL_HASH      					0x00000001 	// __impl__
-	#define COFF_INCL_HASH      					0x00000002	// __impl__$
-	#define COFF_HEXANE_HASH    					0x00000003	// __impl__Hexane
-	#define GLOBAL_CONTEXT_HASH           			0xbfded9c9  // __instance
+    #define COFF_PREP_SYMBOL                        0x79dff807  // __imp__
+    #define COFF_PREP_SYMBOL_SIZE                   7
+    #define COFF_PREP_BEACON                        0x4c20aa4f  // __imp__Beacon
+    #define COFF_PREP_BEACON_SIZE                   (COFF_PREP_SYMBOL_SIZE + 6)
+    #define COFF_INSTANCE                           0xb341b5b9  // __instance
 #endif
 
 #define EGRESS 										0
