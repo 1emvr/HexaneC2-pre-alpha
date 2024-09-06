@@ -208,7 +208,6 @@ namespace Objects {
             object->reloc   = RELOC_SECTION(object->buffer, object->section);
 
             for (auto rel_index = 0; rel_index < object->section->NumberOfRelocations; rel_index++) {
-
                 _coff_symbol *symbol = &object->symbol[object->reloc->SymbolTableIndex];
 
                 if (symbol->First.Value[0]) {
