@@ -195,12 +195,12 @@ namespace Objects {
     BOOL BaseRelocation(_executable *object) {
         // todo: turns out the function names come from the binary, not a server message
 
-        uint32_t fn_count = 0;
+        bool success        = true;
+        uint32_t fn_count   = 0;
 
         void *function      = { };
         char *name_ptr      = { };
         char sym_name[9]    = { };
-        bool success        = true;
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
 
