@@ -19,10 +19,10 @@ namespace Clients {
 
     BOOL RemoveClient(const uint32_t peer_id) {
 
-        _client *prev       = { };
+        bool    success     = true;
         _client *head       = Ctx->clients;
         _client *target     = GetClient(peer_id);
-        bool    success     = true;
+        _client *prev       = { };
 
 	x_assertb(head);
 	x_assertb(target);
@@ -63,12 +63,12 @@ namespace Clients {
         _client *client = { };
         _client *head   = { };
 
+        bool success    = true;
         void *handle    = { };
         void *buffer    = { };
 
         uint32_t total  = 0;
         uint32_t read   = 0;
-        bool success    = true;
 
         // first contact
         if (!(handle = Ctx->win32.CreateFileW(pipe_name, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr))) {
@@ -87,10 +87,12 @@ namespace Clients {
         do {
             if (Ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, (DWORD*) &total, nullptr)) {
                 if (total) {
+
                     if (!(buffer = x_malloc(total)) || !(in = Stream::CreateStream())) {
                         Ctx->nt.NtClose(handle);
                         success_(false);
                     }
+
                     if (!Ctx->win32.ReadFile(handle, buffer, total, (DWORD*) &read, nullptr) || read != total) {
                         Ctx->nt.NtClose(handle);
                         success_(false);
@@ -150,6 +152,7 @@ namespace Clients {
             if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, (DWORD*) &read, nullptr) || read != sizeof(uint8_t)) {
                 continue;
             }
+
             if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, nullptr, 0, nullptr, (DWORD*) &total, nullptr)) {
                 continue;
             }
@@ -178,8 +181,8 @@ namespace Clients {
         	// todo: prepend outbound messages with 0, inbound with 1
             for (auto message = Ctx->transport.outbound_queue; message; message = message->next) {
                 if (message->buffer && B_PTR(message->buffer)[0] == INGRESS) {
-                    if (Dispatcher::PeekPeerId(message) == client->peer_id) {
 
+                    if (Dispatcher::PeekPeerId(message) == client->peer_id) {
                         if (Network::Smb::PipeWrite(client->pipe_handle, message)) {
                             Dispatcher::RemoveMessage(message);
                         }

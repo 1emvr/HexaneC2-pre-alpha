@@ -31,7 +31,9 @@ namespace Commands {
         if (query[0] == PERIOD) {
             x_assert(length = Ctx->win32.GetCurrentDirectoryA(MAX_PATH, path));
 
-            if (path[length - 1] != BSLASH) { path[length++] = BSLASH; }
+            if (path[length - 1] != BSLASH) {
+                path[length++] = BSLASH;
+            }
 
             path[length++]  = ASTER;
             path[length]    = NULTERM;
