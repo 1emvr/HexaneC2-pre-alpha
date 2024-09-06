@@ -341,6 +341,7 @@ namespace Objects {
                 }
                 else {
                     buffer = ((char*)object->symbol + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
+                }
             }
         }
     }
