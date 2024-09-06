@@ -152,10 +152,10 @@ typedef enum _PS_ATTRIBUTE_NUM {
 #define PS_ATTRIBUTE_ENABLE_OPTIONAL_XSTATE_FEATURES	PsAttributeValue(PsAttributeEnableOptionalXStateFeatures, TRUE, TRUE, FALSE) // 0x3001E
 
 typedef struct _PROC_THREAD_ATTRIBUTE_ENTRY {
-	ULONG_PTR  Attribute;
-	ULONG_PTR  Size;
-	ULONG_PTR* pValue;
-	ULONG_PTR  Unknown;
+	ULONG_PTR  	Attribute;
+	ULONG_PTR  	Size;
+	LPVOID		ValuePtr;
+	ULONG_PTR  	ReturnLength;
 } PROC_THREAD_ATTRIBUTE_ENTRY, *PPROC_THREAD_ATTRIBUTE_ENTRY;
 
 
@@ -190,7 +190,7 @@ typedef UNICODE_STRING* PUNICODE_STRING;
 
 typedef struct _OBJECT_ATTRIBUTES {
 	ULONG Length;
-	HANDLE RootDirectory;
+	*HANDLE RootDirectory;
 	PUNICODE_STRING ObjectName;
 	ULONG Attributes;
 	PVOID SecurityDescriptor;

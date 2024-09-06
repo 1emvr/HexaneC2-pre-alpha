@@ -10,15 +10,17 @@ namespace Threads {
 
         thread_attr.Entry.Attribute     = ProcThreadAttributeValue(PsAttributeClientId, true, false, false);
         thread_attr.Entry.Size          = sizeof(CLIENT_ID);
-        thread_attr.Entry.pValue        = (uintptr_t*)&cid;
+        thread_attr.Entry.ValuePtr      = &cid;
         thread_attr.Length              = sizeof(PROC_THREAD_ATTRIBUTE_LIST);
 
-        ntstatus = Ctx->nt.NtCreateThreadEx(&thread, THREAD_ALL_ACCESS, nullptr, process, (PTHREAD_START_ROUTINE)entry, args, false, 0, 0, 0, &thread_attr);
-
-        if (!NT_SUCCESS(ntstatus)) {
+        ntstatus = Ctx->nt.NtCreateThreadEx(&thread, THREAD_ALL_ACCESS, nullptr, process, (PTHREAD_START_ROUTINE)entry, args, false, 0, 0, 0, (PS_ATTRIBUTE_LIST*)&thread_attr);
+        if (NT_SUCCESS(ntstatus)) {
             if (tid) {
                 *tid = U_PTR(cid.UniqueThread);
             }
+        }
+        else {
+            // get error
         }
 
         return thread;

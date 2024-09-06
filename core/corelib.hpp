@@ -18,5 +18,6 @@
 #include <core/include/dispatch.hpp>
 #include <core/include/implant.hpp>
 #include <core/include/objects.hpp>
+#include <core/include/threads.hpp>
 
 #endif //CORELIB_HPP

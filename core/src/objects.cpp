@@ -413,7 +413,6 @@ namespace Objects {
 
     VOID LoadObject(_parser* parser) {
 
-        HANDLE          thread  = { };
         _coff_params    *params = { };
         _injection_ctx  inject  = { };
 
@@ -427,6 +426,8 @@ namespace Objects {
         inject.parameter = params;
         Ctx->threads++;
 
-        x_assert(CreateUserThread())
+        if (!Threads::CreateUserThread(NtCurrentProcess(), true, (void*)CoffThread, params, nullptr)) {
+            // get error
+        }
     }
 }
