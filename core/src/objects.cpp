@@ -339,7 +339,7 @@ namespace Objects {
         }
     }
 
-    VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id) {
+    VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id, bool cache) {
 
         _executable *object = { };
         uint8_t     *next   = { };
@@ -389,10 +389,13 @@ namespace Objects {
         x_assert(ExecuteFunction(object, entrypoint, args, args_size));
 
         defer:
-        // todo: caching coff file data
+        // todo: caching _coff_params data
 
         Cleanup(object);
-        RemoveCoff(object);
+
+        if (!cache) {
+            RemoveCoff(object);
+        }
 
         if (object) {
             x_memset(object, 0, sizeof(_executable));
@@ -403,7 +406,7 @@ namespace Objects {
     VOID CoffThread(_coff_params *params) {
 
         x_assert(!params->entrypoint || !params->data);
-        CoffLoader(params->entrypoint, params->data, params->args, params->args_size, params->task_id);
+        CoffLoader(params->entrypoint, params->data, params->args, params->args_size, params->task_id, params->cache);
 
         defer:
         x_zerofree(params->entrypoint, params->entrypoint_size);

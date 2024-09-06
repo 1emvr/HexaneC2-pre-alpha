@@ -11,7 +11,7 @@ namespace Objects {
     FUNCTION BOOL BaseRelocation(_executable *object);
     FUNCTION SIZE_T GetFunctionMapSize(_executable *object);
     FUNCTION VOID RemoveCoff(_executable *object);
-    FUNCTION VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id);
+    FUNCTION VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id, bool cache);
     FUNCTION VOID CoffThread(_coff_params *params);
     FUNCTION VOID LoadObject(_parser parser);
 }
