@@ -94,7 +94,6 @@ namespace Objects {
     }
 
     BOOL ExecuteFunction(_executable* object, char* function, void* args, size_t size) {
-        // todo: still believe I want these functions to be pre-hashed
 
         void        *veh_handle = { };
         void        *entrypoint = { };
@@ -281,7 +280,7 @@ namespace Objects {
         return success;
     }
 
-    SIZE_T GetFunctionMapSize(_executable *object) {
+    VOID GetFunctionMapSize(_executable *object) {
 
         char    sym_name[9] = { };
         char    *buffer     = { };
@@ -312,7 +311,7 @@ namespace Objects {
             }
         }
 
-        return sizeof(void*) * counter;
+        object->fn_map->size = sizeof(void*) * counter;
     }
 
     VOID RemoveCoff(_executable *object) {
@@ -359,7 +358,8 @@ namespace Objects {
 
         x_assert(Opsec::ImageCheckArch(object));
         x_assert(object->sec_map = (_object_map*)x_malloc(sizeof(void*) * sizeof(_object_map)));
-        x_assert(object->fn_map->size = GetFunctionMapSize(object));
+
+        GetFunctionMapSize(object);
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
             object->section = (IMAGE_SECTION_HEADER*) object->buffer + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * sec_index);
