@@ -54,6 +54,9 @@ namespace Objects {
         char *library   = { };
         char *function  = { };
 
+        uint32_t lib_hash   = 0;
+        uint32_t fn_hash    = 0;
+
         *pointer = nullptr;
 
         if (Utils::HashStringA(sym_string, COFF_PREP_BEACON_SIZE) == COFF_PREP_BEACON) {
@@ -88,8 +91,8 @@ namespace Objects {
 #if _M_IX86
                 IX86_SYM_STRIP(function);
 #endif
-                auto lib_hash   = Utils::HashStringA(library, x_strlen(library));
-                auto fn_hash    = Utils::HashStringA(function, x_strlen(function));
+                lib_hash   = Utils::HashStringA(library, x_strlen(library));
+                fn_hash    = Utils::HashStringA(function, x_strlen(function));
 
                 for (auto i = 0; i < count; i++) {
                     x_free(split[i]);
@@ -103,7 +106,7 @@ namespace Objects {
 #if _M_IX86
                 IX86_SYM_STRIP(function);
 #endif
-                auto fn_hash = Utils::HashStringA(function, x_strlen(function));
+                fn_hash = Utils::HashStringA(function, x_strlen(function));
 
                 for (auto i = 0;; i++) {
                     if (!loader_wrappers[i].name) {
@@ -179,7 +182,7 @@ namespace Objects {
                 sym_name = (char*)(object->symbol + object->nt_head->FileHeader.NumberOfSymbols) + object->symbol[sym_index].First.Value[1];
             }
 
-            name_hash = Utils::GetHashFromStringA(sym_name, x_strlen(sym_name));
+            name_hash = Utils::HashStringA(sym_name, x_strlen(sym_name));
 
             if (x_memcmp(&name_hash, &function, sizeof(uint32_t)) == 0) {
                 entrypoint = object->sec_map[object->symbol[sym_index].SectionNumber - 1].address + object->symbol[sym_index].Value;
@@ -238,9 +241,11 @@ namespace Objects {
         uint32_t type       = 0;
         uint32_t fn_count   = 0;
 
+        bool success        = true;
         char *name_ptr      = { };
         char sym_name[9]    = { };
 
+        void *function      = { };
         void *reloc_addr    = { };
         void *fmap_addr     = { };
         void *sec_addr      = { };
@@ -266,8 +271,54 @@ namespace Objects {
                 sec_addr    = object->sec_map[symbol->SectionNumber - 1].address;
                 fmap_addr   = object->fn_map + (fn_count * sizeof(void*));
 
-                x_assertb(ProcessSymbol())
+                x_assertb(ProcessSymbol(name_ptr, &function));
+#if _WIN64
+                if (function) {
+                    switch (object->reloc->Type) {
+                        case IMAGE_REL_AMD64_REL32: {
+
+                            *(void**)fmap_addr      = function;
+                            *(uint32_t*)reloc_addr  = U_PTR(fmap_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
+                        }
+                        default:
+                            break;
+                    }
+                }
+                else {
+                    switch (object->reloc->Type) {
+                        case IMAGE_REL_AMD64_REL32:     *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
+                        case IMAGE_REL_AMD64_ADDR32NB:  *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
+                        case IMAGE_REL_AMD64_REL32_1:   *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 1;
+                        case IMAGE_REL_AMD64_REL32_2:   *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 2;
+                        case IMAGE_REL_AMD64_REL32_3:   *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 3;
+                        case IMAGE_REL_AMD64_REL32_4:   *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 4;
+                        case IMAGE_REL_AMD64_REL32_5:   *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 5;
+                        case IMAGE_REL_AMD64_ADDR64:    *(uint64_t*)reloc_addr = (*(uint64_t*)reloc_addr) + U_PTR(sec_addr);
+                    }
+                }
+#else
+                if (function) {
+                    switch (object->reloc->Type) {
+                        case IMAGE_REL_I386_DIR32: {
+
+                            *(void**) fmap_addr     = function;
+                            *(uint32_t*)reloc_addr  = U_PTR(fmap_addr);
+                        }
+                        default:
+                            break;
+                    }
+                }
+                else {
+                    switch (object->reloc->Type) {
+                        case IMAGE_REL_I386_DIR32: *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr);
+                        case IMAGE_REL_I386_REL32: *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
+
+                }
+#endif
             }
         }
+
+        defer:
+        return success;
     }
 }
