@@ -1,8 +1,8 @@
 #include <core/include/memory.hpp>
 
 void* operator new(size_t size) {
-    void *ptr = nullptr;
 
+    void *ptr = nullptr;
     if (Ctx->heap && Ctx->nt.RtlAllocateHeap) {
         ptr = Ctx->nt.RtlAllocateHeap(Ctx->heap, 0, size);
 
@@ -15,6 +15,7 @@ void* operator new(size_t size) {
 }
 
 void operator delete(void* ptr) noexcept {
+
     if (Ctx->heap && Ctx->nt.RtlFreeHeap && ptr) {
         if (!Ctx->nt.RtlFreeHeap(Ctx->heap, 0, ptr)) {
             NtCurrentTeb()->LastErrorValue = ERROR_INVALID_PARAMETER;
@@ -120,6 +121,7 @@ namespace Memory {
         }
 
         LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash) {
+
             const auto head = (LIST_ENTRY*) &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
             for (auto next = head->Flink; next != head; next = next->Flink) {
@@ -171,7 +173,7 @@ namespace Memory {
             int         reload = 0;
 
             const auto mod_hash = Utils::HashStringA(module_name, x_strlen(module_name));
-            const auto fn_hash = Utils::HashStringA(export_name, x_strlen(export_name));
+            const auto fn_hash  = Utils::HashStringA(export_name, x_strlen(export_name));
 
             while (!symbol) {
                 if (!(F_PTR_HASHES(symbol, mod_hash, fn_hash))) {
@@ -204,6 +206,17 @@ namespace Memory {
             return false;
         }
 
+        BOOL SymbolScan(const char* string, const char symbol, size_t length) {
+
+            for (auto i = 0; i < length - 1; i++) {
+                if (string[i] == symbol) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         UINT_PTR RelocateExport(void* const process, const void* const target, size_t size) {
 
             uintptr_t   ret     = 0;
@@ -228,23 +241,12 @@ namespace Memory {
             return (*mask == 0x00);
         }
 
-        BOOL SymbolScan(char* string, char symbol, size_t length) {
-
-            for (auto i = 0; i < length - 1; i++) {
-                if (string[i] == symbol) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         UINT_PTR SignatureScan(void* process, const uintptr_t start, const uint32_t size, const char* signature, const char* mask) {
 
             size_t      read    = 0;
             uintptr_t   address = 0;
-            uint8_t     *buffer = (uint8_t*) x_malloc(size);
 
+            auto buffer = (uint8_t*) x_malloc(size);
             x_ntassert(Ctx->nt.NtReadVirtualMemory(process, (void*) start, buffer, size, &read));
 
             for (auto i = 0; i < size; i++) {

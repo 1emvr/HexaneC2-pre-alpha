@@ -20,18 +20,19 @@ namespace Implant {
 
             Dispatcher::DispatchRoutine();
 
-            if (ntstatus != ERROR_SUCCESS) {
+            if (!NT_SUCCESS(ntstatus)) {
                 Ctx->session.retry++;
 
                 if (Ctx->session.retry == 3) { break; }
                 continue;
             }
+
             Ctx->session.retry = 0;
         }
         while (ntstatus != ERROR_EXIT);
 
     defer:
-        Memory::Context::ContextDestroy(Ctx);
+        Memory::Context::ContextDestroy();
     }
 
 
