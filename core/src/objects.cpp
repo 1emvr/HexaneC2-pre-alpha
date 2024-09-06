@@ -51,9 +51,8 @@ namespace Objects {
         bool success    = true;
         bool import     = false;
 
-        char sym_name[1024] = { };
-        char *library       = { };
-        char *function      = { };
+        char *library   = { };
+        char *function  = { };
 
         *pointer = nullptr;
 
@@ -74,26 +73,20 @@ namespace Objects {
         else if (Utils::HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
             auto length = x_strlen(sym_string);
 
-            for (auto i = COFF_PREP_SYMBOL_SIZE +1; i < length -1; i++) {
-                if (sym_string[i] == '$') {
+            for (auto i = COFF_PREP_SYMBOL_SIZE + 1; i < length - 1; i++) {
+                if (sym_string[i] == 0x24) {
                     import = true;
                 }
             }
 
             if (import) {
                 int count   = 0;
-                auto split  = x_split(S_PTR(sym_string) + COFF_PREP_SYMBOL_SIZE, S_PTR('$'), &count);
+                auto split  = x_split(S_PTR(sym_string) + COFF_PREP_SYMBOL_SIZE, S_PTR(0x24), &count);
 
                 library     = split[0];
                 function    = split[1];
-
 #if _M_IX86
-                for (auto i = 0; function[i]; i++) {
-                    if (function[i] == '@') {
-                        function[i] = 0;
-                        break;
-                    }
-                }
+                IX86_SYM_STRIP(function);
 #endif
                 auto lib_hash   = Utils::HashStringA(library, x_strlen(library));
                 auto fn_hash    = Utils::HashStringA(function, x_strlen(function));
@@ -103,22 +96,20 @@ namespace Objects {
                 }
 
                 x_assertb(C_PTR_HASHES(*pointer, lib_hash, fn_hash));
+                success_(true);
             }
             else {
                 function = sym_string + COFF_PREP_SYMBOL_SIZE;
 #if _M_IX86
-                for (auto i = 0; function[i]; i++) {
-                    if (function[i] == '@') {
-                        function[i] = 0;
-                        break;
-                    }
-                }
+                IX86_SYM_STRIP(function);
 #endif
+                auto fn_hash = Utils::HashStringA(function, x_strlen(function));
+
                 for (auto i = 0;; i++) {
                     if (!loader_wrappers[i].name) {
                         break;
                     }
-                    if (Utils::HashStringA(function, x_strlen(function)) == loader_wrappers[i].name) {
+                    if (fn_hash == loader_wrappers[i].name) {
                         *pointer = loader_wrappers[i].address;
                         success_(true);
                     }

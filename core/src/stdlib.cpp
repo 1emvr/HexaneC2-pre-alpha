@@ -323,7 +323,7 @@ char** x_split(const char* str, const char* delim, int* count) {
     char *temp      = { };
     char *token     = { };
 
-    int size    = 10;
+    int size    = 2;
     int index   = 0;
 
     x_assert(temp   = x_strdup(str));
@@ -332,7 +332,7 @@ char** x_split(const char* str, const char* delim, int* count) {
 
     while (token) {
         if (index > size) {
-            size    *= 2;
+            size    += 1;
             temp_res = (char**) x_realloc(result, size * sizeof(char*));
 
             if (!temp_res) {

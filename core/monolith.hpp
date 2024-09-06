@@ -163,6 +163,9 @@ EXTERN_C LPVOID InstEnd();
 #define M_PTR(mod_hash)								Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash))
 #define NT_ASSERT(Fn)								Fn; if (NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) return
 
+#define RANDOM_SELECT(ptr, arr)                 	auto a = 0; DYN_ARRAY_LEN(a, arr); ptr = arr[a % Utils::Random::RandomNumber32()]
+#define IX86_SYM_STRIP(x)         					for (auto a = 0; x[a]; a++) { if (x[a] == 0x40) { x[a] = 0; break; }
+
 #define return_defer(x)			                	ntstatus = x; goto defer
 #define success_(x)				                	success = x; goto defer
 
@@ -178,12 +181,6 @@ EXTERN_C LPVOID InstEnd();
     (ptr)->ObjectName = name;									\
     (ptr)->SecurityDescriptor = sec;							\
     (ptr)->SecurityQualityOfService = NULL
-
-#define RANDOM_SELECT(ptr, arr)                         \
-        int i = 0;										\
-        DYN_ARRAY_LEN(i, arr);							\
-        ptr = arr[i % Utils::Random::RandomNumber32()]
-
 
 
 typedef NTSTATUS(NTAPI* NtReadVirtualMemory_t)(HANDLE ProcessHandle, PVOID BaseAddress, PVOID Buffer, SIZE_T BufferSize, PSIZE_T NumberOfBytesRead);
