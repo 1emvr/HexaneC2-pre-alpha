@@ -192,6 +192,7 @@ namespace Objects {
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
             if (U_PTR(entrypoint) >= SEC_START(object->sec_map, sec_index) && U_PTR(entrypoint) < SEC_END(object->sec_map, sec_index)) {
+
                 object->section = (IMAGE_SECTION_HEADER*) object->buffer + sizeof(IMAGE_FILE_HEADER) + sizeof(IMAGE_SECTION_HEADER) * sec_index;
 
                 if ((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) != IMAGE_SCN_MEM_EXECUTE) {
