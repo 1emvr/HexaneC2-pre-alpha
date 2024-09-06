@@ -25,6 +25,7 @@ namespace Memory {
     }
 
     namespace Scanners {
+        FUNCTION BOOL MapScan(_hash_map* map, void** pointer, uint32_t id);
         FUNCTION UINT_PTR RelocateExport(void* process, const void* target, size_t size);
         FUNCTION BOOL SigCompare(const uint8_t* data, const char* signature, const char* mask);
         FUNCTION UINT_PTR SignatureScan(uintptr_t start, uint32_t size, const char* signature, const char* mask);

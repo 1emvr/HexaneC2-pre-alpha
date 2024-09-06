@@ -191,6 +191,20 @@ namespace Memory {
 
     namespace Scanners {
 
+        BOOL MapScan(_hash_map* map, void** pointer, uint32_t id) {
+
+            for (auto i = 0;; i++) {
+                if (!map[i].name) { break; }
+
+                if (id == map[i].name) {
+                    *pointer = map[i].address;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         UINT_PTR RelocateExport(void* const process, const void* const target, size_t size) {
 
             uintptr_t   ret     = 0;
