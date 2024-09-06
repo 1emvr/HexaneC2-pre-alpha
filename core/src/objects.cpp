@@ -205,7 +205,7 @@ namespace Objects {
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
 
             object->section = SECTION_HEADER(object->buffer, sec_index);
-            object->reloc   = RELOC_SECTION(object->buffer, object->section->PointerToRelocations);
+            object->reloc   = RELOC_SECTION(object->buffer, object->section);
 
             for (auto rel_index = 0; rel_index < object->section->NumberOfRelocations; rel_index++) {
                 _coff_symbol *symbol = &object->symbol[object->reloc->SymbolTableIndex];

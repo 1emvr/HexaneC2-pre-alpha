@@ -58,7 +58,7 @@ EXTERN_C LPVOID InstEnd();
 #define NT_HEADERS(base, dos)			    		(R_CAST(PIMAGE_NT_HEADERS, B_PTR(base) + dos->e_lfanew))
 #define EXPORT_DIRECTORY(dos, nt)	        		(R_CAST(PIMAGE_EXPORT_DIRECTORY, (U_PTR(dos) + (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)))
 #define SECTION_HEADER(data, i)   		            (R_CAST(PIMAGE_SECTION_HEADER, U_PTR(data) + sizeof(IMAGE_FILE_HEADER) + U_PTR(sizeof(IMAGE_SECTION_HEADER) * i)))
-#define RELOC_SECTION(b, r) 			            (R_CAST(_reloc*, C_PTR(U_PTR(b) + r)))
+#define RELOC_SECTION(buffer, section) 			    (R_CAST(_reloc*, C_PTR(U_PTR(buffer) + section->PointerToRelocations)))
 #define SYMBOL_TABLE(buffer, nt_head) 				(R_CAST(_coff_symbol*, U_PTR(buffer) + nt_head->FileHeader.PointerToSymbolTable))
 #define SEC_START(map, index)                       (U_PTR(B_PTR(map[index].address)))
 #define SEC_END(map, index)                         (U_PTR(B_PTR(map[index].address) + map[index].size))
