@@ -28,7 +28,7 @@ namespace Objects {
         return EXCEPTION_CONTINUE_EXECUTION;
     }
 
-    VOID FunctionWrapper(void *address, void *args, size_t size) {
+    VOID WrapperFunction(void *address, void *args, size_t size) {
 
         auto function = (obj_entry) address;
         WrapperReturn = __builtin_extract_return_addr(__builtin_return_address(0));
@@ -100,15 +100,15 @@ namespace Objects {
                 bit_mask = object->section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ| IMAGE_SCN_MEM_WRITE);
 
                 switch (bit_mask) {
-                case PAGE_NOACCESS:         protect = PAGE_NOACCESS;
-                case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE;
-                case IMAGE_SCN_MEM_READ:    protect = PAGE_READONLY;
-                case IMAGE_SCN_MEM_WRITE:   protect = PAGE_WRITECOPY;
-                case IMAGE_SCN_MEM_RX:      protect = PAGE_EXECUTE_READ;
-                case IMAGE_SCN_MEM_WX:      protect = PAGE_EXECUTE_WRITECOPY;
-                case IMAGE_SCN_MEM_RW:      protect = PAGE_READWRITE;
-                case IMAGE_SCN_MEM_RWX:     protect = PAGE_EXECUTE_READWRITE;
-                default: success_(false);
+                    case PAGE_NOACCESS:         protect = PAGE_NOACCESS;
+                    case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE;
+                    case IMAGE_SCN_MEM_READ:    protect = PAGE_READONLY;
+                    case IMAGE_SCN_MEM_WRITE:   protect = PAGE_WRITECOPY;
+                    case IMAGE_SCN_MEM_RX:      protect = PAGE_EXECUTE_READ;
+                    case IMAGE_SCN_MEM_WX:      protect = PAGE_EXECUTE_WRITECOPY;
+                    case IMAGE_SCN_MEM_RW:      protect = PAGE_READWRITE;
+                    case IMAGE_SCN_MEM_RWX:     protect = PAGE_EXECUTE_READWRITE;
+                    default: success_(false);
                 }
 
                 if ((object->section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED) == IMAGE_SCN_MEM_NOT_CACHED) {
@@ -120,26 +120,41 @@ namespace Objects {
         }
 
         if (object->fn_map->size) {
-            x_ntassertb(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &object->fn_map, &object->fn_map->size, PAGE_READONLY, nullptr));
+            x_ntassertb(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &object->fn_map, &object->fn_map->size, PAGE_READONLY, nullptr));
+        }
 
-            for (auto sym_index = 0; sym_index < object->nt_head->FileHeader.NumberOfSymbols; sym_index++) {
-                if (object->symbol[sym_index].First.Value[0]) {
-                    sym_name = object->symbol[sym_index].First.Name;
-                }
-                else {
-                    sym_name = (char*)(object->symbol + object->nt_head->FileHeader.NumberOfSymbols) + object->symbol[sym_index].First.Value[1];
-                }
+        for (auto sym_index = 0; sym_index < object->nt_head->FileHeader.NumberOfSymbols; sym_index++) {
+            if (object->symbol[sym_index].First.Value[0]) {
+                sym_name = object->symbol[sym_index].First.Name;
+            }
+            else {
+                sym_name = (char*)(object->symbol + object->nt_head->FileHeader.NumberOfSymbols) + object->symbol[sym_index].First.Value[1];
+            }
 
-                const auto name_hash = Utils::GetHashFromStringA(sym_name, x_strlen(sym_name));
+            const auto name_hash = Utils::GetHashFromStringA(sym_name, x_strlen(sym_name));
 
-                if (x_memcmp(&name_hash, &function, sizeof(uint32_t)) == 0) {
-                    entrypoint = object->sec_map[object->symbol[sym_index].SectionNumber - 1].address + object->symbol[sym_index].Value;
-                    break;
+            if (x_memcmp(&name_hash, &function, sizeof(uint32_t)) == 0) {
+                x_assertb(entrypoint = object->sec_map[object->symbol[sym_index].SectionNumber - 1].address + object->symbol[sym_index].Value);
+                break;
+            }
+        }
+
+        for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            if (U_PTR(entrypoint) >= SEC_START(object->sec_map, sec_index) && U_PTR(entrypoint) < SEC_END(object->sec_map, sec_index)) {
+                object->section = (IMAGE_SECTION_HEADER*) object->buffer + sizeof(IMAGE_FILE_HEADER) + sizeof(IMAGE_SECTION_HEADER) * sec_index;
+
+                if ((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) != IMAGE_SCN_MEM_EXECUTE) {
+                    success_(false);
                 }
             }
         }
 
+        WrapperFunction(entrypoint, args, size);
+
         defer:
+        if (veh_handle) {
+            Ctx->nt.RtlRemoveVectoredExceptionHandler(veh_handle);
+        }
         return success;
     }
 }
