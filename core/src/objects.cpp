@@ -131,7 +131,7 @@ namespace Objects {
         }
 
         if (object->fn_map->size) {
-            x_ntassertb(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &object->fn_map->address, &object->fn_map->size, PAGE_READONLY, nullptr));
+            x_ntassertb(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &object->fn_map->address, &object->fn_map->size, PAGE_READONLY, nullptr));
         }
 
         for (auto sym_index = 0; sym_index < object->nt_head->FileHeader.NumberOfSymbols; sym_index++) {
