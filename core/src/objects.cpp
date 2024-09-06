@@ -27,7 +27,7 @@ namespace Objects {
 
         _stream *stream = Stream::CreateTaskResponse(TypeError);
 
-        exception->ContextRecord->IP_REG = (uint64_t)(U_PTR(WrapperReturn));
+        exception->ContextRecord->IP_REG = U_PTR(WrapperReturn);
 
         Stream::PackDword(stream,   ERROR_UNHANDLED_EXCEPTION);
         Stream::PackDword(stream,   exception->ExceptionRecord->ExceptionCode);
