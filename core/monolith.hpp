@@ -49,7 +49,7 @@ EXTERN_C LPVOID InstEnd();
 #define REG_PEB32(Ctx) 						        ((LPVOID) (ULONG_PTR) Ctx.Ebx + 0x8)
 #define REG_PEB64(Ctx) 						        ((LPVOID) (ULONG_PTR) Ctx.Rdx + 0x10)
 
-#define DOS_HEADER(base)                    		RVA(PIMAGE_DOS_HEADER, 			base, 0)
+#define DOS_HEADER(base)                    		((PIMAGE_DOS_HEADER) 			base)
 #define NT_HEADERS(base, dos)			    		RVA(PIMAGE_NT_HEADERS, base, 	dos->e_lfanew)
 #define EXPORT_DIRECTORY(dos, nt)	        		RVA(PIMAGE_EXPORT_DIRECTORY, 	dos, (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)
 #define SECTION_HEADER(data, i)   		            RVA(PIMAGE_SECTION_HEADER, 		data, (sizeof(IMAGE_FILE_HEADER) + sizeof(IMAGE_SECTION_HEADER) * i))

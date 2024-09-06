@@ -364,7 +364,7 @@ namespace Objects {
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
             object->section = SECTION_HEADER(object->buffer, sec_index);
             object->size    += object->section->SizeOfRawData;
-            object->size    = (size_t) U_PTR(PAGE_ALIGN(object->size));
+            object->size    = (size_t) PAGE_ALIGN(object->size);
         }
 
         object->size += object->fn_map->size;
