@@ -341,7 +341,7 @@ impl Hexane {
                 err_clone.send(e).unwrap();
             }
             else {
-                components.push(output.parse().unwrap().to_string());
+                components.push(output.parse::<Vec<String>>().unwrap().to_string());
             }
         });
 
