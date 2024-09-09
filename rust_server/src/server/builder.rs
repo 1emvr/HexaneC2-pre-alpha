@@ -8,7 +8,31 @@ use std::fs;
 
 use crate::return_error;
 use crate::server::error::{Error, Result};
-use crate::server::utils::{create_cpp_array, run_command};
+use crate::server::utils::{create_cpp_array, run_command, wrap_message};
+
+fn generate_includes(includes: Vec<String>) -> String {
+    includes.iter().map(|inc| format!(" -I{} ", inc)).collect::<Vec<_>>().join("")
+}
+
+fn generate_arguments(args: Vec<String>) -> String {
+    args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
+}
+
+fn generate_definitions(defs: HashMap<String, Vec<u8>>) -> String {
+    let mut definitions = String::new();
+
+    for (name, def) in defs {
+        let arr = create_cpp_array(&def, def.len());
+
+        if def.is_empty() {
+            definitions.push_str(&format!(" -D{} ", name));
+        } else {
+            definitions.push_str(&format!(" -D{}={:?} ", name, arr));
+        }
+    }
+
+    definitions
+}
 
 struct CompileTarget {
     command:        String,
@@ -49,6 +73,8 @@ impl CompileTarget {
                 match path.extension().and_then(|ext| ext.to_str()) {
 
                     Some("asm") => {
+                        wrap_message("debug", &format!("compiling {}", &output.display()));
+
                         let flags = vec!["-f win64".to_string()];
 
                         let target = CompileTarget {
@@ -67,6 +93,8 @@ impl CompileTarget {
                     }
 
                     Some("cpp") => {
+                        wrap_message("debug", &format!("compiling {}", &output.display()));
+
                         let mut flags = self.flags.clone();
                         flags.push("-c".to_string());
 
@@ -128,31 +156,8 @@ impl CompileTarget {
 
         self.command += &format!(" -o {} ", self.output_name);
 
+        wrap_message("debug", &self.command);
         run_command(&self.command, &self.peer_id.to_string())
     }
-}
-
-fn generate_includes(includes: Vec<String>) -> String {
-    includes.iter().map(|inc| format!(" -I{} ", inc)).collect::<Vec<_>>().join("")
-}
-
-fn generate_arguments(args: Vec<String>) -> String {
-    args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
-}
-
-fn generate_definitions(defs: HashMap<String, Vec<u8>>) -> String {
-    let mut definitions = String::new();
-
-    for (name, def) in defs {
-        let arr = create_cpp_array(&def, def.len());
-
-        if def.is_empty() {
-            definitions.push_str(&format!(" -D{} ", name));
-        } else {
-            definitions.push_str(&format!(" -D{}={:?} ", name, arr));
-        }
-    }
-
-    definitions
 }
 

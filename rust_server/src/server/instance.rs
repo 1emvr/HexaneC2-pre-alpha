@@ -8,7 +8,7 @@ use crate::server::session::{CURDIR, SESSION, USERAGENT};
 use crate::server::types::{NetworkType, InjectionOptions, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, JsonData, BuildType};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::error::{Error, Result};
-use crate::server::utils::wrap_message;
+use crate::server::utils::{generate_hashes, wrap_message};
 use crate::server::stream::Stream;
 use crate::{return_error, length_check_defer};
 
@@ -30,7 +30,7 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
         instance.setup_listener()?;
     }
 
-    wrap_message("info", format!("{} is ready", instance.builder.output_name));
+    wrap_message("info", &format!("{} is ready", instance.builder.output_name));
     INSTANCES.lock().unwrap().push(instance);
     // todo: insert to db
 
@@ -43,7 +43,7 @@ pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
     let mut instances = INSTANCES.lock().map_err(|e| e.to_string())?;
     if let Some(pos) = instances.iter().position(|instance| instance.builder.output_name == args[2]) {
 
-        wrap_message("info", format!("{} removed", instances[pos].builder.output_name));
+        wrap_message("info", &format!("{} removed", instances[pos].builder.output_name));
         instances.remove(pos);
         // todo: remove from db
 
@@ -100,6 +100,22 @@ pub struct Hexane {
     pub(crate) user_session:    UserSession,
 }
 impl Hexane {
+    fn run_build(&mut self) -> Result<Error> {
+        wrap_message("DBG", &"creating build directory".to_owned());
+        fs::create_dir(&self.compiler.build_directory)?;
+
+        wrap_message("DBG", &"generating config data".to_owned());
+        self.generate_config_bytes()?;
+
+        wrap_message("DBG", &"generating string hashes".to_owned());
+        generate_hashes(&HASH_STRINGS, &HASH_HEADER)?;
+
+        wrap_message("DBG", &"building sources".to_owned());
+        self.build_source()?;
+
+        self.run_server()
+    }
+
     fn setup_instance(&mut self) -> Result<()> {
         let mut rng = rand::thread_rng();
 

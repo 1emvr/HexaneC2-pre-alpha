@@ -24,7 +24,7 @@ use self::session::{init};
 use self::utils::{wrap_message, stop_print_channel};
 use self::instance::{Hexane, load_instance, interact_instance, remove_instance};
 use crate::server::format::list_instances;
-use crate::{invalid_input, length_check_continue};
+use crate::{invalid_input};
 
 lazy_static!(
     pub(crate) static ref INSTANCES: Arc<Mutex<Vec<Hexane>>> = Arc::new(Mutex::new(vec![]));
@@ -49,24 +49,28 @@ pub fn run_client() {
             "help"      => print_help(),
             "implant"   => {
 
-                length_check_continue!(args, 2);
+                if args.len() < 2 {
+                    wrap_message("error", &"invalid input".to_owned());
+                    continue;
+                }
                 match args[1].as_str() {
-                    "ls"    => { list_instances().unwrap_or_else(|e| wrap_message("error", e.to_string())) },
-                    "load"  => { load_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
-                    "rm"    => { remove_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
-                    "i"     => { interact_instance(args).unwrap_or_else(|e| wrap_message("error", e.to_string())) },
+                    "ls"    => { list_instances().unwrap_or_else(|e| wrap_message("error", &e.to_string())) },
+                    "load"  => { load_instance(args).unwrap_or_else(|e| wrap_message("error", &e.to_string())) },
+                    "rm"    => { remove_instance(args).unwrap_or_else(|e| wrap_message("error", &e.to_string())) },
+                    "i"     => { interact_instance(args).unwrap_or_else(|e| wrap_message("error", &e.to_string())) },
 
-                    _ => invalid_input!(args.join(" ").to_string())
+                    _ => wrap_message("error", &"invalid input".to_owned())
+
                 }
             },
 
             "listener" => {
                 // todo: add listener
-                wrap_message("error", format!("listener not yet implemented"));
+                wrap_message("error", &"listener not yet implemented".to_owned());
             }
 
             _ => {
-                invalid_input!(args.join(" ").to_string());
+                wrap_message("error", &"invalid input".to_owned())
             }
         }
     }

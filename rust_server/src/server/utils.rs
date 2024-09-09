@@ -44,7 +44,7 @@ pub fn print_channel() {
     }
 }
 
-pub fn wrap_message(typ: &str, msg: String) {
+pub fn wrap_message(typ: &str, msg: &String) {
     let sender = &CHANNEL.0;
     let message = Message { msg_type: typ.to_string(), msg: msg.to_string(),};
 
@@ -97,7 +97,7 @@ pub(crate) fn create_hash_macro(s: &str) -> String {
     )
 }
 
-fn generate_hashes(strings_file: &str, out_file: &str) -> Result<()> {
+pub(crate) fn generate_hashes(strings_file: &str, out_file: &str) -> Result<()> {
     let str_file    = File::open(strings_file)?;
     let scanner     = BufReader::new(str_file).lines();
 
@@ -151,4 +151,3 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
 
     Ok(())
 }
-
