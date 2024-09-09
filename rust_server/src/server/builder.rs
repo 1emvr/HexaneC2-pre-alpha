@@ -134,6 +134,8 @@ pub fn compile_sources(mut instance: Hexane) -> Result<()> {
         return_error!("{}", err);
     }
 
+    // todo: link all objects
+
     Ok(())
 }
 
