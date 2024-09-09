@@ -10,30 +10,6 @@ use crate::server::binary::embed_section_data;
 use crate::server::error::{Error, Result};
 use crate::server::utils::{create_cpp_array, run_command, wrap_message};
 
-pub fn generate_includes(includes: Vec<String>) -> String {
-    includes.iter().map(|inc| format!(" -I{} ", inc)).collect::<Vec<_>>().join("")
-}
-
-pub fn generate_arguments(args: Vec<String>) -> String {
-    args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
-}
-
-pub fn generate_definitions(defs: HashMap<String, Vec<u8>>) -> String {
-    let mut definitions = String::new();
-
-    for (name, def) in defs {
-        let arr = create_cpp_array(&def, def.len());
-
-        if def.is_empty() {
-            definitions.push_str(&format!(" -D{} ", name));
-        } else {
-            definitions.push_str(&format!(" -D{}={:?} ", name, arr));
-        }
-    }
-
-    definitions
-}
-
 pub struct CompileTarget {
     pub command:        String,
     pub output_name:    String,
@@ -112,12 +88,12 @@ impl CompileTarget {
                         let target = CompileTarget {
                             command:        "x86_64-w64-mingw32-g++".to_string(),
                             output_name:    output.to_string_lossy().to_string(),
-                            components:     vec![path.to_string_lossy().to_string()],
-                            config_data:    vec![],
                             includes:       inc_clone,
                             definitions:    def_clone,
                             peer_id:        self.peer_id,
                             debug:          self.debug,
+                            components:     vec![path.to_string_lossy().to_string()],
+                            config_data:    vec![],
                             flags,
                         };
 
@@ -141,6 +117,8 @@ impl CompileTarget {
     }
 
     pub fn compile_object(mut self) -> Result<()> {
+        // todo: definitions aren't defined yet
+
         if self.debug && self.command != "ld" && self.command != "nasm" {
             self.definitions.insert("DEBUG".to_string(), vec![]);
         }
@@ -173,5 +151,29 @@ impl CompileTarget {
             self.strip_symbols(self.output_name.as_str())?;
         }
     }
+}
+
+pub fn generate_includes(includes: Vec<String>) -> String {
+    includes.iter().map(|inc| format!(" -I{} ", inc)).collect::<Vec<_>>().join("")
+}
+
+pub fn generate_arguments(args: Vec<String>) -> String {
+    args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
+}
+
+pub fn generate_definitions(defs: HashMap<String, Vec<u8>>) -> String {
+    let mut definitions = String::new();
+
+    for (name, def) in defs {
+        let arr = create_cpp_array(&def, def.len());
+
+        if def.is_empty() {
+            definitions.push_str(&format!(" -D{} ", name));
+        } else {
+            definitions.push_str(&format!(" -D{}={:?} ", name, arr));
+        }
+    }
+
+    definitions
 }
 
