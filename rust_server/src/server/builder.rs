@@ -1,5 +1,4 @@
 use rayon::prelude::*;
-use std::process::Command;
 use std::collections::HashMap;
 use std::{env, fs};
 use std::path::Path;
@@ -11,16 +10,20 @@ use crate::server::binary::embed_section_data;
 use crate::server::utils::{create_cpp_array, run_command, wrap_message};
 
 pub fn generate_includes(includes: Vec<String>) -> String {
+    wrap_message("debug", &"including directories".to_owned());
     includes.iter().map(|inc| format!(" -I{} ", inc)).collect::<Vec<_>>().join("")
 }
 
 pub fn generate_arguments(args: Vec<String>) -> String {
+    wrap_message("debug", &"generating arguments".to_owned());
     args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
 }
 
 pub fn generate_definitions(definitions: HashMap<String, Vec<u8>>, cpp_arr: bool) -> String {
     let mut defs    = String::new();
     let mut arr     = Vec::new();
+
+    wrap_message("debug", &"generating defintions".to_owned());
 
     for (name, def) in definitions {
         if cpp_arr {
@@ -83,7 +86,6 @@ impl CompileTarget {
         }
 
         self.command += &format!(" -o {} ", self.output_name);
-
         run_command(&self.command, &self.peer_id.to_string())?;
 
         wrap_message("debug", &"embedding config data".to_owned());
