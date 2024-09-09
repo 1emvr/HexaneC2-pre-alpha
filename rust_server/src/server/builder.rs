@@ -45,9 +45,15 @@ pub fn compile_object(mut instance: Hexane, flags: Vec<String>, mut defs: HashMa
         }
     }
 
-    match instance.network_type {
-        NetworkType::Http   => defs.insert("TRANSPORT_HTTP".to_string(), vec![]),
-        NetworkType::Smb    => defs.insert("TRANSPORT_PIPE".to_string(), vec![]),
+    let Some(network) = &instance.network;
+    if network.is_some() {
+        match network.r#type {
+            NetworkType::Http   => defs.insert("TRANSPORT_HTTP".to_string(), vec![]),
+            NetworkType::Smb    => defs.insert("TRANSPORT_PIPE".to_string(), vec![]),
+        }
+    }
+    else {
+        return_error!("could not get network type during compilation")
     }
 
     match instance.main.architecture {

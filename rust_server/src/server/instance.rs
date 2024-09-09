@@ -95,7 +95,6 @@ pub struct Hexane {
     pub(crate) crypt_key:       Vec<u8>,
     pub(crate) shellcode:       Vec<u8>,
     pub(crate) config_data:     Vec<u8>,
-    pub(crate) network_type:    u8,
     pub(crate) active:          bool,
 
     pub(crate) main:            Config,
