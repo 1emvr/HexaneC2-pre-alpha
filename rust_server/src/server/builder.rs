@@ -78,7 +78,6 @@ pub fn compile_object(mut instance: Hexane, flags: Vec<String> ) -> Result<()> {
     instance.compiler.command += &format!(" -o {} ", instance.builder.output_name);
     run_command(&instance.compiler.command, &instance.peer_id.to_string())?;
 
-    wrap_message("debug", &"embedding config data".to_owned());
     embed_section_data(&instance.builder.output_name, ".text$F", &instance.config_data.as_slice())?;
 }
 

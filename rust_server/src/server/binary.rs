@@ -1,12 +1,10 @@
-use pelite::pe32::headers::SectionHeader;
-use pelite::PeFile;
-
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
+use pelite::{PeFile, pe32::headers::SectionHeader};
 
 use crate::return_error;
 use crate::server::error::{Result, Error};
-use crate::server::utils::find_double_u32;
+use crate::server::utils::{find_double_u32, wrap_message};
 
 struct Section {
     data:       Vec<u8>,
@@ -56,12 +54,14 @@ pub(crate) fn embed_section_data(target_path: &str, target_section: &str, data: 
     let offset              = find_double_u32(&section_data.data, &[0x41,0x41,0x41,0x41])?;
     let size                = section_data.section.SizeOfRawData;
 
+    wrap_message("debug", &"embedding config data".to_owned());
+
     if data.len() > size as usize {
         return Err(Error::Custom(format!("data is longer than {target_section}.SizeOfRawData")))
     }
 
     if offset + data.len() > size as usize {
-        return_error!("data is too long to be written to the offset of 'AAAA'. this would write OOB")
+        return_error!("data is too long for the offset. This would write outside of the section")
     }
 
     section_data.data[offset..offset + data.len()].copy_from_slice(data);
