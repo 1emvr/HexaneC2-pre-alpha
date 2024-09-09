@@ -64,7 +64,7 @@ pub(crate) fn interact_instance(args: Vec<String>) -> Result<()> {
     Ok(())
 }
 
-pub fn map_config(file_path: &String) -> Result<Hexane> {
+fn map_config(file_path: &String) -> Result<Hexane> {
     let json_file = CURDIR.join("json").join(file_path);
 
     let contents    = fs::read_to_string(json_file).map_err(Error::Io)?;
@@ -105,9 +105,10 @@ pub struct Hexane {
     pub(crate) user_session:    UserSession,
 }
 impl Hexane {
+    // todo: add config db write/delete
+
     fn setup_instance(&mut self) -> Result<()> {
-        // todo: add config db write/delete
-        let mut rng         = rand::thread_rng();
+        let mut rng = rand::thread_rng();
 
         let strings_file    = "./config/strings.txt";
         let hash_file       = "./core/src/include/names.hpp";
@@ -146,8 +147,8 @@ impl Hexane {
 
     fn generate_config_bytes(&mut self) -> Result<()> {
         self.crypt_key = crypt_create_key(16);
-
         let mut patch = self.create_binary_patch()?;
+
         if self.main.encrypt {
             let patch_cpy = patch.clone();
             patch = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
