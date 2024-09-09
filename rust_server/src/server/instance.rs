@@ -216,7 +216,7 @@ impl Hexane {
             match (&network.r#type, &network.options) {
 
                 (NetworkType::Http, NetworkOptions::Http(ref http)) => {
-                    stream.pack_wstring(http.useragent.as_ref().unwrap().as_str());
+                    stream.pack_wstring(http.useragent.as_ref().unwrap());
                     stream.pack_wstring(&http.address);
                     stream.pack_dword(http.port as u32);
                     stream.pack_dword(http.endpoints.len() as u32);
@@ -234,8 +234,8 @@ impl Hexane {
 
                         stream.pack_dword(1);
                         stream.pack_wstring(&proxy_url);
-                        stream.pack_wstring(proxy.username.as_ref().unwrap().as_str());
-                        stream.pack_wstring(proxy.password.as_ref().unwrap().as_str());
+                        stream.pack_wstring(proxy.username.as_ref().unwrap());
+                        stream.pack_wstring(proxy.password.as_ref().unwrap());
                     } else {
                         stream.pack_dword(0);
                     }
