@@ -38,7 +38,8 @@ impl Parser {
             self.msg_length -= 1;
 
             buffer
-        } else {
+        }
+        else {
             vec![0; 1]
         }
     }
@@ -57,12 +58,12 @@ impl Parser {
 
             if self.big_endian {
                 BigEndian::read_u32(buffer)
-            } else {
+            }
+            else {
                 LittleEndian::read_u32(buffer)
             }
-        } else {
-            0
         }
+        else { 0 }
     }
 
     pub fn parse_dword64(&mut self) -> u64 {
@@ -74,12 +75,12 @@ impl Parser {
 
             if self.big_endian {
                 BigEndian::read_u64(buffer)
-            } else {
+            }
+            else {
                 LittleEndian::read_u64(buffer)
             }
-        } else {
-            0
         }
+        else { 0 }
     }
 
     pub fn parse_bytes(&mut self) -> Vec<u8> {
@@ -92,9 +93,8 @@ impl Parser {
             self.msg_length -= size as u32;
 
             buffer
-        } else {
-            vec![]
         }
+        else { vec![] }
     }
 
     pub fn parse_wstring(&mut self) -> String {

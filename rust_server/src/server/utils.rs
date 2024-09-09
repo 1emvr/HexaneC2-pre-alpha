@@ -71,7 +71,8 @@ pub(crate) fn create_cpp_array(buffer: &[u8], length: usize) -> Vec<u8> {
     for (i, &byte) in buffer.iter().enumerate() {
         if i == length - 1 {
             array += &format!("0x{:02X}", byte);
-        } else {
+        }
+        else {
             array += &format!("0x{:02X},", byte);
         }
     }
@@ -86,7 +87,8 @@ pub(crate) fn create_hash_macro(s: &str) -> String {
 
     let (name, is_unicode) = if lower.ends_with(".dll") {
         (encode_utf16(&lower), true)
-    } else {
+    }
+    else {
         (lower.into_bytes(), false)
     };
 

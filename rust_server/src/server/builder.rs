@@ -169,7 +169,8 @@ pub fn generate_definitions(defs: HashMap<String, Vec<u8>>) -> String {
 
         if def.is_empty() {
             definitions.push_str(&format!(" -D{} ", name));
-        } else {
+        }
+        else {
             definitions.push_str(&format!(" -D{}={:?} ", name, arr));
         }
     }

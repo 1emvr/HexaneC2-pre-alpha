@@ -53,7 +53,8 @@ pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
         // todo: remove from db
 
         Ok(())
-    } else {
+    }
+    else {
         return_error!("Implant not found")
     }
 }
@@ -118,7 +119,8 @@ impl Hexane {
 
         if self.main.debug {
             self.compiler.compiler_flags = "-std=c++23 -g -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin -Wl,--no-seh,--enable-stdcall-fixup,--gc-sections".to_owned();
-        } else {
+        }
+        else {
             self.compiler.compiler_flags = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC  -fno-builtin -Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections".to_owned();
         }
 
@@ -161,20 +163,20 @@ impl Hexane {
     fn create_binary_patch(&mut self) -> Result<Vec<u8>> {
         let mut stream = Stream::new();
 
-        let http    = NetworkType::Http as u8;
-        let smb     = NetworkType::Smb as u8;
-
-        if self.network_type == http {
-            stream.pack_byte(http);
-        } else if self.network_type == smb {
-            stream.pack_byte(smb);
-        } else {
+        if self.network_type == NetworkType::Http as u8 {
+            stream.pack_byte(NetworkType::Http as u8);
+        }
+        else if self.network_type == NetworkType::Smb as u8 {
+            stream.pack_byte(NetworkType::Smb as u8);
+        }
+        else {
             return_error!("invalid network type")
         }
 
         if self.main.architecture == "amd64" {
             stream.pack_dword(1);
-        } else {
+        }
+        else {
             stream.pack_dword(0);
         }
 
@@ -199,15 +201,13 @@ impl Hexane {
 
         let working_hours = if let Some(ref hours) = self.main.working_hours {
             i32::from_str(hours)?
-        } else {
-            0
-        };
+        }
+        else { 0 };
 
         let kill_date = if let Some(ref date) = self.main.killdate {
             i64::from_str(date)?
-        } else {
-            0
-        };
+        }
+        else { 0 };
 
         stream.pack_int32(working_hours);
         stream.pack_dword64(kill_date);
@@ -236,7 +236,8 @@ impl Hexane {
                         stream.pack_wstring(&proxy_url);
                         stream.pack_wstring(proxy.username.as_ref().unwrap());
                         stream.pack_wstring(proxy.password.as_ref().unwrap());
-                    } else {
+                    }
+                    else {
                         stream.pack_dword(0);
                     }
                 },

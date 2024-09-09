@@ -82,7 +82,8 @@ pub fn crypt_xtea(config: &[u8], key: &[u8], encrypt: bool) -> Result<Vec<u8>, B
 
         if encrypt  {
             cipher.encrypt(&mut buf, section);
-        } else {
+        }
+        else {
             cipher.decrypt(&mut buf, section);
         }
 

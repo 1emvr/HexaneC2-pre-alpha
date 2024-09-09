@@ -29,7 +29,8 @@ pub fn list_instances() -> Result<()> {
 
                 let proxy = if let Some(proxy_config) = &http.proxy {
                     format!("{}://{}:{}", proxy_config.proto, proxy_config.address, proxy_config.port)
-                } else {
+                }
+                else {
                     "null".to_string()
                 };
 
