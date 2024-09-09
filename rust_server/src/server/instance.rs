@@ -7,7 +7,9 @@ use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
 
+use rayon::prelude::*;
 use rayon::iter::IntoParallelRefIterator;
+
 use crate::server::INSTANCES;
 use crate::server::session::{CURDIR, SESSION};
 use crate::server::types::{NetworkType, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, JsonData, BuildType};
@@ -151,7 +153,7 @@ impl Hexane {
         Ok(())
     }
 
-    fn run_server() -> Result<()> {
+    fn run_server(&self) -> Result<()> {
 
         Ok(())
     }
@@ -261,7 +263,7 @@ impl Hexane {
             }
 
             if let Some(network) = &self.network {
-                wrap_message("debug", &format!("{} network type selected", &network.r#type));
+                wrap_message("debug", &format!("{:?} network type selected", &network.r#type));
 
                 match network.r#type {
                     NetworkType::Http   => { defs.insert("TRANSPORT_HTTP".to_string(), vec![]); },
@@ -280,6 +282,10 @@ impl Hexane {
             self.compiler.command += &generate_definitions(&HashMap::from([(k.clone(), v.clone())]));
         }
 
+        if !flags.is_empty() {
+            self.compiler.command += &flags.join(" ");
+        }
+
         self.compiler.command += &format!(" -o {} ", self.builder.output_name);
 
         run_command(&self.compiler.command, &self.peer_id.to_string())?;
@@ -289,52 +295,52 @@ impl Hexane {
     }
 
     pub fn compile_sources(&mut self) -> Result<()> {
-        let src_path        = Path::new(&self.builder.root_directory).join("src");
-        let entries: Vec<_> = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
-        let mut components  = Vec::new();
+        let src_path            = Path::new(&self.builder.root_directory).join("src");
+        let mut entries: Vec<_> = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
+        let mut components      = Vec::new();
 
         let (err_send, err_recv)    = channel();
         let atoms                   = Arc::new(Mutex::new(()));
 
-        entries.par_iter().for_each(|src| {
+        entries.par_iter_mut().for_each(|src| {
             if !src.metadata().map_or(false, |map| map.is_file()) {
                 return;
             }
 
-            let path    = src.path();
-            let output  = Path::new(&env::current_dir().unwrap().join("build")).join(self.builder.output_name.clone()).with_extension("o");
+            let path        = src.path();
+            let output      = self.builder.output_name.clone();
+            let mut flags   = self.compiler.compiler_flags.clone();
+            let mut command = self.compiler.command.clone();
 
             let atoms_clone = Arc::clone(&atoms);
             let err_clone   = err_send.clone();
+            let _guard      = atoms_clone.lock().unwrap();
 
-            let result = {
-                let _guard = atoms_clone.lock().unwrap();
-                match path.extension().and_then(|ext| ext.to_str()) {
+            match path.extension().and_then(|ext| ext.to_str()) {
+                Some("asm") => {
 
-                    Some("asm") => {
-                        self.compiler.command   = "nasm".to_owned();
-                        let flags               = vec!["-f win64".to_string()];
+                    command = "nasm".to_owned();
+                    flags.push("-f win64".parse().unwrap());
 
-                        wrap_message("debug", &format!("compiling {}", &output.display()));
-                        self.compile_object(flags)?;
-                    }
-
-                    Some("cpp") => {
-                        self.compiler.command   = "x86_64-w64-mingw32-g++".to_owned();
-                        let mut flags           = vec![self.compiler.compiler_flags.clone()];
-
-                        flags.push("-c".parse().unwrap());
-
-                        wrap_message("debug", &format!("compiling {}", &output.display()));
-                        self.compile_object(flags)?;
-                    }
-                    _ => { },
+                    wrap_message("debug", &format!("compiling {}", &output));
                 }
-            };
 
-            match result {
-                Ok(_)   => components.push(output.to_str().unwrap().to_string()),
-                Err(e)  => err_clone.send(e).unwrap(),
+                Some("cpp") => {
+                    command.push("x86_64-w64-mingw32-g++".parse().unwrap());
+
+                    flags.push("-c".parse().unwrap());
+                    wrap_message("debug", &format!("compiling {}", &output));
+
+                }
+                _ => {}
+            }
+
+            if let Err(e) = self.compile_object(flags.parse().unwrap()) {
+                eprintln!("unknown: {e}");
+                err_clone.send(e).unwrap();
+            }
+            else {
+                components.push(output.parse().unwrap().to_string());
             }
         });
 
@@ -342,6 +348,7 @@ impl Hexane {
             return_error!("{}", err);
         }
 
+        wrap_message("debug", &"linking final objects".to_owned());
         // todo: link all objects
 
         Ok(())
