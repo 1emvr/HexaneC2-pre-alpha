@@ -58,8 +58,8 @@ pub fn compile_object(mut instance: Hexane, flags: Vec<String>) -> Result<()> {
     if !instance.components.is_empty() {
         instance.compiler.command += &generate_arguments(instance.components.clone());
     }
-    if !instance.compiler.compiler_flags.is_empty() {
-        instance.compiler.command += &generate_arguments(instance.compiler.compiler_flags.clone());
+    if !flags.is_empty() {
+        instance.compiler.command += &generate_arguments(flags);
     }
 
     for (k, v) in &instance.definitions {
