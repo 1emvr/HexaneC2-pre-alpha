@@ -35,6 +35,7 @@ lazy_static! {
     pub(crate) static ref CURDIR:           PathBuf     = env::current_dir().unwrap();
     pub(crate) static ref DEBUG:            bool        = ARGS.debug;
     pub(crate) static ref SHOW_COMPILER:    bool        = ARGS.show_compiler;
+    pub(crate) static ref AMD64:            String      = String::from("amd64");
 
     pub(crate) static ref CHANNEL:  (Sender<Message>, Receiver<Message>)    = unbounded();
     pub(crate) static ref EXIT:     (Sender<()>, Receiver<()>)              = unbounded();

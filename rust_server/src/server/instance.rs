@@ -151,6 +151,11 @@ impl Hexane {
         Ok(())
     }
 
+    fn run_server() -> Result<()> {
+
+        Ok(())
+    }
+
     fn generate_config_bytes(&mut self) -> Result<()> {
         self.crypt_key  = crypt_create_key(16);
         let mut patch   = self.create_binary_patch()?;
@@ -242,7 +247,7 @@ impl Hexane {
         let mut defs: HashMap<String, Vec<u8>> = HashMap::new();
 
         if self.compiler.command != "ld" && self.compiler.command != "nasm" {
-            if &self.main.debug {
+            if self.main.debug {
                 wrap_message("debug", &"debug build type selected".to_owned());
                 defs.insert("DEBUG".to_string(), vec![]);
             }
@@ -251,8 +256,8 @@ impl Hexane {
             wrap_message("debug", &format!("{arch} build type selected"));
 
             match arch {
-                String::from("amd64")   => { defs.insert("BSWAP".to_string(), vec![0]); },
-                _                       => { defs.insert("BSWAP".to_string(), vec![1]); },
+                AMD64   => { defs.insert("BSWAP".to_string(), vec![0]); },
+                _       => { defs.insert("BSWAP".to_string(), vec![1]); },
             }
 
             if let Some(network) = &self.network {

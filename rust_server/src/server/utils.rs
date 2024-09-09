@@ -139,7 +139,7 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
     let log_path = Path::new("LogsPath").join(logname);
     let mut log_file = File::create(&log_path)?;
 
-    if SHOW_COMPILER {
+    if *SHOW_COMPILER {
         wrap_message("debug", &cmd.to_string());
     }
 
