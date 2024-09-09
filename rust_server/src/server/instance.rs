@@ -245,7 +245,7 @@ impl Hexane {
         Ok(stream.buffer)
     }
 
-    fn compile_object(&mut self, flags: Vec<String>) -> Result<()> {
+    fn compile_object(&mut self, flags: String) -> Result<()> {
         let mut defs: HashMap<String, Vec<u8>> = HashMap::new();
 
         if self.compiler.command != "ld" && self.compiler.command != "nasm" {
@@ -283,7 +283,7 @@ impl Hexane {
         }
 
         if !flags.is_empty() {
-            self.compiler.command += &flags.join(" ");
+            self.compiler.command += &flags;
         }
 
         self.compiler.command += &format!(" -o {} ", self.builder.output_name);
@@ -319,23 +319,24 @@ impl Hexane {
             match path.extension().and_then(|ext| ext.to_str()) {
                 Some("asm") => {
 
-                    command = "nasm".to_owned();
-                    flags.push("-f win64".parse().unwrap());
+                    command.push("nasm".parse().unwrap());
+                    flags = "-f win64".parse().unwrap(); // remove all flags if nasm and add -f arch
 
                     wrap_message("debug", &format!("compiling {}", &output));
                 }
 
                 Some("cpp") => {
-                    command.push("x86_64-w64-mingw32-g++".parse().unwrap());
 
+                    command.push("x86_64-w64-mingw32-g++".parse().unwrap());
                     flags.push("-c".parse().unwrap());
+
                     wrap_message("debug", &format!("compiling {}", &output));
 
                 }
                 _ => {}
             }
 
-            if let Err(e) = self.compile_object(flags.parse().unwrap()) {
+            if let Err(e) = self.compile_object(flags) {
                 eprintln!("unknown: {e}");
                 err_clone.send(e).unwrap();
             }
