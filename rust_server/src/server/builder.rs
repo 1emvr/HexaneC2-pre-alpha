@@ -37,28 +37,30 @@ pub fn generate_definitions(definitions: HashMap<String, Vec<u8>>) -> String {
     defs
 }
 
-pub fn compile_object(mut instance: Hexane, flags: Vec<String>, mut defs: HashMap<String, Vec<u8>>) -> Result<()> {
+pub fn compile_object(mut instance: Hexane, flags: Vec<String> ) -> Result<()> {
+    let mut defs: HashMap<String, Vec<u8>> = HashMap::new();
 
-    if instance.main.debug {
-        if instance.compiler.command != "ld" && instance.compiler.command != "nasm" {
+    if instance.compiler.command != "ld" && instance.compiler.command != "nasm" {
+        if instance.main.debug {
             defs.insert("DEBUG".to_string(), vec![]);
         }
-    }
 
-    let Some(network) = &instance.network;
-    if network.is_some() {
-        match network.r#type {
-            NetworkType::Http   => defs.insert("TRANSPORT_HTTP".to_string(), vec![]),
-            NetworkType::Smb    => defs.insert("TRANSPORT_PIPE".to_string(), vec![]),
+        match instance.main.architecture {
+            String::from("amd64") => defs.insert("BSWAP".to_string(), vec![0]),
+            _ => defs.insert("BSWAP".to_string(), vec![1]),
         }
-    }
-    else {
-        return_error!("could not get network type during compilation")
-    }
 
-    match instance.main.architecture {
-        String::from("amd64") => defs.insert("BSWAP".to_string(), vec![0]),
-        _ => defs.insert("BSWAP".to_string(), vec![1]),
+        let Some(network) = &instance.network;
+
+        if network.is_some() {
+            match network.r#type {
+                NetworkType::Http   => defs.insert("TRANSPORT_HTTP".to_string(), vec![]),
+                NetworkType::Smb    => defs.insert("TRANSPORT_PIPE".to_string(), vec![]),
+            }
+        }
+        else {
+            return_error!("could not get network type during compilation")
+        }
     }
 
     if !instance.compiler.components.is_empty() {
