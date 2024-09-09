@@ -47,8 +47,8 @@ pub fn compile_object(mut instance: Hexane, flags: Vec<String> ) -> Result<()> {
         }
 
         match instance.main.architecture {
-            String::from("amd64") => defs.insert("BSWAP".to_string(), vec![0]),
-            _ => defs.insert("BSWAP".to_string(), vec![1]),
+            String::from("amd64")   => defs.insert("BSWAP".to_string(), vec![0]),
+            _                       => defs.insert("BSWAP".to_string(), vec![1]),
         }
 
         let Some(network) = &instance.network;
@@ -118,8 +118,7 @@ pub fn compile_sources(mut instance: Hexane) -> Result<()> {
                     wrap_message("debug", &format!("compiling {}", &output.display()));
                     compile_object(instance, flags)?;
                 }
-                _ => {
-                }
+                _ => { },
             }
         };
 
