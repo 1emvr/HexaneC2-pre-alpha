@@ -38,6 +38,13 @@ macro_rules! length_check_defer {
     };
 }
 
+#[macro_export]
+macro_rules! map_error {
+    ($expr:expr, $msg:expr) => {
+        $expr.map_err(|e| Error::Custom(format!("{}: {}", $msg, e)))?
+    };
+}
+
 pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug, From)]

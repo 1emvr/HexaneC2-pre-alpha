@@ -1,9 +1,10 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 use rand::{Rng, SeedableRng};
 use rand::rngs::StdRng;
-use std::error::Error;
 use std::convert::TryInto;
-use crate::server::error::KeySizeError;
+
+use crate::server::error::{Result, KeySizeError, Error};
+use crate::server::error::Error::Custom;
 
 const NUM_ROUNDS:   usize = 64;
 const BLOCK_SIZE:   usize = 8;
@@ -44,9 +45,9 @@ pub fn crypt_create_key(length: usize) -> Vec<u8> {
 }
 
 pub(crate) fn get_hash_from_string(s: &str, is_unicode: bool) -> u32 {
-    let mut hash = FNV_OFFSET;
-    let length = if is_unicode { s.len() - 2 } else { s.len() };
-    let offset = if is_unicode { 2 } else { 1 };
+    let mut hash    = FNV_OFFSET;
+    let length      = if is_unicode { s.len() - 2 } else { s.len() };
+    let offset      = if is_unicode { 2 } else { 1 };
 
     for i in (0..length).step_by(offset) {
         hash ^= s.as_bytes()[i] as u32;
@@ -56,9 +57,9 @@ pub(crate) fn get_hash_from_string(s: &str, is_unicode: bool) -> u32 {
     hash
 }
 
-fn new_cipher(key: &[u8]) -> Result<Cipher, KeySizeError> {
+fn new_cipher(key: &[u8]) -> Result<Cipher> {
     if key.len() != 16 {
-        return Err(KeySizeError(key.len()));
+        return Err(Custom("idk anymore bro".parse().unwrap()))
     }
     let mut cipher = Cipher {
         table: [0u32; NUM_ROUNDS]
@@ -72,7 +73,7 @@ fn xtea_divide(data: &[u8]) -> Vec<&[u8]> {
     data.chunks(BLOCK_SIZE).collect()
 }
 
-pub fn crypt_xtea(config: &[u8], key: &[u8], encrypt: bool) -> Result<Vec<u8>, Box<dyn Error>> {
+pub fn crypt_xtea(config: &[u8], key: &[u8], encrypt: bool) -> Result<Vec<u8>> {
     let cipher      = new_cipher(key)?;
     let sections    = xtea_divide(config);
     let mut out     = Vec::with_capacity(config.len());

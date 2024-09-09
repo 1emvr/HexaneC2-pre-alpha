@@ -95,41 +95,27 @@ func ReadConfig(cfgPath string) error {
 	h.PeerId = GeneratePeerId()
 
 	if h.UserConfig.Config != nil {
-		if h.UserConfig.Config.Hostname == "" {
-			return fmt.Errorf("config:: - a hostname must be provided")
-		}
-		if h.UserConfig.Config.Arch == "" {
-			return fmt.Errorf("config:: - an architecture must be provided")
-		}
+		if h.UserConfig.Config.Hostname == "" 	{ return fmt.Errorf("config:: - a hostname must be provided") }
+		if h.UserConfig.Config.Arch == "" 		{ return fmt.Errorf("config:: - an architecture must be provided") }
 	} else {
 		return fmt.Errorf("config:: - Config { } is required")
 	}
 
 	if h.UserConfig.Builder != nil {
-		if h.UserConfig.Builder.RootDirectory == "" {
-			return fmt.Errorf("config:: - a root directory must be provided")
-		}
-		if h.UserConfig.Builder.OutputName == "" {
-			return fmt.Errorf("config:: - an output name must be provided")
-		}
-		if h.UserConfig.Loader == nil {
-			h.BuildType = BuildTypeShellcode
-		} else {
-			h.BuildType = BuildTypeDll
+		if h.UserConfig.Builder.RootDirectory == "" { return fmt.Errorf("config:: - a root directory must be provided") }
+		if h.UserConfig.Builder.OutputName == "" 	{ return fmt.Errorf("config:: - an output name must be provided") }
 
-			if h.UserConfig.Loader.RootDirectory == "" {
-				return fmt.Errorf("implant::loader - root directory must be provided")
-			}
-			if h.UserConfig.Loader.Sources == nil {
-				return fmt.Errorf("implant::loader - source files must be provided")
-			}
-			if h.UserConfig.Loader.RsrcScript == "" {
-				return fmt.Errorf("implant::loader - resource script must be provided")
-			}
-			if h.UserConfig.Loader.RsrcBinary == "" {
-				return fmt.Errorf("implant::loader - resource output binary must be provided")
-			}
+		if h.UserConfig.Loader == nil {
+			h.BuildType = BUILD_SHELLCODE
+		} else {
+			h.BuildType = BUILD_DLL
+
+			if h.UserConfig.Loader.RootDirectory == "" 	{ return fmt.Errorf("implant::loader - root directory must be provided") }
+			if h.UserConfig.Loader.Sources == nil 		{ return fmt.Errorf("implant::loader - source files must be provided") }
+			if h.UserConfig.Loader.RsrcScript == "" 	{ return fmt.Errorf("implant::loader - resource script must be provided") }
+			if h.UserConfig.Loader.RsrcBinary == "" 	{ return fmt.Errorf("implant::loader - resource output binary must be provided") }
 			if h.UserConfig.Loader.Injection != nil {
+
 				injectType := h.UserConfig.Loader.Injection.Type
 
 				switch injectType {
@@ -161,15 +147,9 @@ func ReadConfig(cfgPath string) error {
 			h.Implant.ProfileTypeId = TRANSPORT_HTTP
 
 			WrapMessage("DBG", "loading http config")
-			if err = MapToStruct(h.UserConfig.Network.Config, &httpConfig); err != nil {
-				return fmt.Errorf("implant::network - network configuration - " + err.Error())
-			}
-			if httpConfig.Address == "" {
-				return fmt.Errorf("implant::network::http - ip address must be provided")
-			}
-			if httpConfig.Port > 65535 || httpConfig.Port < 1 {
-				return fmt.Errorf("implant::network::http - invalid tcp port %d", httpConfig.Port)
-			}
+			if err = MapToStruct(h.UserConfig.Network.Config, &httpConfig); err != nil 	{ return fmt.Errorf("implant::network - network configuration - " + err.Error()) }
+			if httpConfig.Address == "" 												{ return fmt.Errorf("implant::network::http - ip address must be provided") }
+			if httpConfig.Port > 65535 || httpConfig.Port < 1 							{ return fmt.Errorf("implant::network::http - invalid tcp port %d", httpConfig.Port) }
 			if httpConfig.Endpoints == nil {
 				return fmt.Errorf("implant::network::http - at least 1 http endpoint must be provided")
 			}

