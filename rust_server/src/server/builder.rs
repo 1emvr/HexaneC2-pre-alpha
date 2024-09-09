@@ -19,23 +19,16 @@ pub fn generate_arguments(args: Vec<String>) -> String {
     args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
 }
 
-pub fn generate_definitions(definitions: HashMap<String, Vec<u8>>, cpp_arr: bool) -> String {
+pub fn generate_definitions(definitions: HashMap<String, Vec<u8>>) -> String {
     let mut defs    = String::new();
-    let mut arr     = Vec::new();
 
     wrap_message("debug", &"generating defintions".to_owned());
 
     for (name, def) in definitions {
-        if cpp_arr {
-            arr = create_cpp_array(&def, def.len());
-        } else {
-            arr = def;
-        }
-
-        if arr.is_empty() {
+        if def.is_empty() {
             defs.push_str(&format!(" -D{} ", name));
         } else {
-            defs.push_str(&format!(" -D{}={:?} ", name, arr));
+            defs.push_str(&format!(" -D{}={:?} ", name, def));
         }
     }
 
