@@ -89,7 +89,7 @@ Implant Management:
   implant i        - Interact with a specific loaded implant
 
 Listener Management:
-  listener attach  - Attach to a listener associated with an implant (functionality TBD)
+  listener attach  - Attach to a listener associated with an implant (not implemented)
 
 "#);
 }
