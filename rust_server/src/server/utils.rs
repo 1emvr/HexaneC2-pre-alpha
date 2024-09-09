@@ -8,7 +8,7 @@ use std::path::Path;
 use std::process::Command;
 
 use crate::return_error;
-use crate::server::session::{CHANNEL, DEBUG, EXIT};
+use crate::server::session::{CHANNEL, DEBUG, EXIT, SHOW_COMPILER};
 use crate::server::error::{Error, Result};
 use crate::server::types::{Message};
 use crate::server::stream::Stream;
@@ -134,13 +134,17 @@ pub(crate) fn find_double_u32(data: &[u8], egg: &[u8]) -> Result<usize> {
 
 pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
     let shell   = if cfg!(target_os = "windows") { "cmd" } else { "bash" };
-    let flag    = if cfg!(target_os = "windows") { "/c" } else { "-c" };
+    let flags   = if cfg!(target_os = "windows") { "/c" } else { "-c" };
 
     let log_path = Path::new("LogsPath").join(logname);
     let mut log_file = File::create(&log_path)?;
 
+    if SHOW_COMPILER {
+        wrap_message("debug", &cmd.to_string());
+    }
+
     let mut command = Command::new(shell);
-    command.arg(flag).arg(cmd);
+    command.arg(flags).arg(cmd);
 
     let output = command.output()?;
 
