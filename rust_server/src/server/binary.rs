@@ -38,7 +38,7 @@ fn get_section_header (target_path: &str, target_section: &str) -> Result<Sectio
     }
 }
 
-fn copy_section_data(target_path: &str, out_path: &str, target_section: &str) -> Result<()> {
+pub(crate) fn copy_section_data(target_path: &str, out_path: &str, target_section: &str) -> Result<()> {
     let section_data = get_section_header(target_path, target_section)?;
 
     let offset  = section_data.section.PointerToRawData as usize;
@@ -51,7 +51,7 @@ fn copy_section_data(target_path: &str, out_path: &str, target_section: &str) ->
     Ok(())
 }
 
-fn embed_section_data(target_path: &str, target_section: &str, data: &[u8]) -> Result<()> {
+pub(crate) fn embed_section_data(target_path: &str, target_section: &str, data: &[u8]) -> Result<()> {
     let mut section_data    = get_section_header(target_path, target_section)?;
     let offset              = find_double_u32(&section_data.data, &[0x41,0x41,0x41,0x41])?;
     let size                = section_data.section.SizeOfRawData;

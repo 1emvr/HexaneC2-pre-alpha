@@ -1,24 +1,24 @@
+use rayon::prelude::*;
+use std::process::Command;
 use std::collections::HashMap;
+use std::{env, fs};
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
-use rayon::prelude::*;
-use std::env;
-use std::fs;
-
 use crate::return_error;
+use crate::server::binary::embed_section_data;
 use crate::server::error::{Error, Result};
 use crate::server::utils::{create_cpp_array, run_command, wrap_message};
 
-fn generate_includes(includes: Vec<String>) -> String {
+pub fn generate_includes(includes: Vec<String>) -> String {
     includes.iter().map(|inc| format!(" -I{} ", inc)).collect::<Vec<_>>().join("")
 }
 
-fn generate_arguments(args: Vec<String>) -> String {
+pub fn generate_arguments(args: Vec<String>) -> String {
     args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
 }
 
-fn generate_definitions(defs: HashMap<String, Vec<u8>>) -> String {
+pub fn generate_definitions(defs: HashMap<String, Vec<u8>>) -> String {
     let mut definitions = String::new();
 
     for (name, def) in defs {
@@ -34,33 +34,44 @@ fn generate_definitions(defs: HashMap<String, Vec<u8>>) -> String {
     definitions
 }
 
-struct CompileTarget {
-    command:        String,
-    root_directory: String,
-    output_name:    String,
-    components:     Vec<String>,
-    flags:          Vec<String>,
-    includes:       Option<Vec<String>>,
-    definitions:    HashMap<String, Vec<u8>>,
-    peer_id:        u32,
-    debug:          bool,
+pub struct CompileTarget {
+    pub command:        String,
+    pub output_name:    String,
+    pub config_data:    Vec<u8>,
+    pub components:     Vec<String>,
+    pub flags:          Vec<String>,
+    pub includes:       Option<Vec<String>>,
+    pub definitions:    HashMap<String, Vec<u8>>,
+    pub peer_id:        u32,
+    pub debug:          bool,
 }
 impl CompileTarget {
+    fn strip_symbols(file_path: &str) -> Result<()> {
+        let output = Command::new("strip").arg(file_path).output()?;
 
-    fn compile_sources(self) -> Result<()> {
-        let src_path                = Path::new(&self.root_directory).join("src");
+        if !output.status.success() {
+            return Err(format!("Failed to strip symbols from {}: {}", file_path, String::from_utf8_lossy(&output.stderr)).into());
+        }
+
+        println!("Successfully stripped symbols from {}", file_path);
+        Ok(())
+    }
+
+    pub fn compile_sources(&self, root_directory: &str) -> Result<()> {
+        let src_path                = Path::new(root_directory).join("src");
         let entries: Vec<_>         = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
 
         let atoms                   = Arc::new(Mutex::new(()));
         let (err_send, err_recv)    = channel();
 
         entries.par_iter().for_each(|src| {
+
             if !src.metadata().map_or(false, |m| m.is_file()) {
                 return;
             }
 
             let path = src.path();
-            let output = Path::new(&env::current_dir().unwrap().join("build")).join(self.output_name.clone()).with_extension("o");
+            let output = Path::new(&env::current_dir().unwrap().join("build")).join(self.builder.output_name.clone()).with_extension("o");
 
             let atoms_clone     = Arc::clone(&atoms);
             let err_clone       = err_send.clone();
@@ -79,13 +90,13 @@ impl CompileTarget {
 
                         let target = CompileTarget {
                             command:        "nasm".to_string(),
-                            root_directory: "".to_string(),
                             output_name:    output.to_string_lossy().to_string(),
                             components:     vec![path.to_string_lossy().to_string()],
                             includes:       Some(vec![]),
                             definitions:    HashMap::new(),
                             peer_id:        self.peer_id,
                             debug:          self.debug,
+                            config_data:    &self.config_data,
                             flags,
                         };
 
@@ -100,9 +111,9 @@ impl CompileTarget {
 
                         let target = CompileTarget {
                             command:        "x86_64-w64-mingw32-g++".to_string(),
-                            root_directory: "".to_string(),
                             output_name:    output.to_string_lossy().to_string(),
                             components:     vec![path.to_string_lossy().to_string()],
+                            config_data:    vec![],
                             includes:       inc_clone,
                             definitions:    def_clone,
                             peer_id:        self.peer_id,
@@ -129,7 +140,7 @@ impl CompileTarget {
         Ok(())
     }
 
-    fn compile_object(mut self) -> Result<()> {
+    pub fn compile_object(mut self) -> Result<()> {
         if self.debug && self.command != "ld" && self.command != "nasm" {
             self
                 .definitions
@@ -157,7 +168,13 @@ impl CompileTarget {
         self.command += &format!(" -o {} ", self.output_name);
 
         wrap_message("debug", &self.command);
-        run_command(&self.command, &self.peer_id.to_string())
+        run_command(&self.command, &self.peer_id.to_string())?;
+
+        embed_section_data(&self.output_name, ".text$F", &self.config_data.as_slice())?;
+
+        if !self.debug {
+            self.strip_symbols(self.output_name.as_str())?;
+        }
     }
 }
 

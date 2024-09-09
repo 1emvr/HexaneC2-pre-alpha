@@ -1,8 +1,12 @@
-use std::fs;
+use std::{env, fs};
 use rand::Rng;
 use std::str::FromStr;
 use std::borrow::Borrow;
-
+use std::collections::HashMap;
+use std::path::Path;
+use std::sync::{Arc, Mutex};
+use std::sync::mpsc::channel;
+use rayon::iter::IntoParallelRefIterator;
 use crate::server::INSTANCES;
 use crate::server::session::{CURDIR, SESSION, USERAGENT};
 use crate::server::types::{NetworkType, InjectionOptions, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, JsonData, BuildType};
@@ -11,6 +15,7 @@ use crate::server::error::{Error, Result};
 use crate::server::utils::{generate_hashes, wrap_message};
 use crate::server::stream::Stream;
 use crate::{return_error, length_check_defer};
+use crate::server::builder::{generate_definitions, CompileTarget};
 
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     length_check_defer!(args, 3);
@@ -100,19 +105,20 @@ pub struct Hexane {
     pub(crate) user_session:    UserSession,
 }
 impl Hexane {
-    fn run_build(&mut self) -> Result<Error> {
-        wrap_message("DBG", &"creating build directory".to_owned());
+    fn run_build(&mut self) -> Result<()> {
+        wrap_message("debug", &"creating build directory".to_owned());
         fs::create_dir(&self.compiler.build_directory)?;
 
-        wrap_message("DBG", &"generating config data".to_owned());
+        wrap_message("debug", &"generating config data".to_owned());
         self.generate_config_bytes()?;
 
-        wrap_message("DBG", &"generating string hashes".to_owned());
+        wrap_message("debug", &"generating string hashes".to_owned());
         generate_hashes(&HASH_STRINGS, &HASH_HEADER)?;
+        generate_definitions(self.definitions);
 
-        wrap_message("DBG", &"building sources".to_owned());
-        self.build_source()?;
+        wrap_message("debug", &"building sources".to_owned());
 
+        self.compile_sources()?;
         self.run_server()
     }
 
@@ -129,9 +135,8 @@ impl Hexane {
         }
 
         self.check_config()?;
-        self.generate_config_bytes()?;
+        self.run_build()?;
 
-        // todo: build process
         // todo: add config db write/delete
 
         Ok(())
