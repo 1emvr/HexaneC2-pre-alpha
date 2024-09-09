@@ -160,9 +160,10 @@ pub struct MessageParser {
 
 #[derive(Debug, Default)]
 pub struct Compiler {
-    pub(crate) file_extension:     String,
-    pub(crate) build_directory:    String,
-    pub(crate) compiler_flags:     String,
+    pub(crate) file_extension:  String,
+    pub(crate) build_directory: String,
+    pub(crate) compiler_flags:  String,
+    pub(crate) command:         String,
 }
 
 #[derive(Debug, Default, Clone)]
