@@ -142,9 +142,7 @@ impl CompileTarget {
 
     pub fn compile_object(mut self) -> Result<()> {
         if self.debug && self.command != "ld" && self.command != "nasm" {
-            self
-                .definitions
-                .insert("DEBUG".to_string(), vec![]);
+            self.definitions.insert("DEBUG".to_string(), vec![]);
         }
 
         if let Some(includes) = &self.includes {
@@ -156,7 +154,6 @@ impl CompileTarget {
         if !self.components.is_empty() {
             self.command += &generate_arguments(self.components.clone());
         }
-
         if !self.flags.is_empty() {
             self.command += &generate_arguments(self.flags.clone());
         }

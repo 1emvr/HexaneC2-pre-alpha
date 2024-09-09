@@ -106,6 +106,9 @@ pub struct Hexane {
 }
 impl Hexane {
     fn run_build(&mut self) -> Result<()> {
+        let strings_file    = "./config/strings.txt";
+        let hash_file       = "./core/src/include/names.hpp";
+
         wrap_message("debug", &"creating build directory".to_owned());
         fs::create_dir(&self.compiler.build_directory)?;
 
@@ -113,7 +116,7 @@ impl Hexane {
         self.generate_config_bytes()?;
 
         wrap_message("debug", &"generating string hashes".to_owned());
-        generate_hashes(&HASH_STRINGS, &HASH_HEADER)?;
+        generate_hashes(strings_file, hash_file)?;
         generate_definitions(self.definitions);
 
         wrap_message("debug", &"building sources".to_owned());
