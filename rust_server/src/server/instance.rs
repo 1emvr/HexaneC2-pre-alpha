@@ -105,9 +105,21 @@ pub struct Hexane {
     pub(crate) user_session:    UserSession,
 }
 impl Hexane {
-    fn run_build(&mut self) -> Result<()> {
+    fn setup_instance(&mut self) -> Result<()> {
+        // todo: add config db write/delete
+        let mut rng         = rand::thread_rng();
+
         let strings_file    = "./config/strings.txt";
         let hash_file       = "./core/src/include/names.hpp";
+
+        self.peer_id = rng.random::<u32>();
+        self.group_id = 0;
+
+        if self.main.debug {
+            self.compiler.compiler_flags = "-std=c++23 -g -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin -Wl,--no-seh,--enable-stdcall-fixup,--gc-sections".to_owned();
+        } else {
+            self.compiler.compiler_flags = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC  -fno-builtin -Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections".to_owned();
+        }
 
         wrap_message("debug", &"creating build directory".to_owned());
         fs::create_dir(&self.compiler.build_directory)?;
@@ -122,125 +134,13 @@ impl Hexane {
         wrap_message("debug", &"building sources".to_owned());
 
         self.compile_sources()?;
-        self.run_server()
-    }
-
-    fn setup_instance(&mut self) -> Result<()> {
-        let mut rng = rand::thread_rng();
-
-        self.peer_id = rng.random::<u32>();
-        self.group_id = 0;
-
-        if self.main.debug {
-            self.compiler.compiler_flags = "-std=c++23 -g -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin -Wl,--no-seh,--enable-stdcall-fixup,--gc-sections".to_owned();
-        } else {
-            self.compiler.compiler_flags = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC  -fno-builtin -Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections".to_owned();
-        }
-
-        self.check_config()?;
-        self.run_build()?;
-
-        // todo: add config db write/delete
+        self.run_server()?;
 
         Ok(())
     }
 
     fn setup_listener(&mut self) -> Result<()> {
         // todo: listener setup
-        Ok(())
-    }
-
-    fn check_config(&mut self) -> Result<()> {
-        if self.main.hostname.is_empty()            { return_error!("a valid hostname must be provided") }
-        if self.main.architecture.is_empty()        { return_error!("a valid architecture must be provided") }
-
-        if self.builder.output_name.is_empty()      { return_error!("a name for the build must be provided") }
-        if self.builder.root_directory.is_empty()   { return_error!("a root directory for implant files must be provided") }
-
-        if let Some(linker_script) = self.builder.linker_script.borrow() {
-            if linker_script.is_empty() { return_error!("linker_script field found but linker script path must be provided") }
-        }
-
-        if let Some(modules) = self.builder.loaded_modules.borrow() {
-            if modules.is_empty() { return_error!("loaded_modules field found but module names must be provided") }
-        }
-
-        if let Some(deps) = self.builder.dependencies.borrow() {
-            if deps.is_empty() { return_error!("builder dependencies field found but dependencies must be provided") }
-        }
-
-        if let Some(inc) = self.builder.include_directories.borrow() {
-            if inc.is_empty() { return_error!("builder include_directories field found but include directories must be provided") }
-        }
-
-        if let Some(network) = self.network.as_mut() {
-            match (&mut network.r#type, &mut network.options) {
-
-                (NetworkType::Http, NetworkOptions::Http(http)) => {
-                    if http.address.is_empty()      { return_error!("a valid return url must be provided") }
-                    if http.endpoints.is_empty()    { return_error!("at least one valid endpoint must be provided") }
-                    if http.useragent.is_none()     { http.useragent = Some(USERAGENT.to_string()); }
-
-                    if let Some(headers) = &http.headers {
-                        if headers.is_empty()       { return_error!("http header field found but names must be provided") }
-                    }
-                    if let Some(domain) = &http.domain {
-                        if domain.is_empty()        { return_error!("domain name field found but domain name must be provided") }
-                    }
-
-                    if let Some(proxy) = &http.proxy { // todo: proxy should not be exclusive to http (socks5, ftp, etc...)
-                        if proxy.address.is_empty() { return_error!("proxy field detected but proxy address must be provided") }
-                        if proxy.proto.is_empty()   { return_error!("proxy protocol must be provided") }
-
-                        if let Some(username) = &proxy.username {
-                            if username.is_empty()  { return_error!("proxy username field detected but the username was not provided") }
-                        }
-                        if let Some(password) = &proxy.password {
-                            if password.is_empty()  { return_error!("proxy password field detected but the password was not provided") }
-                        }
-                    }
-                },
-
-                (NetworkType::Smb, NetworkOptions::Smb(smb)) => {
-                    if smb.egress_peer.is_empty() { return_error!("an implant type of smb must provide the name of it's parent node") }
-                },
-
-                _ => return_error!("network config is invalid or does not match the specified type")
-            }
-        }
-
-        if let Some(loader) = self.loader.as_mut() {
-            self.build_type = BuildType::Loader as u32;
-
-            if loader.root_directory.is_empty() { return_error!("loader field detected but root_directory must be provided")}
-            if loader.sources.is_empty()        { return_error!("loader field detected but sources must be provided")}
-            if loader.rsrc_script.is_empty()    { return_error!("loader field detected but rsrc_script must be provided")}
-
-            if let Some(linker) = &loader.linker_script {
-                if linker.is_empty() { return_error!("loader ld field detected but linker script must be provided")}
-            }
-
-            if let Some(deps) = &loader.dependencies {
-                if deps.is_empty() { return_error!("loader dependencies field found but dependencies must be provided") }
-            }
-
-            match &mut loader.injection.options {
-                InjectionOptions::Threadless(threadless) => {
-
-                    if threadless.execute_object.is_empty()     { return_error!("loader field detected 'threadless' injection but an execute_object must be provided")}
-                    if threadless.loader_assembly.is_empty()    { return_error!("loader field detected 'threadless' injection but a loader_assembly must be provided")}
-                    if threadless.target_process.is_empty()     { return_error!("loader field detected 'threadless' injection but a target_process must be provided")}
-                    if threadless.target_module.is_empty()      { return_error!("loader field detected 'threadless' injection but a target_module must be provided")}
-                    if threadless.target_function.is_empty()    { return_error!("loader field detected 'threadless' injection but a target_function must be provided")}
-                },
-                InjectionOptions::Threadpool(_) => {
-                    return_error!("threadpool injection not yet supported")
-                }
-            }
-        } else {
-            self.build_type = BuildType::Shellcode as u32;
-        }
-
         Ok(())
     }
 
