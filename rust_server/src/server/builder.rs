@@ -37,32 +37,32 @@ pub fn generate_definitions(definitions: HashMap<String, Vec<u8>>) -> String {
     defs
 }
 
-pub fn compile_object(mut instance: Hexane, flags: Vec<String>) -> Result<()> {
+pub fn compile_object(mut instance: Hexane, flags: Vec<String>, mut defs: HashMap<String, Vec<u8>>) -> Result<()> {
 
     if instance.main.debug {
         if instance.compiler.command != "ld" && instance.compiler.command != "nasm" {
-            instance.definitions.insert("DEBUG".to_string(), vec![]);
+            defs.insert("DEBUG".to_string(), vec![]);
         }
     }
 
     match instance.network_type {
-        NetworkType::Http   => instance.definitions.insert("TRANSPORT_HTTP".to_string(), vec![]),
-        NetworkType::Smb    => instance.definitions.insert("TRANSPORT_PIPE".to_string(), vec![]),
+        NetworkType::Http   => defs.insert("TRANSPORT_HTTP".to_string(), vec![]),
+        NetworkType::Smb    => defs.insert("TRANSPORT_PIPE".to_string(), vec![]),
     }
 
     match instance.main.architecture {
-        String::from("amd64") => instance.definitions.insert("BSWAP".to_string(), vec![0]),
-        _ => instance.definitions.insert("BSWAP".to_string(), vec![1]),
+        String::from("amd64") => defs.insert("BSWAP".to_string(), vec![0]),
+        _ => defs.insert("BSWAP".to_string(), vec![1]),
     }
 
-    if !instance.components.is_empty() {
-        instance.compiler.command += &generate_arguments(instance.components.clone());
+    if !instance.compiler.components.is_empty() {
+        instance.compiler.command += &generate_arguments(instance.compiler.components.clone());
     }
     if !flags.is_empty() {
         instance.compiler.command += &generate_arguments(flags);
     }
 
-    for (k, v) in &instance.definitions {
+    for (k, v) in &defs {
         instance.compiler.command += &generate_definitions(HashMap::from([(k.clone(), v.clone())]));
     }
 
@@ -73,7 +73,7 @@ pub fn compile_object(mut instance: Hexane, flags: Vec<String>) -> Result<()> {
     embed_section_data(&instance.builder.output_name, ".text$F", &instance.config_data.as_slice())?;
 }
 
-pub fn compile_sources(instance: Hexane) -> Result<()> {
+pub fn compile_sources(mut instance: Hexane) -> Result<()> {
     let src_path        = Path::new(&instance.builder.root_directory).join("src");
     let entries: Vec<_> = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
 
@@ -115,8 +115,8 @@ pub fn compile_sources(instance: Hexane) -> Result<()> {
         };
 
         match result {
-            Ok(_) => components.push(output.to_str().unwrap().to_string()),
-            Err(e) => err_clone.send(e).unwrap(),
+            Ok(_)   => instance.components.push(output.to_str().unwrap().to_string()),
+            Err(e)  => err_clone.send(e).unwrap(),
         }
     });
 

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+use clap::builder::Str;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
@@ -163,6 +165,8 @@ pub struct Compiler {
     pub(crate) file_extension:  String,
     pub(crate) build_directory: String,
     pub(crate) compiler_flags:  String,
+    pub(crate) components:      Vec<String>,
+    pub(crate) definitions:     HashMap<String, Vec<u8>>,
     pub(crate) command:         String,
 }
 
