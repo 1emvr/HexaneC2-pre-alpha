@@ -7,7 +7,8 @@ use std::sync::mpsc::channel;
 use crate::return_error;
 use crate::server::error::{Error, Result};
 use crate::server::binary::embed_section_data;
-use crate::server::utils::{create_cpp_array, run_command, wrap_message};
+use crate::server::utils::{run_command, wrap_message};
+use crate::server::types::NetworkType;
 
 pub fn generate_includes(includes: Vec<String>) -> String {
     wrap_message("debug", &"including directories".to_owned());
@@ -43,6 +44,9 @@ pub fn generate_definitions(definitions: HashMap<String, Vec<u8>>) -> String {
  */
 
 pub struct CompileTarget {
+    pub peer_id:        u32,
+    pub debug:          bool,
+    pub architecture:   String,
     pub command:        String,
     pub output_name:    String,
     pub config_data:    Vec<u8>,
@@ -50,8 +54,7 @@ pub struct CompileTarget {
     pub flags:          Vec<String>,
     pub includes:       Option<Vec<String>>,
     pub definitions:    HashMap<String, Vec<u8>>,
-    pub peer_id:        u32,
-    pub debug:          bool,
+    pub network_type:   NetworkType,
 }
 impl CompileTarget {
     pub fn compile_object(mut self) -> Result<()> {
@@ -59,6 +62,16 @@ impl CompileTarget {
 
         if self.debug && self.command != "ld" && self.command != "nasm" {
             self.definitions.insert("DEBUG".to_string(), vec![]);
+        }
+
+        match self.network_type {
+            NetworkType::Http   => self.definitions.insert("TRANSPORT_HTTP".to_string(), vec![]),
+            NetworkType::Smb    => self.definitions.insert("TRANSPORT_PIPE".to_string(), vec![]),
+        }
+
+        match self.architecture {
+            String::from("amd64") => self.definitions.insert("BSWAP".to_string(), vec![0]),
+            _ => self.definitions.insert("BSWAP".to_string(), vec![1]),
         }
 
         if let Some(includes) = &self.includes {
@@ -98,7 +111,7 @@ impl CompileTarget {
             }
 
             let path    = src.path();
-            let output  = Path::new(&env::current_dir().unwrap().join("build")).join(self.builder.output_name.clone()).with_extension("o");
+            let output  = Path::new(&env::current_dir().unwrap().join("build")).join(self.output_name.clone()).with_extension("o");
 
             let atoms_clone     = Arc::clone(&atoms);
             let err_clone       = err_send.clone();
@@ -116,12 +129,14 @@ impl CompileTarget {
                         let flags = vec!["-f win64".to_string()];
 
                         let target = CompileTarget {
+                            architecture:   "".to_string(),
                             command:        "nasm".to_string(),
                             output_name:    output.to_string_lossy().to_string(),
                             components:     vec![path.to_string_lossy().to_string()],
                             includes:       Some(vec![]),
+                            network_type:   NetworkType::Http,
                             definitions:    HashMap::new(),
-                            config_data:    &self.config_data,
+                            config_data:    self.config_data.clone(),
                             peer_id:        self.peer_id,
                             debug:          self.debug,
                             flags,
@@ -146,6 +161,8 @@ impl CompileTarget {
                             components:     vec![path.to_string_lossy().to_string()],
                             config_data:    vec![],
                             flags,
+                            architecture: "".to_string(),
+                            network_type: NetworkType::Http,
                         };
 
                         target.compile_object()
