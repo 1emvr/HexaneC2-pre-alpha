@@ -112,8 +112,8 @@ impl Hexane {
         let strings_file    = "./config/strings.txt";
         let hash_file       = "./core/src/include/names.hpp";
 
-        self.peer_id = rng.random::<u32>();
-        self.group_id = 0;
+        self.peer_id    = rng.random::<u32>();
+        self.group_id   = 0;
 
         if self.main.debug {
             self.compiler.compiler_flags = "-std=c++23 -g -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin -Wl,--no-seh,--enable-stdcall-fixup,--gc-sections".to_owned();
