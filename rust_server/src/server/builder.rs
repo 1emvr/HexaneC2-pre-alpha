@@ -29,11 +29,83 @@ impl CompileTarget {
             return Err(format!("Failed to strip symbols from {}: {}", file_path, String::from_utf8_lossy(&output.stderr)).into());
         }
 
-        println!("Successfully stripped symbols from {}", file_path);
         Ok(())
     }
 
-    pub fn compile_sources(&self, root_directory: &str) -> Result<()> {
+    pub fn compile_object(mut self) -> Result<()> {
+        // todo: definitions aren't defined yet
+
+        if self.debug && self.command != "ld" && self.command != "nasm" {
+            self.definitions.insert("DEBUG".to_string(), vec![]);
+        }
+
+        if let Some(includes) = &self.includes {
+            if !includes.is_empty() {
+                self.command += &generate_includes(includes.clone());
+            }
+        }
+
+        if !self.components.is_empty() {
+            self.command += &generate_arguments(self.components.clone());
+        }
+        if !self.flags.is_empty() {
+            self.command += &generate_arguments(self.flags.clone());
+        }
+
+        for (k, v) in &self.definitions {
+            self.command += &generate_definitions(HashMap::from([(k.clone(), v.clone())]));
+        }
+
+        self.command += &format!(" -o {} ", self.output_name);
+
+        wrap_message("debug", &self.command);
+        run_command(&self.command, &self.peer_id.to_string())?;
+
+        embed_section_data(&self.output_name, ".text$F", &self.config_data.as_slice())?;
+
+        if !self.debug {
+            self.strip_symbols(self.output_name.as_str())?;
+        }
+    }
+}
+
+pub fn generate_includes(includes: Vec<String>) -> String {
+    includes.iter().map(|inc| format!(" -I{} ", inc)).collect::<Vec<_>>().join("")
+}
+
+pub fn generate_arguments(args: Vec<String>) -> String {
+    args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
+}
+
+pub fn generate_definitions(defs: HashMap<String, Vec<u8>>, cpp_arr: bool) -> String {
+    let mut definitions = String::new();
+
+    /*
+     todo :
+        CFG_SIZE
+        BSWAP
+        TRANSPORT_TYPE // instead of Ctx->root;
+     */
+    for (name, def) in defs {
+        if cpp_arr {
+            let arr = create_cpp_array(&def, def.len());
+        }
+        else {
+            let arr = def;
+        }
+
+        if def.is_empty() {
+            definitions.push_str(&format!(" -D{} ", name));
+        }
+        else {
+            definitions.push_str(&format!(" -D{}={:?} ", name, arr));
+        }
+    }
+
+    definitions
+}
+
+pub fn compile_sources(&self, root_directory: &str) -> Result<()> {
         let src_path                = Path::new(root_directory).join("src");
         let entries: Vec<_>         = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
 
@@ -115,77 +187,4 @@ impl CompileTarget {
 
         Ok(())
     }
-
-    pub fn compile_object(mut self) -> Result<()> {
-        // todo: definitions aren't defined yet
-
-        if self.debug && self.command != "ld" && self.command != "nasm" {
-            self.definitions.insert("DEBUG".to_string(), vec![]);
-        }
-
-        if let Some(includes) = &self.includes {
-            if !includes.is_empty() {
-                self.command += &generate_includes(includes.clone());
-            }
-        }
-
-        if !self.components.is_empty() {
-            self.command += &generate_arguments(self.components.clone());
-        }
-        if !self.flags.is_empty() {
-            self.command += &generate_arguments(self.flags.clone());
-        }
-
-        for (k, v) in &self.definitions {
-            self.command += &generate_definitions(HashMap::from([(k.clone(), v.clone())]));
-        }
-
-        self.command += &format!(" -o {} ", self.output_name);
-
-        wrap_message("debug", &self.command);
-        run_command(&self.command, &self.peer_id.to_string())?;
-
-        embed_section_data(&self.output_name, ".text$F", &self.config_data.as_slice())?;
-
-        if !self.debug {
-            self.strip_symbols(self.output_name.as_str())?;
-        }
-    }
-}
-
-pub fn generate_includes(includes: Vec<String>) -> String {
-    includes.iter().map(|inc| format!(" -I{} ", inc)).collect::<Vec<_>>().join("")
-}
-
-pub fn generate_arguments(args: Vec<String>) -> String {
-    args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
-}
-
-pub fn generate_definitions(defs: HashMap<String, Vec<u8>>, cpp_arr: bool) -> String {
-    let mut definitions = String::new();
-
-    /*
-     todo :
-        CFG_SIZE
-        BSWAP
-        TRANSPORT_TYPE // instead of Ctx->root;
-     */
-    for (name, def) in defs {
-        if cpp_arr {
-            let arr = create_cpp_array(&def, def.len());
-        }
-        else {
-            let arr = def;
-        }
-
-        if def.is_empty() {
-            definitions.push_str(&format!(" -D{} ", name));
-        }
-        else {
-            definitions.push_str(&format!(" -D{}={:?} ", name, arr));
-        }
-    }
-
-    definitions
-}
 
