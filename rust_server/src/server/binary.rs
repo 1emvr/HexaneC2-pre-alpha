@@ -12,8 +12,8 @@ struct Section {
 }
 
 fn get_section_header (target_path: &str, target_section: &str) -> Result<Section> {
-    let mut read_file = File::open(target_path)?;
     let mut read_data = Vec::new();
+    let mut read_file = File::open(target_path)?;
 
     read_file.read_to_end(&mut read_data)?;
 

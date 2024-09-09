@@ -3,28 +3,28 @@ mod types;
 mod utils;
 mod cipher;
 mod stream;
-mod session;
-mod instance;
 mod parser;
+mod session;
 mod builder;
 mod binary;
 mod format;
+mod instance;
 
 use serde_json;
 use serde::Deserialize;
 use lazy_static::lazy_static;
 
-use rand::Rng;
-use std::io::{stdin, Write};
 use core::fmt::Display;
+use rand::Rng;
+
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
+use std::io::{stdin, Write};
 
 use self::session::{init};
+use self::format::list_instances;
 use self::utils::{wrap_message, stop_print_channel};
 use self::instance::{Hexane, load_instance, interact_instance, remove_instance};
-use crate::server::format::list_instances;
-use crate::{invalid_input};
 
 lazy_static!(
     pub(crate) static ref INSTANCES: Arc<Mutex<Vec<Hexane>>> = Arc::new(Mutex::new(vec![]));
