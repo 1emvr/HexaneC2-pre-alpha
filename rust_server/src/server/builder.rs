@@ -86,8 +86,8 @@ pub fn compile_sources(mut instance: Hexane) -> Result<()> {
     let src_path        = Path::new(&instance.builder.root_directory).join("src");
     let entries: Vec<_> = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
 
-    let atoms = Arc::new(Mutex::new(()));
-    let (err_send, err_recv) = channel();
+    let (err_send, err_recv)    = channel();
+    let atoms                   = Arc::new(Mutex::new(()));
 
     entries.par_iter().for_each(|src| {
         if !src.metadata().map_or(false, |map| map.is_file()) {
