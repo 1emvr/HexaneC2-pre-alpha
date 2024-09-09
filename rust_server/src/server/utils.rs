@@ -3,13 +3,13 @@ use crossbeam_channel::{select};
 use colored::*;
 
 use std::{fs, io};
-use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 use std::process::Command;
+use std::io::{ErrorKind, BufRead, BufReader, Write};
 
 use crate::return_error;
 use crate::server::session::{CHANNEL, DEBUG, EXIT, SHOW_COMPILER};
-use crate::server::error::{Error, Result};
+use crate::server::error::{Error, Error::Io, Result};
 use crate::server::types::{Message};
 use crate::server::stream::Stream;
 
@@ -156,4 +156,18 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
     }
 
     Ok(())
+}
+
+
+pub(crate) fn create_directory(path: &str) -> Result<()> {
+    match fs::create_dir_all(path) {
+        Ok(_) => {
+            wrap_message("debug", &format!("Directory {} created or already exists", path));
+            Ok(())
+        }
+        Err(e) => match e.kind() {
+            ErrorKind::AlreadyExists    => Ok(()),
+            _                           => Err(Io(e)),
+        },
+    }
 }

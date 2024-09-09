@@ -57,7 +57,7 @@ pub(crate) fn embed_section_data(target_path: &str, target_section: &str, data: 
     wrap_message("debug", &format!("embedding config data to {target_section}"));
 
     if data.len() > size as usize {
-        return_error!(format!("data is longer than {target_section}.SizeOfRawData"))
+        return_error!("data is longer than {target_section}.SizeOfRawData")
     }
 
     if offset + data.len() > size as usize {
