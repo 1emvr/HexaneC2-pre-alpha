@@ -76,32 +76,33 @@ impl CompileTarget {
         args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
     }
 
-    pub fn generate_definitions(defs: HashMap<String, Vec<u8>>, cpp_arr: bool) -> String {
-        let mut definitions = String::new();
+    pub fn generate_definitions(definitions: HashMap<String, Vec<u8>>, cpp_arr: bool) -> String {
+        let mut defs    = String::new();
+        let mut arr     = Vec::new();
 
-        /*
-         todo :
-            CFG_SIZE
-            BSWAP
-            TRANSPORT_TYPE // instead of Ctx->root;
-         */
-        for (name, def) in defs {
+        for (name, def) in definitions {
             if cpp_arr {
-                let arr = create_cpp_array(&def, def.len());
+                arr = create_cpp_array(&def, def.len());
             } else {
-                let arr = def;
+                arr = def;
             }
 
-            if def.is_empty() {
-                definitions.push_str(&format!(" -D{} ", name));
+            if arr.is_empty() {
+                defs.push_str(&format!(" -D{} ", name));
             } else {
-                definitions.push_str(&format!(" -D{}={:?} ", name, arr));
+                defs.push_str(&format!(" -D{}={:?} ", name, arr));
             }
         }
 
-        definitions
+        defs
     }
 
+    /*
+     todo :
+        CFG_SIZE
+        BSWAP
+        TRANSPORT_TYPE // instead of Ctx->root;
+     */
     pub fn compile_sources(&self, root_directory: &str) -> Result<()> {
         let src_path = Path::new(root_directory).join("src");
         let entries: Vec<_> = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
