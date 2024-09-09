@@ -243,30 +243,35 @@ impl Hexane {
 
         if self.compiler.command != "ld" && self.compiler.command != "nasm" {
             if &self.main.debug {
+                wrap_message("debug", &"debug build type selected".to_owned());
                 defs.insert("DEBUG".to_string(), vec![]);
             }
 
-            match &self.main.architecture {
-                String::from("amd64")   => defs.insert("BSWAP".to_string(), vec![0]),
-                _                       => defs.insert("BSWAP".to_string(), vec![1]),
+            let arch = &self.main.architecture;
+            wrap_message("debug", &format!("{arch} build type selected"));
+
+            match arch {
+                String::from("amd64")   => { defs.insert("BSWAP".to_string(), vec![0]); },
+                _                       => { defs.insert("BSWAP".to_string(), vec![1]); },
             }
 
             if let Some(network) = &self.network {
+                wrap_message("debug", &format!("{} network type selected", &network.r#type));
+
                 match network.r#type {
-                    NetworkType::Http   => defs.insert("TRANSPORT_HTTP".to_string(), vec![]),
-                    NetworkType::Smb    => defs.insert("TRANSPORT_PIPE".to_string(), vec![]),
+                    NetworkType::Http   => { defs.insert("TRANSPORT_HTTP".to_string(), vec![]); },
+                    NetworkType::Smb    => { defs.insert("TRANSPORT_PIPE".to_string(), vec![]); },
                 }
             }
         }
 
         if !self.compiler.components.is_empty() {
+            wrap_message("debug", &"generating arguments".to_owned());
             self.compiler.command += &generate_arguments(self.compiler.components.clone());
-        }
-        if !flags.is_empty() {
-            self.compiler.command += &generate_definitions(&defs);
         }
 
         for (k, v) in &defs {
+            wrap_message("debug", &"generating definitions".to_owned());
             self.compiler.command += &generate_definitions(&HashMap::from([(k.clone(), v.clone())]));
         }
 
@@ -281,6 +286,7 @@ impl Hexane {
     pub fn compile_sources(&mut self) -> Result<()> {
         let src_path        = Path::new(&self.builder.root_directory).join("src");
         let entries: Vec<_> = fs::read_dir(src_path)?.filter_map(|entry| entry.ok()).collect();
+        let mut components  = Vec::new();
 
         let (err_send, err_recv)    = channel();
         let atoms                   = Arc::new(Mutex::new(()));
@@ -322,7 +328,7 @@ impl Hexane {
             };
 
             match result {
-                Ok(_)   => self.components.push(output.to_str().unwrap().to_string()),
+                Ok(_)   => components.push(output.to_str().unwrap().to_string()),
                 Err(e)  => err_clone.send(e).unwrap(),
             }
         });
