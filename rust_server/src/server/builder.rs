@@ -161,11 +161,22 @@ pub fn generate_arguments(args: Vec<String>) -> String {
     args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
 }
 
-pub fn generate_definitions(defs: HashMap<String, Vec<u8>>) -> String {
+pub fn generate_definitions(defs: HashMap<String, Vec<u8>>, cpp_arr: bool) -> String {
     let mut definitions = String::new();
 
+    /*
+     todo :
+        CFG_SIZE
+        BSWAP
+        TRANSPORT_TYPE // instead of Ctx->root;
+     */
     for (name, def) in defs {
-        let arr = create_cpp_array(&def, def.len());
+        if cpp_arr {
+            let arr = create_cpp_array(&def, def.len());
+        }
+        else {
+            let arr = def;
+        }
 
         if def.is_empty() {
             definitions.push_str(&format!(" -D{} ", name));

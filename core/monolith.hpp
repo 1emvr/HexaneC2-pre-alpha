@@ -69,6 +69,13 @@ EXTERN_C LPVOID InstEnd();
 #define RANGE(x, start, end) 						(x >= start && x < end)
 #define PAGE_ALIGN(x)  				                (B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
 
+#ifdef	TRANSPORT_HTTP
+#define TRANSPORT_TYPE 1
+#elifdef TRANSPORT_PIPE
+#define TRANSPORT_TYPE 0
+#endif
+#define ROOT_NODE TRANSPORT_TYPE
+
 // todo: hash COFF_PREP_SYMBOL, BEACON_SYMBOL and GLOBAL_CONTEXT names
 #ifdef _M_X64
 	#define IP_REG								    Rip
@@ -385,7 +392,7 @@ struct _parser {
 	LPVOID 	handle;
     LPVOID  buffer;
 	ULONG 	Length;
-	BOOL 	little;
+	BOOL 	bswap;
 };
 
 typedef struct {
@@ -459,8 +466,6 @@ struct _hexane{
 
 	PTEB 	teb;
 	LPVOID 	heap;
-	BOOL 	root;
-    BOOL   	little;
 	DWORD 	threads;
 	_executable *coffs;
 	_client 	*clients;

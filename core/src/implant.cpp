@@ -42,7 +42,6 @@ namespace Implant {
         bool            success     = true;
         OSVERSIONINFOW  OSVersionW  = { };
 
-        x_memset(&Ctx->little, ENDIAN, 1);
         x_assertb(Ctx->modules.kernel32 = M_PTR(KERNEL32));
         x_assertb(Ctx->modules.kernbase = M_PTR(KERNELBASE));
 
@@ -139,7 +138,6 @@ namespace Implant {
         Parser::CreateParser(&parser, _config, sizeof(_config));
         x_memset(_config, 0, sizeof(_config));
 
-        Parser::ParserBytecpy(&parser, B_PTR(&Ctx->root));
         Parser::ParserMemcpy(&parser, &Ctx->config.key, nullptr);
         Parser::ParserStrcpy(&parser, &Ctx->config.hostname, nullptr);
 

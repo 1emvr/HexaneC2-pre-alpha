@@ -130,7 +130,7 @@ namespace Dispatcher {
                 Stream::PackDword(out, head->task_id);
                 Stream::PackDword(out, head->msg_type);
 
-                if (Ctx->root) {
+                if (ROOT_NODE) {
                     Stream::PackBytes(out, B_PTR(head->buffer), head->length);
                 }
                 else {

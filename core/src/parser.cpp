@@ -63,7 +63,7 @@ namespace Parser {
 
         parser->Length  = length;
         parser->buffer  = parser->handle;
-        parser->little  = Ctx->little;
+        parser->bswap   = BSWAP;
 
         defer:
     }
@@ -122,9 +122,9 @@ namespace Parser {
         parser->buffer = B_PTR(parser->buffer) + 4;
         parser->Length -= 4;
 
-        return (parser->little)
-               ? data
-               : __builtin_bswap32((int32_t) data);
+        return (parser->bswap)
+               ? __builtin_bswap32((int32_t) data)
+               : data;
     }
 
     ULONG64 UnpackDword64 (_parser *const parser) {
@@ -140,9 +140,9 @@ namespace Parser {
         parser->buffer = B_PTR(parser->buffer) + 8;
         parser->Length -= 8;
 
-        return (parser->little)
-               ? data
-               : __builtin_bswap64((int64_t) data);
+        return (parser->bswap)
+               ? __builtin_bswap64((int64_t) data)
+               : data;
     }
 
     BOOL UnpackBool (_parser *const parser) {
@@ -158,9 +158,9 @@ namespace Parser {
         parser->buffer = B_PTR(parser->buffer) + 4;
         parser->Length -= 4;
 
-        return (parser->little)
-               ? data != 0
-               : __builtin_bswap32(data) != 0;
+        return (parser->bswap)
+               ? __builtin_bswap32(data) != 0
+               : data != 0;
     }
 
     PBYTE UnpackBytes (_parser *const parser, uint32_t *const n_out) {
