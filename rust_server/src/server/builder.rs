@@ -6,8 +6,8 @@ use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
 use crate::return_error;
-use crate::server::binary::embed_section_data;
 use crate::server::error::{Error, Result};
+use crate::server::binary::embed_section_data;
 use crate::server::utils::{create_cpp_array, run_command, wrap_message};
 
 pub struct CompileTarget {
@@ -22,7 +22,7 @@ pub struct CompileTarget {
     pub debug:          bool,
 }
 impl CompileTarget {
-    fn strip_symbols(file_path: &str) -> Result<()> {
+    pub fn strip_symbols(file_path: &str) -> Result<()> {
         let output = Command::new("strip").arg(file_path).output()?;
 
         if !output.status.success() {
