@@ -81,36 +81,36 @@ pub fn compile_sources(instance: Hexane) -> Result<()> {
     let (err_send, err_recv) = channel();
 
     entries.par_iter().for_each(|src| {
-        if !src.metadata().map_or(false, |m| m.is_file()) {
+        if !src.metadata().map_or(false, |map| map.is_file()) {
             return;
         }
 
         let path    = src.path();
         let output  = Path::new(&env::current_dir().unwrap().join("build")).join(instance.builder.output_name.clone()).with_extension("o");
 
-        let atoms_clone     = Arc::clone(&atoms);
-        let err_clone       = err_send.clone();
+        let atoms_clone = Arc::clone(&atoms);
+        let err_clone   = err_send.clone();
 
         let result = {
             let _guard = atoms_clone.lock().unwrap();
             match path.extension().and_then(|ext| ext.to_str()) {
 
                 Some("asm") => {
-                    wrap_message("debug", &format!("compiling {}", &output.display()));
-
                     let flags = vec!["-f win64".to_string()];
+
+                    wrap_message("debug", &format!("compiling {}", &output.display()));
                     compile_object(instance, flags)?;
                 }
 
                 Some("cpp") => {
+                    let mut flags = vec![instance.compiler.compiler_flags.clone()];
+                    flags.push("-c".parse().unwrap());
+
                     wrap_message("debug", &format!("compiling {}", &output.display()));
-
-                    let mut flags = instance.compiler.compiler_flags.clone();
-                    flags.push("-c");
-
-                    compile_object(instance, flags);
+                    compile_object(instance, flags)?;
                 }
-                _ => Ok(()),
+                _ => {
+                }
             }
         };
 
