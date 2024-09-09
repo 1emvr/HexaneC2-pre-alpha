@@ -105,6 +105,7 @@ pub fn compile_sources(mut instance: Hexane) -> Result<()> {
             match path.extension().and_then(|ext| ext.to_str()) {
 
                 Some("asm") => {
+                    instance.compiler.command = "nasm".to_owned();
                     let flags = vec!["-f win64".to_string()];
 
                     wrap_message("debug", &format!("compiling {}", &output.display()));
@@ -112,6 +113,7 @@ pub fn compile_sources(mut instance: Hexane) -> Result<()> {
                 }
 
                 Some("cpp") => {
+                    instance.compiler.command = "x86_64-w64-mingw32-g++".to_owned();
                     let mut flags = vec![instance.compiler.compiler_flags.clone()];
                     flags.push("-c".parse().unwrap());
 
