@@ -1,6 +1,5 @@
-use std::fs::{File, ReadDir};
+use std::fs::File;
 use crossbeam_channel::{select};
-use colored::*;
 
 use std::{fs, io};
 use std::collections::HashMap;
@@ -56,11 +55,7 @@ pub fn print_channel() {
                     if !*DEBUG && m.msg_type == "debug" {
                         continue;
                     }
-                    let fmt_msg = match m.msg_type.as_str() {
-                        "error" => format!("{}", m.msg_type),
-                        _       => m.msg_type,
-                    };
-                    println!("[{}] {}", fmt_msg, m.msg);
+                    println!("[{}] {}", m.msg_type, m.msg);
                 }
             }
         }
