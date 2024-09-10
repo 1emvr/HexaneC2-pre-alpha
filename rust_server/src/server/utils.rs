@@ -57,7 +57,7 @@ pub fn print_channel() {
                         continue;
                     }
                     let fmt_msg = match m.msg_type.as_str() {
-                        "error" => format!("{}", m.msg_type.red()),
+                        "error" => format!("{}", m.msg_type),
                         _       => m.msg_type,
                     };
                     println!("[{}] {}", fmt_msg, m.msg);
