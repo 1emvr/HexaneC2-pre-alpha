@@ -17,7 +17,7 @@ use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::binary::embed_section_data;
 use crate::server::error::{Error, Result};
 use crate::server::stream::Stream;
-use crate::{return_error, length_check_defer, map_error};
+use crate::{return_error, length_check_defer};
 
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     length_check_defer!(args, 3);
@@ -27,16 +27,16 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
         Err(e)          => return Err(e),
     };
 
-    map_error!(instance.setup_instance(), "error setting up instance");
+    instance.setup_instance()?;
 
-    let ref session = map_error!(SESSION.lock(), "could not lock session");
+    let ref session = SESSION.lock().unwrap();
 
     instance.user_session.username = session.username.clone();
     instance.user_session.is_admin = session.is_admin.clone();
 
     if let Some(network) = &instance.network {
         match network.r#type {
-            NetworkType::Http   => map_error!(instance.setup_listener(), "could not setup listener"),
+            NetworkType::Http   => instance.setup_listener()?,
             _                   => {}
         }
     }
@@ -53,7 +53,7 @@ pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
     length_check_defer!(args, 3);
     // todo: remove from db
 
-    let mut instances   = map_error!(INSTANCES.lock(), "could not lock instances");
+    let mut instances   = INSTANCES.lock().unwrap();
     if let Some(pos)    = instances.iter().position(|instance| instance.builder.output_name == args[2]) {
 
         wrap_message("info", &format!("removing {}", instances[pos].builder.output_name));
@@ -79,7 +79,7 @@ fn map_config(file_path: &String) -> Result<Hexane> {
     let json_data   = serde_json::from_str::<JsonData>(contents.as_str())?;
 
     let mut instance    = Hexane::default();
-    let session         = map_error!(SESSION.lock(), "unable to lock sessions");
+    let session         = SESSION.lock().unwrap();
 
     instance.group_id       = 0;
     instance.main           = json_data.config;
@@ -133,17 +133,17 @@ impl Hexane {
         }
 
         wrap_message("debug", &"creating build directory".to_owned());
-        map_error!(create_directory(&self.compiler.build_directory), "could not create build directory");
+        create_directory(&self.compiler.build_directory)?;
 
         wrap_message("debug", &"generating config data".to_owned());
-        map_error!(self.generate_config_bytes(), "unable to generate config bytes");
+        self.generate_config_bytes()?;
 
         wrap_message("debug", &"generating string hashes".to_owned());
-        map_error!(generate_hashes(strings_file, hash_file), "unable to generate hashes");
+        generate_hashes(strings_file, hash_file)?;
 
         wrap_message("debug", &"building sources".to_owned());
-        map_error!(self.compile_sources(), "unable to compile sources");
-        map_error!(self.run_server(), "unable to start server");
+        self.compile_sources()?;
+        self.run_server()?;
 
         Ok(())
     }
@@ -164,7 +164,7 @@ impl Hexane {
 
         if self.main.encrypt {
             let patch_cpy   = patch.clone();
-            patch           = map_error!(crypt_xtea(&patch_cpy, &self.crypt_key, true), "could not encrypt patch");
+            patch           = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
         }
 
         self.config_data = patch;
@@ -194,12 +194,12 @@ impl Hexane {
         }
 
         let working_hours = if let Some(ref hours) = self.main.working_hours {
-            map_error!(i32::from_str(hours), "invalid integer conversion?")
+            i32::from_str(hours)?
         }
         else { 0 };
 
         let kill_date = if let Some(ref date) = self.main.killdate {
-            map_error!(i64::from_str(date), "invalid integer conversion?")
+            i64::from_str(date)?
         }
         else { 0 };
 
@@ -256,7 +256,8 @@ impl Hexane {
 
             if &self.main.architecture == "amd64" {
                 defs.insert("BSWAP".to_string(), Some(0));
-            } else {
+            }
+            else {
                 defs.insert("BSWAP".to_string(), Some(1));
             }
 
@@ -272,37 +273,15 @@ impl Hexane {
             }
         }
 
-        let source_path = Path::new(&source);
-
-        let file_name = match source_path.file_name() {
-            Some(name) => name,
-            None => {
-                eprintln!("Error: Could not extract file name from source: {}", source);
-                return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid source file").into());
-            }
-        };
-
-        let mut output_path = PathBuf::from(&self.compiler.build_directory);
-        output_path.push(file_name);
-        output_path.set_extension("o");
-
-        let output_str = match output_path.to_str() {
-            Some(output) => output.replace("/", "\\"),
-            None => {
-                eprintln!("Error: Could not convert output path to string");
-                return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "Invalid output path").into());
-            }
-        };
-
         for (k, v) in &defs {
             command.push_str(&generate_definitions(&HashMap::from([(k.clone(), v.clone())])));
         }
 
-        flags.push_str(&format!(" -o {} ", output_str));
+        flags.push_str(&format!(" -o {} ", source_to_outpath(source, &self.compiler.build_directory)?));
         command.push_str(&flags);
 
         wrap_message("debug", &format!("Compiling : {:?}\n", &command));
-        map_error!(run_command(&command, &self.peer_id.to_string()), "run_command error");
+        run_command(&command, &self.peer_id.to_string())?;
 
         Ok(())
     }
@@ -311,10 +290,10 @@ impl Hexane {
         let src_path        = Path::new(&self.builder.root_directory).join("src");
         let mut components  = self.compiler.components.clone();
 
-        let entries: Vec<_> = map_error!(fs::read_dir(&src_path), "fs::read_dir error")
+        let entries: Vec<_> = fs::read_dir(&src_path)
             .filter_map(|entry| entry.ok())
             .filter_map(|entry| fs::canonicalize(entry.path()).ok())
-            .collect();
+            .collect()?;
 
         let (err_send, err_recv)    = channel();
         let atoms                   = Arc::new(Mutex::new(()));
@@ -387,7 +366,7 @@ impl Hexane {
         }
 
         wrap_message("debug", &"Linking final objects".to_owned());
-        map_error!(embed_section_data(&self.builder.output_name, ".text$F", &self.config_data.as_slice()), "embed_section_data error");
+        embed_section_data(&self.builder.output_name, ".text$F", &self.config_data.as_slice())?;
 
         // TODO: link all objects
 

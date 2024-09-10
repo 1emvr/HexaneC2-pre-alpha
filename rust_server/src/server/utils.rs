@@ -3,7 +3,7 @@ use crossbeam_channel::{select};
 use colored::*;
 
 use std::{fs, io};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::io::{ErrorKind, BufRead, BufReader, Write};
 
@@ -169,3 +169,30 @@ pub(crate) fn create_directory(path: &str) -> Result<()> {
         },
     }
 }
+
+pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
+    let source_path = std::path::Path::From(&source);
+
+    let file_name = match source_path.file_name() {
+        Some(name) => name,
+        None => {
+            eprintln!("Error: Could not extract file name from source: {}", source);
+            return Err(io::Error::new(ErrorKind::InvalidInput, "Invalid source file").into());
+        }
+    };
+
+    let mut output_path = PathBuf::from(&outpath);
+    output_path.push(file_name);
+    output_path.set_extension("o");
+
+    let output_str = match output_path.to_str() {
+        Some(output) => output.replace("/", "\\"),
+        None => {
+            eprintln!("Error: Could not convert output path to string");
+            return Err(io::Error::new(ErrorKind::InvalidInput, "Invalid output path").into());
+        }
+    };
+
+    Ok(output_str)
+}
+
