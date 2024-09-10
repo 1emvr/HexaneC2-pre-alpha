@@ -238,6 +238,7 @@ impl Hexane {
                 (NetworkType::Smb, NetworkOptions::Smb(ref smb)) => {
                     stream.pack_wstring(smb.egress_pipe.as_ref().unwrap().as_str());
                 },
+
                 _ => return_error!("unknown network type found in complete config... how could this happen?")
             }
         }
