@@ -9,6 +9,7 @@ mod builder;
 mod binary;
 mod format;
 mod instance;
+mod rstatic;
 
 use serde_json;
 use serde::Deserialize;

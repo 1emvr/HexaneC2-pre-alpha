@@ -9,8 +9,8 @@ use std::sync::mpsc::channel;
 
 use rayon::prelude::*;
 use crate::server::INSTANCES;
-use crate::server::session::{CURDIR, SESSION};
-use crate::server::types::{NetworkType, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, JsonData, BuildType};
+use crate::server::rstatic::{CURDIR, DEBUG_FLAGS, HASHES, RELEASE_FLAGS, SESSION, STRINGS};
+use crate::server::types::{NetworkType, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, JsonData};
 use crate::server::utils::{create_directory, generate_definitions, generate_hashes, normalize_path, read_canonical_path, run_command, source_to_outpath, wrap_message};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::binary::embed_section_data;
@@ -18,11 +18,25 @@ use crate::server::error::{Error, Result};
 use crate::server::stream::Stream;
 use crate::{return_error, length_check_defer};
 
-static STRINGS: &'static str    = "./configs/strings.txt";
-static HASHES: &'static str     = "./core/include/names.hpp";
 
-static DEBUG_FLAGS: &'static str = "-std=c++23 -g -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin -Wl,--no-seh,--enable-stdcall-fixup,--gc-sections";
-static RELEASE_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC  -fno-builtin -Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections";
+fn map_config(file_path: &String) -> Result<Hexane> {
+    let json_file   = CURDIR.join("json").join(file_path);
+
+    let contents    = fs::read_to_string(json_file).map_err(Error::Io)?;
+    let json_data   = serde_json::from_str::<JsonData>(contents.as_str())?;
+
+    let mut instance    = Hexane::default();
+    let session         = SESSION.lock().unwrap();
+
+    instance.group_id       = 0;
+    instance.main           = json_data.config;
+    instance.loader         = json_data.loader;
+    instance.builder        = json_data.builder;
+    instance.network        = json_data.network;
+    instance.user_session   = session.clone();
+
+    Ok(instance)
+}
 
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     length_check_defer!(args, 3);
@@ -38,13 +52,6 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
 
     instance.user_session.username = session.username.clone();
     instance.user_session.is_admin = session.is_admin.clone();
-
-    if let Some(network) = &instance.network {
-        match network.r#type {
-            NetworkType::Http   => instance.setup_listener()?,
-            _                   => {}
-        }
-    }
 
     wrap_message("info", &format!("{} is ready", instance.builder.output_name));
     INSTANCES.lock().unwrap().push(instance);
@@ -75,25 +82,6 @@ pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
 pub(crate) fn interact_instance(args: Vec<String>) -> Result<()> {
     // todo:: implement
     Ok(())
-}
-
-fn map_config(file_path: &String) -> Result<Hexane> {
-    let json_file   = CURDIR.join("json").join(file_path);
-
-    let contents    = fs::read_to_string(json_file).map_err(Error::Io)?;
-    let json_data   = serde_json::from_str::<JsonData>(contents.as_str())?;
-
-    let mut instance    = Hexane::default();
-    let session         = SESSION.lock().unwrap();
-
-    instance.group_id       = 0;
-    instance.main           = json_data.config;
-    instance.loader         = json_data.loader;
-    instance.builder        = json_data.builder;
-    instance.network        = json_data.network;
-    instance.user_session   = session.clone();
-
-    Ok(instance)
 }
 
 
@@ -144,24 +132,14 @@ impl Hexane {
         }
 
         match generate_hashes(STRINGS, HASHES) {
-            Ok(_)   => wrap_message("debug", &"generating string hashes".to_owned()),
+            Ok(_)   => wrap_message("debug", &"generated string hashes".to_owned()),
             Err(e)  => return_error!("setup_instance:: {e}")
         }
 
-        wrap_message("debug", &"building sources".to_owned());
-
-        self.compile_sources()?;
-        self.run_server()?;
-
-        Ok(())
-    }
-
-    fn setup_listener(&mut self) -> Result<()> {
-        // todo: listener setup
-        Ok(())
-    }
-
-    fn run_server(&self) -> Result<()> {
+        match self.compile_sources() {
+            Ok(_)   => wrap_message("debug", &"generated payload".to_owned()),
+            Err(e)  => return_error!("setup_instance:: {e}")
+        }
 
         Ok(())
     }
