@@ -9,10 +9,32 @@ use std::process::Command;
 use std::io::{ErrorKind, BufRead, BufReader, Write};
 
 use crate::return_error;
-use crate::server::error::{Error, Error::Io, Result};
+use crate::server::error::{Result, Error, Error::Io};
 use crate::server::rstatic::{CHANNEL, DEBUG, EXIT};
 use crate::server::types::{Message};
 use crate::server::stream::Stream;
+
+
+pub fn print_help() {
+    println!(r#"
+Available Commands:
+
+General:
+  exit        - Exit the application
+  help        - Display this help message
+
+Implant Management:
+  implant ls       - List all loaded implants
+  implant load     - Load an implant from a specified configuration
+  implant rm       - Remove a loaded implant
+  implant i        - Interact with a specific loaded implant
+
+Listener Management:
+  listener attach  - Attach to a listener associated with an implant (not implemented)
+
+"#);
+}
+
 
 fn encode_utf16(s: &str) -> Vec<u8> {
     s.encode_utf16()
@@ -172,7 +194,7 @@ pub(crate) fn create_directory(path: &str) -> Result<()> {
 }
 
 pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
-    let source_path = std::path::Path::From(&source);
+    let source_path = std::path::Path(&source);
 
     let file_name = match source_path.file_name() {
         Some(name) => name,

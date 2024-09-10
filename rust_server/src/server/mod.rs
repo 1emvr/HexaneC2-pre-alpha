@@ -21,9 +21,9 @@ use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use std::io::{stdin, Write};
 
-use self::session::{init};
+use self::session::init;
 use self::format::list_instances;
-use self::utils::{wrap_message, stop_print_channel};
+use self::utils::{wrap_message, stop_print_channel, print_help};
 use self::instance::{Hexane, load_instance, interact_instance, remove_instance};
 
 lazy_static!(
@@ -77,22 +77,3 @@ pub fn run_client() {
     stop_print_channel();
 }
 
-pub fn print_help() {
-    println!(r#"
-Available Commands:
-
-General:
-  exit        - Exit the application
-  help        - Display this help message
-
-Implant Management:
-  implant ls       - List all loaded implants
-  implant load     - Load an implant from a specified configuration
-  implant rm       - Remove a loaded implant
-  implant i        - Interact with a specific loaded implant
-
-Listener Management:
-  listener attach  - Attach to a listener associated with an implant (not implemented)
-
-"#);
-}

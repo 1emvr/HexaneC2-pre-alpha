@@ -118,7 +118,7 @@ impl Hexane {
             self.compiler.compiler_flags = DEBUG_FLAGS.parse().unwrap();
         }
         else {
-            self.compiler.compiler_flags = RELEASE_FLAGS.parse().unrwap();
+            self.compiler.compiler_flags = RELEASE_FLAGS.parse().unwrap();
         }
 
         match create_directory(&self.compiler.build_directory) {
