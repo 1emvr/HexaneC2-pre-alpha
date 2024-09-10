@@ -155,20 +155,32 @@ pub(crate) fn find_double_u32(data: &[u8], egg: &[u8]) -> Result<usize> {
 }
 
 pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
-    let shell   = if cfg!(target_os = "windows") { "cmd" } else { "bash" };
-    let flags   = if cfg!(target_os = "windows") { "/c" } else { "-c" };
-
     let log_path = Path::new("LogsPath").join(logname);
-    let mut log_file = File::create(&log_path)?;
+
+    let mut log_file = match File::create(&log_path) {
+        Ok(log_file)    => log_file,
+        Err(e)          => return_error!("run_command::File::create(log_file)::{e}")
+    };
 
     wrap_message("debug", &format!("running command {}", cmd.to_string()));
-    let mut command = Command::new(shell);
 
-    command.arg(flags).arg(cmd);
-    let output = command.output()?;
+    let mut command = Command::new("cmd");
+    command.arg("/c").arg(cmd);
 
-    log_file.write_all(&output.stdout)?;
-    log_file.write_all(&output.stderr)?;
+    let output = match command.output() {
+        Ok(output)  => output,
+        Err(e)      => return_error!("run_command::command.output()::{e}")
+    };
+
+    match log_file.write_all(&output.stdout) {
+        Ok(_)   => { },
+        Err(e)  => return_error!("run_command::log_file.write_all(stdout)::{e}")
+    }
+
+    match log_file.write_all(&output.stderr) {
+        Ok(_)   => { },
+        Err(e)  => return_error!("run_command::log_file.write_all(stderr)::{e}")
+    }
 
     if !output.status.success() {
         return_error!("check {} for details", log_path.display());
@@ -179,11 +191,8 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
 
 pub(crate) fn create_directory(path: &str) -> Result<()> {
     match fs::create_dir_all(path) {
-        Ok(_) => {
-            wrap_message("debug", &format!("Directory {} created or already exists", path));
-            Ok(())
-        }
-        Err(e) => match e.kind() {
+        Ok(_)   => { Ok(()) }
+        Err(e)  => match e.kind() {
             ErrorKind::AlreadyExists    => Ok(()),
             _                           => Err(Io(e)),
         },

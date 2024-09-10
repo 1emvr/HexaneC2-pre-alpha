@@ -122,22 +122,22 @@ impl Hexane {
 
         match create_directory(&self.compiler.build_directory) {
             Ok(_)   => wrap_message("debug", &"created build directory".to_owned()),
-            Err(e)  => return_error!("setup_instance:: {e}")
+            Err(e)  => return_error!("setup_instance::{e}")
         }
 
         match self.generate_config_bytes() {
             Ok(_)   => wrap_message("debug", &"config data generated".to_owned()),
-            Err(e)  => return_error!("setup_instance:: {e}")
+            Err(e)  => return_error!("setup_instance::{e}")
         }
 
         match generate_hashes(STRINGS, HASHES) {
             Ok(_)   => wrap_message("debug", &"generated string hashes".to_owned()),
-            Err(e)  => return_error!("setup_instance:: {e}")
+            Err(e)  => return_error!("setup_instance::{e}")
         }
 
         match self.compile_sources() {
             Ok(_)   => wrap_message("debug", &"generated payload".to_owned()),
-            Err(e)  => return_error!("setup_instance:: {e}")
+            Err(e)  => return_error!("setup_instance::{e}")
         }
 
         Ok(())
