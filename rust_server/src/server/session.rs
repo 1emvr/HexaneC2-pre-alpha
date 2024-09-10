@@ -7,6 +7,7 @@ use crate::server::utils::{print_channel, wrap_message};
 
 use clap::Parser;
 use lazy_static::lazy_static;
+use crate::server::rstatic::SESSION;
 
 const BANNER: &str = r#"
 ██╗  ██╗███████╗██╗  ██╗ █████╗ ███╗   ██╗███████╗ ██████╗██████╗

@@ -9,8 +9,8 @@ use std::process::Command;
 use std::io::{ErrorKind, BufRead, BufReader, Write};
 
 use crate::return_error;
-use crate::server::session::{CHANNEL, DEBUG, EXIT, SHOW_COMPILER};
 use crate::server::error::{Error, Error::Io, Result};
+use crate::server::rstatic::{CHANNEL, DEBUG, EXIT};
 use crate::server::types::{Message};
 use crate::server::stream::Stream;
 

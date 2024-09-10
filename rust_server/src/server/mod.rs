@@ -5,7 +5,6 @@ mod cipher;
 mod stream;
 mod parser;
 mod session;
-mod builder;
 mod binary;
 mod format;
 mod instance;
