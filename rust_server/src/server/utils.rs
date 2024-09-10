@@ -155,7 +155,7 @@ pub(crate) fn find_double_u32(data: &[u8], egg: &[u8]) -> Result<usize> {
 }
 
 pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
-    let log_path = Path::new("LogsPath").join(logname);
+    let log_path = Path::new("./logs").join(logname);
 
     let mut log_file = match File::create(&log_path) {
         Ok(log_file)    => log_file,
