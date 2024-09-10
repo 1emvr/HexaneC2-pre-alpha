@@ -304,7 +304,7 @@ impl Hexane {
 
             let absolute_str = match absolute_path.to_str() {
                 Some(path_str)  => { normalize_path(path_str) }
-                None            => { return_error!("compile_sources: cannot convert path to string: {:?}", absolute_path) }
+                None            => { Err("compile_sources: cannot convert path to string").unwrap() }
             };
 
             match absolute_path.extension().and_then(|ext| ext.to_str()) {
