@@ -12,23 +12,17 @@ mod rstatic;
 
 use serde_json;
 use serde::Deserialize;
-use lazy_static::lazy_static;
-
-use core::fmt::Display;
-use rand::Rng;
 
 use std::str::FromStr;
-use std::sync::{Arc, Mutex};
 use std::io::{stdin, Write};
+use core::fmt::Display;
+use rand::Rng;
 
 use self::session::init;
 use self::format::list_instances;
 use self::utils::{wrap_message, stop_print_channel, print_help};
-use self::instance::{Hexane, load_instance, interact_instance, remove_instance};
+use self::instance::{load_instance, interact_instance, remove_instance};
 
-lazy_static!(
-    pub(crate) static ref INSTANCES: Arc<Mutex<Vec<Hexane>>> = Arc::new(Mutex::new(vec![]));
-);
 
 pub fn run_client() {
     init();

@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::fs::{File, ReadDir};
 use crossbeam_channel::{select};
 use colored::*;
 
@@ -154,7 +154,6 @@ pub(crate) fn find_double_u32(data: &[u8], egg: &[u8]) -> Result<usize> {
     Err(Error::Custom("egg was not found".to_string()))
 }
 
-
 pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
     let shell   = if cfg!(target_os = "windows") { "cmd" } else { "bash" };
     let flags   = if cfg!(target_os = "windows") { "/c" } else { "-c" };
@@ -163,10 +162,9 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
     let mut log_file = File::create(&log_path)?;
 
     wrap_message("debug", &format!("running command {}", cmd.to_string()));
-
     let mut command = Command::new(shell);
-    command.arg(flags).arg(cmd);
 
+    command.arg(flags).arg(cmd);
     let output = command.output()?;
 
     log_file.write_all(&output.stdout)?;
@@ -178,7 +176,6 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
 
     Ok(())
 }
-
 
 pub(crate) fn create_directory(path: &str) -> Result<()> {
     match fs::create_dir_all(path) {
@@ -194,7 +191,7 @@ pub(crate) fn create_directory(path: &str) -> Result<()> {
 }
 
 pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
-    let source_path = std::path::Path(&source);
+    let source_path = Path::new(&source);
 
     let file_name = match source_path.file_name() {
         Some(name) => name,
@@ -219,15 +216,16 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
     Ok(output_str)
 }
 
-pub fn read_canonical_path(src_path: PathBuf) -> Vec<u8> {
-    fs::read_dir(&src_path)
-        .filter_map(|n| n.ok())
-        .filter_map(|n| fs::canonicalize(n.path()).ok())
-        .collect()
+pub fn canonical_path(src_path: PathBuf) -> Result<Vec<PathBuf>> {
+    let entries = fs::read_dir(&src_path)?
+        .filter_map(|entry| entry.ok())
+        .filter_map(|entry| fs::canonicalize(entry.path()).ok())
+        .collect();
+
+    Ok(entries)
 }
 
 pub fn normalize_path(path_str: &str) -> String {
-
     let stripped_path = if path_str.starts_with(r"\\?\") || path_str.starts_with("//?/") {
         &path_str[4..]
     }

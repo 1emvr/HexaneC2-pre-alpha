@@ -1,9 +1,9 @@
 use prettytable::{row, Table};
 
 use crate::return_error;
+use crate::server::rstatic::INSTANCES;
 use crate::server::types::NetworkOptions;
 use crate::server::error::{Result, Error};
-use crate::server::INSTANCES;
 
 pub fn list_instances() -> Result<()> {
     let instances = INSTANCES.lock().map_err(|e| e.to_string())?;

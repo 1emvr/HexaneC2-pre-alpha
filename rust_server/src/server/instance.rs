@@ -8,10 +8,9 @@ use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
 
 use rayon::prelude::*;
-use crate::server::INSTANCES;
-use crate::server::rstatic::{CURDIR, DEBUG_FLAGS, HASHES, RELEASE_FLAGS, SESSION, STRINGS};
+use crate::server::rstatic::{CURDIR, DEBUG_FLAGS, HASHES, INSTANCES, RELEASE_FLAGS, SESSION, STRINGS};
 use crate::server::types::{NetworkType, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, JsonData};
-use crate::server::utils::{create_directory, generate_definitions, generate_hashes, normalize_path, read_canonical_path, run_command, source_to_outpath, wrap_message};
+use crate::server::utils::{create_directory, generate_definitions, generate_hashes, normalize_path, canonical_path, run_command, source_to_outpath, wrap_message};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::binary::embed_section_data;
 use crate::server::error::{Error, Result};
@@ -280,7 +279,7 @@ impl Hexane {
         let src_path        = Path::new(&self.builder.root_directory).join("src");
         let mut components  = self.compiler.components.clone();
 
-        let entries: Vec<_> = match read_canonical_path(src_path) {
+        let entries = match canonical_path(src_path) {
             Ok(entries) => entries,
             Err(e)      => return_error!("compile_sources::read_canonical_path::{e}")
         };
