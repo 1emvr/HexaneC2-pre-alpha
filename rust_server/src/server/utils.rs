@@ -3,6 +3,7 @@ use crossbeam_channel::{select};
 use colored::*;
 
 use std::{fs, io};
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::io::{ErrorKind, BufRead, BufReader, Write};
@@ -196,3 +197,42 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
     Ok(output_str)
 }
 
+pub fn read_canonical_path(src_path: PathBuf) -> Vec<u8> {
+    fs::read_dir(&src_path)
+        .filter_map(|n| n.ok())
+        .filter_map(|n| fs::canonicalize(n.path()).ok())
+        .collect()
+}
+
+pub fn normalize_path(path_str: &str) -> String {
+
+    let stripped_path = if path_str.starts_with(r"\\?\") || path_str.starts_with("//?/") {
+        &path_str[4..]
+    }
+    else {
+        path_str
+    };
+
+    stripped_path.replace("/", "\\")
+}
+
+pub fn generate_includes(includes: Vec<String>) -> String {
+    includes.iter().map(|inc| format!(" -I{} ", inc)).collect::<Vec<_>>().join("")
+}
+
+pub fn generate_arguments(args: Vec<String>) -> String {
+    args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
+}
+
+pub fn generate_definitions(definitions: &HashMap<String, Option<u8>>) -> String {
+    let mut defs = String::new();
+
+    for (name, def) in definitions {
+        match def {
+            None        => defs.push_str(&format!(" -D{} ", name)),
+            Some(value) => defs.push_str(&format!(" -D{}={} ", name, value)),
+        }
+    }
+
+    defs
+}
