@@ -272,10 +272,10 @@ impl Hexane {
             command.push_str(&generate_definitions(&HashMap::from([(k.clone(), v.clone())])));
         }
 
-        flags.push_str(&format!(" -I{} ",fs::canonicalize(env::current_dir()?)?.to_str().unwrap()));
+        flags.push_str(&format!(" -I{} ", normalize_path(fs::canonicalize(env::current_dir()?)?.to_str().unwrap())));
         flags.push_str(&format!(" -o {} ", build));
-        command.push_str(&flags);
 
+        command.push_str(&flags);
         run_command(&command, &self.peer_id.to_string())
     }
 
