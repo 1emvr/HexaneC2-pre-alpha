@@ -151,6 +151,20 @@ typedef enum _PS_ATTRIBUTE_NUM {
 #define PS_ATTRIBUTE_COMPONENT_FILTER					PsAttributeValue(PsAttributeComponentFilter, FALSE, TRUE, FALSE) // 0x2001D
 #define PS_ATTRIBUTE_ENABLE_OPTIONAL_XSTATE_FEATURES	PsAttributeValue(PsAttributeEnableOptionalXStateFeatures, TRUE, TRUE, FALSE) // 0x3001E
 
+typedef struct _IO_STATUS_BLOCK {
+    union     {
+        NTSTATUS Status;
+        PVOID Pointer;
+    };
+    ULONG_PTR Information;
+} IO_STATUS_BLOCK, *PIO_STATUS_BLOCK;
+
+
+typedef NTSTATUS (NTAPI *PUSER_THREAD_START_ROUTINE)(PVOID ThreadParameter);
+
+typedef VOID (NTAPI *PIO_APC_ROUTINE)(PVOID ApcContext, PIO_STATUS_BLOCK IoStatusBlock, ULONG Reserved);
+
+
 typedef struct _PROC_THREAD_ATTRIBUTE_ENTRY {
 	ULONG_PTR  	Attribute;
 	ULONG_PTR  	Size;
@@ -163,15 +177,6 @@ typedef struct _PROC_THREAD_ATTRIBUTE_LIST {
 	ULONG_PTR                   Length;
 	PROC_THREAD_ATTRIBUTE_ENTRY Entry;
 } PROC_THREAD_ATTRIBUTE_LIST, *PPROC_THREAD_ATTRIBUTE_LIST;
-
-
-typedef struct _IO_STATUS_BLOCK {
-	union {
-		NTSTATUS Status;
-		PVOID Pointer;
-	};
-	ULONG_PTR Information;
-} IO_STATUS_BLOCK, *PIO_STATUS_BLOCK;
 
 
 typedef struct _CLIENT_ID {
@@ -190,7 +195,7 @@ typedef UNICODE_STRING* PUNICODE_STRING;
 
 typedef struct _OBJECT_ATTRIBUTES {
 	ULONG Length;
-	*HANDLE RootDirectory;
+	HANDLE RootDirectory;
 	PUNICODE_STRING ObjectName;
 	ULONG Attributes;
 	PVOID SecurityDescriptor;
