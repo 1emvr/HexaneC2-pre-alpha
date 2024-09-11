@@ -24,8 +24,8 @@ namespace Clients {
         _client *target     = GetClient(peer_id);
         _client *prev       = { };
 
-	x_assertb(head);
-	x_assertb(target);
+	    x_assertb(head);
+	    x_assertb(target);
 
         while (head) {
             if (head == target) {
