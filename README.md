@@ -14,6 +14,6 @@ The implant is not 100% undetectable. There are plenty of IOCs that are intrinsi
 - implement indirect syscalls/proxying through kernelbase/kern32
 - re-implement thread stack spoofing/ sleep obfuscation
 - implement external listeners/redirectors
-- porting entire server/listener to Rust for stability
+- porting entire server/listener from Go to Rust for stability
 - hashing process strings
 - write documentation
