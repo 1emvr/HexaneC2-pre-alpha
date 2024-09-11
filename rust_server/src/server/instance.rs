@@ -242,7 +242,7 @@ impl Hexane {
     }
 
     fn compile_object(&mut self, mut command: String, source: String, mut flags: String) -> Result<()> {
-        let mut defs: HashMap<String, Option<u8>> = HashMap::new();
+        let mut defs: HashMap<String, Option<u32>> = HashMap::new();
 
         let build = match source_to_outpath(source, &self.compiler.build_directory) {
             Ok(build)   => build,
@@ -259,6 +259,13 @@ impl Hexane {
             } else {
                 defs.insert("BSWAP".to_string(), Some(1));
             }
+
+            let cfg_size = &self.main.config_size;
+            if cfg_size.is_none() {
+                return_error!("config size not specified")
+            }
+
+            defs.insert("CFG_SIZE".to_string(), self.main.config_size);
 
             if let Some(network) = &self.network {
                 match network.r#type {

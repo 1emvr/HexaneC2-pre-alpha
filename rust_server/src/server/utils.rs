@@ -248,7 +248,7 @@ pub fn generate_arguments(args: Vec<String>) -> String {
     args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
 }
 
-pub fn generate_definitions(definitions: &HashMap<String, Option<u8>>) -> String {
+pub fn generate_definitions(definitions: &HashMap<String, Option<u32>>) -> String {
     let mut defs = String::new();
 
     for (name, def) in definitions {

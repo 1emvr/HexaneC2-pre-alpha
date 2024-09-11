@@ -103,14 +103,15 @@ pub struct Message {
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Config {
-    pub(crate) debug:          bool,
-    pub(crate) encrypt:        bool,
-    pub(crate) architecture:   String,
-    pub(crate) hostname:       String,
-    pub(crate) working_hours:  Option<String>,
-    pub(crate) killdate:       Option<String>,
-    pub(crate) sleeptime:      u32,
-    pub(crate) jitter:         u16,
+    pub(crate) debug:           bool,
+    pub(crate) encrypt:         bool,
+    pub(crate) architecture:    String,
+    pub(crate) hostname:        String,
+    pub(crate) working_hours:   Option<String>,
+    pub(crate) killdate:        Option<String>,
+    pub(crate) config_size:     Option<u32>, // says "optional" but will be checked for in the config
+    pub(crate) sleeptime:       u32,
+    pub(crate) jitter:          u16,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
