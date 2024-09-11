@@ -4,7 +4,7 @@ This framework is a compilation of every publicly available resource I could thi
 
 The implant is not 100% undetectable. There are plenty of IOCs that are intrinsic to the methods applied and network communication is completely naked.
 
-This is meant to be a platform for me to expand with custom implementations and experimenting with new features.
+This is meant to be a platform for me to expand with custom implementations and experimenting with new features later on.
 
 ### Todo:
 - testing P2P communication
