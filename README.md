@@ -13,4 +13,5 @@ This is meant to be a platform for me to expand with custom implementations and 
 - implement dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
 - implement indirect syscalls/proxying through kernelbase/kern32
 - re-implement thread stack spoofing/ sleep obfuscation
-- write documentation/installation
+- implement external listeners/redirectors
+- write documentation/installation steps
