@@ -260,12 +260,15 @@ impl Hexane {
                 defs.insert("BSWAP".to_string(), Some(1));
             }
 
-            let cfg_size = &self.main.config_size;
-            if cfg_size.is_none() {
+            let cfg_size    = &self.main.config_size;
+            let encrypted   = &self.main.encrypt;
+
+            if cfg_size.is_none() || encrypted.is_none() {
                 return_error!("config size not specified")
             }
 
-            defs.insert("CFG_SIZE".to_string(), self.main.config_size);
+            defs.insert("CONFIG_SIZE".to_string(), self.main.config_size);
+            defs.insert("ENCRYPTED".to_string(), self.main.encrypt as u32);
 
             if let Some(network) = &self.network {
                 match network.r#type {
