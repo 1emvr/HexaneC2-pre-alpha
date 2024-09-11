@@ -14,4 +14,5 @@ This is meant to be a platform for me to expand with custom implementations and 
 - implement indirect syscalls/proxying through kernelbase/kern32
 - re-implement thread stack spoofing/ sleep obfuscation
 - implement external listeners/redirectors
+- porting entire server/listener to Rust
 - write documentation/installation steps
