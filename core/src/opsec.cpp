@@ -32,6 +32,7 @@ namespace Opsec {
     }
 
     BOOL CheckDebugger() {
+        // todo: diagnose why this stopped working
 
         PPEB peb    = PEB_POINTER;
         BOOL m_x32  = FALSE;
