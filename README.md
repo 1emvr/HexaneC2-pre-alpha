@@ -15,4 +15,4 @@ The implant is not 100% undetectable. There are plenty of IOCs that are intrinsi
 - re-implement thread stack spoofing/ sleep obfuscation
 - implement external listeners/redirectors
 - porting entire server/listener to Rust for stability
-- write documentation/installation steps
+- write documentation
