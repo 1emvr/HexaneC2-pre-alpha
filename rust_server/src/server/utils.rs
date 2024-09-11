@@ -249,14 +249,8 @@ pub fn generate_arguments(args: Vec<String>) -> String {
 }
 
 pub fn generate_definitions(definitions: &HashMap<String, Option<u32>>) -> String {
-    let mut defs = String::new();
-
-    for (name, def) in definitions {
-        match def {
-            None        => defs.push_str(&format!(" -D{} ", name)),
-            Some(value) => defs.push_str(&format!(" -D{}={} ", name, value)),
-        }
-    }
-
-    defs
+    definitions.iter().map(|(name, def)| match def {
+        None        => format!("-D{} ", name),
+        Some(value) => format!("-D{}={} ", name, value),
+    }).collect::<String>()
 }

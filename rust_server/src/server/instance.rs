@@ -242,38 +242,22 @@ impl Hexane {
     }
 
     fn compile_object(&mut self, mut command: String, source: String, mut flags: String) -> Result<()> {
-        let mut defs: HashMap<String, Option<u32>> = HashMap::new();
 
-        let build = match source_to_outpath(source, &self.compiler.build_directory) {
-            Ok(build)   => build,
-            Err(e)      => return_error!("compile_object::{e}")
-        };
+        let build       = match source_to_outpath(source, &self.compiler.build_directory).map_err(|e| return_error!("compile_object::{e}"))
+        let mut defs    = HashMap::new();
 
         if command.trim() != "ld" && command.trim() != "nasm" {
-            let cfg_size    = &self.main.config_size;
-            let encrypted   = &self.main.encrypt;
 
-            if cfg_size.is_none()   { return_error!("config size not specified") }
-            if encrypted.is_none()  { return_error!("bool encryption not specified") }
-
-            if self.main.encrypt.unwrap() {
-                defs.insert("ENCRYPTED".to_string(), Option::from(1 as u32));
-            }
-            else {
-                defs.insert("ENCRYPTED".to_string(), Option::from(0 as u32));
-            }
+            let encrypted   = self.main.encrypt.ok_or_else(|| return_error!("bool encryption value not specified"));
+            let cfg_size    = self.main.config_size.ok_or_else(|| return_error!("config size not specified"));
 
             if self.main.debug {
                 defs.insert("DEBUG".to_string(), None);
             }
 
-            if &self.main.architecture == "amd64" {
-                defs.insert("BSWAP".to_string(), Some(0));
-            } else {
-                defs.insert("BSWAP".to_string(), Some(1));
-            }
-
-            defs.insert("CONFIG_SIZE".to_string(), self.main.config_size);
+            defs.insert("CONFIG_SIZE".to_string(), Some(cfg_size as u32));
+            defs.insert("ENCRYPTED".to_string(), Some(if encrypted {1u32} else {0u32}));
+            defs.insert("BSWAP".to_string(),    Some(if &self.main.architecture == "amd64" {0u32} else {1u32}));
 
             if let Some(network) = &self.network {
                 match network.r#type {
@@ -283,11 +267,10 @@ impl Hexane {
             }
         }
 
-        for (k, v) in &defs {
-            command.push_str(&generate_definitions(&HashMap::from([(k.clone(), v.clone())])));
-        }
+        command.push_str(&generate_definitions(&defs));
 
-        flags.push_str(&format!(" -I{} ", normalize_path(fs::canonicalize(env::current_dir()?)?.to_str().unwrap())));
+        let curdir = env::current_dir()?.canonicalize()?;
+        flags.push_str(&format!(" -I{} ", normalize_path(curdir.to_str().unwrap())));
         flags.push_str(&format!(" -o {} ", build));
 
         command.push_str(&flags);
