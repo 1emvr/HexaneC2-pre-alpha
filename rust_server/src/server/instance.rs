@@ -1,4 +1,4 @@
-use std::fs;
+use std::{env, fs};
 use rand::Rng;
 use std::str::FromStr;
 use std::borrow::Borrow;
@@ -45,7 +45,10 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
         Err(e)          => return Err(e)
     };
 
-    instance.setup_instance()?;
+    match instance.setup_instance() {
+        Ok(_)   => { },
+        Err(e)  => return_error!("load_instance::{e}")
+    }
 
     let ref session = SESSION.lock().unwrap();
 
@@ -269,6 +272,7 @@ impl Hexane {
             command.push_str(&generate_definitions(&HashMap::from([(k.clone(), v.clone())])));
         }
 
+        flags.push_str(fs::canonicalize(env::current_dir()?)?.to_str().unwrap());
         flags.push_str(&format!(" -o {} ", build));
         command.push_str(&flags);
 
@@ -279,7 +283,7 @@ impl Hexane {
         let src_path        = Path::new(&self.builder.root_directory).join("src");
         let mut components  = self.compiler.components.clone();
 
-        let entries = match canonical_path(src_path) {
+        let entries = match fs::canonicalize(src_path) {
             Ok(entries) => entries,
             Err(e)      => return_error!("compile_sources::read_canonical_path::{e}")
         };
