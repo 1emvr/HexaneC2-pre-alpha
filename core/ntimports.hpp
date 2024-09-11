@@ -12,6 +12,7 @@
 #include <memoryapi.h>
 #include <iphlpapi.h>
 #include <tlhelp32.h>
+#include <d4drvif.h>
 #include <type_traits>
 #include <aclapi.h>
 #include <iostream>
@@ -150,6 +151,10 @@ typedef enum _PS_ATTRIBUTE_NUM {
 #define PS_ATTRIBUTE_MACHINE_TYPE						PsAttributeValue(PsAttributeMachineType, FALSE, TRUE, TRUE) // 0x6001C
 #define PS_ATTRIBUTE_COMPONENT_FILTER					PsAttributeValue(PsAttributeComponentFilter, FALSE, TRUE, FALSE) // 0x2001D
 #define PS_ATTRIBUTE_ENABLE_OPTIONAL_XSTATE_FEATURES	PsAttributeValue(PsAttributeEnableOptionalXStateFeatures, TRUE, TRUE, FALSE) // 0x3001E
+
+#define IOCTL_KSEC_DECRYPT_MEMORY   CTL_CODE(FILE_DEVICE_KSEC,  4, METHOD_OUT_DIRECT,   FILE_ANY_ACCESS )
+
+CTL_CODE;
 
 typedef struct _IO_STATUS_BLOCK {
     union     {

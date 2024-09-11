@@ -1,7 +1,7 @@
 {
 	"config": {
 		"architecture": "amd64",
-		"debug": true,
+		"debug": false,
 		"encrypt": false,
 		"hostname": "LENOVO-WRKSTN-L",
 		"config_size": 1024,

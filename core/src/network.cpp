@@ -26,7 +26,7 @@ namespace Network {
                 x_assert(Ctx->win32.WinHttpReadData(request, buffer, length, (DWORD*) &read));
 
                 x_memcpy(B_PTR(download) + total, buffer, read);
-                ZeroFreePtr(buffer, read);
+                x_zerofree(buffer, read);
 
                 total += read;
 
