@@ -159,6 +159,7 @@ namespace Opsec {
     }
 
     VOID SleepObf() {
+        // todo: re-implement proper sleep obfuscation with https://github.com/y11en/FOLIAGE for the time being.
         Utils::Time::Timeout(Utils::Random::RandomSleepTime());
     }
 }
