@@ -4,6 +4,8 @@ This framework is a compilation of every publicly available resource I could thi
 
 The implant is not 100% undetectable. There are plenty of IOCs that are intrinsic to the methods applied and network communication are completely naked.
 
+This is not a production-ready C2 and I do not recommend using it in any real engagements.
+
 This is meant to be a platform for me to expand with custom implementations and experimenting with new features later on.
 
 ### Todo:
