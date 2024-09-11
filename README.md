@@ -2,9 +2,9 @@
 ### Overview:
 This framework is a compilation of every publicly available resource I could think of with some very minimal UI/UX features. A good portion of the code is derived from https://github.com/HavocFramework/Havoc.
 
-This is not a production-ready C2 and I do not recommend using it in any real engagements. The implant is not 100% undetectable. There are plenty of IOCs that are intrinsic to the methods applied (if you know them, you can change it) and network communication is completely naked at the moment.
+The idea is to lay the groundwork for custom implementations and experiment with new features. This is not a production-ready C2 and I do not recommend using it in any real engagements. 
 
-This is meant to be a platform for me to expand with custom implementations and experiment with new features later on.
+The implant is not 100% undetectable. There are plenty of IOCs that are intrinsic to the methods applied (if you know them, you can change it) and network communication is completely naked at the moment.
 
 ### Todo:
 - testing P2P communication
