@@ -32,6 +32,8 @@ BOOL AddValidCallTarget(void* pointer) {
 }
 
 BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
+// todo: finish and implement thread stack spoofing along side
+// todo: modify with shubakki's pivoting technique: https://sillywa.re/posts/flower-da-flowin-shc/
 
     BOOL                success         = TRUE;
     LPWSTR              ksecdd_name     = OBFW(L"\\Device\\KsecDD");
