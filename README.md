@@ -8,7 +8,7 @@ This is meant to be a platform for me to expand with custom implementations and 
 
 ### Todo:
 - testing P2P communication
-- testing COFF loading features
+- testing coff loading features
 - implement coff data cache
 - implement dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
 - implement indirect syscalls/proxying through kernelbase/kern32
