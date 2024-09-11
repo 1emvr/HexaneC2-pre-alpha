@@ -6,7 +6,7 @@ The implant is not 100% undetectable. There are plenty of IOCs that are intrinsi
 
 This is meant to be a platform for me to expand with custom implementations and experimenting with new features.
 
-todo:
+### Todo:
 - testing P2P communication
 - implement coff data cache
 - implement dll manual mapping
