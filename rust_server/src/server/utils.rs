@@ -198,10 +198,9 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
     }
 
     match output.status.success() {
-        Ok(_)   => { },
-        Err(e)  => {
-            log_error!("running command failed: {}", e);
-            return Err(Error::Io(e))
+        true   => { },
+        false  => {
+            log_error!(&"running command failed".to_string());
         }
     }
 
