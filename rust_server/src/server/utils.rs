@@ -9,7 +9,7 @@ use std::io::{ErrorKind, BufRead, BufReader, Write};
 
 use crate::server::error::{Result, Error, Error::Io};
 use crate::server::rstatic::{CHANNEL, DEBUG, EXIT};
-use crate::{assert_bool, assert_result, return_error};
+use crate::{log_error, log_info};
 use crate::server::types::{Message};
 use crate::server::stream::Stream;
 
@@ -155,21 +155,56 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
         fs::create_dir_all(&log_dir)?;
     }
 
-    let mut log_file = assert_result!(File::create(&log_dir.join(logname)), "run_command")?;
-    println!("running command {}", cmd.to_string());
+    let mut log_file = match File::create(&log_dir.join(logname)) {
+        Ok(log_file) => log_file,
+        Err(e) => {
+            log_error!("could not create log file:{}", e);
+            return Err(Error::Custom(e.to_string()));
+        }
+    };
+
+    log_info!("running command {}", cmd.to_string());
 
     let mut command = Command::new("cmd");
     command.arg("/c").arg(cmd);
 
-    let output = assert_result!(command.output(), "run_command")?;
-    if !&output.stderr.is_empty() {
-        assert_result!(log_file.write_all(&output.stdout), "run_command")?;
-        assert_result!(log_file.write_all(&output.stderr), "run_command")?;
+    let output = match command.output() {
+        Ok(output)  => output,
+        Err(e)      => {
+            log_error!("running command failed: {}", e);
+            return Err(Error::Io(e))
+        },
+    };
 
-        return_error!(format!("run_command: check {}/{} for details", log_dir.display(), logname));
+    if !&output.stderr.is_empty() {
+        match log_file.write_all(&output.stdout) {
+            Ok(_)  => {},
+            Err(e)      => {
+                log_error!("writing stdout failed: {}", e);
+                return Err(Error::Io(e))
+            },
+        }
+
+        match log_file.write_all(&output.stderr) {
+            Ok(_)   => {},
+            Err(e)  => {
+                log_error!("writing stderr failed: {}", e);
+                return Err(Error::Io(e))
+            }
+        }
+
+        log_info!("run_command: check {}/{} for details", log_dir.display(), logname);
+        return Err(Error::Custom("run command failed".to_string()))
     }
 
-    assert_bool!(output.status.success(), "run_comand");
+    match output.status.success() {
+        Ok(_)   => { },
+        Err(e)  => {
+            log_error!("running command failed: {}", e);
+            return Err(Error::Io(e))
+        }
+    }
+
     Ok(())
 }
 
@@ -189,7 +224,7 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
     let file_name = match source_path.file_name() {
         Some(name) => name,
         None => {
-            eprintln!("Error: Could not extract file name from source: {}", source);
+            log_error!("could not extract file name from source: {}", source);
             return Err(io::Error::new(ErrorKind::InvalidInput, "Invalid source file").into());
         }
     };
@@ -201,7 +236,7 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
     let output_str = match output_path.to_str() {
         Some(output) => output.replace("/", "\\"),
         None => {
-            eprintln!("Error: Could not convert output path to string");
+            log_error!("could not convert output path to string: {}", output_path.display());
             return Err(io::Error::new(ErrorKind::InvalidInput, "Invalid output path").into());
         }
     };

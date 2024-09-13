@@ -1,8 +1,7 @@
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
 use pelite::{PeFile, pe32::headers::SectionHeader};
-
-use crate::return_error;
+use crate::log_error;
 use crate::server::error::{Result, Error};
 use crate::server::utils::{find_double_u32, wrap_message};
 
@@ -32,7 +31,11 @@ fn get_section_header (target_path: &str, target_section: &str) -> Result<Sectio
             data:       read_data,
             section:    section_header,
         }),
-        None => return_error!("cannot find target section: {target_section}")
+
+        None => {
+            log_error!("cannot find target section: {}", target_section);
+            return Err(Error::Custom("cannot find target section".to_string()))
+        }
     }
 }
 
@@ -57,11 +60,13 @@ pub(crate) fn embed_section_data(target_path: &str, target_section: &str, data: 
     wrap_message("debug", &format!("embedding config data to {target_section}"));
 
     if data.len() > size as usize {
-        return_error!("data is longer than {target_section}.SizeOfRawData")
+        log_error!("data is longer than {target_section}.SizeOfRawData: {}", section_data.section.SizeOfRawData);
+        return Err(Error::Custom("data is langer than target_section".to_string()))
     }
 
     if offset + data.len() > size as usize {
-        return_error!("data is too long from the offset. This would write outside of the section")
+        log_error!(&"data is too long from the offset. This would write outside of the section".to_string());
+        return Err(Error::Custom("data is too long".to_string()))
     }
 
     section_data.data[offset..offset + data.len()].copy_from_slice(data);

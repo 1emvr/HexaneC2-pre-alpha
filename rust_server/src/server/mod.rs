@@ -13,11 +13,12 @@ mod rstatic;
 use serde_json;
 use serde::Deserialize;
 
-use std::str::FromStr;
-use std::io::{stdin, Write};
-use core::fmt::Display;
 use rand::Rng;
+use std::str::FromStr;
+use core::fmt::Display;
+use std::io::{stdin, Write};
 
+use crate::log_error;
 use self::session::init;
 use self::format::list_instances;
 use self::utils::{wrap_message, stop_print_channel, print_help};
@@ -44,27 +45,25 @@ pub fn run_client() {
             "implant"   => {
 
                 if args.len() < 2 {
-                    wrap_message("error", &"invalid input".to_owned());
+                    log_error!(&"invalid input".to_string());
                     continue;
                 }
                 match args[1].as_str() {
-                    "ls"    => list_instances().unwrap_or_else(|e| wrap_message("error", &e.to_string())),
-                    "load"  => load_instance(args).unwrap_or_else(|e| wrap_message("error", &e.to_string())),
-                    "rm"    => remove_instance(args).unwrap_or_else(|e| wrap_message("error", &e.to_string())),
-                    "i"     => interact_instance(args).unwrap_or_else(|e| wrap_message("error", &e.to_string())),
-                    _       => wrap_message("error", &"invalid input".to_owned())
+                    "ls"    => list_instances().unwrap_or_else(|e| log_error!(&e.to_string())),
+                    "load"  => load_instance(args).unwrap_or_else(|e| log_error!(&e.to_string())),
+                    "rm"    => remove_instance(args).unwrap_or_else(|e| log_error!(&e.to_string())),
+                    "i"     => interact_instance(args).unwrap_or_else(|e| log_error!(&e.to_string())),
+                    _       => log_error!(&"invalid input".to_owned())
 
                 }
             },
 
             "listener" => {
                 // todo: add listener
-                wrap_message("error", &"listener not yet implemented".to_owned());
+                log_error!(&"listener not yet implemented".to_owned());
             }
 
-            _ => {
-                wrap_message("error", &"invalid input".to_owned())
-            }
+            _ => { log_error!(&"invalid input".to_owned()) }
         }
     }
 

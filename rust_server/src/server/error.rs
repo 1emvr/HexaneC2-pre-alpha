@@ -126,53 +126,38 @@ impl<'de> Deserialize<'de> for Error {
 }
 
 #[macro_export]
-macro_rules! return_error {
-    ($msg:expr) => {
-        return Err(crate::server::error::Error::Custom($msg.to_string()))
-    };
-}
-
-#[macro_export]
-macro_rules! assert_bool {
-    ($condition:expr, $msg:expr) => {
-        if !$condition {
-            return Err(crate::server::error::Error::Custom($msg.to_string()));
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! assert_result {
-    ($result:expr, $msg:expr) => {
-        $result.map_err(|e| {
-            eprintln!("{}: {}", $msg, e);
-            e
-        })
-    };
-}
-
-#[macro_export]
 macro_rules! invalid_input {
     ($arg:expr) => {
-        wrap_message("error", format!("invalid input: {}", $arg))
+        log_error!("invalid input: {}", $arg)
     };
 }
 
 #[macro_export]
-macro_rules! length_check_continue {
-    ($arg:expr, $len:expr) => {
-        if $arg.len() < $len {
-            wrap_message("error", format!("invalid arguments: expected {}", $len));
-            continue;
-        }
+macro_rules! log_error {
+    ($msg:expr) => {
+        wrap_message("error", $msg);
+    };
+    ($fmt:expr, $($arg:tt)*) => {
+        wrap_message("error", &format!($fmt, $($arg)*));
     };
 }
 
 #[macro_export]
-macro_rules! length_check_defer {
-    ($arg:expr, $len:expr) => {
-        if $arg.len() < $len {
-            return Err(Error::Custom(format!("invalid arguments: expected {}", $len)));
-        }
+macro_rules! log_info {
+    ($msg:expr) => {
+        wrap_message("info", $msg);
+    };
+    ($fmt:expr, $($arg:tt)*) => {
+        wrap_message("info", &format!($fmt, $($arg)*));
+    };
+}
+
+#[macro_export]
+macro_rules! log_debug {
+    ($msg:expr) => {
+        wrap_message("debug", $msg);
+    };
+    ($fmt:expr, $($arg:tt)*) => {
+        wrap_message("debug", &format!($fmt, $($arg)*));
     };
 }
