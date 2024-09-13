@@ -9,12 +9,12 @@ use std::sync::mpsc::channel;
 use rayon::prelude::*;
 use crate::server::rstatic::{DEBUG_FLAGS, HASHES, INSTANCES, RELEASE_FLAGS, SESSION, STRINGS, USERAGENT};
 use crate::server::types::{NetworkType, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, JsonData};
-use crate::server::utils::{create_directory, generate_definitions, generate_hashes, normalize_path, canonical_path_all, run_command, source_to_outpath, wrap_message};
+use crate::server::utils::{generate_definitions, generate_hashes, normalize_path, canonical_path_all, run_command, source_to_outpath, wrap_message};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::binary::embed_section_data;
 use crate::server::error::{Error, Result};
 use crate::server::stream::Stream;
-use crate::{log_debug, log_error};
+use crate::{log_debug};
 
 fn map_config(file_path: &String) -> Result<Hexane> {
     let json_file   = env::current_dir()?.join("json").join(file_path);
@@ -40,8 +40,8 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     }
 
     let mut instance = map_config(&args[2])?;
-
     instance.setup_instance()?;
+
     let session = SESSION.lock()?;
 
     instance.user_session.username = session.username.clone();
@@ -109,28 +109,11 @@ impl Hexane {
             RELEASE_FLAGS.parse().unwrap()
         };
 
-        match create_directory(&self.compiler.build_directory) {
-            Ok(_) => { },
-            Err(e) => {
-                log_error!(&"setup_instance".to_owned());
-                return Err(Error::Custom("could not create build directory".to_owned()))
-            }
-        }
+        fs::create_dir_all(&self.compiler.build_directory)?;
+        generate_hashes(STRINGS, HASHES)?;
 
-        match generate_hashes(STRINGS, HASHES) {
-            Ok(_)   => { },
-            Err(e)  => return Err(Error::Custom(format!("could not generate hashes: {}", e)))
-        }
-
-        match self.generate_config_bytes() {
-            Ok(_)   => { },
-            Err(e)  => return Err(Error::Custom(format!("could not generate config bytes: {}", e)))
-        }
-
-        match self.compile_sources() {
-            Ok(_)   => { },
-            Err(e)  => return Err(Error::Custom(format!("could not compile sources: {}", e)))
-        }
+        self.generate_config_bytes()?;
+        self.compile_sources()?;
 
         Ok(())
     }
@@ -138,12 +121,9 @@ impl Hexane {
     fn generate_config_bytes(&mut self) -> Result<()> {
         self.crypt_key = crypt_create_key(16);
 
-        let mut patch = match self.create_binary_patch() {
-            Ok(patch)   => patch,
-            Err(e)      => return Err(Error::Custom(format!("could not create binary patch: {}", e)))
-        };
+        let mut patch   = self.create_binary_patch()?;
+        let encrypt     = self.main.encrypt;
 
-        let encrypt = self.main.encrypt;
         if encrypt {
             let patch_cpy   = patch.clone();
             patch           = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
@@ -224,15 +204,8 @@ impl Hexane {
     }
 
     fn compile_object(&mut self, mut command: String, source: String, mut flags: String) -> Result<()> {
-        let build = match source_to_outpath(source, &self.compiler.build_directory) {
-            Ok(build)   => build,
-            Err(e)      => {
-                log_error!(&"could not string build directory".to_string().to_owned());
-                return Err(Error::Custom(format!("could not string build directory: {}", e)))
-            }
-        };
-
         let mut defs: HashMap<String, Option<u32>> = HashMap::new();
+        let build = source_to_outpath(source, &self.compiler.build_directory)?;
 
         if command.trim() != "ld" && command.trim() != "nasm" {
             let encrypted   = self.main.encrypt;
@@ -268,14 +241,7 @@ impl Hexane {
         let src_path        = Path::new(&self.builder.root_directory).join("src");
         let mut components  = self.compiler.components.clone();
 
-        let entries = match canonical_path_all(src_path) {
-            Ok(entries)   => entries,
-            Err(e) => {
-                log_error!(&"could not get canonical paths in src directory".to_string());
-                return Err(Error::Custom(format!("could not get canonical paths in src directory: {}", e)))
-            }
-        };
-
+        let entries                 = canonical_path_all(src_path)?;
         let (err_send, err_recv)    = channel();
         let atoms                   = Arc::new(Mutex::new(()));
 
@@ -335,14 +301,10 @@ impl Hexane {
             return Err(Error::Custom(format!("compile_sources::{e}")));
         }
 
-        wrap_message("debug", &"Linking final objects".to_owned());
-        match embed_section_data(&self.builder.output_name, ".text$F", &self.config_data.as_slice()) {
-            Ok(_)   => { },
-            Err(e)  => return Err(Error::Custom(format!("embed_section_data: {}", e))),
-        }
+        log_debug!(&"Linking final objects".to_string());
+        embed_section_data(&self.builder.output_name, ".text$F", &self.config_data.as_slice())?;
 
         // TODO: link all objects
-
         Ok(())
     }
 }

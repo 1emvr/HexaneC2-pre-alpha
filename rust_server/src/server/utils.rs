@@ -155,43 +155,17 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
         fs::create_dir_all(&log_dir)?;
     }
 
-    let mut log_file = match File::create(&log_dir.join(logname)) {
-        Ok(log_file) => log_file,
-        Err(e) => {
-            log_error!("could not create log file:{}", e);
-            return Err(Error::Custom(e.to_string()));
-        }
-    };
-
+    let mut log_file = File::create(&log_dir.join(logname))?;
     log_info!("running command {}", cmd.to_string());
 
     let mut command = Command::new("cmd");
     command.arg("/c").arg(cmd);
 
-    let output = match command.output() {
-        Ok(output)  => output,
-        Err(e)      => {
-            log_error!("running command failed: {}", e);
-            return Err(Error::Io(e))
-        },
-    };
+    let output = command.output()?;
 
     if !&output.stderr.is_empty() {
-        match log_file.write_all(&output.stdout) {
-            Ok(_)  => {},
-            Err(e)      => {
-                log_error!("writing stdout failed: {}", e);
-                return Err(Error::Io(e))
-            },
-        }
-
-        match log_file.write_all(&output.stderr) {
-            Ok(_)   => {},
-            Err(e)  => {
-                log_error!("writing stderr failed: {}", e);
-                return Err(Error::Io(e))
-            }
-        }
+        log_file.write_all(&output.stdout)?;
+        log_file.write_all(&output.stderr)?;
 
         log_info!("run_command: check {}/{} for details", log_dir.display(), logname);
         return Err(Error::Custom("run command failed".to_string()))
@@ -205,16 +179,6 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
     }
 
     Ok(())
-}
-
-pub(crate) fn create_directory(path: &str) -> Result<()> {
-    match fs::create_dir_all(path) {
-        Ok(_)   => { Ok(()) }
-        Err(e)  => match e.kind() {
-            ErrorKind::AlreadyExists    => Ok(()),
-            _                           => Err(Io(e)),
-        },
-    }
 }
 
 pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
