@@ -9,7 +9,7 @@ use std::io::{ErrorKind, BufRead, BufReader, Write};
 
 use crate::server::error::{Result, Error, Error::Io};
 use crate::server::rstatic::{CHANNEL, DEBUG, EXIT};
-use crate::{assert_bool, assert_result};
+use crate::{assert_bool, assert_result, return_error};
 use crate::server::types::{Message};
 use crate::server::stream::Stream;
 
@@ -150,19 +150,26 @@ pub(crate) fn find_double_u32(data: &[u8], egg: &[u8]) -> Result<usize> {
 }
 
 pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
-    let mut log_file = assert_result!(File::create(&Path::new("./logs").join(logname)), "run_command");
+    let log_dir = Path::new("./logs");
+    if !log_dir.exists() {
+        fs::create_dir_all(&log_dir)?;
+    }
 
-    wrap_message("debug", &format!("running command {}", cmd.to_string()));
+    let mut log_file = assert_result!(File::create(&log_dir.join(logname)), "run_command")?;
+    println!("running command {}", cmd.to_string());
+
     let mut command = Command::new("cmd");
-
     command.arg("/c").arg(cmd);
-    let output = assert_result!(command.output(), "run_command");
 
-    assert_result!(log_file.write_all(&output.stdout), "run_command");
-    assert_result!(log_file.write_all(&output.stderr), "run_command");
+    let output = assert_result!(command.output(), "run_command")?;
+    if !&output.stderr.is_empty() {
+        assert_result!(log_file.write_all(&output.stdout), "run_command")?;
+        assert_result!(log_file.write_all(&output.stderr), "run_command")?;
+
+        return_error!(format!("run_command: check {}/{} for details", log_dir.display(), logname));
+    }
 
     assert_bool!(output.status.success(), "run_comand");
-
     Ok(())
 }
 
@@ -205,7 +212,7 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
 pub fn canonical_path_all(src_path: PathBuf) -> Result<Vec<PathBuf>> {
     let entries = fs::read_dir(&src_path)?
         .filter_map(|entry| entry.ok())
-        .filter_map(|entry| fs::canonicalize(entry.path()).ok())
+        .map(|entry| entry.path())
         .collect();
 
     Ok(entries)
@@ -232,7 +239,7 @@ pub fn generate_arguments(args: Vec<String>) -> String {
 
 pub fn generate_definitions(definitions: HashMap<String, Option<u32>>) -> String {
     definitions.iter().map(|(name, def)| match def {
-        None        => format!("-D{} ", name),
-        Some(value) => format!("-D{}={} ", name, value),
+        None        => format!(" -D{} ", name),
+        Some(value) => format!(" -D{}={} ", name, value),
     }).collect::<String>()
 }

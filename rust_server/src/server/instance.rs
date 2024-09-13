@@ -14,7 +14,7 @@ use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::binary::embed_section_data;
 use crate::server::error::{Error, Result};
 use crate::server::stream::Stream;
-use crate::{assert_result};
+use crate::{assert_result, return_error};
 
 fn map_config(file_path: &String) -> Result<Hexane> {
     let json_file   = env::current_dir()?.join("json").join(file_path);
@@ -35,7 +35,7 @@ fn map_config(file_path: &String) -> Result<Hexane> {
 }
 
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
-    if args.len() < 2 {
+    if args.len() != 3 {
         return Err(Error::Custom("invalid arguments".to_string()))
     }
 
@@ -121,7 +121,7 @@ impl Hexane {
     fn generate_config_bytes(&mut self) -> Result<()> {
         self.crypt_key = crypt_create_key(16);
 
-        let mut patch   = assert_result!(self.create_binary_patch(), "generate_config_bytes");
+        let mut patch   = assert_result!(self.create_binary_patch(), "generate_config_bytes")?;
         let encrypt     = self.main.encrypt;
 
         if encrypt {
@@ -204,7 +204,8 @@ impl Hexane {
     }
 
     fn compile_object(&mut self, mut command: String, source: String, mut flags: String) -> Result<()> {
-        let build = assert_result!(source_to_outpath(source, &self.compiler.build_directory), "compile_object");
+        let build = assert_result!(source_to_outpath(source, &self.compiler.build_directory), "compile_object")?;
+
         let mut defs: HashMap<String, Option<u32>> = HashMap::new();
 
         if command.trim() != "ld" && command.trim() != "nasm" {
@@ -231,7 +232,7 @@ impl Hexane {
 
         command.push_str(&generate_definitions(defs));
         flags.push_str(&format!(" -I{} ", normalize_path(curdir.to_str().unwrap())));
-        flags.push_str(&format!(" -o {} ", build));
+        flags.push_str(&format!(" -o {:?} ", build));
 
         command.push_str(&flags);
         run_command(&command, &self.peer_id.to_string())
@@ -241,7 +242,7 @@ impl Hexane {
         let src_path        = Path::new(&self.builder.root_directory).join("src");
         let mut components  = self.compiler.components.clone();
 
-        let entries = assert_result!(canonical_path_all(src_path), "compile_sources");
+        let entries = assert_result!(canonical_path_all(src_path), "compile_sources")?;
 
         let (err_send, err_recv)    = channel();
         let atoms                   = Arc::new(Mutex::new(()));
@@ -251,6 +252,7 @@ impl Hexane {
             if !absolute_path.is_file() {
                 return;
             }
+
 
             let output  = self.builder.output_name.clone();
             let compile = self.compiler.compiler_flags.clone();
@@ -262,7 +264,12 @@ impl Hexane {
             let err_handle  = err_send.clone();
             let _guard      = atoms_clone.lock().unwrap();
 
-            let absolute_str = normalize_path(absolute_path.to_str().unwrap());
+            let absolute_str = absolute_path.to_str().unwrap();
+
+            if !Path::new(absolute_str).exists() {
+                println!("file does not exist: {}", absolute_str.to_string());
+                return;
+            }
 
             match absolute_path.extension().and_then(|ext| ext.to_str()) {
 
@@ -285,7 +292,7 @@ impl Hexane {
                 }
             }
 
-            if let Err(e) = self.compile_object(command, absolute_str.clone(), flags) {
+            if let Err(e) = self.compile_object(command, absolute_str.to_string(), flags) {
                 err_handle.send(e).unwrap();
             } else {
                 components.push(output);
@@ -297,7 +304,7 @@ impl Hexane {
         }
 
         wrap_message("debug", &"Linking final objects".to_owned());
-        assert_result!(embed_section_data(&self.builder.output_name, ".text$F", &self.config_data.as_slice()), "compile_sources");
+        assert_result!(embed_section_data(&self.builder.output_name, ".text$F", &self.config_data.as_slice()), "compile_sources")?;
 
         // TODO: link all objects
 
