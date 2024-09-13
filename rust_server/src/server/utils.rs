@@ -172,13 +172,12 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
     }
 
     match output.status.success() {
-        true   => { },
+        true   => Ok(()),
         false  => {
             log_error!(&"running command failed".to_string());
+            Err(Error::Custom("run command failed".to_string()))
         }
     }
-
-    Ok(())
 }
 
 pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
