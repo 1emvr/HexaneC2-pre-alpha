@@ -1,9 +1,8 @@
 use prettytable::{row, Table};
-
-use crate::return_error;
 use crate::server::rstatic::INSTANCES;
 use crate::server::types::NetworkOptions;
-use crate::server::error::{Result, Error};
+use crate::server::error::{Result};
+use crate::return_error;
 
 pub fn list_instances() -> Result<()> {
     let instances = INSTANCES.lock().map_err(|e| e.to_string())?;
@@ -21,7 +20,6 @@ pub fn list_instances() -> Result<()> {
         };
 
         let (address, net_type, domain, proxy) = match &network.options {
-
             NetworkOptions::Http(http) => {
                 let address     = format!("{}:{}", http.address, http.port);
                 let net_type    = "http".to_string();

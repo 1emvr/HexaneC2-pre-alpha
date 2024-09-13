@@ -2,14 +2,14 @@ use std::fs::File;
 use crossbeam_channel::{select};
 
 use std::{fs, io};
+use std::process::Command;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::io::{ErrorKind, BufRead, BufReader, Write};
 
-use crate::return_error;
 use crate::server::error::{Result, Error, Error::Io};
 use crate::server::rstatic::{CHANNEL, DEBUG, EXIT};
+use crate::{assert_bool, assert_result};
 use crate::server::types::{Message};
 use crate::server::stream::Stream;
 
@@ -150,36 +150,18 @@ pub(crate) fn find_double_u32(data: &[u8], egg: &[u8]) -> Result<usize> {
 }
 
 pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
-    let log_path = Path::new("./logs").join(logname);
-
-    let mut log_file = match File::create(&log_path) {
-        Ok(log_file)    => log_file,
-        Err(e)          => return_error!("run_command::File::create(log_file)::{e}")
-    };
+    let mut log_file = assert_result!(File::create(&Path::new("./logs").join(logname)), "run_command");
 
     wrap_message("debug", &format!("running command {}", cmd.to_string()));
-
     let mut command = Command::new("cmd");
+
     command.arg("/c").arg(cmd);
+    let output = assert_result!(command.output(), "run_command");
 
-    let output = match command.output() {
-        Ok(output)  => output,
-        Err(e)      => return_error!("run_command::command.output()::{e}")
-    };
+    assert_result!(log_file.write_all(&output.stdout), "run_command");
+    assert_result!(log_file.write_all(&output.stderr), "run_command");
 
-    match log_file.write_all(&output.stdout) {
-        Ok(_)   => { },
-        Err(e)  => return_error!("run_command::log_file.write_all(stdout)::{e}")
-    }
-
-    match log_file.write_all(&output.stderr) {
-        Ok(_)   => { },
-        Err(e)  => return_error!("run_command::log_file.write_all(stderr)::{e}")
-    }
-
-    if !output.status.success() {
-        return_error!("check {} for details", log_path.display());
-    }
+    assert_bool!(output.status.success(), "run_comand");
 
     Ok(())
 }
@@ -248,7 +230,7 @@ pub fn generate_arguments(args: Vec<String>) -> String {
     args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
 }
 
-pub fn generate_definitions(definitions: &HashMap<String, Option<u32>>) -> String {
+pub fn generate_definitions(definitions: HashMap<String, Option<u32>>) -> String {
     definitions.iter().map(|(name, def)| match def {
         None        => format!("-D{} ", name),
         Some(value) => format!("-D{}={} ", name, value),

@@ -10,7 +10,6 @@ use crate::server::types::{Message, UserSession};
 
 lazy_static!(
     pub(crate) static ref ARGS: Args                                = Args::parse();
-    pub(crate) static ref CURDIR: PathBuf                           = env::current_dir().unwrap();
     pub(crate) static ref DEBUG: bool                               = ARGS.debug;
     pub(crate) static ref SHOW_COMPILER: bool                       = ARGS.show_compiler;
     pub(crate) static ref AMD64: String                             = String::from("amd64");
