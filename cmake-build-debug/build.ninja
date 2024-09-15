@@ -52,186 +52,186 @@ build cmake_object_order_depends_target_hexane_implant: phony || .
 build CMakeFiles/hexane_implant.dir/test/fnv_test.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/test/fnv_test.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\test\fnv_test.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\test
 
 build CMakeFiles/hexane_implant.dir/core/src/cipher.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/cipher.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\cipher.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/commands.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/commands.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\commands.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/stdlib.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/stdlib.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\stdlib.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/implant.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/implant.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\implant.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/inject.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/inject.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\inject.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/memory.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/memory.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\memory.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/dispatch.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/dispatch.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\dispatch.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/network.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/network.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\network.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/opsec.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/opsec.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\opsec.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/parser.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/parser.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\parser.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/process.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/process.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\process.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/start.asm.obj: ASM_NASM_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/start.asm || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\start.asm.obj.d
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/stream.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/stream.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\stream.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/utils.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/utils.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\utils.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/clients.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/clients.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\clients.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/sleep.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/sleep.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\sleep.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/objects.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/objects.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\objects.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/core/src/threads.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/threads.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\threads.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
 
 build CMakeFiles/hexane_implant.dir/commands/src/registry.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/commands/src/registry.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\commands\src\registry.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\commands\src
 
 build CMakeFiles/hexane_implant.dir/commands/src/tokens.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/commands/src/tokens.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\commands\src\tokens.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\commands\src
 
 build CMakeFiles/hexane_implant.dir/loader/resource.rc.obj: RC_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/loader/resource.rc || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\loader\resource.rc.obj.d
-  INCLUDES = -I C:/Users/lemur/Github/HexaneC2/include -I C:/Users/lemur/Github/HexaneC2 -I "C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -I C:/Users/lemur/Github/HexaneC2/include -I C:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\loader
 
 build CMakeFiles/hexane_implant.dir/loader/src/dllmain.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/loader/src/dllmain.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\loader\src\dllmain.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\loader\src
 
 build CMakeFiles/hexane_implant.dir/loader/src/exemain.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/loader/src/exemain.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\loader\src\exemain.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\loader\src
 
 build CMakeFiles/hexane_implant.dir/loader/src/resource.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/loader/src/resource.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\loader\src\resource.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\loader\src
 
 build CMakeFiles/hexane_implant.dir/inject/threadless/loader.asm.obj: ASM_NASM_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/inject/threadless/loader.asm || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\inject\threadless\loader.asm.obj.d
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\inject\threadless
 
 build CMakeFiles/hexane_implant.dir/inject/threadless/OpenFileExecute.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\inject\threadless\OpenFileExecute.cpp.obj.d
   FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2 -I"C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um"
+  INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\inject\threadless
 

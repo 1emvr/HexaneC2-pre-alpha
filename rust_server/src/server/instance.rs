@@ -201,10 +201,10 @@ impl Hexane {
     }
 
 
-    fn compile_object(&self, mut command: String, mut flags: String) -> Result<()> {
+    fn compile_object(&self, mut command: String, flags: String) -> Result<()> {
         let mut defs: HashMap<String, Option<u32>> = HashMap::new();
 
-        if command.trim() != "ld" && command.trim() != "nasm" {
+        if command.trim() != "nasm" {
             let encrypted   = self.main.encrypt;
             let cfg_size    = self.main.config_size;
 
@@ -249,64 +249,65 @@ impl Hexane {
             let object_file = generate_object_path(&source, Path::new(&self.compiler.build_directory));
             let object      = normalize_path(object_file.to_str().unwrap());
 
-            let curdir              = normalize_path(env::current_dir()?.canonicalize()?.to_str().unwrap());
-            let mut user_include    = vec![curdir.to_string()];
-
-            if let Some(include) = self.builder.include_directories.clone() {
-                let mut paths = vec![];
-
-                for path in include {
-                    paths.push(normalize_path(path.as_str()));
-                }
-
-                user_include.extend(paths);
-            }
-
-            let includes = generate_includes(user_include);
-
             match path.extension().and_then(|ext| ext.to_str()) {
                 Some("asm") => {
                     command.push_str("nasm");
-                    flags = format!(" -f win64 -o {} {}", object, source);
+                    flags = format!(" -f win64 {} -o {}", source, object);
+
+                    if let Err(e) = self.compile_object(command, flags) {
+                        return Err(Error::Custom(format!("compile_sources::{e}")));
+                    }
+
+                    components.push(object);
                 }
 
                 Some("cpp") => {
-                    command.push_str("x86_64-w64-mingw32-g++");
-                    flags.push_str(&format!(" -c {} {} -o {} {}", source, includes, object, self.compiler.compiler_flags));
+                    components.push(source);
                 }
 
                 _ => {
                     continue;
                 }
             }
-
-            if let Err(e) = self.compile_object(command, flags) {
-                return Err(Error::Custom(format!("compile_sources::{e}")));
-            }
-
-            components.push(object);
         }
 
-        log_debug!(&"Linking final objects".to_string());
+        let targets     = components.join(" ");
+        let output      = Path::new(&self.compiler.build_directory).join(&self.builder.output_name);
+        let mut buffer  = Vec::new();
 
-        let targets = components.join(" ");
-        let output  = Path::new(&self.compiler.build_directory).join(&self.builder.output_name);
-        let mut buffer = Vec::new();
+        let curdir              = normalize_path(env::current_dir()?.canonicalize()?.to_str().unwrap());
+        let mut user_include    = vec![curdir.to_string()];
+
+        if let Some(include) = self.builder.include_directories.clone() {
+            let mut paths = vec![];
+
+            for path in include {
+                paths.push(normalize_path(path.as_str()));
+            }
+
+            user_include.extend(paths);
+        }
+
+        let includes = generate_includes(user_include);
 
         if let Some(script) = &self.builder.linker_script {
-            let path = Path::new(&self.builder.root_directory).join(script);
-            let lnk = normalize_path(path.to_str().unwrap());
+            let path    = Path::new(&self.builder.root_directory).join(script);
+            let lnk     = normalize_path(path.to_str().unwrap());
 
             buffer.push(format!(" -T {} ", lnk.as_str()));
         }
 
+        log_debug!(&"Linking final objects".to_string());
+
         let linker = buffer.join(" ");
-        if let Err(e) = run_command(&format!("ld {}{} -o {}", targets, linker, &output.to_str().unwrap()), "linker-error") {
+        if let Err(e) = self.compile_object("x86_64-w64-mingw32-g++".to_string(), format!("{}{}{}{} -o {}.exe", includes, &self.compiler.compiler_flags, targets, linker, &output.to_str().unwrap())) {
             return Err(Error::Custom(format!("compile_sources::{e}")));
         }
 
-        println!("embedding section data");
-        embed_section_data(&output.to_str().unwrap(), ".text$F", &config_data)?;
+        if let Err(e) = embed_section_data(&format!("{}.exe", &output.to_str().unwrap()), ".text$F", &config_data) {
+            return Err(Error::Custom(format!("compile_sources::{e}")));
+        }
+
         // todo: extract shellcode
         // todo: create dll loader
 

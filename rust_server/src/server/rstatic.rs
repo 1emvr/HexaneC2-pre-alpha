@@ -24,6 +24,6 @@ lazy_static!(
 
 pub(crate) static STRINGS: &'static str         = "./configs/strings.txt";
 pub(crate) static HASHES: &'static str          = "./core/include/names.hpp";
-pub(crate) static DEBUG_FLAGS: &'static str     = "-std=c++23 -g -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup,--gc-sections'";
-pub(crate) static RELEASE_FLAGS: &'static str   = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC  -fno-builtin '-Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections'";
+pub(crate) static DEBUG_FLAGS: &'static str     = "-std=c++23 -g -Os -nostdlib -fno-exceptions -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup,--gc-sections'";
+pub(crate) static RELEASE_FLAGS: &'static str   = "-std=c++23 -Os -nostdlib -fno-exceptions -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC  -fno-builtin '-Wl,-s,--no-seh,--enable-stdcall-fixup,--gc-sections'";
 

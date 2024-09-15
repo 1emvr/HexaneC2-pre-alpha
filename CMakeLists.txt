@@ -3,10 +3,9 @@ project(hexane_implant)
 
 set(CMAKE_CXX_STANDARD 23)
 set(HOME ${CMAKE_SOURCE_DIR})
-set(META "C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/Include/um")
 
 enable_language(ASM_NASM)
-include_directories(include ${CMAKE_SOURCE_DIR} ${META})
+include_directories(include ${CMAKE_SOURCE_DIR} )
 
 set (SOURCES
         core/src/cipher.cpp

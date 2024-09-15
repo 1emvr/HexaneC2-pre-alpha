@@ -1,6 +1,4 @@
 #include <core/include/implant.hpp>
-// todo: define CFG_SIZE macro
-
 namespace Implant {
     __text(F) uint8_t _config[CONFIG_SIZE] = { 0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41, };
 
