@@ -157,7 +157,10 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
     }
 
     let mut log_file = File::create(&log_dir.join(logname))?;
-    log_info!("running command {}", cmd.to_string());
+    if *DEBUG {
+        log_info!("running command {}", cmd.to_string());
+        println!();
+    }
 
     let mut command = Command::new("powershell");
     command.arg("-c").arg(cmd);

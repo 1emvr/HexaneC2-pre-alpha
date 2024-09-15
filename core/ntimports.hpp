@@ -16,12 +16,13 @@
 #include <cstdint>
 
 #include <processthreadsapi.h>
-//#include <psapi.h>
+#include <psapi.h>
 #include <winioctl.h>
 
 typedef LONG NTSTATUS;
 typedef LONG KPRIORITY;
 typedef ULONG LOGICAL;
+
 #define STATIC						static
 #define PROCESSOR_FEATURE_MAX		64
 #define MAX_WOW64_SHARED_ENTRIES	16

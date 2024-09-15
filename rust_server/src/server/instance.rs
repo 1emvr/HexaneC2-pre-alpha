@@ -301,7 +301,6 @@ impl Hexane {
         }
 
         let linker = buffer.join(" ");
-        println!("running command");
         if let Err(e) = run_command(&format!("ld {}{} -o {}", targets, linker, &output.to_str().unwrap()), "linker-error") {
             return Err(Error::Custom(format!("compile_sources::{e}")));
         }
