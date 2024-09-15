@@ -5,10 +5,8 @@
 
 namespace Memory {
     namespace Methods {
-        FUNCTION UINT_PTR GetInternalAddress(uint32_t name);
         FUNCTION UINT_PTR GetStackCookie();
-        FUNCTION VOID GetProcessHeaps(HANDLE process, uint32_t access, uint32_t pid);
-        FUNCTION _resource* GetIntResource(HMODULE base, int rsrc_id);
+        FUNCTION _resource* GetIntResource(HMODULE base, const int rsrc_id);
         FUNCTION _executable* CreateImageData(uint8_t *data);
     }
 
@@ -18,25 +16,23 @@ namespace Memory {
     }
 
     namespace Modules {
-        FUNCTION HMODULE GetModuleAddress(const LDR_DATA_TABLE_ENTRY* entry);
-        FUNCTION LDR_DATA_TABLE_ENTRY* GetModuleEntry(uint32_t hash);
-        FUNCTION FARPROC GetExportAddress(HMODULE base, uint32_t hash);
-        FUNCTION UINT_PTR LoadExport(const char* module_name, const char* export_name);
+        FUNCTION HMODULE GetModuleAddress(const LDR_DATA_TABLE_ENTRY *data);
+        FUNCTION LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash);
+        FUNCTION FARPROC GetExportAddress(const HMODULE base, const uint32_t hash);
+        FUNCTION UINT_PTR LoadExport(const char* const module_name, const char* const export_name);
     }
 
     namespace Scanners {
         FUNCTION BOOL MapScan(_hash_map* map, uint32_t id, void** pointer);
-        FUNCTION UINT_PTR RelocateExport(void* process, const void* target, size_t size);
+        FUNCTION BOOL SymbolScan(const char* string, const char symbol, size_t length);
+        FUNCTION UINT_PTR RelocateExport(void* const process, const void* const target, size_t size);
         FUNCTION BOOL SigCompare(const uint8_t* data, const char* signature, const char* mask);
-        FUNCTION BOOL SymbolScan(char* string, char symbol, size_t length);
-        FUNCTION UINT_PTR SignatureScan(uintptr_t start, uint32_t size, const char* signature, const char* mask);
+        FUNCTION UINT_PTR SignatureScan(void* process, const uintptr_t start, const uint32_t size, const char* signature, const char* mask);
     }
 
     namespace Execute {
-        FUNCTION LONG WINAPI Debugger(EXCEPTION_POINTERS *exception);
         FUNCTION BOOL ExecuteCommand(_parser &parser);
-        FUNCTION BOOL ExecuteShellcode(const _parser& parser);
-        FUNCTION BOOL ExecuteObject(_executable *object, const char *entrypoint, char *args, uint32_t size, uint32_t req_id);
+        FUNCTION BOOL ExecuteShellcode(const _parser &parser);
     }
 }
 #endif //HEXANE_CORELIB_MEMORY_HPP

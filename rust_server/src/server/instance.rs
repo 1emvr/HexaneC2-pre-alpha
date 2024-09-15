@@ -235,6 +235,8 @@ impl Hexane {
         let entries     = canonical_path_all(src_path)?;
         let config_data = self.config_data.clone();
 
+        let mut components  = Vec::new();
+
         for path in entries {
             if !path.is_file() {
                 continue;
@@ -281,11 +283,31 @@ impl Hexane {
             if let Err(e) = self.compile_object(command, flags) {
                 return Err(Error::Custom(format!("compile_sources::{e}")));
             }
+
+            components.push(object);
         }
 
         log_debug!(&"Linking final objects".to_string());
-        // todo: link objects
-        embed_section_data(&self.builder.output_name, ".text$F", &config_data)?;
+
+        let targets = components.join(" ");
+        let output  = Path::new(&self.compiler.build_directory).join(&self.builder.output_name);
+        let mut buffer = Vec::new();
+
+        if let Some(script) = &self.builder.linker_script {
+            let path = Path::new(&self.builder.root_directory).join(script);
+            let lnk = normalize_path(path.to_str().unwrap());
+
+            buffer.push(format!(" -T {} ", lnk.as_str()));
+        }
+
+        let linker = buffer.join(" ");
+        println!("running command");
+        if let Err(e) = run_command(&format!("ld {}{} -o {}", targets, linker, &output.to_str().unwrap()), "linker-error") {
+            return Err(Error::Custom(format!("compile_sources::{e}")));
+        }
+
+        println!("embedding section data");
+        embed_section_data(&output.to_str().unwrap(), ".text$F", &config_data)?;
         // todo: extract shellcode
         // todo: create dll loader
 
