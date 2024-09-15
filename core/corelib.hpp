@@ -19,5 +19,6 @@
 #include <core/include/implant.hpp>
 #include <core/include/objects.hpp>
 #include <core/include/threads.hpp>
+#include <core/include/sleep.hpp>
 
 #endif //CORELIB_HPP

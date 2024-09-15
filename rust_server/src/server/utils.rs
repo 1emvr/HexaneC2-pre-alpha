@@ -151,6 +151,7 @@ pub(crate) fn find_double_u32(data: &[u8], egg: &[u8]) -> Result<usize> {
 
 pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
     let log_dir = Path::new("./logs");
+
     if !log_dir.exists() {
         fs::create_dir_all(&log_dir)?;
     }
@@ -158,8 +159,8 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
     let mut log_file = File::create(&log_dir.join(logname))?;
     log_info!("running command {}", cmd.to_string());
 
-    let mut command = Command::new("cmd");
-    command.arg("/c").arg(cmd);
+    let mut command = Command::new("powershell");
+    command.arg("-c").arg(cmd);
 
     let output = command.output()?;
 
@@ -226,8 +227,16 @@ pub fn normalize_path(path_str: &str) -> String {
     stripped_path.replace("/", "\\")
 }
 
+pub fn generate_object_path(source_path: &str, build_dir: &Path) -> PathBuf {
+    let source_filename     = Path::new(source_path).file_name().unwrap().to_str().unwrap();
+    let mut object_filename = String::from(source_filename);
+
+    object_filename.push_str(".o");
+    build_dir.join(object_filename)
+}
+
 pub fn generate_includes(includes: Vec<String>) -> String {
-    includes.iter().map(|inc| format!(" -I{} ", inc)).collect::<Vec<_>>().join("")
+    includes.iter().map(|inc| format!(" -I\"{}\" ", inc)).collect::<Vec<_>>().join("")
 }
 
 pub fn generate_arguments(args: Vec<String>) -> String {

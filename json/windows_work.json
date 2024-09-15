@@ -25,16 +25,19 @@
 
 	"builder": {
 		"output_name": "windows_work",
-		"root_directory": "C:/Users/lemur/Github/HexaneC2/core",
+		"root_directory": "C:/Users/lemur/github/HexaneC2/core",
 		"linker_script": "implant.ld",
 
+		"include_directories": [
+			"C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/km"
+		],
 		"loaded_modules": [
 			"crypt32", "winhttp", "advapi32", "iphlpapi", "kernelbase", "mscoree"
 		]
 	},
 
 	"loader": {
-		"root_directory": "C:/Users/lemur/Github/HexaneC2/loader",
+		"root_directory": "C:/Users/lemur/github/HexaneC2/loader",
 		"linker_script": "loader.ld",
 		"rsrc_script": "resource.rc",
 
@@ -48,8 +51,8 @@
 				"target_process": "blobrunner64.exe",
 				"target_module":"kernel32.dll",
 				"target_function":"OpenFile",
-				"loader_assembly": "C:/Users/lemur/Github/HexaneC2/inject/threadless/loader.asm",
-				"execute_object":"C:/Users/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp"
+				"loader_assembly": "C:/Users/lemur/github/HexaneC2/inject/threadless/loader.asm",
+				"execute_object":"C:/Users/lemur/github/HexaneC2/inject/threadless/OpenFileExecute.cpp"
 			}
 		}
 	}

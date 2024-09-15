@@ -9,19 +9,15 @@
 #include <accctrl.h>
 #include <winhttp.h>
 #include <wincrypt.h>
-#include <memoryapi.h>
+#include <mscoree.h>
 #include <iphlpapi.h>
 #include <tlhelp32.h>
-#include <d4drvif.h>
-#include <type_traits>
 #include <aclapi.h>
-#include <iostream>
-#include <float.h>
-#include <math.h>
-#include <array>
 #include <cstdint>
-#include <string>
 
+#include <processthreadsapi.h>
+//#include <psapi.h>
+#include <winioctl.h>
 
 typedef LONG NTSTATUS;
 typedef LONG KPRIORITY;
@@ -109,6 +105,12 @@ typedef enum _PS_ATTRIBUTE_NUM {
 	PsAttributeMax
 } PS_ATTRIBUTE_NUM;
 
+typedef enum _EVENT_TYPE {
+	NotificationEvent,
+	SynchronizationEvent
+} EVENT_TYPE;
+
+
 #define RTL_USER_PROCESS_PARAMETERS_NORMALIZED	0x01
 #define PS_ATTRIBUTE_NUMBER_MASK				0x0000ffff
 #define PS_ATTRIBUTE_THREAD						0x00010000 // Attribute may be used with thread creation
@@ -152,9 +154,8 @@ typedef enum _PS_ATTRIBUTE_NUM {
 #define PS_ATTRIBUTE_COMPONENT_FILTER					PsAttributeValue(PsAttributeComponentFilter, FALSE, TRUE, FALSE) // 0x2001D
 #define PS_ATTRIBUTE_ENABLE_OPTIONAL_XSTATE_FEATURES	PsAttributeValue(PsAttributeEnableOptionalXStateFeatures, TRUE, TRUE, FALSE) // 0x3001E
 
-#define IOCTL_KSEC_DECRYPT_MEMORY   CTL_CODE(FILE_DEVICE_KSEC,  4, METHOD_OUT_DIRECT,   FILE_ANY_ACCESS )
-
-CTL_CODE;
+#define IOCTL_KSEC_ENCRYPT_MEMORY   CTL_CODE(FILE_DEVICE_KSEC, 3, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
+#define IOCTL_KSEC_DECRYPT_MEMORY   CTL_CODE(FILE_DEVICE_KSEC, 4, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
 
 typedef struct _IO_STATUS_BLOCK {
     union     {
@@ -166,8 +167,8 @@ typedef struct _IO_STATUS_BLOCK {
 
 
 typedef NTSTATUS (NTAPI *PUSER_THREAD_START_ROUTINE)(PVOID ThreadParameter);
-
-typedef VOID (NTAPI *PIO_APC_ROUTINE)(PVOID ApcContext, PIO_STATUS_BLOCK IoStatusBlock, ULONG Reserved);
+typedef VOID (NTAPI* PIO_APC_ROUTINE)(PVOID ApcContext, PIO_STATUS_BLOCK IoStatusBlock, ULONG Reserved);
+typedef VOID (NTAPI* PPS_APC_ROUTINE)(PVOID ApcArgument1, PVOID ApcArgument2, PVOID ApcArgument3);
 
 
 typedef struct _PROC_THREAD_ATTRIBUTE_ENTRY {
@@ -564,24 +565,6 @@ typedef struct _BASE_RELOCATION_ENTRY {
 	USHORT Type : 4;
 } BASE_RELOCATION_ENTRY, * PBASE_RELOCATION_ENTRY;
 
-/*
-	typedef struct _LDR_MODULE {
-		LIST_ENTRY      InLoadOrderModuleList;
-		LIST_ENTRY      InMemoryOrderModuleList;
-		LIST_ENTRY      InInitializationOrderModuleList;
-		PVOID           BaseAddress;
-		PVOID           EntryPoint;
-		ULONG           SizeOfImage;
-		UNICODE_STRING  FullDllName;
-		UNICODE_STRING  BaseDllName;
-		ULONG           Flags;
-		SHORT           LoadCount;
-		SHORT           TlsIndex;
-		LIST_ENTRY      HashTableEntry;
-		ULONG           TimeDateStamp;
-	} LDR_MODULE, * PLDR_MODULE;
-*/
-
 
 typedef struct _PEB_LDR_DATA {
 	BYTE Reserved1[8];
@@ -624,8 +607,7 @@ typedef struct _LDR_DATA_TABLE_ENTRY {
 } LDR_DATA_TABLE_ENTRY, * PLDR_DATA_TABLE_ENTRY;
 
 
-typedef const struct _LDR_DATA_TABLE_ENTRY* PCLDR_DATA_TABLE_ENTRY;
-
+typedef const _LDR_DATA_TABLE_ENTRY* PCLDR_DATA_TABLE_ENTRY;
 
 typedef VOID(NTAPI* PPS_POST_PROCESS_INIT_ROUTINE)(VOID);
 

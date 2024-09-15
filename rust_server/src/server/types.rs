@@ -25,33 +25,33 @@ pub enum CommandType {
     CommandNoJob,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum NetworkType {
     Http,
     Smb,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum NetworkOptions {
     Http(Http),
     Smb(Smb),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Network {
     pub r#type:     NetworkType,
     pub options:    NetworkOptions,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Smb {
     pub(crate) egress_peer: String,
     pub(crate) egress_pipe: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Http {
     pub(crate) address:    String,
     pub(crate) port:       u16,
@@ -101,7 +101,7 @@ pub struct Message {
     pub(crate) msg:         String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Config {
     pub(crate) debug:           bool,
     pub(crate) encrypt:         bool,
@@ -134,7 +134,7 @@ pub struct Loader {
     pub(crate) dependencies:   Option<Vec<String>>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Proxy {
     pub(crate) address:    String,
     pub(crate) proto:      String,

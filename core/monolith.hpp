@@ -241,12 +241,12 @@ typedef NTSTATUS (NTAPI* TpAllocWork_t)(PTP_WORK* ptpWork, PTP_WORK_CALLBACK cal
 typedef VOID (NTAPI* TpPostWork_t)(PTP_WORK ptpWork);
 typedef VOID (NTAPI* TpReleaseWork_t)(PTP_WORK ptpWork);
 
+typedef NTSTATUS (NTAPI* NtDelayExecution_t)(BOOLEAN Alertable, PLARGE_INTEGER DelayInterval);
+typedef NTSTATUS (NTAPI* NtCreateEvent_t)(PHANDLE EventHandle, ACCESS_MASK DesiredAccess, POBJECT_ATTRIBUTES ObjectAttributes, EVENT_TYPE EventType, BOOLEAN InitialState);
 typedef NTSTATUS (NTAPI* NtQueueApcThread_t)(HANDLE ThreadHandle, PPS_APC_ROUTINE ApcRoutine, PVOID ApcArgument1, PVOID ApcArgument2, PVOID ApcArgument3);
 typedef NTSTATUS (NTAPI* NtContinue_t)(PCONTEXT ContextRecord, BOOLEAN TestAlert);
 typedef NTSTATUS (NTAPI* NtAlertResumeThread_t)(HANDLE ThreadHandle, PULONG PreviousSuspendCount);
 typedef NTSTATUS (NTAPI* NtSignalAndWaitForSingleObject_t)(HANDLE SignalHandle, HANDLE WaitHandle, BOOLEAN Alertable, PLARGE_INTEGER Timeout);
-
-
 
 
 enum MessageType {
@@ -584,6 +584,12 @@ struct _hexane{
 		NtOpenFile_t NtOpenFile;
 
 		CLRCreateInstance_t CLRCreateInstance;
+		NtDelayExecution_t NtDelayExecution;
+		NtCreateEvent_t NtCreateEvent;
+		NtQueueApcThread_t NtQueueApcThread;
+		NtContinue_t NtContinue;
+		NtAlertResumeThread_t NtAlertResumeThread;
+		NtSignalAndWaitForSingleObject_t NtSignalAndWaitForSingleObject;
 	} nt;
 
 	struct {

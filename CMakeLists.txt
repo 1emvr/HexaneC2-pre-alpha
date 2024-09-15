@@ -53,6 +53,7 @@ set (INCLUDES
         core/dotnet.hpp
         core/include/objects.hpp
         core/include/threads.hpp
+        core/include/sleep.hpp
 )
 
 set (COMMANDS

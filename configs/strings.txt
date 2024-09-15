@@ -128,8 +128,11 @@ NtWaitForSingleObject
 NtDeviceIoControlFile
 NtOpenFile
 NtOpenThread
+NtDelayExecution
+NtCreateEvent
 NtQueueApcThread
 NtContinue
+NtAlertResumeThread
 NtSignalAndWaitForSingleObject
 TpAllocWork
 TpPostWork
