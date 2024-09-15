@@ -9,12 +9,12 @@
 #include <core/corelib.hpp>
 
 namespace Xtea {
-    FUNCTION VOID Uint32ToBlock (uint32_t v0, uint32_t v1, uint8_t *dst) ;
-    FUNCTION VOID InitCipher (_ciphertext *c, const uint8_t *m_key);
-    FUNCTION VOID XteaEncrypt(const _ciphertext *c, uint8_t *dst, const uint8_t *src);
-    FUNCTION VOID XteaDecrypt(const _ciphertext *c, uint8_t *dst, const uint8_t *src);
-    FUNCTION PBYTE *XteaDivide (const uint8_t *data, size_t n_data, size_t *n_out);
-    FUNCTION VOID XteaCrypt(uint8_t *data, size_t n_data, uint8_t *m_key, bool encrypt);
+    FUNCTION VOID Uint32ToBlock (const uint32_t v0, const uint32_t v1, uint8_t *dst) ;
+    FUNCTION VOID InitCipher (_ciphertext *const c, const uint8_t *const m_key);
+    FUNCTION VOID XteaEncrypt(const _ciphertext *const c, uint8_t *const dst, const uint8_t *const src);
+    FUNCTION VOID XteaDecrypt(const _ciphertext *const c, uint8_t *const dst, const uint8_t *const src);
+    FUNCTION PBYTE *XteaDivide (const uint8_t *const data, const size_t n_data, size_t *const n_out);
+    FUNCTION VOID XteaCrypt(uint8_t *const data, const size_t n_data, uint8_t *const m_key, const bool encrypt);
 }
 
 template <uint32_t N>

@@ -278,7 +278,7 @@ namespace Memory {
                 goto defer;
             }
 
-            x_assertb(command = Memory::Methods::GetInternalAddress(cmd_id));
+            x_assertb(command = Commands::GetCommandAddress(cmd_id));
 
             cmd = (_command) RVA(PBYTE, Ctx->base.address, command);
             cmd(&parser);

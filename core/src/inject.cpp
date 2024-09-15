@@ -57,7 +57,7 @@ namespace Injection {
             uintptr_t               handler     = { };
             uint32_t                match       = 0;
 
-            x_assert(match = Memory::Scanners::SignatureScan((uintptr_t) module->DllBase, module->SizeOfImage, signature, mask));
+            x_assert(match = Memory::Scanners::SignatureScan(NtCurrentProcess(), (uintptr_t) module->DllBase, module->SizeOfImage, signature, mask));
 
             match   += 0xD;
             handlers = (LdrpVectorHandlerList*) *(int32_t*) match + (match + 0x3) + 0x7;
