@@ -193,7 +193,6 @@ namespace Objects {
     }
 
     BOOL BaseRelocation(_executable *object) {
-        // todo: turns out the function names come from the binary, not a server message
 
         bool success        = true;
         uint32_t fn_count   = 0;
