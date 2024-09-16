@@ -269,7 +269,7 @@ impl Hexane {
 
                 Some("cpp") => {
                     command.push_str("x86_64-w64-mingw32-g++");
-                    flags = format!(" -c {} {} {} -o {}", includes, &self.compiler.compiler_flags, source, object);
+                    flags = format!(" -c {} {} {} -o {}", source, includes, &self.compiler.compiler_flags, object);
                 }
 
                 _ => {
