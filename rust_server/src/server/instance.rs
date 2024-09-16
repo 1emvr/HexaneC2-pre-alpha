@@ -232,6 +232,8 @@ impl Hexane {
 
     pub fn compile_sources(&mut self) -> Result<()> {
         let src_path    = Path::new(&self.builder.root_directory).join("src");
+        let output      = Path::new(&self.compiler.build_directory).join(&self.builder.output_name);
+
         let entries     = canonical_path_all(src_path)?;
         let config_data = self.config_data.clone();
 
@@ -257,7 +259,6 @@ impl Hexane {
                     if let Err(e) = self.compile_object(command, flags) {
                         return Err(Error::Custom(format!("compile_sources::{e}")));
                     }
-
                     components.push(object);
                 }
 
@@ -272,7 +273,6 @@ impl Hexane {
         }
 
         let targets     = components.join(" ");
-        let output      = Path::new(&self.compiler.build_directory).join(&self.builder.output_name);
         let mut buffer  = Vec::new();
 
         let curdir              = normalize_path(env::current_dir()?.canonicalize()?.to_str().unwrap());

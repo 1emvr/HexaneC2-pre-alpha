@@ -1,37 +1,4 @@
 #include <core/include/memory.hpp>
-
-void* operator new(size_t size) {
-
-    void *ptr = nullptr;
-    if (Ctx->heap && Ctx->nt.RtlAllocateHeap) {
-        ptr = Ctx->nt.RtlAllocateHeap(Ctx->heap, 0, size);
-
-        if (!ptr) {
-            NtCurrentTeb()->LastErrorValue = ERROR_NOT_ENOUGH_MEMORY;
-        }
-    }
-
-    return ptr;
-}
-
-void operator delete(void* ptr) noexcept {
-
-    if (Ctx->heap && Ctx->nt.RtlFreeHeap && ptr) {
-        if (!Ctx->nt.RtlFreeHeap(Ctx->heap, 0, ptr)) {
-            NtCurrentTeb()->LastErrorValue = ERROR_INVALID_PARAMETER;
-        }
-    }
-}
-
-void* operator new[](size_t size) {
-    return operator new(size);
-}
-
-void operator delete[](void* ptr) noexcept {
-    operator delete(ptr);
-}
-
-
 namespace Memory {
     namespace Methods {
 

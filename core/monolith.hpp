@@ -265,6 +265,26 @@ enum DX_MEMORY {
 	DX_MEM_SYSCALL  	= 2,
 };
 
+struct _code {
+    uint8_t* data;
+    uint32_t length;
+};
+
+struct _threadless {
+    char    *parent;
+    char    *module;
+    char    *exp;
+    _code   *loader;
+    _code   *opcode;
+};
+
+struct _veh_writer {
+    void    *target;
+    wchar_t *mod_name;
+    char    *signature;
+    char    *mask;
+};
+
 struct _object_map {
 	PBYTE 	address;
 	SIZE_T 	size;
@@ -338,6 +358,18 @@ struct _executable {
 	PS_ATTRIBUTE_LIST 		*attrs;
 	RTL_USER_PROCESS_PARAMETERS *params;
 	PS_CREATE_INFO 			create;
+};
+
+struct _request_context {
+    HINTERNET conn_handle;
+    HINTERNET req_handle;
+    LPWSTR endpoint;
+};
+
+struct _proxy_context {
+    WINHTTP_CURRENT_USER_IE_PROXY_CONFIG    proxy_config;
+    WINHTTP_AUTOPROXY_OPTIONS               autoproxy;
+    WINHTTP_PROXY_INFO                      proxy_info;
 };
 
 typedef struct {

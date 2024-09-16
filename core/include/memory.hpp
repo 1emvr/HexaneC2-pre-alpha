@@ -4,6 +4,7 @@
 #include <core/corelib.hpp>
 
 namespace Memory {
+
     namespace Methods {
         FUNCTION UINT_PTR GetStackCookie();
         FUNCTION _resource* GetIntResource(HMODULE base, const int rsrc_id);

