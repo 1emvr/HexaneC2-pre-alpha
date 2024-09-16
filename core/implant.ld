@@ -1,6 +1,6 @@
 LINK_BASE = 0x0000;
-
 ENTRY(Start)
+
 SECTIONS {
     .text : {
         . = LINK_BASE;
