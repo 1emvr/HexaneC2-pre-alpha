@@ -240,10 +240,6 @@ impl Hexane {
         let mut components  = Vec::new();
 
         for path in entries {
-            if !path.is_file() {
-                continue;
-            }
-
             let source      = normalize_path(path.to_str().unwrap());
             let mut command = String::new();
             let mut flags   = String::new();
