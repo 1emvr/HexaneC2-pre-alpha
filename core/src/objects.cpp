@@ -3,7 +3,7 @@ namespace Objects {
 
     LPVOID WrapperReturn = nullptr;
 
-    _hash_map loader_wrappers[] = {
+    __code_seg(".rdata") _hash_map loader_wrappers[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
@@ -13,7 +13,7 @@ namespace Objects {
         { .name = 0, .address = nullptr },
     };
 
-    _hash_map implant_wrappers[] = {
+    __code_seg(".rdata") _hash_map implant_wrappers[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },

@@ -36,7 +36,7 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
 // todo: modify with shubakki's pivoting technique: https://sillywa.re/posts/flower-da-flowin-shc/
 
     BOOL                success         = TRUE;
-    LPWSTR              ksecdd_name     = OBFW(L"\\Device\\KsecDD");
+    LPWSTR              ksecdd_name     = L"\\Device\\KsecDD";
     CLIENT_ID           src_cid         = { };
     UNICODE_STRING      src_uni         = { };
     IO_STATUS_BLOCK     ksecdd_iostat   = { };
@@ -304,5 +304,5 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER Timeout) {
     if (sync_event) { Ctx->nt.NtClose(sync_event); }
     if (ksecdd)     { Ctx->nt.NtClose(ksecdd); }
 
-    return ntstatus;
+    return success;
 };

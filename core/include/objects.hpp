@@ -13,6 +13,7 @@ namespace Objects {
     FUNCTION VOID RemoveCoff(_executable *object);
     FUNCTION VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id, bool cache);
     FUNCTION VOID CoffThread(_coff_params *params);
+    FUNCTION VOID LoadObject(_parser parser);
 }
 
 #endif //HEXANE_IMPLANT_OBJECTS_HPP

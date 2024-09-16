@@ -1,12 +1,10 @@
-use std::env;
-use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
 use clap::Parser;
-use crossbeam_channel::{unbounded, Receiver as Recv, Sender as Send};
+use std::sync::{Arc, Mutex};
 use lazy_static::lazy_static;
-use crate::server::instance::Hexane;
 use crate::server::session::Args;
+use crate::server::instance::Hexane;
 use crate::server::types::{Message, UserSession};
+use crossbeam_channel::{unbounded, Receiver as Recv, Sender as Send};
 
 lazy_static!(
     pub(crate) static ref ARGS: Args                                = Args::parse();
