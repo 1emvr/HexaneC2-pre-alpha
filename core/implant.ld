@@ -1,7 +1,9 @@
-LINK_BASE = 0x0000;
+LINK_BASE = 0x1000;
 ENTRY(Start)
 
 SECTIONS {
+    . = LINK_BASE;
+
     .text : {
         . = LINK_BASE;
         *(.text$A);

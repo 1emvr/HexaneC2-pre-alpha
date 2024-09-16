@@ -226,27 +226,25 @@ impl Hexane {
                 Some("asm") => {
                     command.push_str("nasm");
                     flags = format!(" -f win64 {} -o {}", source, object);
+
+                    command.push_str(flags.as_str());
+                    if let Err(e) = run_command(command.as_str(), "compiler_error") {
+                        return Err(Error::Custom(format!("compile_sources::{e}")));
+                    }
+
+                    components.push(object);
                 }
 
                 Some("cpp") => {
-                    command.push_str("x86_64-w64-mingw32-g++");
-                    flags = format!(" -c {} {} {} {} -o {}", source, definitions, includes, &self.compiler.compiler_flags, object);
+                    components.push(source);
                 }
 
                 _ => {
                     continue;
                 }
             }
-
-            command.push_str(flags.as_str());
-            if let Err(e) = run_command(command.as_str(), "compiler_error") {
-                return Err(Error::Custom(format!("compile_sources::{e}")));
-            }
-
-            components.push(object);
         }
 
-        let targets     = components.join(" ");
         let mut buffer  = Vec::new();
 
         if let Some(script) = &self.builder.linker_script {
@@ -258,8 +256,10 @@ impl Hexane {
 
         log_debug!(&"Linking final objects".to_string());
 
-        let linker = buffer.join(" ");
-        if let Err(e) = run_command(&format!("{} {} {} -o {}.exe", "x86_64-w64-mingw32-g++".to_string(), targets, linker, &output.to_str().unwrap()), "linker_error") {
+        let targets = components.join(" ");
+        let linker  = buffer.join(" ");
+
+        if let Err(e) = run_command(&format!("{} {} {} {} {} {} -o {}.exe", "x86_64-w64-mingw32-g++".to_string(), includes, definitions, targets, linker, &self.compiler.compiler_flags, &output.to_str().unwrap()), "linker_error") {
             return Err(Error::Custom(format!("compile_sources::{e}")));
         }
 

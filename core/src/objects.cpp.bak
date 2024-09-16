@@ -1,7 +1,7 @@
-#include <core/include/objects.hpp>
+#include <core/include/objects.cpp.hpp>
 namespace Objects {
 
-    LPVOID WrapperReturn = nullptr;
+    __code_seg(".rdata") void *wrapper_return = nullptr;
 
     __code_seg(".rdata") _hash_map loader_wrappers[] = {
         { .name = 0, .address = nullptr },
@@ -27,7 +27,7 @@ namespace Objects {
 
         _stream *stream = Stream::CreateTaskResponse(TypeError);
 
-        exception->ContextRecord->IP_REG = U_PTR(WrapperReturn);
+        exception->ContextRecord->IP_REG = U_PTR(wrapper_return);
 
         Stream::PackDword(stream,   ERROR_UNHANDLED_EXCEPTION);
         Stream::PackDword(stream,   exception->ExceptionRecord->ExceptionCode);
@@ -42,7 +42,7 @@ namespace Objects {
 
         auto function = (obj_entry) address;
 
-        WrapperReturn = __builtin_extract_return_addr(__builtin_return_address(0));
+        wrapper_return = __builtin_extract_return_addr(__builtin_return_address(0));
         function((char*)args, size);
     }
 

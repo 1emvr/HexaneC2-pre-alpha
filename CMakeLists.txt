@@ -23,9 +23,9 @@ set (SOURCES
         core/src/stream.cpp
         core/src/utils.cpp
         core/src/clients.cpp
-        core/src/sleep.cpp
-        core/src/objects.cpp
-        core/src/threads.cpp
+        core/src/sleep.cpp.bak
+        core/src/objects.cpp.bak
+        core/src/threads.cpp.bak
 )
 
 set (INCLUDES
@@ -50,8 +50,8 @@ set (INCLUDES
         core/include/clients.hpp
         core/corelib.hpp
         core/dotnet.hpp
-        core/include/objects.hpp
-        core/include/threads.hpp
+        core/include/objects.cpp.hpp
+        core/include/threads.cpp.hpp
         core/include/sleep.hpp
 )
 

