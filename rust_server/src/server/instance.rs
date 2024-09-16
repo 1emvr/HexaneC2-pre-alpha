@@ -237,6 +237,19 @@ impl Hexane {
         let entries     = canonical_path_all(src_path)?;
         let config_data = self.config_data.clone();
 
+        let curdir              = normalize_path(env::current_dir()?.canonicalize()?.to_str().unwrap());
+        let mut user_include    = vec![curdir.to_string()];
+
+        if let Some(include) = self.builder.include_directories.clone() {
+            let mut paths = vec![];
+
+            for path in include {
+                paths.push(normalize_path(path.as_str()));
+            }
+            user_include.extend(paths);
+        }
+
+        let includes        = generate_includes(user_include);
         let mut components  = Vec::new();
 
         for path in entries {
@@ -247,44 +260,32 @@ impl Hexane {
             let object_file = generate_object_path(&source, Path::new(&self.compiler.build_directory));
             let object      = normalize_path(object_file.to_str().unwrap());
 
+
             match path.extension().and_then(|ext| ext.to_str()) {
                 Some("asm") => {
                     command.push_str("nasm");
                     flags = format!(" -f win64 {} -o {}", source, object);
-
-                    if let Err(e) = self.compile_object(command, flags) {
-                        return Err(Error::Custom(format!("compile_sources::{e}")));
-                    }
-                    components.push(object);
                 }
 
                 Some("cpp") => {
-                    components.push(source);
+                    command.push_str("x86_64-w64-mingw32-g++");
+                    flags = format!(" {} {} {} -o {}", includes, &self.compiler.compiler_flags, source, object);
                 }
 
                 _ => {
                     continue;
                 }
             }
+
+            if let Err(e) = self.compile_object(command, flags) {
+                return Err(Error::Custom(format!("compile_sources::{e}")));
+            }
+
+            components.push(object);
         }
 
         let targets     = components.join(" ");
         let mut buffer  = Vec::new();
-
-        let curdir              = normalize_path(env::current_dir()?.canonicalize()?.to_str().unwrap());
-        let mut user_include    = vec![curdir.to_string()];
-
-        if let Some(include) = self.builder.include_directories.clone() {
-            let mut paths = vec![];
-
-            for path in include {
-                paths.push(normalize_path(path.as_str()));
-            }
-
-            user_include.extend(paths);
-        }
-
-        let includes = generate_includes(user_include);
 
         if let Some(script) = &self.builder.linker_script {
             let path    = Path::new(&self.builder.root_directory).join(script);
@@ -296,7 +297,7 @@ impl Hexane {
         log_debug!(&"Linking final objects".to_string());
 
         let linker = buffer.join(" ");
-        if let Err(e) = self.compile_object("x86_64-w64-mingw32-g++".to_string(), format!("{}{}{}{} -o {}.exe", includes, &self.compiler.compiler_flags, targets, linker, &output.to_str().unwrap())) {
+        if let Err(e) = self.compile_object("x86_64-w64-mingw32-g++".to_string(), format!("{}{} -o {}.exe", targets, linker, &output.to_str().unwrap())) {
             return Err(Error::Custom(format!("compile_sources::{e}")));
         }
 
