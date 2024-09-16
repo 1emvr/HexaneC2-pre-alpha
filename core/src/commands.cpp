@@ -2,12 +2,12 @@
 namespace Commands {
 
     __code_seg(".rdata") _command_map cmd_map[] = {
-        { .name = DIRECTORYLIST, 	.address = Commands::DirectoryList  },
-        { .name = PROCESSMODULES,	.address = Commands::ProcessModules },
-        { .name = PROCESSLIST,		.address = Commands::ProcessList    },
-        { .name = ADDPEER,			.address = Commands::AddPeer        },
-        { .name = REMOVEPEER,		.address = Commands::RemovePeer     },
-        { .name = SHUTDOWN,			.address = Commands::Shutdown       },
+        { .name = DIRECTORYLIST, 	.address = DirectoryList  },
+        { .name = PROCESSMODULES,	.address = ProcessModules },
+        { .name = PROCESSLIST,		.address = ProcessList    },
+        { .name = ADDPEER,			.address = AddPeer        },
+        { .name = REMOVEPEER,		.address = RemovePeer     },
+        { .name = SHUTDOWN,			.address = Shutdown       },
         { .name = 0,				.address = nullptr					}
     };
 
@@ -19,11 +19,11 @@ namespace Commands {
         LPSTR query     = { };
         LPSTR path      = { };
 
-        HANDLE              file        = { };
-        WIN32_FIND_DATAA    head        = { };
-        ULARGE_INTEGER      file_size   = { };
-        SYSTEMTIME          access_time = { };
-        SYSTEMTIME          sys_time    = { };
+        HANDLE file                 = { };
+        WIN32_FIND_DATAA head       = { };
+        ULARGE_INTEGER file_size    = { };
+        SYSTEMTIME access_time      = { };
+        SYSTEMTIME sys_time         = { };
 
         query   = Parser::UnpackString(parser, nullptr);
         path    = (char*) x_malloc(MAX_PATH);
@@ -83,20 +83,20 @@ namespace Commands {
 
         _stream *out = Stream::CreateTaskResponse(PROCESSMODULES);
 
-        PPEB_LDR_DATA               loads   = { };
-        HANDLE                      process = { };
-        ULONG                       pid     = { };
-        PROCESS_BASIC_INFORMATION   pbi     = { };
+        PPEB_LDR_DATA loads             = { };
+        PROCESS_BASIC_INFORMATION pbi   = { };
+        HANDLE process                  = { };
+        ULONG pid                       = { };
 
-        PLIST_ENTRY                 head 	= { };
-        PLIST_ENTRY                 entry   = { };
-        LDR_DATA_TABLE_ENTRY        module  = { };
+        LDR_DATA_TABLE_ENTRY module = { };
+        PLIST_ENTRY head 	        = { };
+        PLIST_ENTRY entry           = { };
 
-        CHAR    modname_a[MAX_PATH] = { };
-        WCHAR   modname_w[MAX_PATH] = { };
+        CHAR modname_a[MAX_PATH]    = { };
+        WCHAR modname_w[MAX_PATH]   = { };
 
-        INT     count   = 0;
-        SIZE_T  size    = 0;
+        INT count   = 0;
+        SIZE_T size = 0;
 
         x_assert(pid = Process::GetProcessIdByName(Parser::UnpackString(parser, nullptr)));
         x_ntassert(Process::NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, pid));
@@ -131,12 +131,12 @@ namespace Commands {
 
         _stream *out = Stream::CreateTaskResponse(PROCESSLIST);
 
-        PROCESSENTRY32  entries     = { };
-        HANDLE          snapshot    = { };
-        HANDLE          process     = { };
+        PROCESSENTRY32 entries      = { };
+        HANDLE snapshot             = { };
+        HANDLE process              = { };
 
-        IEnumUnknown    *enums      = { };
-        ICLRMetaHost    *meta       = { };
+        IEnumUnknown *enums         = { };
+        ICLRMetaHost *meta          = { };
         ICLRRuntimeInfo *runtime    = { };
 
         WCHAR buffer[1024];
@@ -238,5 +238,4 @@ namespace Commands {
         defer:
         return address;
     }
-
 }

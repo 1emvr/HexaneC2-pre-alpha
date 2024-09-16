@@ -3,9 +3,9 @@ namespace Process {
 
 	ULONG GetProcessIdByName(const char *const name) {
 
-		DWORD 			pid 	= 0;
-		HANDLE 			snap 	= { };
-		PROCESSENTRY32 	entry 	= { };
+		PROCESSENTRY32 entry = { };
+		HANDLE snap = { };
+		DWORD pid	= 0;
 
 		entry.dwSize = sizeof(PROCESSENTRY32);
 
@@ -26,9 +26,9 @@ namespace Process {
 
 	HANDLE OpenParentProcess(const char *const name) {
 
-        PROCESSENTRY32 	entry 	= { };
-		HANDLE 			process = { };
-		HANDLE 			snap 	= { };
+        PROCESSENTRY32 entry = { };
+		HANDLE process	= { };
+		HANDLE snap		= { };
 
 		entry.dwSize = sizeof(PROCESSENTRY32);
 
@@ -49,8 +49,8 @@ namespace Process {
 
 	NTSTATUS NtOpenProcess(void **pp_process, const uint32_t access, const uint32_t pid) {
 
-		CLIENT_ID 			client	= { };
-		OBJECT_ATTRIBUTES 	attrs 	= { };
+		OBJECT_ATTRIBUTES attrs = { };
+		CLIENT_ID client		= { };
 
 		client.UniqueProcess = (HANDLE) pid;
 		client.UniqueThread = nullptr;
@@ -69,8 +69,8 @@ namespace Process {
 
 	VOID CreateUserProcess(_executable *const image, const char *const path) {
 
-		LPWSTR 			w_name = { };
-		UNICODE_STRING 	u_name = { };
+		LPWSTR w_name			= { };
+		UNICODE_STRING u_name	= { };
 
 		x_mbstowcs(w_name, path, x_strlen(path));
 		Ctx->nt.RtlInitUnicodeString(&u_name, w_name);

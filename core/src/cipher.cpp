@@ -62,8 +62,8 @@ namespace Xtea {
 
     PBYTE *XteaDivide (const uint8_t *const data, const size_t n_data, size_t *const n_out) {
 
-        const auto  n_sec       = (n_data + 8 - 1) / 8;
-        uint8_t     **sections  = { };
+        const auto n_sec    = (n_data + 8 - 1) / 8;
+        uint8_t **sections  = { };
 
         x_assert(sections = (uint8_t**) x_malloc(n_sec * sizeof(uint8_t*)));
 
@@ -96,13 +96,13 @@ namespace Xtea {
 
     VOID XteaCrypt(uint8_t *const data, const size_t n_data, uint8_t *const m_key, const bool encrypt) {
 
-        _ciphertext *text       = { };
-        uint8_t     **sections  = { };
-        uint8_t     *buffer     = { };
-        uint8_t     *key        = { };
+        _ciphertext *text   = { };
+        uint8_t **sections  = { };
+        uint8_t *buffer     = { };
+        uint8_t *key        = { };
 
-        size_t      n_sect      = { };
-        int32_t     offset      = 0;
+        size_t n_sect       = { };
+        int32_t offset      = 0;
 
         m_key ? key = m_key : key = Ctx->config.key;
 

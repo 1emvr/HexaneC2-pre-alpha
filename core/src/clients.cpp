@@ -19,10 +19,10 @@ namespace Clients {
 
     BOOL RemoveClient(const uint32_t peer_id) {
 
-        bool    success     = true;
-        _client *head       = Ctx->clients;
-        _client *target     = GetClient(peer_id);
-        _client *prev       = { };
+        bool success    = true;
+        _client *head   = Ctx->clients;
+        _client *target = GetClient(peer_id);
+        _client *prev   = { };
 
 	    x_assertb(head);
 	    x_assertb(target);
@@ -141,12 +141,12 @@ namespace Clients {
 
     VOID PushClients() {
 
-        _stream     *in     = { };
-        void        *buffer = { };
+        _stream *in     = { };
+        void *buffer    = { };
 
-        uint8_t     bound   = 0;
-        uint32_t    total   = 0;
-        uint32_t    read    = 0;
+        uint8_t bound   = 0;
+        uint32_t total  = 0;
+        uint32_t read   = 0;
 
         for (auto client = Ctx->clients; client; client = client->next) {
             if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, (DWORD*) &read, nullptr) || read != sizeof(uint8_t)) {

@@ -1,10 +1,10 @@
-#include <core/include/threads.cpp.hpp>
+#include <core/include/threads.hpp>
 namespace Threads {
 
     HANDLE CreateUserThread(void* process, bool x64, void* entry, void* args, uint32_t* tid) {
 
-        HANDLE      thread  = { };
-        CLIENT_ID   cid     = { };
+        HANDLE thread = { };
+        CLIENT_ID cid = { };
 
         PROC_THREAD_ATTRIBUTE_LIST thread_attr = { };
 

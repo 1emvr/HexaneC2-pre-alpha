@@ -105,8 +105,8 @@ namespace Utils {
             volatile size_t x   = INTERVAL(seed);
             const uintptr_t end = Utils::Random::Timestamp() + (x * ms);
 
-            while (Utils::Random::Timestamp() < end) { x += 1; }
-            if (Utils::Random::Timestamp() - end > 2000) {
+            while (Random::Timestamp() < end) { x += 1; }
+            if (Random::Timestamp() - end > 2000) {
                 return;
             }
         }
@@ -128,7 +128,7 @@ namespace Utils {
             uint16_t end_hour   = 0;
             uint16_t end_min    = 0;
 
-            if (!Utils::Time::InWorkingHours()) {
+            if (!Time::InWorkingHours()) {
                 if (sleeptime) {
 
                     sleeptime   = 0;

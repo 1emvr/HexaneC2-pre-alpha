@@ -28,7 +28,8 @@ namespace Stream {
     _stream* CreateTaskResponse(uint32_t cmd_id) {
 
         auto stream = CreateStreamWithHeaders(TypeResponse);
-        Stream::PackDword(stream, cmd_id);
+        PackDword(stream, cmd_id);
+
         return stream;
     }
 
@@ -39,10 +40,11 @@ namespace Stream {
         // checkin will be  [in/out], pid, tid, msg_type
 
         _stream *stream = CreateStream();
-        Stream::PackByte(stream, EGRESS);
-        Stream::PackDword(stream, Ctx->session.peer_id);
-        Stream::PackDword(stream, Ctx->session.current_taskid);
-        Stream::PackDword(stream, msg_type);
+
+        PackByte(stream, EGRESS);
+        PackDword(stream, Ctx->session.peer_id);
+        PackDword(stream, Ctx->session.current_taskid);
+        PackDword(stream, msg_type);
 
         return stream;
     }
@@ -50,8 +52,9 @@ namespace Stream {
     _stream* CreateStream () {
 
         _stream *stream = { };
-        x_assert(stream            = (_stream*) x_malloc(sizeof(_stream)));
-        x_assert(stream->buffer    = B_PTR(x_malloc(sizeof(uint8_t))));
+
+        x_assert(stream = (_stream*) x_malloc(sizeof(_stream)));
+        x_assert(stream->buffer = B_PTR(x_malloc(sizeof(uint8_t))));
 
         stream->length 	= 0;
         stream->next 	= nullptr;

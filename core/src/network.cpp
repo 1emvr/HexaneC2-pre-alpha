@@ -4,12 +4,12 @@ namespace Network {
 
         VOID HttpSendRequest(HINTERNET request, _stream **stream) {
 
-            void    *buffer     = { };
-            void    *download   = { };
+            void *buffer    = { };
+            void *download  = { };
 
-            uint32_t read       = 0;
-            uint32_t total      = 0;
-            uint32_t length     = 0;
+            uint32_t read   = 0;
+            uint32_t total  = 0;
+            uint32_t length = 0;
 
             do {
                 x_assert(Ctx->win32.WinHttpQueryDataAvailable(request, (DWORD*) &length));
@@ -63,8 +63,8 @@ namespace Network {
 
         BOOL CreateRequestContext(_request_context *req_ctx) {
 
-            const wchar_t   *endpoint   = { };
-            bool            success     = true;
+            bool success            = true;
+            const wchar_t *endpoint = { };
 
             if (!Ctx->transport.http->handle) {
                 x_assert(Ctx->transport.http->handle = Ctx->win32.WinHttpOpen(Ctx->transport.http->useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0));
@@ -165,11 +165,11 @@ namespace Network {
             // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/transportHttp.c#L21
             // todo: reverting tokens during http operations
 
-            _proxy_context      proxy_ctx   = { };
-            _request_context    req_ctx     = { };
+            _proxy_context proxy_ctx = { };
+            _request_context req_ctx = { };
 
-            uint32_t            status      = 0;
-            uint32_t            n_status    = sizeof(uint32_t);
+            uint32_t status     = 0;
+            uint32_t n_status   = sizeof(uint32_t);
 
             wchar_t *methods[] = {
                 (wchar_t*)L"GET",
@@ -188,8 +188,8 @@ namespace Network {
             }
 
             if (Ctx->transport.http->headers) {
-                const wchar_t   *header     = { };
-                uint32_t        n_headers   = 0;
+                const wchar_t *header   = { };
+                uint32_t n_headers      = 0;
 
                 while (true) {
                     if (!(header = Ctx->transport.http->headers[n_headers])) {
@@ -229,10 +229,11 @@ namespace Network {
 
         VOID SmbContextInit(SMB_PIPE_SEC_ATTR *const SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr) {
 
-            SID_IDENTIFIER_AUTHORITY sid_auth = SECURITY_WORLD_SID_AUTHORITY;
-            SID_IDENTIFIER_AUTHORITY sid_label = SECURITY_MANDATORY_LABEL_AUTHORITY;
+            SID_IDENTIFIER_AUTHORITY sid_auth   = SECURITY_WORLD_SID_AUTHORITY;
+            SID_IDENTIFIER_AUTHORITY sid_label  = SECURITY_MANDATORY_LABEL_AUTHORITY;
+
             EXPLICIT_ACCESSA access = { };
-            PACL acl = { };
+            PACL acl                = { };
 
             x_memset(SmbSecAttr, 0, sizeof(SMB_PIPE_SEC_ATTR));
             x_memset(SecAttr, 0, sizeof(PSECURITY_ATTRIBUTES));
@@ -309,9 +310,9 @@ namespace Network {
 
         BOOL PipeSend (_stream *out) {
 
-            bool                success         = true;
-            SMB_PIPE_SEC_ATTR   smb_sec_attr    = { };
-            SECURITY_ATTRIBUTES sec_attr        = { };
+            bool success = true;
+            SMB_PIPE_SEC_ATTR smb_sec_attr  = { };
+            SECURITY_ATTRIBUTES sec_attr    = { };
 
             if (!Ctx->transport.pipe_handle) {
                 SmbContextInit(&smb_sec_attr, &sec_attr);
@@ -341,10 +342,10 @@ namespace Network {
 
         BOOL PipeReceive(_stream** in) {
 
-            bool        success    = true;
-            uint32_t    total      = 0;
-            uint32_t    peer_id    = 0;
-            uint32_t    msg_size   = 0;
+            bool success        = true;
+            uint32_t total      = 0;
+            uint32_t peer_id    = 0;
+            uint32_t msg_size   = 0;
 
             if (Ctx->win32.PeekNamedPipe(Ctx->transport.pipe_handle, nullptr, 0, nullptr, (DWORD*) &total, nullptr)) {
                 if (total > sizeof(uint32_t) * 2) {

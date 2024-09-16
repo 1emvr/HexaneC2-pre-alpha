@@ -24,8 +24,8 @@ namespace Parser {
 
     VOID ParserWcscpy(_parser *const parser, wchar_t **const dst, uint32_t *const n_out) {
 
-        uint32_t length = 0;
-        const auto buffer = UnpackWString(parser, &length);
+        uint32_t length     = 0;
+        const auto buffer   = UnpackWString(parser, &length);
 
         if (length) {
             if (n_out) {
@@ -42,8 +42,8 @@ namespace Parser {
 
     VOID ParserMemcpy(_parser *const parser, uint8_t **const dst, uint32_t *const n_out) {
 
-        uint32_t length = 0;
-        const auto buffer = UnpackBytes(parser, &length);
+        uint32_t length     = 0;
+        const auto buffer   = UnpackBytes(parser, &length);
 
         if (length) {
             if (n_out) {
@@ -165,8 +165,8 @@ namespace Parser {
 
     PBYTE UnpackBytes (_parser *const parser, uint32_t *const n_out) {
 
-        uint8_t     *output = { };
-        uint32_t    length  = 0;
+        uint8_t *output     = { };
+        uint32_t length     = 0;
 
         if (!parser || parser->Length < 4) {
             return nullptr;

