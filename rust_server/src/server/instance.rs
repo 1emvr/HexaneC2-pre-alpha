@@ -4,11 +4,12 @@ use std::path::Path;
 use std::str::FromStr;
 use std::collections::HashMap;
 
+use crate::server::rstatic::{DEBUG_FLAGS, HASHES, INSTANCES, RELEASE_FLAGS, SESSION, STRINGS, USERAGENT};
+
 use crate::server::stream::Stream;
 use crate::server::error::{Error, Result};
 use crate::server::binary::embed_section_data;
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
-use crate::server::rstatic::{DEBUG_FLAGS, HASHES, INSTANCES, RELEASE_FLAGS, SESSION, STRINGS, USERAGENT};
 use crate::server::types::{Builder, Compiler, Config, JsonData, Loader, Network, NetworkOptions, NetworkType, UserSession};
 use crate::server::utils::{canonical_path_all, generate_hashes, generate_object_path, normalize_path, run_command, wrap_message};
 use crate::log_debug;
