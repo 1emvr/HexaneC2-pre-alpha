@@ -1,14 +1,9 @@
-use std::collections::HashMap;
-use std::env;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
-use std::path::PathBuf;
 use pelite::{PeFile, pe32::headers::SectionHeader};
-use crate::log_error;
 use crate::server::error::{Result, Error};
-use crate::server::instance::Hexane;
-use crate::server::types::{Config, Network, NetworkType};
-use crate::server::utils::{find_double_u32, generate_definitions, normalize_path, run_command, source_to_outpath, wrap_message};
+use crate::server::utils::{find_double_u32, wrap_message};
+use crate::log_error;
 
 struct Section {
     data:       Vec<u8>,

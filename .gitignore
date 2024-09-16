@@ -8,6 +8,6 @@
 .vs
 cmake-build-debug
 logs
-build
-payload
-rust_server/target
+build/*
+payload/*
+rust_server/target/*

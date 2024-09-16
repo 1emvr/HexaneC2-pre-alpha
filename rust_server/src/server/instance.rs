@@ -10,7 +10,7 @@ use crate::server::binary::embed_section_data;
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::rstatic::{DEBUG_FLAGS, HASHES, INSTANCES, RELEASE_FLAGS, SESSION, STRINGS, USERAGENT};
 use crate::server::types::{Builder, Compiler, Config, JsonData, Loader, Network, NetworkOptions, NetworkType, UserSession};
-use crate::server::utils::{canonical_path_all, generate_definitions, generate_hashes, generate_object_path, normalize_path, run_command, wrap_message};
+use crate::server::utils::{canonical_path_all, generate_hashes, generate_object_path, normalize_path, run_command, wrap_message};
 use crate::log_debug;
 use rayon::prelude::*;
 
@@ -250,7 +250,7 @@ impl Hexane {
 
         if let Some(script) = &self.builder.linker_script {
             let path    = Path::new(&self.builder.root_directory).join(script);
-            let lnk     = normalize_path(path.to_str().unwrap().into_string());
+            let lnk     = normalize_path(path.to_str().unwrap().into());
 
             buffer.push(format!(" -T {} ", lnk.as_str()));
         }
@@ -275,15 +275,12 @@ impl Hexane {
     pub fn generate_definitions(&self) -> String {
 
         let mut defs: HashMap<String, Option<u32>> = HashMap::new();
-        let encrypted   = self.main.encrypt;
-        let cfg_size    = self.main.config_size;
-
         if self.main.debug {
             defs.insert("DEBUG".to_string(), None);
         }
 
-        defs.insert("CONFIG_SIZE".to_string(), Some(cfg_size));
-        defs.insert("ENCRYPTED".to_string(), Some(if encrypted { 1u32 } else { 0u32 }));
+        defs.insert("CONFIG_SIZE".to_string(), Some(self.main.config_size));
+        defs.insert("ENCRYPTED".to_string(), Some(if self.main.encrypt { 1u32 } else { 0u32 }));
         defs.insert("BSWAP".to_string(), Some(if &self.main.architecture == "amd64" { 0u32 } else { 1u32 }));
 
         if let Some(network) = &self.network {
@@ -300,8 +297,8 @@ impl Hexane {
     }
 
     pub fn generate_includes(&self) -> String {
-        let current             = env::current_dir().unwrap().canonicalize().unwrap().to_str().unwrap().to_currenting();
-        let normal              = normalize_path(normalize_path(current));
+        let current = env::current_dir().unwrap().canonicalize().unwrap().to_str().unwrap().to_string();
+        let normal  = normalize_path(normalize_path(current));
 
         let mut user_include    = vec![normal.to_string()];
         let mut includes        = vec![];
@@ -316,7 +313,7 @@ impl Hexane {
             user_include.extend(paths);
         }
 
-        for path in &user_include.iter() {
+        for path in user_include.iter() {
             includes.push(format!(" -I\"{}\" ", path))
         }
 

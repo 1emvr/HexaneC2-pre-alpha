@@ -224,7 +224,7 @@ pub fn normalize_path(path_str: String) -> String {
         &path_str[4..]
     }
     else {
-        path_str
+        &*path_str
     };
 
     stripped_path.replace("/", "\\")
