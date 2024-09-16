@@ -219,7 +219,7 @@ pub fn canonical_path_all(src_path: PathBuf) -> Result<Vec<PathBuf>> {
     Ok(entries)
 }
 
-pub fn normalize_path(path_str: &str) -> String {
+pub fn normalize_path(path_str: String) -> String {
     let stripped_path = if path_str.starts_with(r"\\?\") || path_str.starts_with("//?/") {
         &path_str[4..]
     }
@@ -238,17 +238,8 @@ pub fn generate_object_path(source_path: &str, build_dir: &Path) -> PathBuf {
     build_dir.join(object_filename)
 }
 
-pub fn generate_includes(includes: Vec<String>) -> String {
-    includes.iter().map(|inc| format!(" -I\"{}\" ", inc)).collect::<Vec<_>>().join("")
-}
 
 pub fn generate_arguments(args: Vec<String>) -> String {
     args.iter().map(|arg| format!(" {} ", arg)).collect::<Vec<_>>().join("")
 }
 
-pub fn generate_definitions(definitions: HashMap<String, Option<u32>>) -> String {
-    definitions.iter().map(|(name, def)| match def {
-        None        => format!(" -D{} ", name),
-        Some(value) => format!(" -D{}={} ", name, value),
-    }).collect::<String>()
-}

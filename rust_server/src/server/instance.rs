@@ -10,7 +10,7 @@ use crate::server::binary::embed_section_data;
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::rstatic::{DEBUG_FLAGS, HASHES, INSTANCES, RELEASE_FLAGS, SESSION, STRINGS, USERAGENT};
 use crate::server::types::{Builder, Compiler, Config, JsonData, Loader, Network, NetworkOptions, NetworkType, UserSession};
-use crate::server::utils::{canonical_path_all, generate_definitions, generate_hashes, generate_includes, generate_object_path, normalize_path, run_command, wrap_message};
+use crate::server::utils::{canonical_path_all, generate_definitions, generate_hashes, generate_object_path, normalize_path, run_command, wrap_message};
 use crate::log_debug;
 use rayon::prelude::*;
 
@@ -200,36 +200,6 @@ impl Hexane {
         Ok(stream.buffer)
     }
 
-
-    fn compile_object(&self, mut command: String, flags: String) -> Result<()> {
-        let mut defs: HashMap<String, Option<u32>> = HashMap::new();
-
-        if command.trim() != "nasm" {
-            let encrypted   = self.main.encrypt;
-            let cfg_size    = self.main.config_size;
-
-            if self.main.debug {
-                defs.insert("DEBUG".to_string(), None);
-            }
-
-            defs.insert("CONFIG_SIZE".to_string(), Some(cfg_size));
-            defs.insert("ENCRYPTED".to_string(), Some(if encrypted { 1u32 } else { 0u32 }));
-            defs.insert("BSWAP".to_string(), Some(if &self.main.architecture == "amd64" { 0u32 } else { 1u32 }));
-
-            if let Some(network) = &self.network {
-                match network.r#type {
-                    NetworkType::Http   => { defs.insert("TRANSPORT_HTTP".to_string(), None); }
-                    NetworkType::Smb    => { defs.insert("TRANSPORT_PIPE".to_string(), None); }
-                }
-            }
-        }
-
-        command.push_str(&generate_definitions(defs));
-        command.push_str(&flags);
-
-        run_command(&command, &self.peer_id.to_string())
-    }
-
     pub fn compile_sources(&mut self) -> Result<()> {
         let src_path    = Path::new(&self.builder.root_directory).join("src");
         let output      = Path::new(&self.compiler.build_directory).join(&self.builder.output_name);
@@ -237,28 +207,18 @@ impl Hexane {
         let entries     = canonical_path_all(src_path)?;
         let config_data = self.config_data.clone();
 
-        let curdir              = normalize_path(env::current_dir()?.canonicalize()?.to_str().unwrap());
-        let mut user_include    = vec![curdir.to_string()];
+        let includes    = self.generate_includes();
+        let definitions = self.generate_definitions();
 
-        if let Some(include) = self.builder.include_directories.clone() {
-            let mut paths = vec![];
-
-            for path in include {
-                paths.push(normalize_path(path.as_str()));
-            }
-            user_include.extend(paths);
-        }
-
-        let includes        = generate_includes(user_include);
         let mut components  = Vec::new();
 
         for path in entries {
-            let source      = normalize_path(path.to_str().unwrap());
+            let source      = normalize_path(path.to_str().unwrap().into());
             let mut command = String::new();
             let mut flags   = String::new();
 
             let object_file = generate_object_path(&source, Path::new(&self.compiler.build_directory));
-            let object      = normalize_path(object_file.to_str().unwrap());
+            let object      = normalize_path(object_file.to_str().unwrap().into());
 
 
             match path.extension().and_then(|ext| ext.to_str()) {
@@ -269,7 +229,7 @@ impl Hexane {
 
                 Some("cpp") => {
                     command.push_str("x86_64-w64-mingw32-g++");
-                    flags = format!(" -c {} {} {} -o {}", source, includes, &self.compiler.compiler_flags, object);
+                    flags = format!(" -c {} {} {} {} -o {}", source, definitions, includes, &self.compiler.compiler_flags, object);
                 }
 
                 _ => {
@@ -277,7 +237,8 @@ impl Hexane {
                 }
             }
 
-            if let Err(e) = self.compile_object(command, flags) {
+            command.push_str(flags.as_str());
+            if let Err(e) = run_command(command.as_str(), "compiler_error") {
                 return Err(Error::Custom(format!("compile_sources::{e}")));
             }
 
@@ -289,7 +250,7 @@ impl Hexane {
 
         if let Some(script) = &self.builder.linker_script {
             let path    = Path::new(&self.builder.root_directory).join(script);
-            let lnk     = normalize_path(path.to_str().unwrap());
+            let lnk     = normalize_path(path.to_str().unwrap().into_string());
 
             buffer.push(format!(" -T {} ", lnk.as_str()));
         }
@@ -297,7 +258,7 @@ impl Hexane {
         log_debug!(&"Linking final objects".to_string());
 
         let linker = buffer.join(" ");
-        if let Err(e) = self.compile_object("x86_64-w64-mingw32-g++".to_string(), format!("{}{} -o {}.exe", targets, linker, &output.to_str().unwrap())) {
+        if let Err(e) = run_command(&format!("{} {} {} -o {}.exe", "x86_64-w64-mingw32-g++".to_string(), targets, linker, &output.to_str().unwrap()), "linker_error") {
             return Err(Error::Custom(format!("compile_sources::{e}")));
         }
 
@@ -309,5 +270,56 @@ impl Hexane {
         // todo: create dll loader
 
         Ok(())
+    }
+
+    pub fn generate_definitions(&self) -> String {
+
+        let mut defs: HashMap<String, Option<u32>> = HashMap::new();
+        let encrypted   = self.main.encrypt;
+        let cfg_size    = self.main.config_size;
+
+        if self.main.debug {
+            defs.insert("DEBUG".to_string(), None);
+        }
+
+        defs.insert("CONFIG_SIZE".to_string(), Some(cfg_size));
+        defs.insert("ENCRYPTED".to_string(), Some(if encrypted { 1u32 } else { 0u32 }));
+        defs.insert("BSWAP".to_string(), Some(if &self.main.architecture == "amd64" { 0u32 } else { 1u32 }));
+
+        if let Some(network) = &self.network {
+            match network.r#type {
+                NetworkType::Http   => { defs.insert("TRANSPORT_HTTP".to_string(), None); }
+                NetworkType::Smb    => { defs.insert("TRANSPORT_PIPE".to_string(), None); }
+            }
+        }
+
+        defs.iter().map(|(name, def)| match def {
+            None        => format!(" -D{} ", name),
+            Some(value) => format!(" -D{}={} ", name, value),
+        }).collect::<String>()
+    }
+
+    pub fn generate_includes(&self) -> String {
+        let current             = env::current_dir().unwrap().canonicalize().unwrap().to_str().unwrap().to_currenting();
+        let normal              = normalize_path(normalize_path(current));
+
+        let mut user_include    = vec![normal.to_string()];
+        let mut includes        = vec![];
+
+
+        if let Some(include) = self.builder.include_directories.clone() {
+            let mut paths = vec![];
+
+            for path in include {
+                paths.push(normalize_path(path));
+            }
+            user_include.extend(paths);
+        }
+
+        for path in &user_include.iter() {
+            includes.push(format!(" -I\"{}\" ", path))
+        }
+
+        includes.join(" ")
     }
 }
