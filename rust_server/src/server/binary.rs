@@ -1,8 +1,8 @@
 use std::fs::{File, OpenOptions};
-use std::io::{Read, Seek, SeekFrom, Write};
+use std::io::{Seek, SeekFrom, Write};
 use pelite::{PeFile, pe32::headers::SectionHeader};
 use crate::server::error::{Result, Error};
-use crate::server::utils::{find_double_u32, wrap_message};
+use crate::server::utils::{find_double_u32, read_file, wrap_message};
 use crate::log_error;
 
 struct Section {
@@ -11,10 +11,7 @@ struct Section {
 }
 
 fn get_section_header (target_path: &str, target_section: &str) -> Result<Section> {
-    let mut read_data = Vec::new();
-    let mut read_file = File::open(target_path)?;
-
-    read_file.read_to_end(&mut read_data)?;
+    let mut read_data = read_file(target_path)?;
 
     let pe_file = PeFile::from_bytes(&read_data)?;
     let mut found: Option<SectionHeader> = None;
@@ -52,28 +49,22 @@ pub(crate) fn copy_section_data(target_path: &str, out_path: &str, target_sectio
     Ok(())
 }
 
-pub(crate) fn embed_section_data(target_path: &str, target_section: &str, data: &[u8]) -> Result<()> {
-    let mut section_data    = get_section_header(target_path, target_section)?;
-    let offset              = find_double_u32(&section_data.data, &[0x41,0x41,0x41,0x41])?;
-    let size                = section_data.section.SizeOfRawData;
+pub(crate) fn embed_section_data(target_path: &str, data: &[u8], sec_size: usize) -> Result<()> {
+    let mut file_data   = read_file(target_path)?;
+    let offset          = find_double_u32(&file_data, &[0x41,0x41,0x41,0x41])?;
 
-    wrap_message("debug", &format!("embedding config data to {target_section}"));
+    wrap_message("debug", &"embedding config data".to_string());
 
-    if data.len() > size as usize {
-        log_error!("data is longer than {target_section}.SizeOfRawData: {}", section_data.section.SizeOfRawData);
+    if data.len() > sec_size {
+        log_error!(&"data is longer than section size".to_string());
         return Err(Error::Custom("data is langer than target_section".to_string()))
     }
 
-    if offset + data.len() > size as usize {
-        log_error!(&"data is too long from the offset. This would write outside of the section".to_string());
-        return Err(Error::Custom("data is too long".to_string()))
-    }
-
-    section_data.data[offset..offset + data.len()].copy_from_slice(data);
-
+    file_data[offset..offset + data.len()].copy_from_slice(data);
     let mut read_file = OpenOptions::new().write(true).open(target_path)?;
-    read_file.seek(SeekFrom::Start(section_data.section.PointerToRawData as u64))?;
-    read_file.write_all(&section_data.data)?;
+
+    read_file.seek(SeekFrom::Start(offset as u64))?;
+    read_file.write_all(&file_data)?;
 
     Ok(())
 }

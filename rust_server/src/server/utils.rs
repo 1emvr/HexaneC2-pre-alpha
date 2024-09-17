@@ -5,7 +5,7 @@ use std::{fs, io};
 use std::process::Command;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::io::{ErrorKind, BufRead, BufReader, Write};
+use std::io::{ErrorKind, BufRead, BufReader, Write, Read};
 
 use crate::server::error::{Result, Error, Error::Io};
 use crate::server::rstatic::{CHANNEL, DEBUG, EXIT};
@@ -72,6 +72,15 @@ pub fn wrap_message(typ: &str, msg: &String) {
 pub fn stop_print_channel() {
     let sender = &EXIT.0;
     sender.send(()).unwrap();
+}
+
+pub(crate) fn read_file(target_path: &str) -> Result<Vec<u8>>{
+
+    let mut read_data = Vec::new();
+    let mut read_file = File::open(target_path)?;
+
+    read_file.read_to_end(&mut read_data)?;
+    Ok(read_data)
 }
 
 pub(crate) fn get_embedded_strings(str_list: Vec<String>) -> Vec<u8> {
