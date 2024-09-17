@@ -78,6 +78,8 @@ set (INJECT
 
 set (SERVER
         test/fnv_test.cpp
+        test/link_test.cpp
+        test/link_test.hpp
 
 )
 

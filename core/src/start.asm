@@ -1,3 +1,5 @@
+[bits 64]
+
 global Start
 global InstStart
 global InstEnd

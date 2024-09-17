@@ -1,4 +1,4 @@
-LINK_BASE = 0x1000;
+LINK_BASE = 0x0000;
 ENTRY(Start)
 
 SECTIONS {
@@ -6,9 +6,9 @@ SECTIONS {
 
     .text : {
         . = LINK_BASE;
+
         *(.text$A);
         *(.text$B);
-        *(.data*);
         *(.rdata*);
 
         FILL(0X00);
