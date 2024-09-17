@@ -8,7 +8,7 @@ use crate::server::rstatic::{DEBUG_FLAGS, HASHES, INSTANCES, RELEASE_FLAGS, SESS
 
 use crate::server::stream::Stream;
 use crate::server::error::{Error, Result};
-use crate::server::binary::embed_section_data;
+use crate::server::binary::{copy_section_data, embed_section_data};
 use crate::server::cipher::{crypt_create_key, crypt_xtea};
 use crate::server::types::{Builder, Compiler, Config, JsonData, Loader, Network, NetworkOptions, NetworkType, UserSession};
 use crate::server::utils::{canonical_path_all, generate_hashes, generate_object_path, normalize_path, run_command, wrap_message};
@@ -262,8 +262,14 @@ impl Hexane {
         log_info!(&"linking final objects".to_string());
         run_command(&format!("{} {} {} {} {} {} -o {}.exe", "x86_64-w64-mingw32-g++".to_string(), includes, definitions, targets, linker, &self.compiler.compiler_flags, &output.to_str().unwrap()), "linker_error");
 
-        // todo: change from section reader to sigscanner
-        if let Err(e) = embed_section_data(&format!("{}.exe", &output.to_str().unwrap()), ".text$F", &config_data) {
+        if let Err(e) = embed_section_data(&format!("{}.exe", &output.to_str().unwrap()), &config_data, self.main.config_size as usize) {
+            return Err(Error::Custom(format!("compile_sources::{e}")));
+        }
+
+        let mut shellcode: String = self.compiler.build_directory.to_owned();
+        shellcode.push_str("/shellcode.bin");
+
+        if let Err(e) = copy_section_data(&format!("{}.exe", &output.to_str().unwrap()), shellcode.as_str(), ".text") {
             return Err(Error::Custom(format!("compile_sources::{e}")));
         }
 
