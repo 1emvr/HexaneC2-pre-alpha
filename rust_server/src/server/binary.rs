@@ -63,7 +63,6 @@ pub(crate) fn embed_section_data(target_path: &str, data: &[u8], sec_size: usize
     file_data[offset..offset + data.len()].copy_from_slice(data);
     let mut read_file = OpenOptions::new().write(true).open(target_path)?;
 
-    read_file.seek(SeekFrom::Start(offset as u64))?;
     read_file.write_all(&file_data)?;
 
     Ok(())

