@@ -259,7 +259,7 @@ impl Hexane {
         let targets = components.join(" ");
         let linker  = buffer.join(" ");
 
-        log_info!(&"Linking final objects".to_string());
+        log_info!(&"linking final objects".to_string());
         run_command(&format!("{} {} {} {} {} {} -o {}.exe", "x86_64-w64-mingw32-g++".to_string(), includes, definitions, targets, linker, &self.compiler.compiler_flags, &output.to_str().unwrap()), "linker_error");
 
         // todo: change from section reader to sigscanner
