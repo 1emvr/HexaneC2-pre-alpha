@@ -20,6 +20,7 @@ namespace Network {
 
     namespace Smb {
         FUNCTION VOID SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr);
+        FUNCTION VOID SmbContextInit(SMB_PIPE_SEC_ATTR *const SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr);
         FUNCTION BOOL PipeRead(void *const handle, const _stream *in);
         FUNCTION BOOL PipeWrite(void *const handle, const _stream *out);
         FUNCTION BOOL PipeSend (_stream *out);

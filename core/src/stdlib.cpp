@@ -187,7 +187,7 @@ size_t x_wcstombs (char *const str, const wchar_t *wcs, size_t size) {
     return count;
 }
 
-int x_mbsEndsWith (const char *string, const char *const end) {
+int x_endswith_a (const char *string, const char *const end) {
 
     uint32_t length1 = 0;
     uint32_t length2 = 0;
@@ -206,7 +206,7 @@ int x_mbsEndsWith (const char *string, const char *const end) {
     return x_strcmp(string, end) == 0;
 }
 
-int x_wcsEndsWith (const wchar_t *string, const wchar_t *const end) {
+int x_endswith_w (const wchar_t *string, const wchar_t *const end) {
 
     uint32_t length1 = 0;
     uint32_t length2 = 0;
