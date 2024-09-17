@@ -259,9 +259,7 @@ impl Hexane {
         let targets = components.join(" ");
         let linker  = buffer.join(" ");
 
-        if let Err(e) = run_command(&format!("{} {} {} {} {} {} -o {}.exe", "x86_64-w64-mingw32-g++".to_string(), includes, definitions, targets, linker, &self.compiler.compiler_flags, &output.to_str().unwrap()), "linker_error") {
-            return Err(Error::Custom(format!("compile_sources::{e}")));
-        }
+        run_command(&format!("{} {} {} {} {} {} -o {}.exe", "x86_64-w64-mingw32-g++".to_string(), includes, definitions, targets, linker, &self.compiler.compiler_flags, &output.to_str().unwrap()), "linker_error");
 
         if let Err(e) = embed_section_data(&format!("{}.exe", &output.to_str().unwrap()), ".text$F", &config_data) {
             return Err(Error::Custom(format!("compile_sources::{e}")));

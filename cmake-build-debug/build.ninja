@@ -55,6 +55,8 @@ build CMakeFiles/hexane_implant.dir/test/fnv_test.cpp.obj: CXX_COMPILER__hexane_
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\test
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/test/link_test.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/test/link_test.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\test\link_test.cpp.obj.d
@@ -62,6 +64,8 @@ build CMakeFiles/hexane_implant.dir/test/link_test.cpp.obj: CXX_COMPILER__hexane
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\test
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/cipher.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/cipher.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\cipher.cpp.obj.d
@@ -69,6 +73,8 @@ build CMakeFiles/hexane_implant.dir/core/src/cipher.cpp.obj: CXX_COMPILER__hexan
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/commands.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/commands.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\commands.cpp.obj.d
@@ -76,6 +82,8 @@ build CMakeFiles/hexane_implant.dir/core/src/commands.cpp.obj: CXX_COMPILER__hex
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/stdlib.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/stdlib.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\stdlib.cpp.obj.d
@@ -83,6 +91,8 @@ build CMakeFiles/hexane_implant.dir/core/src/stdlib.cpp.obj: CXX_COMPILER__hexan
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/implant.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/implant.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\implant.cpp.obj.d
@@ -90,6 +100,8 @@ build CMakeFiles/hexane_implant.dir/core/src/implant.cpp.obj: CXX_COMPILER__hexa
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/inject.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/inject.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\inject.cpp.obj.d
@@ -97,6 +109,8 @@ build CMakeFiles/hexane_implant.dir/core/src/inject.cpp.obj: CXX_COMPILER__hexan
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/memory.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/memory.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\memory.cpp.obj.d
@@ -104,6 +118,8 @@ build CMakeFiles/hexane_implant.dir/core/src/memory.cpp.obj: CXX_COMPILER__hexan
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/dispatch.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/dispatch.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\dispatch.cpp.obj.d
@@ -111,6 +127,8 @@ build CMakeFiles/hexane_implant.dir/core/src/dispatch.cpp.obj: CXX_COMPILER__hex
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/network.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/network.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\network.cpp.obj.d
@@ -118,6 +136,8 @@ build CMakeFiles/hexane_implant.dir/core/src/network.cpp.obj: CXX_COMPILER__hexa
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/opsec.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/opsec.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\opsec.cpp.obj.d
@@ -125,6 +145,8 @@ build CMakeFiles/hexane_implant.dir/core/src/opsec.cpp.obj: CXX_COMPILER__hexane
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/parser.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/parser.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\parser.cpp.obj.d
@@ -132,6 +154,8 @@ build CMakeFiles/hexane_implant.dir/core/src/parser.cpp.obj: CXX_COMPILER__hexan
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/process.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/process.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\process.cpp.obj.d
@@ -139,12 +163,16 @@ build CMakeFiles/hexane_implant.dir/core/src/process.cpp.obj: CXX_COMPILER__hexa
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/start.asm.obj: ASM_NASM_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/start.asm || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\start.asm.obj.d
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/stream.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/stream.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\stream.cpp.obj.d
@@ -152,6 +180,8 @@ build CMakeFiles/hexane_implant.dir/core/src/stream.cpp.obj: CXX_COMPILER__hexan
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/utils.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/utils.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\utils.cpp.obj.d
@@ -159,6 +189,8 @@ build CMakeFiles/hexane_implant.dir/core/src/utils.cpp.obj: CXX_COMPILER__hexane
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/clients.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/clients.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\clients.cpp.obj.d
@@ -166,6 +198,8 @@ build CMakeFiles/hexane_implant.dir/core/src/clients.cpp.obj: CXX_COMPILER__hexa
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/objects.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/objects.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\objects.cpp.obj.d
@@ -173,6 +207,8 @@ build CMakeFiles/hexane_implant.dir/core/src/objects.cpp.obj: CXX_COMPILER__hexa
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/core/src/threads.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/core/src/threads.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\core\src\threads.cpp.obj.d
@@ -180,6 +216,8 @@ build CMakeFiles/hexane_implant.dir/core/src/threads.cpp.obj: CXX_COMPILER__hexa
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\core\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/commands/src/registry.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/commands/src/registry.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\commands\src\registry.cpp.obj.d
@@ -187,6 +225,8 @@ build CMakeFiles/hexane_implant.dir/commands/src/registry.cpp.obj: CXX_COMPILER_
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\commands\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/commands/src/tokens.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/commands/src/tokens.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\commands\src\tokens.cpp.obj.d
@@ -194,12 +234,16 @@ build CMakeFiles/hexane_implant.dir/commands/src/tokens.cpp.obj: CXX_COMPILER__h
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\commands\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/loader/resource.rc.obj: RC_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/loader/resource.rc || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\loader\resource.rc.obj.d
   INCLUDES = -I C:/Users/lemur/Github/HexaneC2/include -I C:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\loader
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/loader/src/dllmain.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/loader/src/dllmain.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\loader\src\dllmain.cpp.obj.d
@@ -207,6 +251,8 @@ build CMakeFiles/hexane_implant.dir/loader/src/dllmain.cpp.obj: CXX_COMPILER__he
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\loader\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/loader/src/exemain.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/loader/src/exemain.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\loader\src\exemain.cpp.obj.d
@@ -214,6 +260,8 @@ build CMakeFiles/hexane_implant.dir/loader/src/exemain.cpp.obj: CXX_COMPILER__he
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\loader\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/loader/src/resource.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/loader/src/resource.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\loader\src\resource.cpp.obj.d
@@ -221,12 +269,16 @@ build CMakeFiles/hexane_implant.dir/loader/src/resource.cpp.obj: CXX_COMPILER__h
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\loader\src
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/inject/threadless/loader.asm.obj: ASM_NASM_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/inject/threadless/loader.asm || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\inject\threadless\loader.asm.obj.d
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\inject\threadless
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 build CMakeFiles/hexane_implant.dir/inject/threadless/OpenFileExecute.cpp.obj: CXX_COMPILER__hexane_implant_unscanned_Debug C$:/Users/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp || cmake_object_order_depends_target_hexane_implant
   DEP_FILE = CMakeFiles\hexane_implant.dir\inject\threadless\OpenFileExecute.cpp.obj.d
@@ -234,6 +286,8 @@ build CMakeFiles/hexane_implant.dir/inject/threadless/OpenFileExecute.cpp.obj: C
   INCLUDES = -IC:/Users/lemur/Github/HexaneC2/include -IC:/Users/lemur/Github/HexaneC2
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   OBJECT_FILE_DIR = CMakeFiles\hexane_implant.dir\inject\threadless
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
+  TARGET_PDB = hexane_implant.pdb
 
 
 # =============================================================================
@@ -249,9 +303,10 @@ build hexane_implant.exe: CXX_EXECUTABLE_LINKER__hexane_implant_Debug CMakeFiles
   OBJECT_DIR = CMakeFiles\hexane_implant.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
+  TARGET_COMPILE_PDB = CMakeFiles\hexane_implant.dir\
   TARGET_FILE = hexane_implant.exe
   TARGET_IMPLIB = libhexane_implant.dll.a
-  TARGET_PDB = hexane_implant.exe.dbg
+  TARGET_PDB = hexane_implant.pdb
 
 
 #############################################
@@ -298,14 +353,14 @@ build all: phony hexane_implant.exe
 #############################################
 # Re-run CMake if any of its inputs changed.
 
-build build.ninja: RERUN_CMAKE | C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeASMInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeASM_NASMInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCXXInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCommonLanguageInclude.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeGenericSystem.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeInitializeConfigs.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeLanguageInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeRCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeSystemSpecificInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeSystemSpecificInitialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU-C-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU-CXX-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-Initialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-windres.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/WindowsPaths.cmake C$:/Users/lemur/Github/HexaneC2/CMakeLists.txt CMakeCache.txt CMakeFiles/3.29.6/CMakeASM_NASMCompiler.cmake CMakeFiles/3.29.6/CMakeCCompiler.cmake CMakeFiles/3.29.6/CMakeCXXCompiler.cmake CMakeFiles/3.29.6/CMakeRCCompiler.cmake CMakeFiles/3.29.6/CMakeSystem.cmake
+build build.ninja: RERUN_CMAKE | C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeASMCompiler.cmake.in C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeASMInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeASM_NASMInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCCompiler.cmake.in C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCCompilerABI.c C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCXXCompiler.cmake.in C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCXXCompilerABI.cpp C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCXXInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCommonLanguageInclude.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCompilerIdDetection.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineASMCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineASM_NASMCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineCCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineCXXCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineCompileFeatures.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineCompilerId.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineRCCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineSystem.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeFindBinUtils.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeGenericSystem.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeInitializeConfigs.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeLanguageInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeParseImplicitIncludeInfo.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeParseImplicitLinkInfo.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeParseLibraryArchitecture.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeRCCompiler.cmake.in C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeRCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeSystem.cmake.in C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeSystemSpecificInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeSystemSpecificInitialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeTestASMCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeTestASM_NASMCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeTestCCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeTestCXXCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeTestCompilerCommon.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeTestRCCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/ADSP-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/ARMCC-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/ARMClang-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/AppleClang-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Borland-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Bruce-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Clang-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Clang-DetermineCompilerInternal.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Compaq-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Compaq-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Cray-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/CrayClang-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Embarcadero-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Fujitsu-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/FujitsuClang-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GHS-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU-FindBinUtils.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/HP-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/HP-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/IAR-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/IBMCPP-C-DetermineVersionInternal.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/IBMCPP-CXX-DetermineVersionInternal.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/IBMClang-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/IBMClang-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Intel-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/IntelLLVM-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/LCC-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/LCC-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/MSVC-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/NVHPC-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/NVIDIA-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/OpenWatcom-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/OrangeC-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/PGI-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/PathScale-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/SCO-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/SDCC-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/SunPro-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/SunPro-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/TI-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/TIClang-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Tasking-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/TinyCC-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/VisualAge-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/VisualAge-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Watcom-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/XL-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/XL-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/XLClang-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/XLClang-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/zOS-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/zOS-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Internal/CMakeDetermineLinkerId.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Internal/FeatureTesting.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-Determine-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU-C-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU-CXX-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-Initialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-windres.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/WindowsPaths.cmake C$:/Users/lemur/Github/HexaneC2/CMakeLists.txt CMakeCache.txt CMakeFiles/3.29.6/CMakeASM_NASMCompiler.cmake CMakeFiles/3.29.6/CMakeCCompiler.cmake CMakeFiles/3.29.6/CMakeCXXCompiler.cmake CMakeFiles/3.29.6/CMakeRCCompiler.cmake CMakeFiles/3.29.6/CMakeSystem.cmake
   pool = console
 
 
 #############################################
 # A missing CMake input file is not an error.
 
-build C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeASMInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeASM_NASMInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCXXInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCommonLanguageInclude.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeGenericSystem.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeInitializeConfigs.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeLanguageInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeRCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeSystemSpecificInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeSystemSpecificInitialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU-C-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU-CXX-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-Initialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-windres.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/WindowsPaths.cmake C$:/Users/lemur/Github/HexaneC2/CMakeLists.txt CMakeCache.txt CMakeFiles/3.29.6/CMakeASM_NASMCompiler.cmake CMakeFiles/3.29.6/CMakeCCompiler.cmake CMakeFiles/3.29.6/CMakeCXXCompiler.cmake CMakeFiles/3.29.6/CMakeRCCompiler.cmake CMakeFiles/3.29.6/CMakeSystem.cmake: phony
+build C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeASMCompiler.cmake.in C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeASMInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeASM_NASMInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCCompiler.cmake.in C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCCompilerABI.c C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCXXCompiler.cmake.in C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCXXCompilerABI.cpp C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCXXInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCommonLanguageInclude.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeCompilerIdDetection.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineASMCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineASM_NASMCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineCCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineCXXCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineCompileFeatures.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineCompilerId.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineRCCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeDetermineSystem.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeFindBinUtils.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeGenericSystem.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeInitializeConfigs.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeLanguageInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeParseImplicitIncludeInfo.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeParseImplicitLinkInfo.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeParseLibraryArchitecture.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeRCCompiler.cmake.in C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeRCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeSystem.cmake.in C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeSystemSpecificInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeSystemSpecificInitialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeTestASMCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeTestASM_NASMCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeTestCCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeTestCXXCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeTestCompilerCommon.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/CMakeTestRCCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/ADSP-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/ARMCC-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/ARMClang-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/AppleClang-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Borland-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Bruce-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Clang-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Clang-DetermineCompilerInternal.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Compaq-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Compaq-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Cray-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/CrayClang-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Embarcadero-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Fujitsu-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/FujitsuClang-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GHS-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU-FindBinUtils.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/HP-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/HP-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/IAR-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/IBMCPP-C-DetermineVersionInternal.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/IBMCPP-CXX-DetermineVersionInternal.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/IBMClang-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/IBMClang-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Intel-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/IntelLLVM-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/LCC-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/LCC-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/MSVC-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/NVHPC-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/NVIDIA-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/OpenWatcom-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/OrangeC-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/PGI-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/PathScale-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/SCO-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/SDCC-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/SunPro-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/SunPro-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/TI-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/TIClang-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Tasking-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/TinyCC-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/VisualAge-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/VisualAge-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/Watcom-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/XL-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/XL-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/XLClang-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/XLClang-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/zOS-C-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Compiler/zOS-CXX-DetermineCompiler.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Internal/CMakeDetermineLinkerId.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Internal/FeatureTesting.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-Determine-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU-C-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU-CXX-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-Initialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows-windres.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/Windows.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.2.1/bin/cmake/win/x64/share/cmake-3.29/Modules/Platform/WindowsPaths.cmake C$:/Users/lemur/Github/HexaneC2/CMakeLists.txt CMakeCache.txt CMakeFiles/3.29.6/CMakeASM_NASMCompiler.cmake CMakeFiles/3.29.6/CMakeCCompiler.cmake CMakeFiles/3.29.6/CMakeCXXCompiler.cmake CMakeFiles/3.29.6/CMakeRCCompiler.cmake CMakeFiles/3.29.6/CMakeSystem.cmake: phony
 
 
 #############################################
