@@ -93,12 +93,12 @@ namespace Memory {
             LIST_ENTRY *head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
             for (auto next = head->Flink; next != head; next = next->Flink) {
-                wchar_t lowercase[MAX_PATH] = { };
-
                 const auto mod  = CONTAINING_RECORD(next, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
                 const auto name = mod->BaseDllName;
 
-                if (hash - Utils::HashStringW(x_wcs_tolower(lowercase, name.Buffer), x_wcslen(name.Buffer)) == 0) {
+                wchar_t buffer[MAX_PATH] = { };
+
+                if (hash - Utils::HashStringW(x_wcs_tolower(buffer, name.Buffer), x_wcslen(name.Buffer)) == 0) {
                     return mod;
                 }
             }
