@@ -1007,28 +1007,6 @@ typedef struct _PROCESS_BASIC_INFORMATION {
 } PROCESS_BASIC_INFORMATION, * PPROCESS_BASIC_INFORMATION;
 
 
-typedef struct _LOADED_IMAGE {
-	PSTR                        ModuleName;
-	HANDLE                      hFile;
-	PUCHAR                      MappedAddress;
-#ifdef _M_IX86
-	PIMAGE_NT_HEADERS32         FileHeader;
-#else
-	PIMAGE_NT_HEADERS64         FileHeader;
-#endif
-	PIMAGE_SECTION_HEADER       LastRvaSection;
-	WORD						NumberOfSections;
-	PIMAGE_SECTION_HEADER       Sections;
-	ULONG                       Characteristics;
-	BOOLEAN                     fSystemImage;
-	BOOLEAN                     fDOSImage;
-	BOOLEAN                     fReadOnly;
-	UCHAR                       Version;
-	LIST_ENTRY                  Links;
-	ULONG                       SizeOfImage;
-} LOADED_IMAGE, * PLOADED_IMAGE;
-
-
 typedef enum _SECTION_INHERIT {
 	viewShare = 1,
 	viewUnmap = 2

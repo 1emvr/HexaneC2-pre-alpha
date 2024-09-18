@@ -19,7 +19,7 @@ namespace Memory {
     namespace Modules {
         FUNCTION HMODULE GetModuleAddress(const LDR_DATA_TABLE_ENTRY *data);
         FUNCTION LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash);
-        FUNCTION FARPROC GetExportAddress(const HMODULE base, const uint32_t hash);
+        FUNCTION FARPROC GetExportAddress(const void *base, const uint32_t hash);
         FUNCTION UINT_PTR LoadExport(const char* const module_name, const char* const export_name);
     }
 

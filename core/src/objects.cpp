@@ -344,14 +344,9 @@ namespace Objects {
         uint8_t *next       = { };
 
         x_assert(data);
+        object = Memory::Methods::CreateImageData((uint8_t*) data);
 
-        object = (_executable*) x_malloc(sizeof(_executable));
-
-        object->buffer  = B_PTR(data);
-        object->nt_head = NT_HEADERS(object->buffer, DOS_HEADER(object->buffer));
-        object->symbol  = SYMBOL_TABLE(object->buffer, object->nt_head);
         object->task_id = task_id;
-
         object->next    = Ctx->coffs;
         Ctx->coffs      = object;
 
