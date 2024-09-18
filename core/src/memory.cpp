@@ -125,6 +125,7 @@ namespace Memory {
                 if (hash - Utils::HashStringA(x_mbs_tolower(buffer, name), x_strlen(name)) == 0) {
                     __debugbreak();
 
+                    // todo: imcorrect access
                     address = (FARPROC) (B_PTR(base) + ((uintptr_t*) (base + exports->AddressOfFunctions))[index]);
                     break;
                 }
