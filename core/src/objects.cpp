@@ -57,10 +57,10 @@ namespace Objects {
         if (Utils::HashStringA(sym_string, COFF_PREP_BEACON_SIZE) == COFF_PREP_BEACON) {
 
             function = sym_string + COFF_PREP_BEACON_SIZE;
-            success_(Memory::Scanners::MapScan(implant_map, Utils::HashStringA(function, x_strlen(function)), pointer));
+            success_(Utils::Scanners::MapScan(implant_map, Utils::HashStringA(function, x_strlen(function)), pointer));
         }
         else if (Utils::HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
-            bool import = Memory::Scanners::SymbolScan(sym_string, 0x24, x_strlen(sym_string));
+            bool import = Utils::Scanners::SymbolScan(sym_string, 0x24, x_strlen(sym_string));
 
             if (import) {
                 int count   = 0;
@@ -83,7 +83,7 @@ namespace Objects {
                 function = sym_string + COFF_PREP_SYMBOL_SIZE;
 
                 x_trim(function, 0x40);
-                success_(Memory::Scanners::MapScan(loader_map, Utils::HashStringA(function, x_strlen(function)), pointer));
+                success_(Utils::Scanners::MapScan(loader_map, Utils::HashStringA(function, x_strlen(function)), pointer));
             }
         }
         else if (Utils::HashStringA(sym_string, x_strlen(sym_string)) == COFF_INSTANCE) {

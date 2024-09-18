@@ -16,7 +16,7 @@ namespace Injection {
 
         x_assert(ex_addr    = Memory::Modules::LoadExport(writer.module, writer.exp));
         x_assert(process    = Process::OpenParentProcess(writer.parent));
-        x_assert(hook       = Memory::Scanners::RelocateExport(process, C_PTR(ex_addr), n_shellcode));
+        x_assert(hook       = Utils::Scanners::RelocateExport(process, C_PTR(ex_addr), n_shellcode));
 
         hook_p      = hook;
         loader_rva  = hook - (ex_addr + 5);
@@ -57,7 +57,7 @@ namespace Injection {
             uintptr_t handler   = { };
             uint32_t match      = 0;
 
-            x_assert(match = Memory::Scanners::SignatureScan(NtCurrentProcess(), (uintptr_t) module->DllBase, module->SizeOfImage, signature, mask));
+            x_assert(match = Utils::Scanners::SignatureScan(NtCurrentProcess(), (uintptr_t) module->DllBase, module->SizeOfImage, signature, mask));
 
             match   += 0xD;
             handlers = (LdrpVectorHandlerList*) *(int32_t*) match + (match + 0x3) + 0x7;

@@ -23,14 +23,6 @@ namespace Memory {
         FUNCTION UINT_PTR LoadExport(const char* const module_name, const char* const export_name);
     }
 
-    namespace Scanners {
-        FUNCTION BOOL MapScan(_hash_map* map, uint32_t id, void** pointer);
-        FUNCTION BOOL SymbolScan(const char* string, const char symbol, size_t length);
-        FUNCTION UINT_PTR RelocateExport(void* const process, const void* const target, size_t size);
-        FUNCTION BOOL SigCompare(const uint8_t* data, const char* signature, const char* mask);
-        FUNCTION UINT_PTR SignatureScan(void* process, const uintptr_t start, const uint32_t size, const char* signature, const char* mask);
-    }
-
     namespace Execute {
         FUNCTION BOOL ExecuteCommand(_parser &parser);
         FUNCTION BOOL ExecuteShellcode(const _parser &parser);
