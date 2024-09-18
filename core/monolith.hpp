@@ -28,6 +28,7 @@ EXTERN_C LPVOID InstEnd();
 #define GLOBAL_OFFSET 								(U_PTR(InstStart()) + U_PTR( &__instance))
 #define Ctx           								((_hexane*) C_DREF(GLOBAL_OFFSET))
 
+#define P_TYPE(T, x)								((T*)		x)
 #define B_PTR(x)								    ((PBYTE) 	x)
 #define C_PTR(x)                                    ((LPVOID) 	x)
 #define U_PTR(x)                                    ((UINT_PTR) x)

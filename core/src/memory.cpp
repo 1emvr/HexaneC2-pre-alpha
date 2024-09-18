@@ -110,21 +110,22 @@ namespace Memory {
 
             FARPROC address = nullptr;
 
-            const auto nt_head = (PIMAGE_NT_HEADERS) (B_PTR(base) + (uint8_t) 0xE8);
+            const auto nt_head = (PIMAGE_NT_HEADERS) (B_PTR(base) + ((PIMAGE_DOS_HEADER) base)->e_lfanew);
             const auto exports = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(base) + nt_head->OptionalHeader.DataDirectory[0].VirtualAddress);
 
             if (nt_head->Signature != IMAGE_NT_SIGNATURE) {
                 return address;
             }
 
-            __debugbreak();
-            for (auto name_index = 0; name_index < exports->NumberOfNames; name_index++) {
-                const auto name = (char*) (B_PTR(base) + U_PTR(B_PTR(base) + exports->AddressOfNames))[name_index];
+            for (uint32_t name_index = 0; name_index < exports->NumberOfNames; name_index++) {
+                const auto name = (char*) (U_PTR(base) + (uintptr_t*) (U_PTR(base) + exports->AddressOfNames))[name_index];
 
                 char buffer[MAX_PATH] = { };
 
                 if (hash - Utils::HashStringA(x_mbs_tolower(buffer, name), x_strlen(name)) == 0) {
-                    address = (FARPROC) (B_PTR(base) + U_PTR(B_PTR(base) + exports->AddressOfFunctions))[name_index];
+                    __debugbreak();
+
+                    address = (FARPROC) (U_PTR(base) + (uintptr_t*) (U_PTR(base) + exports->AddressOfFunctions))[name_index];
                     break;
                 }
             }
