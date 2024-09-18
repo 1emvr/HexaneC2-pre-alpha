@@ -37,7 +37,7 @@ EXTERN_C LPVOID InstEnd();
 
 #define FUNCTION								    __text(B)
 #define __prototype(x)                              decltype(x) *x
-#define __code_seg(x)							    __attribute__((used, section(x)))
+#define __section(x)							    __attribute__((used, section(x)))
 #define __text(x) 								    __attribute__((used, section(".text$" #x "")))
 #define DLL_EXPORT 								    __declspec(dllexport)
 
@@ -50,7 +50,7 @@ EXTERN_C LPVOID InstEnd();
 #define REG_PEB32(Ctx) 						        ((LPVOID) (ULONG_PTR) Ctx.Ebx + 0x8)
 #define REG_PEB64(Ctx) 						        ((LPVOID) (ULONG_PTR) Ctx.Rdx + 0x10)
 
-#define DOS_HEADER(base)							((PIMAGE_DOS_HEADER)B_PTR(base));
+#define DOS_HEADER(base)							((PIMAGE/_DOS_HEADER)B_PTR(base));
 #define NT_HEADERS(base, dos)			    		((PIMAGE_NT_HEADERS) B_PTR(base) + (dos)->e_lfanew)
 #define EXPORT_DIRECTORY(base, nt)	        		((PIMAGE_EXPORT_DIRECTORY) B_PTR(base) + (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)
 #define SECTION_HEADER(data, i)   		            ((PIMAGE_SECTION_HEADER) B_PTR(data) + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * i))

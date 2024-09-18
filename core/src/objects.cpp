@@ -1,9 +1,9 @@
 #include <core/include/objects.hpp>
 namespace Objects {
 
-    __code_seg(".rdata") void *wrapper_return = nullptr;
+    __section(".rdata") void *wrapper_return = nullptr;
 
-    __code_seg(".rdata") _hash_map loader_map[] = {
+    __section(".rdata") _hash_map loader_map[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
@@ -13,7 +13,7 @@ namespace Objects {
         { .name = 0, .address = nullptr },
     };
 
-    __code_seg(".rdata") _hash_map implant_map[] = {
+    __section(".rdata") _hash_map implant_map[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
