@@ -1,6 +1,6 @@
-#define NTDLL 0x224188d5
-#define KERNEL32 0x5437347d
-#define KERNELBASE 0xdb09cc81
+#define NTDLL 0xa62a3b3b
+#define KERNEL32 0xa3e6f6c3
+#define KERNELBASE 0xbd6d9917
 #define LOADLIBRARYA 0x4dbc712f
 #define FREELIBRARY 0x2e672dee
 #define HEAP32LISTFIRST 0xba7980bc

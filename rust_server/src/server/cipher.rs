@@ -9,8 +9,6 @@ use crate::server::error::Error::Custom;
 const NUM_ROUNDS:   usize = 64;
 const BLOCK_SIZE:   usize = 8;
 const DELTA:        u32 = 0x9E3779B9;
-const FNV_OFFSET:   u32 = 2166136261;
-const FNV_PRIME:    u32 = 16777619;
 const CHARACTERS:   &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 
@@ -34,6 +32,7 @@ impl Cipher {
 
 pub fn crypt_create_key(length: usize) -> Vec<u8> {
     let seed = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
+
     let mut rng = StdRng::seed_from_u64(seed as u64);
     let mut key = vec![0u8; length];
 
@@ -44,22 +43,9 @@ pub fn crypt_create_key(length: usize) -> Vec<u8> {
     key
 }
 
-pub(crate) fn get_hash_from_string(s: &str, is_unicode: bool) -> u32 {
-    let mut hash    = FNV_OFFSET;
-    let length      = if is_unicode { s.len() - 2 } else { s.len() };
-    let offset      = if is_unicode { 2 } else { 1 };
-
-    for i in (0..length).step_by(offset) {
-        hash ^= s.as_bytes()[i] as u32;
-        hash = hash.wrapping_mul(FNV_PRIME);
-    }
-
-    hash
-}
-
 fn new_cipher(key: &[u8]) -> Result<Cipher> {
     if key.len() != 16 {
-        return Err(Custom("idk anymore bro".parse().unwrap()))
+        return Err(Error::from(KeySizeError(key.len())))
     }
     let mut cipher = Cipher {
         table: [0u32; NUM_ROUNDS]

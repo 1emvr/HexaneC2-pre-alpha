@@ -118,7 +118,7 @@ wchar_t *x_wcscat (wchar_t *const str1, const wchar_t *const str2) {
     return str1;
 }
 
-wchar_t x_toLowerW(const wchar_t c) {
+wchar_t x_tolower_w(const wchar_t c) {
     if (c >= 0x0041 && c <= 0x005A) {
         return c + (0x0061 - 0x0041);
     }
@@ -126,7 +126,7 @@ wchar_t x_toLowerW(const wchar_t c) {
     return c;
 }
 
-char x_toLowerA(const char c) {
+char x_tolower_a(const char c) {
     if (c >= 0x41 && c <= 0x5A) {
         return c + (0x61 - 0x41);
     }
@@ -134,22 +134,22 @@ char x_toLowerA(const char c) {
     return c;
 }
 
-wchar_t *x_wcsToLower(wchar_t *const dst, const wchar_t *const src) {
+wchar_t *x_wcs_tolower(wchar_t *const dst, const wchar_t *const src) {
 
     const auto len = x_wcslen(src);
     for (size_t i = 0; i < len; ++i) {
-        dst[i] = x_toLowerW(src[i]);
+        dst[i] = x_tolower_w(src[i]);
     }
 
     dst[len] = 0x0000;
     return dst;
 }
 
-char *x_mbsToLower(char *const dst, const char *const src) {
+char *x_mbs_tolower(char *const dst, const char *const src) {
 
     const auto len = x_strlen(src);
     for (size_t i = 0; i < len; ++i) {
-        dst[i] = x_toLowerA((uint8_t) src[i]);
+        dst[i] = x_tolower_a((uint8_t) src[i]);
     }
 
     dst[len] = 0x00;
@@ -187,7 +187,7 @@ size_t x_wcstombs (char *const str, const wchar_t *wcs, size_t size) {
     return count;
 }
 
-int x_endswith_a (const char *string, const char *const end) {
+int x_mbs_endswith (const char *string, const char *const end) {
 
     uint32_t length1 = 0;
     uint32_t length2 = 0;
@@ -206,7 +206,7 @@ int x_endswith_a (const char *string, const char *const end) {
     return x_strcmp(string, end) == 0;
 }
 
-int x_endswith_w (const wchar_t *string, const wchar_t *const end) {
+int x_wcs_endswith (const wchar_t *string, const wchar_t *const end) {
 
     uint32_t length1 = 0;
     uint32_t length2 = 0;

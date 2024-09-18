@@ -94,10 +94,11 @@ namespace Memory {
             for (auto next = head->Flink; next != head; next = next->Flink) {
                 wchar_t lowercase[MAX_PATH] = { };
 
-                const auto mod  = (LDR_DATA_TABLE_ENTRY*) B_PTR(next) - sizeof(uint32_t) * 4;
+                const auto mod  = CONTAINING_RECORD(next, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
                 const auto name = mod->BaseDllName;
 
-                if (hash - Utils::HashStringW(x_wcsToLower(lowercase, name.Buffer), x_wcslen(name.Buffer)) == 0) {
+                __debugbreak();
+                if (hash - Utils::HashStringW(x_wcs_tolower(lowercase, name.Buffer), x_wcslen(name.Buffer)) == 0) {
                     return mod;
                 }
             }
@@ -124,7 +125,7 @@ namespace Memory {
 
                     x_memset(lowercase, 0, MAX_PATH);
 
-                    if (hash - Utils::HashStringA(x_mbsToLower(lowercase, name), x_strlen(name)) == 0) {
+                    if (hash - Utils::HashStringA(x_mbs_tolower(lowercase, name), x_strlen(name)) == 0) {
                         address = (FARPROC) RVA(PULONG, base, funcs[ords[name_index]]);
                         break;
                     }

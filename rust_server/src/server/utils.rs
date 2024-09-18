@@ -3,16 +3,17 @@ use crossbeam_channel::{select};
 
 use std::{fs, io};
 use std::process::Command;
-use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::io::{ErrorKind, BufRead, BufReader, Write, Read};
 
-use crate::server::error::{Result, Error, Error::Io};
+use crate::server::error::{Result, Error};
 use crate::server::rstatic::{CHANNEL, DEBUG, EXIT};
 use crate::{log_error, log_info};
 use crate::server::types::{Message};
 use crate::server::stream::Stream;
 
+pub const FNV_OFFSET:   u32 = 2166136261;
+pub const FNV_PRIME:    u32 = 16777619;
 
 pub fn print_help() {
     println!(r#"
@@ -108,22 +109,24 @@ pub(crate) fn create_cpp_array(buffer: &[u8], length: usize) -> Vec<u8> {
     array.into_bytes()
 }
 
-pub(crate) fn create_hash_macro(s: &str) -> String {
-    let macro_name  = s.to_uppercase().trim_end().to_string();
-    let lower       = s.to_lowercase();
+pub(crate) fn get_hash_from_string(s: &str) -> u32 {
+    let mut hash = FNV_OFFSET;
 
-    let (name, is_unicode) = if lower.ends_with(".dll") {
-        (encode_utf16(&lower), true)
+    for i in 0..s.len() {
+        hash ^= s.as_bytes()[i] as u32;
+        hash = hash.wrapping_mul(FNV_PRIME);
     }
-    else {
-        (lower.into_bytes(), false)
-    };
 
-    format!(
-        "#define {} 0x{:x}",
-        macro_name.split('.').next().unwrap(),
-        crate::server::cipher::get_hash_from_string(&String::from_utf8_lossy(&name), is_unicode)
-    )
+    hash
+}
+
+fn create_hash_macro(input: &str) -> String {
+    let lower = input.to_lowercase();
+
+    let hash        = get_hash_from_string(&lower);
+    let macro_name  = input.trim_end().to_uppercase();
+
+    format!("#define {} 0x{:x}", macro_name.split('.').next().unwrap_or_default(), hash)
 }
 
 pub(crate) fn generate_hashes(strings_file: &str, out_file: &str) -> Result<()> {
