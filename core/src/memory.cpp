@@ -30,8 +30,9 @@ namespace Memory {
             _executable *image = (_executable*) x_malloc(sizeof(_executable));
 
             image->buffer   = data;
-            image->nt_head  = NT_HEADERS(image->buffer);
-            image->exports  = EXPORT_DIRECTORY(image->buffer, image->nt_head);
+            image->dos_head = (PIMAGE_DOS_HEADER) image->buffer;
+            image->nt_head  = (PIMAGE_NT_HEADERS) (B_PTR(data) + (uint8_t)0xE8);
+            image->exports  = (PIMAGE_EXPORT_DIRECTORY) B_PTR(image->buffer) + image->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
             image->symbol   = SYMBOL_TABLE(image->buffer, image->nt_head);
 
             return image;
@@ -107,30 +108,23 @@ namespace Memory {
 
         FARPROC GetExportAddress(const void *base, const uint32_t hash) {
 
-            __debugbreak();
-            // todo: test the e_lfanew value
-            auto test = ((PIMAGE_DOS_HEADER)base)->e_lfanew;
-            if (!test) {
-                return nullptr;
-            }
-            const auto nt_head = NT_HEADERS(base);
+            intptr_t (*address)() = nullptr;
+
+            const auto nt_head = (PIMAGE_NT_HEADERS) (B_PTR(base) + (uint8_t) 0xE8);
+            const auto exports = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(base) + nt_head->OptionalHeader.DataDirectory[0].VirtualAddress);
+
             if (nt_head->Signature != IMAGE_NT_SIGNATURE) {
-                return nullptr;
+                return address;
             }
 
-            const auto exports  = EXPORT_DIRECTORY(base, nt_head);
-            const auto ords     = RVA(uint16_t*, base, exports->AddressOfNameOrdinals);
-            const auto funcs    = RVA(uint32_t*, base, exports->AddressOfFunctions);
-            const auto names    = RVA(uint32_t*, base, exports->AddressOfNames);
-
-            FARPROC address = { };
-
+            __debugbreak();
             for (auto name_index = 0; name_index < exports->NumberOfNames; name_index++) {
-                const auto name             = RVA(char*, base, names[name_index]);
-                char lowercase[MAX_PATH]    = { };
+                const auto name = (char*) (B_PTR(base) + U_PTR(B_PTR(base) + exports->AddressOfNames))[name_index];
 
-                if (hash - Utils::HashStringA(x_mbs_tolower(lowercase, name), x_strlen(name)) == 0) {
-                    address = (FARPROC)RVA(PULONG, base, funcs[ords[name_index]]);
+                char buffer[MAX_PATH] = { };
+
+                if (hash - Utils::HashStringA(x_mbs_tolower(buffer, name), x_strlen(name)) == 0) {
+                    address = (intptr_t (*)( )) (B_PTR(base) + U_PTR(B_PTR(base) + exports->AddressOfFunctions))[name_index];
                     break;
                 }
             }
