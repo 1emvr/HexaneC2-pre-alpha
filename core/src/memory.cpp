@@ -117,15 +117,15 @@ namespace Memory {
                 return address;
             }
 
-            for (uint32_t name_index = 0; name_index < exports->NumberOfNames; name_index++) {
-                const auto name = (char*) (U_PTR(base) + (uintptr_t*) (U_PTR(base) + exports->AddressOfNames))[name_index];
+            for (uint32_t index = 0; index < exports->NumberOfNames; index++) {
+                const auto name = (char*) (B_PTR(base) + ((uintptr_t*) (base + exports->AddressOfNames))[index]);
 
                 char buffer[MAX_PATH] = { };
 
                 if (hash - Utils::HashStringA(x_mbs_tolower(buffer, name), x_strlen(name)) == 0) {
                     __debugbreak();
 
-                    address = (FARPROC) (U_PTR(base) + (uintptr_t*) (U_PTR(base) + exports->AddressOfFunctions))[name_index];
+                    address = (FARPROC) (B_PTR(base) + ((uintptr_t*) (base + exports->AddressOfFunctions))[index]);
                     break;
                 }
             }
