@@ -108,7 +108,7 @@ namespace Memory {
 
         FARPROC GetExportAddress(const void *base, const uint32_t hash) {
 
-            intptr_t (*address)() = nullptr;
+            FARPROC address = nullptr;
 
             const auto nt_head = (PIMAGE_NT_HEADERS) (B_PTR(base) + (uint8_t) 0xE8);
             const auto exports = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(base) + nt_head->OptionalHeader.DataDirectory[0].VirtualAddress);
@@ -124,7 +124,7 @@ namespace Memory {
                 char buffer[MAX_PATH] = { };
 
                 if (hash - Utils::HashStringA(x_mbs_tolower(buffer, name), x_strlen(name)) == 0) {
-                    address = (intptr_t (*)( )) (B_PTR(base) + U_PTR(B_PTR(base) + exports->AddressOfFunctions))[name_index];
+                    address = (FARPROC) (B_PTR(base) + U_PTR(B_PTR(base) + exports->AddressOfFunctions))[name_index];
                     break;
                 }
             }
