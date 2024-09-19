@@ -120,13 +120,14 @@ namespace Memory {
 
             for (uint32_t index = 0; index < exports->NumberOfNames; index++) {
                 const auto name = (char*) (B_PTR(base) + ((uintptr_t*) base + exports->AddressOfNames)[index]);
+                // todo: check if this is correct
 
                 char buffer[MAX_PATH] = { };
 
                 if (hash - Utils::HashStringA(x_mbs_tolower(buffer, name), x_strlen(name)) == 0) {
-                    __debugbreak();
-
                     // todo: incorrect access
+
+                    __debugbreak();
                     address = (FARPROC) (B_PTR(base) + ((uintptr_t*) base + exports->AddressOfFunctions)[index]);
                     break;
                 }
