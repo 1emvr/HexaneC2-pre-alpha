@@ -120,7 +120,6 @@ namespace Memory {
 
             for (uint32_t index = 0; index < exports->NumberOfNames; index++) {
                 const auto name = (char*) (B_PTR(base) + ((uintptr_t*) base + exports->AddressOfNames)[index]);
-                // todo: check if this is correct
 
                 char buffer[MAX_PATH] = { };
 
