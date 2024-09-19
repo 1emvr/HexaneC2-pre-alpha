@@ -34,6 +34,7 @@ EXTERN_C LPVOID InstEnd();
 #define U_PTR(x)                                    ((UINT_PTR) x)
 #define C_DREF(x)                                   (*(VOID**) 	x)
 #define S_PTR(x)                                    ((const char*) x)
+#define R_CAST(T, x)								(reinterpret_cast<T*>(x))
 
 #define FUNCTION								    __text(B)
 #define __prototype(x)                              decltype(x) *x

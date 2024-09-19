@@ -118,16 +118,14 @@ namespace Memory {
                 return address;
             }
 
-            for (uint32_t index = 0; index < exports->NumberOfNames; index++) {
-                const auto name = (char*) (B_PTR(base) + ((uintptr_t*) base + exports->AddressOfNames)[index]);
+            for (auto index = 0; index < exports->NumberOfNames; index++) {
+                const auto name = (char*) (base + ((uint32_t*)(base + exports->AddressOfNames))[index-1]);
 
                 char buffer[MAX_PATH] = { };
 
+                __debugbreak();
                 if (hash - Utils::HashStringA(x_mbs_tolower(buffer, name), x_strlen(name)) == 0) {
-                    // todo: incorrect access
-
-                    __debugbreak();
-                    address = (FARPROC) (B_PTR(base) + ((uintptr_t*) base + exports->AddressOfFunctions)[index]);
+                    address = (FARPROC) (base + ((uint32_t*)(base + exports->AddressOfFunctions))[index]);
                     break;
                 }
             }
