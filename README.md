@@ -6,14 +6,15 @@ The idea is to lay the groundwork for custom implementations and experiment with
 
 The implant is not 100% undetectable. There are plenty of IOCs that are intrinsic to the methods applied (if you know them, you can change it) and network communication is completely naked at the moment.
 
-### Todo:
+### Priorities:
 - testing P2P communication
-- testing coff loading features
-- implement coff data cache
+- re-implement thread stack spoofing/ sleepobf
+- implement http listener
+- automation of infraC2
+- write documentation
+
+### Wish-List:
 - implement dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
 - implement indirect syscalls/proxying through kernelbase/kern32
-- re-implement thread stack spoofing/ sleep obfuscation
-- implement external listeners/redirectors
-- porting entire server/listener from Go to Rust for stability
 - hashing process strings
-- write documentation
+- implement coff data cache
