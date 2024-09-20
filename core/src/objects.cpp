@@ -62,8 +62,7 @@ namespace Objects {
         }
         // __imp_
         if (Utils::HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
-            // check for imports
-            bool import = Utils::Scanners::SymbolScan(sym_string, 0x24, x_strlen(sym_string));
+            bool import = Utils::Scanners::SymbolScan(sym_string, 0x24, x_strlen(sym_string)); // check for imports
 
             if (import) {
                 auto count  = 0;
@@ -72,7 +71,7 @@ namespace Objects {
                 library     = split[0];
                 function    = split[1];
 
-                x_trim(function, 0x40);
+                x_trim(function, 0x40); // trim '@' in x86
 
                 auto lib_hash   = Utils::HashStringA(library, x_strlen(library));
                 auto fn_hash    = Utils::HashStringA(function, x_strlen(function));
@@ -82,7 +81,7 @@ namespace Objects {
             }
             else {
                 function = sym_string + COFF_PREP_SYMBOL_SIZE;
-                x_trim(function, 0x40); // trim '@'
+                x_trim(function, 0x40); // trim '@' in x86
 
                 success_(Utils::Scanners::MapScan(loader_map, Utils::HashStringA(function, x_strlen(function)), pointer));
             }
