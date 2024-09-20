@@ -266,7 +266,7 @@ namespace Network {
             if (ntstatus == ERROR_SUCCESS) {
                 SecAttr->lpSecurityDescriptor   = SmbSecAttr->sec_desc;
                 SecAttr->nLength                = sizeof(SECURITY_ATTRIBUTES);
-                SecAttr->bInheritHandle         = FALSE;
+                SecAttr->bInheritHandle         = false;
             }
         }
 
@@ -276,7 +276,7 @@ namespace Network {
             uint32_t total  = 0;
 
             do {
-                const auto length = MIN((in->length - total), PIPE_BUFFER_MAX);
+                const auto length = __min((in->length - total), PIPE_BUFFER_MAX);
 
                 if (!Ctx->win32.ReadFile(handle, B_PTR(in->buffer) + total, length, (DWORD*) &read, nullptr)) {
                     if (ntstatus == ERROR_NO_DATA) {
@@ -296,7 +296,7 @@ namespace Network {
             uint32_t write = 0;
 
             do {
-                const auto length = MIN((out->length - total), PIPE_BUFFER_MAX);
+                const auto length = __min((out->length - total), PIPE_BUFFER_MAX);
 
                 if (!Ctx->win32.WriteFile(handle, B_PTR(out->buffer) + total, length, (DWORD*) &write, nullptr)) {
                     return false;

@@ -9,6 +9,7 @@
 #include <accctrl.h>
 #include <winhttp.h>
 #include <wincrypt.h>
+#include <minwindef.h>
 #include <mscoree.h>
 #include <iphlpapi.h>
 #include <tlhelp32.h>

@@ -1,12 +1,10 @@
 #ifndef HEXANE_MONOLITH_HPP
 #define HEXANE_MONOLITH_HPP
 #include <core/ntimports.hpp>
-#include <core/include/names.hpp>
 
 EXTERN_C ULONG __instance;
 EXTERN_C LPVOID InstStart();
 EXTERN_C LPVOID InstEnd();
-
 
 #define WIN_VERSION_UNKNOWN                         0
 #define WIN_VERSION_XP                              1
@@ -21,9 +19,6 @@ EXTERN_C LPVOID InstEnd();
 #define WIN_VERSION_10                              10
 #define WIN_VERSION_2016_X                          11
 
-#define MAX_PATH 								    260
-#define PIPE_BUFFER_MAX  				            (64 * 1000 - 1)
-#define MIN(a,b)								    (a < b ? a : b)
 
 #define GLOBAL_OFFSET 								(U_PTR(InstStart()) + U_PTR( &__instance))
 #define Ctx           								((_hexane*) C_DREF(GLOBAL_OFFSET))
@@ -51,9 +46,6 @@ EXTERN_C LPVOID InstEnd();
 #define REG_PEB32(Ctx) 						        ((LPVOID) (ULONG_PTR) Ctx.Ebx + 0x8)
 #define REG_PEB64(Ctx) 						        ((LPVOID) (ULONG_PTR) Ctx.Rdx + 0x10)
 
-#define DOS_HEADER(base)							((PIMAGE/_DOS_HEADER)B_PTR(base));
-#define NT_HEADERS(base, dos)			    		((PIMAGE_NT_HEADERS) B_PTR(base) + (dos)->e_lfanew)
-#define EXPORT_DIRECTORY(base, nt)	        		((PIMAGE_EXPORT_DIRECTORY) B_PTR(base) + (nt)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)
 #define SECTION_HEADER(data, i)   		            ((PIMAGE_SECTION_HEADER) B_PTR(data) + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * i))
 
 #define SYMBOL_TABLE(data, nt_head) 				RVA(_coff_symbol*, data, nt_head->FileHeader.PointerToSymbolTable)
@@ -71,6 +63,42 @@ EXTERN_C LPVOID InstEnd();
 
 #define RANGE(x, start, end) 						(x >= start && x < end)
 #define PAGE_ALIGN(x)  				                (B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
+#define PIPE_BUFFER_MAX  				            (64 * 1000 - 1)
+
+#define x_zerofree(x, n) 		                	if (x) { x_memset(x, 0, n); x_free(x); x = nullptr; }
+#define x_malloc(size) 			                	Ctx->nt.RtlAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, size)
+#define x_realloc(ptr, size) 	                	Ctx->nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, ptr, size)
+#define x_free(size) 			                	Ctx->nt.RtlFreeHeap(Ctx->heap, 0, size)
+
+#define x_assert(x)     							if (!(x)) goto defer
+#define x_assertb(x) 								if (!(x)) { success = false; goto defer; }
+#define x_ntassert(x)   							ntstatus = x; if (!NT_SUCCESS(ntstatus)) goto defer
+#define x_ntassertb(x)   							ntstatus = x; if (!NT_SUCCESS(ntstatus)) { success = false; goto defer; }
+
+#define F_PTR_HMOD(Fn, hmod, sym_hash)				(Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash))
+#define F_PTR_HASHES(Fn, mod_hash, sym_hash)		(Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash))
+#define C_PTR_HASHES(Fn, mod_hash, sym_hash)		(Fn = (void*) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash))
+#define M_PTR(mod_hash)								Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash))
+#define NT_ASSERT(Fn)								Fn; if (NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) return
+
+#define RANDOM_SELECT(ptr, arr)                 	auto a = 0; DYN_ARRAY_LEN(a, arr); ptr = arr[a % Utils::Random::RandomNumber32()]
+
+#define return_defer(x)			                	ntstatus = x; goto defer
+#define success_(x)				                	success = x; goto defer
+
+#if	defined(__GNUC__) || defined(__GNUG__)
+#define __builtin_bswap32 __bswapd
+#define __builtin_bswap64 __bswapq
+#endif
+
+#define InitializeObjectAttributes(ptr, name, attr, root, sec )	\
+    (ptr)->Length = sizeof( OBJECT_ATTRIBUTES );				\
+    (ptr)->RootDirectory = root;								\
+    (ptr)->Attributes = attr;									\
+    (ptr)->ObjectName = name;									\
+    (ptr)->SecurityDescriptor = sec;							\
+    (ptr)->SecurityQualityOfService = NULL
+
 
 #ifdef	TRANSPORT_HTTP
 #define TRANSPORT_TYPE 1
@@ -155,41 +183,6 @@ EXTERN_C LPVOID InstEnd();
 #else
 #define MESSAGE_MAX HTTP_REQUEST_MAX
 #endif
-
-#define x_zerofree(x, n) 		                	if (x) { x_memset(x, 0, n); x_free(x); x = nullptr; }
-#define x_malloc(size) 			                	Ctx->nt.RtlAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, size)
-#define x_realloc(ptr, size) 	                	Ctx->nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, ptr, size)
-#define x_free(size) 			                	Ctx->nt.RtlFreeHeap(Ctx->heap, 0, size)
-
-#define x_assert(x)     							if (!(x)) goto defer
-#define x_assertb(x) 								if (!(x)) { success = false; goto defer; }
-#define x_ntassert(x)   							ntstatus = x; if (!NT_SUCCESS(ntstatus)) goto defer
-#define x_ntassertb(x)   							ntstatus = x; if (!NT_SUCCESS(ntstatus)) { success = false; goto defer; }
-
-#define F_PTR_HMOD(Fn, hmod, sym_hash)				(Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(hmod, sym_hash))
-#define F_PTR_HASHES(Fn, mod_hash, sym_hash)		(Fn = (decltype(Fn)) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash))
-#define C_PTR_HASHES(Fn, mod_hash, sym_hash)		(Fn = (void*) Memory::Modules::GetExportAddress(Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash)), sym_hash))
-#define M_PTR(mod_hash)								Memory::Modules::GetModuleAddress(Memory::Modules::GetModuleEntry(mod_hash))
-#define NT_ASSERT(Fn)								Fn; if (NtCurrentTeb()->LastErrorValue != ERROR_SUCCESS) return
-
-#define RANDOM_SELECT(ptr, arr)                 	auto a = 0; DYN_ARRAY_LEN(a, arr); ptr = arr[a % Utils::Random::RandomNumber32()]
-
-#define return_defer(x)			                	ntstatus = x; goto defer
-#define success_(x)				                	success = x; goto defer
-
-#if	defined(__GNUC__) || defined(__GNUG__)
-#define __builtin_bswap32 __bswapd
-#define __builtin_bswap64 __bswapq
-#endif
-
-#define InitializeObjectAttributes(ptr, name, attr, root, sec )	\
-    (ptr)->Length = sizeof( OBJECT_ATTRIBUTES );				\
-    (ptr)->RootDirectory = root;								\
-    (ptr)->Attributes = attr;									\
-    (ptr)->ObjectName = name;									\
-    (ptr)->SecurityDescriptor = sec;							\
-    (ptr)->SecurityQualityOfService = NULL
-
 
 typedef NTSTATUS(NTAPI* NtReadVirtualMemory_t)(HANDLE ProcessHandle, PVOID BaseAddress, PVOID Buffer, SIZE_T BufferSize, PSIZE_T NumberOfBytesRead);
 typedef NTSTATUS(NTAPI* NtWriteVirtualMemory_t)(HANDLE processHandle, PVOID BaseAddress, PVOID Buffer, SIZE_T BufferSize, PSIZE_T NumberOfBytesWritten);

@@ -26,6 +26,7 @@ namespace Memory {
     namespace Execute {
         FUNCTION BOOL ExecuteCommand(_parser &parser);
         FUNCTION BOOL ExecuteShellcode(const _parser &parser);
+        FUNCTION VOID LoadObject(_parser parser);
     }
 }
 #endif //HEXANE_CORELIB_MEMORY_HPP

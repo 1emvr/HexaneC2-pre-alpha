@@ -227,7 +227,7 @@ namespace Dispatcher {
 
             case TypeObject:
 
-                //Objects::LoadObject(parser);
+                Memory::Execute::LoadObject(parser);
                 break;
 
             default:
