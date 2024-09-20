@@ -1,7 +1,7 @@
 #include <core/include/objects.hpp>
 namespace Objects {
 
-    __section(".rdata") void *wrapper_return = nullptr;
+    __section(".data") void *wrapper_return = nullptr;
 
     __section(".rdata") _hash_map loader_map[] = {
         { .name = 0, .address = nullptr },
