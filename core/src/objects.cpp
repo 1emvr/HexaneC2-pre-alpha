@@ -176,7 +176,7 @@ namespace Objects {
 
     VOID Cleanup(_executable *object) {
 
-        void *pointer   = { };
+        void *pointer   = nullptr;
         size_t size     = 0;
 
         x_assert(object);
@@ -286,7 +286,7 @@ namespace Objects {
     SIZE_T GetFunctionMapSize(_executable *object) {
 
         char sym_name[9]    = { };
-        char *buffer        = { };
+        char *buffer        = nullptr;
         int counter         = 0;
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
