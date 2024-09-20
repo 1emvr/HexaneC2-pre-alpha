@@ -205,11 +205,11 @@ namespace Memory {
             _injection_ctx inject = {};
             _coff_params* params = (_coff_params*)x_malloc(sizeof(_coff_params));
 
-            params->entrypoint = Parser::UnpackString(&parser, (uint32_t*)&params->entrypoint_size);
-            params->data = Parser::UnpackBytes(&parser, (uint32_t*)&params->data_size);
-            params->args = Parser::UnpackBytes(&parser, (uint32_t*)&params->args_size);
-            params->cache = Parser::UnpackBool(&parser);
-            params->task_id = Ctx->session.current_taskid;
+            params->entrypoint  = Parser::UnpackString(&parser, (uint32_t*)&params->entrypoint_size);
+            params->data        = Parser::UnpackBytes(&parser, (uint32_t*)&params->data_size);
+            params->args        = Parser::UnpackBytes(&parser, (uint32_t*)&params->args_size);
+            params->cache       = Parser::UnpackBool(&parser);
+            params->task_id     = Ctx->session.current_taskid;
 
             inject.parameter = params;
             Ctx->threads++;

@@ -67,7 +67,7 @@ namespace Objects {
 
             if (import) {
                 auto count  = 0;
-                auto split  = x_split(S_PTR(sym_string) + COFF_PREP_SYMBOL_SIZE, S_PTR(0x24), &count); // split '$'
+                auto split  = x_split(sym_string + COFF_PREP_SYMBOL_SIZE, S_PTR(0x24), &count); // split '$'
 
                 library     = split[0];
                 function    = split[1];
@@ -123,7 +123,8 @@ namespace Objects {
                 case IMAGE_SCN_MEM_WX: protect = PAGE_EXECUTE_WRITECOPY; break;
                 case IMAGE_SCN_MEM_RW: protect = PAGE_READWRITE; break;
                 case IMAGE_SCN_MEM_RWX: protect = PAGE_EXECUTE_READWRITE; break;
-                default: success_(false);
+                default:
+                    success_(false);
                 }
 
                 if ((object->section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED) == IMAGE_SCN_MEM_NOT_CACHED) {
@@ -230,7 +231,7 @@ namespace Objects {
 
                 void *reloc_addr  = object->sec_map[sec_index].address + object->reloc->VirtualAddress;
                 void *sec_addr    = object->sec_map[symbol->SectionNumber - 1].address;
-                void *fmap_addr   = object->fn_map + (fn_count * sizeof(void *));
+                void *fmap_addr   = object->fn_map + (fn_count * sizeof(void*));
 
                 x_assertb(ProcessSymbol(name_ptr, &function));
 #if _WIN64
@@ -241,7 +242,8 @@ namespace Objects {
                             *(uint32_t*) reloc_addr    = U_PTR(fmap_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
                             break;
                         }
-                        default: break;
+                        default:
+                            break;
                     }
                 }
                 else {
@@ -254,7 +256,8 @@ namespace Objects {
                         case IMAGE_REL_AMD64_REL32_4:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 4; break;
                         case IMAGE_REL_AMD64_REL32_5:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 5; break;
                         case IMAGE_REL_AMD64_ADDR64:    *(uint64_t*) reloc_addr = (*(uint64_t*) reloc_addr) + U_PTR(sec_addr); break;
-                        default: break;
+                        default:
+                            break;
                     }
                 }
 #else
