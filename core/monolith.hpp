@@ -47,7 +47,6 @@ EXTERN_C LPVOID InstEnd();
 #define REG_PEB64(Ctx) 						        ((LPVOID) (ULONG_PTR) Ctx.Rdx + 0x10)
 
 #define SECTION_HEADER(data, i)   		            ((PIMAGE_SECTION_HEADER) B_PTR(data) + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * i))
-
 #define SYMBOL_TABLE(data, nt_head) 				RVA(_coff_symbol*, data, nt_head->FileHeader.PointerToSymbolTable)
 #define RELOC_SECTION(data, section) 			    RVA(_reloc*, data, section->PointerToRelocations)
 
