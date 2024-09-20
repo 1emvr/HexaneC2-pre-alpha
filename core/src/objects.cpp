@@ -350,10 +350,10 @@ namespace Objects {
 
         x_assert(data);
         object = Memory::Methods::CreateImageData((uint8_t*) data);
-
         object->task_id = task_id;
         object->next    = Ctx->coffs;
-        Ctx->coffs      = object;
+
+        Ctx->coffs = object;
 
         x_assert(Opsec::ImageCheckArch(object));
         x_assert(object->sec_map = (_object_map*) x_malloc(sizeof(void*) * sizeof(_object_map)));
@@ -388,8 +388,6 @@ namespace Objects {
         x_assert(ExecuteFunction(object, entrypoint, args, args_size));
 
         defer:
-        // todo: emptying _executable* cache
-
         Cleanup(object);
 
         if (!cache) {
@@ -413,5 +411,4 @@ namespace Objects {
         x_zerofree(params->args, params->args_size);
         x_zerofree(params, sizeof(_coff_params));
     }
-
 }
