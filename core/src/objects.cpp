@@ -69,13 +69,10 @@ namespace Objects {
                 auto count  = 0;
                 auto split  = x_split(sym_string + COFF_PREP_SYMBOL_SIZE, S_PTR(0x24), &count); // split '$'
 
-                library     = split[0];
-                function    = split[1];
+                x_trim(split[1], 0x40); // trim '@' in x86
 
-                x_trim(function, 0x40); // trim '@' in x86
-
-                auto lib_hash   = Utils::HashStringA(library, x_strlen(library));
-                auto fn_hash    = Utils::HashStringA(function, x_strlen(function));
+                auto lib_hash   = Utils::HashStringA(split[0], x_strlen(split[0]));
+                auto fn_hash    = Utils::HashStringA(split[1], x_strlen(split[1]));
 
                 x_freesplit(split, count);
                 success_(C_PTR_HASHES(*pointer, lib_hash, fn_hash));
