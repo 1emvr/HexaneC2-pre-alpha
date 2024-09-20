@@ -8,6 +8,7 @@ The implant is not 100% undetectable. There are plenty of IOCs that are intrinsi
 
 ### Priorities:
 - testing P2P communication
+- testing COFF loader
 - re-implement thread stack spoofing/ sleepobf
 - implement http listener
 - automation of infraC2
