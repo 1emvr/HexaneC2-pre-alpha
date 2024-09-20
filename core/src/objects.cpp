@@ -3,6 +3,7 @@ namespace Objects {
 
     __section(".data") void *wrapper_return = nullptr;
 
+    // todo: add loader/implant maps
     __section(".rdata") _hash_map loader_map[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
