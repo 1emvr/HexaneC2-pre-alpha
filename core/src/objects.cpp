@@ -112,14 +112,14 @@ namespace Objects {
 
             if (object->section->SizeOfRawData > 0) {
                 switch (object->section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)) {
-                case PAGE_NOACCESS: protect = PAGE_NOACCESS;
+                case PAGE_NOACCESS:         protect = PAGE_NOACCESS;
                 case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE;
-                case IMAGE_SCN_MEM_READ: protect = PAGE_READONLY;
-                case IMAGE_SCN_MEM_WRITE: protect = PAGE_WRITECOPY;
-                case IMAGE_SCN_MEM_RX: protect = PAGE_EXECUTE_READ;
-                case IMAGE_SCN_MEM_WX: protect = PAGE_EXECUTE_WRITECOPY;
-                case IMAGE_SCN_MEM_RW: protect = PAGE_READWRITE;
-                case IMAGE_SCN_MEM_RWX: protect = PAGE_EXECUTE_READWRITE;
+                case IMAGE_SCN_MEM_READ:    protect = PAGE_READONLY;
+                case IMAGE_SCN_MEM_WRITE:   protect = PAGE_WRITECOPY;
+                case IMAGE_SCN_MEM_RX:      protect = PAGE_EXECUTE_READ;
+                case IMAGE_SCN_MEM_WX:      protect = PAGE_EXECUTE_WRITECOPY;
+                case IMAGE_SCN_MEM_RW:      protect = PAGE_READWRITE;
+                case IMAGE_SCN_MEM_RWX:     protect = PAGE_EXECUTE_READWRITE;
                 default:
                     success_(false);
                 }
