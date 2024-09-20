@@ -17,16 +17,21 @@ The implant is not 100% undetectable. There are plenty of IOCs that are intrinsi
 ## C2 infrastructure:
 ### Redirectors:
 - protocol support (do not break)
-- forking non-C2 traffic to webpage
+- forking non-C2 traffic to webpage (filtering)
+- access control/ filtering
 - forwarding through reverse proxy
 - (optional) "LetsEncrypt"
 - (optional) multiple egress profiles
 
 ### C2 Server:
 - SSH connection
+- message processing
+- save states db
+- staging
 
 ## Wish-List:
 - implement dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
 - implement indirect syscalls/proxying through kernbase/kern32
 - hashing process strings
 - implement COFF data cache
+- server logging
