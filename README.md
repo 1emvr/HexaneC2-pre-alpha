@@ -18,9 +18,12 @@ The implant is not 100% undetectable. There are plenty of IOCs that are intrinsi
 ### Redirectors:
 - protocol support (do not break)
 - forking non-C2 traffic to webpage
-- forwarding through SSH or reverse proxy
+- forwarding through reverse proxy
 - (optional) "LetsEncrypt"
 - (optional) multiple egress profiles
+
+### C2 Server:
+- SSH connection
 
 ## Wish-List:
 - implement dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
