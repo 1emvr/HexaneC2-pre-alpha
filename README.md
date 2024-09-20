@@ -16,6 +16,7 @@ The implant is not 100% undetectable. There are plenty of IOCs that are intrinsi
 
 ## C2 infrastructure:
 ### Redirectors:
+- protocol support (do not break)
 - forking non-C2 traffic to webpage
 - forwarding through SSH or reverse proxy
 - (optional) "LetsEncrypt"
