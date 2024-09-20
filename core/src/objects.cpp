@@ -65,13 +65,14 @@ namespace Objects {
             bool import = Utils::Scanners::SymbolScan(sym_string, 0x24, x_strlen(sym_string)); // check for imports
 
             if (import) {
-                auto count  = 0;
-                auto split  = x_split(sym_string + COFF_PREP_SYMBOL_SIZE, "$", &count);
+                auto count = 0;
+                auto split = x_split(sym_string + COFF_PREP_SYMBOL_SIZE, "$", &count);
 
+                char buffer[MAX_PATH] = { };
                 x_trim(split[1], '@');
 
-                auto lib_hash   = Utils::HashStringA(split[0], x_strlen(split[0]));
-                auto fn_hash    = Utils::HashStringA(split[1], x_strlen(split[1]));
+                auto lib_hash   = Utils::HashStringA(x_mbs_tolower(buffer, split[0]), x_strlen(split[0]));
+                auto fn_hash    = Utils::HashStringA(x_mbs_tolower(buffer, split[1]), x_strlen(split[1]));
 
                 x_freesplit(split, count);
                 success_(C_PTR_HASHES(*pointer, lib_hash, fn_hash));
