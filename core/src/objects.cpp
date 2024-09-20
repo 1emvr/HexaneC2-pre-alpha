@@ -114,16 +114,16 @@ namespace Objects {
             object->section = SECTION_HEADER(object->buffer, sec_index);
 
             if (object->section->SizeOfRawData > 0) {
-                switch (object->section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ| IMAGE_SCN_MEM_WRITE)) {
-
-                    case PAGE_NOACCESS:         protect = PAGE_NOACCESS;
-                    case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE;
-                    case IMAGE_SCN_MEM_READ:    protect = PAGE_READONLY;
-                    case IMAGE_SCN_MEM_WRITE:   protect = PAGE_WRITECOPY;
-                    case IMAGE_SCN_MEM_RX:      protect = PAGE_EXECUTE_READ;
-                    case IMAGE_SCN_MEM_WX:      protect = PAGE_EXECUTE_WRITECOPY;
-                    case IMAGE_SCN_MEM_RW:      protect = PAGE_READWRITE;
-                    case IMAGE_SCN_MEM_RWX:     protect = PAGE_EXECUTE_READWRITE;
+                switch (object->section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)) {
+                case PAGE_NOACCESS: protect = PAGE_NOACCESS; break;
+                case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE; break;
+                case IMAGE_SCN_MEM_READ: protect = PAGE_READONLY; break;
+                case IMAGE_SCN_MEM_WRITE: protect = PAGE_WRITECOPY; break;
+                case IMAGE_SCN_MEM_RX: protect = PAGE_EXECUTE_READ; break;
+                case IMAGE_SCN_MEM_WX: protect = PAGE_EXECUTE_WRITECOPY; break;
+                case IMAGE_SCN_MEM_RW: protect = PAGE_READWRITE; break;
+                case IMAGE_SCN_MEM_RWX: protect = PAGE_EXECUTE_READWRITE; break;
+                default: success_(false);
                 }
 
                 if ((object->section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED) == IMAGE_SCN_MEM_NOT_CACHED) {
