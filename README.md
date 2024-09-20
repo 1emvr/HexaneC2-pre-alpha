@@ -19,13 +19,13 @@ The implant is not 100% undetectable. There are plenty of IOCs that are intrinsi
 - protocol support (do not break)
 - forking non-C2 traffic to webpage (filtering)
 - access control/ filtering
-- forwarding through reverse proxy
+- forwarding through reverse proxy (socat/iptables/nginx/CDN)
 - (optional) "LetsEncrypt"
 - (optional) multiple egress profiles
 
 ### C2 Server:
 - SSH connection
-- message processing
+- message processing/server side validation
 - save states db
 - staging
 
