@@ -140,19 +140,16 @@ namespace Objects {
         // get names from COFF symbol table and find entrypoint
         for (auto sym_index = 0; sym_index < object->nt_head->FileHeader.NumberOfSymbols; sym_index++) {
 
-            // inlined
             if (object->symbol[sym_index].First.Value[0]) {
-                sym_name = object->symbol[sym_index].First.Name;
+                sym_name = object->symbol[sym_index].First.Name; // inlined
             }
-            // not inlined
             else {
-                sym_name = (char*)(object->symbol + object->nt_head->FileHeader.NumberOfSymbols) + object->symbol[sym_index].First.Value[1];
+                sym_name = (char*)(object->symbol + object->nt_head->FileHeader.NumberOfSymbols) + object->symbol[sym_index].First.Value[1]; // not inlined
             }
 
             // compare symbols to function names / entrypoint
             if (x_memcmp(sym_name, function, x_strlen(function)) == 0) {
-                // todo: review this logic...
-                x_assertb(entrypoint = object->sec_map[object->symbol[sym_index].SectionNumber - 1].address + object->symbol[sym_index].Value);
+                entrypoint = object->sec_map[object->symbol[sym_index].SectionNumber - 1].address + object->symbol[sym_index].Value;
                 break;
             }
         }
