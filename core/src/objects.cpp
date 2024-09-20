@@ -50,7 +50,6 @@ namespace Objects {
     BOOL ProcessSymbol(char* sym_string, void** pointer) {
 
         bool success    = true;
-        char *library   = { };
         char *function  = { };
 
         *pointer = nullptr;
@@ -67,9 +66,9 @@ namespace Objects {
 
             if (import) {
                 auto count  = 0;
-                auto split  = x_split(sym_string + COFF_PREP_SYMBOL_SIZE, S_PTR(0x24), &count); // split '$'
+                auto split  = x_split(sym_string + COFF_PREP_SYMBOL_SIZE, "$", &count);
 
-                x_trim(split[1], 0x40); // trim '@' in x86
+                x_trim(split[1], '@');
 
                 auto lib_hash   = Utils::HashStringA(split[0], x_strlen(split[0]));
                 auto fn_hash    = Utils::HashStringA(split[1], x_strlen(split[1]));
@@ -79,7 +78,7 @@ namespace Objects {
             }
             else {
                 function = sym_string + COFF_PREP_SYMBOL_SIZE;
-                x_trim(function, 0x40); // trim '@' in x86
+                x_trim(function, '@');
 
                 success_(Utils::Scanners::MapScan(loader_map, Utils::HashStringA(function, x_strlen(function)), pointer));
             }
