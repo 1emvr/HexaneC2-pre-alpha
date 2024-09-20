@@ -112,14 +112,14 @@ namespace Objects {
 
             if (object->section->SizeOfRawData > 0) {
                 switch (object->section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)) {
-                case PAGE_NOACCESS: protect = PAGE_NOACCESS; break;
-                case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE; break;
-                case IMAGE_SCN_MEM_READ: protect = PAGE_READONLY; break;
-                case IMAGE_SCN_MEM_WRITE: protect = PAGE_WRITECOPY; break;
-                case IMAGE_SCN_MEM_RX: protect = PAGE_EXECUTE_READ; break;
-                case IMAGE_SCN_MEM_WX: protect = PAGE_EXECUTE_WRITECOPY; break;
-                case IMAGE_SCN_MEM_RW: protect = PAGE_READWRITE; break;
-                case IMAGE_SCN_MEM_RWX: protect = PAGE_EXECUTE_READWRITE; break;
+                case PAGE_NOACCESS: protect = PAGE_NOACCESS;
+                case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE;
+                case IMAGE_SCN_MEM_READ: protect = PAGE_READONLY;
+                case IMAGE_SCN_MEM_WRITE: protect = PAGE_WRITECOPY;
+                case IMAGE_SCN_MEM_RX: protect = PAGE_EXECUTE_READ;
+                case IMAGE_SCN_MEM_WX: protect = PAGE_EXECUTE_WRITECOPY;
+                case IMAGE_SCN_MEM_RW: protect = PAGE_READWRITE;
+                case IMAGE_SCN_MEM_RWX: protect = PAGE_EXECUTE_READWRITE;
                 default:
                     success_(false);
                 }
@@ -149,7 +149,7 @@ namespace Objects {
             // compare symbols to function names / entrypoint
             if (x_memcmp(sym_name, function, x_strlen(function)) == 0) {
                 entrypoint = object->sec_map[object->symbol[sym_index].SectionNumber - 1].address + object->symbol[sym_index].Value;
-                break;
+
             }
         }
 
@@ -237,22 +237,23 @@ namespace Objects {
                         case IMAGE_REL_AMD64_REL32: {
                             *(void**) fmap_addr        = function;
                             *(uint32_t*) reloc_addr    = U_PTR(fmap_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
-                            break;
+
                         }
                         default:
                             break;
+
                     }
                 }
                 else {
                     switch (object->reloc->Type) {
-                        case IMAGE_REL_AMD64_REL32:     *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t); break;
-                        case IMAGE_REL_AMD64_ADDR32NB:  *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t); break;
-                        case IMAGE_REL_AMD64_REL32_1:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 1; break;
-                        case IMAGE_REL_AMD64_REL32_2:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 2; break;
-                        case IMAGE_REL_AMD64_REL32_3:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 3; break;
-                        case IMAGE_REL_AMD64_REL32_4:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 4; break;
-                        case IMAGE_REL_AMD64_REL32_5:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 5; break;
-                        case IMAGE_REL_AMD64_ADDR64:    *(uint64_t*) reloc_addr = (*(uint64_t*) reloc_addr) + U_PTR(sec_addr); break;
+                        case IMAGE_REL_AMD64_REL32:     *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
+                        case IMAGE_REL_AMD64_ADDR32NB:  *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
+                        case IMAGE_REL_AMD64_REL32_1:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 1;
+                        case IMAGE_REL_AMD64_REL32_2:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 2;
+                        case IMAGE_REL_AMD64_REL32_3:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 3;
+                        case IMAGE_REL_AMD64_REL32_4:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 4;
+                        case IMAGE_REL_AMD64_REL32_5:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 5;
+                        case IMAGE_REL_AMD64_ADDR64:    *(uint64_t*) reloc_addr = (*(uint64_t*) reloc_addr) + U_PTR(sec_addr);
                         default:
                             break;
                     }
@@ -263,16 +264,18 @@ namespace Objects {
                         case IMAGE_REL_I386_DIR32: {
                             *(void**) fmap_addr         = function;
                             *(uint32_t*) reloc_addr     = U_PTR(fmap_addr);
-                            break;
+
                         }
-                        default: break;
+                        default:
+                            break;
                     }
                 }
                 else {
                     switch (object->reloc->Type) {
-                        case IMAGE_REL_I386_DIR32: *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr); break;
-                        case IMAGE_REL_I386_REL32: *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t); break;
-                        default: break;
+                        case IMAGE_REL_I386_DIR32: *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr);
+                        case IMAGE_REL_I386_REL32: *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
+                        default:
+                            break;
                     }
                 }
 #endif

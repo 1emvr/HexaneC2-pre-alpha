@@ -123,7 +123,6 @@ namespace Memory {
 
                 char buffer[MAX_PATH] = { };
 
-                __debugbreak();
                 if (hash - Utils::HashStringA(x_mbs_tolower(buffer, name), x_strlen(name)) == 0) {
                     address = (FARPROC) (base + ((uint32_t*)(base + exports->AddressOfFunctions))[index]);
                     break;
@@ -138,8 +137,10 @@ namespace Memory {
             uintptr_t symbol    = 0;
             int reload          = 0;
 
-            const auto mod_hash = Utils::HashStringA(module_name, x_strlen(module_name));
-            const auto fn_hash  = Utils::HashStringA(export_name, x_strlen(export_name));
+            char buffer[MAX_PATH] = { };
+
+            const auto mod_hash = Utils::HashStringA(x_mbs_tolower(buffer, module_name), x_strlen(module_name));
+            const auto fn_hash  = Utils::HashStringA(x_mbs_tolower(buffer, export_name), x_strlen(export_name));
 
             while (!symbol) {
                 if (!(F_PTR_HASHES(symbol, mod_hash, fn_hash))) {
