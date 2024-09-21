@@ -8,7 +8,7 @@ terraform {
 }
 
 provider "google" {
-	project = "lemur-test-terraform"
+	project = "test-project"
 }
 
 resource "google_compute_instance" "redirector" {
