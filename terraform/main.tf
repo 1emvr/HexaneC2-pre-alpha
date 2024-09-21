@@ -14,7 +14,7 @@ provider "google" {
 resource "google_compute_instance" "redirector" {
 	count = 1
 
-	name = "lemur-tests-terraform-${count.index}"
+	name = "http-redirector-${count.index}"
 	machine_type = "e2-micro"
 	zone = "us-east1-b"
 
