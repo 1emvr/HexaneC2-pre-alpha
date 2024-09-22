@@ -1,3 +1,19 @@
+variable "gce_ssh_user" {
+	default = "lemur_proxymslns"
+} 
+variable "gce_ssh_pub_key_file" {
+	default = "/home/kali/.ssh/gcp_compute.pub"
+}
+variable "gce_project_id" {
+	default = "lemur-test-terraform"
+}
+variable "gce_image" {
+	default = "ubuntu-minimal-2210-kinetic-amd64-v20230126"
+}
+variable "gce_region" {
+	default = "us-east1"
+}
+
 terraform {
 	required_providers {
 		google = {
@@ -8,20 +24,32 @@ terraform {
 }
 
 provider "google" {
-	project = "test-project"
+	project     = "${var.gce_project_id}"
+	region      = "${var.gce_region}"
+}
+
+resource "google_compute_disk" "default" {
+	name = "test-disk"
+	type = "pd-ssd"
+	zone = "${var.gce_region}-b"
+	size = 10
 }
 
 resource "google_compute_instance" "redirector" {
-	count = 1
+	count 			= 1
+	name       		= "http-redirector-${count.index}"
+	machine_type    = "e2-micro"
+	can_ip_forward  = false
+	zone 			= "${var.gce_region}-b"
 
-	name = "http-redirector-${count.index}"
-	machine_type = "e2-micro"
-	zone = "us-east1-b"
-
-	boot_disk {
+	boot_disk { 
 		initialize_params {
-			image = "ubuntu-minimal-2210-kinetic-amd64-v20230126"
+			image = "${var.gce_image}" 
 		}
+	}
+
+	metadata = { 
+		ssh-keys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key_file)}" 
 	}
 
 	network_interface {
