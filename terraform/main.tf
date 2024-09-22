@@ -42,14 +42,14 @@ resource "google_compute_instance" "redirector" {
 	can_ip_forward  = false
 	zone 			= "${var.gce_region}-b"
 
+	metadata = { 
+		ssh-keys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key_file)}" 
+	}
+
 	boot_disk { 
 		initialize_params {
 			image = "${var.gce_image}" 
 		}
-	}
-
-	metadata = { 
-		ssh-keys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key_file)}" 
 	}
 
 	network_interface {
