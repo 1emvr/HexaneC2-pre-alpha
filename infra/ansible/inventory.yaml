@@ -1,6 +1,6 @@
 infra: 
   hosts:
     redir0: 
-      ansible_host: x.x.x.x
+      ansible_host: 0.0.0.0
   vars:
     ansible_user: lemur_proxymslns
