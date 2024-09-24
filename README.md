@@ -6,7 +6,8 @@ The idea is to lay the groundwork for custom implementations and experiment with
 
 The implant is not 100% undetectable. There are plenty of IOCs that are intrinsic to the methods applied (if you know them, you can change it) and network communication is completely naked at the moment.
 
-## Priorities:
+## TODO:
+#### Priorities:
 - testing P2P communication/ fixing protocol
 - testing COFF loader
 - re-implement thread stack spoofing/ sleepobf
@@ -14,8 +15,8 @@ The implant is not 100% undetectable. There are plenty of IOCs that are intrinsi
 - automation of infraC2
 - write documentation
 
-## C2 infrastructure:
-### Redirectors:
+### C2 infrastructure:
+#### Redirectors:
 - protocol support (do not break)
 - forking non-C2 traffic to webpage (filtering)
 - access control/ filtering
@@ -23,12 +24,12 @@ The implant is not 100% undetectable. There are plenty of IOCs that are intrinsi
 - (optional) "LetsEncrypt"
 - (optional) multiple egress profiles
 
-### C2 Server:
+#### C2 Server:
 - SSH connection
 - save states db
 - staging
 
-## Wish-List:
+#### Wish-List:
 - implement dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
 - implement indirect syscalls/proxying through kernbase/kern32
 - implement COFF data cache
