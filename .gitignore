@@ -6,6 +6,7 @@
 .cache
 .idea
 .vs
+cmake-build-*
 cmake-build-debug
 logs
 build/*
