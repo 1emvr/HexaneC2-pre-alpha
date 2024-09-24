@@ -1,0 +1,10 @@
+- name: setup infra 
+  hosts: infra
+  tasks:
+    - name: ping hosts
+      ansible.builtin.ping:
+
+    - name: print message
+      ansible.builtin.debug:
+        msg: hello world
+

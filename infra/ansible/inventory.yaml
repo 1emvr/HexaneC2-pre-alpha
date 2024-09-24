@@ -1,0 +1,6 @@
+infra: 
+  hosts:
+    redir0: 
+      ansible_host: 34.138.36.26
+  vars:
+    ansible_user: lemur_proxymslns
