@@ -31,6 +31,5 @@ The implant is not 100% undetectable. There are plenty of IOCs that are intrinsi
 ## Wish-List:
 - implement dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
 - implement indirect syscalls/proxying through kernbase/kern32
-- hashing process strings
 - implement COFF data cache
 - server logging
