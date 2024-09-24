@@ -10,7 +10,7 @@ The implant is not 100% undetectable. There are plenty of IOCs that are intrinsi
 - testing P2P communication/ fixing protocol
 - testing COFF loader
 - re-implement thread stack spoofing/ sleepobf
-- implement http listener
+- re-implement http listener
 - automation of infraC2
 - write documentation
 
