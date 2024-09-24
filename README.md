@@ -7,7 +7,7 @@ The idea is to lay the groundwork for custom implementations and experiment with
 The implant is not 100% undetectable. There are plenty of IOCs that are intrinsic to the methods applied (if you know them, you can change it) and network communication is completely naked at the moment.
 
 ## Priorities:
-- testing P2P communication
+- testing P2P communication/ fixing protocol
 - testing COFF loader
 - re-implement thread stack spoofing/ sleepobf
 - implement http listener
