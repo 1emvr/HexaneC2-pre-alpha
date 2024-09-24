@@ -29,7 +29,7 @@ The implant is not 100% undetectable. There are plenty of IOCs that are intrinsi
 - save states db
 - staging
 
-#### Wish-List:
+### Wish-List:
 - implement dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
 - implement indirect syscalls/proxying through kernbase/kern32
 - implement COFF data cache
