@@ -25,7 +25,6 @@ The implant is not 100% undetectable. There are plenty of IOCs that are intrinsi
 
 ### C2 Server:
 - SSH connection
-- message processing/server side validation
 - save states db
 - staging
 
