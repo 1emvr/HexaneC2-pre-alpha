@@ -2,7 +2,7 @@ variable "username" {
 	default = "lemur_proxymslns"
 } 
 variable "ssh_pubkey" {
-	default = "/home/kali/.ssh/gcp_compute.pub"
+	default = "/home/lemur/.ssh/gcp_compute.pub"
 }
 variable "project_id" {
 	default = "lemur-test-terraform"
@@ -28,13 +28,6 @@ provider "google" {
 	region      = "${var.region}"
 }
 
-resource "google_compute_disk" "default" {
-	name = "test-disk"
-	type = "pd-ssd"
-	zone = "${var.region}-b"
-	size = 10
-}
-
 resource "google_compute_instance" "redirector" {
 	count 			= 1
 	name       		= "http-redirector-${count.index}"
@@ -57,3 +50,11 @@ resource "google_compute_instance" "redirector" {
 		access_config {}
 	}
 }
+
+# resource "google_compute_disk" "default" {
+#   name = "test-disk"
+#   type = "pd-ssd"
+#   zone = "${var.region}-b"
+#   size = 10
+# }
+
