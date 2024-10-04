@@ -8,16 +8,17 @@ There are plenty of IOCs that are intrinsic to the methods applied (if you know 
 Not many EDRs (that I know of) have the capabilities of finding these indicators but an experienced blue team lead may find it. :^)
 
 ## TODO:
-#### Priorities:
-- testing P2P communication/ fixing protocol
+### Priorities:
+(implant)
+- testing implant P2P communication/ fixing protocol
 - testing COFF loader
-- re-implement thread stack spoofing/ sleepobf
-- re-implement http listener
-- automation of infraC2
+- re-implement generic thread stack spoofing/ sleepobf
 - write documentation
 
 ### C2 infrastructure:
 #### Redirectors:
+- re-implement http listener
+- automation of infraC2
 - protocol support (do not break)
 - forking non-C2 traffic to webpage (filtering)
 - access control/ filtering
