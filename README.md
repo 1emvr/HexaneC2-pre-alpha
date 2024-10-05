@@ -13,6 +13,7 @@ Not many EDRs (that I know of) have the capabilities of finding these indicators
 - testing implant P2P communication/ fixing protocol
 - testing COFF loader
 - re-implement generic thread stack spoofing/ sleepobf
+- initial callback: get ETW-TI/kernel event options
 - write documentation
 
 ### C2 infrastructure:
