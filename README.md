@@ -24,7 +24,6 @@ Not many EDRs (that I know of) have the capabilities of finding these indicators
 - re-implement http listener
 - automation of infraC2
 - protocol support (do not break)
-- forking non-C2 traffic to webpage (filtering)
 - access control/ filtering
 - forwarding through reverse proxy (nginx)
 - (optional) "LetsEncrypt"
@@ -37,6 +36,7 @@ Not many EDRs (that I know of) have the capabilities of finding these indicators
 
 ### Wish-List:
 - server response header configuration
+- forking non-C2 traffic to webpage (filtering)
 - implement dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
 - implement indirect syscalls/proxying through kernbase/kern32
 - implement COFF data cache
