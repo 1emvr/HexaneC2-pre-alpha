@@ -15,6 +15,7 @@ Not many EDRs (that I know of) have the capabilities of finding these indicators
 - re-implement generic thread stack spoofing/ sleepobf
 - initial callback: get ETW-TI/kernel event options
 - redirector rotation 
+- client request header configuration and metadata 
 - hot-swap configs (sleep/redirectors)
 - write documentation
 
@@ -35,6 +36,7 @@ Not many EDRs (that I know of) have the capabilities of finding these indicators
 - staging
 
 ### Wish-List:
+- server response header configuration
 - implement dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
 - implement indirect syscalls/proxying through kernbase/kern32
 - implement COFF data cache
