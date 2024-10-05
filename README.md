@@ -15,6 +15,7 @@ Not many EDRs (that I know of) have the capabilities of finding these indicators
 - re-implement generic thread stack spoofing/ sleepobf
 - initial callback: get ETW-TI/kernel event options
 - redirector rotation 
+- hot-swap configs (sleep/redirectors)
 - write documentation
 
 ### C2 infrastructure:
