@@ -14,6 +14,7 @@ Not many EDRs (that I know of) have the capabilities of finding these indicators
 - testing COFF loader
 - re-implement generic thread stack spoofing/ sleepobf
 - initial callback: get ETW-TI/kernel event options
+- redirector rotation 
 - write documentation
 
 ### C2 infrastructure:
