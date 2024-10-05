@@ -17,6 +17,7 @@ Not many EDRs (that I know of) have the capabilities of finding these indicators
 - redirector rotation 
 - client request header configuration and metadata 
 - hot-swap configs (sleep/redirectors)
+- implement COFF data cache
 - write documentation
 
 ### C2 infrastructure:
@@ -39,5 +40,4 @@ Not many EDRs (that I know of) have the capabilities of finding these indicators
 - forking non-C2 traffic to webpage (filtering)
 - implement dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
 - implement indirect syscalls/proxying through kernbase/kern32
-- implement COFF data cache
 - server logging
