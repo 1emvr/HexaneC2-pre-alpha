@@ -1,6 +1,5 @@
-use crate::types::Message;
+use crate::types::{Hexane, Message};
 use crate::types::UserSession;
-use crate::instance::Hexane;
 
 use crossbeam_channel::unbounded;
 use crossbeam_channel::Receiver as Recv;

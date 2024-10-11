@@ -1,13 +1,12 @@
-use std::collections::HashMap;
-use crossbeam_channel::select;
-
 use std::io;
 use std::io::ErrorKind;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::io::Write;
 use std::io::Read;
+
 use std::process::Command;
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use std::{env, fs};
@@ -249,19 +248,19 @@ pub fn generate_includes(include_directories: &Vec<String>) -> String {
         .unwrap()
         .canonicalize();
 
-    let path = normalize_path(current.unwrap().to_string());
+    let path = normalize_path(current.unwrap().to_string())
+        .to_owned();
 
-    let mut user_include    = vec![path.to_string()];
+    let mut user_include    = vec![path.to_owned()];
     let mut includes        = vec![];
+    let mut paths           = vec![];
 
-    if let Some(include) = include_directories.clone() {
-        let mut paths = vec![];
-
-        for path in include {
-            paths.push(normalize_path(path));
-        }
-        user_include.extend(paths);
+    for inc_path in include_directories {
+        // TODO: expected String, found &String
+        paths.push(normalize_path(inc_path));
     }
+
+    user_include.extend(paths);
 
     for path in user_include.iter() {
         includes.push(format!(" -I\"{}\" ", path))

@@ -185,6 +185,7 @@ impl Hexane {
         }
 
         log_info!(&"linking final objects".to_string());
+
         self.run_mingw(components)?;
         self.extract_shellcode()?;
 

@@ -5,13 +5,13 @@ use rayon::prelude::*;
 
 use crate::{log_info};
 use crate::types::JsonData;
-use crate::utils::wrap_message;
 use crate::rstatic::{INSTANCES, SESSION};
 
 use crate::error::Error as Error;
 use crate::error::Result as Result;
 use crate::error::Error::Custom as Custom;
 use crate::builder::Hexane as Hexane;
+use crate::interface::wrap_message;
 
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     if args.len() != 3 {
