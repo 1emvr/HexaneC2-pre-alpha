@@ -27,7 +27,7 @@ use std::thread;
 use clap::Parser;
 
 pub fn get_session() {
-    let session = SESSION.lock().unwrap();
+    let mut session = SESSION.lock().unwrap();
     session.username = "lemur".to_owned();
     session.is_admin = true;
 }
