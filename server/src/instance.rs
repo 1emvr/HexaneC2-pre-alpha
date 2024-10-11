@@ -24,11 +24,10 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
 
     log_info!(&"loading instance".to_string());
 
-    let mut instance = map_config(&args[2])?;
-    instance.setup_instance()?;
-
     let session = SESSION.lock()?;
+    let mut instance = map_json_config(&args[2])?;
 
+    instance.setup_instance()?;
     instance.user_session.username = session.username.clone();
     instance.user_session.is_admin = session.is_admin.clone();
 
@@ -47,7 +46,10 @@ pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
 
     let mut instances = INSTANCES.lock()?;
 
-    if let Some(pos) = instances.iter().position(|instance| instance.builder.output_name == args[2]) {
+    if let Some(pos) = instances.iter()
+        .position(|instance|
+            instance.builder.output_name == args[2]) {
+
         wrap_message("info", &format!("removing {}", instances[pos].builder.output_name));
         instances.remove(pos);
 
@@ -62,7 +64,7 @@ pub(crate) fn interact_instance(args: Vec<String>) -> Result<()> {
     Ok(())
 }
 
-fn map_config(file_path: &String) -> Result<Hexane> {
+fn map_json_config(file_path: &String) -> Result<Hexane> {
     let json_file   = env::current_dir()?.join("json").join(file_path);
     let contents    = fs::read_to_string(json_file).map_err(Error::Io)?;
     let json_data   = serde_json::from_str::<JsonData>(&contents)?;
