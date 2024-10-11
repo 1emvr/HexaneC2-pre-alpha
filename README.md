@@ -31,7 +31,7 @@ Not many EDRs (that I know of) have the capabilities of finding these indicators
 - (optional) multiple egress profiles
 
 #### C2 Server:
-- SSH connection
+- external listener
 - save states db
 - staging
 
