@@ -76,11 +76,4 @@ set (INJECT
         inject/threadless/OpenFileExecute.cpp
 )
 
-set (SERVER
-        test/fnv_test.cpp
-        test/link_test.cpp
-        test/link_test.hpp
-
-)
-
-add_executable(hexane_implant ${SERVER} ${SOURCES} ${COMMANDS} ${LOADER} ${INJECT} ${INCLUDES})
+add_executable(hexane_implant ${SOURCES} ${COMMANDS} ${LOADER} ${INJECT} ${INCLUDES})
