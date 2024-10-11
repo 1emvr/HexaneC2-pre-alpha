@@ -1,6 +1,7 @@
+use std::collections::HashMap;
 use crossbeam_channel::select;
 
-use std::fs;
+use std::{env, fs};
 use std::fs::File;
 
 use std::io;
@@ -16,7 +17,7 @@ use crate::{log_error, log_info};
 use crate::error::{Result, Error};
 use crate::rstatic::{CHANNEL, DEBUG, EXIT};
 use crate::stream::Stream;
-use crate::types::Message;
+use crate::types::{Builder, Config, Message, Network, NetworkType};
 
 pub const FNV_OFFSET:   u32 = 2166136261;
 pub const FNV_PRIME:    u32 = 16777619;
@@ -238,6 +239,62 @@ pub fn generate_object_path(source_path: &str, build_dir: &Path) -> PathBuf {
     build_dir.join(object_filename)
 }
 
+pub fn generate_definitions(main_cfg: Config, network_cfg: Network) -> String {
+    let mut defs: HashMap<String, Option<u32>> = HashMap::new();
+
+    let config_size = main_cfg.config_size;
+    let encrypt     = main_cfg.encrypt;
+    let arch        = &main_cfg.architecture;
+
+    if main_cfg.debug {
+        defs.insert("DEBUG".to_string(), None);
+    }
+    defs.insert("CONFIG_SIZE".to_string(), Some(config_size));
+    defs.insert("ENCRYPTED".to_string(), Some(if encrypt { 1u32 } else { 0u32 }));
+    defs.insert("BSWAP".to_string(), Some(if arch == "amd64" { 0u32 } else { 1u32 }));
+
+    if let Some(network) = &network_cfg {
+        match network.r#type {
+            NetworkType::Http   => { defs.insert("TRANSPORT_HTTP".to_string(), None); }
+            NetworkType::Smb    => { defs.insert("TRANSPORT_PIPE".to_string(), None); }
+        }
+    }
+
+    defs.iter().map(|(name, def)| match def {
+        None        => format!(" -D{} ", name),
+        Some(value) => format!(" -D{}={} ", name, value),
+    }).collect::<String>()
+}
+
+pub fn generate_includes(include_directories: Vec<String>) -> String {
+    let current = env::current_dir()
+        .unwrap()
+        .canonicalize()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string(); // what the fuck??
+
+    let normal = normalize_path(normalize_path(current));
+
+    let mut user_include    = vec![normal.to_string()];
+    let mut includes        = vec![];
+
+    if let Some(include) = include_directories.clone() {
+        let mut paths = vec![];
+
+        for path in include {
+            paths.push(normalize_path(path));
+        }
+        user_include.extend(paths);
+    }
+
+    for path in user_include.iter() {
+        includes.push(format!(" -I\"{}\" ", path))
+    }
+
+    includes.join(" ")
+}
 
 pub fn generate_arguments(args: Vec<String>) -> String {
     args.iter().map(|arg| format!(" {} ", arg))

