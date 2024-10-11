@@ -177,3 +177,21 @@ pub struct UserSession {
     pub(crate) is_admin: bool,
 }
 
+#[derive(Debug, Default)]
+pub struct Hexane {
+    pub(crate) taskid:          u32,
+    pub(crate) peer_id:         u32,
+    pub(crate) group_id:        u32,
+    pub(crate) build_type:      u32,
+    pub(crate) session_key:     Vec<u8>,
+    pub(crate) shellcode:       Vec<u8>,
+    pub(crate) config:          Vec<u8>,
+    pub(crate) active:          bool,
+    pub(crate) main_cfg:        Config,
+    pub(crate) builder_cfg:     Builder,
+    pub(crate) compiler_cfg:    Compiler,
+    pub(crate) network_cfg:     Option<Network>, // says "optional" but is checked for in the config
+    pub(crate) loader_cfg:      Option<Loader>,
+    pub(crate) user_session:    UserSession,
+}
+

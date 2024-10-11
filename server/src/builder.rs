@@ -1,42 +1,26 @@
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use rand::Rng;
 
 use crate::stream::Stream;
-use crate::error::Error::Custom;
 use crate::{log_debug, log_info};
 use crate::cipher::{crypt_create_key, crypt_xtea};
 use crate::binary::{copy_section_data, embed_section_data};
 use crate::rstatic::{DEBUG_FLAGS, RELEASE_FLAGS, USERAGENT};
-use crate::types::{Builder, Compiler, Config, Loader, Network, UserSession};
 use crate::utils::{canonical_path_all, generate_definitions, generate_hashes, generate_includes, generate_object_path, normalize_path, run_command};
+
+use crate::types::Hexane;
+use crate::error::Result as Result;
+use crate::error::Error::Custom as Custom;
 
 use crate::types::NetworkType::Http as HttpType;
 use crate::types::NetworkOptions::Http as HttpOpt;
 use crate::types::NetworkType::Smb as SmbType;
 use crate::types::NetworkOptions::Smb as SmbOpt;
 
-#[derive(Debug, Default)]
-pub struct Hexane {
-    pub(crate) taskid:          u32,
-    pub(crate) peer_id:         u32,
-    pub(crate) group_id:        u32,
-    pub(crate) build_type:      u32,
-    pub(crate) session_key:     Vec<u8>,
-    pub(crate) shellcode:       Vec<u8>,
-    pub(crate) config:          Vec<u8>,
-    pub(crate) active:          bool,
-    pub(crate) main_cfg:        Config,
-    pub(crate) builder_cfg:     Builder,
-    pub(crate) compiler_cfg:    Compiler,
-    pub(crate) network_cfg:     Option<Network>, // says "optional" but is checked for in the config
-    pub(crate) loader_cfg:      Option<Loader>,
-    pub(crate) user_session:    UserSession,
-}
-
 impl Hexane {
-    pub(crate) fn setup_build(&mut self) -> crate::error::Result<()> {
+    pub(crate) fn setup_build(&mut self) -> Result<()> {
         let mut rng = rand::thread_rng();
 
         self.compiler_cfg.build_directory = format!("./payload/{}", self.builder_cfg.output_name);
@@ -61,7 +45,7 @@ impl Hexane {
         Ok(())
     }
 
-    fn create_config_patch(&mut self) -> crate::error::Result<()> {
+    fn create_config_patch(&mut self) -> Result<()> {
         self.session_key = crypt_create_key(16);
 
         let mut patch = self.create_binary_patch()?;
@@ -76,7 +60,7 @@ impl Hexane {
         Ok(())
     }
 
-    fn create_binary_patch(&mut self) -> crate::error::Result<Vec<u8>> {
+    fn create_binary_patch(&mut self) -> Result<Vec<u8>> {
         let mut stream = Stream::new();
 
         if let Some(modules) = &self.builder_cfg.loaded_modules {
@@ -154,8 +138,7 @@ impl Hexane {
         Ok(stream.buffer)
     }
 
-    pub fn compile_sources(&mut self) -> crate::error::Result<()> {
-        let output      = &self.builder_cfg.output_name;
+    pub fn compile_sources(&mut self) -> Result<()> {
         let root_dir    = &self.builder_cfg.root_directory;
         let build_dir   = &self.compiler_cfg.build_directory;
 
@@ -198,42 +181,69 @@ impl Hexane {
         }
 
         log_info!(&"linking final objects".to_string());
+        self.run_mingw(components)?;
+        self.extract_shellcode()?;
 
-        let mut includes = String::new();
+        Ok(())
+    }
+
+    fn run_mingw(&self, components: Vec<String>) -> Result<()> {
+        let main_cfg    = &self.main_cfg;
+        let network_cfg = &self.network_cfg.as_ref().unwrap();
+
+        let definitions     = generate_definitions(main_cfg, network_cfg);
+        let mut includes    = String::new();
+
         if let Some(dirs) = &self.builder_cfg.include_directories {
             includes = generate_includes(dirs);
         }
 
-        let main_cfg = &self.main_cfg;
-        let network_cfg = &self.network_cfg.take().unwrap();
+        let output = Path::new(&self.compiler_cfg.build_directory)
+            .join(&self.builder_cfg.output_name)
+            .to_string_lossy()
+            .to_string();
 
-        let definitions = generate_definitions(main_cfg, network_cfg);
-        let output  = Path::new(build_dir).join(output).to_str().unwrap();
-        let flags   = &self.compiler_cfg.flags;
-        let targets = components.join(" ");
-
-        let mut linker  = String::new();
+        let mut linker_script = PathBuf::new();
+        let mut linker = String::new();
 
         if let Some(script) = &self.builder_cfg.linker_script {
-            linker = Path::new(root_dir)
+            linker_script = Path::new(&self.builder_cfg.root_directory)
                 .join(script)
                 .to_string_lossy()
                 .parse()
                 .unwrap();
 
-            linker = normalize_path(linker.into());
+            let path = linker_script
+                .to_string_lossy()
+                .to_string();
+
+            linker = normalize_path(path);
             linker = format!(" -T {} ", linker);
         }
 
-        let command = format!("{} {} {} {} {} {} -o {}.exe", "x86_64-w64-mingw32-g++".to_string(), includes, definitions, targets, linker, flags, output);
+        let flags   = self.compiler_cfg.flags.clone();
+        let targets = components.join(" ");
+
+        let mut params = Vec::new();
+        params.push(targets);
+        params.push(includes);
+        params.push(definitions);
+        params.push(linker);
+        params.push(flags);
+
+        let command = format!("x86_64-w64-mingw32-g++ {} -o {}.exe", params.join(" "), output);
 
         if let Err(e) = run_command(command.as_str(), "linker_error") {
             return Err(Custom(format!("compile_sources:: {e}")));
         }
 
-        let config          = self.config.clone();
+        Ok(())
+    }
+
+    fn extract_shellcode(&self) -> Result<()> {
+        let config          = &self.config;
         let config_size     = self.main_cfg.config_size as usize;
-        let embed_target    = output.unwrap();
+        let embed_target    = &self.builder_cfg.output_name;
 
         if let Err(e) = embed_section_data(&format!("{}.exe", embed_target), &config, config_size) {
             return Err(Custom(format!("compile_sources:: {e}")));
@@ -246,9 +256,8 @@ impl Hexane {
             return Err(Custom(format!("compile_sources:: {e}")));
         }
 
-        // todo: extract shellcode
-        // todo: create dll loader
-
         Ok(())
+        // todo: extract shellcode
+        // todo: create option dll loader
     }
 }
