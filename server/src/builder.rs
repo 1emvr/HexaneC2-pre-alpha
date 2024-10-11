@@ -10,7 +10,7 @@ use crate::cipher::{crypt_create_key, crypt_xtea};
 use crate::binary::{copy_section_data, embed_section_data};
 use crate::rstatic::{DEBUG_FLAGS, RELEASE_FLAGS, USERAGENT};
 use crate::types::{Builder, Compiler, Config, Loader, Network, UserSession};
-use crate::utils::{canonical_path_all, generate_hashes, generate_object_path, normalize_path, run_command};
+use crate::utils::{canonical_path_all, generate_definitions, generate_hashes, generate_includes, generate_object_path, normalize_path, run_command};
 
 use crate::types::NetworkType::Http as HttpType;
 use crate::types::NetworkOptions::Http as HttpOpt;
@@ -200,18 +200,19 @@ impl Hexane {
 
         log_info!(&"linking final objects".to_string());
 
-        let mut linker  = String::new();
-        let includes    = self.generate_includes();
-        let definitions = self.generate_definitions();
+        let includes    = generate_includes(&self.builder_cfg.include_directories.unwrap());
+        let definitions = generate_definitions();
 
         let output  = Path::new(build_dir).join(output).to_str().unwrap();
         let flags   = &self.compiler_cfg.flags;
         let targets = components.join(" ");
 
+        let mut linker  = String::new();
+
         if let Some(script) = &self.builder_cfg.linker_script {
-            linker = Path::new(root_dir).join(script);
+            linker = Path::new(root_dir).join(script).to_string_lossy();
             linker = normalize_path(linker.into());
-            linker = format!(" -T {} ", linker.as_str());
+            linker = format!(" -T {} ", linker);
         }
 
         let command = format!("{} {} {} {} {} {} -o {}.exe", "x86_64-w64-mingw32-g++".to_string(), includes, definitions, targets, linker, flags, output);

@@ -227,13 +227,11 @@ pub fn normalize_path(path_string: String) -> String {
 }
 
 pub fn generate_object_path(source_path: &str, build_dir: &Path) -> PathBuf {
-    let source_filename = Path::new(source_path)
+    let filename = Path::new(source_path)
         .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap(); // the fuck??
+        .unwrap();
 
-    let mut object_filename = String::from(source_filename);
+    let mut object_filename = String::from(filename);
 
     object_filename.push_str(".o");
     build_dir.join(object_filename)
@@ -246,13 +244,19 @@ pub fn generate_definitions(main_cfg: Config, network_cfg: Network) -> String {
     let encrypt     = main_cfg.encrypt;
     let arch        = &main_cfg.architecture;
 
+    // need to be set as Option<> because some defs don't have values (see below)
+    let size_def    = Some(config_size);
+    let enc_def     = Some(if encrypt { 1 } else { 0 });
+    let bswap_def   = Some(if arch == "amd64" { 1 } else { 0 });
+
     if main_cfg.debug {
         defs.insert("DEBUG".to_string(), None);
     }
-    defs.insert("CONFIG_SIZE".to_string(), Some(config_size));
-    defs.insert("ENCRYPTED".to_string(), Some(if encrypt { 1u32 } else { 0u32 }));
-    defs.insert("BSWAP".to_string(), Some(if arch == "amd64" { 0u32 } else { 1u32 }));
+    defs.insert("CONFIG_SIZE".to_string(), size_def);
+    defs.insert("ENCRYPTED".to_string(), enc_def);
+    defs.insert("BSWAP".to_string(), bswap_def);
 
+    // detect network type and set the definition
     if let Some(network) = &network_cfg {
         match network.r#type {
             NetworkType::Http   => { defs.insert("TRANSPORT_HTTP".to_string(), None); }
@@ -260,24 +264,27 @@ pub fn generate_definitions(main_cfg: Config, network_cfg: Network) -> String {
         }
     }
 
-    defs.iter().map(|(name, def)| match def {
-        None        => format!(" -D{} ", name),
-        Some(value) => format!(" -D{}={} ", name, value),
-    }).collect::<String>()
+    // set defs
+    let definitions: Vec<String> = defs.iter()
+        .map(|(name, def)| {
+            if let Some(value) = def {
+                format!(" -D{}={}", name, value)
+            } else {
+                format!(" -D{}", name)
+            }
+        }).collect();
+
+    definitions.join(" ")
 }
 
-pub fn generate_includes(include_directories: Vec<String>) -> String {
+pub fn generate_includes(include_directories: &Vec<String>) -> String {
     let current = env::current_dir()
         .unwrap()
-        .canonicalize()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_string(); // what the fuck??
+        .canonicalize();
 
-    let normal = normalize_path(normalize_path(current));
+    let path = normalize_path(current.unwrap().to_string());
 
-    let mut user_include    = vec![normal.to_string()];
+    let mut user_include    = vec![path.to_string()];
     let mut includes        = vec![];
 
     if let Some(include) = include_directories.clone() {
@@ -297,7 +304,8 @@ pub fn generate_includes(include_directories: Vec<String>) -> String {
 }
 
 pub fn generate_arguments(args: Vec<String>) -> String {
-    args.iter().map(|arg| format!(" {} ", arg))
+    args.iter()
+        .map(|arg| format!(" {} ", arg))
         .collect::<Vec<_>>()
         .join("")
 }
