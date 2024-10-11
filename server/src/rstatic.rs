@@ -1,14 +1,15 @@
 use crate::types::Message;
 use crate::types::UserSession;
+use crate::instance::Hexane;
 
 use crossbeam_channel::unbounded;
 use crossbeam_channel::Receiver as Recv;
 use crossbeam_channel::Sender as Send;
 
 use clap::Parser;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use std::sync::Mutex;
 use lazy_static::lazy_static;
-use crate::instance::Hexane;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -34,8 +35,6 @@ lazy_static!(
     pub(crate) static ref EXIT: (Send<()>, Recv<()>)                = unbounded();
 );
 
-pub(crate) static STRINGS: &'static str         = "./configs/strings.txt";
-pub(crate) static HASHES: &'static str          = "./core/include/names.hpp";
 pub(crate) static DEBUG_FLAGS: &'static str     = "-std=c++23 -Os -nostdlib -fno-exceptions -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup' ";
 pub(crate) static RELEASE_FLAGS: &'static str   = "-std=c++23 -Os -nostdlib -fno-exceptions -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup' ";
 
