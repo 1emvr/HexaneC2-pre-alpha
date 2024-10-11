@@ -113,7 +113,7 @@ impl Hexane {
         self.peer_id = rng.gen::<u32>();
         self.group_id = 0;
 
-        self.compiler_cfg.compiler_flags = if self.main_cfg.debug {
+        self.compiler_cfg.flags = if self.main_cfg.debug {
             DEBUG_FLAGS.parse().unwrap()
         } else {
             RELEASE_FLAGS.parse().unwrap()
