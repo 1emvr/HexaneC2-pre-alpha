@@ -97,7 +97,6 @@ impl Hexane {
             .map_or(Ok(0), |date| i64::from_str(date).map_err(|e|
                 Custom(format!("create_binary_patch:: {e}"))))?;
 
-
         stream.pack_bytes(&self.session_key);
         stream.pack_string(&self.main_cfg.hostname);
         stream.pack_dword(self.peer_id);
@@ -148,7 +147,7 @@ impl Hexane {
                         .as_str());
                 }
 
-                _ => return Err(Custom("create_binary_patch: unknown network type".to_string())),
+                _ => return Err(Custom("create_binary_patch: unknown network type".to_string()))
             }
         }
 
@@ -187,7 +186,7 @@ impl Hexane {
                     command.push_str(format!(" -f win64 {} -o {}", source, object).as_str());
 
                     if let Err(e) = run_command(command.as_str(), "compiler_error") {
-                        return Err(Custom(format!("compile_sources::{e}")));
+                        return Err(Custom(format!("compile_sources:: {e}")));
                     }
                     components.push(object);
                 }
@@ -200,9 +199,15 @@ impl Hexane {
 
         log_info!(&"linking final objects".to_string());
 
-        let includes    = generate_includes(&self.builder_cfg.include_directories.unwrap());
-        let definitions = generate_definitions();
+        let mut includes = String::new();
+        if let Some(dirs) = &self.builder_cfg.include_directories {
+            includes = generate_includes(dirs);
+        }
 
+        let main_cfg = &self.main_cfg;
+        let network_cfg = &self.network_cfg.take().unwrap();
+
+        let definitions = generate_definitions(main_cfg, network_cfg);
         let output  = Path::new(build_dir).join(output).to_str().unwrap();
         let flags   = &self.compiler_cfg.flags;
         let targets = components.join(" ");
@@ -210,7 +215,12 @@ impl Hexane {
         let mut linker  = String::new();
 
         if let Some(script) = &self.builder_cfg.linker_script {
-            linker = Path::new(root_dir).join(script).to_string_lossy();
+            linker = Path::new(root_dir)
+                .join(script)
+                .to_string_lossy()
+                .parse()
+                .unwrap();
+
             linker = normalize_path(linker.into());
             linker = format!(" -T {} ", linker);
         }

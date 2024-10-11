@@ -1,9 +1,6 @@
 use std::collections::HashMap;
 use crossbeam_channel::select;
 
-use std::{env, fs};
-use std::fs::File;
-
 use std::io;
 use std::io::ErrorKind;
 use std::io::BufRead;
@@ -13,51 +10,20 @@ use std::io::Read;
 use std::process::Command;
 use std::path::{Path, PathBuf};
 
+use std::{env, fs};
+use std::fs::File;
+
+use crate::stream::Stream;
 use crate::{log_error, log_info};
 use crate::error::{Result, Error};
-use crate::rstatic::{CHANNEL, DEBUG, EXIT};
-use crate::stream::Stream;
-use crate::types::{Builder, Config, Message, Network, NetworkType};
+use crate::types::{Config, Network};
+use crate::rstatic::DEBUG;
+
+use crate::types::NetworkType::Http as HttpType;
+use crate::types::NetworkType::Smb as SmbType;
 
 pub const FNV_OFFSET:   u32 = 2166136261;
 pub const FNV_PRIME:    u32 = 16777619;
-
-pub fn print_channel() {
-    let receiver    = &CHANNEL.1;
-    let exit        = &EXIT.1;
-
-    loop {
-        select! {
-            recv(exit) -> _ => {
-                break;
-            },
-            recv(receiver) -> message => {
-                if let Ok(m) = message {
-                    if !*DEBUG && m.msg_type == "debug" {
-                        continue;
-                    }
-                    println!("[{}] {}", m.msg_type, m.msg);
-                }
-            }
-        }
-    }
-}
-
-pub fn wrap_message(typ: &str, msg: &String) {
-    let sender = &CHANNEL.0;
-
-    let message = Message {
-        msg_type:   typ.to_string(),
-        msg:        msg.to_string(),
-    };
-
-    sender.send(message).unwrap();
-}
-
-pub fn stop_print_channel() {
-    let sender = &EXIT.0;
-    sender.send(()).unwrap();
-}
 
 pub(crate) fn read_file(target_path: &str) -> Result<Vec<u8>>{
     let mut read_data = Vec::new();
@@ -70,8 +36,8 @@ pub(crate) fn read_file(target_path: &str) -> Result<Vec<u8>>{
 pub(crate) fn get_embedded_strings(str_list: Vec<String>) -> Vec<u8> {
     let mut stream = Stream::new();
 
-    for s in str_list {
-        stream.pack_string(&s);
+    for string in str_list {
+        stream.pack_string(&string);
     }
 
     stream.buffer
@@ -237,7 +203,7 @@ pub fn generate_object_path(source_path: &str, build_dir: &Path) -> PathBuf {
     build_dir.join(object_filename)
 }
 
-pub fn generate_definitions(main_cfg: Config, network_cfg: Network) -> String {
+pub fn generate_definitions(main_cfg: &Config, network_cfg: &Network) -> String {
     let mut defs: HashMap<String, Option<u32>> = HashMap::new();
 
     let config_size = main_cfg.config_size;
@@ -249,18 +215,19 @@ pub fn generate_definitions(main_cfg: Config, network_cfg: Network) -> String {
     let enc_def     = Some(if encrypt { 1 } else { 0 });
     let bswap_def   = Some(if arch == "amd64" { 1 } else { 0 });
 
-    if main_cfg.debug {
-        defs.insert("DEBUG".to_string(), None);
-    }
     defs.insert("CONFIG_SIZE".to_string(), size_def);
     defs.insert("ENCRYPTED".to_string(), enc_def);
     defs.insert("BSWAP".to_string(), bswap_def);
 
-    // detect network type and set the definition
+    if main_cfg.debug {
+        defs.insert("DEBUG".to_string(), None);
+    }
+
+    // detect network type
     if let Some(network) = &network_cfg {
         match network.r#type {
-            NetworkType::Http   => { defs.insert("TRANSPORT_HTTP".to_string(), None); }
-            NetworkType::Smb    => { defs.insert("TRANSPORT_PIPE".to_string(), None); }
+            HttpType   => { defs.insert("TRANSPORT_HTTP".to_string(), None); }
+            SmbType    => { defs.insert("TRANSPORT_PIPE".to_string(), None); }
         }
     }
 
