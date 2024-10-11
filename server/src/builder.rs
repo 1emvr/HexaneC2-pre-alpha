@@ -73,13 +73,17 @@ impl Hexane {
 
         let working_hours = self.main_cfg.working_hours
             .as_ref()
-            .map_or(Ok(0), |hours| i32::from_str(hours).map_err(|e|
-                Custom(format!("create_binary_patch:: {e}"))))?;
+            .map_or(
+                Ok(0),
+                |hours| i32::from_str(hours)
+                    .map_err(|e| Custom(format!("create_binary_patch:: {e}")))
+            )?;
 
         let kill_date = self.main_cfg.killdate
             .as_ref()
-            .map_or(Ok(0), |date| i64::from_str(date).map_err(|e|
-                Custom(format!("create_binary_patch:: {e}"))))?;
+            .map_or(
+                Ok(0), |date| i64::from_str(date)
+                    .map_err(|e| Custom(format!("create_binary_patch:: {e}"))))?;
 
         stream.pack_bytes(&self.session_key);
         stream.pack_string(&self.main_cfg.hostname);
