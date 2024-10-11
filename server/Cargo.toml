@@ -17,3 +17,7 @@ encoding_rs = "0.8.34"
 pelite = "0.10.0"
 rayon = "1.10.0"
 prettytable = "0.10.0"
+hyper = { version = "1", features = ["full"] }
+tokio = { version = "1", features = ["full"] }
+http-body-util = "0.1"
+hyper-util = { version = "0.1", features = ["full"] }

