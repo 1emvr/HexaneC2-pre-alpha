@@ -3,7 +3,6 @@ use std::fs;
 use std::path::Path;
 use std::str::FromStr;
 use std::collections::HashMap;
-
 use rayon::prelude::*;
 use rand::Rng;
 
@@ -11,8 +10,8 @@ use crate::rstatic::{DEBUG_FLAGS, HASHES, INSTANCES, RELEASE_FLAGS, SESSION, STR
 
 use crate::stream::Stream;
 use crate::error::{Error, Result};
-use crate::binary::{copy_section_data, embed_section_data};
 use crate::cipher::{crypt_create_key, crypt_xtea};
+use crate::binary::{copy_section_data, embed_section_data};
 use crate::types::{Builder, Compiler, Config, JsonData, Loader, Network, NetworkOptions, NetworkType, UserSession};
 use crate::utils::{canonical_path_all, generate_hashes, generate_object_path, normalize_path, run_command, wrap_message};
 use crate::{log_debug, log_info};
@@ -27,7 +26,7 @@ pub(crate) fn load_instance(args: Vec<String>) -> Result<()> {
     let session = SESSION.lock()?;
     let mut instance = map_json_config(&args[2])?;
 
-    instance.setup_instance()?;
+    instance.setup_build()?;
     instance.user_session.username = session.username.clone();
     instance.user_session.is_admin = session.is_admin.clone();
 
@@ -45,16 +44,17 @@ pub(crate) fn remove_instance(args: Vec<String>) -> Result<()> {
     }
 
     let mut instances = INSTANCES.lock()?;
+    if let Some(select) = instances
+        .iter()
+        .position(
+            |instance| instance.builder.output_name == args[2]) {
 
-    if let Some(pos) = instances.iter()
-        .position(|instance|
-            instance.builder.output_name == args[2]) {
-
-        wrap_message("info", &format!("removing {}", instances[pos].builder.output_name));
-        instances.remove(pos);
+        wrap_message("info", &format!("removing {}", instances[select].builder.output_name));
+        instances.remove(select);
 
         Ok(())
-    } else {
+    }
+    else {
         Err(Error::Custom("Implant not found".to_string()))
     }
 }
@@ -65,9 +65,14 @@ pub(crate) fn interact_instance(args: Vec<String>) -> Result<()> {
 }
 
 fn map_json_config(file_path: &String) -> Result<Hexane> {
-    let json_file   = env::current_dir()?.join("json").join(file_path);
-    let contents    = fs::read_to_string(json_file).map_err(Error::Io)?;
-    let json_data   = serde_json::from_str::<JsonData>(&contents)?;
+    let json_file = env::current_dir()?
+        .join("json")
+        .join(file_path);
+
+    let contents = fs::read_to_string(json_file)
+        .map_err(Error::Io)?;
+
+    let json_data = serde_json::from_str::<JsonData>(&contents)?;
 
     let mut instance    = Hexane::default();
     let session         = SESSION.lock()?;
@@ -101,7 +106,7 @@ pub struct Hexane {
 }
 
 impl Hexane {
-    fn setup_instance(&mut self) -> Result<()> {
+    fn setup_build(&mut self) -> Result<()> {
         let mut rng = rand::thread_rng();
 
         self.compiler.build_directory = format!("./payload/{}", self.builder.output_name);
