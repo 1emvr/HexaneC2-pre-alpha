@@ -7,6 +7,7 @@ mod binary;
 mod cipher;
 mod rstatic;
 mod instance;
+mod builder;
 
 use crate::instance::{interact_instance, load_instance, remove_instance};
 use crate::utils::{print_channel, print_help, stop_print_channel};
