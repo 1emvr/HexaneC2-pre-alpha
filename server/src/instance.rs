@@ -78,10 +78,10 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
     let session         = SESSION.lock()?;
 
     instance.group_id       = 0;
-    instance.main           = json_data.config;
-    instance.loader         = json_data.loader;
-    instance.builder        = json_data.builder;
-    instance.network        = json_data.network;
+    instance.main_cfg       = json_data.config;
+    instance.loader_cfg     = json_data.loader;
+    instance.builder_cfg    = json_data.builder;
+    instance.network_cfg    = json_data.network;
     instance.user_session   = session.clone();
 
     Ok(instance)
@@ -89,19 +89,19 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
 
 #[derive(Debug, Default)]
 pub struct Hexane {
-    pub(crate) current_taskid:  u32,
+    pub(crate) taskid:          u32,
     pub(crate) peer_id:         u32,
     pub(crate) group_id:        u32,
     pub(crate) build_type:      u32,
-    pub(crate) crypt_key:       Vec<u8>,
+    pub(crate) session_key:     Vec<u8>,
     pub(crate) shellcode:       Vec<u8>,
     pub(crate) config_data:     Vec<u8>,
     pub(crate) active:          bool,
-    pub(crate) main:            Config,
-    pub(crate) builder:         Builder,
-    pub(crate) compiler:        Compiler,
-    pub(crate) network:         Option<Network>, // says "optional" but is checked for in the config
-    pub(crate) loader:          Option<Loader>,
+    pub(crate) main_cfg:        Config,
+    pub(crate) builder_cfg:     Builder,
+    pub(crate) compiler_cfg:    Compiler,
+    pub(crate) network_cfg:     Option<Network>, // says "optional" but is checked for in the config
+    pub(crate) loader_cfg:      Option<Loader>,
     pub(crate) user_session:    UserSession,
 }
 
@@ -109,17 +109,17 @@ impl Hexane {
     fn setup_build(&mut self) -> Result<()> {
         let mut rng = rand::thread_rng();
 
-        self.compiler.build_directory = format!("./payload/{}", self.builder.output_name);
+        self.compiler_cfg.build_directory = format!("./payload/{}", self.builder_cfg.output_name);
         self.peer_id = rng.gen::<u32>();
         self.group_id = 0;
 
-        self.compiler.compiler_flags = if self.main.debug {
+        self.compiler_cfg.compiler_flags = if self.main_cfg.debug {
             DEBUG_FLAGS.parse().unwrap()
         } else {
             RELEASE_FLAGS.parse().unwrap()
         };
 
-        fs::create_dir_all(&self.compiler.build_directory)?;
+        fs::create_dir_all(&self.compiler_cfg.build_directory)?;
         generate_hashes(STRINGS, HASHES)?;
 
         self.generate_config_bytes()?;
@@ -129,14 +129,14 @@ impl Hexane {
     }
 
     fn generate_config_bytes(&mut self) -> Result<()> {
-        self.crypt_key = crypt_create_key(16);
+        self.session_key = crypt_create_key(16);
 
         let mut patch = self.create_binary_patch()?;
         let encrypt = self.main.encrypt;
 
         if encrypt {
             let patch_cpy = patch.clone();
-            patch = crypt_xtea(&patch_cpy, &self.crypt_key, true)?;
+            patch = crypt_xtea(&patch_cpy, &self.session_key, true)?;
         }
 
         self.config_data = patch;
@@ -166,7 +166,7 @@ impl Hexane {
             0
         };
 
-        stream.pack_bytes(&self.crypt_key);
+        stream.pack_bytes(&self.session_key);
         stream.pack_string(&self.main.hostname);
         stream.pack_dword(self.peer_id);
         stream.pack_dword(self.main.sleeptime);
