@@ -1,6 +1,8 @@
 #include <core/include/objects.hpp>
 
+using namespace Opsec;
 using namespace Stream;
+using namespace Memory::Methods;
 using namespace Utils::Scanners;
 using namespace Utils;
 
@@ -63,7 +65,7 @@ namespace Objects {
         }
         // __imp_
         if (HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
-            bool import = SymbolScan(sym_string, 0x24, MbsLength(sym_string)); // check for imports
+            bool import = SymbolScan(sym_string, '$', MbsLength(sym_string)); // check for imports
 
             if (import) {
                 auto count = 0;
@@ -80,12 +82,11 @@ namespace Objects {
 
                 return *pointer ? true : false;
             }
-            else {
-                function = sym_string + COFF_PREP_SYMBOL_SIZE;
-                Trim(function, '@');
 
-                return MapScan(loader_map, HashStringA(function, MbsLength(function)), pointer);
-            }
+            function = sym_string + COFF_PREP_SYMBOL_SIZE;
+            Trim(function, '@');
+
+            return MapScan(loader_map, HashStringA(function, MbsLength(function)), pointer);
         }
         // .refptr.__instance
         if (HashStringA(sym_string, MbsLength(sym_string)) == COFF_INSTANCE) {
@@ -96,7 +97,7 @@ namespace Objects {
         return false;
     }
 
-    BOOL ExecuteFunction(_executable* object, char* function, void* args, size_t size) {
+    BOOL ExecuteFunction(_executable* object, const char *const function, void *const args, const size_t size) {
 
         void *veh_handle = nullptr;
         void *entrypoint = nullptr;
@@ -223,23 +224,22 @@ namespace Objects {
 
     BOOL BaseRelocation(_executable *object) {
 
-        bool success        = true;
-        uint32_t fn_count   = 0;
-
-        void *function      = { };
-        char *name_ptr      = { };
         char sym_name[9]    = { };
+        void *function      = nullptr;
+        char *name_ptr      = nullptr;
 
-        const auto buffer = object->buffer;
-        const auto symbols = object->symbols;
+        uint32_t fn_count   = 0;
+        bool success        = true;
+
+        const auto buffer   = object->buffer;
+        const auto symbols  = object->symbols;
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            const auto section  = SECTION_HEADER(buffer, sec_index);
+            auto reloc          = RELOC_SECTION(buffer, section);
 
-            object->section = SECTION_HEADER(buffer, sec_index);
-            object->reloc   = RELOC_SECTION(buffer, object->section);
-
-            for (auto rel_index = 0; rel_index < object->section->NumberOfRelocations; rel_index++) {
-                _coff_symbol *symbol = &symbols[object->reloc->SymbolTableIndex];
+            for (auto rel_index = 0; rel_index < section->NumberOfRelocations; rel_index++) {
+                const auto symbol = &symbols[reloc->SymbolTableIndex];
 
                 if (symbol->First.Value[0]) {
                     MemSet(sym_name, 0, 9);
@@ -250,17 +250,20 @@ namespace Objects {
                     name_ptr = (char*) (symbols + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
                 }
 
-                void *reloc_addr  = object->sec_map[sec_index].address + object->reloc->VirtualAddress;
-                void *sec_addr    = object->sec_map[symbol->SectionNumber - 1].address;
-                void *fmap_addr   = object->fn_map + (fn_count * sizeof(void*));
+                void *reloc_addr    = object->sec_map[sec_index].address + reloc->VirtualAddress;
+                void *sec_addr      = object->sec_map[symbol->SectionNumber - 1].address;
+                void *fn_addr       = object->fn_map + (fn_count * sizeof(void*));
 
-                x_assertb(ProcessSymbol(name_ptr, &function));
+                if (!ProcessSymbol(name_ptr, &function)) {
+                    success = false;
+                    goto defer;
+                }
 #if _WIN64
                 if (function) {
-                    switch (object->reloc->Type) {
+                    switch (reloc->Type) {
                         case IMAGE_REL_AMD64_REL32: {
-                            *(void**) fmap_addr        = function;
-                            *(uint32_t*) reloc_addr    = U_PTR(fmap_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
+                            *(void**) fn_addr       = function;
+                            *(uint32_t*) reloc_addr = U_PTR(fn_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
                         }
                         default:
                             break;
@@ -268,32 +271,32 @@ namespace Objects {
                     }
                 }
                 else {
-                    switch (object->reloc->Type) {
-                        case IMAGE_REL_AMD64_REL32:     *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
-                        case IMAGE_REL_AMD64_ADDR32NB:  *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
-                        case IMAGE_REL_AMD64_REL32_1:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 1;
-                        case IMAGE_REL_AMD64_REL32_2:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 2;
-                        case IMAGE_REL_AMD64_REL32_3:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 3;
-                        case IMAGE_REL_AMD64_REL32_4:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 4;
-                        case IMAGE_REL_AMD64_REL32_5:   *(uint32_t*) reloc_addr = (*(uint32_t*) reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 5;
-                        case IMAGE_REL_AMD64_ADDR64:    *(uint64_t*) reloc_addr = (*(uint64_t*) reloc_addr) + U_PTR(sec_addr);
+                    switch (reloc->Type) {
+                        case IMAGE_REL_AMD64_REL32:     *(uint32_t*) reloc_addr = *(uint32_t*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
+                        case IMAGE_REL_AMD64_REL32_1:   *(uint32_t*) reloc_addr = *(uint32_t*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 1;
+                        case IMAGE_REL_AMD64_REL32_2:   *(uint32_t*) reloc_addr = *(uint32_t*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 2;
+                        case IMAGE_REL_AMD64_REL32_3:   *(uint32_t*) reloc_addr = *(uint32_t*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 3;
+                        case IMAGE_REL_AMD64_REL32_4:   *(uint32_t*) reloc_addr = *(uint32_t*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 4;
+                        case IMAGE_REL_AMD64_REL32_5:   *(uint32_t*) reloc_addr = *(uint32_t*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 5;
+                        case IMAGE_REL_AMD64_ADDR32NB:  *(uint32_t*) reloc_addr = *(uint32_t*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
+                        case IMAGE_REL_AMD64_ADDR64:    *(uint64_t*) reloc_addr = *(uint64_t*) reloc_addr + U_PTR(sec_addr);
                         default:
                             break;
                     }
                 }
 #else
                 if (function) {
-                    switch (object->reloc->Type) {
+                    switch (reloc_addr->Type) {
                         case IMAGE_REL_I386_DIR32: {
-                            *(void**) fmap_addr         = function;
-                            *(uint32_t*) reloc_addr     = U_PTR(fmap_addr);
+                            *(void**) fn_addr       = function;
+                            *(uint32_t*) reloc_addr = U_PTR(fn_addr);
                         }
                         default:
                             break;
                     }
                 }
                 else {
-                    switch (object->reloc->Type) {
+                    switch (reloc_addr->Type) {
                         case IMAGE_REL_I386_DIR32: *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr);
                         case IMAGE_REL_I386_REL32: *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
                         default:
@@ -301,7 +304,7 @@ namespace Objects {
                     }
                 }
 #endif
-                object->reloc += sizeof(_reloc);
+                reloc += sizeof(_reloc);
             }
         }
 
@@ -369,17 +372,26 @@ namespace Objects {
 
     VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id, bool cache) {
 
+        // todo: heap allocate new coffs
+        // todo: clean it up
+
         _executable *object = { };
         uint8_t *next       = { };
 
-        x_assert(data);
-        object = Memory::Methods::CreateImageData((uint8_t*) data);
+        if (!data) {
+            // LOG DATA
+            goto defer;
+        }
+        object = CreateImageData((uint8_t*) data);
         object->task_id = task_id;
         object->next    = Ctx->coffs;
 
         Ctx->coffs = object;
 
-        x_assert(Opsec::ImageCheckArch(object));
+        if (!ImageCheckArch(object)) {
+            // LOG ERROR
+            goto defer;
+        }
         x_assert(object->sec_map = (_object_map*) Malloc(sizeof(void*) * sizeof(_object_map)));
 
         object->fn_map->size = GetFunctionMapSize(object);
@@ -424,13 +436,16 @@ namespace Objects {
 
     VOID CoffThread(_coff_params *params) {
 
-        x_assert(!params->entrypoint || !params->data);
+        if (!params->entrypoint || !params->data) {
+            goto defer;
+        }
+
         CoffLoader(params->entrypoint, params->data, params->args, params->args_size, params->task_id, params-> b_cache);
 
         defer:
         ZeroFree(params->entrypoint, params->entrypoint_length);
         ZeroFree(params->data, params->data_size);
         ZeroFree(params->args, params->args_size);
-        ZeroFree(params, sizeof(_coff_params));
+        MemSet(params, 0, sizeof(_coff_params));
     }
 }
