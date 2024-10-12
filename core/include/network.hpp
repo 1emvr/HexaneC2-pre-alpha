@@ -25,23 +25,23 @@ namespace Network {
         FUNCTION
             DestroyRequestContext(REQUEST_CONTEXT *req_ctx);
 
-        VOID
+        BOOL
         FUNCTION
             HttpSendRequest(HINTERNET request, STREAM **stream);
 
-        VOID
+        BOOL
         FUNCTION
             HttpCallback(STREAM **in, CONST STREAM *out);
     }
 
     namespace Smb {
-        VOID
+        BOOL
         FUNCTION
-            SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr);
+            SmbContextInit(SMB_PIPE_SEC_ATTR *SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr);
 
         VOID
         FUNCTION
-            SmbContextInit(SMB_PIPE_SEC_ATTR *SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr);
+            SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr);
 
         BOOL
         FUNCTION

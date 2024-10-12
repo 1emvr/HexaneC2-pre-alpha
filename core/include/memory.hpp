@@ -30,10 +30,6 @@ namespace Memory {
     }
 
     namespace Modules {
-        LPVOID
-        FUNCTION
-            GetModuleAddress(CONST LDR_DATA_TABLE_ENTRY *data);
-
         PLDR_DATA_TABLE_ENTRY
         FUNCTION
             GetModuleEntry(UINT32 HASH);

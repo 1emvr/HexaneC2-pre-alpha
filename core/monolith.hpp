@@ -73,7 +73,7 @@ LPVOID
 #define Malloc(s)						Ctx->nt.RtlAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, s)
 #define Realloc(p, s) 	    			Ctx->nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, p, s)
 #define Free(s) 			    		Ctx->nt.RtlFreeHeap(Ctx->heap, 0, s)
-#define Zerofree(x, n) 					if (x) { x_memset(x, 0, n); x_free(x); x = nullptr; }
+#define Zerofree(x, n) 					if (x) { MemSet(x, 0, n); Free(x); x = nullptr; }
 
 #define x_assert(x)     				if (!(x)) goto defer
 #define x_assertb(x) 					if (!(x)) { success = false; goto defer; }
@@ -95,21 +95,20 @@ LPVOID
 #define ARRAY_LEN(p)		sizeof(p) / sizeof(p[0])
 #define RANGE(x, b, e)		(x >= b && x < e)
 
-#define DYN_ARRAY_LEN(i, p)		\
-	while (true) {				\
-		if (p[i]) {				\
-			__asm(""); i++;		\
-		} else {				\
-			if (i > 0) i--;		\
-			break;				\
-		}						\
+#define DYN_ARRAY_LEN(i, p)                  \
+	while (p[i]) {                           \
+		i++;                                 \
 	}
 
-#define RANDOM_SELECT(ptr, arr)							\
-		INT idx = 0;									\
-		UINT32 rand = Utils::Random::RandomNumber32();	\
-		DYN_ARRAY_LEN(idx, arr);						\
-		ptr = arr[a % rand]
+#define RANDOM_SELECT(ptr, arr)                     \
+	INT idx = 0;                                    \
+	DYN_ARRAY_LEN(idx, arr);                        \
+	UINT32 rand = Utils::Random::RandomNumber32();  \
+	if (idx > 0) {                                  \
+		ptr = arr[rand % idx];						\
+	} else {                                        \
+		ptr = nullptr;								\
+	}
 
 
 #define InitializeObjectAttributes(ptr, name, attr, root, sec )	\

