@@ -8,28 +8,6 @@ namespace Xtea {
         dst[7] = v1;
     }
 
-    VOID InitCipher (_ciphertext *const c, const uint8_t *const m_key) {
-
-        uint32_t key[4] = { };
-        uint32_t sum    = { };
-
-        auto delta = XTEA_DELTA;
-        for (uint32_t key_index = 0; key_index < ARRAY_LEN(key); key_index++) {
-
-            auto m_index = key_index << 2;
-            key[key_index] = m_key[m_index+0] << 24 | m_key[m_index+1] << 16 | m_key[m_index+2] << 8  | m_key[m_index+3];
-        }
-
-        for (uint32_t blk_index = 0; blk_index < NROUNDS;) {
-            c->table[blk_index] = sum + key[sum & 3];
-            blk_index++;
-
-            sum += delta;
-            c->table[blk_index] = sum + key[sum >> 11 & 3];
-            blk_index++;
-        }
-    }
-
     VOID XteaEncrypt(const _ciphertext *const c, uint8_t *const dst, const uint8_t *const src) {
 
         _u32_block block = {
@@ -92,50 +70,66 @@ namespace Xtea {
         return sections;
     }
 
+    VOID InitCipher (_ciphertext *const cipher, const uint8_t *const m_key) {
+
+        uint32_t key[4] = { };
+        uint32_t sum    = { };
+
+        auto delta = XTEA_DELTA;
+        for (uint32_t key_index = 0; key_index < ARRAY_LEN(key); key_index++) {
+
+            auto m_index = key_index << 2;
+            key[key_index] = m_key[m_index+0] << 24 | m_key[m_index+1] << 16 | m_key[m_index+2] << 8  | m_key[m_index+3];
+        }
+
+        for (uint32_t blk_index = 0; blk_index < NROUNDS;) {
+            cipher->table[blk_index] = sum + key[sum & 3];
+            blk_index++;
+
+            sum += delta;
+            cipher->table[blk_index] = sum + key[sum >> 11 & 3];
+            blk_index++;
+        }
+    }
+
     VOID XteaCrypt(uint8_t *const data, const size_t n_data, uint8_t *const m_key, const bool encrypt) {
 
         uint8_t **sections  = nullptr;
-        uint8_t *buffer     = nullptr;
-
         size_t n_secs       = 0;
         int32_t offset      = 0;
 
-        _ciphertext *text   = (_ciphertext*) Malloc(sizeof(_ciphertext));
-        uint8_t *key        = m_key ? m_key : Ctx->config.session_key;
+        auto cipher     = (_ciphertext*) Malloc(sizeof(_ciphertext));
+        const auto key  = m_key ? m_key : Ctx->config.session_key;
 
-        InitCipher(text, key);
+        InitCipher(cipher, key);
 
         sections = XteaDivide(data, n_data, &n_secs);
         MemSet(data, 0, n_data);
 
         for (auto sec_index = 0; sec_index < n_secs; sec_index++) {
-            buffer = B_PTR(Malloc(8));
+            uint8_t buffer[8] = { };
 
             encrypt
-                ? XteaEncrypt(text, buffer, sections[sec_index])
-                : XteaDecrypt(text, buffer, sections[sec_index]);
+                ? XteaEncrypt(cipher, buffer, sections[sec_index])
+                : XteaDecrypt(cipher, buffer, sections[sec_index]);
 
             MemCopy(RVA(uint8_t*, data, offset), C_PTR(buffer), sizeof(uint64_t));
+            MemSet(buffer, 0, 8);
+
             offset += sizeof(uint64_t);
-
-            Free(buffer);
         }
 
-        if (sections) {
-            for (uint64_t sec_index = 0; sec_index < n_secs; sec_index++) {
-                if (sections[sec_index]) {
-                    Free(sections[sec_index]);
-                }
-                else {
-                    break;
-                }
+        for (uint64_t sec_index = 0; sec_index < n_secs; sec_index++) {
+            if (sections[sec_index]) {
+                Zerofree(sections[sec_index], sizeof(uint64_t));
+            } else {
+                break;
             }
-            Free(sections);
         }
 
-        if (text) {
-            MemSet(text, 0, sizeof(text));
-            Free(text);
-        }
+        MemSet(cipher, 0, sizeof(cipher));
+
+        Free(sections);
+        Free(cipher);
     }
 }
