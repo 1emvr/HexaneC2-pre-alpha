@@ -93,13 +93,14 @@ namespace Memory {
             for (auto c = 0; Ctx->coffs; c++) {
                 auto head = Ctx->coffs[c];
 
-                ZeroFree(head.buffer, head.size);
-
                 for (auto s = 0; head.symbols; s += sizeof(_coff_symbol*)) {
                     auto symbol = head.symbols[s];
 
                     MemSet(&symbol, 0, sizeof(_coff_symbol));
                 }
+
+                head.
+                ZeroFree(head.buffer, head.size);
             }
 
             if (free) {

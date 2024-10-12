@@ -44,7 +44,7 @@ namespace Objects {
 
     VOID WrapperFunction(void *address, void *args, size_t size) {
 
-        auto function = (_obj_entry) address;
+        auto function = (OBJ_ENTRY) address;
 
         wrapper_return = __builtin_extract_return_addr(__builtin_return_address(0));
         function((char*)args, size);
@@ -100,62 +100,76 @@ namespace Objects {
         void *entrypoint = { };
         char *sym_name   = { };
 
-        bool success     = true;
+        bool success = true;
         uint32_t protect = 0;
 
+        const auto sec_map  = object->sec_map;
+        const auto fn_map   = object->fn_map;
+
         // register veh as execution safety net
-        x_assertb(veh_handle = Ctx->nt.RtlAddVectoredExceptionHandler(1, &ExceptionHandler));
+        if (!(veh_handle = Ctx->nt.RtlAddVectoredExceptionHandler(1, &ExceptionHandler))) {
+            success = false;
+            goto defer;
+        }
 
         // set section memory attributes
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            object->section = SECTION_HEADER(object->buffer, sec_index);
+            const auto section = object->section = SECTION_HEADER(object->buffer, sec_index);
 
-            if (object->section->SizeOfRawData > 0) {
-                switch (object->section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)) {
-                case PAGE_NOACCESS:         protect = PAGE_NOACCESS;
-                case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE;
-                case IMAGE_SCN_MEM_READ:    protect = PAGE_READONLY;
-                case IMAGE_SCN_MEM_WRITE:   protect = PAGE_WRITECOPY;
-                case IMAGE_SCN_MEM_RX:      protect = PAGE_EXECUTE_READ;
-                case IMAGE_SCN_MEM_WX:      protect = PAGE_EXECUTE_WRITECOPY;
-                case IMAGE_SCN_MEM_RW:      protect = PAGE_READWRITE;
-                case IMAGE_SCN_MEM_RWX:     protect = PAGE_EXECUTE_READWRITE;
+            if (section->SizeOfRawData > 0) {
+                switch (section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)) {
+                case PAGE_NOACCESS:         protect = PAGE_NOACCESS; break;
+                case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE; break;
+                case IMAGE_SCN_MEM_READ:    protect = PAGE_READONLY; break;
+                case IMAGE_SCN_MEM_WRITE:   protect = PAGE_WRITECOPY; break;
+                case IMAGE_SCN_MEM_RX:      protect = PAGE_EXECUTE_READ; break;
+                case IMAGE_SCN_MEM_WX:      protect = PAGE_EXECUTE_WRITECOPY; break;
+                case IMAGE_SCN_MEM_RW:      protect = PAGE_READWRITE; break;
+                case IMAGE_SCN_MEM_RWX:     protect = PAGE_EXECUTE_READWRITE; break;
                 default:
-                    success_(false);
+                    success = false;
+                    goto defer;
                 }
 
-                if ((object->section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED) == IMAGE_SCN_MEM_NOT_CACHED) {
+                if ((section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED) == IMAGE_SCN_MEM_NOT_CACHED) {
                     protect |= PAGE_NOCACHE;
                 }
 
-                x_ntassertb(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &object->sec_map[sec_index].address, &object->sec_map[sec_index].size, protect, nullptr));
+                if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &sec_map[sec_index].address, &sec_map[sec_index].size, protect, nullptr))) {
+                    success = false;
+                    goto defer;
+                }
             }
         }
 
-        if (object->fn_map->size) {
-            x_ntassertb(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &object->fn_map->address, &object->fn_map->size, PAGE_READONLY, nullptr));
+        if (fn_map->size) {
+            if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &fn_map->address, &fn_map->size, PAGE_READONLY, nullptr))) {
+                success = false;
+                goto defer;
+            }
         }
 
         // get names from COFF symbol table and find entrypoint
         for (auto sym_index = 0; sym_index < object->nt_head->FileHeader.NumberOfSymbols; sym_index++) {
+            const auto symbols = object->symbols;
 
-            if (object->symbols[sym_index].First.Value[0]) {
-                sym_name = object->symbols[sym_index].First.Name; // inlined
+            if (symbols[sym_index].First.Value[0]) {
+                sym_name = symbols[sym_index].First.Name; // inlined
             }
             else {
-                sym_name = (char*)(object->symbols + object->nt_head->FileHeader.NumberOfSymbols) + object->symbols[sym_index].First.Value[1]; // not inlined
+                sym_name = (char*)(symbols + object->nt_head->FileHeader.NumberOfSymbols) + symbols[sym_index].First.Value[1]; // not inlined
             }
 
             // compare symbolss to function names / entrypoint
             if (MemCompare(sym_name, function, MbsLength(function)) == 0) {
-                entrypoint = object->sec_map[object->symbols[sym_index].SectionNumber - 1].address + object->symbols[sym_index].Value;
+                entrypoint = sec_map[symbols[sym_index].SectionNumber - 1].address + symbols[sym_index].Value;
 
             }
         }
 
         // find section where entrypoint can be found and assert is RX
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            if (entrypoint >= object->sec_map[sec_index].address && entrypoint < object->sec_map[sec_index].address + object->sec_map[sec_index].size) {
+            if (entrypoint >= sec_map[sec_index].address && entrypoint < sec_map[sec_index].address + sec_map[sec_index].size) {
 
                 object->section = SECTION_HEADER(object->buffer, sec_index);
                 x_assertb((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) == IMAGE_SCN_MEM_EXECUTE);
@@ -164,8 +178,7 @@ namespace Objects {
 
         WrapperFunction(entrypoint, args, size);
 
-        defer:
-        // deregister veh
+    defer:
         if (veh_handle) {
             Ctx->nt.RtlRemoveVectoredExceptionHandler(veh_handle);
         }
