@@ -94,14 +94,14 @@ namespace Xtea {
 
     VOID XteaCrypt(uint8_t *const data, const size_t n_data, uint8_t *const m_key, const bool encrypt) {
 
-        _ciphertext *text   = (_ciphertext*) Malloc(sizeof(_ciphertext));
-        uint8_t *key        = m_key ? m_key : Ctx->config.session_key;
-
         uint8_t **sections  = nullptr;
         uint8_t *buffer     = nullptr;
 
         size_t n_secs       = 0;
         int32_t offset      = 0;
+
+        _ciphertext *text   = (_ciphertext*) Malloc(sizeof(_ciphertext));
+        uint8_t *key        = m_key ? m_key : Ctx->config.session_key;
 
         InitCipher(text, key);
 
