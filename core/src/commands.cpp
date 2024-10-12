@@ -181,7 +181,6 @@ namespace Commands {
                         PackUint32(out, entries.th32ProcessID);
                         PackString(out, entries.szExeFile);
                         PackWString(out, buffer);
-                        PackByte(out, 1);
                     }
                 }
                 runtime->lpVtbl->Release(runtime);
@@ -190,8 +189,7 @@ namespace Commands {
             if (!is_managed) {
                 PackUint32(out, entries.th32ProcessID);
                 PackString(out, entries.szExeFile);
-                PackWString(out, nullptr);
-                PackByte(out, 0);
+                PackWString(out, 0);
             }
 
             if (process) {
