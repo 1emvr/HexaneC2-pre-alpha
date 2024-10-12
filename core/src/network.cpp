@@ -202,10 +202,12 @@ namespace Network {
                 return false;
             }
 
+            const auto handle = req_ctx.req_handle;
+
             if (Ctx->transport.b_ssl) {
                 Ctx->transport.http->flags = SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID | SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
 
-                if (!Ctx->win32.WinHttpSetOption(req_ctx.req_handle, WINHTTP_OPTION_SECURITY_FLAGS, &Ctx->transport.http->flags, sizeof(ULONG))) {
+                if (!Ctx->win32.WinHttpSetOption(handle, WINHTTP_OPTION_SECURITY_FLAGS, &Ctx->transport.http->flags, sizeof(ULONG))) {
                     return false;
                 }
             }
@@ -219,14 +221,14 @@ namespace Network {
                         break;
                     }
 
-                    x_assertb(Ctx->win32.WinHttpAddRequestHeaders(req_ctx.req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD));
+                    x_assertb(Ctx->win32.WinHttpAddRequestHeaders(handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD));
                     n_headers++;
                 }
             }
 
             x_assertb(Ctx->win32.WinHttpSendRequest(req_ctx.req_handle, nullptr, 0, out->buffer, out->length, out->length, 0));
             x_assertb(Ctx->win32.WinHttpReceiveResponse(req_ctx.req_handle, nullptr));
-            x_assertb(Ctx->win32.WinHttpQueryHeaders(req_ctx.req_handle, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &status, (DWORD*) &n_status, nullptr));
+            x_assertb(Ctx->win32.WinHttpQueryHeaders(req_ctx.req_handle, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &status, &n_status, nullptr));
 
             if (status != HTTP_STATUS_OK) {
                 return_defer(status);
