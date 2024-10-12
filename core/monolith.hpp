@@ -45,6 +45,8 @@ LPVOID
 
 #define FUNCTION						TEXT(B)
 #define CONFIG							TEXT(F)
+#define RDATA							SECTION(".rdata")
+#define DATA							SECTION(".data")
 #define DTYPE(x)						decltype(x) *x
 #define SECTION(x)						__attribute__((used, section(x)))
 #define TEXT(x) 						__attribute__((used, section(".text$" #x "")))

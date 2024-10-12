@@ -18,11 +18,11 @@ namespace Commands {
 
     VOID
     FUNCTION
-        AddPeer(PARSER *parser);
+        CommandAddPeer(PARSER *parser);
 
     VOID
     FUNCTION
-        RemovePeer(PARSER *parser);
+        CommandRemovePeer(PARSER *parser);
 
     VOID
     FUNCTION

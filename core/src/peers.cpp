@@ -65,11 +65,11 @@ namespace Peers {
         _peer_data *client  = nullptr;
         _peer_data *head    = nullptr;
 
-        DWORD total  = 0;
-        DWORD read   = 0;
-
         void *handle = nullptr;
         void *buffer = nullptr;
+
+        DWORD total  = 0;
+        DWORD read   = 0;
 
         // first contact
         if (!(handle = Ctx->win32.CreateFileW(pipe_name, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr))) {
