@@ -3,7 +3,9 @@
 #include <core/corelib.hpp>
 
 namespace Threads {
-    FUNCTION HANDLE CreateUserThread(void* process, bool x64, void* entry, void* args, uint32_t* tid);
+    HANDLE
+    FUNCTION
+        CreateUserThread(VOID *process, BOOL x64, VOID *entry, VOID *args, UINT32 *tid);
 }
 
 #endif //HEXANE_IMPLANT_THREADS_HPP

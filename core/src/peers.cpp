@@ -1,8 +1,11 @@
-#include <core/include/clients.hpp>
-namespace Clients {
+#include <core/include/peers.hpp>
+using namespace Stream;
+using namespace Dispatcher;
+using namespace Network::Smb;
 
-    _client* GetClient(const uint32_t peer_id) {
+namespace Peers {
 
+    _peer_data* GetPeer(const uint32_t peer_id) {
         auto head = Ctx->clients;
         do {
             if (head) {
@@ -10,22 +13,23 @@ namespace Clients {
                     return head;
                 }
                 head = head->next;
-
             }
-            else { return nullptr; }
+            else {
+                return nullptr;
+            }
         }
         while (true);
     }
 
-    BOOL RemoveClient(const uint32_t peer_id) {
+    BOOL RemovePeer(const uint32_t peer_id) {
 
-        bool success    = true;
-        _client *head   = Ctx->clients;
-        _client *target = GetClient(peer_id);
-        _client *prev   = { };
+        _peer_data *head   = Ctx->clients;
+        _peer_data *target = GetPeer(peer_id);
+        _peer_data *prev   = nullptr;
 
-	    x_assertb(head);
-	    x_assertb(target);
+	    if (!head || !target) {
+	        return false;
+	    }
 
         while (head) {
             if (head == target) {
@@ -35,10 +39,9 @@ namespace Clients {
                 else {
                     Ctx->clients = head->next;
                 }
-
                 if (head->pipe_name) {
-                    x_memset(head->pipe_name, 0, x_wcslen(head->pipe_name));
-                    x_free(head->pipe_name);
+                    MemSet(head->pipe_name, 0, WcsLength(head->pipe_name));
+                    Free(head->pipe_name);
                 }
                 if (head->pipe_handle) {
                     Ctx->nt.NtClose(head->pipe_handle);
@@ -46,24 +49,22 @@ namespace Clients {
                 }
 
                 head->peer_id = 0;
-                success_(true);
+                return true;
             }
 
             prev = head;
             head = head->next;
         }
 
-        defer:
-        return success;
+        return false;
     }
 
-    BOOL AddClient(const wchar_t *pipe_name, const uint32_t peer_id) {
+    BOOL AddPeer(const wchar_t *pipe_name, const uint32_t peer_id) {
 
-        _stream *in     = { };
-        _client *client = { };
-        _client *head   = { };
+        _stream *in         = nullptr;
+        _peer_data *client  = nullptr;
+        _peer_data *head    = nullptr;
 
-        bool success    = true;
         void *handle    = { };
         void *buffer    = { };
 
@@ -73,13 +74,13 @@ namespace Clients {
         // first contact
         if (!(handle = Ctx->win32.CreateFileW(pipe_name, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr))) {
             if (handle == INVALID_HANDLE_VALUE) {
-                success_(false);
+                return false;
             }
 
             if (ntstatus == ERROR_PIPE_BUSY) {
                 if (!Ctx->win32.WaitNamedPipeW(pipe_name, 5000)) {
                     Ctx->nt.NtClose(handle);
-                    success_(false);
+                    return false;
                 }
             }
         }
@@ -87,15 +88,12 @@ namespace Clients {
         do {
             if (Ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, (DWORD*) &total, nullptr)) {
                 if (total) {
-
-                    if (!(buffer = x_malloc(total)) || !(in = Stream::CreateStream())) {
-                        Ctx->nt.NtClose(handle);
-                        success_(false);
-                    }
+                    in      = CreateStream();
+                    buffer  = Malloc(total);
 
                     if (!Ctx->win32.ReadFile(handle, buffer, total, (DWORD*) &read, nullptr) || read != total) {
                         Ctx->nt.NtClose(handle);
-                        success_(false);
+                        return false;
                     }
 
                     in->buffer = B_PTR(buffer);
@@ -108,18 +106,17 @@ namespace Clients {
         }
         while (true);
 
-        client = (_client*) x_malloc(sizeof(_client));
+        client = (_peer_data*) Malloc(sizeof(_peer_data));
         client->pipe_handle = handle;
 
-        x_memcpy(&client->peer_id, &peer_id, sizeof(uint32_t));
-        x_memcpy(client->pipe_name, pipe_name, x_wcslen(pipe_name) * sizeof(wchar_t));
+        MemCopy(&client->peer_id, &peer_id, sizeof(uint32_t));
+        MemCopy(client->pipe_name, pipe_name, WcsLength(pipe_name) * sizeof(wchar_t));
 
         if (!Ctx->clients) {
             Ctx->clients = client;
         }
         else {
             head = Ctx->clients;
-
             do {
                 if (head) {
                     if (head->next) {
@@ -130,61 +127,57 @@ namespace Clients {
                         break;
                     }
                 }
-                else { break; }
+                else {
+                    break;
+                }
             }
             while (true);
         }
-
-        defer:
-        return success;
+        return true;
     }
 
-    VOID PushClients() {
+    VOID PushPeers() {
 
-        _stream *in     = { };
-        void *buffer    = { };
+        _stream *in     = nullptr;
+        void *buffer    = nullptr;
 
         uint8_t bound   = 0;
         uint32_t total  = 0;
         uint32_t read   = 0;
 
         for (auto client = Ctx->clients; client; client = client->next) {
-            if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, (DWORD*) &read, nullptr) || read != sizeof(uint8_t)) {
-                continue;
-            }
-
-            if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, nullptr, 0, nullptr, (DWORD*) &total, nullptr)) {
+            if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, (DWORD*) &read, nullptr) || read != sizeof(uint8_t) ||
+                !Ctx->win32.PeekNamedPipe(client->pipe_handle, nullptr, 0, nullptr, (DWORD*) &total, nullptr)) {
                 continue;
             }
 
             if (bound == EGRESS && total >= sizeof(uint32_t)) {
-                x_assert(buffer = x_malloc(total));
-                x_assert(in     = Stream::CreateStream());
+                in     = CreateStream();
+                buffer = Malloc(total);
 
                 if (!Ctx->win32.ReadFile(client->pipe_handle, buffer, total, (DWORD*) &read, nullptr) || read != total) {
-                    Stream::DestroyStream(in);
-                    x_free(buffer);
 
+                    DestroyStream(in);
+                    Free(buffer);
                     continue;
                 }
 
                 in->buffer = B_PTR(buffer);
                 in->length += total;
 
-                Dispatcher::MessageQueue(in);
+                MessageQueue(in);
 
             }
             else {
                 continue;
             }
 
-        	// todo: prepend outbound messages with 0, inbound with 1
             for (auto message = Ctx->transport.outbound_queue; message; message = message->next) {
                 if (message->buffer && B_PTR(message->buffer)[0] == INGRESS) {
 
-                    if (Dispatcher::PeekPeerId(message) == client->peer_id) {
-                        if (Network::Smb::PipeWrite(client->pipe_handle, message)) {
-                            Dispatcher::RemoveMessage(message);
+                    if (PeekPeerId(message) == client->peer_id) {
+                        if (PipeWrite(client->pipe_handle, message)) {
+                            RemoveMessage(message);
                         }
                     }
                 }

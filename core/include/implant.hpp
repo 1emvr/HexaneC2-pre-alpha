@@ -1,13 +1,23 @@
 #ifndef HEXANE_CORELIB_BASE_HPP
 #define HEXANE_CORELIB_BASE_HPP
-
 #include <core/corelib.hpp>
 
-EXTERN_C FUNCTION VOID Entrypoint(HMODULE Base);
+EXTERN_C
+VOID
+FUNCTION
+    Entrypoint(HMODULE Base);
 
 namespace Implant {
-    FUNCTION VOID MainRoutine();
-    FUNCTION BOOL ResolveApi();
-    FUNCTION BOOL ReadConfig();
+    VOID
+    FUNCTION
+        MainRoutine();
+
+    BOOL
+    FUNCTION
+        ResolveApi();
+
+    BOOL
+    FUNCTION
+        ReadConfig();
 }
 #endif //HEXANE_CORELIB_BASE_HPP

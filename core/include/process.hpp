@@ -3,10 +3,24 @@
 #include <core/corelib.hpp>
 
 namespace Process {
-	FUNCTION ULONG GetProcessIdByName(const char *const name);
-	FUNCTION HANDLE OpenParentProcess(const char *const name);
-	FUNCTION NTSTATUS NtOpenProcess(void **pp_process, const uint32_t access, const uint32_t pid);
-	FUNCTION VOID CloseUserProcess(_executable *const image);
-	FUNCTION VOID CreateUserProcess(_executable *const image, const char *const path);
+	ULONG
+	FUNCTION
+		GetProcessIdByName(CONST CHAR *name);
+
+	HANDLE
+	FUNCTION
+		OpenParentProcess(CONST CHAR *name);
+
+	VOID
+	FUNCTION
+		CreateUserProcess(EXECUTABLE *image, CONST CHAR *path);
+
+	VOID
+	FUNCTION
+		CloseUserProcess(EXECUTABLE *image);
+
+	NTSTATUS
+	FUNCTION
+		NtOpenProcess(VOID **pp_process, UINT32 access, UINT32 pid);
 }
 #endif //HEXANE_CORELIB_PROCESS_HPP

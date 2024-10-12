@@ -3,15 +3,41 @@
 #include <core/corelib.hpp>
 
 namespace Dispatcher {
-    FUNCTION DWORD PeekPeerId(const _stream *const stream);
-    FUNCTION VOID AddMessage(_stream *const out);
-    FUNCTION VOID RemoveMessage(const _stream *target);
-    FUNCTION VOID MessageQueue(_stream *const msg);
-    FUNCTION VOID QueueSegments(uint8_t *const buffer, uint32_t length);
-    FUNCTION VOID PrepareEgress(_stream *out);
-    FUNCTION VOID PrepareIngress(_stream *in);
-    FUNCTION VOID DispatchRoutine();
-    FUNCTION VOID CommandDispatch (const _stream *const in);
+    UINT32
+    FUNCTION
+        PeekPeerId(CONST STREAM *stream);
+
+    VOID
+    FUNCTION
+        MessageQueue(STREAM *msg);
+
+    VOID
+    FUNCTION
+        PrepareEgress(STREAM *out);
+
+    VOID
+    FUNCTION
+        AddMessage(STREAM *out);
+
+    VOID
+    FUNCTION
+        RemoveMessage(CONST STREAM *target);
+
+    VOID
+    FUNCTION
+        QueueSegments(UINT8 *buffer, UINT32 length);
+
+    VOID
+    FUNCTION
+        PrepareIngress(STREAM *in);
+
+    VOID
+    FUNCTION
+        CommandDispatch(CONST STREAM *in);
+
+    VOID
+    FUNCTION
+        DispatchRoutine();
 }
 #endif //HEXANE_CORELIB_DISPATCH_HPP
 

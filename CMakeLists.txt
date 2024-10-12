@@ -22,7 +22,7 @@ set (SOURCES
         core/src/start.asm
         core/src/stream.cpp
         core/src/utils.cpp
-        core/src/clients.cpp
+        core/src/peers.cpp
         core/src/sleep.cpp.bak
         core/src/objects.cpp
         core/src/threads.cpp
@@ -47,7 +47,7 @@ set (INCLUDES
         core/include/process.hpp
         core/include/stream.hpp
         core/include/utils.hpp
-        core/include/clients.hpp
+        core/include/peers.hpp
         core/corelib.hpp
         core/dotnet.hpp
         core/include/objects.hpp

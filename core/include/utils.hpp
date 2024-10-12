@@ -6,8 +6,8 @@
 #define SECONDS(x)      (x * MS_PER_SECOND)
 #define MINUTES(x)      (x * SECONDS(64))
 
-#define FNV_OFFSET      (const unsigned int) 2166136261
-#define FNV_PRIME	    (const unsigned int) 16777619
+#define FNV_OFFSET      (CONST unsigned int) 2166136261
+#define FNV_PRIME	    (CONST unsigned int) 16777619
 
 #define WNULTERM 	    0x00000000
 #define NULTERM		    0x00
@@ -18,31 +18,80 @@
 #include <core/corelib.hpp>
 
 namespace Utils {
-    FUNCTION VOID AppendBuffer(uint8_t **buffer, const uint8_t *target, uint32_t *capacity, uint32_t length);
-    FUNCTION VOID AppendPointerList(void **array[], void *pointer, uint32_t *count);
-    FUNCTION ULONG HashStringA(char const *string, size_t length);
-    FUNCTION ULONG HashStringW(wchar_t const *string, size_t length);
+    VOID
+    FUNCTION
+        AppendBuffer(UINT8 **buffer, CONST UINT8 *target, UINT32 *capacity, UINT32 length);
+
+    VOID
+    FUNCTION
+        AppendPointerList(VOID **array[], VOID *pointer, UINT32 *count);
+
+    UINT32
+    FUNCTION
+        HashStringA(CHAR CONST *string, SIZE_T length);
+
+    UINT32
+    FUNCTION
+        HashStringW(WCHAR CONST *string, SIZE_T length);
+
 
     namespace Scanners {
-        FUNCTION BOOL MapScan(_hash_map* map, uint32_t id, void** pointer);
-        FUNCTION BOOL SymbolScan(const char* string, const char symbol, size_t length);
-        FUNCTION UINT_PTR RelocateExport(void* const process, const void* const target, size_t size);
-        FUNCTION BOOL SigCompare(const uint8_t* data, const char* signature, const char* mask);
-        FUNCTION UINT_PTR SignatureScan(void* process, const uintptr_t start, const uint32_t size, const char* signature, const char* mask);
+        BOOL
+        FUNCTION
+            MapScan(HASH_MAP *map, UINT32 id, VOID **pointer);
+
+        BOOL
+        FUNCTION
+            SymbolScan(CONST CHAR *string, CHAR symbol, SIZE_T length);
+
+        BOOL
+        FUNCTION
+            SigCompare(CONST UINT8 *data, CONST CHAR *signature, CONST CHAR *mask);
+
+        UINT_PTR
+        FUNCTION
+            RelocateExport(VOID *process, CONST VOID *target, SIZE_T size);
+
+        UINT_PTR
+        FUNCTION
+            SignatureScan(VOID *process, UINT_PTR start, UINT32 size, CONST CHAR *signature, CONST CHAR *mask);
     }
 
     namespace Time {
-        FUNCTION ULONG64 GetTimeNow();
-        FUNCTION BOOL InWorkingHours();
-        FUNCTION VOID Timeout(size_t ms);
+        UINT64
+        FUNCTION
+            GetTimeNow();
+
+        BOOL
+        FUNCTION
+            InWorkingHours();
+
+        VOID
+        FUNCTION
+            Timeout(SIZE_T ms);
+
     }
 
     namespace Random {
-        FUNCTION ULONG RandomSleepTime();
-        FUNCTION ULONG RandomSeed();
-        FUNCTION UINT_PTR Timestamp();
-        FUNCTION ULONG RandomNumber32();
-        FUNCTION BOOL RandomBool();
+        UINT32
+        FUNCTION
+            RandomSleepTime();
+
+        UINT32
+        FUNCTION
+            RandomSeed();
+
+        UINT_PTR
+        FUNCTION
+            Timestamp();
+
+        UINT32
+        FUNCTION
+            RandomNumber32();
+
+        BOOL
+        FUNCTION
+            RandomBool();
     }
 }
 

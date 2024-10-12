@@ -9,12 +9,29 @@
 #include <core/corelib.hpp>
 
 namespace Xtea {
-    FUNCTION VOID Uint32ToBlock (const uint32_t v0, const uint32_t v1, uint8_t *dst) ;
-    FUNCTION VOID InitCipher (_ciphertext *const c, const uint8_t *const m_key);
-    FUNCTION VOID XteaEncrypt(const _ciphertext *const c, uint8_t *const dst, const uint8_t *const src);
-    FUNCTION VOID XteaDecrypt(const _ciphertext *const c, uint8_t *const dst, const uint8_t *const src);
-    FUNCTION PBYTE *XteaDivide (const uint8_t *const data, const size_t n_data, size_t *const n_out);
-    FUNCTION VOID XteaCrypt(uint8_t *const data, const size_t n_data, uint8_t *const m_key, const bool encrypt);
+    VOID
+    FUNCTION
+        Uint32ToBlock(UINT32 v0, UINT32 v1, UINT8 *dst);
+
+    VOID
+    FUNCTION
+        InitCipher(CIPHERTEXT *c, CONST UINT8 *m_key);
+
+    VOID
+    FUNCTION
+        XteaEncrypt(CONST CIPHERTEXT *c, UINT8 *dst, CONST UINT8 *src);
+
+    VOID
+    FUNCTION
+        XteaDecrypt(CONST CIPHERTEXT *c, UINT8 *dst, CONST UINT8 *src);
+
+    VOID
+    FUNCTION
+        XteaCrypt(UINT8 *data, SIZE_T nData, UINT8* mKey, BOOL Encrypt);
+
+    UINT8**
+    FUNCTION
+        XteaDivide (CONST UINT8 *Data, SIZE_T nData, SIZE_T *nOut);
 }
 
 #endif //HEXANE_CORELIB_CIPHER_HPP

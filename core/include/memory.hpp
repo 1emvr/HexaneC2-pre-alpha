@@ -4,29 +4,61 @@
 #include <core/corelib.hpp>
 
 namespace Memory {
-
     namespace Methods {
-        FUNCTION UINT_PTR GetStackCookie();
-        FUNCTION _resource* GetIntResource(HMODULE base, const int rsrc_id);
-        FUNCTION _executable* CreateImageData(uint8_t *data);
+        UINT_PTR
+        FUNCTION
+            GetStackCookie();
+
+        PRESOURCE
+        FUNCTION
+            GetIntResource(HMODULE base, INT rsrc_id);
+
+        PEXECUTABLE
+        FUNCTION
+            CreateImageData(UINT8 *data);
+
     }
 
     namespace Context {
-        FUNCTION VOID ContextInit();
-        FUNCTION VOID ContextDestroy();
+        VOID
+        FUNCTION
+            ContextInit();
+
+        VOID
+        FUNCTION
+            ContextDestroy();
     }
 
     namespace Modules {
-        FUNCTION HMODULE GetModuleAddress(const LDR_DATA_TABLE_ENTRY *data);
-        FUNCTION LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash);
-        FUNCTION FARPROC GetExportAddress(const void *base, const uint32_t hash);
-        FUNCTION UINT_PTR LoadExport(const char* const module_name, const char* const export_name);
+        LPVOID
+        FUNCTION
+            GetModuleAddress(CONST LDR_DATA_TABLE_ENTRY *data);
+
+        PLDR_DATA_TABLE_ENTRY
+        FUNCTION
+            GetModuleEntry(UINT32 HASH);
+
+        FARPROC
+        FUNCTION
+            GetExportAddress(CONST VOID *base, UINT32 hash);
+
+        UINT_PTR
+        FUNCTION
+            LoadExport(CONST CHAR *module_name, CONST CHAR *export_name);
     }
 
     namespace Execute {
-        FUNCTION BOOL ExecuteCommand(_parser &parser);
-        FUNCTION BOOL ExecuteShellcode(const _parser &parser);
-        FUNCTION VOID LoadObject(_parser parser);
+        BOOL
+        FUNCTION
+            ExecuteCommand(CONST PARSER &parser);
+
+        BOOL
+        FUNCTION
+            ExecuteShellcode(CONST PARSER &parser);
+
+        VOID
+        FUNCTION
+            LoadObject(CONST PARSER &parser);
     }
 }
 #endif //HEXANE_CORELIB_MEMORY_HPP

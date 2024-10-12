@@ -8,23 +8,56 @@
 #include <core/corelib.hpp>
 
 namespace Network {
-
     namespace Http {
-        FUNCTION VOID HttpSendRequest(HINTERNET request, _stream **stream);
-        FUNCTION VOID DestroyRequestContext(const _request_context *req_ctx);
-        FUNCTION VOID DestroyProxyContext(const _proxy_context *proxy_ctx);
-        FUNCTION BOOL CreateRequestContext(_request_context *req_ctx);
-        FUNCTION BOOL CreateProxyContext(_proxy_context *const proxy_ctx, const _request_context *const req_ctx);
-        FUNCTION VOID HttpCallback(const _stream *const out, _stream **in);
+        BOOL
+        FUNCTION
+            CreateProxyContext(PROXY_CONTEXT *proxy_ctx, CONST REQUEST_CONTEXT *req_ctx);
+
+        BOOL
+        FUNCTION
+            CreateRequestContext(REQUEST_CONTEXT *req_ctx);
+
+        VOID
+        FUNCTION
+            DestroyProxyContext(PROXY_CONTEXT *proxy_ctx);
+
+        VOID
+        FUNCTION
+            DestroyRequestContext(REQUEST_CONTEXT *req_ctx);
+
+        VOID
+        FUNCTION
+            HttpSendRequest(HINTERNET request, STREAM **stream);
+
+        VOID
+        FUNCTION
+            HttpCallback(STREAM **in, CONST STREAM *out);
     }
 
     namespace Smb {
-        FUNCTION VOID SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr);
-        FUNCTION VOID SmbContextInit(SMB_PIPE_SEC_ATTR *const SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr);
-        FUNCTION BOOL PipeRead(void *const handle, const _stream *in);
-        FUNCTION BOOL PipeWrite(void *const handle, const _stream *out);
-        FUNCTION BOOL PipeSend (_stream *out);
-        FUNCTION BOOL PipeReceive(_stream** in);
+        VOID
+        FUNCTION
+            SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr);
+
+        VOID
+        FUNCTION
+            SmbContextInit(SMB_PIPE_SEC_ATTR *SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr);
+
+        BOOL
+        FUNCTION
+            PipeRead(HANDLE handle, STREAM *in);
+
+        BOOL
+        FUNCTION
+            PipeWrite(HANDLE handle, CONST STREAM *out);
+
+        BOOL
+        FUNCTION
+            PipeSend (CONST STREAM *out);
+
+        BOOL
+        FUNCTION
+            PipeReceive(STREAM **in);
     }
 }
 #endif //HEXANE_CORELIB_NETWORK_HPP

