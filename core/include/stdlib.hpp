@@ -74,11 +74,11 @@ SIZE_T
 FUNCTION
     WcsToMbs(CHAR *str, CONST WCHAR *wcs, SIZE_T size);
 
-SIZE_T
+INT
 FUNCTION
     MbsEndsWith(CONST CHAR *string, CONST CHAR *end);
 
-SIZE_T
+INT
 FUNCTION
     WcsEndsWith(CONST WCHAR *string, CONST WCHAR *end);
 
@@ -100,7 +100,7 @@ FUNCTION
 
 LPSTR*
 FUNCTION
-    AllocSplit(CONST CHAR *str, CONST CHAR *delim, INT *count);
+    NewSplit(CONST CHAR *str, CONST CHAR *delim, INT *count);
 
 VOID
 FUNCTION

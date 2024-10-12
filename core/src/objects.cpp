@@ -68,10 +68,11 @@ namespace Objects {
             bool import = SymbolScan(sym_string, '$', MbsLength(sym_string)); // check for imports
 
             if (import) {
-                auto count = 0;
-                auto split = AllocSplit(sym_string + COFF_PREP_SYMBOL_SIZE, "$", &count);
-
                 char buffer[MAX_PATH] = { };
+
+                auto count = 0;
+                auto split = NewSplit(sym_string + COFF_PREP_SYMBOL_SIZE, "$", &count);
+
                 Trim(split[1], '@');
 
                 auto lib_hash   = HashStringA(MbsToLower(buffer, split[0]), MbsLength(split[0]));
@@ -375,23 +376,22 @@ namespace Objects {
         // todo: heap allocate new coffs
         // todo: clean it up
 
-        _executable *object = { };
-        uint8_t *next       = { };
-
         if (!data) {
             // LOG DATA
             goto defer;
         }
-        object = CreateImageData((uint8_t*) data);
+        _executable *object = CreateImageData((uint8_t*) data); ;
+        uint8_t *next       = nullptr;
+
         object->task_id = task_id;
         object->next    = Ctx->coffs;
-
-        Ctx->coffs = object;
+        Ctx->coffs      = object;
 
         if (!ImageCheckArch(object)) {
             // LOG ERROR
             goto defer;
         }
+
         x_assert(object->sec_map = (_object_map*) Malloc(sizeof(void*) * sizeof(_object_map)));
 
         object->fn_map->size = GetFunctionMapSize(object);

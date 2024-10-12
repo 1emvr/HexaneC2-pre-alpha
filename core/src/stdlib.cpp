@@ -1,5 +1,5 @@
-#include <include/stdlib.hpp>
-void x_memcpy (void *dst, const void *const src, const size_t n) {
+#include <core/include/stdlib.hpp>
+void MemCopy (void *dst, const void *const src, const size_t n) {
 
     const auto a = (uint8_t*) dst;
     const auto b = (const uint8_t*) src;
@@ -9,7 +9,7 @@ void x_memcpy (void *dst, const void *const src, const size_t n) {
     }
 }
 
-void *x_memset (void *const dst, const int val, size_t len) {
+void *MemSet (void *const dst, const int val, size_t len) {
 
     auto ptr = (uint8_t*) dst;
     while (len-- > 0) {
@@ -18,7 +18,7 @@ void *x_memset (void *const dst, const int val, size_t len) {
     return dst;
 }
 
-void x_strcpy (char *dst, const char *src) {
+void MbsCopy (char *dst, const char *src) {
 
     while ((*dst = *src) != 0x0) {
         dst++;
@@ -26,7 +26,7 @@ void x_strcpy (char *dst, const char *src) {
     }
 }
 
-size_t x_strncmp (const char *str1, const char *str2, size_t len) {
+size_t MbsCompareBounds (const char *str1, const char *str2, size_t len) {
 
     while (len && *str1 && (*str1 == *str2)) {
         len--; str1++; str2++;
@@ -39,7 +39,7 @@ size_t x_strncmp (const char *str1, const char *str2, size_t len) {
 }
 
 
-int x_strcmp (const char *str1, const char *str2) {
+size_t MbsCompare (const char *str1, const char *str2) {
 
     while (*str1 && *str1 == *str2) {
         str1++; str2++;
@@ -48,7 +48,7 @@ int x_strcmp (const char *str1, const char *str2) {
     return (uint8_t) *str1 - (uint8_t) *str2;
 }
 
-int x_memcmp (const void *const ptr1, const void *const ptr2, size_t len) {
+size_t MemCompare (const void *const ptr1, const void *const ptr2, size_t len) {
 
     const auto *p1 = (const uint8_t*) ptr1;
     const auto *p2 = (const uint8_t*) ptr2;
@@ -64,13 +64,13 @@ int x_memcmp (const void *const ptr1, const void *const ptr2, size_t len) {
     return 0;
 }
 
-char *x_strcat (char *const str1, const char *const str2) {
+char *MbsConcat (char *const str1, const char *const str2) {
 
-    x_strcpy(str1 + x_strlen(str1), str2);
+    MbsCopy(str1 + MbsLength(str1), str2);
     return str1;
 }
 
-size_t x_strlen (const char* str) {
+size_t MbsLength (const char* str) {
 
     auto len = 0;
     const auto s_str = str;
@@ -82,7 +82,7 @@ size_t x_strlen (const char* str) {
     return len;
 }
 
-size_t x_wcslen (const wchar_t *const s) {
+size_t WcsLength (const wchar_t *const s) {
 
     size_t len = 0;
     const auto s_str = s;
@@ -94,7 +94,7 @@ size_t x_wcslen (const wchar_t *const s) {
     return len;
 }
 
-void x_wcscpy (wchar_t *dest, const wchar_t *src) {
+void WcsCopy (wchar_t *dest, const wchar_t *src) {
 
     while ((*dest = *src) != 0x0000) {
         dest++;
@@ -102,7 +102,7 @@ void x_wcscpy (wchar_t *dest, const wchar_t *src) {
     }
 }
 
-int x_wcscmp (const wchar_t *str1, const wchar_t *str2) {
+size_t WcsCompare (const wchar_t *str1, const wchar_t *str2) {
 
     for (; *str1 == *str2; str1++, str2++) {
         if (*str1 == 0x0000) {
@@ -112,13 +112,13 @@ int x_wcscmp (const wchar_t *str1, const wchar_t *str2) {
     return *str1 < *str2 ? -1 : +1;
 }
 
-wchar_t *x_wcscat (wchar_t *const str1, const wchar_t *const str2) {
+wchar_t *WcsConcat (wchar_t *const str1, const wchar_t *const str2) {
 
-    x_wcscpy(str1 + x_wcslen(str1), str2 );
+    WcsCopy(str1 + WcsLength(str1), str2 );
     return str1;
 }
 
-wchar_t x_tolower_w(const wchar_t c) {
+wchar_t ToLowerW(const wchar_t c) {
     if (c >= 0x0041 && c <= 0x005A) {
         return c + (0x0061 - 0x0041);
     }
@@ -126,7 +126,7 @@ wchar_t x_tolower_w(const wchar_t c) {
     return c;
 }
 
-char x_tolower_a(const char c) {
+char ToLowerA(const char c) {
     if (c >= 0x41 && c <= 0x5A) {
         return c + (0x61 - 0x41);
     }
@@ -134,29 +134,29 @@ char x_tolower_a(const char c) {
     return c;
 }
 
-wchar_t *x_wcs_tolower(wchar_t *const dst, const wchar_t *const src) {
+wchar_t *WcsToLower(wchar_t *const dst, const wchar_t *const src) {
 
-    const auto len = x_wcslen(src);
+    const auto len = WcsLength(src);
     for (size_t i = 0; i < len; ++i) {
-        dst[i] = x_tolower_w(src[i]);
+        dst[i] = ToLowerW(src[i]);
     }
 
     dst[len] = 0x0000;
     return dst;
 }
 
-char *x_mbs_tolower(char *const dst, const char *const src) {
+char *MbsToLower(char *const dst, const char *const src) {
 
-    const auto len = x_strlen(src);
+    const auto len = MbsLength(src);
     for (size_t i = 0; i < len; ++i) {
-        dst[i] = x_tolower_a((uint8_t) src[i]);
+        dst[i] = ToLowerA((uint8_t) src[i]);
     }
 
     dst[len] = 0x00;
     return dst;
 }
 
-size_t x_mbstowcs (wchar_t *dst, const char *src, const size_t size) {
+size_t MbsToWcs (wchar_t *dst, const char *src, const size_t size) {
 
     auto count = size;
     while (--count) {
@@ -168,7 +168,7 @@ size_t x_mbstowcs (wchar_t *dst, const char *src, const size_t size) {
     return size - count;
 }
 
-size_t x_wcstombs (char *const str, const wchar_t *wcs, size_t size) {
+size_t WcsToMbs (char *const str, const wchar_t *wcs, size_t size) {
 
     auto count = 0;
     while (count < size) {
@@ -187,46 +187,46 @@ size_t x_wcstombs (char *const str, const wchar_t *wcs, size_t size) {
     return count;
 }
 
-int x_mbs_endswith (const char *string, const char *const end) {
+int MbsEndsWith (const char *string, const char *const end) {
 
     uint32_t length1 = 0;
     uint32_t length2 = 0;
 
     if (!string || !end) {
-        return FALSE;
+        return false;
     }
 
-    length1 = x_strlen(string);
-    length2 = x_strlen(end);
+    length1 = MbsLength(string);
+    length2 = MbsLength(end);
 
     if (length1 < length2) {
-        return FALSE;
+        return false;
     }
     string = &string[length1 - length2];
-    return x_strcmp(string, end) == 0;
+    return MbsCompare(string, end) == 0;
 }
 
-int x_wcs_endswith (const wchar_t *string, const wchar_t *const end) {
+int WcsEndsWith (const wchar_t *string, const wchar_t *const end) {
 
     uint32_t length1 = 0;
     uint32_t length2 = 0;
 
     if ( !string || !end ) {
-        return FALSE;
+        return false;
     }
 
-    length1 = x_wcslen(string);
-    length2 = x_wcslen(end);
+    length1 = WcsLength(string);
+    length2 = WcsLength(end);
 
     if ( length1 < length2 ) {
-        return FALSE;
+        return false;
     }
 
     string = &string[ length1 - length2 ];
-    return x_wcscmp(string, end) == 0;
+    return WcsCompare(string, end) == 0;
 }
 
-size_t x_strspn(const char* s, const char* accept) {
+size_t MbsSpan(const char* s, const char* accept) {
 
     int a = 1;
     int i;
@@ -234,7 +234,7 @@ size_t x_strspn(const char* s, const char* accept) {
     size_t offset = 0;
 
     while (a && *s) {
-        for (a = i = 0; !a && i < x_strlen(accept); i++) {
+        for (a = i = 0; !a && i < MbsLength(accept); i++) {
             if (*s == accept[i]) {
                 a = 1;
             }
@@ -249,7 +249,7 @@ size_t x_strspn(const char* s, const char* accept) {
     return offset;
 }
 
-char* x_strchr(const char* str, int c) {
+char* MbsChar(const char* str, int c) {
 
     while (*str) {
         if (*str == (char)c) {
@@ -265,7 +265,7 @@ char* x_strchr(const char* str, int c) {
     return nullptr;
 }
 
-char* x_strtok(char* str, const char* delim) {
+char* MbsToken(char* str, const char* delim) {
 
     static char *saved          = { };
     char        *token_start    = { };
@@ -279,12 +279,12 @@ char* x_strtok(char* str, const char* delim) {
         return nullptr;
     }
 
-    while (*token_start && x_strchr(delim, *token_start)) {
+    while (*token_start && MbsChar(delim, *token_start)) {
         token_start++;
     }
 
     token_end = token_start;
-    while (*token_end && !x_strchr(delim, *token_end)) {
+    while (*token_end && !MbsChar(delim, *token_end)) {
         token_end++;
     }
 
@@ -299,23 +299,23 @@ char* x_strtok(char* str, const char* delim) {
     return token_start;
 }
 
-char* x_strdup(const char* str) {
+char* MbsDuplicate(const char* str) {
 
     char*   str2      = { };
     size_t  length  = 0;
 
-    length  = x_strlen(str);
-    str2    = (char*) x_malloc(length + 1);
+    length  = MbsLength(str);
+    str2    = (char*) Malloc(length + 1);
 
     if (!str2) {
         return nullptr;
     }
 
-    x_memcpy(str2, str, length + 1);
+    MemCopy(str2, str, length + 1);
     return str2;
 }
 
-char** x_split(const char* str, const char* delim, int* count) {
+char** NewSplit(const char* str, const char* delim, int* count) {
 
     char **result   = { };
     char **temp_res = { };
@@ -326,17 +326,17 @@ char** x_split(const char* str, const char* delim, int* count) {
     int size    = 2;
     int index   = 0;
 
-    x_assert(temp   = x_strdup(str));
-    x_assert(result = (char**) x_malloc(size * sizeof(char*)));
-    x_assert(token  = x_strtok(temp, delim));
+    x_assert(temp   = MbsDuplicate(str));
+    x_assert(result = (char**) Malloc(size * sizeof(char*)));
+    x_assert(token  = MbsToken(temp, delim));
 
     while (token) {
         if (index > size) {
             size    += 1;
-            temp_res = (char**) x_realloc(result, size * sizeof(char*));
+            temp_res = (char**) Realloc(result, size * sizeof(char*));
 
             if (!temp_res) {
-                x_free(result);
+                Free(result);
                 result = nullptr;
 
                 goto defer;
@@ -345,38 +345,38 @@ char** x_split(const char* str, const char* delim, int* count) {
             result = temp_res;
         }
 
-        result[index] = x_strdup(token);
+        result[index] = MbsDuplicate(token);
 
         if (!result[index]) {
             for (auto i = 0; i < index; i++) {
-                x_free(result[i]);
+                Free(result[i]);
             }
 
-            x_free(result);
+            Free(result);
             result = nullptr;
 
             goto defer;
         }
 
         index++;
-        token = x_strtok(0, delim);
+        token = MbsToken(0, delim);
     }
 
     *count = index;
     result[index] = 0;
 
     defer:
-    x_free(temp);
+    Free(temp);
     return result;
 }
 
-void x_freesplit(char** split, int count) {
+void FreeSplit(char** split, int count) {
 
     for (auto i = 0; i < count; i++) {
-        x_free(split[i]);
+        Free(split[i]);
     }
 
-    x_free(split);
+    Free(split);
 }
 
 void x_trim(char* str, char delim) {

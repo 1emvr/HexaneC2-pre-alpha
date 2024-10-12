@@ -67,10 +67,10 @@ namespace Network {
 
         defer:
             if (!success) {
-                Zerofree(response, total);
+                ZeroFree(response, total);
             }
 
-            Zerofree(buffer, last_read);
+            ZeroFree(buffer, last_read);
             return success;
         }
 

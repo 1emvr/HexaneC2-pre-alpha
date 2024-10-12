@@ -46,7 +46,7 @@ namespace Xtea {
             if (!(sections[index] = B_PTR(Malloc(sizeof(uint8_t) * 8)))) {
 
                 for (auto i = 0; i < index; i++) {
-                    Zerofree(sections[i], sizeof(uint64_t));
+                    ZeroFree(sections[i], sizeof(uint64_t));
                 }
 
                 Free(sections);
@@ -120,7 +120,7 @@ namespace Xtea {
 
         for (uint64_t sec_index = 0; sec_index < n_secs; sec_index++) {
             if (sections[sec_index]) {
-                Zerofree(sections[sec_index], sizeof(uint64_t));
+                ZeroFree(sections[sec_index], sizeof(uint64_t));
             } else {
                 break;
             }
