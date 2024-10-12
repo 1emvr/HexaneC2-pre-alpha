@@ -73,7 +73,6 @@ LPVOID
 #define Malloc(s)						Ctx->nt.RtlAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, s)
 #define Realloc(p, s) 	    			Ctx->nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, p, s)
 #define Free(s) 			    		Ctx->nt.RtlFreeHeap(Ctx->heap, 0, s)
-#define Zerofree(x, n) 					if (x) { MemSet(x, 0, n); Free(x); x = nullptr; }
 
 #define x_assert(x)     				if (!(x)) goto defer
 #define x_assertb(x) 					if (!(x)) { success = false; goto defer; }
@@ -94,6 +93,15 @@ LPVOID
 #define PAGE_ALIGN(x)		(B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
 #define ARRAY_LEN(p)		sizeof(p) / sizeof(p[0])
 #define RANGE(x, b, e)		(x >= b && x < e)
+
+#define Zerofree(x, n) 			\
+	if (x) {					\
+		if (n > 0) {			\
+			MemSet(x, 0, n);	\
+		}						\
+		Free(x);				\
+		x = nullptr;			\
+}
 
 #define DYN_ARRAY_LEN(i, p)                  \
 	while (p[i]) {                           \

