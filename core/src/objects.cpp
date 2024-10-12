@@ -195,34 +195,6 @@ namespace Objects {
         return success;
     }
 
-    VOID Cleanup(_executable *object) {
-
-        void *pointer   = nullptr;
-        size_t size     = 0;
-
-        if (!object || !object->base) {
-            return;
-        }
-        if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &object->base, &object->size, PAGE_READWRITE, nullptr))) {
-            return;
-        }
-
-        MemSet(object->base, 0, object->size);
-        pointer = object->base;
-        size    = object->size;
-
-        if (!NT_SUCCESS(ntstatus = Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE))) {
-            return;
-        }
-
-        if (object->sec_map) {
-            MemSet(object->sec_map, 0, object->nt_head->FileHeader.NumberOfSections * sizeof (IMAGE_SECTION_HEADER));
-            Free(object->sec_map);
-
-            object->sec_map = nullptr;
-        }
-    }
-
     BOOL BaseRelocation(_executable *object) {
 
         char sym_name[9]    = { };
@@ -346,6 +318,10 @@ namespace Objects {
         return sizeof(void*) * counter;
     }
 
+    VOID AddCoff(_executable *object) {
+
+    }
+
     VOID RemoveCoff(_executable *object) {
 
         _executable *prev = { };
@@ -371,67 +347,85 @@ namespace Objects {
         }
     }
 
-    VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id, bool cache) {
+    VOID Cleanup(_executable *object) {
 
-        // todo: heap allocate new coffs
-        // todo: clean it up
+        void *pointer   = nullptr;
+        size_t size     = 0;
 
-        if (!data) {
-            // LOG DATA
-            goto defer;
+        if (!object || !object->base) {
+            return;
         }
-        _executable *object = CreateImageData((uint8_t*) data); ;
-        uint8_t *next       = nullptr;
+        if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &object->base, &object->size, PAGE_READWRITE, nullptr))) {
+            return;
+        }
 
-        object->task_id = task_id;
-        object->next    = Ctx->coffs;
-        Ctx->coffs      = object;
+        MemSet(object->base, 0, object->size);
+        pointer = object->base;
+        size    = object->size;
 
-        if (!ImageCheckArch(object)) {
+        if (!NT_SUCCESS(ntstatus = Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE))) {
             // LOG ERROR
-            goto defer;
+            return;
         }
 
-        x_assert(object->sec_map = (_object_map*) Malloc(sizeof(void*) * sizeof(_object_map)));
+        if (object->sec_map) {
+            ZeroFree(object->sec_map, object->nt_head->FileHeader.NumberOfSections * sizeof (IMAGE_SECTION_HEADER));
+            object->sec_map = nullptr;
+        }
+    }
+
+    BOOL CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id) {
+
+        bool success        = true;
+        _executable *object = CreateImageData((uint8_t*) data); ;
+
+        x_assertb(ImageCheckArch(object));
+        x_assertb(object->buffer    = (uint8_t*) data); // assuming he's doing this just for conciseness. It doesn't seem to persist anywhere else
+        x_assertb(object->sec_map   = (_object_map*) Malloc(sizeof(void*) * sizeof(_object_map)));
 
         object->fn_map->size = GetFunctionMapSize(object);
 
-        for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            object->section = SECTION_HEADER(object->buffer, sec_index);
-            object->size    += object->section->SizeOfRawData;
-            object->size    = (size_t) PAGE_ALIGN(object->size);
+        for (uint16_t sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            const auto section = SECTION_HEADER(object->buffer, sec_index);
+
+            object->size += section->SizeOfRawData;
+            object->size = (size_t) PAGE_ALIGN(object->size);
         }
 
         object->size += object->fn_map->size;
 
-        x_ntassert(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &object->base, NULL, &object->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
-        next = B_PTR(object->base);
+        x_ntassertb(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &object->base, object->size, &object->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+        uint8_t *next = (uint8_t*) object->base;
 
-        for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            object->section                     = SECTION_HEADER(object->buffer, sec_index);
-            object->sec_map[sec_index].size     = object->section->SizeOfRawData;
+        for (uint16_t sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            const auto section = SECTION_HEADER(object->buffer, sec_index);
+
+            object->sec_map[sec_index].size     = section->SizeOfRawData;
             object->sec_map[sec_index].address  = next;
 
             next += object->section->SizeOfRawData;
             next = PAGE_ALIGN(next);
 
-            MemCopy(object->sec_map[sec_index].address, RVA(PBYTE, data, object->section->SizeOfRawData), object->section->SizeOfRawData);
+            MemCopy(object->sec_map[sec_index].address, RVA(PBYTE, object->buffer, object->section->SizeOfRawData), object->section->SizeOfRawData);
         }
 
+        // function map goes after the section map ?
         object->fn_map = (_object_map*) next;
 
-        x_assert(BaseRelocation(object));
-        x_assert(ExecuteFunction(object, entrypoint, args, args_size));
+        x_assertb(BaseRelocation(object));
+        x_assertb(ExecuteFunction(object, entrypoint, args, args_size));
 
         defer:
-        if (!cache) {
-            RemoveCoff(object);
+        if (success) {
+            AddCoff(object);
+        }
+        else {
+            if (object) {
+                Cleanup(object);
+            }
         }
 
-        if (object) {
-            MemSet(object, 0, sizeof(_executable));
-            Free(object);
-        }
+        return success;
     }
 
     VOID CoffThread(_coff_params *params) {
@@ -440,7 +434,8 @@ namespace Objects {
             goto defer;
         }
 
-        CoffLoader(params->entrypoint, params->data, params->args, params->args_size, params->task_id, params-> b_cache);
+        // TODO: none of these are heap allocated, why am I freeing?
+        CoffLoader(params->entrypoint, params->data, params->args, params->args_size, params->task_id);
 
         defer:
         ZeroFree(params->entrypoint, params->entrypoint_length);

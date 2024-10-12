@@ -8,9 +8,9 @@ namespace Objects {
     FUNCTION
         ExceptionHandler(PEXCEPTION_POINTERS exception);
 
-    VOID
+    BOOL
     FUNCTION
-        CoffLoader(CHAR *entrypoint, VOID *data, VOID *args, SIZE_T args_size, UINT32 task_id, BOOL cache);
+        CoffLoader(CHAR *entrypoint, VOID *data, VOID *args, SIZE_T args_size, UINT32 task_id);
 
     BOOL
     FUNCTION
@@ -31,6 +31,10 @@ namespace Objects {
     SIZE_T
     FUNCTION
         GetFunctionMapSize(EXECUTABLE *object);
+
+    VOID
+    FUNCTION
+        AddCoff(EXECUTABLE *object);
 
     VOID
     FUNCTION

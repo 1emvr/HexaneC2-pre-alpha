@@ -41,7 +41,7 @@ namespace Memory {
             image->dos_head = (PIMAGE_DOS_HEADER) data;
             image->nt_head  = (PIMAGE_NT_HEADERS) (B_PTR(data) + ((PIMAGE_DOS_HEADER) data)->e_lfanew);
             image->exports  = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(data) + image->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
-            image->symbol   = (_coff_symbol*) (B_PTR(data) + image->nt_head->FileHeader.PointerToSymbolTable);
+            image->symbols  = (_coff_symbol*) (B_PTR(data) + image->nt_head->FileHeader.PointerToSymbolTable);
 
             return image;
         }
