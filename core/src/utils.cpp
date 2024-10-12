@@ -1,4 +1,4 @@
-#include <core/include/utils.hpp>
+#include <include/utils.hpp>
 namespace Utils {
 
     VOID AppendBuffer(uint8_t **buffer, const uint8_t *const target, uint32_t *capacity, const uint32_t length) {
@@ -9,7 +9,7 @@ namespace Utils {
         }
 
         *buffer = new_buffer;
-        x_memcpy(B_PTR(*buffer) + *capacity, target, length);
+        x_memcpy(B_PTR(*buffer) + *capacity, (void*) target, length);
         *capacity += length;
     }
 

@@ -13,11 +13,11 @@ namespace Parser {
 
     ULONG
     FUNCTION
-        UnpackDword(PARSER *parser);
+        UnpackUint32(PARSER *parser);
 
     ULONG64
     FUNCTION
-        UnpackDword64(PARSER *parser);
+        UnpackUint64(PARSER *parser);
 
     BOOL
     FUNCTION

@@ -11,7 +11,7 @@ set (SOURCES
         core/src/cipher.cpp
         core/src/commands.cpp
         core/src/stdlib.cpp
-        core/src/implant.cpp
+        core/src/base.cpp
         core/src/inject.cpp
         core/src/memory.cpp
         core/src/dispatch.cpp
@@ -26,6 +26,7 @@ set (SOURCES
         core/src/sleep.cpp.bak
         core/src/objects.cpp
         core/src/threads.cpp
+        core/src/sleep.cpp
 )
 
 set (INCLUDES
@@ -36,7 +37,7 @@ set (INCLUDES
         core/include/cipher.hpp
         core/include/commands.hpp
         core/include/stdlib.hpp
-        core/include/implant.hpp
+        core/include/base.hpp
         core/include/inject.hpp
         core/include/memory.hpp
         core/include/dispatch.hpp

@@ -35,7 +35,7 @@ namespace Dispatcher {
     FUNCTION
         CommandDispatch(CONST STREAM *in);
 
-    VOID
+    BOOL
     FUNCTION
         DispatchRoutine();
 }

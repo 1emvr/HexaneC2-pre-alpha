@@ -1,4 +1,4 @@
-#include <core/include/inject.hpp>
+#include <include/inject.hpp>
 #define CALL_X_OFFSET 0x1
 #define EXPORT_OFFSET 0x12
 
@@ -51,7 +51,7 @@ namespace Injection {
 
     namespace Veh {
 
-        UINT_PTR GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, const char *const signature, const char *const mask) {
+        UINT_PTR GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, char *const signature, char *const mask) {
 
             LdrpVectorHandlerList *handlers = { };
             uintptr_t handler   = { };

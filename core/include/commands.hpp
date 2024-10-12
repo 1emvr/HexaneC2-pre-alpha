@@ -6,15 +6,15 @@
 namespace Commands {
     VOID
     FUNCTION
+        ProcessList();
+
+    VOID
+    FUNCTION
         DirectoryList(PARSER *parser);
 
     VOID
     FUNCTION
         ProcessModules(PARSER *parser);
-
-    VOID
-    FUNCTION
-        ProcessList(PARSER *parser);
 
     VOID
     FUNCTION

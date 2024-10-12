@@ -1,7 +1,7 @@
-#include <core/include/process.hpp>
+#include <include/process.hpp>
 namespace Process {
 
-	ULONG GetProcessIdByName(const char *const name) {
+	ULONG GetProcessIdByName(char *name) {
 
 		PROCESSENTRY32 entry = { };
 		HANDLE snap = { };
@@ -9,8 +9,8 @@ namespace Process {
 
 		entry.dwSize = sizeof(PROCESSENTRY32);
 
-		x_assert(snap = Ctx->win32.CreateToolhelp32Snapshot(0x02, 0));
-		x_assert(Ctx->win32.Process32First(snap, &entry));
+		snap = Ctx->win32.CreateToolhelp32Snapshot(0x02, 0);
+		Ctx->win32.Process32First(snap, &entry);
 
 		while (Ctx->win32.Process32Next(snap, &entry)) {
 			if (x_strncmp(name, entry.szExeFile, x_strlen(entry.szExeFile)) == 0) {
@@ -24,7 +24,7 @@ namespace Process {
 		return pid;
 	}
 
-	HANDLE OpenParentProcess(const char *const name) {
+	HANDLE OpenParentProcess(char *name) {
 
         PROCESSENTRY32 entry = { };
 		HANDLE process	= { };
@@ -32,11 +32,11 @@ namespace Process {
 
 		entry.dwSize = sizeof(PROCESSENTRY32);
 
-		x_assert(snap = Ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
-		x_assert(Ctx->win32.Process32First(snap, &entry));
+		snap = Ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+		Ctx->win32.Process32First(snap, &entry);
 
 		while (Ctx->win32.Process32Next(snap, &entry) == TRUE) {
-			if (x_strncmp(name, entry.szExeFile, x_strlen(entry.szExeFile)) == 0) {
+			if (x_strncmp((char*) name, entry.szExeFile, x_strlen(entry.szExeFile)) == 0) {
 				x_ntassert(Process::NtOpenProcess(&process, PROCESS_ALL_ACCESS, entry.th32ProcessID));
 				break;
 			}
@@ -47,7 +47,7 @@ namespace Process {
 		return process;
 	}
 
-	NTSTATUS NtOpenProcess(void **pp_process, const uint32_t access, const uint32_t pid) {
+	NTSTATUS NtOpenProcess(void **pp_process, uint32_t access, uint32_t pid) {
 
 		OBJECT_ATTRIBUTES attrs = { };
 		CLIENT_ID client		= { };
@@ -59,7 +59,7 @@ namespace Process {
 		return Ctx->nt.NtOpenProcess(pp_process, access, &attrs, &client);
 	}
 
-	VOID CloseUserProcess(_executable *const image) {
+	VOID CloseUserProcess(_executable *image) {
 
 		if (image->attrs) 	{ Ctx->nt.RtlFreeHeap(image->heap, 0, image->attrs); image->attrs = nullptr; }
 		if (image->heap) 	{ Ctx->nt.RtlDestroyHeap(image->heap); image->heap = nullptr; }
@@ -67,7 +67,7 @@ namespace Process {
 		if (image->handle) 	{ Ctx->nt.NtTerminateProcess(image->handle, ERROR_SUCCESS); }
 	}
 
-	VOID CreateUserProcess(_executable *const image, const char *const path) {
+	VOID CreateUserProcess(_executable *image, char *path) {
 
 		LPWSTR w_name			= { };
 		UNICODE_STRING u_name	= { };
@@ -83,7 +83,7 @@ namespace Process {
 		image->attrs 	= nullptr;
 
 		//TODO: fix CreateUserProcess to not always create suspended
-		x_ntassert(Ctx->nt.RtlCreateProcessParametersEx(&image->params, &u_name, nullptr, DESKTOP_ENVIRONMENT_NULL, RTL_USER_PROCESS_PARAMETERS_NORMALIZED));
+		Ctx->nt.RtlCreateProcessParametersEx(&image->params, &u_name, nullptr, DESKTOP_ENVIRONMENT_NULL, RTL_USER_PROCESS_PARAMETERS_NORMALIZED);
 
 		x_assert(image->heap 	= Ctx->nt.RtlCreateHeap(HEAP_GROWABLE, HEAP_NO_COMMIT));
 		x_assert(image->attrs 	= (PPS_ATTRIBUTE_LIST) Ctx->nt.RtlAllocateHeap(image->heap, HEAP_ZERO_MEMORY, PS_ATTR_LIST_SIZE(1)));

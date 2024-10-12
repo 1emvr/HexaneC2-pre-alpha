@@ -1,4 +1,4 @@
-#include <core/include/stdlib.hpp>
+#include <include/stdlib.hpp>
 void x_memcpy (void *dst, const void *const src, const size_t n) {
 
     const auto a = (uint8_t*) dst;

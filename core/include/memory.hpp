@@ -20,7 +20,7 @@ namespace Memory {
     }
 
     namespace Context {
-        VOID
+        BOOL
         FUNCTION
             ContextInit();
 

