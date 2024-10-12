@@ -64,14 +64,10 @@ namespace Network {
 
         BOOL CreateRequestContext(_request_context *req_ctx) {
 
+            const auto address  = Ctx->transport.http->address;
+            const auto port     = Ctx->transport.http->port;
 
-            const auto address = Ctx->transport.http->address;
-            const auto port = Ctx->transport.http->port;
             auto handle = Ctx->transport.http->handle;
-
-            if (!Ctx->transport.http->endpoints) {
-                return false;
-            }
             if (!handle) {
                 if (!(handle = Ctx->win32.WinHttpOpen(Ctx->transport.http->useragent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))) {
                     return false;
@@ -82,17 +78,15 @@ namespace Network {
                 return false;
             }
 
-            RANDOM_SELECT(req_ctx->endpoint, Ctx->transport.http->endpoints);
+            const auto method   = Ctx->transport.http->method;
+            auto endpoint       = req_ctx->endpoint;
+            auto flags          = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
 
-            Ctx->transport.http->flags = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
+            RANDOM_SELECT(endpoint, Ctx->transport.http->endpoints);
+
             if (Ctx->transport.b_ssl) {
-                Ctx->transport.http->flags |= WINHTTP_FLAG_SECURE;
+                flags |= WINHTTP_FLAG_SECURE;
             }
-
-            const auto endpoint = req_ctx->endpoint;
-            const auto method = Ctx->transport.http->method;
-            const auto flags = Ctx->transport.http->flags;
-
             if (!(req_ctx->req_handle = Ctx->win32.WinHttpOpenRequest(req_ctx->conn_handle, method, endpoint, nullptr, nullptr, nullptr, flags))) {
                 return false;
             }
@@ -190,6 +184,7 @@ namespace Network {
             uint32_t status  = 0;
             DWORD n_status   = sizeof(uint32_t);
 
+            auto ssl_flags = SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID | SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
             wchar_t *methods[] = {
                 (wchar_t*)L"GET",
                 (wchar_t*)L"POST"
@@ -203,18 +198,13 @@ namespace Network {
             }
 
             const auto handle = req_ctx.req_handle;
-
             if (Ctx->transport.b_ssl) {
-                Ctx->transport.http->flags = SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID | SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
-
-                if (!Ctx->win32.WinHttpSetOption(handle, WINHTTP_OPTION_SECURITY_FLAGS, &Ctx->transport.http->flags, sizeof(ULONG))) {
-                    return false;
-                }
+                x_assertb(Ctx->win32.WinHttpSetOption(handle, WINHTTP_OPTION_SECURITY_FLAGS, &ssl_flags, sizeof(ULONG)));
             }
 
             if (Ctx->transport.http->headers) {
-                const wchar_t *header   = { };
-                uint32_t n_headers      = 0;
+                wchar_t *header     = nullptr;
+                uint32_t n_headers  = 0;
 
                 while (true) {
                     if (!(header = Ctx->transport.http->headers[n_headers])) {
@@ -226,9 +216,11 @@ namespace Network {
                 }
             }
 
-            x_assertb(Ctx->win32.WinHttpSendRequest(req_ctx.req_handle, nullptr, 0, out->buffer, out->length, out->length, 0));
-            x_assertb(Ctx->win32.WinHttpReceiveResponse(req_ctx.req_handle, nullptr));
-            x_assertb(Ctx->win32.WinHttpQueryHeaders(req_ctx.req_handle, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &status, &n_status, nullptr));
+            const auto query = WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER;
+
+            x_assertb(Ctx->win32.WinHttpSendRequest(handle, nullptr, 0, out->buffer, out->length, out->length, 0));
+            x_assertb(Ctx->win32.WinHttpReceiveResponse(handle, nullptr));
+            x_assertb(Ctx->win32.WinHttpQueryHeaders(handle, query, nullptr, &status, &n_status, nullptr));
 
             if (status != HTTP_STATUS_OK) {
                 return_defer(status);
