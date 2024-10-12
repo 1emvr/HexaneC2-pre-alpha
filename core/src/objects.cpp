@@ -363,6 +363,7 @@ namespace Objects {
         pointer = object->base;
         size    = object->size;
 
+        // NOTE: object is Malloc'd, Not VMAlloc
         if (!NT_SUCCESS(ntstatus = Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE))) {
             // LOG ERROR
             return;
@@ -372,6 +373,8 @@ namespace Objects {
             ZeroFree(object->sec_map, object->nt_head->FileHeader.NumberOfSections * sizeof (IMAGE_SECTION_HEADER));
             object->sec_map = nullptr;
         }
+
+        ZeroFree(object, sizeof(_executable));
     }
 
     BOOL CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id) {
@@ -380,11 +383,13 @@ namespace Objects {
         _executable *object = CreateImageData((uint8_t*) data); ;
 
         x_assertb(ImageCheckArch(object));
-        x_assertb(object->buffer    = (uint8_t*) data); // assuming he's doing this just for conciseness. It doesn't seem to persist anywhere else
+        x_assertb(object->buffer    = (uint8_t*) data);
         x_assertb(object->sec_map   = (_object_map*) Malloc(sizeof(void*) * sizeof(_object_map)));
 
+        // NOTE: sec_map and fn_map seem to be the only things that persist
         object->fn_map->size = GetFunctionMapSize(object);
 
+        // NOTE: calculating address/size of sections before base relocation
         for (uint16_t sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
             const auto section = SECTION_HEADER(object->buffer, sec_index);
 
