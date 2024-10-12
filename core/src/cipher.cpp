@@ -4,11 +4,10 @@ namespace Xtea {
     VOID Uint32ToBlock(const uint32_t v0, const uint32_t v1, uint8_t *dst)  {
 
         dst[0] = v0 >> 24; dst[1] = v0 >> 16; dst[2] = v0 >> 8; dst[3] = v0;
-        dst[4] = v1 >> 24; dst[5] = v1 >> 16; dst[6] = v1 >> 8;
-        dst[7] = v1;
+        dst[4] = v1 >> 24; dst[5] = v1 >> 16; dst[6] = v1 >> 8; dst[7] = v1;
     }
 
-    VOID XteaEncrypt(const _ciphertext *const c, uint8_t *const dst, const uint8_t *const src) {
+    VOID XteaEncrypt(const _ciphertext *const cipher, uint8_t *const dst, const uint8_t *const src) {
 
         _u32_block block = {
             block.v0 = src[0] << 24 | src[1] << 16 | src[2] << 8 | src[3],
@@ -16,14 +15,14 @@ namespace Xtea {
         };
 
         for (auto i = 0; i < NROUNDS;) {
-            block.v0 += (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ c->table[i]; i++;
-            block.v1 += (block.v0 << 4 ^ block.v0 >> 5) + block.v0 ^ c->table[i]; i++;
+            block.v0 += (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ cipher->table[i]; i++;
+            block.v1 += (block.v0 << 4 ^ block.v0 >> 5) + block.v0 ^ cipher->table[i]; i++;
         }
 
         Uint32ToBlock(block.v0, block.v1, dst);
     }
 
-    VOID XteaDecrypt(const _ciphertext *const c, uint8_t *const dst, const uint8_t *const src) {
+    VOID XteaDecrypt(const _ciphertext *const cipher, uint8_t *const dst, const uint8_t *const src) {
 
         _u32_block block = {
             block.v0 = src[0] << 24 | src[1] << 16 | src[2] << 8 | src[3],
@@ -31,8 +30,8 @@ namespace Xtea {
         };
 
         for (auto i = NROUNDS; i > 0;) {
-            i--; block.v1 -= (block.v0 << 4 ^ block.v0 >> 5) + block.v0 ^ c->table[i];
-            i--; block.v0 -= (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ c->table[i];
+            i--; block.v1 -= (block.v0 << 4 ^ block.v0 >> 5) + block.v0 ^ cipher->table[i];
+            i--; block.v0 -= (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ cipher->table[i];
         }
 
         Uint32ToBlock(block.v0, block.v1, dst);
@@ -47,7 +46,7 @@ namespace Xtea {
             if (!(sections[index] = B_PTR(Malloc(sizeof(uint8_t) * 8)))) {
 
                 for (auto i = 0; i < index; i++) {
-                    Free(sections[i]);
+                    Zerofree(sections[i], sizeof(uint64_t));
                 }
 
                 Free(sections);
