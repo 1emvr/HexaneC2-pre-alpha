@@ -172,7 +172,10 @@ namespace Objects {
             if (entrypoint >= sec_map[sec_index].address && entrypoint < sec_map[sec_index].address + sec_map[sec_index].size) {
 
                 object->section = SECTION_HEADER(object->buffer, sec_index);
-                x_assertb((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) == IMAGE_SCN_MEM_EXECUTE);
+                if ((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) != IMAGE_SCN_MEM_EXECUTE) {
+                    success = false;
+                    goto defer;
+                }
             }
         }
 
