@@ -69,6 +69,7 @@ LPVOID
 #define NtCurrentProcess()             	((HANDLE) (LONG_PTR) -1)
 #define NtCurrentThread()              	((HANDLE) (LONG_PTR) -2)
 #define PIPE_BUFFER_MAX					(64 * 1000 - 1)
+#define NT_SUCCESS(x)					(x >= 0)
 
 #define Malloc(s)						Ctx->nt.RtlAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, s)
 #define Realloc(p, s) 	    			Ctx->nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, p, s)
@@ -596,7 +597,7 @@ struct _hexane{
 
 	struct {
 		PHTTP_CONTEXT 	http;
-		PSTREAM        	outbound_queue;
+		PSTREAM        	message_queue;
 		HANDLE		    pipe_handle;
 		LPWSTR		    pipe_name;
 		LPSTR 		    domain;

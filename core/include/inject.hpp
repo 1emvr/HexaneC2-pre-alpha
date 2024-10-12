@@ -16,7 +16,7 @@ namespace Injection {
         FUNCTION
             PointerEncodeDecode(UINT_PTR CONST &pointer, BOOL encode);
 
-        NTSTATUS
+        BOOL
         FUNCTION
             OverwriteFirstHandler(VEH_WRITER CONST &writer);
     }
