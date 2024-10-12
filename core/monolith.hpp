@@ -95,7 +95,7 @@ LPVOID
 #define ARRAY_LEN(p)		sizeof(p) / sizeof(p[0])
 #define RANGE(x, b, e)		(x >= b && x < e)
 
-#define Zerofree(x, n) 			\
+#define ZeroFree(x, n) 			\
 	if (x) {					\
 		if (n > 0) {			\
 			MemSet(x, 0, n);	\
@@ -379,7 +379,7 @@ typedef struct _executable {
 
 	DWORD					task_id;
 	PRELOC 					reloc;
-	PCOFF_SYMBOL 			symbol;
+	PCOFF_SYMBOL 			symbols;
 	POBJECT_MAP 			fn_map;
 	POBJECT_MAP 			sec_map;
 
@@ -433,7 +433,7 @@ typedef struct _wcs_buffer {
 
 
 typedef struct _resource {
-    LPVOID  res_lock;
+    LPVOID  rsrc_lock;
     HGLOBAL h_global;
     SIZE_T  size;
 }RESOURCE, *PRESOURCE;

