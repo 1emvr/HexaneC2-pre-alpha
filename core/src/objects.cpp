@@ -325,25 +325,22 @@ namespace Objects {
 
         _coff_params *head = Ctx->coffs;
 
+        if (ENCRYPTED) {
+            XteaCrypt((uint8_t*)coff->data, coff->data_size, Ctx->config.session_key, true);
+            XteaCrypt((uint8_t*)coff->args, coff->args_size, Ctx->config.session_key, true);
+            XteaCrypt((uint8_t*)coff->entrypoint, coff->entrypoint_length, Ctx->config.session_key, true);
+        }
+
         if (!Ctx->coffs) {
             Ctx->coffs = coff;
         }
         else {
             do {
-                if (head) {
-                    if (head->next) {
-                        head = head->next;
-                    }
-                    else {
-                        if (ENCRYPTED) {
-                            XteaCrypt((uint8_t*) coff->data, coff->data_size, Ctx->config.session_key, true);
-                        }
-
-                        head->next = coff;
-                        break;
-                    }
+                if (head->next) {
+                    head = head->next;
                 }
                 else {
+                    head->next = coff;
                     break;
                 }
             }
