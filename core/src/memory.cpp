@@ -244,7 +244,7 @@ namespace Memory {
                 AddCoff(coff);
             }
             else {
-                // FIXME
+                // TODO: Delete data/entrypoint and free coff
             }
 
 
