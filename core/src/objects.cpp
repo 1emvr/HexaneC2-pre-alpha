@@ -118,7 +118,7 @@ namespace Objects {
 
         // set section memory attributes
         for (auto sec_index = 0; sec_index < file_head.NumberOfSections; sec_index++) {
-            const auto section  = exe->section = SECTION_HEADER(exe->buffer, sec_index);
+            const auto section  = SECTION_HEADER(exe->buffer, sec_index);
 
             if (section->SizeOfRawData > 0) {
                 uint32_t protect = 0;
