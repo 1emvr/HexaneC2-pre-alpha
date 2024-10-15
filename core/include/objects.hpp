@@ -34,7 +34,7 @@ namespace Objects {
 
     VOID
     FUNCTION
-        RemoveCoff(COFF_PARAMS *object);
+        RemoveCoff(UINT32 coff_id);
 
     VOID
     FUNCTION

@@ -138,6 +138,7 @@ LPVOID
 
 // TODO: update COFF_INSTANCE hash names
 #ifdef _M_X64
+	#define X64										true
 	#define IP_REG								    Rip
 	#define ENTRYPOINT_REG 						    Rcx
 	#define PTR_MASK                    		    0x7FFFFFFF
@@ -153,6 +154,7 @@ LPVOID
     #define COFF_PREP_BEACON_SIZE                   (COFF_PREP_SYMBOL_SIZE + 6)
     #define COFF_INSTANCE                           0xbfded9c9  // .refptr.__instance
 #elif _M_IX86
+	#define X64										false
 	#define IP_REG									Eip
 	#define ENTRYPOINT_REG 							Eax
 	#define PTR_MASK                    			0x7FFF

