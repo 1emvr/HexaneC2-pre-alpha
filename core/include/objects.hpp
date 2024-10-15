@@ -36,6 +36,11 @@ namespace Objects {
     FUNCTION
         RemoveCoff(UINT32 coff_id);
 
+
+    COFF_PARAMS*
+    FUNCTION
+        GetCoff(uint32_t coff_id);
+
     VOID
     FUNCTION
         CoffThread(COFF_PARAMS *params);
