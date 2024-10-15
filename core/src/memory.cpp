@@ -246,9 +246,6 @@ namespace Memory {
             else {
                 // TODO: Delete data/entrypoint and free coff
             }
-
-
-            Ctx->threads++;
         }
     }
 }
