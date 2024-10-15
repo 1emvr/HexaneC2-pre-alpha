@@ -166,7 +166,7 @@ namespace Objects {
                 sym_name = (char*)(symbols + file_head.NumberOfSymbols) + symbols[sym_index].First.Value[1]; // not inlined
             }
 
-            // compare symbolss to function names / entrypoint
+            // compare symbols to function names / entrypoint
             if (MemCompare(sym_name, function, MbsLength(function)) == 0) {
                 entrypoint = sec_map[symbols[sym_index].SectionNumber - 1].address + symbols[sym_index].Value;
 
