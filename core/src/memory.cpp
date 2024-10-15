@@ -248,7 +248,7 @@ namespace Memory {
 
             if (!CreateUserThread(NtCurrentProcess(), X64, (void*) CoffThread, coff, nullptr)) {
                 // LOG ERROR
-                return;
+                // do not return
             }
 
             if (!saved) {
