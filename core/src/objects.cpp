@@ -463,14 +463,11 @@ namespace Objects {
             goto defer;
         }
 
-        // TODO: store params
         CoffLoader(coff->entrypoint, coff->data, coff->args, coff->args_size, coff->task_id);
 
         defer:
-        // TODO: allow choices for caching coffs?
-        ZeroFree(coff->entrypoint, coff->entrypoint_length);
-        ZeroFree(coff->data, coff->data_size);
-        ZeroFree(coff->args, coff->args_size);
-        MemSet(coff, 0, sizeof(_coff_params));
+        if (!coff->b_cache) {
+            RemoveCoff(coff);
+        }
     }
 }

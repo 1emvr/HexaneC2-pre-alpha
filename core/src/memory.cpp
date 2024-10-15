@@ -226,16 +226,15 @@ namespace Memory {
 
         VOID LoadObject(_parser parser) {
 
-            _inject_context inject = { };
             _coff_params* coff = (_coff_params*) Malloc(sizeof(_coff_params));
 
             coff->entrypoint  = UnpackString(&parser, (uint32_t*) &coff->entrypoint_length);
             coff->data        = UnpackBytes(&parser, (uint32_t*) &coff->data_size);
             coff->args        = UnpackBytes(&parser, (uint32_t*) &coff->args_size);
-            coff->b_cache     = UnpackBool(&parser);
+            coff->b_cache     = UnpackByte(&parser);
             coff->task_id     = Ctx->session.current_taskid;
 
-            inject.parameter = coff;
+            AddCoff(coff);
 
             if (!CreateUserThread(NtCurrentProcess(), true, (void*) CoffThread, coff, nullptr)) {
                 // LOG ERROR
@@ -243,7 +242,6 @@ namespace Memory {
             }
 
             Ctx->threads++;
-            AddCoff(coff);
         }
     }
 }
