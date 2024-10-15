@@ -58,9 +58,9 @@ namespace Objects {
 
     BOOL ProcessSymbol(char* sym_string, void** pointer) {
 
-        char *function  = { };
-        *pointer = nullptr;
+        char *function  = nullptr;
 
+        *pointer = nullptr;
         // __imp_Beacon
         if (HashStringA(sym_string, COFF_PREP_BEACON_SIZE) == COFF_PREP_BEACON) {
 
