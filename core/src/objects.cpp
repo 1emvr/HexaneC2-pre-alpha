@@ -66,7 +66,7 @@ namespace Objects {
         }
         // __imp_
         if (HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
-            bool import = SymbolScan(sym_string, '$', MbsLength(sym_string)); // check for imports
+            bool import = SymbolScan(sym_string, '$', MbsLength(sym_string));
 
             if (import) {
                 char buffer[MAX_PATH] = { };
@@ -107,7 +107,7 @@ namespace Objects {
 
         bool success = true;
 
-        // register veh as execution safety net
+        // NOTE: register veh as execution safety net
         if (!(veh_handle = Ctx->nt.RtlAddVectoredExceptionHandler(1, &ExceptionHandler))) {
             success = false;
             goto defer;
@@ -116,7 +116,7 @@ namespace Objects {
         const auto fn_map       = exe->fn_map;
         const auto file_head    = exe->nt_head->FileHeader;
 
-        // set section memory attributes
+        // NOTE: set section memory attributes
         for (auto sec_index = 0; sec_index < file_head.NumberOfSections; sec_index++) {
             const auto section  = SECTION_HEADER(exe->buffer, sec_index);
 
@@ -155,7 +155,7 @@ namespace Objects {
             }
         }
 
-        // get names from COFF symbol table and find entrypoint
+        // NOTE: get names from COFF symbol table and find entrypoint
         for (auto sym_index = 0; sym_index < file_head.NumberOfSymbols; sym_index++) {
             const auto symbols = exe->symbols;
 
@@ -166,14 +166,14 @@ namespace Objects {
                 sym_name = (char*)(symbols + file_head.NumberOfSymbols) + symbols[sym_index].First.Value[1]; // not inlined
             }
 
-            // compare symbols to entry names / entrypoint
+            // NOTE: compare symbols to entry names / entrypoint
             if (MemCompare(sym_name, entry, MbsLength(entry)) == 0) {
                 entrypoint = exe->sec_map[symbols[sym_index].SectionNumber - 1].address + symbols[sym_index].Value;
 
             }
         }
 
-        // find section where entrypoint can be found and assert is RX
+        // NOTE: find section where entrypoint can be found and assert is RX
         for (auto sec_index = 0; sec_index < file_head.NumberOfSections; sec_index++) {
             if (entrypoint >= exe->sec_map[sec_index].address && entrypoint < exe->sec_map[sec_index].address + exe->sec_map[sec_index].size) {
 
