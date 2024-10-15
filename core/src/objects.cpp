@@ -478,6 +478,7 @@ namespace Objects {
             goto defer;
         }
 
+        // TODO: add option to allow/not allow caching
         CoffLoader(coff->entrypoint, coff->data, coff->args, coff->args_size, coff->task_id);
 
         defer:
