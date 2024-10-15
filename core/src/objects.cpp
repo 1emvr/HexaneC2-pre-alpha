@@ -212,19 +212,19 @@ namespace Objects {
             auto reloc          = RELOC_SECTION(buffer, section);
 
             for (auto rel_index = 0; rel_index < section->NumberOfRelocations; rel_index++) {
-                const auto symbol = &symbols[reloc->SymbolTableIndex];
+                const auto head = &symbols[reloc->SymbolTableIndex];
 
-                if (symbol->First.Value[0]) {
+                if (head->First.Value[0]) {
                     MemSet(sym_name, 0, 9);
-                    MemCopy(sym_name, symbol->First.Name, 8);
+                    MemCopy(sym_name, head->First.Name, 8);
                     name_ptr = sym_name;
                 }
                 else {
-                    name_ptr = (char*) (symbols + object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
+                    name_ptr = (char*) (symbols + object->nt_head->FileHeader.NumberOfSymbols) + head->First.Value[1];
                 }
 
                 void *reloc_addr    = object->sec_map[sec_index].address + reloc->VirtualAddress;
-                void *sec_addr      = object->sec_map[symbol->SectionNumber - 1].address;
+                void *sec_addr      = object->sec_map[head->SectionNumber - 1].address;
                 void *fn_addr       = object->fn_map + (fn_count * sizeof(void*));
 
                 if (!ProcessSymbol(name_ptr, &function)) {
@@ -349,9 +349,6 @@ namespace Objects {
 
     VOID Cleanup(_executable *object) {
 
-        void *pointer   = nullptr;
-        size_t size     = 0;
-
         if (!object || !object->base) {
             return;
         }
@@ -360,10 +357,10 @@ namespace Objects {
         }
 
         MemSet(object->base, 0, object->size);
-        pointer = object->base;
-        size    = object->size;
 
-        // NOTE: object is Malloc'd, Not VMAlloc
+        void *pointer   = object->base;
+        size_t size     = object->size;
+
         if (!NT_SUCCESS(ntstatus = Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE))) {
             // LOG ERROR
             return;
@@ -386,7 +383,7 @@ namespace Objects {
         x_assertb(object->buffer    = (uint8_t*) data);
         x_assertb(object->sec_map   = (_object_map*) Malloc(sizeof(void*) * sizeof(_object_map)));
 
-        // NOTE: sec_map and fn_map seem to be the only things that persist
+        // NOTE: sec_map seems to be the only thing that persists
         object->fn_map->size = GetFunctionMapSize(object);
 
         // NOTE: calculating address/size of sections before base relocation
@@ -400,7 +397,7 @@ namespace Objects {
         object->size += object->fn_map->size;
 
         x_ntassertb(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &object->base, object->size, &object->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
-        uint8_t *next = (uint8_t*) object->base;
+        auto next = (uint8_t*) object->base;
 
         for (uint16_t sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
             const auto section = SECTION_HEADER(object->buffer, sec_index);
@@ -414,7 +411,7 @@ namespace Objects {
             MemCopy(object->sec_map[sec_index].address, RVA(PBYTE, object->buffer, object->section->SizeOfRawData), object->section->SizeOfRawData);
         }
 
-        // function map goes after the section map ?
+        // NOTE: function map goes after the section map ?
         object->fn_map = (_object_map*) next;
 
         x_assertb(BaseRelocation(object));
@@ -422,6 +419,7 @@ namespace Objects {
 
         defer:
         if (success) {
+            // TODO: Store raw data before this call instead of saving sec_map
             AddCoff(object);
         }
         else {
