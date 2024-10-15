@@ -251,6 +251,7 @@ namespace Memory {
             }
 
             AddCoff(coff);
+            // NOTE: operator now has the option to remove a BOF any time
             if (!coff->b_cache) {
                 RemoveCoff(coff->coff_id);
             }
