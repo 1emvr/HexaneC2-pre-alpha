@@ -76,11 +76,9 @@ namespace Objects {
 
                 auto count = 0;
                 auto split = NewSplit(sym_string + COFF_PREP_SYMBOL_SIZE, "$", &count);
-
 #ifdef _M_IX86
                 Trim(split[1], '@');
 #endif
-
                 auto lib_hash   = HashStringA(MbsToLower(buffer, split[0]), MbsLength(split[0]));
                 auto fn_hash    = HashStringA(MbsToLower(buffer, split[1]), MbsLength(split[1]));
 
