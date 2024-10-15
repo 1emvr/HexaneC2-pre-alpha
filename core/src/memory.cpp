@@ -242,8 +242,8 @@ namespace Memory {
             if (!coff->data_size) {
                 saved = GetCoff(coff->coff_id);
 
-                coff->data              = saved->data;
-                coff->data_size         = saved->data_size;
+                coff->data      = saved->data;
+                coff->data_size = saved->data_size;
             }
 
             if (!CreateUserThread(NtCurrentProcess(), X64, (void*) CoffThread, coff, nullptr)) {
