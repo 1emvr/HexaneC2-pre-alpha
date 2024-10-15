@@ -351,6 +351,8 @@ namespace Objects {
     COFF_PARAMS* GetCoff(const uint32_t coff_id) {
 
         auto head = Ctx->coffs;
+        // NOTE: coff_id will be a known name hash
+
         do {
             if (head) {
                 if (head->coff_id == coff_id) {
