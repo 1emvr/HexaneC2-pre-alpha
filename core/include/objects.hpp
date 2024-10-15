@@ -46,7 +46,7 @@ namespace Objects {
 
     VOID
     FUNCTION
-        CoffLoader(CHAR *entrypoint, VOID *data, VOID *args, SIZE_T args_size, UINT32 task_id);
+        CoffLoader(CHAR *entrypoint, VOID *data, VOID *args, SIZE_T args_size);
 
 }
 

