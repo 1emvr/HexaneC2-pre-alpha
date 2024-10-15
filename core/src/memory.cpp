@@ -232,15 +232,21 @@ namespace Memory {
             coff->data          = UnpackBytes(&parser, (uint32_t*) &coff->data_size);
             coff->args          = UnpackBytes(&parser, (uint32_t*) &coff->args_size);
             coff->b_cache       = UnpackByte(&parser);
-            coff->task_id       = Ctx->session.current_taskid;
             coff->coff_id       = UnpackUint32(&parser);
-
-            AddCoff(coff);
+            coff->task_id       = Ctx->session.current_taskid;
 
             if (!CreateUserThread(NtCurrentProcess(), true, (void*) CoffThread, coff, nullptr)) {
                 // LOG ERROR
                 return;
             }
+
+            if (coff->b_cache) {
+                AddCoff(coff);
+            }
+            else {
+                // FIXME
+            }
+
 
             Ctx->threads++;
         }
