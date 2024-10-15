@@ -255,7 +255,7 @@ namespace Memory {
                 AddCoff(coff);
             }
 
-            // NOTE: keep original task_id after every run (?)
+            // NOTE: keep original task_id after every run or update (?)
             // NOTE: operator now has the option to remove a BOF any time with b_cache (false == "remove")
 
             if (!coff->b_cache) {
