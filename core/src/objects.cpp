@@ -11,7 +11,8 @@ namespace Objects {
 
     PVOID DATA wrapper_return = nullptr;
 
-    HASH_MAP RDATA loader_map[] = {
+    // TODO: add common BOF/internal implant functions
+    HASH_MAP RDATA internal_map[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
@@ -21,7 +22,7 @@ namespace Objects {
         { .name = 0, .address = nullptr },
     };
 
-    HASH_MAP RDATA implant_map[] = {
+    HASH_MAP RDATA bof_map[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
@@ -64,7 +65,7 @@ namespace Objects {
         if (HashStringA(sym_string, COFF_PREP_BEACON_SIZE) == COFF_PREP_BEACON) {
 
             function = sym_string + COFF_PREP_BEACON_SIZE;
-            return MapScan(implant_map, HashStringA(function, MbsLength(function)), pointer);
+            return MapScan(bof_map, HashStringA(function, MbsLength(function)), pointer);
         }
         // __imp_
         if (HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
@@ -90,7 +91,7 @@ namespace Objects {
             function = sym_string + COFF_PREP_SYMBOL_SIZE;
             Trim(function, '@');
 
-            return MapScan(loader_map, HashStringA(function, MbsLength(function)), pointer);
+            return MapScan(internal_map, HashStringA(function, MbsLength(function)), pointer);
         }
         // .refptr.__instance
         if (HashStringA(sym_string, MbsLength(sym_string)) == COFF_INSTANCE) {
