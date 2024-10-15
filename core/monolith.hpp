@@ -136,7 +136,7 @@ LPVOID
 #endif
 #define ROOT_NODE TRANSPORT_TYPE
 
-// todo: hash COFF_PREP_SYMBOL, BEACON_SYMBOL and GLOBAL_CONTEXT names
+// TODO: update COFF_INSTANCE hash names
 #ifdef _M_X64
 	#define IP_REG								    Rip
 	#define ENTRYPOINT_REG 						    Rcx

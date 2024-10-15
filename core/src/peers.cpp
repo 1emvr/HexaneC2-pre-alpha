@@ -189,7 +189,7 @@ namespace Peers {
                 continue;
             }
 
-        	// todo: prepend outbound messages with 0, inbound with 1
+        	// TODO: prepend outbound messages with 0, inbound with 1 (questioning if this is necessary)
             for (auto message = Ctx->transport.message_queue; message; message = message->next) {
                 if (message->buffer && B_PTR(message->buffer)[0] == INGRESS) {
 

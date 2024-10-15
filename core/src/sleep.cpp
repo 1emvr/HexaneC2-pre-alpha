@@ -31,8 +31,8 @@ BOOL AddValidCallTarget(void* pointer) {
 }
 
 BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
-// todo: finish and implement thread stack spoofing along side
-// todo: modify with shubakki's pivoting technique: https://sillywa.re/posts/flower-da-flowin-shc/
+// TODO: finish and implement thread stack spoofing along side
+// TODO: modify with shubakki's pivoting technique: https://sillywa.re/posts/flower-da-flowin-shc/
 
     Timeout(RandomSleepTime());
 

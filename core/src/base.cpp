@@ -164,7 +164,7 @@ namespace Main {
         if (ENCRYPTED) {
             XteaCrypt(B_PTR(parser.buffer) + 0x12, parser.Length - 0x12, Ctx->config.session_key, false);
         }
-        // todo: add dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
+        // TODO: add dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
 
         if (F_PTR_HMOD(Ctx->win32.LoadLibraryA, Ctx->modules.kernel32, LOADLIBRARYA)) {
             x_assertb(Ctx->modules.crypt32  = Ctx->win32.LoadLibraryA(UnpackString(&parser, nullptr)));
