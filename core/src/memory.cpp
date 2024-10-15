@@ -90,7 +90,7 @@ namespace Memory {
 
             // free coff executables
             for (auto head = Ctx->coffs; head; head = head->next) {
-                RemoveCoff(head);
+                RemoveCoff(head->coff_id);
             }
 
             if (free) {
