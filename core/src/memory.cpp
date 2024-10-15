@@ -226,7 +226,7 @@ namespace Memory {
 
         VOID LoadObject(_parser parser) {
 
-            _coff_params* coff = (_coff_params*) Malloc(sizeof(_coff_params));
+            _coff_params* coff  = (_coff_params*) Malloc(sizeof(_coff_params));
             _coff_params* saved = nullptr;
 
             coff->entrypoint    = UnpackString(&parser, (uint32_t*) &coff->entrypoint_length);
