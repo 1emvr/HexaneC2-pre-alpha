@@ -244,7 +244,7 @@ namespace Memory {
                 AddCoff(coff);
             }
             else {
-                // TODO: Delete data/entrypoint and free coff
+                // TODO: Delete data/entrypoint/args and free coff
             }
         }
     }
