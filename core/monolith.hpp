@@ -341,6 +341,7 @@ typedef struct _coff_params {
 	SIZE_T			data_size;
 	SIZE_T			args_size;
 	UINT32			task_id;
+	UINT32			coff_id;
     BOOL			b_cache;
 	_coff_params	*next;
 }COFF_PARAMS, *PCOFF_PARAMS;

