@@ -106,15 +106,15 @@ namespace Objects {
 
         bool success = true;
 
-        const auto sec_map      = exe->sec_map;
-        const auto fn_map       = exe->fn_map;
-        const auto file_head    = exe->nt_head->FileHeader;
-
         // register veh as execution safety net
         if (!(veh_handle = Ctx->nt.RtlAddVectoredExceptionHandler(1, &ExceptionHandler))) {
             success = false;
             goto defer;
         }
+
+        const auto sec_map      = exe->sec_map;
+        const auto fn_map       = exe->fn_map;
+        const auto file_head    = exe->nt_head->FileHeader;
 
         // set section memory attributes
         for (auto sec_index = 0; sec_index < file_head.NumberOfSections; sec_index++) {
