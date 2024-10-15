@@ -351,6 +351,7 @@ namespace Objects {
     COFF_PARAMS GetCoff(uint32_t coff_id) {
 
         // NOTE: Questioning weather we should store these
+        // the bigger the BOF, the more requests will be needed to transport them
     }
 
     VOID RemoveCoff(uint32_t coff_id) {
