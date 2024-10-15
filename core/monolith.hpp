@@ -388,6 +388,7 @@ typedef struct _executable {
 	HANDLE 					thread;
 	PPS_ATTRIBUTE_LIST 		attrs;
 	PRTL_USER_PROCESS_PARAMETERS params;
+	PCOFF_PARAMS			coff_params;
 	PS_CREATE_INFO 			create;
 	_executable 			*next;
 

