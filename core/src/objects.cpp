@@ -98,7 +98,7 @@ namespace Objects {
         return false;
     }
 
-    BOOL ExecuteFunction(_executable* object, const char *const function, void *const args, const size_t size) {
+    BOOL ExecuteFunction(_executable* exe, const char *const entry, void *const args, const size_t size) {
 
         void *veh_handle = nullptr;
         void *entrypoint = nullptr;
@@ -106,9 +106,9 @@ namespace Objects {
 
         bool success = true;
 
-        const auto sec_map      = object->sec_map;
-        const auto fn_map       = object->fn_map;
-        const auto file_head    = object->nt_head->FileHeader;
+        const auto sec_map      = exe->sec_map;
+        const auto fn_map       = exe->fn_map;
+        const auto file_head    = exe->nt_head->FileHeader;
 
         // register veh as execution safety net
         if (!(veh_handle = Ctx->nt.RtlAddVectoredExceptionHandler(1, &ExceptionHandler))) {
@@ -118,7 +118,7 @@ namespace Objects {
 
         // set section memory attributes
         for (auto sec_index = 0; sec_index < file_head.NumberOfSections; sec_index++) {
-            const auto section  = object->section = SECTION_HEADER(object->buffer, sec_index);
+            const auto section  = exe->section = SECTION_HEADER(exe->buffer, sec_index);
 
             if (section->SizeOfRawData > 0) {
                 uint32_t protect = 0;
@@ -157,7 +157,7 @@ namespace Objects {
 
         // get names from COFF symbol table and find entrypoint
         for (auto sym_index = 0; sym_index < file_head.NumberOfSymbols; sym_index++) {
-            const auto symbols = object->symbols;
+            const auto symbols = exe->symbols;
 
             if (symbols[sym_index].First.Value[0]) {
                 sym_name = symbols[sym_index].First.Name; // inlined
@@ -166,8 +166,8 @@ namespace Objects {
                 sym_name = (char*)(symbols + file_head.NumberOfSymbols) + symbols[sym_index].First.Value[1]; // not inlined
             }
 
-            // compare symbols to function names / entrypoint
-            if (MemCompare(sym_name, function, MbsLength(function)) == 0) {
+            // compare symbols to entry names / entrypoint
+            if (MemCompare(sym_name, entry, MbsLength(entry)) == 0) {
                 entrypoint = sec_map[symbols[sym_index].SectionNumber - 1].address + symbols[sym_index].Value;
 
             }
@@ -177,8 +177,9 @@ namespace Objects {
         for (auto sec_index = 0; sec_index < file_head.NumberOfSections; sec_index++) {
             if (entrypoint >= sec_map[sec_index].address && entrypoint < sec_map[sec_index].address + sec_map[sec_index].size) {
 
-                object->section = SECTION_HEADER(object->buffer, sec_index);
-                if ((object->section->Characteristics & IMAGE_SCN_MEM_EXECUTE) != IMAGE_SCN_MEM_EXECUTE) {
+                const auto section = SECTION_HEADER(exe->buffer, sec_index);
+
+                if ((section->Characteristics & IMAGE_SCN_MEM_EXECUTE) != IMAGE_SCN_MEM_EXECUTE) {
                     success = false;
                     goto defer;
                 }
