@@ -286,17 +286,17 @@ namespace Objects {
         return success;
     }
 
-    SIZE_T GetFunctionMapSize(_executable *object) {
+    SIZE_T GetFunctionMapSize(_executable *exe) {
 
         char sym_name[9]    = { };
         int counter         = 0;
 
-        for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            const auto section  = SECTION_HEADER(object->buffer, sec_index);
-            auto reloc          = RELOC_SECTION(object->buffer, object->section);
+        for (auto sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            const auto section  = SECTION_HEADER(exe->buffer, sec_index);
+            auto reloc          = RELOC_SECTION(exe->buffer, exe->section);
 
             for (auto rel_index = 0; rel_index < section->NumberOfRelocations; rel_index++) {
-                const auto symbols  = object->symbols;
+                const auto symbols  = exe->symbols;
                 char *buffer        = nullptr;
 
                 if (_coff_symbol *symbol = &symbols[reloc->SymbolTableIndex]; symbol->First.Value[0]) {
@@ -305,7 +305,7 @@ namespace Objects {
                     buffer = sym_name;
                 }
                 else {
-                    buffer = RVA(char*, symbols, object->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
+                    buffer = RVA(char*, symbols, exe->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
                 }
 
                 if (HashStringA(buffer, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
@@ -403,45 +403,45 @@ namespace Objects {
     VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id) {
 
         bool success        = true;
-        _executable *image  = CreateImageData((uint8_t*) data); ;
+        _executable *exe    = CreateImageData((uint8_t*) data); ;
 
-        x_assertb(image->buffer    = (uint8_t*) data);
-        x_assertb(image->sec_map   = (_object_map*) Malloc(sizeof(void*) * sizeof(_object_map)));
-        x_assertb(ImageCheckArch(image));
+        x_assertb(exe->buffer    = (uint8_t*) data);
+        x_assertb(exe->sec_map   = (_object_map*) Malloc(sizeof(void*) * sizeof(_object_map)));
+        x_assertb(ImageCheckArch(exe));
 
         // NOTE: sec_map seems to be the only thing that persists
-        image->fn_map->size = GetFunctionMapSize(image);
+        exe->fn_map->size = GetFunctionMapSize(exe);
 
         // NOTE: calculating address/size of sections before base relocation
-        for (uint16_t sec_index = 0; sec_index < image->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            const auto section = SECTION_HEADER(image->buffer, sec_index);
+        for (uint16_t sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            const auto section = SECTION_HEADER(exe->buffer, sec_index);
 
-            image->size += section->SizeOfRawData;
-            image->size = (size_t) PAGE_ALIGN(image->size);
+            exe->size += section->SizeOfRawData;
+            exe->size = (size_t) PAGE_ALIGN(exe->size);
         }
 
-        image->size += image->fn_map->size;
+        exe->size += exe->fn_map->size;
 
-        x_ntassertb(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &image->base, image->size, &image->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
-        auto next = (uint8_t*) image->base;
+        x_ntassertb(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &exe->base, exe->size, &exe->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+        auto next = (uint8_t*) exe->base;
 
-        for (uint16_t sec_index = 0; sec_index < image->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            const auto section = SECTION_HEADER(image->buffer, sec_index);
+        for (uint16_t sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            const auto section = SECTION_HEADER(exe->buffer, sec_index);
 
-            image->sec_map[sec_index].size     = section->SizeOfRawData;
-            image->sec_map[sec_index].address  = next;
+            exe->sec_map[sec_index].size     = section->SizeOfRawData;
+            exe->sec_map[sec_index].address  = next;
 
-            next += image->section->SizeOfRawData;
+            next += exe->section->SizeOfRawData;
             next = PAGE_ALIGN(next);
 
-            MemCopy(image->sec_map[sec_index].address, RVA(PBYTE, image->buffer, image->section->SizeOfRawData), image->section->SizeOfRawData);
+            MemCopy(exe->sec_map[sec_index].address, RVA(PBYTE, exe->buffer, exe->section->SizeOfRawData), exe->section->SizeOfRawData);
         }
 
         // NOTE: function map goes after the section map ?
-        image->fn_map = (_object_map*) next;
+        exe->fn_map = (_object_map*) next;
 
-        x_assertb(BaseRelocation(image));
-        x_assertb(ExecuteFunction(image, entrypoint, args, args_size));
+        x_assertb(BaseRelocation(exe));
+        x_assertb(ExecuteFunction(exe, entrypoint, args, args_size));
 
     defer:
         if (success) {
@@ -451,8 +451,8 @@ namespace Objects {
             // LOG ERROR
         }
 
-        if (image) {
-            Cleanup(image);
+        if (exe) {
+            Cleanup(exe);
         }
     }
 
