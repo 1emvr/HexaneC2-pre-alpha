@@ -71,6 +71,10 @@ LPVOID
 #define PIPE_BUFFER_MAX					(64 * 1000 - 1)
 #define NT_SUCCESS(x)					(x >= 0)
 
+#define NONCE_SIZE						((uint32_t) 16)
+#define DH_KEY_SIZE						((uint32_t) 2048)
+#define AES_KEY_SIZE					((uint32_t) 16)
+
 #define Malloc(s)						Ctx->nt.RtlAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, s)
 #define Realloc(p, s) 	    			Ctx->nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, p, s)
 #define Free(s) 			    		Ctx->nt.RtlFreeHeap(Ctx->heap, 0, s)

@@ -132,3 +132,73 @@ namespace Xtea {
         Free(cipher);
     }
 }
+
+namespace Bcrypt {
+
+    BOOL DeriveDHSharedSecret(const BCRYPT_ALG_HANDLE provider_handle, const BCRYPT_KEY_HANDLE private_key, uint8_t *server_public, const uint32_t server_pub_size, uint8_t *shared_secret, uint32_t *shared_secret_size) {
+
+        BCRYPT_KEY_HANDLE pub_handle = nullptr;
+        uint32_t secret_size = 0;
+
+        if (!NT_SUCCESS(ntstatus = BCryptImportKeyPair(provider_handle, nullptr, BCRYPT_DH_PUBLIC_BLOB, &pub_handle, server_public, server_pub_size, 0)) ||
+            !NT_SUCCESS(ntstatus = BCryptSecretAgreement(private_key, pub_handle, &hSecretAgreement, 0)) ||
+            !NT_SUCCESS(ntstatus = BCryptDeriveKey(hSecretAgreement, BCRYPT_KDF_RAW_SECRET, nullptr, shared_secret, AES_KEY_SIZE, &secret_size, 0))) {
+            return false;
+        }
+
+        *shared_secret_size = secret_size;
+        return NT_SUCCESS(BCryptDestroyKey(pub_handle));
+    }
+
+    BOOL DeriveSessionKey(BCRYPT_ALG_HANDLE provider_handle, uint8_t *shared_secret, const uint8_t *nonce, const uint32_t counter, uint8_t *session_key) {
+
+        BCRYPT_HASH_HANDLE hash_handle = nullptr;
+        uint8_t combined[NONCE_SIZE + sizeof(counter)];
+
+        MemCopy(combined, nonce, NONCE_SIZE);
+        MemCopy(combined + NONCE_SIZE, &counter, sizeof(counter));
+
+        if (BCryptCreateHash(provider_handle, &hash_handle, nullptr, 0, shared_secret, AES_KEY_SIZE, 0) != 0) {
+            return false;
+        }
+    }
+
+    BOOL FirstKey(uint8_t *server_public, const uint32_t server_public_size) {
+
+        BCRYPT_ALG_HANDLE provider_handle   = nullptr;
+        BCRYPT_KEY_HANDLE private_key       = nullptr;
+
+        bool success = true;
+
+        uint8_t session_key[AES_KEY_SIZE]   = { };
+        uint8_t shared_secret[AES_KEY_SIZE] = { };
+
+        const auto nonce = (uint8_t*) Malloc(NONCE_SIZE);
+        uint32_t counter = 0;
+
+        if (!NT_SUCCESS(ntstatus = BCryptOpenAlgorithmProvider(&provider_handle, BCRYPT_DH_ALGORITHM, nullptr, 0)) ||
+            !NT_SUCCESS(ntstatus = BCryptGenerateKeyPair(provider_handle, &private_key, DH_KEY_SIZE, 0)) ||
+            !NT_SUCCESS(ntstatus = BCryptFinalizeKeyPair(private_key, 0))) {
+            success = false;
+            goto defer;
+        }
+
+        uint32_t shared_secret_size = AES_KEY_SIZE;
+        if (!DeriveDHSharedSecret(provider_handle, private_key, server_public, server_public_size, shared_secret, &shared_secret_size)) {
+            success = false;
+            goto defer;
+        }
+
+        DeriveSessionKey(provider_handle, shared_secret, nonce, counter, session_key);
+
+        // Cleanup
+        if (!NT_SUCCESS(ntstatus = BCryptDestroyKey(private_key)) ||
+            !NT_SUCCESS(ntstatus = BCryptCloseAlgorithmProvider(provider_handle, 0))) {
+            success = false;
+        }
+
+    defer:
+        Free(nonce);
+        return success;
+    }
+}
