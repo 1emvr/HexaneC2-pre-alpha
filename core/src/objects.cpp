@@ -348,10 +348,28 @@ namespace Objects {
         }
     }
 
-    COFF_PARAMS GetCoff(uint32_t coff_id) {
+    COFF_PARAMS* GetCoff(const uint32_t coff_id) {
 
-        // NOTE: Questioning weather we should store these
-        // the bigger the BOF, the more requests will be needed to transport them every time
+        auto head = Ctx->coffs;
+        do {
+            if (head) {
+                if (head->coff_id == coff_id) {
+                    if (ENCRYPTED) {
+                        XteaCrypt((uint8_t*)head->data, head->data_size, Ctx->config.session_key, false);
+                        XteaCrypt((uint8_t*)head->args, head->args_size, Ctx->config.session_key, false);
+                        XteaCrypt((uint8_t*)head->entrypoint, head->entrypoint_length, Ctx->config.session_key, false);
+                    }
+
+                    return head;
+                }
+
+                head = head->next;
+            }
+            else {
+                return nullptr;
+            }
+        }
+        while (true);
     }
 
     VOID RemoveCoff(uint32_t coff_id) {

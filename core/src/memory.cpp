@@ -235,13 +235,12 @@ namespace Memory {
             coff->coff_id       = UnpackUint32(&parser);
             coff->task_id       = Ctx->session.current_taskid;
 
-            AddCoff(coff);
-
             if (!CreateUserThread(NtCurrentProcess(), X64, (void*) CoffThread, coff, nullptr)) {
                 // LOG ERROR
                 return;
             }
 
+            AddCoff(coff);
             if (!coff->b_cache) {
                 RemoveCoff(coff->coff_id);
             }
