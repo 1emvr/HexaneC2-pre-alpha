@@ -9,6 +9,8 @@ using namespace Utils;
 
 namespace Objects {
 
+    PVOID DATA wrapper_return = nullptr;
+
     HASH_MAP RDATA loader_map[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
@@ -29,7 +31,7 @@ namespace Objects {
         { .name = 0, .address = nullptr },
     };
 
-    PVOID RDATA wrapper_return = nullptr;
+
     LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS exception) {
 
         _stream *stream = CreateTaskResponse(TypeError);
@@ -113,9 +115,7 @@ namespace Objects {
             goto defer;
         }
 
-        const auto fn_map       = exe->fn_map;
-        const auto sec_map      = exe->sec_map;
-        const auto file_head    = exe->nt_head->FileHeader;
+        const auto file_head = exe->nt_head->FileHeader;
 
         // NOTE: set section memory attributes
         for (auto sec_index = 0; sec_index < file_head.NumberOfSections; sec_index++) {
@@ -142,14 +142,14 @@ namespace Objects {
                     protect |= PAGE_NOCACHE;
                 }
 
-                if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &sec_map[sec_index].address, &sec_map[sec_index].size, protect, nullptr))) {
+                if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &exe->sec_map[sec_index].address, &exe->sec_map[sec_index].size, protect, nullptr))) {
                     success = false;
                     goto defer;
                 }
             }
         }
 
-        if (fn_map->size) {
+        if (exe->fn_map->size) {
             if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &fn_map->address, &fn_map->size, PAGE_READONLY, nullptr))) {
                 success = false;
                 goto defer;
@@ -169,14 +169,14 @@ namespace Objects {
 
             // NOTE: compare symbols to entry names / entrypoint
             if (MemCompare(sym_name, entry, MbsLength(entry)) == 0) {
-                entrypoint = sec_map[symbols[sym_index].SectionNumber - 1].address + symbols[sym_index].Value;
+                entrypoint = exe->sec_map[symbols[sym_index].SectionNumber - 1].address + symbols[sym_index].Value;
 
             }
         }
 
         // NOTE: find section where entrypoint can be found and assert is RX
         for (auto sec_index = 0; sec_index < file_head.NumberOfSections; sec_index++) {
-            if (entrypoint >= sec_map[sec_index].address && entrypoint < sec_map[sec_index].address + sec_map[sec_index].size) {
+            if (entrypoint >= exe->sec_map[sec_index].address && entrypoint < exe->sec_map[sec_index].address + exe->sec_map[sec_index].size) {
 
                 const auto section = SECTION_HEADER(exe->buffer, sec_index);
 
@@ -208,9 +208,6 @@ namespace Objects {
         const auto buffer   = exe->buffer;
         const auto symbols  = exe->symbols;
 
-        const auto sec_map  = exe->sec_map;
-        const auto fn_map   = exe->fn_map;
-
         for (auto sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
             void *function = nullptr;
 
@@ -229,9 +226,9 @@ namespace Objects {
                     name_ptr = (char*) (symbols + exe->nt_head->FileHeader.NumberOfSymbols) + head->First.Value[1];
                 }
 
-                void *reloc_addr    = sec_map[sec_index].address + reloc->VirtualAddress;
-                void *sec_addr      = sec_map[head->SectionNumber - 1].address;
-                void *fn_addr       = fn_map + (fn_count * sizeof(void*));
+                void *reloc_addr    = exe->sec_map[sec_index].address + reloc->VirtualAddress;
+                void *sec_addr      = exe->sec_map[head->SectionNumber - 1].address;
+                void *fn_addr       = exe->fn_map + (fn_count * sizeof(void*));
 
                 if (!ProcessSymbol(name_ptr, &function)) {
                     success = false;
@@ -440,11 +437,11 @@ namespace Objects {
     }
 
     VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size) {
+        // NOTE: sec_map seems to be the only thing that persists
 
         bool success        = true;
         _executable *exe    = CreateImageData((uint8_t*) data); ;
 
-        // NOTE: sec_map seems to be the only thing that persists
         x_assertb(exe->buffer    = (uint8_t*) data);
         x_assertb(exe->sec_map   = (_object_map*) Malloc(sizeof(void*) * sizeof(_object_map)));
         x_assertb(ImageCheckArch(exe));
