@@ -244,7 +244,14 @@ namespace Memory {
                 AddCoff(coff);
             }
             else {
-                // TODO: Delete data/entrypoint/args and free coff
+                MemSet(coff->data, 0, coff->data_size);
+                MemSet(coff->args, 0, coff->args_size);
+                MemSet(coff->entrypoint, 0, coff->entrypoint_length);
+
+                Free(coff->data);
+                Free(coff->args);
+                Free(coff->entrypoint);
+                Free(coff);
             }
         }
     }
