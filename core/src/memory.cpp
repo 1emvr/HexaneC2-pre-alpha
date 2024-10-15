@@ -235,12 +235,14 @@ namespace Memory {
             coff->coff_id       = UnpackUint32(&parser);
             coff->task_id       = Ctx->session.current_taskid;
 
-            // TODO: test that coff data being zero is a correct way to do this
+            // TODO: test that coff data size being zero is a correct way to do this
             if (!coff->data_size) {
                 _coff_params *get = GetCoff(coff->coff_id);
 
-                coff->data      = get->data;
-                coff->data_size = get->data_size;
+                coff->data              = get->data;
+                coff->data_size         = get->data_size;
+                coff->entrypoint        = get->entrypoint;
+                coff->entrypoint_length = get->entrypoint_length;
             }
 
             if (!CreateUserThread(NtCurrentProcess(), X64, (void*) CoffThread, coff, nullptr)) {
