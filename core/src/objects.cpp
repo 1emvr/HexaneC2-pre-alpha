@@ -114,6 +114,7 @@ namespace Objects {
         }
 
         const auto fn_map       = exe->fn_map;
+        const auto sec_map      = exe->sec_map;
         const auto file_head    = exe->nt_head->FileHeader;
 
         // NOTE: set section memory attributes
@@ -141,7 +142,7 @@ namespace Objects {
                     protect |= PAGE_NOCACHE;
                 }
 
-                if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &exe->sec_map[sec_index].address, &exe->sec_map[sec_index].size, protect, nullptr))) {
+                if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &sec_map[sec_index].address, &sec_map[sec_index].size, protect, nullptr))) {
                     success = false;
                     goto defer;
                 }
@@ -168,14 +169,14 @@ namespace Objects {
 
             // NOTE: compare symbols to entry names / entrypoint
             if (MemCompare(sym_name, entry, MbsLength(entry)) == 0) {
-                entrypoint = exe->sec_map[symbols[sym_index].SectionNumber - 1].address + symbols[sym_index].Value;
+                entrypoint = sec_map[symbols[sym_index].SectionNumber - 1].address + symbols[sym_index].Value;
 
             }
         }
 
         // NOTE: find section where entrypoint can be found and assert is RX
         for (auto sec_index = 0; sec_index < file_head.NumberOfSections; sec_index++) {
-            if (entrypoint >= exe->sec_map[sec_index].address && entrypoint < exe->sec_map[sec_index].address + exe->sec_map[sec_index].size) {
+            if (entrypoint >= sec_map[sec_index].address && entrypoint < sec_map[sec_index].address + sec_map[sec_index].size) {
 
                 const auto section = SECTION_HEADER(exe->buffer, sec_index);
 
@@ -207,11 +208,14 @@ namespace Objects {
         const auto buffer   = exe->buffer;
         const auto symbols  = exe->symbols;
 
+        const auto sec_map  = exe->sec_map;
+        const auto fn_map   = exe->fn_map;
+
         for (auto sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
             void *function = nullptr;
 
             const auto section  = SECTION_HEADER(buffer, sec_index);
-            auto reloc          = RELOC_SECTION(buffer, section);
+            auto reloc = RELOC_SECTION(buffer, section);
 
             for (auto rel_index = 0; rel_index < section->NumberOfRelocations; rel_index++) {
                 const auto head = &symbols[reloc->SymbolTableIndex];
@@ -225,9 +229,9 @@ namespace Objects {
                     name_ptr = (char*) (symbols + exe->nt_head->FileHeader.NumberOfSymbols) + head->First.Value[1];
                 }
 
-                void *reloc_addr    = exe->sec_map[sec_index].address + reloc->VirtualAddress;
-                void *sec_addr      = exe->sec_map[head->SectionNumber - 1].address;
-                void *fn_addr       = exe->fn_map + (fn_count * sizeof(void*));
+                void *reloc_addr    = sec_map[sec_index].address + reloc->VirtualAddress;
+                void *sec_addr      = sec_map[head->SectionNumber - 1].address;
+                void *fn_addr       = fn_map + (fn_count * sizeof(void*));
 
                 if (!ProcessSymbol(name_ptr, &function)) {
                     success = false;
