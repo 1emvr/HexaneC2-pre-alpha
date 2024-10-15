@@ -356,16 +356,17 @@ namespace Objects {
         // NOTE: Questioning weather we should store these
     }
 
-    VOID RemoveCoff(_coff_params *coff) {
+    VOID RemoveCoff(uint32_t coff_id) {
 
         _coff_params *prev = { };
 
-        if (!coff) {
+        if (!coff_id) {
             return;
         }
 
         for (auto head = Ctx->coffs; head; head = head->next) {
-            if (head->task_id == coff->task_id) {
+            if (head->coff_id == coff_id) {
+
                 if (prev) {
                     prev->next = head->next;
                 }
@@ -373,9 +374,15 @@ namespace Objects {
                     Ctx->coffs = head->next;
                 }
 
-                MemSet(coff->entrypoint, 0, coff->entrypoint_length);
-                MemSet(coff->data, 0, coff->data_size);
-                MemSet(coff->args, 0, coff->args_size);
+                MemSet(head->data, 0, head->data_size);
+                MemSet(head->args, 0, head->args_size);
+                MemSet(head->entrypoint, 0, head->entrypoint_length);
+
+                Free(head->data);
+                Free(head->args);
+                Free(head->entrypoint);
+                Free(head);
+
                 return;
             }
 
