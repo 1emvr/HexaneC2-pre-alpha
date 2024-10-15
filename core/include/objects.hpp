@@ -30,11 +30,11 @@ namespace Objects {
 
     VOID
     FUNCTION
-        AddCoff(EXECUTABLE *object);
+        AddCoff(COFF_PARAMS *object);
 
     VOID
     FUNCTION
-        RemoveCoff(EXECUTABLE *object);
+        RemoveCoff(COFF_PARAMS *object);
 
     VOID
     FUNCTION

