@@ -3,14 +3,14 @@
 LPSTR FormatResultError(LRESULT Result) {
 
     char buffer[MAX_PATH] = { };
-    char *message = (char*) x_malloc(MAX_PATH);
+    char *message = (char*) Malloc(MAX_PATH);
 
     uint32_t flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
 
     Ctx->win32.FormatMessageA(flags, nullptr, Result, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR) buffer, 0, nullptr);
-    x_memcpy(message, buffer, MAX_PATH);
+    MemCopy(message, buffer, MAX_PATH);
 
-    x_free(buffer);
+    Free(buffer);
     return message;
 }
 

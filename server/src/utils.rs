@@ -117,14 +117,14 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
     if !log_dir.exists() {
         fs::create_dir_all(&log_dir)
             .map_err(|e| {
-                wrap_message("ERR", format!("run_command:: create_dir_all: {e}").as_str());
+                wrap_message("ERR", format!("run_command:: create_dir_all: {:?} : {e}", log_dir).as_str());
                 return Custom(e.to_string())
             })?;
     }
 
     let mut log_file = File::create(&log_dir.join(logname))
         .map_err(|e| {
-            wrap_message("ERR", format!("run_command: file::create: {e}").as_str());
+            wrap_message("ERR", format!("run_command: file::create: {:?} : {e}", log_dir.join(logname)).as_str());
             return Custom(e.to_string())
         })?;
 
@@ -134,7 +134,7 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
 
     let output = command.output()
         .map_err(|e| {
-            wrap_message("ERR", format!("run_command: {e}").as_str());
+            wrap_message("ERR", format!("run_command: {:?} : {e}", command).as_str());
             return Custom(e.to_string())
         })?;
 

@@ -21,7 +21,7 @@ namespace Main {
                 continue;
             }
             if (!Ctx->session.checkin &&
-                !Ctx->transport.outbound_queue) {
+                !Ctx->transport.message_queue) {
                 if (!CheckEnvironment()) {
                     break;
                 }
@@ -267,7 +267,7 @@ namespace Main {
         x_assertb(F_PTR_HMOD(Ctx->win32.InitializeAcl,                   Ctx->modules.advapi, INITIALIZEACL));
         x_assertb(F_PTR_HMOD(Ctx->win32.FreeSid,                         Ctx->modules.advapi, FREESID));
 
-        Ctx->transport.outbound_queue = nullptr;
+        Ctx->transport.message_queue = nullptr;
 #ifdef TRANSPORT_HTTP
         Ctx->transport.http = (_http_context*) x_malloc(sizeof(_http_context));
 

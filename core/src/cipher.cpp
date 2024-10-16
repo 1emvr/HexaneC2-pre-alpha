@@ -133,6 +133,8 @@ namespace Xtea {
     }
 }
 
+/*
+TODO: experimental
 namespace Bcrypt {
 
     BOOL DeriveDHSharedSecret(const BCRYPT_ALG_HANDLE provider_handle, const BCRYPT_KEY_HANDLE private_key, uint8_t *server_public, const uint32_t server_pub_size, uint8_t *shared_secret, uint32_t *shared_secret_size) {
@@ -202,3 +204,4 @@ namespace Bcrypt {
         return success;
     }
 }
+*/

@@ -5,8 +5,8 @@ use rand::Rng;
 
 use crate::stream::Stream;
 use crate::cipher::{crypt_create_key, crypt_xtea};
-use crate::binary::{copy_section_data, embed_section_data, run_command};
-use crate::utils::{canonical_path_all, generate_definitions, generate_hashes, generate_includes, generate_object_path, normalize_path};
+use crate::binary::{copy_section_data, embed_section_data};
+use crate::utils::{canonical_path_all, generate_definitions, generate_hashes, generate_includes, generate_object_path, normalize_path, run_command};
 
 use crate::types::Hexane;
 use crate::interface::wrap_message;
@@ -278,7 +278,7 @@ impl Hexane {
 
         let command = format!("x86_64-w64-mingw32-g++ {} -o {output}.exe", params.join(" "));
 
-        if let Err(e) = run_command(command.as_str(), format!("{output}-linker_error").as_str()) {
+        if let Err(e) = run_command(command.as_str(), format!("{}-linker_error", self.builder_cfg.output_name).as_str()) {
             wrap_message("ERR", format!("linker_error {e}").as_str());
             return Err(e);
         }
