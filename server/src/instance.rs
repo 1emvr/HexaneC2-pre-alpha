@@ -138,7 +138,6 @@ pub fn list_instances() {
         };
 
         let (address, net_type, domain, proxy) = match &network.options {
-
             HttpOpts(http) => {
                 let address     = format!("http://{}:{}", http.address, http.port);
                 let net_type    = "http".to_string();
@@ -157,11 +156,12 @@ pub fn list_instances() {
             SmbOpts(smb) => {
                 let address     = smb.egress_peer.clone();
                 let net_type    = "smb".to_string();
+
                 (address, net_type, "null".to_string(), "null".to_string())
             }
         };
 
-        table.add_row(row![gid, pid, name, debug, net_type, address, hostname, domain, proxy, username, active, ]);
+        table.add_row(row![gid, pid, name, debug, address, hostname, domain, proxy, username, active, ]);
     }
 
     table.printstd();
