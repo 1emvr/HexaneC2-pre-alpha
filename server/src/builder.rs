@@ -4,8 +4,8 @@ use std::str::FromStr;
 use rand::Rng;
 
 use crate::stream::Stream;
+use crate::binary::extract_section_data;
 use crate::cipher::{crypt_create_key, crypt_xtea};
-use crate::binary::{copy_section_data, embed_section_data};
 use crate::utils::{canonical_path_all, generate_definitions, generate_hashes, generate_includes, generate_object_path, normalize_path, run_command};
 
 use crate::types::Hexane;
@@ -38,24 +38,20 @@ impl Hexane {
         };
 
         self.compiler_cfg.flags = compiler_flags;
-        wrap_message("INF", "creating build directory");
 
         if let Err(e) = fs::create_dir_all(&self.compiler_cfg.build_directory) {
             wrap_message("ERR", format!("create_dir_all: {e}").as_str());
             return Err(Error::from(e))
         }
 
-        wrap_message("INF", "generating hashes");
         if let Err(e) = generate_hashes("./configs/strings.txt", "./core/include/names.hpp") {
             return Err(e);
         }
 
-        wrap_message("INF", "creating patch");
         if let Err(e) = self.create_config_patch() {
             return Err(e)
         }
 
-        wrap_message("INF", "compiling sources");
         if let Err(e) = self.compile_sources() {
             return Err(e)
         }
@@ -70,13 +66,12 @@ impl Hexane {
         let encrypt = self.main_cfg.encrypt;
 
         if encrypt {
-            let patch_cpy = patch.clone();
+            let patch_cpy = patch;
+
             patch = crypt_xtea(&patch_cpy, &self.session_key, true)?;
         }
 
         self.config = patch;
-        wrap_message("INF", "patch created successfully");
-
         Ok(())
     }
 
@@ -209,7 +204,7 @@ impl Hexane {
                     command.push_str(format!(" -f win64 {} -o {}", source, object).as_str());
 
                     if let Err(e) = run_command(&command.as_str(), format!("{output}-compiler_error").as_str()) {
-                        wrap_message("error", format!("compile_sources:: {e} : {command}")
+                        wrap_message("ERR", format!("compile_sources:: {e} : {command}")
                             .as_str());
 
                         return Err(Custom("CommandError".to_string()));
@@ -222,14 +217,16 @@ impl Hexane {
             }
         }
 
-        wrap_message("INF", "linking final objects");
-
         if let Err(e) = self.run_mingw(components) {
             return Err(Custom(e.to_string()))
         };
 
-        if let Err(e) = self.extract_shellcode() {
-            return Err(Custom(e.to_string()))
+        let mut shellcode: String = self.compiler_cfg.build_directory.to_owned();
+        shellcode.push_str("/shellcode.bin");
+
+        if let Err(e) = extract_section_data(shellcode.as_str(), ".text", &self.config) {
+            wrap_message("ERR", format!("extract_shellcode:: {e}").as_str());
+            return Err(e)
         }
 
         Ok(())
@@ -286,20 +283,11 @@ impl Hexane {
     }
 
     fn extract_shellcode(&self) -> Result<()> {
-        let config  = &self.config;
-        let output  = &self.builder_cfg.output_name;
-        let size    = self.main_cfg.config_size as usize;
-
-        if let Err(e) = embed_section_data(output, &config, size) {
-            wrap_message("ERR", format!("compile_sources: {e}").as_str());
-            return Err(e)
-        }
-
         let mut shellcode: String = self.compiler_cfg.build_directory.to_owned();
         shellcode.push_str("/shellcode.bin");
 
-        if let Err(e) = copy_section_data(output, shellcode.as_str(), ".text$F") {
-            wrap_message("error", format!("extract_shellcode:: {e}").as_str());
+        if let Err(e) = extract_section_data(shellcode.as_str(), ".text", &self.config) {
+            wrap_message("ERR", format!("extract_shellcode:: {e}").as_str());
             return Err(e)
         }
 

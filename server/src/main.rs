@@ -51,7 +51,7 @@ fn main() {
 
             "implant"   => {
                 if args.len() < 2 {
-                    wrap_message("error", "invalid input");
+                    wrap_message("ERR", "invalid input");
                     continue;
                 }
 
@@ -59,19 +59,19 @@ fn main() {
                     "ls"    => list_instances(),
                     "load"  => load_instance(args),
                     "rm"    => remove_instance(args),
-                    _       => wrap_message("error", "invalid input")
+                    _       => wrap_message("ERR", "invalid input")
                 }
             },
 
             "listener" => {
                 // TODO: add connection to an external listener
                 match args[1].as_str() {
-                    "connect"   => wrap_message("error", "listener not yet implemented"),
-                    _           => wrap_message("error", "listener not yet implemented"),
+                    "connect"   => wrap_message("ERR", "listener not yet implemented"),
+                    _           => wrap_message("ERR", "listener not yet implemented"),
                 }
             }
             _ => {
-                wrap_message("error", "invalid input")
+                wrap_message("ERR", "invalid input")
             }
         }
     }

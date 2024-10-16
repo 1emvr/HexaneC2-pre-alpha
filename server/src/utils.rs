@@ -146,14 +146,14 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
                 return Custom(e.to_string())
             })?;
 
-        wrap_message("error", &format!("run_command: check {}/{} for details", log_dir.display(), logname));
+        wrap_message("ERR", &format!("run_command: check {}/{} for details", log_dir.display(), logname));
         return Err(Custom("run command failed".to_string()))
     }
 
     match output.status.success() {
         true => Ok(()),
         false  => {
-            wrap_message("error", "running command failed");
+            wrap_message("ERR", "running command failed");
             Err(Custom("run command failed".to_string()))
         }
     }
@@ -165,7 +165,7 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
     let file_name = match source_path.file_name() {
         Some(name) => name,
         None => {
-            wrap_message("error", format!("could not extract file name from source: {source}").as_str());
+            wrap_message("ERR", format!("could not extract file name from source: {source}").as_str());
             return Err(io::Error::new(ErrorKind::InvalidInput, "invalid source file").into());
         }
     };
@@ -178,7 +178,7 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
     let output_str = match output_path.to_str() {
         Some(output) => output.replace("/", "\\"),
         None => {
-            wrap_message("error", &format!("could not convert output path to string: {}", output_path.display()));
+            wrap_message("ERR", &format!("could not convert output path to string: {}", output_path.display()));
             return Err(io::Error::new(ErrorKind::InvalidInput, "Invalid output path").into());
         }
     };

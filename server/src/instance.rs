@@ -25,11 +25,10 @@ lazy_static! {
 
 pub(crate) fn load_instance(args: Vec<String>) {
     if args.len() != 3 {
-        wrap_message("error", "invalid arguments");
+        wrap_message("ERR", "invalid arguments");
         return
     }
 
-    wrap_message("INF", "loading json config");
     let mut instance = match map_json_config(&args[2]) {
         Ok(instance) => instance,
         Err(e) => {
@@ -40,7 +39,7 @@ pub(crate) fn load_instance(args: Vec<String>) {
 
     let name = instance.builder_cfg.output_name.clone();
 
-    wrap_message("INF", "setting up build");
+    wrap_message("INF", "building...");
     if let Err(e) = instance.setup_build() {
         wrap_message("ERR", format!("setting up build failed: {e}").as_str());
         return
@@ -52,7 +51,7 @@ pub(crate) fn load_instance(args: Vec<String>) {
 
 pub(crate) fn remove_instance(args: Vec<String>) {
     if args.len() < 2 {
-        wrap_message("error", "invalid arguments");
+        wrap_message("ERR", "invalid arguments");
         return
     }
 
@@ -72,7 +71,7 @@ pub(crate) fn remove_instance(args: Vec<String>) {
         return
     }
     else {
-        wrap_message("error", "implant not found");
+        wrap_message("ERR", "implant not found");
         return
     }
 }
@@ -90,7 +89,7 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
         .join(file_path);
 
     if !json_file.exists() {
-        wrap_message("error", "json file does not exist");
+        wrap_message("ERR", "json file does not exist");
         return Err(Custom("IOError".to_string()))
     }
 
@@ -162,7 +161,7 @@ pub fn list_instances() {
         let username = &instance.user_session.username;
 
         let Some(network) = &instance.network_cfg else {
-            wrap_message("error", "list_instances: the network type did not show up somehow");
+            wrap_message("ERR", "list_instances: the network type did not show up somehow");
             return
         };
 
