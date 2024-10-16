@@ -53,13 +53,12 @@ pub(crate) fn copy_section_data(target_path: &str, out_path: &str, target_sectio
     let section_data = get_section_header(target_path, target_section)
         .map_err(|e| {
             return Err(e)
-        });
+        })
+        .unwrap();
 
-    let data = section_data.unwrap();
-
-    let offset  = data.section.PointerToRawData as usize;
-    let size    = data.section.SizeOfRawData as usize;
-    let data    = &data.data[offset..offset + size];
+    let offset  = section_data.section.PointerToRawData as usize;
+    let size    = section_data.section.SizeOfRawData as usize;
+    let data    = &section_data.data[offset..offset + size];
 
     let mut outfile = File::create(out_path)
         .map_err(|e| {
