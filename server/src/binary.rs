@@ -1,6 +1,5 @@
 use std::io::Write;
 use std::fs::{File, OpenOptions};
-use http_body_util::BodyExt;
 use pelite::{PeFile, pe32::headers::SectionHeader};
 
 use crate::interface::wrap_message;
@@ -21,7 +20,7 @@ fn get_section_header (target_path: &str, target_section: &str) -> Result<Sectio
             return Custom(e.to_string())
         });
 
-    let pe_file = PeFile::from_bytes(&read_data)
+    let pe_file = PeFile::from_bytes(&read_data.unwrap())
         .map_err(|e| {
             wrap_message("ERR", "get_section_header: error converting target file");
             return Custom(e.to_string())
@@ -38,7 +37,7 @@ fn get_section_header (target_path: &str, target_section: &str) -> Result<Sectio
 
     match found {
         Some(section_header) => Ok(Section {
-            data:       read_data?,
+            data:       read_data,
             section:    section_header,
         }),
 
@@ -52,7 +51,7 @@ fn get_section_header (target_path: &str, target_section: &str) -> Result<Sectio
 pub(crate) fn copy_section_data(target_path: &str, out_path: &str, target_section: &str) -> Result<()> {
     let section_data = get_section_header(target_path, target_section)
         .map_err(|e| {
-            return Err(e)
+            return Custom(e.to_string())
         })
         .unwrap();
 
@@ -105,7 +104,7 @@ pub(crate) fn embed_section_data(target_path: &str, data: &[u8], sec_size: usize
             wrap_message("ERR", format!("embed_section_data: error writing file data: {e}").as_str());
             return Custom(e.to_string())
         })
-        .unwrap();
+        .expect("what in the fuck?");
 
     Ok(())
 }
