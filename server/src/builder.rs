@@ -176,6 +176,9 @@ impl Hexane {
             let mut command = String::new();
             match path.extension().and_then(|ext| ext.to_str()) {
 
+                Some("cpp") => {
+                    components.push(source);
+                },
                 Some("asm") => {
                     command.push_str("nasm");
                     command.push_str(format!(" -f win64 {} -o {}", source, object).as_str());
@@ -185,10 +188,7 @@ impl Hexane {
                         return Err(Custom("fuck off".to_string()));
                     }
                     components.push(object);
-                }
-                Some("cpp") => {
-                    components.push(source);
-                }
+                },
                 _ => {
                     continue;
                 }
