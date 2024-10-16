@@ -251,7 +251,7 @@ impl Hexane {
         params.push(linker);
         params.push(flags);
 
-        let command = format!("x86_64-w64-mingw32-g++ {} -o {}.exe", params.join(" "), output);
+        let command = format!("x86_64-w64-mingw32-g++ {} -o {output}.exe", params.join(" "));
 
         if let Err(e) = run_command(command.as_str(), format!("{output}-linker_error").as_str()) {
             wrap_message("error", format!("linker_error {e}").as_str());
@@ -262,26 +262,24 @@ impl Hexane {
     }
 
     fn extract_shellcode(&self) -> Result<()> {
-        let config          = &self.config;
-        let config_size     = self.main_cfg.config_size as usize;
-        let embed_target    = &self.builder_cfg.output_name;
+        let config  = &self.config;
+        let output  = &self.builder_cfg.output_name;
+        let size    = self.main_cfg.config_size as usize;
 
-        if let Err(e) = embed_section_data(&format!("{}.exe", embed_target), &config, config_size) {
-            return Err(Custom(format!("compile_sources:: {e}")));
+        if let Err(e) = embed_section_data(&format!("{output}.exe"), &config, size) {
+            wrap_message("ERR", format!("compile_sources: {e}").as_str());
+            return Err(e)
         }
 
         let mut shellcode: String = self.compiler_cfg.build_directory.to_owned();
         shellcode.push_str("/shellcode.bin");
 
-        if let Err(e) = copy_section_data(&format!("{}.exe", embed_target), shellcode.as_str(), ".text") {
+        if let Err(e) = copy_section_data(&format!("{output}.exe"), shellcode.as_str(), ".text") {
             wrap_message("error", format!("extract_shellcode:: {e}").as_str());
-            return Err(Custom("kys".to_string()));
+            return Err(e)
         }
 
-        wrap_message("info", format!("{} ready to use", shellcode).as_str());
-        // TODO: create option dll loader
-
+        // TODO: create option for dll loader
         Ok(())
-
     }
 }
