@@ -153,6 +153,7 @@ impl Hexane {
     pub fn compile_sources(&mut self) -> Result<()> {
         let root_dir    = &self.builder_cfg.root_directory;
         let build_dir   = &self.compiler_cfg.build_directory;
+        let output      = &self.builder_cfg.output_name;
 
         let mut components  = Vec::new();
         let src_path        = Path::new(root_dir).join("src");
@@ -183,7 +184,7 @@ impl Hexane {
                     command.push_str("nasm");
                     command.push_str(format!(" -f win64 {} -o {}", source, object).as_str());
 
-                    if let Err(e) = run_command(command.as_str(), "compiler_error") {
+                    if let Err(e) = run_command(command.as_str(), format!("{output}-compiler_error").as_str()) {
                         wrap_message("error", format!("compile_sources:: {e}").as_str());
                         return Err(Custom("fuck off".to_string()));
                     }
@@ -206,6 +207,7 @@ impl Hexane {
     fn run_mingw(&self, components: Vec<String>) -> Result<()> {
         let main_cfg    = &self.main_cfg;
         let network_cfg = &self.network_cfg.as_ref().unwrap();
+        let output      = &self.builder_cfg.output_name;
 
         let definitions     = generate_definitions(main_cfg, network_cfg);
         let mut includes    = String::new();
@@ -217,7 +219,7 @@ impl Hexane {
         }
 
         let output = Path::new(&self.compiler_cfg.build_directory)
-            .join(&self.builder_cfg.output_name)
+            .join(&output)
             .to_string_lossy()
             .to_string();
 
@@ -251,7 +253,7 @@ impl Hexane {
 
         let command = format!("x86_64-w64-mingw32-g++ {} -o {}.exe", params.join(" "), output);
 
-        if let Err(e) = run_command(command.as_str(), format!("{}-linker_error", self.builder_cfg.output_name).as_str()) {
+        if let Err(e) = run_command(command.as_str(), format!("{output}-linker_error").as_str()) {
             wrap_message("error", format!("linker_error {e}").as_str());
             return Err(e);
         }
