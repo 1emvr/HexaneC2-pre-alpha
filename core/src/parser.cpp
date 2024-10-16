@@ -1,10 +1,10 @@
-#include <include/parser.hpp>
+#include <core/include/parser.hpp>
 namespace Parser {
 
     VOID ParserBytecpy(_parser *const parser, uint8_t *const dst) {
 
         const auto byte = UnpackByte(parser);
-        x_memcpy(dst, (void*) &byte, 1);
+        MemCopy(dst, (void*) &byte, 1);
     }
 
     VOID ParserStrcpy(_parser *const parser, char **const dst, uint32_t *const n_out) {
@@ -16,8 +16,8 @@ namespace Parser {
             if (n_out) {
                 *n_out = length;
             }
-            if ((*dst = (char*) x_malloc(length))) {
-                x_memcpy(*dst, buffer, length);
+            if ((*dst = (char*) Malloc(length))) {
+                MemCopy(*dst, buffer, length);
             }
         }
     }
@@ -34,8 +34,8 @@ namespace Parser {
 
             length *= sizeof(wchar_t);
 
-            x_assert(*dst = (wchar_t*) x_malloc(length));
-            x_memcpy(*dst, buffer, length);
+            x_assert(*dst = (wchar_t*) Malloc(length));
+            MemCopy(*dst, buffer, length);
         }
         defer:
     }
@@ -50,16 +50,16 @@ namespace Parser {
                 *n_out = length;
             }
 
-            x_assert(*dst = B_PTR(x_malloc(length)));
-            x_memcpy(*dst, buffer, length);
+            x_assert(*dst = B_PTR(Malloc(length)));
+            MemCopy(*dst, buffer, length);
         }
         defer:
     }
 
     VOID CreateParser (_parser *const parser, const uint8_t *const buffer, const uint32_t length) {
 
-        x_assert(parser->handle = x_malloc(length));
-        x_memcpy(parser->handle, (void*) buffer, length);
+        x_assert(parser->handle = Malloc(length));
+        MemCopy(parser->handle, buffer, length);
 
         parser->Length  = length;
         parser->buffer  = parser->handle;
@@ -73,8 +73,8 @@ namespace Parser {
         if (parser) {
             if (parser->handle) {
 
-                x_memset(parser->handle, 0, parser->Length);
-                x_free(parser->handle);
+                MemSet(parser->handle, 0, parser->Length);
+                Free(parser->handle);
 
                 parser->buffer = nullptr;
                 parser->handle = nullptr;
@@ -86,7 +86,7 @@ namespace Parser {
         uint8_t data = 0;
 
         if (parser->Length >= 1) {
-            x_memcpy(&data, parser->buffer, 1);
+            MemCopy(&data, parser->buffer, 1);
 
             parser->buffer = B_PTR(parser->buffer) + 1;
             parser->Length -= 1;
@@ -100,7 +100,7 @@ namespace Parser {
         int16_t data = 0;
 
         if (parser->Length >= 2) {
-            x_memcpy(&data, parser->buffer, 2);
+            MemCopy(&data, parser->buffer, 2);
 
             parser->buffer = B_PTR(parser->buffer) + 2;
             parser->Length -= 2;
@@ -117,7 +117,7 @@ namespace Parser {
             return 0;
         }
 
-        x_memcpy(&data, parser->buffer, 4);
+        MemCopy(&data, parser->buffer, 4);
 
         parser->buffer = B_PTR(parser->buffer) + 4;
         parser->Length -= 4;
@@ -135,7 +135,7 @@ namespace Parser {
             return 0;
         }
 
-        x_memcpy(&data, parser->buffer, 4);
+        MemCopy(&data, parser->buffer, 4);
 
         parser->buffer = B_PTR(parser->buffer) + 8;
         parser->Length -= 8;
@@ -153,7 +153,7 @@ namespace Parser {
             return 0;
         }
 
-        x_memcpy(&data, parser->buffer, 4);
+        MemCopy(&data, parser->buffer, 4);
 
         parser->buffer = B_PTR(parser->buffer) + 4;
         parser->Length -= 4;
