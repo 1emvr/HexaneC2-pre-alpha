@@ -128,7 +128,6 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
             return Custom(e.to_string())
         })?;
 
-    // TODO: show commands in errors instead of a debug message
     let mut command = Command::new("powershell");
     command.arg("-c").arg(cmd);
 
