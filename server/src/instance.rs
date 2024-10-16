@@ -114,22 +114,33 @@ pub fn list_instances() {
         .map_err(|e| e.to_string()).unwrap();
 
     if instances.is_empty() {
-        wrap_message("error", &"No active implants available".to_string());
+        wrap_message("error", "No active implants available");
         return
     }
 
     let mut table = Table::new();
-    table.set_titles(row!["gid", "pid", "name", "debug", "type", "callback", "hostname", "domain", "proxy", "user", "active"]);
+    table.set_titles(row!["gid", "pid", "name", "debug", "net_type", "address", "hostname", "domain", "proxy", "user", "active"]);
 
     for instance in instances.iter() {
+
+        let gid = instance.group_id.to_string();
+        let pid = instance.peer_id.to_string();
+        let debug = instance.main_cfg.debug.to_string();
+        let active = instance.active.to_string();
+
+        let name = &instance.builder_cfg.output_name;
+        let hostname = &instance.main_cfg.hostname;
+        let username = &instance.user_session.username;
+
         let Some(network) = &instance.network_cfg else {
-            wrap_message("error", &"list_instances: the network type did not match somehow".to_string());
+            wrap_message("error", "list_instances: the network type did not show up somehow");
             return
         };
 
         let (address, net_type, domain, proxy) = match &network.options {
+
             HttpOpts(http) => {
-                let address     = format!("{}:{}", http.address, http.port);
+                let address     = format!("http://{}:{}", http.address, http.port);
                 let net_type    = "http".to_string();
                 let domain      = http.domain.clone().unwrap_or_else(|| "null".to_string());
 
@@ -150,19 +161,7 @@ pub fn list_instances() {
             }
         };
 
-        table.add_row(row![
-            instance.group_id.to_string(),
-            instance.peer_id.to_string(),
-            instance.builder_cfg.output_name,
-            instance.main_cfg.debug.to_string(),
-            net_type,
-            address,
-            instance.main_cfg.hostname,
-            domain,
-            proxy,
-            instance.user_session.username,
-            instance.active.to_string()
-        ]);
+        table.add_row(row![gid, pid, name, debug, net_type, address, hostname, domain, proxy, username, active, ]);
     }
 
     table.printstd();
