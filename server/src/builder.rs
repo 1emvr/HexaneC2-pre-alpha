@@ -90,16 +90,17 @@ impl Hexane {
             .unwrap();
 
         stream.pack_bytes(&self.session_key);
-        stream.pack_string(&self.main_cfg.hostname);
         stream.pack_dword(self.peer_id);
+        stream.pack_string(&self.main_cfg.hostname);
         stream.pack_dword(self.main_cfg.sleeptime);
         stream.pack_dword(self.main_cfg.jitter as u32);
+
         stream.pack_int32(working_hours);
         stream.pack_dword64(kill_date);
 
         if let Some(network) = self.network_cfg.as_mut() {
-            let rtype = &network.r#type;
-            let opts = &network.options;
+            let rtype   = &network.r#type;
+            let opts    = &network.options;
 
             match (rtype, &opts) {
                 (HttpType, HttpOpt(ref http)) => {
