@@ -2,10 +2,11 @@ use std::io::Write;
 use std::fs::{File, OpenOptions};
 use pelite::{PeFile, pe32::headers::SectionHeader};
 
-use crate::error::Result as Result;
-use crate::error::Error::Custom as Custom;
 use crate::interface::wrap_message;
 use crate::utils::{find_double_u32, read_file};
+
+use crate::error::Error::Custom as Custom;
+use crate::error::Result as Result;
 
 struct Section {
     data:       Vec<u8>,
@@ -75,20 +76,24 @@ pub(crate) fn copy_section_data(target_path: &str, out_path: &str, target_sectio
 }
 
 pub(crate) fn embed_section_data(target_path: &str, data: &[u8], sec_size: usize) -> Result<()> {
-    let mut file_data   = read_file(target_path)?;
-    let offset          = find_double_u32(&file_data, &[0x41,0x41,0x41,0x41])?;
+    let mut file_data   = read_file(target_path)
+        .map_err(|e| {
+            wrap_message("ERR", "embed_section_data: error reading target file");
+            return Custom(e.to_string());
+        });
 
-    wrap_message("INF", "embedding config data");
+    let offset = find_double_u32(&file_data.unwrap(), &[0x41,0x41,0x41,0x41])?;
 
-    if data.len() > sec_size {
+    if data.len() > sec_size || data.len() + offset > sec_size {
         wrap_message("ERR", "data is longer than section size");
         return Err(Custom("fuck off".to_string()))
     }
 
     file_data[offset..offset + data.len()].copy_from_slice(data);
-    let mut read_file = OpenOptions::new().write(true).open(target_path)?;
 
-    read_file.write_all(&file_data)?;
+    wrap_message("INF", "embedding config data");
+    let mut output = OpenOptions::new().write(true).open(target_path)?;
+    output.write_all(&file_data)?;
 
     Ok(())
 }
