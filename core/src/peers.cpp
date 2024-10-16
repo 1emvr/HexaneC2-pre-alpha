@@ -6,7 +6,7 @@ using namespace Network::Smb;
 
 namespace Peers {
 
-    DWORD PeekPeerId(const _stream *const stream) {
+    DWORD PeekPeerId(_stream *stream) {
 
         uint32_t pid = 0;
         MemCopy(&pid, B_PTR(stream->buffer), 4);
@@ -31,7 +31,7 @@ namespace Peers {
         while (true);
     }
 
-    BOOL RemovePeer(const uint32_t peer_id) {
+    BOOL RemovePeer(uint32_t peer_id) {
 
         bool success    = true;
         _peer_data *head   = Ctx->peers;
