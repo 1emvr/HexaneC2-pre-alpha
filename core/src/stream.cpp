@@ -125,7 +125,7 @@ namespace Stream {
 
     VOID PackPointer (_stream *stream, void *pointer) {
 #ifdef _M_X64
-        PackUint3264(stream, (uintptr_t)pointer);
+        PackUint64(stream, (uintptr_t)pointer);
 #elif _M_IX86
         PackUint32(stream, (uintptr_t)pointer);
 #endif
