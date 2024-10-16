@@ -8,6 +8,7 @@ use std::io::Read;
 use std::{env, fs};
 use std::fs::File;
 
+use std::process::Command;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use http_body_util::BodyExt;
@@ -110,6 +111,54 @@ pub(crate) fn find_double_u32(data: &[u8], egg: &[u8]) -> Result<usize> {
     Err(Custom("egg was not found".to_string()))
 }
 
+pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
+    let log_dir = Path::new("./logs");
+
+    if !log_dir.exists() {
+        fs::create_dir_all(&log_dir)
+            .map_err(|e| {
+                wrap_message("ERR", format!("run_command:: create_dir_all: {e}").as_str());
+                return Custom(e.to_string())
+            })?;
+    }
+
+    let mut log_file = File::create(&log_dir.join(logname))
+        .map_err(|e| {
+            wrap_message("ERR", format!("run_command: file::create: {e}").as_str());
+            return Custom(e.to_string())
+        })?;
+
+    // TODO: show commands in errors instead of a debug message
+    let mut command = Command::new("powershell");
+    command.arg("-c").arg(cmd);
+
+    let output = command.output()
+        .map_err(|e| {
+            wrap_message("ERR", format!("run_command: {e}").as_str());
+            return Custom(e.to_string())
+        })?;
+
+    if !&output.stderr.is_empty() {
+
+        log_file.write_all(&output.stderr)
+            .map_err(|e| {
+                wrap_message("ERR", format!("run_command: {e}").as_str());
+                return Custom(e.to_string())
+            })?;
+
+        wrap_message("error", &format!("run_command: check {}/{} for details", log_dir.display(), logname));
+        return Err(Custom("run command failed".to_string()))
+    }
+
+    match output.status.success() {
+        true => Ok(()),
+        false  => {
+            wrap_message("error", "running command failed");
+            Err(Custom("run command failed".to_string()))
+        }
+    }
+}
+
 pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
     let source_path = Path::new(&source);
 
@@ -141,10 +190,12 @@ pub fn canonical_path_all(src_path: PathBuf) -> Result<Vec<PathBuf>> {
     let entries = fs::read_dir(&src_path)
         .map_err(|e| {
             wrap_message("ERR", format!("canonical_path_all: {e}").as_str());
-            return Err(e)
+            return Custom(e.to_string())
         });
 
-    let all = entries.filter_map(|entry| entry.ok())
+    let all = entries
+        .unwrap()
+        .filter_map(|entry| entry.ok())
         .map(|entry| entry.path())
         .collect();
 
@@ -163,19 +214,14 @@ pub fn normalize_path(path_string: String) -> String {
 }
 
 pub fn generate_object_path(source_path: &str, build_dir: &Path) -> Result<PathBuf> {
-    let filename = Path::new(source_path)
-        .file_name();
+    let mut filename = Path::new(source_path)
+        .file_name()
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
 
-    let mut object = String::from(filename
-        .to_str()
-        .map_err(|e| {
-            wrap_message("ERR", format!("generate_object_path: {e}").as_str());
-            return Err(e)
-        })
-    )?;
-
-    object.push_str(".o");
-    build_dir.join(object)
+    filename.push_str(".o");
+    Ok(build_dir.join(filename))
 }
 
 pub fn generate_definitions(main_cfg: &Config, network_cfg: &Network) -> String {

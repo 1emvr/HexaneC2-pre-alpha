@@ -38,8 +38,8 @@ impl Hexane {
         };
 
         self.compiler_cfg.flags = compiler_flags;
-
         wrap_message("INF", "creating build directory");
+
         if let Err(e) = fs::create_dir_all(&self.compiler_cfg.build_directory) {
             wrap_message("ERR", format!("create_dir_all: {e}").as_str());
             return Err(Error::from(e))
@@ -187,13 +187,13 @@ impl Hexane {
             let object_file = generate_object_path(&source, Path::new(build_dir))
                 .map_err(|e| {
                     wrap_message("ERR", format!("compile_sources: {e}").as_str());
-                    return Err(e)
+                    return Custom(e.to_string())
                 });
 
             let object = normalize_path(object_file
-                .to_str()
                 .unwrap()
-                .into()
+                .to_string_lossy()
+                .to_string()
             );
 
             let mut command = String::new();
@@ -229,7 +229,6 @@ impl Hexane {
     fn run_mingw(&self, components: Vec<String>) -> Result<()> {
         let main_cfg    = &self.main_cfg;
         let network_cfg = &self.network_cfg.as_ref().unwrap();
-        let output      = &self.builder_cfg.output_name;
 
         let definitions     = generate_definitions(main_cfg, network_cfg);
         let mut includes    = String::new();
@@ -237,10 +236,6 @@ impl Hexane {
         if let Some(dirs) = &self.builder_cfg.include_directories {
             includes = generate_includes(dirs);
         }
-
-        let output = Path::new(&self.compiler_cfg.build_directory)
-            .join(&output)
-            .to_string_lossy();
 
         let mut linker_script   = PathBuf::new();
         let mut linker          = String::new();
@@ -268,6 +263,9 @@ impl Hexane {
         params.push(definitions);
         params.push(linker);
         params.push(flags);
+
+        let mut output = self.compiler_cfg.build_directory.clone();
+        output.push_str(self.builder_cfg.output_name.as_str());
 
         let command = format!("x86_64-w64-mingw32-g++ {} -o {output}.exe", params.join(" "));
 
