@@ -46,15 +46,15 @@ namespace Memory {
     namespace Execute {
         BOOL
         FUNCTION
-            ExecuteCommand(CONST PARSER &parser);
+            ExecuteCommand(PARSER parser);
 
         BOOL
         FUNCTION
-            ExecuteShellcode(CONST PARSER &parser);
+            ExecuteShellcode(PARSER parser);
 
         VOID
         FUNCTION
-            LoadObject(CONST PARSER &parser);
+            LoadObject(PARSER parser);
     }
 }
 #endif //HEXANE_CORELIB_MEMORY_HPP
