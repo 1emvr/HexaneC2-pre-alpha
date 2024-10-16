@@ -109,9 +109,18 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
         });
 
     wrap_message("INF", "creating instance");
-    let mut instance    = Hexane::default();
-    let config          = json_data.unwrap();
-    let session         = SESSION.lock();
+    let mut instance = Hexane::default();
+
+    let config = json_data.map_err(|e| {
+        wrap_message("ERR", format!("map_json_config: {e}").as_str());
+        return Custom(e.to_string())
+    })?;
+
+    let session = SESSION.lock()
+        .map_err(|e| {
+            wrap_message("ERR", format!("map_json_config: {e}").as_str());
+            return Custom(e.to_string())
+        });
 
     wrap_message("INF", "creating configuration");
     instance.group_id       = 0;

