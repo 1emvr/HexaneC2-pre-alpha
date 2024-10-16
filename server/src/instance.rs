@@ -171,7 +171,7 @@ pub fn list_instances() {
                 let net_type    = "http".to_string();
                 let address     = format!("http://{}:{}", http.address, http.port);
 
-                let domain  = http.domain
+                let domain = http.domain
                     .clone()
                     .unwrap_or_else(|| "null".to_string());
 

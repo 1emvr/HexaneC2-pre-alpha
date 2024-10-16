@@ -254,9 +254,9 @@ impl Hexane {
 
         let command = format!("x86_64-w64-mingw32-g++ {} -o {}.exe", params.join(" "), output);
 
-        if let Err(e) = run_command(command.as_str(), "linker_error") {
+        if let Err(e) = run_command(command.as_str(), format!("{}-linker_error", self.builder_cfg.output_name).as_str()) {
             wrap_message("error", format!("linker_error {e}").as_str());
-            return Err(Custom("go fuck yourself".to_string()));
+            return Err(e);
         }
 
         Ok(())
