@@ -81,7 +81,7 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
     let curdir = env::current_dir()
         .map_err(|e| {
             wrap_message("ERR", format!("could not get current directory: {e}").as_str());
-            Err(e)
+            return Custom(e.to_string())
         });
 
     let mut json_file = curdir
@@ -98,14 +98,14 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
     let contents = fs::read_to_string(json_file)
         .map_err(|e| {
             wrap_message("ERR", format!("could not read json file: {e}").as_str());
-            Err(e)
+            return Custom(e.to_string())
         });
 
     wrap_message("INF", "parsing json data");
     let json_data = serde_json::from_str::<JsonData>(&contents.unwrap())
         .map_err(|e| {
             wrap_message("ERR", format!("could not parse json data: {e}").as_str());
-            Err(e)
+            return Custom(e.to_string())
         });
 
     wrap_message("INF", "creating instance");
