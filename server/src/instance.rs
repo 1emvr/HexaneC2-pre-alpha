@@ -58,15 +58,20 @@ pub(crate) fn remove_instance(args: Vec<String>) {
         return
     }
 
-    let mut instances = INSTANCES.lock().unwrap();
-    if let Some(select) = instances
-        .iter()
-        .position(
-            |instance| instance.builder_cfg.output_name == args[2]) {
+    let mut instances = INSTANCES
+        .lock()
+        .map_err(|_| {
+            wrap_message("ERR", "instances could not be locked");
+            return
+        })
+        .unwrap();
 
-        wrap_message("INF", format!("removing {}", instances[select].builder_cfg.output_name).as_str());
-        instances.remove(select);
+    let output_name = &args[2];
+    if let Some(position) = instances.iter().position(|instance| instance.builder_cfg.output_name == *output_name) {
+        wrap_message("INF", format!("removing {}", instances[position].builder_cfg.output_name).as_str());
 
+        instances.remove(position);
+        return
     }
     else {
         wrap_message("error", "implant not found");
@@ -75,43 +80,52 @@ pub(crate) fn remove_instance(args: Vec<String>) {
 }
 
 fn map_json_config(file_path: &String) -> Result<Hexane> {
-    let json_file = env::current_dir()
-        .unwrap()
-        .join("json")
-        .join(file_path);
+    let curdir = env::current_dir()
+        .map_err(|e| {
+            wrap_message("ERR", format!("could not get current directory: {e}").as_str());
+            Err(e)
+        })?;
 
+    let mut json_file = curdir.join("json").join(file_path);
 
     if !json_file.exists() {
         wrap_message("error", "json file does not exist");
         return Err(Custom("fuck you".to_string()))
     }
 
-
     wrap_message("INF", "reading json content");
     let contents = fs::read_to_string(json_file)
-        .unwrap();
+        .map_err(|e| {
+            wrap_message("ERR", format!("could not read json file: {e}").as_str());
+            Err(e)
+        });
 
-    if contents.is_empty() {
+
+    if &contents.is_empty() {
         wrap_message("error", "json doesn't seem to exist");
         return Err(Custom("fuck you".to_string()))
     }
 
     wrap_message("INF", "parsing json data");
-    let json_data = serde_json::from_str::<JsonData>(&contents).unwrap();
+    let json_data = serde_json::from_str::<JsonData>(&contents)
+        .map_err(|e| {
+            wrap_message("ERR", format!("could not parse json data: {e}").as_str());
+            Err(e)
+        });
 
     wrap_message("INF", "creating instance");
     let mut instance    = Hexane::default();
+    let config          = json_data.unwrap();
     let session         = SESSION.lock();
 
     wrap_message("INF", "creating configuration");
     instance.group_id       = 0;
-    instance.main_cfg       = json_data.config;
-    instance.loader_cfg     = json_data.loader;
-    instance.builder_cfg    = json_data.builder;
-    instance.network_cfg    = json_data.network;
+    instance.main_cfg       = config.config;
+    instance.loader_cfg     = config.loader;
+    instance.builder_cfg    = config.builder;
+    instance.network_cfg    = config.network;
     instance.user_session   = session.unwrap().clone();
 
-    wrap_message("INF", "done");
     Ok(instance)
 }
 
