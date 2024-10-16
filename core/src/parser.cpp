@@ -109,7 +109,7 @@ namespace Parser {
         return data;
     }
 
-    ULONG UnpackDword (_parser *const parser) {
+    ULONG UnpackUint32 (_parser *const parser) {
 
         uint32_t data = 0;
 
@@ -127,7 +127,7 @@ namespace Parser {
                : data;
     }
 
-    ULONG64 UnpackDword64 (_parser *const parser) {
+    ULONG64 UnpackUint64 (_parser *const parser) {
 
         uint64_t data = 0;
 
@@ -172,7 +172,7 @@ namespace Parser {
             return nullptr;
         }
 
-        length = UnpackDword(parser);
+        length = UnpackUint32(parser);
         if (n_out) {
             *n_out = length;
         }
