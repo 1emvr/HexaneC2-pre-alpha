@@ -5,7 +5,7 @@
 namespace Dispatcher {
     UINT32
     FUNCTION
-        PeekPeerId(CONST STREAM *stream);
+        PeekPeerId(STREAM *stream);
 
     VOID
     FUNCTION
@@ -21,7 +21,7 @@ namespace Dispatcher {
 
     VOID
     FUNCTION
-        RemoveMessage(CONST STREAM *target);
+        RemoveMessage(STREAM *target);
 
     VOID
     FUNCTION
@@ -33,7 +33,7 @@ namespace Dispatcher {
 
     VOID
     FUNCTION
-        CommandDispatch(CONST STREAM *in);
+        CommandDispatch(STREAM *in);
 
     BOOL
     FUNCTION

@@ -11,7 +11,7 @@ namespace Network {
     namespace Http {
         BOOL
         FUNCTION
-            CreateProxyContext(PROXY_CONTEXT *proxy_ctx, CONST REQUEST_CONTEXT *req_ctx);
+            CreateProxyContext(PROXY_CONTEXT *proxy_ctx, REQUEST_CONTEXT *req_ctx);
 
         BOOL
         FUNCTION
@@ -31,7 +31,7 @@ namespace Network {
 
         BOOL
         FUNCTION
-            HttpCallback(STREAM **in, CONST STREAM *out);
+            HttpCallback(STREAM **in, STREAM *out);
     }
 
     namespace Smb {
@@ -49,11 +49,11 @@ namespace Network {
 
         BOOL
         FUNCTION
-            PipeWrite(HANDLE handle, CONST STREAM *out);
+            PipeWrite(HANDLE handle, STREAM *out);
 
         BOOL
         FUNCTION
-            PipeSend (CONST STREAM *out);
+            PipeSend (STREAM *out);
 
         BOOL
         FUNCTION

