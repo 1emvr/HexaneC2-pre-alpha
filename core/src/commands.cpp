@@ -7,13 +7,13 @@ using namespace Dispatcher;
 namespace Commands {
 
     RDATA HASH_MAP cmd_map[] = {
-        { .name = DIRECTORYLIST, 	.address = DirectoryList        },
-        { .name = PROCESSMODULES,	.address = ProcessModules       },
-        { .name = PROCESSLIST,		.address = ProcessList          },
-        { .name = ADDPEER,			.address = CommandAddPeer       },
-        { .name = REMOVEPEER,		.address = CommandRemovePeer    },
-        { .name = SHUTDOWN,			.address = Shutdown             },
-        { .name = 0,				.address = nullptr		        },
+        { .name = DIRECTORYLIST, 	.address = (void*) DirectoryList        },
+        { .name = PROCESSMODULES,	.address = (void*) ProcessModules       },
+        { .name = PROCESSLIST,		.address = (void*) ProcessList          },
+        { .name = ADDPEER,			.address = (void*) CommandAddPeer       },
+        { .name = REMOVEPEER,		.address = (void*) CommandRemovePeer    },
+        { .name = SHUTDOWN,			.address = (void*) Shutdown             },
+        { .name = 0,				.address = (void*) nullptr		        },
     };
 
     VOID DirectoryList (_parser *const parser) {

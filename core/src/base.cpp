@@ -269,7 +269,7 @@ namespace Main {
 
         Ctx->transport.message_queue = nullptr;
 #ifdef TRANSPORT_HTTP
-        Ctx->transport.http = (_http_context*) x_malloc(sizeof(_http_context));
+        Ctx->transport.http = (_http_context*) Malloc(sizeof(_http_context));
 
         Ctx->transport.http->handle     = nullptr;
         Ctx->transport.http->endpoints  = nullptr;
@@ -281,7 +281,7 @@ namespace Main {
         ParserStrcpy(&parser, &Ctx->transport.domain, nullptr);
 
         Ctx->transport.http->n_endpoints = UnpackUint32(&parser);
-        Ctx->transport.http->endpoints  = (wchar_t**) x_malloc(sizeof(wchar_t*) * ((Ctx->transport.http->n_endpoints + 1)));
+        Ctx->transport.http->endpoints  = (wchar_t**) Malloc(sizeof(wchar_t*) * ((Ctx->transport.http->n_endpoints + 1)));
 
         for (auto i = 0; i < Ctx->transport.http->n_endpoints; i++) {
             ParserWcscpy(&parser, &Ctx->transport.http->endpoints[i], nullptr);
@@ -291,7 +291,7 @@ namespace Main {
         Ctx->transport.b_proxy = UnpackBool(&parser);
 
         if (Ctx->transport.b_proxy) {
-            Ctx->transport.http->proxy = (_proxy*) x_malloc(sizeof(_proxy));
+            Ctx->transport.http->proxy = (_proxy*) Malloc(sizeof(_proxy));
             Ctx->transport.http->access = INTERNET_OPEN_TYPE_PROXY;
 
             ParserWcscpy(&parser, &Ctx->transport.http->proxy->address, nullptr );
