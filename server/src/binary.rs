@@ -76,9 +76,9 @@ pub(crate) fn copy_section_data(target_path: &str, out_path: &str, target_sectio
 }
 
 pub(crate) fn embed_section_data(target_path: &str, data: &[u8], sec_size: usize) -> Result<()> {
-    let mut file_data   = read_file(target_path)
+    let mut file_data = read_file(target_path)
         .map_err(|e| {
-            wrap_message("ERR", "embed_section_data: error reading target file");
+            wrap_message("ERR", format!("embed_section_data: error reading target file: {e}").as_str());
             return Custom(e.to_string());
         });
 
