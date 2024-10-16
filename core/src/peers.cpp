@@ -6,7 +6,7 @@ using namespace Network::Smb;
 
 namespace Peers {
 
-    DWORD PeekPeerId(_stream *stream) {
+    UINT32 PeekPeerId(_stream *stream) {
 
         uint32_t pid = 0;
         MemCopy(&pid, B_PTR(stream->buffer), 4);

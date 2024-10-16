@@ -5,7 +5,7 @@
 namespace Threads {
     HANDLE
     FUNCTION
-        CreateUserThread(VOID *process, BOOL x64, VOID *entry, VOID *args, UINT32 *tid);
+        CreateUserThread(VOID *process, INT x64, VOID *entry, VOID *args, UINT32 *tid);
 }
 
 #endif //HEXANE_IMPLANT_THREADS_HPP

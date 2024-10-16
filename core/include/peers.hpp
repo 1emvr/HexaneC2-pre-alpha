@@ -3,6 +3,10 @@
 #include <core/corelib.hpp>
 
 namespace Peers {
+    UINT32
+    FUNCTION
+        PeekPeerId(_stream *stream);
+
     PPEER_DATA
     FUNCTION
         GetPeer(UINT32 peer_id);
