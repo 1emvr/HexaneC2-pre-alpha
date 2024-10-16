@@ -129,7 +129,7 @@ namespace Network {
             return true;
         }
 
-        BOOL CreateProxyContext(_proxy_context *const proxy_ctx, const _request_context *const req_ctx) {
+        BOOL CreateProxyContext(_proxy_context *proxy_ctx, _request_context *req_ctx) {
 
             auto proxy_info     = proxy_ctx->proxy_info;
             const auto username = Ctx->transport.http->proxy->username;
@@ -329,7 +329,7 @@ namespace Network {
             return true;
         }
 
-        BOOL PipeRead(void *const handle, const _stream *in) {
+        BOOL PipeRead(void *handle, _stream *in) {
 
             uint32_t read   = 0;
             uint32_t total  = 0;
@@ -349,7 +349,7 @@ namespace Network {
             return true;
         }
 
-        BOOL PipeWrite(void *const handle, const _stream *out) {
+        BOOL PipeWrite(void *handle, _stream *out) {
 
             uint32_t total = 0;
             uint32_t write = 0;

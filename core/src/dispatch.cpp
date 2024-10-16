@@ -10,7 +10,7 @@ using namespace Memory::Execute;
 
 namespace Dispatcher {
 
-    VOID AddMessage(_stream *const out) {
+    VOID AddMessage(_stream *out) {
 
         auto head = Ctx->transport.message_queue;
 
@@ -26,7 +26,7 @@ namespace Dispatcher {
         }
     }
 
-    VOID RemoveMessage(const _stream *target) {
+    VOID RemoveMessage(_stream *target) {
 
         _stream *prev = { };
 
@@ -52,7 +52,7 @@ namespace Dispatcher {
         }
     }
 
-    VOID MessageQueue(_stream *const msg) {
+    VOID MessageQueue(_stream *msg) {
 
         _parser parser = { };
         _stream *queue = { };
@@ -79,7 +79,7 @@ namespace Dispatcher {
         }
     }
 
-    VOID QueueSegments(uint8_t *const buffer, uint32_t length) {
+    VOID QueueSegments(uint8_t *buffer, uint32_t length) {
 
         _stream *queue      = { };
         uint32_t offset     = 0;
@@ -199,7 +199,7 @@ namespace Dispatcher {
         return success;
     }
 
-    VOID CommandDispatch (const _stream *const in) {
+    VOID CommandDispatch (_stream *in) {
 
         _parser parser = { };
 
