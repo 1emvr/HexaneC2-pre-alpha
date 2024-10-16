@@ -84,7 +84,7 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
             return Custom(e.to_string())
         });
 
-    let mut json_file = curdir
+    let json_file = curdir
         .unwrap()
         .join("json")
         .join(file_path);
