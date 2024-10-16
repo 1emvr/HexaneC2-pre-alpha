@@ -28,28 +28,24 @@ impl Hexane {
         self.compiler_cfg.build_directory = format!("./payload/{}", &self.builder_cfg.output_name);
 
         let compiler_flags = if self.main_cfg.debug {
-            DEBUG_FLAGS
-                .parse()
-                .unwrap()
+            DEBUG_FLAGS.parse().unwrap()
         }
         else {
-            RELEASE_FLAGS
-                .parse()
-                .unwrap()
+            RELEASE_FLAGS.parse().unwrap()
         };
 
         self.compiler_cfg.flags = compiler_flags;
 
-        wrap_message("info", "creating build directory");
+        wrap_message("INF", "creating build directory");
         fs::create_dir_all(&self.compiler_cfg.build_directory)?;
 
-        wrap_message("info", "generating hashes");
+        wrap_message("INF", "generating hashes");
         generate_hashes("./configs/strings.txt", "./core/include/names.hpp")?;
 
-        wrap_message("info", "creating patch");
+        wrap_message("INF", "creating patch");
         self.create_config_patch()?;
 
-        wrap_message("info", "compiling sources");
+        wrap_message("INF", "compiling sources");
         self.compile_sources()?;
 
         Ok(())
@@ -67,7 +63,7 @@ impl Hexane {
         }
 
         self.config = patch;
-        wrap_message("info", "patch created successfully");
+        wrap_message("INF", "patch created successfully");
 
         Ok(())
     }
@@ -80,7 +76,7 @@ impl Hexane {
                 stream.pack_string(module);
             }
         } else {
-            wrap_message("debug", "no external module names found. continue.");
+            wrap_message("DBG", "no external module names found. continue.");
         }
 
         let working_hours = self.main_cfg.working_hours
@@ -144,7 +140,7 @@ impl Hexane {
                 }
 
                 _ => {
-                    wrap_message("error", "create_binary_patch: unknown network type");
+                    wrap_message("ERR", "create_binary_patch: unknown network type");
                     return Err(Custom("fuck off".to_string()))
                 }
             }
@@ -162,7 +158,7 @@ impl Hexane {
         let entries         = canonical_path_all(src_path)?;
 
         for path in entries {
-            wrap_message("info", format!("gathering: {:?}", path.to_str()).as_str());
+            wrap_message("INF", format!("gathering: {:?}", path.to_str()).as_str());
             let source = normalize_path(path
                 .to_str()
                 .unwrap()
@@ -177,9 +173,8 @@ impl Hexane {
             );
 
             let mut command = String::new();
-            match path.extension()
-                .and_then(|ext| ext.to_str())
-            {
+            match path.extension().and_then(|ext| ext.to_str()) {
+
                 Some("asm") => {
                     command.push_str("nasm");
                     command.push_str(format!(" -f win64 {} -o {}", source, object).as_str());
@@ -193,11 +188,13 @@ impl Hexane {
                 Some("cpp") => {
                     components.push(source);
                 }
-                _ => { continue; }
+                _ => {
+                    continue;
+                }
             }
         }
 
-        wrap_message("info", "linking final objects");
+        wrap_message("INF", "linking final objects");
 
         self.run_mingw(components)?;
         self.extract_shellcode()?;
