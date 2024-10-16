@@ -5,7 +5,7 @@
 EXTERN_C
 VOID
 FUNCTION
-    Entrypoint(HMODULE Base);
+    Entrypoint();
 
 namespace Implant {
     VOID

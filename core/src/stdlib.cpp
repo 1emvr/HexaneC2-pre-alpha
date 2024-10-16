@@ -26,7 +26,7 @@ void MbsCopy (char *dst, const char *src) {
     }
 }
 
-size_t MbsCompareBounds (const char *str1, const char *str2, size_t len) {
+size_t MbsBoundCompare (const char *str1, const char *str2, size_t len) {
 
     while (len && *str1 && (*str1 == *str2)) {
         len--; str1++; str2++;

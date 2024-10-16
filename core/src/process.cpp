@@ -1,7 +1,7 @@
 #include <core/include/process.hpp>
 namespace Process {
 
-	ULONG GetProcessIdByName(char *name) {
+	ULONG GetProcessIdByName(const char *name) {
 
 		PROCESSENTRY32 entry = { };
 		HANDLE snap = { };
@@ -24,7 +24,7 @@ namespace Process {
 		return pid;
 	}
 
-	HANDLE OpenParentProcess(char *name) {
+	HANDLE OpenParentProcess(const char *name) {
 
         PROCESSENTRY32 entry = { };
 		HANDLE process	= { };
@@ -67,7 +67,7 @@ namespace Process {
 		if (image->handle) 	{ Ctx->nt.NtTerminateProcess(image->handle, ERROR_SUCCESS); }
 	}
 
-	VOID CreateUserProcess(_executable *image, char *path) {
+	VOID CreateUserProcess(_executable *image, const char *path) {
 
 		LPWSTR w_name			= { };
 		UNICODE_STRING u_name	= { };
