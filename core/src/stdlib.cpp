@@ -379,7 +379,7 @@ void FreeSplit(char** split, int count) {
     Free(split);
 }
 
-void x_trim(char* str, char delim) {
+void Trim(char* str, char delim) {
 
     for (auto i = 0; str[i]; i++) {
         if (str[i] == delim) {

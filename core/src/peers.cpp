@@ -72,7 +72,7 @@ namespace Peers {
         return success;
     }
 
-    BOOL AddPeer(wchar_t *const pipe_name, const uint32_t peer_id) {
+    BOOL AddPeer(const wchar_t *pipe_name, uint32_t peer_id) {
 
         _stream *in = { };
         _peer_data *peer = { };

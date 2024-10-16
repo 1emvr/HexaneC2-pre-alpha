@@ -10,7 +10,7 @@ namespace Objects {
 
     BOOL
     FUNCTION
-        ExecuteFunction(EXECUTABLE *object, CHAR *function, VOID *args, SIZE_T size);
+        ExecuteFunction(EXECUTABLE *object, CONST CHAR *entry, VOID *args, SIZE_T size);
 
     BOOL
     FUNCTION

@@ -102,7 +102,7 @@ namespace Objects {
         return false;
     }
 
-    BOOL ExecuteFunction(_executable* exe, const char *const entry, void *const args, const size_t size) {
+    BOOL ExecuteFunction(_executable *exe, const char *entry, void *args, const size_t size) {
 
         void *veh_handle = nullptr;
         void *entrypoint = nullptr;

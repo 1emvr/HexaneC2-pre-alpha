@@ -87,7 +87,7 @@ namespace Stream {
         }
     }
 
-    VOID PackUint3264 (_stream *stream, uint64_t data) {
+    VOID PackUint64 (_stream *stream, uint64_t data) {
 
         if (stream) {
             stream->buffer = B_PTR(Realloc(stream->buffer, stream->length + sizeof(uint64_t)));

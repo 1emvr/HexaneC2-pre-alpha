@@ -74,7 +74,7 @@ namespace Network {
             return success;
         }
 
-        VOID DestroyRequestContext(const _request_context *req_ctx) {
+        VOID DestroyRequestContext(_request_context *req_ctx) {
 
             if (req_ctx) {
                 if (req_ctx->req_handle)    { Ctx->win32.WinHttpCloseHandle(req_ctx->req_handle); }
@@ -87,7 +87,7 @@ namespace Network {
             }
         }
 
-        VOID DestroyProxyContext(const _proxy_context *proxy_ctx) {
+        VOID DestroyProxyContext(_proxy_context *proxy_ctx) {
 
             if (proxy_ctx) {
                 if (proxy_ctx->proxy_config.lpszProxy)          { Free(proxy_ctx->proxy_config.lpszProxy); }

@@ -144,7 +144,7 @@ namespace Memory {
             return address;
         }
 
-        UINT_PTR LoadExport(char* const module_name, char* const export_name) {
+        UINT_PTR LoadExport(const char *module_name, const char *export_name) {
 
             uintptr_t symbol    = 0;
             bool reload         = false;
