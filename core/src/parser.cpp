@@ -56,7 +56,7 @@ namespace Parser {
         defer:
     }
 
-    VOID CreateParser (_parser *const parser, const uint8_t *const buffer, const uint32_t length) {
+    VOID CreateParser(_parser *parser, uint8_t *buffer, uint32_t length) {
 
         x_assert(parser->handle = Malloc(length));
         MemCopy(parser->handle, buffer, length);
