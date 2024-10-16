@@ -170,28 +170,30 @@ impl Hexane {
         let mut components  = Vec::new();
         let src_path        = Path::new(root_dir).join("src");
 
-        let entries = canonical_path_all(src_path)
+        let entries = canonical_path_all(&src_path)
             .map_err(|e| {
-                wrap_message("ERR", format!("canonical_path_all: {e}").as_str());
+                wrap_message("ERR", format!("canonical_path_all: {:?}:{e}", src_path).as_str());
                 return Custom(e.to_string())
             })?;
 
         for path in entries {
-            wrap_message("INF", format!("gathering: {:?}", path.to_str()).as_str());
             let source = normalize_path(path
                 .to_str()
                 .unwrap()
                 .into()
             );
 
-            let object_file = generate_object_path(&source, Path::new(build_dir))
+            let mut object_file = generate_object_path(&source, Path::new(build_dir))
                 .map_err(|e| {
-                    wrap_message("ERR", format!("compile_sources: {e}").as_str());
+                    wrap_message("ERR", format!("compile_sources: {:?}:{e}", source)
+                        .as_str());
+
                     return Custom(e.to_string())
-                });
+                })?;
+
+            object_file.set_extension(".o");
 
             let object = normalize_path(object_file
-                .unwrap()
                 .to_string_lossy()
                 .to_string()
             );
@@ -206,8 +208,10 @@ impl Hexane {
                     command.push_str("nasm");
                     command.push_str(format!(" -f win64 {} -o {}", source, object).as_str());
 
-                    if let Err(e) = run_command(command.as_str(), format!("{output}-compiler_error").as_str()) {
-                        wrap_message("error", format!("compile_sources:: {e}").as_str());
+                    if let Err(e) = run_command(&command.as_str(), format!("{output}-compiler_error").as_str()) {
+                        wrap_message("error", format!("compile_sources:: {e} : {command}")
+                            .as_str());
+
                         return Err(Custom("fuck off".to_string()));
                     }
                     components.push(object);
@@ -220,8 +224,13 @@ impl Hexane {
 
         wrap_message("INF", "linking final objects");
 
-        self.run_mingw(components)?;
-        self.extract_shellcode()?;
+        if let Err(e) = self.run_mingw(components) {
+            return Err(Custom(e.to_string()))
+        };
+
+        if let Err(e) = self.extract_shellcode() {
+            return Err(Custom(e.to_string()))
+        }
 
         Ok(())
     }

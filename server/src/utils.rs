@@ -186,15 +186,14 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
     Ok(output_str)
 }
 
-pub fn canonical_path_all(src_path: PathBuf) -> Result<Vec<PathBuf>> {
+pub fn canonical_path_all(src_path: &PathBuf) -> Result<Vec<PathBuf>> {
     let entries = fs::read_dir(&src_path)
         .map_err(|e| {
             wrap_message("ERR", format!("canonical_path_all: {e}").as_str());
             return Custom(e.to_string())
-        });
+        })?;
 
     let all = entries
-        .unwrap()
         .filter_map(|entry| entry.ok())
         .map(|entry| entry.path())
         .collect();
@@ -214,14 +213,19 @@ pub fn normalize_path(path_string: String) -> String {
 }
 
 pub fn generate_object_path(source_path: &str, build_dir: &Path) -> Result<PathBuf> {
-    let mut filename = Path::new(source_path)
-        .file_name()
-        .unwrap()
-        .to_string_lossy()
-        .to_string();
+    if let Some(filename) = Path::new(source_path)
+        .file_name() {
+            filename
+                .to_string_lossy()
+                .to_string()
+                .push_str(".o");
 
-    filename.push_str(".o");
-    Ok(build_dir.join(filename))
+            Ok(build_dir.join(filename))
+    }
+    else {
+        wrap_message("ERR", "generate_object_path: ??");
+        Err(Custom("generate_object_path: ??".to_string()))
+    }
 }
 
 pub fn generate_definitions(main_cfg: &Config, network_cfg: &Network) -> String {
