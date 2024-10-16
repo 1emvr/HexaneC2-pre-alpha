@@ -23,15 +23,20 @@ use crate::types::NetworkOptions::Smb as SmbOpt;
 impl Hexane {
     pub(crate) fn setup_build(&mut self) -> Result<()> {
         let mut rng = rand::thread_rng();
+        let name    = &self.builder_cfg.output_name;
 
         self.peer_id = rng.gen::<u32>();
-        self.compiler_cfg.build_directory = format!("./payload/{}", self.builder_cfg.output_name);
+        self.compiler_cfg.build_directory = format!("./payload/{}", name);
 
         let compiler_flags = if self.main_cfg.debug {
-            DEBUG_FLAGS.parse().unwrap()
+            DEBUG_FLAGS
+                .parse()
+                .unwrap()
         }
         else {
-            RELEASE_FLAGS.parse().unwrap()
+            RELEASE_FLAGS
+                .parse()
+                .unwrap()
         };
 
         self.compiler_cfg.flags = compiler_flags;
@@ -208,7 +213,7 @@ impl Hexane {
         let definitions     = generate_definitions(main_cfg, network_cfg);
         let mut includes    = String::new();
 
-        includes.push_str("-I\"../\"");
+        includes.push_str("-I\".\"");
 
         if let Some(dirs) = &self.builder_cfg.include_directories {
             includes = generate_includes(dirs);

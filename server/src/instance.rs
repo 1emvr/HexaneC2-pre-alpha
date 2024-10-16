@@ -2,6 +2,7 @@ use std::fs;
 use std::env;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
+use prettytable::{row, Table};
 use rayon::prelude::*;
 
 use crate::error::Result;
@@ -13,7 +14,6 @@ use crate::types::NetworkOptions::Http as HttpOpts;
 use crate::types::NetworkOptions::Smb as SmbOpts;
 
 use lazy_static::lazy_static;
-use prettytable::{row, Table};
 
 lazy_static! {
     pub(crate) static ref INSTANCES: Arc<Mutex<Vec<Hexane>>> = Arc::new(Mutex::new(vec![]));
@@ -69,7 +69,7 @@ pub(crate) fn remove_instance(args: Vec<String>) {
 
     }
     else {
-        wrap_message("error", "Implant not found");
+        wrap_message("error", "implant not found");
         return
     }
 }
@@ -118,17 +118,25 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
 pub fn list_instances() {
     let instances = INSTANCES
         .lock()
-        .map_err(|e| e.to_string()).unwrap();
+        .map_err(|e| e.to_string());
 
-    if instances.is_empty() {
-        wrap_message("error", "No active implants available");
-        return
+    match instances.unwrap() {
+        Ok(instances) => {
+            if instances.is_empty() {
+                wrap_message("error", "no active implants available");
+                return
+            }
+        },
+        Err(e) => {
+            wrap_message("ERR", format!("fatal error, instances not mappable: {e}"));
+            return
+        }
     }
 
     let mut table = Table::new();
     table.set_titles(row!["gid", "pid", "name", "debug", "net_type", "address", "hostname", "domain", "proxy", "user", "active"]);
 
-    for instance in instances.iter() {
+    for instance in &instances.unwrap().iter() {
 
         let gid = instance.group_id.to_string();
         let pid = instance.peer_id.to_string();
@@ -144,11 +152,14 @@ pub fn list_instances() {
             return
         };
 
-        let (address, net_type, domain, proxy) = match &network.options {
+        let (address, _net_type, domain, proxy) = match &network.options {
             HttpOpts(http) => {
-                let address     = format!("http://{}:{}", http.address, http.port);
                 let net_type    = "http".to_string();
-                let domain      = http.domain.clone().unwrap_or_else(|| "null".to_string());
+                let address     = format!("http://{}:{}", http.address, http.port);
+
+                let domain  = http.domain
+                    .clone()
+                    .unwrap_or_else(|| "null".to_string());
 
                 let proxy = if let Some(proxy_config) = &http.proxy {
                     format!("{}://{}:{}", proxy_config.proto, proxy_config.address, proxy_config.port)
