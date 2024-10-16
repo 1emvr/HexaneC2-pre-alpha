@@ -3,8 +3,7 @@ use rand::{Rng, SeedableRng};
 use rand::rngs::StdRng;
 use std::convert::TryInto;
 
-use crate::server::error::{Result, KeySizeError, Error};
-use crate::server::error::Error::Custom;
+use crate::error::{Result, KeySizeError, Error};
 
 const NUM_ROUNDS:   usize = 64;
 const BLOCK_SIZE:   usize = 8;

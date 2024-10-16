@@ -178,7 +178,7 @@ pub struct UserSession {
 }
 
 #[derive(Debug, Default)]
-pub struct Hexane {
+pub(crate) struct Hexane {
     pub(crate) taskid:          u32,
     pub(crate) peer_id:         u32,
     pub(crate) group_id:        u32,

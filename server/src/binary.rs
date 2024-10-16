@@ -1,9 +1,11 @@
+use std::io::Write;
 use std::fs::{File, OpenOptions};
-use std::io::{Seek, SeekFrom, Write};
 use pelite::{PeFile, pe32::headers::SectionHeader};
-use crate::server::error::{Result, Error};
-use crate::server::utils::{find_double_u32, read_file, wrap_message};
-use crate::log_error;
+
+use crate::error::Result as Result;
+use crate::error::Error::Custom as Custom;
+use crate::interface::wrap_message;
+use crate::utils::{find_double_u32, read_file};
 
 struct Section {
     data:       Vec<u8>,
@@ -30,8 +32,8 @@ fn get_section_header (target_path: &str, target_section: &str) -> Result<Sectio
         }),
 
         None => {
-            log_error!("cannot find target section: {}", target_section);
-            Err(Error::Custom("cannot find target section".to_string()))
+            wrap_message("err", format!("cannot find target section: {}", target_section).as_str());
+            Err(Custom("cannot find target section".to_string()))
         }
     }
 }
@@ -53,11 +55,11 @@ pub(crate) fn embed_section_data(target_path: &str, data: &[u8], sec_size: usize
     let mut file_data   = read_file(target_path)?;
     let offset          = find_double_u32(&file_data, &[0x41,0x41,0x41,0x41])?;
 
-    wrap_message("debug", &"embedding config data".to_string());
+    wrap_message("debug", "embedding config data");
 
     if data.len() > sec_size {
-        log_error!(&"data is longer than section size".to_string());
-        return Err(Error::Custom("data is langer than target_section".to_string()))
+        wrap_message("err", "data is longer than section size");
+        return Err(Custom("fuck off".to_string()))
     }
 
     file_data[offset..offset + data.len()].copy_from_slice(data);

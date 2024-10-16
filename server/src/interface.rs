@@ -40,7 +40,7 @@ pub fn get_session() {
     session.is_admin = true;
 }
 
-pub fn wrap_message(typ: &str, msg: &String) {
+pub fn wrap_message(typ: &str, msg: &str) {
     let sender = &CHANNEL.0;
 
     let message = Message {

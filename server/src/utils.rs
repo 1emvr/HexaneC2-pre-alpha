@@ -13,9 +13,9 @@ use std::{env, fs};
 use std::fs::File;
 
 use crate::stream::Stream;
-use crate::{log_error, log_info};
 use crate::error::{Result, Error};
 use crate::types::{Config, Network};
+use crate::interface::wrap_message;
 use crate::rstatic::DEBUG;
 
 use crate::types::NetworkType::Http as HttpType;
@@ -23,6 +23,7 @@ use crate::types::NetworkType::Smb as SmbType;
 
 pub const FNV_OFFSET:   u32 = 2166136261;
 pub const FNV_PRIME:    u32 = 16777619;
+
 
 pub(crate) fn read_file(target_path: &str) -> Result<Vec<u8>>{
     let mut read_data = Vec::new();
@@ -119,7 +120,7 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
 
     let mut log_file = File::create(&log_dir.join(logname))?;
     if *DEBUG {
-        log_info!("running command {}", cmd.to_string());
+        wrap_message("info", &format!("running command {}", cmd.to_string()));
         println!();
     }
 
@@ -132,14 +133,14 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
         log_file.write_all(&output.stdout)?;
         log_file.write_all(&output.stderr)?;
 
-        log_info!("run_command: check {}/{} for details", log_dir.display(), logname);
+        wrap_message("error", &format!("run_command: check {}/{} for details", log_dir.display(), logname));
         return Err(Error::Custom("run command failed".to_string()))
     }
 
     match output.status.success() {
         true   => Ok(()),
         false  => {
-            log_error!(&"running command failed".to_string());
+            wrap_message("error", &"running command failed".to_string());
             Err(Error::Custom("run command failed".to_string()))
         }
     }
@@ -151,7 +152,7 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
     let file_name = match source_path.file_name() {
         Some(name) => name,
         None => {
-            log_error!("could not extract file name from source: {}", source);
+            wrap_message("error", &format!("could not extract file name from source: {}", source));
             return Err(io::Error::new(ErrorKind::InvalidInput, "Invalid source file").into());
         }
     };
@@ -163,7 +164,7 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
     let output_str = match output_path.to_str() {
         Some(output) => output.replace("/", "\\"),
         None => {
-            log_error!("could not convert output path to string: {}", output_path.display());
+            wrap_message("error", &format!("could not convert output path to string: {}", output_path.display()));
             return Err(io::Error::new(ErrorKind::InvalidInput, "Invalid output path").into());
         }
     };
@@ -196,7 +197,7 @@ pub fn generate_object_path(source_path: &str, build_dir: &Path) -> PathBuf {
         .file_name()
         .unwrap();
 
-    let mut object_filename = String::from(filename);
+    let mut object_filename = String::from(filename.to_str().unwrap());
 
     object_filename.push_str(".o");
     build_dir.join(object_filename)
@@ -223,11 +224,9 @@ pub fn generate_definitions(main_cfg: &Config, network_cfg: &Network) -> String 
     }
 
     // detect network type
-    if let Some(network) = &network_cfg {
-        match network.r#type {
-            HttpType   => { defs.insert("TRANSPORT_HTTP".to_string(), None); }
-            SmbType    => { defs.insert("TRANSPORT_PIPE".to_string(), None); }
-        }
+    match network_cfg.r#type {
+        HttpType   => { defs.insert("TRANSPORT_HTTP".to_string(), None); }
+        SmbType    => { defs.insert("TRANSPORT_PIPE".to_string(), None); }
     }
 
     // set defs
@@ -248,16 +247,18 @@ pub fn generate_includes(include_directories: &Vec<String>) -> String {
         .unwrap()
         .canonicalize();
 
-    let path = normalize_path(current.unwrap().to_string())
-        .to_owned();
+    let path = normalize_path(current
+        .unwrap()
+        .display()
+        .to_string()
+    );
 
     let mut user_include    = vec![path.to_owned()];
     let mut includes        = vec![];
     let mut paths           = vec![];
 
     for inc_path in include_directories {
-        // TODO: expected String, found &String
-        paths.push(normalize_path(inc_path));
+        paths.push(normalize_path(inc_path.to_owned()));
     }
 
     user_include.extend(paths);
