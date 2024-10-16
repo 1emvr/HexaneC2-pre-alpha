@@ -1,4 +1,4 @@
-#include <include/process.hpp>
+#include <core/include/process.hpp>
 namespace Process {
 
 	ULONG GetProcessIdByName(char *name) {
@@ -13,7 +13,7 @@ namespace Process {
 		Ctx->win32.Process32First(snap, &entry);
 
 		while (Ctx->win32.Process32Next(snap, &entry)) {
-			if (x_strncmp(name, entry.szExeFile, x_strlen(entry.szExeFile)) == 0) {
+			if (MbsBoundCompare(name, entry.szExeFile, MbsLength(entry.szExeFile)) == 0) {
 				pid = entry.th32ProcessID;
 				break;
 			}
@@ -36,7 +36,7 @@ namespace Process {
 		Ctx->win32.Process32First(snap, &entry);
 
 		while (Ctx->win32.Process32Next(snap, &entry) == TRUE) {
-			if (x_strncmp((char*) name, entry.szExeFile, x_strlen(entry.szExeFile)) == 0) {
+			if (MbsBoundCompare((char*) name, entry.szExeFile, MbsLength(entry.szExeFile)) == 0) {
 				x_ntassert(Process::NtOpenProcess(&process, PROCESS_ALL_ACCESS, entry.th32ProcessID));
 				break;
 			}
@@ -72,7 +72,7 @@ namespace Process {
 		LPWSTR w_name			= { };
 		UNICODE_STRING u_name	= { };
 
-		x_mbstowcs(w_name, path, x_strlen(path));
+		MbsToWcs(w_name, path, MbsLength(path));
 		Ctx->nt.RtlInitUnicodeString(&u_name, w_name);
 
 		image->create.Size 	= sizeof(image->create);
