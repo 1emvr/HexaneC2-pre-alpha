@@ -8,7 +8,6 @@ use std::io::Read;
 use std::{env, fs};
 use std::fs::File;
 
-use std::process::Command;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use http_body_util::BodyExt;
@@ -111,54 +110,6 @@ pub(crate) fn find_double_u32(data: &[u8], egg: &[u8]) -> Result<usize> {
     Err(Custom("egg was not found".to_string()))
 }
 
-pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
-    let log_dir = Path::new("./logs");
-
-    if !log_dir.exists() {
-        fs::create_dir_all(&log_dir)
-            .map_err(|e| {
-                wrap_message("ERR", format!("run_command:: create_dir_all: {e}").as_str());
-                return Custom(e.to_string())
-            })?;
-    }
-
-    let mut log_file = File::create(&log_dir.join(logname))
-        .map_err(|e| {
-            wrap_message("ERR", format!("run_command: file::create: {e}").as_str());
-            return Custom(e.to_string())
-        })?;
-
-    // TODO: show commands in errors instead of a debug message
-    let mut command = Command::new("powershell");
-    command.arg("-c").arg(cmd);
-
-    let output = command.output()
-        .map_err(|e| {
-            wrap_message("ERR", format!("run_command: {e}").as_str());
-            return Custom(e.to_string())
-        })?;
-
-    if !&output.stderr.is_empty() {
-
-        log_file.write_all(&output.stderr)
-            .map_err(|e| {
-                wrap_message("ERR", format!("run_command: {e}").as_str());
-                return Custom(e.to_string())
-            })?;
-
-        wrap_message("error", &format!("run_command: check {}/{} for details", log_dir.display(), logname));
-        return Err(Custom("run command failed".to_string()))
-    }
-
-    match output.status.success() {
-        true   => Ok(()),
-        false  => {
-            wrap_message("error", "running command failed");
-            Err(Custom("run command failed".to_string()))
-        }
-    }
-}
-
 pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
     let source_path = Path::new(&source);
 
@@ -166,11 +117,12 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
         Some(name) => name,
         None => {
             wrap_message("error", format!("could not extract file name from source: {source}").as_str());
-            return Err(io::Error::new(ErrorKind::InvalidInput, "Invalid source file").into());
+            return Err(io::Error::new(ErrorKind::InvalidInput, "invalid source file").into());
         }
     };
 
     let mut output_path = PathBuf::from(&outpath);
+
     output_path.push(file_name);
     output_path.set_extension("o");
 

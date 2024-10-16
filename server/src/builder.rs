@@ -5,20 +5,23 @@ use rand::Rng;
 
 use crate::stream::Stream;
 use crate::cipher::{crypt_create_key, crypt_xtea};
-use crate::binary::{copy_section_data, embed_section_data};
-use crate::utils::{canonical_path_all, generate_definitions, generate_hashes, generate_includes, generate_object_path, normalize_path, run_command};
-use crate::rstatic::{DEBUG_FLAGS, RELEASE_FLAGS, USERAGENT};
+use crate::binary::{copy_section_data, embed_section_data, run_command};
+use crate::utils::{canonical_path_all, generate_definitions, generate_hashes, generate_includes, generate_object_path, normalize_path};
 
 use crate::types::Hexane;
 use crate::interface::wrap_message;
 
 use crate::error::{Error, Result};
 use crate::error::Error::Custom;
+use crate::rstatic::USERAGENT;
 
 use crate::types::NetworkType::Http as HttpType;
 use crate::types::NetworkOptions::Http as HttpOpt;
 use crate::types::NetworkType::Smb as SmbType;
 use crate::types::NetworkOptions::Smb as SmbOpt;
+
+pub static DEBUG_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-exceptions -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup' ";
+pub static RELEASE_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-exceptions -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup' ";
 
 impl Hexane {
     pub(crate) fn setup_build(&mut self) -> Result<()> {
@@ -181,7 +184,12 @@ impl Hexane {
                 .into()
             );
 
-            let object_file = generate_object_path(&source, Path::new(build_dir));
+            let object_file = generate_object_path(&source, Path::new(build_dir))
+                .map_err(|e| {
+                    wrap_message("ERR", format!("compile_sources: {e}").as_str());
+                    return Err(e)
+                });
+
             let object = normalize_path(object_file
                 .to_str()
                 .unwrap()
@@ -226,18 +234,16 @@ impl Hexane {
         let definitions     = generate_definitions(main_cfg, network_cfg);
         let mut includes    = String::new();
 
-
         if let Some(dirs) = &self.builder_cfg.include_directories {
             includes = generate_includes(dirs);
         }
 
         let output = Path::new(&self.compiler_cfg.build_directory)
             .join(&output)
-            .to_string_lossy()
-            .to_string();
+            .to_string_lossy();
 
-        let mut linker_script = PathBuf::new();
-        let mut linker = String::new();
+        let mut linker_script   = PathBuf::new();
+        let mut linker          = String::new();
 
         if let Some(script) = &self.builder_cfg.linker_script {
             linker_script = Path::new(&self.builder_cfg.root_directory)
