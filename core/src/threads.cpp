@@ -1,7 +1,7 @@
 #include <core/include/threads.hpp>
 namespace Threads {
 
-    HANDLE CreateUserThread(void *process, bool x64, void *entry, void *args, uint32_t *tid) {
+    HANDLE CreateUserThread(void *process, void *entry, void *args, uint32_t *tid) {
 
         HANDLE thread = { };
         CLIENT_ID cid = { };

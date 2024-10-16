@@ -249,7 +249,7 @@ namespace Memory {
                 coff->data_size = saved->data_size;
             }
 
-            if (!CreateUserThread(NtCurrentProcess(), X64, (void*) CoffThread, coff, nullptr)) {
+            if (!CreateUserThread(NtCurrentProcess(), (void*) CoffThread, coff, nullptr)) {
                 // LOG ERROR
                 // do not return
             }

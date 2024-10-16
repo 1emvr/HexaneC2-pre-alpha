@@ -3,10 +3,6 @@
 #include <core/corelib.hpp>
 
 namespace Dispatcher {
-    UINT32
-    FUNCTION
-        PeekPeerId(STREAM *stream);
-
     VOID
     FUNCTION
         MessageQueue(STREAM *msg);
