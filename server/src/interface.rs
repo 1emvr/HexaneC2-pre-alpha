@@ -1,7 +1,8 @@
 use std::thread;
 use crossbeam_channel::select;
 
-use crate::rstatic::{CHANNEL, DEBUG, EXIT, SESSION};
+use crate::instance::SESSION;
+use crate::rstatic::{CHANNEL, DEBUG, EXIT};
 use crate::types::Message;
 
 pub fn print_channel() {

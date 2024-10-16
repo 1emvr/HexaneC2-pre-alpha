@@ -11,9 +11,8 @@ mod builder;
 mod interface;
 mod parser;
 
-use crate::instance::{interact_instance, load_instance, remove_instance};
+use crate::instance::{list_instances, load_instance, remove_instance};
 use crate::interface::{init_print_channel, stop_print_channel, wrap_message};
-use crate::format::list_instances;
 use crate::utils::print_help;
 
 use serde_json;
@@ -61,7 +60,6 @@ fn main() {
                     "ls"    => list_instances(),
                     "load"  => load_instance(args),
                     "rm"    => remove_instance(args),
-                    "i"     => interact_instance(args),
                     _       => wrap_message("error", "invalid input")
                 }
             },

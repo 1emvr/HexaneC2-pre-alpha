@@ -1,13 +1,10 @@
-use crate::types::{Hexane, Message};
-use crate::types::UserSession;
+use crate::types::Message;
 
 use crossbeam_channel::unbounded;
 use crossbeam_channel::Receiver as Recv;
 use crossbeam_channel::Sender as Send;
 
 use clap::Parser;
-use std::sync::Arc;
-use std::sync::Mutex;
 use lazy_static::lazy_static;
 
 #[derive(Parser, Debug)]
@@ -27,9 +24,6 @@ lazy_static!(
     pub(crate) static ref AMD64: String                             = String::from("amd64");
 
     pub(crate) static ref USERAGENT: String                         = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36".to_owned();
-    pub(crate) static ref SESSION: Mutex<UserSession>               = Mutex::new(UserSession{ username: "".to_owned(), is_admin: false });
-    pub(crate) static ref INSTANCES: Arc<Mutex<Vec<Hexane>>>        = Arc::new(Mutex::new(vec![]));
-
     pub(crate) static ref CHANNEL: (Send<Message>, Recv<Message>)   = unbounded();
     pub(crate) static ref EXIT: (Send<()>, Recv<()>)                = unbounded();
 );
