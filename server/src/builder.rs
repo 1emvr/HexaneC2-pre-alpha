@@ -20,8 +20,8 @@ use crate::types::NetworkOptions::Http as HttpOpt;
 use crate::types::NetworkType::Smb as SmbType;
 use crate::types::NetworkOptions::Smb as SmbOpt;
 
-pub static DEBUG_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-exceptions -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup' ";
-pub static RELEASE_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-exceptions -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup' ";
+pub static DEBUG_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup' ";
+pub static RELEASE_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup' ";
 
 impl Hexane {
     pub(crate) fn setup_build(&mut self) -> Result<()> {
@@ -154,7 +154,7 @@ impl Hexane {
 
                 _ => {
                     wrap_message("ERR", "create_binary_patch: unknown network type");
-                    return Err(Custom("fuck off".to_string()))
+                    return Err(Custom("JSONError".to_string()))
                 }
             }
         }
@@ -191,7 +191,7 @@ impl Hexane {
                     return Custom(e.to_string())
                 })?;
 
-            object_file.set_extension(".o");
+            object_file.set_extension("o");
 
             let object = normalize_path(object_file
                 .to_string_lossy()
@@ -212,7 +212,7 @@ impl Hexane {
                         wrap_message("error", format!("compile_sources:: {e} : {command}")
                             .as_str());
 
-                        return Err(Custom("fuck off".to_string()));
+                        return Err(Custom("CommandError".to_string()));
                     }
                     components.push(object);
                 },
@@ -235,7 +235,7 @@ impl Hexane {
         Ok(())
     }
 
-    fn run_mingw(&self, components: Vec<String>) -> Result<()> {
+    fn run_mingw(&mut self, components: Vec<String>) -> Result<()> {
         let main_cfg    = &self.main_cfg;
         let network_cfg = &self.network_cfg.as_ref().unwrap();
 
@@ -273,13 +273,15 @@ impl Hexane {
         params.push(linker);
         params.push(flags);
 
-        let mut output = self.compiler_cfg.build_directory.clone();
-        output.push_str(format!("/{}", self.builder_cfg.output_name.as_str()).as_str());
+        let build = &self.compiler_cfg.build_directory;
+        let output = &self.builder_cfg.output_name.clone();
 
-        let command = format!("x86_64-w64-mingw32-g++ {} -o {output}.exe", params.join(" "));
+        self.builder_cfg.output_name = format!("{}/{}.exe", build, output);
+
+        let command = format!("x86_64-w64-mingw32-g++ {} -o {}", params.join(" "), self.builder_cfg.output_name);
 
         // TODO: build fails because "sections below image base" which is normal for this.
-        run_command(command.as_str(), format!("{}-linker_error", self.builder_cfg.output_name).as_str());
+        run_command(command.as_str(), format!("{}-linker_error", output).as_str());
         Ok(())
     }
 
@@ -288,7 +290,7 @@ impl Hexane {
         let output  = &self.builder_cfg.output_name;
         let size    = self.main_cfg.config_size as usize;
 
-        if let Err(e) = embed_section_data(&format!("{output}.exe"), &config, size) {
+        if let Err(e) = embed_section_data(output, &config, size) {
             wrap_message("ERR", format!("compile_sources: {e}").as_str());
             return Err(e)
         }
@@ -296,7 +298,7 @@ impl Hexane {
         let mut shellcode: String = self.compiler_cfg.build_directory.to_owned();
         shellcode.push_str("/shellcode.bin");
 
-        if let Err(e) = copy_section_data(&format!("{output}.exe"), shellcode.as_str(), ".text") {
+        if let Err(e) = copy_section_data(output, shellcode.as_str(), ".text$F") {
             wrap_message("error", format!("extract_shellcode:: {e}").as_str());
             return Err(e)
         }

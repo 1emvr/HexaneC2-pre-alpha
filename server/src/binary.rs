@@ -79,15 +79,15 @@ pub(crate) fn copy_section_data(target_path: &str, out_path: &str, target_sectio
 pub(crate) fn embed_section_data(target_path: &str, data: &[u8], sec_size: usize) -> Result<()> {
     let mut file_data = read_file(target_path)
         .map_err(|e| {
-            wrap_message("ERR", format!("embed_section_data: error reading target file: {e}").as_str());
+            wrap_message("ERR", format!("embed_section_data: {target_path} : error reading target file: {e}").as_str());
             return Custom(e.to_string());
         })?;
 
-    let offset = find_double_u32(&file_data, &[0x41,0x41,0x41,0x41])?;
+    let offset = find_double_u32(&file_data, &[0xaa,0xaa,0xaa,0xaa])?;
 
     if data.len() > sec_size || data.len() + offset > sec_size {
         wrap_message("ERR", "data is longer than section size");
-        return Err(Custom("fuck off".to_string()))
+        return Err(Custom("ConfigSizeError".to_string()))
     }
 
     wrap_message("INF", "embedding config data");
@@ -95,16 +95,16 @@ pub(crate) fn embed_section_data(target_path: &str, data: &[u8], sec_size: usize
 
     let mut output = OpenOptions::new().write(true).open(target_path)
         .map_err(|e| {
-            wrap_message("ERR", format!("embed_section_data: error opening output file: {e}").as_str());
+            wrap_message("ERR", format!("embed_section_data: error opening output file: {target_path} : {e}").as_str());
             return Custom(e.to_string());
         })?;
 
     output.write_all(&file_data)
         .map_err(|e| {
-            wrap_message("ERR", format!("embed_section_data: error writing file data: {e}").as_str());
+            wrap_message("ERR", format!("embed_section_data: {:?} : error writing file data: {e}", output).as_str());
             return Custom(e.to_string())
         })
-        .expect("what in the fuck?");
+        .expect("how?");
 
     Ok(())
 }

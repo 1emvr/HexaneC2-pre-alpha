@@ -97,8 +97,9 @@ pub(crate) fn find_double_u32(data: &[u8], egg: &[u8]) -> Result<usize> {
     let egg_len = egg.len();
     let data_len = data.len();
 
-    for i in 0..=data_len - egg_len {
+    for i in 0..= data_len - egg_len {
         if data[i..i + egg_len] == *egg {
+
             if i + 4 + egg_len > data_len {
                 return Err(Custom("out-of-bounds read in egg hunting".to_string()))
             }

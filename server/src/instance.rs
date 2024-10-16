@@ -91,7 +91,7 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
 
     if !json_file.exists() {
         wrap_message("error", "json file does not exist");
-        return Err(Custom("fuck you".to_string()))
+        return Err(Custom("IOError".to_string()))
     }
 
     wrap_message("INF", "reading json content");
