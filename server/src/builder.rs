@@ -12,7 +12,7 @@ use crate::rstatic::{DEBUG_FLAGS, RELEASE_FLAGS, USERAGENT};
 use crate::types::Hexane;
 use crate::interface::wrap_message;
 
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::error::Error::Custom;
 
 use crate::types::NetworkType::Http as HttpType;
@@ -37,16 +37,25 @@ impl Hexane {
         self.compiler_cfg.flags = compiler_flags;
 
         wrap_message("INF", "creating build directory");
-        fs::create_dir_all(&self.compiler_cfg.build_directory)?;
+        if let Err(e) = fs::create_dir_all(&self.compiler_cfg.build_directory) {
+            wrap_message("ERR", format!("create_dir_all: {e}").as_str());
+            return Err(Error::from(e))
+        }
 
         wrap_message("INF", "generating hashes");
-        generate_hashes("./configs/strings.txt", "./core/include/names.hpp")?;
+        if let Err(e) = generate_hashes("./configs/strings.txt", "./core/include/names.hpp") {
+            return Err(e);
+        }
 
         wrap_message("INF", "creating patch");
-        self.create_config_patch()?;
+        if let Err(e) = self.create_config_patch() {
+            return Err(e)
+        }
 
         wrap_message("INF", "compiling sources");
-        self.compile_sources()?;
+        if let Err(e) = self.compile_sources() {
+            return Err(e)
+        }
 
         Ok(())
     }
@@ -241,12 +250,12 @@ impl Hexane {
         }
 
         let flags   = self.compiler_cfg.flags.clone();
-        let targets = components.join(" ");
+        let sourcess = components.join(" ");
 
-        includes.push_str("-I\".\"");
+        includes.push_str(" -I\".\" ");
 
         let mut params = Vec::new();
-        params.push(targets);
+        params.push(sourcess);
         params.push(includes);
         params.push(definitions);
         params.push(linker);
@@ -255,7 +264,7 @@ impl Hexane {
         let command = format!("x86_64-w64-mingw32-g++ {} -o {output}.exe", params.join(" "));
 
         if let Err(e) = run_command(command.as_str(), format!("{output}-linker_error").as_str()) {
-            wrap_message("error", format!("linker_error {e}").as_str());
+            wrap_message("ERR", format!("linker_error {e}").as_str());
             return Err(e);
         }
 
