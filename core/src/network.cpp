@@ -219,15 +219,16 @@ namespace Network {
             DWORD n_status  = sizeof(uint32_t);
             bool success    = true;
 
-            if (!CreateRequestContext(&req_ctx) ||
-                !CreateProxyContext(&proxy_ctx, &req_ctx)) {
-                return false;
+            const auto handle   = req_ctx.req_handle;
+            const auto query    = WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER;
+            auto sec_flags      = SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID | SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
+
+            if (!CreateRequestContext(&req_ctx) || !CreateProxyContext(&proxy_ctx, &req_ctx)) {
+                success = false;
+                goto defer;
             }
 
-            const auto handle = req_ctx.req_handle;
-
             if (Ctx->transport.b_ssl) {
-                auto sec_flags = SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID | SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
                 x_assertb(Ctx->win32.WinHttpSetOption(handle, WINHTTP_OPTION_SECURITY_FLAGS, &sec_flags, sizeof(ULONG)));
             }
 
@@ -245,14 +246,13 @@ namespace Network {
                 }
             }
 
-            const auto query = WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER;
-
             x_assertb(Ctx->win32.WinHttpSendRequest(handle, nullptr, 0, out->buffer, out->length, out->length, 0));
             x_assertb(Ctx->win32.WinHttpReceiveResponse(handle, nullptr));
             x_assertb(Ctx->win32.WinHttpQueryHeaders(handle, query, nullptr, &status, &n_status, nullptr));
 
             if (status != HTTP_STATUS_OK) {
-                return_defer(status);
+                success = false;
+                goto defer;
             }
 
             x_assertb(HttpSendRequest(req_ctx.req_handle, in));
