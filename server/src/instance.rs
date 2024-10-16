@@ -38,7 +38,7 @@ pub(crate) fn load_instance(args: Vec<String>) {
         }
     };
 
-    let name = &instance.builder_cfg.output_name;
+    let name = instance.builder_cfg.output_name.clone();
 
     wrap_message("INF", "setting up build");
     if let Err(e) = instance.setup_build() {
@@ -84,7 +84,10 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
             Err(e)
         });
 
-    let mut json_file = curdir.join("json").join(file_path);
+    let mut json_file = curdir
+        .unwrap()
+        .join("json")
+        .join(file_path);
 
     if !json_file.exists() {
         wrap_message("error", "json file does not exist");
@@ -98,14 +101,8 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
             Err(e)
         });
 
-
-    if &contents.is_empty() {
-        wrap_message("error", "json doesn't seem to exist");
-        return Err(Custom("fuck you".to_string()))
-    }
-
     wrap_message("INF", "parsing json data");
-    let json_data = serde_json::from_str::<JsonData>(&contents)
+    let json_data = serde_json::from_str::<JsonData>(&contents.unwrap())
         .map_err(|e| {
             wrap_message("ERR", format!("could not parse json data: {e}").as_str());
             Err(e)
