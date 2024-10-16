@@ -41,14 +41,12 @@ pub(crate) fn load_instance(args: Vec<String>) {
     let name = &instance.builder_cfg.output_name;
 
     wrap_message("INF", "setting up build");
-    match instance.setup_build() {
-        Ok(_) => wrap_message("INF", format!("{} is ready", name).as_str()),
-        Err(e) => {
-            wrap_message(&e.to_string(), "setup_build failed");
-            return
-        },
+    if let Err(e) = instance.setup_build() {
+        wrap_message("ERR", format!("setting up build failed: {e}").as_str());
+        return
     }
 
+    wrap_message("INF", format!("{} is ready", name).as_str());
     INSTANCES.lock().unwrap().push(instance);
 }
 
@@ -84,7 +82,7 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
         .map_err(|e| {
             wrap_message("ERR", format!("could not get current directory: {e}").as_str());
             Err(e)
-        })?;
+        });
 
     let mut json_file = curdir.join("json").join(file_path);
 
@@ -130,30 +128,23 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
 }
 
 pub fn list_instances() {
-    let mut instances = INSTANCES
-        .lock()
-        .map_err(|_| {
-            wrap_message("ERR", "instances could not be locked");
-            return
-        });
-
-    match instances.unwrap() {
-        Ok(instances) => {
-            if instances.is_empty() {
-                wrap_message("INF", "no active implants available");
-                return
-            }
-        },
+    let instances = match INSTANCES.lock() {
+        Ok(instances) => instances,
         Err(e) => {
-            wrap_message("ERR", format!("fatal error, instances not mappable: {e}"));
+            wrap_message("ERR", format!("could not obtain lock on instances: {e}").as_str());
             return
         }
+    };
+
+    if instances.is_empty() {
+        wrap_message("INF", "no active implants available");
+        return
     }
 
     let mut table = Table::new();
     table.set_titles(row!["gid", "pid", "name", "debug", "net_type", "address", "hostname", "domain", "proxy", "user", "active"]);
 
-    for instance in &instances.unwrap().iter() {
+    for instance in instances.iter() {
 
         let gid = instance.group_id.to_string();
         let pid = instance.peer_id.to_string();

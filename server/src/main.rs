@@ -1,5 +1,4 @@
 mod error;
-mod format;
 mod utils;
 mod types;
 mod stream;
