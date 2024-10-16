@@ -17,7 +17,7 @@ use prettytable::{row, Table};
 
 lazy_static! {
     pub(crate) static ref INSTANCES: Arc<Mutex<Vec<Hexane>>> = Arc::new(Mutex::new(vec![]));
-    pub(crate) static ref SESSION: Mutex<UserSession>        = Mutex::new(UserSession {
+    pub(crate) static ref SESSION: Mutex<UserSession> = Mutex::new(UserSession {
         username: "".to_owned(),
         is_admin: false
     });
@@ -29,17 +29,26 @@ pub(crate) fn load_instance(args: Vec<String>) {
         return
     }
 
-    let session = SESSION.lock().unwrap();
-    let mut instance = map_json_config(&args[2]).unwrap();
+    wrap_message("INF", "loading json config");
+    let mut instance = match map_json_config(&args[2]) {
+        Ok(instance) => instance,
+        Err(e) => {
+            wrap_message("ERR", format!("loading instance failed: {e}").as_str());
+            return
+        }
+    };
 
-    wrap_message("INF", "setting session");
-    instance.user_session.username = session.username.clone();
-    instance.user_session.is_admin = session.is_admin.clone();
+    let name = &instance.builder_cfg.output_name;
 
     wrap_message("INF", "setting up build");
-    instance.setup_build();
+    match instance.setup_build() {
+        Ok(_) => wrap_message("INF", format!("{} is ready", name).as_str()),
+        Err(e) => {
+            wrap_message(&e.to_string(), "setup_build failed");
+            return
+        },
+    }
 
-    wrap_message("INF", format!("{} is ready", instance.builder_cfg.output_name).as_str());
     INSTANCES.lock().unwrap().push(instance);
 }
 
@@ -66,8 +75,6 @@ pub(crate) fn remove_instance(args: Vec<String>) {
 }
 
 fn map_json_config(file_path: &String) -> Result<Hexane> {
-    wrap_message("INF", "loading json");
-
     let json_file = env::current_dir()
         .unwrap()
         .join("json")
