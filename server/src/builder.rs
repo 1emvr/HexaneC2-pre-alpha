@@ -236,10 +236,7 @@ impl Hexane {
 
         if let Some(script) = &self.builder_cfg.linker_script {
             linker_script = Path::new(&self.builder_cfg.root_directory)
-                .join(script)
-                .to_string_lossy()
-                .parse()
-                .unwrap();
+                .join(script);
 
             let path = linker_script
                 .to_string_lossy()
@@ -250,12 +247,12 @@ impl Hexane {
         }
 
         let flags   = self.compiler_cfg.flags.clone();
-        let sourcess = components.join(" ");
+        let sources = components.join(" ");
 
         includes.push_str(" -I\".\" ");
 
         let mut params = Vec::new();
-        params.push(sourcess);
+        params.push(sources);
         params.push(includes);
         params.push(definitions);
         params.push(linker);
