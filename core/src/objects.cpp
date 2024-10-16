@@ -109,14 +109,13 @@ namespace Objects {
         char *sym_name   = nullptr;
 
         bool success = true;
+        const auto file_head = exe->nt_head->FileHeader;
 
         // NOTE: register veh as execution safety net
         if (!(veh_handle = Ctx->nt.RtlAddVectoredExceptionHandler(1, &ExceptionHandler))) {
             success = false;
             goto defer;
         }
-
-        const auto file_head = exe->nt_head->FileHeader;
 
         // NOTE: set section memory attributes
         for (auto sec_index = 0; sec_index < file_head.NumberOfSections; sec_index++) {
@@ -440,8 +439,10 @@ namespace Objects {
     VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size) {
         // NOTE: sec_map seems to be the only thing that persists
 
-        bool success        = true;
+        bool success = true;
+
         _executable *exe    = CreateImageData((uint8_t*) data); ;
+        auto next           = (uint8_t*) exe->base;
 
         x_assertb(exe->buffer    = (uint8_t*) data);
         x_assertb(exe->sec_map   = (_object_map*) Malloc(sizeof(void*) * sizeof(_object_map)));
@@ -460,7 +461,6 @@ namespace Objects {
         exe->size += exe->fn_map->size;
 
         x_ntassertb(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &exe->base, exe->size, &exe->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
-        auto next = (uint8_t*) exe->base;
 
         for (uint16_t sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
             const auto section = SECTION_HEADER(exe->buffer, sec_index);

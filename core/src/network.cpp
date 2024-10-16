@@ -9,13 +9,13 @@ namespace Network {
             DWORD read      = 0;
             DWORD in_length = 0;
 
-            uint32_t total      = 0;
-            uint32_t default    = 8192;
-            uint32_t last_read  = 0;
+            uint32_t total          = 0;
+            uint32_t last_read      = 0;
+            uint32_t def_length     = 8192;
 
             bool success    = true;
-            void *response  = Malloc(default);
-            void *buffer    = Malloc(default);
+            void *response  = Malloc(def_length);
+            void *buffer    = Malloc(def_length);
 
             do {
                 if (!Ctx->win32.WinHttpQueryDataAvailable(request, &in_length)) {
@@ -27,7 +27,7 @@ namespace Network {
 
                 last_read = in_length;
 
-                if (in_length > default) {
+                if (in_length > def_length) {
                     void *r_buffer  = Realloc(buffer, in_length);
 
                     if (!r_buffer) {
@@ -45,7 +45,7 @@ namespace Network {
                     goto defer;
                 }
 
-                if (total + read > default) {
+                if (total + read > def_length) {
                     void *r_response = Realloc(response, (total + read) * 2);
 
                     if (!r_response) {
