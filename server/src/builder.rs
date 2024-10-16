@@ -274,7 +274,7 @@ impl Hexane {
         params.push(flags);
 
         let mut output = self.compiler_cfg.build_directory.clone();
-        output.push_str(self.builder_cfg.output_name.as_str());
+        output.push_str(format!("/{}", self.builder_cfg.output_name.as_str()).as_str());
 
         let command = format!("x86_64-w64-mingw32-g++ {} -o {output}.exe", params.join(" "));
 
