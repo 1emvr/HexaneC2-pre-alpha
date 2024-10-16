@@ -27,7 +27,7 @@ impl Hexane {
     pub(crate) fn setup_build(&mut self) -> Result<()> {
         let mut rng = rand::thread_rng();
 
-        self.peer_id = rng.gen::<u32>();
+        self.peer_id = rng.random::<u32>();
         self.compiler_cfg.build_directory = format!("./payload/{}", &self.builder_cfg.output_name);
 
         let compiler_flags = if self.main_cfg.debug {
