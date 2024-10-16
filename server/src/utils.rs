@@ -7,12 +7,11 @@ use std::io::Read;
 
 use std::{env, fs};
 use std::fs::File;
-use http_body_util::BodyExt;
 
 use std::process::Command;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-
+use http_body_util::BodyExt;
 use crate::error::Result;
 use crate::stream::Stream;
 use crate::types::{Config, Network};
@@ -187,12 +186,17 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
 }
 
 pub fn canonical_path_all(src_path: PathBuf) -> Result<Vec<PathBuf>> {
-    let entries = fs::read_dir(&src_path)?
-        .filter_map(|entry| entry.ok())
+    let entries = fs::read_dir(&src_path)
+        .map_err(|e| {
+            wrap_message("ERR", format!("canonical_path_all: {e}").as_str());
+            return Err(e)
+        });
+
+    let all = entries.filter_map(|entry| entry.ok())
         .map(|entry| entry.path())
         .collect();
 
-    Ok(entries)
+    Ok(all)
 }
 
 pub fn normalize_path(path_string: String) -> String {
@@ -206,19 +210,20 @@ pub fn normalize_path(path_string: String) -> String {
     stripped_path.replace("/", "\\")
 }
 
-pub fn generate_object_path(source_path: &str, build_dir: &Path) -> PathBuf {
+pub fn generate_object_path(source_path: &str, build_dir: &Path) -> Result<PathBuf> {
     let filename = Path::new(source_path)
-        .file_name()
+        .file_name();
+
+    let mut object = String::from(filename
+        .to_str()
         .map_err(|e| {
             wrap_message("ERR", format!("generate_object_path: {e}").as_str());
-            return Custom(e.to_string())
+            return Err(e)
         })
-        .unwrap();
+    )?;
 
-    let mut object_filename = String::from(filename.to_str().unwrap());
-
-    object_filename.push_str(".o");
-    build_dir.join(object_filename)
+    object.push_str(".o");
+    build_dir.join(object)
 }
 
 pub fn generate_definitions(main_cfg: &Config, network_cfg: &Network) -> String {
