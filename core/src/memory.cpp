@@ -172,7 +172,7 @@ namespace Memory {
 
     namespace Execute {
 
-        BOOL ExecuteCommand(_parser& parser) {
+        BOOL ExecuteCommand(_parser parser) {
 
             uintptr_t pointer = 0;
 
@@ -192,7 +192,7 @@ namespace Memory {
             return true;
         }
 
-        BOOL ExecuteShellcode(_parser& parser) {
+        BOOL ExecuteShellcode(_parser parser) {
 
             void* base      = nullptr;
             void(*exec)()   = nullptr;
@@ -227,7 +227,7 @@ namespace Memory {
             return success;
         }
 
-        VOID LoadObject(_parser &parser) {
+        VOID LoadObject(_parser parser) {
 
             _coff_params* coff  = (_coff_params*) Malloc(sizeof(_coff_params));
             _coff_params* saved = nullptr;
