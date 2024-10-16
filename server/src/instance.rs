@@ -130,14 +130,17 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
 }
 
 pub fn list_instances() {
-    let instances = INSTANCES
+    let mut instances = INSTANCES
         .lock()
-        .map_err(|e| e.to_string());
+        .map_err(|_| {
+            wrap_message("ERR", "instances could not be locked");
+            return
+        });
 
     match instances.unwrap() {
         Ok(instances) => {
             if instances.is_empty() {
-                wrap_message("error", "no active implants available");
+                wrap_message("INF", "no active implants available");
                 return
             }
         },
