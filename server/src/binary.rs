@@ -1,5 +1,6 @@
 use std::io::Write;
 use std::fs::{File, OpenOptions};
+use http_body_util::BodyExt;
 use pelite::{PeFile, pe32::headers::SectionHeader};
 
 use crate::interface::wrap_message;
@@ -54,9 +55,11 @@ pub(crate) fn copy_section_data(target_path: &str, out_path: &str, target_sectio
             return Err(e)
         });
 
-    let offset  = section_data?.section.PointerToRawData as usize;
-    let size    = section_data?.section.SizeOfRawData as usize;
-    let data    = &section_data?.data[offset..offset + size];
+    let data = section_data.unwrap();
+
+    let offset  = data.section.PointerToRawData as usize;
+    let size    = data.section.SizeOfRawData as usize;
+    let data    = &data.data[offset..offset + size];
 
     let mut outfile = File::create(out_path)
         .map_err(|e| {
@@ -89,11 +92,21 @@ pub(crate) fn embed_section_data(target_path: &str, data: &[u8], sec_size: usize
         return Err(Custom("fuck off".to_string()))
     }
 
+    wrap_message("INF", "embedding config data");
     file_data[offset..offset + data.len()].copy_from_slice(data);
 
-    wrap_message("INF", "embedding config data");
-    let mut output = OpenOptions::new().write(true).open(target_path)?;
-    output.write_all(&file_data)?;
+    let mut output = OpenOptions::new().write(true).open(target_path)
+        .map_err(|e| {
+            wrap_message("ERR", format!("embed_section_data: error opening output file: {e}").as_str());
+            return Custom(e.to_string());
+        });
+
+    output.unwrap().write_all(&file_data)
+        .map_err(|e| {
+            wrap_message("ERR", format!("embed_section_data: error writing file data: {e}").as_str());
+            return Custom(e.to_string())
+        })
+        .unwrap();
 
     Ok(())
 }
