@@ -1,0 +1,60 @@
+{
+	"config": {
+		"architecture": "amd64",
+		"debug": false,
+        "encrypt": false,
+		"hostname": "LENOVO-WRKSTN-W",
+		"sleeptime": 3,
+		"jitter": 10,
+        "config_size": 1024
+	},
+
+	"network": {
+		"type": "http",
+		"options": {
+			"useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+			"address": "192.168.0.30",
+			"port": 80,
+
+			"endpoints": [
+				"/endpoint0","/endpoint1", "/endpoint2", "/endpoint3", "/endpoint4",
+				"/endpoint5", "/endpoint6", "/endpoint7", "/endpoint8", "/endpoint9"
+			]
+		}
+	},
+
+	"builder": {
+		"output_name": "test_implant",
+		"root_directory": "/home/lemur/Github/HexaneC2/core",
+		"linker_script": "implant.ld",
+
+		"dependencies": [],
+		"sources": [
+			"cipher.cpp", "commands.cpp", "cruntime.cpp", "implant.cpp", "inject.cpp",
+			"memory.cpp", "message.cpp", "network.cpp", "opsec.cpp", "parser.cpp",
+			"process.cpp", "start.asm", "stream.cpp", "utils.cpp"
+		],
+
+		"loader": {
+			"root_directory": "/home/lemur/Github/HexaneC2/loader",
+			"linker_script": "loader.ld",
+			"rsrc_script": "resource.rc",
+
+			"dependencies":[],
+			"sources": [
+				"dllmain.cpp", "resource.cpp"
+			],
+			"injection": {
+				"type": "threadless",
+				"options": {
+					"target_process": "flameshot.exe",
+					"target_module":"kernel32.dll",
+					"target_function":"OpenFile",
+					"loader_assembly": "/home/lemur/Github/HexaneC2/inject/threadless/loader.asm",
+					"execute":"/home/lemur/Github/HexaneC2/inject/threadless/OpenFileExecute.cpp"
+				}
+			}
+		}
+	}
+}
+

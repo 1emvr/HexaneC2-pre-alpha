@@ -166,7 +166,12 @@ impl Hexane {
 
         let mut components  = Vec::new();
         let src_path        = Path::new(root_dir).join("src");
-        let entries         = canonical_path_all(src_path)?;
+
+        let entries = canonical_path_all(src_path)
+            .map_err(|e| {
+                wrap_message("ERR", format!("canonical_path_all: {e}").as_str());
+                return Custom(e.to_string())
+            })?;
 
         for path in entries {
             wrap_message("INF", format!("gathering: {:?}", path.to_str()).as_str());

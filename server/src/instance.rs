@@ -99,10 +99,10 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
         .map_err(|e| {
             wrap_message("ERR", format!("could not read json file: {e}").as_str());
             return Custom(e.to_string())
-        });
+        })?;
 
     wrap_message("INF", "parsing json data");
-    let json_data = serde_json::from_str::<JsonData>(&contents.unwrap())
+    let json_data = serde_json::from_str::<JsonData>(&contents)
         .map_err(|e| {
             wrap_message("ERR", format!("could not parse json data: {e}").as_str());
             return Custom(e.to_string())

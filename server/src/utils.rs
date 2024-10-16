@@ -5,19 +5,20 @@ use std::io::BufReader;
 use std::io::Write;
 use std::io::Read;
 
+use std::{env, fs};
+use std::fs::File;
+use http_body_util::BodyExt;
+
 use std::process::Command;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
-use std::{env, fs};
-use std::fs::File;
-
+use crate::error::Result;
 use crate::stream::Stream;
-use crate::error::{Result, Error};
 use crate::types::{Config, Network};
 use crate::interface::wrap_message;
-use crate::rstatic::DEBUG;
 
+use crate::error::Error::Custom as Custom;
 use crate::types::NetworkType::Http as HttpType;
 use crate::types::NetworkType::Smb as SmbType;
 
@@ -100,7 +101,7 @@ pub(crate) fn find_double_u32(data: &[u8], egg: &[u8]) -> Result<usize> {
     for i in 0..=data_len - egg_len {
         if data[i..i + egg_len] == *egg {
             if i + 4 + egg_len > data_len {
-                return Err(Error::Custom("out-of-bounds read in egg hunting".to_string()))
+                return Err(Custom("out-of-bounds read in egg hunting".to_string()))
             }
             if data[i + 4..i + 4 + egg_len] == *egg {
                 return Ok(i);
@@ -108,40 +109,53 @@ pub(crate) fn find_double_u32(data: &[u8], egg: &[u8]) -> Result<usize> {
         }
     }
 
-    Err(Error::Custom("egg was not found".to_string()))
+    Err(Custom("egg was not found".to_string()))
 }
 
 pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
     let log_dir = Path::new("./logs");
 
     if !log_dir.exists() {
-        fs::create_dir_all(&log_dir)?;
+        fs::create_dir_all(&log_dir)
+            .map_err(|e| {
+                wrap_message("ERR", format!("run_command:: create_dir_all: {e}").as_str());
+                return Custom(e.to_string())
+            })?;
     }
 
-    let mut log_file = File::create(&log_dir.join(logname))?;
-    if *DEBUG {
-        wrap_message("info", &format!("running command {}", cmd.to_string()));
-        println!();
-    }
+    let mut log_file = File::create(&log_dir.join(logname))
+        .map_err(|e| {
+            wrap_message("ERR", format!("run_command: file::create: {e}").as_str());
+            return Custom(e.to_string())
+        })?;
 
+    // TODO: show commands in errors instead of a debug message
     let mut command = Command::new("powershell");
     command.arg("-c").arg(cmd);
 
-    let output = command.output()?;
+    let output = command.output()
+        .map_err(|e| {
+            wrap_message("ERR", format!("run_command: {e}").as_str());
+            return Custom(e.to_string())
+        })?;
 
     if !&output.stderr.is_empty() {
-        log_file.write_all(&output.stdout)?;
-        log_file.write_all(&output.stderr)?;
+
+        log_file.write_all(&output.stderr)
+            .map_err(|e| {
+                wrap_message("ERR", format!("run_command: {e}").as_str());
+                return Custom(e.to_string())
+            })?;
 
         wrap_message("error", &format!("run_command: check {}/{} for details", log_dir.display(), logname));
-        return Err(Error::Custom("run command failed".to_string()))
+        return Err(Custom("run command failed".to_string()))
     }
 
     match output.status.success() {
         true   => Ok(()),
         false  => {
-            wrap_message("error", &"running command failed".to_string());
-            Err(Error::Custom("run command failed".to_string()))
+            wrap_message("error", "running command failed");
+            Err(Custom("run command failed".to_string()))
         }
     }
 }
@@ -152,7 +166,7 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
     let file_name = match source_path.file_name() {
         Some(name) => name,
         None => {
-            wrap_message("error", &format!("could not extract file name from source: {}", source));
+            wrap_message("error", format!("could not extract file name from source: {source}").as_str());
             return Err(io::Error::new(ErrorKind::InvalidInput, "Invalid source file").into());
         }
     };
@@ -195,6 +209,10 @@ pub fn normalize_path(path_string: String) -> String {
 pub fn generate_object_path(source_path: &str, build_dir: &Path) -> PathBuf {
     let filename = Path::new(source_path)
         .file_name()
+        .map_err(|e| {
+            wrap_message("ERR", format!("generate_object_path: {e}").as_str());
+            return Custom(e.to_string())
+        })
         .unwrap();
 
     let mut object_filename = String::from(filename.to_str().unwrap());
@@ -225,8 +243,8 @@ pub fn generate_definitions(main_cfg: &Config, network_cfg: &Network) -> String 
 
     // detect network type
     match network_cfg.r#type {
-        HttpType   => { defs.insert("TRANSPORT_HTTP".to_string(), None); }
-        SmbType    => { defs.insert("TRANSPORT_PIPE".to_string(), None); }
+        HttpType => { defs.insert("TRANSPORT_HTTP".to_string(), None); }
+        SmbType => { defs.insert("TRANSPORT_PIPE".to_string(), None); }
     }
 
     // set defs
