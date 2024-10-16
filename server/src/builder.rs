@@ -212,7 +212,6 @@ impl Hexane {
         let definitions     = generate_definitions(main_cfg, network_cfg);
         let mut includes    = String::new();
 
-        includes.push_str("-I\".\"");
 
         if let Some(dirs) = &self.builder_cfg.include_directories {
             includes = generate_includes(dirs);
@@ -243,6 +242,8 @@ impl Hexane {
 
         let flags   = self.compiler_cfg.flags.clone();
         let targets = components.join(" ");
+
+        includes.push_str("-I\".\"");
 
         let mut params = Vec::new();
         params.push(targets);
