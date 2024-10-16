@@ -8,18 +8,20 @@ pub struct Stream {
 
 impl Stream {
     pub fn new() -> Self {
-        Stream { buffer: Vec::new() }
+        Stream {
+            buffer: Vec::new()
+        }
     }
 
     pub fn pack_byte(&mut self, data: u8) {
         self.buffer.push(data);
     }
 
-    pub fn pack_dword64(&mut self, data: i64) {
+    pub fn pack_uint3264(&mut self, data: i64) {
         self.buffer.write_i64::<LittleEndian>(data).unwrap();
     }
 
-    pub fn pack_dword(&mut self, data: u32) {
+    pub fn pack_uint32(&mut self, data: u32) {
         self.buffer.write_u32::<LittleEndian>(data).unwrap();
     }
 
@@ -29,7 +31,7 @@ impl Stream {
 
     pub fn pack_bytes(&mut self, data: &[u8]) {
         let len = data.len() as u32;
-        self.pack_dword(len);
+        self.pack_uint32(len);
         self.buffer.extend_from_slice(data);
     }
 
@@ -44,9 +46,9 @@ impl Stream {
     }
 
     pub fn create_header(&mut self, peer_id: u32, msg_type: u32, task_id: u32) {
-        self.pack_dword(peer_id);
-        self.pack_dword(task_id);
-        self.pack_dword(msg_type);
+        self.pack_uint32(peer_id);
+        self.pack_uint32(task_id);
+        self.pack_uint32(msg_type);
     }
 
     pub fn get_buffer(&self) -> &[u8] {

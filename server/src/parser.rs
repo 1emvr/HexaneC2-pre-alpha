@@ -23,9 +23,9 @@ impl Parser {
         };
 
         parser.msg_length   = parser.msg_buffer.len() as u32;
-        parser.peer_id      = parser.parse_dword();
-        parser.task_id      = parser.parse_dword();
-        parser.msg_type     = parser.parse_dword();
+        parser.peer_id      = parser.parse_uint32();
+        parser.task_id      = parser.parse_uint32();
+        parser.msg_type     = parser.parse_uint32();
 
         parser
     }
@@ -45,11 +45,11 @@ impl Parser {
     }
 
     pub fn parse_bool(&mut self) -> bool {
-        let integer = self.parse_dword();
+        let integer = self.parse_uint32();
         integer != 0
     }
 
-    pub fn parse_dword(&mut self) -> u32 {
+    pub fn parse_uint32(&mut self) -> u32 {
         if self.msg_length >= 4 {
             let buffer = &self.msg_buffer[self.pointer..self.pointer+4].to_vec();
 
@@ -66,7 +66,7 @@ impl Parser {
         else { 0 }
     }
 
-    pub fn parse_dword64(&mut self) -> u64 {
+    pub fn parse_uint3264(&mut self) -> u64 {
         if self.msg_length >= 8 {
             let buffer = &self.msg_buffer[self.pointer..self.pointer+8].to_vec();
 
@@ -84,7 +84,7 @@ impl Parser {
     }
 
     pub fn parse_bytes(&mut self) -> Vec<u8> {
-        let size = self.parse_dword() as usize;
+        let size = self.parse_uint32() as usize;
 
         if size > 0 && self.msg_length as usize >= size {
             let buffer = self.msg_buffer[self.pointer..self.pointer+size].to_vec();
