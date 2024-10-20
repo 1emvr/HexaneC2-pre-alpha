@@ -1,6 +1,6 @@
 # HexaneC2
 ## Overview:
-Compilation of publicly available resources with minimal UI/UX features. A good portion of the code is derived from https://github.com/HavocFramework/Havoc.
+A compilation of publicly available resources with minimal UI/UX features. A good portion of the code is derived from https://github.com/HavocFramework/Havoc, taking inspiration from other popular frameworks as well.
 
 This is meant to lay the groundwork for my custom implementations, reasearch and development in defense evasion, lowering memory/network footprint and experimenting with new features, rather than being a feature-rich user experience. This is not a production-ready C2 and I do not recommend using it in any real environments. 
 
