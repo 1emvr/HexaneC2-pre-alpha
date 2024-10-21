@@ -34,6 +34,7 @@ namespace Stream {
     }
 
     _stream * CreateStreamWithHeaders(uint32_t msg_type) {
+        HEXANE;
 
         _stream *stream = CreateStream();
 
@@ -45,6 +46,7 @@ namespace Stream {
     }
 
     _stream* CreateStream () {
+        HEXANE;
 
         _stream *stream = { };
 
@@ -59,6 +61,7 @@ namespace Stream {
     }
 
     VOID DestroyStream (_stream *stream) {
+        HEXANE;
 
         if (stream) {
             if (stream->buffer) {
@@ -78,6 +81,7 @@ namespace Stream {
     }
 
     VOID PackByte (_stream *stream, uint8_t data) {
+        HEXANE;
 
         if (stream) {
             stream->buffer = B_PTR(Realloc(stream->buffer, stream->length + sizeof(uint8_t)));
@@ -88,6 +92,7 @@ namespace Stream {
     }
 
     VOID PackUint64 (_stream *stream, uint64_t data) {
+        HEXANE;
 
         if (stream) {
             stream->buffer = B_PTR(Realloc(stream->buffer, stream->length + sizeof(uint64_t)));
@@ -98,6 +103,7 @@ namespace Stream {
     }
 
     VOID PackUint32 (_stream *stream, uint32_t data) {
+        HEXANE;
 
         if (stream) {
             stream->buffer = B_PTR(Realloc(stream->buffer, stream->length + sizeof(uint32_t)));
@@ -108,6 +114,7 @@ namespace Stream {
     }
 
     VOID PackBytes (_stream *stream, uint8_t *data, size_t size) {
+        HEXANE;
 
         if (stream) {
             if (size) {

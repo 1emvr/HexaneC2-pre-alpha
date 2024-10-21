@@ -28,9 +28,9 @@ LPVOID
 #define WIN_VERSION_2016_X      		11
 
 
-#define Ctx           					((_hexane*) C_DREF(GLOBAL_OFFSET))
 #define ntstatus 						Ctx->teb->LastErrorValue
 #define GLOBAL_OFFSET					(U_PTR(InstStart()) + U_PTR( &__instance))
+#define HEXANE 							_hexane* Ctx = (_hexane*) C_DREF(GLOBAL_OFFSET)
 
 #define B_PTR(x)						((PBYTE) x)
 #define C_PTR(x)        				((LPVOID) x)

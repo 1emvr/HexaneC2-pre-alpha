@@ -101,6 +101,8 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
         })?;
 
     // TODO: show commands in errors instead of a debug message
+    wrap_message("INF", format!("running command: {cmd}").as_str());
+
     let mut command = Command::new("powershell");
     command.arg("-c").arg(cmd);
 

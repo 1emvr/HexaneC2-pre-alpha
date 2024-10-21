@@ -9,6 +9,7 @@ namespace Main {
     UINT8 RDATA Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
 
     VOID MainRoutine() {
+        HEXANE;
 
         static int retry = 0;
         do {
@@ -44,6 +45,7 @@ namespace Main {
 
 
     BOOL ResolveApi() {
+        HEXANE;
 
         bool success = true;
         OSVERSIONINFOW os_version = { };
@@ -143,16 +145,16 @@ namespace Main {
     }
 
     BOOL ReadConfig() {
+        HEXANE;
 
-        bool success    = true;
         _parser parser  = { };
-
-        __debugbreak();
+        bool success    = true;
 
         CreateParser(&parser, Config, sizeof(Config));
         MemSet(Config, 0, sizeof(Config));
 
         Ctx->session.peer_id = UnpackUint32(&parser);
+        __debugbreak();
         ParserMemcpy(&parser, &Ctx->config.session_key, nullptr);
 
         if (ENCRYPTED) {
@@ -315,6 +317,7 @@ namespace Main {
 using namespace Main;
 VOID Entrypoint() {
 
+    __debugbreak();
     if (!ContextInit() || !ResolveApi() || !ReadConfig()) {
         return;
     }

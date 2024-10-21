@@ -8,6 +8,7 @@ namespace Parser {
     }
 
     VOID ParserStrcpy(_parser *const parser, char **const dst, uint32_t *const n_out) {
+        HEXANE;
 
         uint32_t length     = 0;
         const auto buffer   = UnpackString(parser, &length);
@@ -23,6 +24,7 @@ namespace Parser {
     }
 
     VOID ParserWcscpy(_parser *const parser, wchar_t **const dst, uint32_t *const n_out) {
+        HEXANE;
 
         uint32_t length     = 0;
         const auto buffer   = UnpackWString(parser, &length);
@@ -41,6 +43,7 @@ namespace Parser {
     }
 
     VOID ParserMemcpy(_parser *const parser, uint8_t **const dst, uint32_t *const n_out) {
+        HEXANE;
 
         uint32_t length     = 0;
         const auto buffer   = UnpackBytes(parser, &length);
@@ -57,18 +60,19 @@ namespace Parser {
     }
 
     VOID CreateParser(_parser *parser, uint8_t *buffer, uint32_t length) {
+        HEXANE;
 
         x_assert(parser->handle = Malloc(length));
         MemCopy(parser->handle, buffer, length);
 
         parser->Length  = length;
         parser->buffer  = parser->handle;
-        parser->bswap   = BSWAP;
 
         defer:
     }
 
     VOID DestroyParser (_parser *const parser) {
+        HEXANE;
 
         if (parser) {
             if (parser->handle) {
@@ -122,7 +126,7 @@ namespace Parser {
         parser->buffer = B_PTR(parser->buffer) + 4;
         parser->Length -= 4;
 
-        return (parser->bswap)
+        return (BSWAP)
                ? __builtin_bswap32((int32_t) data)
                : data;
     }
@@ -135,12 +139,12 @@ namespace Parser {
             return 0;
         }
 
-        MemCopy(&data, parser->buffer, 4);
+        MemCopy(&data, parser->buffer, 8);
 
         parser->buffer = B_PTR(parser->buffer) + 8;
         parser->Length -= 8;
 
-        return (parser->bswap)
+        return (BSWAP)
                ? __builtin_bswap64((int64_t) data)
                : data;
     }
@@ -158,7 +162,7 @@ namespace Parser {
         parser->buffer = B_PTR(parser->buffer) + 4;
         parser->Length -= 4;
 
-        return (parser->bswap)
+        return (BSWAP)
                ? __builtin_bswap32(data) != 0
                : data != 0;
     }

@@ -2,6 +2,7 @@
 namespace Threads {
 
     HANDLE CreateUserThread(void *process, void *entry, void *args, uint32_t *tid) {
+        HEXANE;
 
         HANDLE thread = { };
         CLIENT_ID cid = { };

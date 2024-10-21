@@ -11,6 +11,7 @@ using namespace Memory::Execute;
 namespace Dispatcher {
 
     VOID AddMessage(_stream *out) {
+        HEXANE;
 
         auto head = Ctx->transport.message_queue;
 
@@ -27,6 +28,7 @@ namespace Dispatcher {
     }
 
     VOID RemoveMessage(_stream *target) {
+        HEXANE;
 
         _stream *prev = { };
 
@@ -53,6 +55,7 @@ namespace Dispatcher {
     }
 
     VOID MessageQueue(_stream *msg) {
+        HEXANE;
 
         _parser parser = { };
         _stream *queue = { };
@@ -80,8 +83,10 @@ namespace Dispatcher {
     }
 
     VOID QueueSegments(uint8_t *buffer, uint32_t length) {
+        HEXANE;
 
-        _stream *queue      = { };
+        _stream *queue = { };
+
         uint32_t offset     = 0;
         uint32_t peer_id    = 0;
         uint32_t task_id    = 0;
@@ -116,6 +121,7 @@ namespace Dispatcher {
     }
 
     VOID PrepareEgress(_stream *out) {
+        HEXANE;
 
         _parser parser = { };
 
@@ -141,6 +147,7 @@ namespace Dispatcher {
     }
 
     VOID PrepareIngress(_stream *in) {
+        HEXANE;
 
         if (in) {
             if (PeekPeerId(in) != Ctx->session.peer_id) {
@@ -160,6 +167,7 @@ namespace Dispatcher {
     }
 
     BOOL DispatchRoutine() {
+        HEXANE;
 
         bool success    = true;
         _stream *out    = CreateStream();
@@ -200,6 +208,7 @@ namespace Dispatcher {
     }
 
     VOID CommandDispatch (_stream *in) {
+        HEXANE;
 
         _parser parser = { };
 

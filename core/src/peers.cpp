@@ -15,6 +15,7 @@ namespace Peers {
     }
 
     _peer_data* GetPeer(const uint32_t peer_id) {
+        HEXANE;
 
         auto head = Ctx->peers;
         do {
@@ -32,6 +33,7 @@ namespace Peers {
     }
 
     BOOL RemovePeer(uint32_t peer_id) {
+        HEXANE;
 
         bool success    = true;
         _peer_data *head   = Ctx->peers;
@@ -73,6 +75,7 @@ namespace Peers {
     }
 
     BOOL AddPeer(const wchar_t *pipe_name, uint32_t peer_id) {
+        HEXANE;
 
         _stream *in = { };
         _peer_data *peer = { };
@@ -152,10 +155,12 @@ namespace Peers {
     }
 
     VOID PushPeers() {
+        HEXANE;
 
-        _stream *in     = { };
-        void *buffer    = { };
+        _stream *in = { };
+
         uint8_t bound   = 0;
+        void *buffer    = { };
 
         DWORD read  = 0;
         DWORD total  = 0;

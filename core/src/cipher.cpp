@@ -38,6 +38,7 @@ namespace Xtea {
     }
 
     PBYTE *XteaDivide (const uint8_t *const data, const size_t n_data, size_t *const n_out) {
+        HEXANE;
 
         const auto n_sec    = (n_data + 8) -1 / 8;
         const auto sections = (uint8_t**) Malloc(n_sec * sizeof(uint8_t*));
@@ -92,6 +93,7 @@ namespace Xtea {
     }
 
     VOID XteaCrypt(uint8_t *const data, const size_t n_data, uint8_t *const m_key, const bool encrypt) {
+        HEXANE;
 
         uint8_t **sections  = nullptr;
         size_t n_secs       = 0;

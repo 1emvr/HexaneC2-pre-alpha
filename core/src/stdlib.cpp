@@ -300,6 +300,7 @@ char* MbsToken(char* str, const char* delim) {
 }
 
 char* MbsDuplicate(const char* str) {
+    HEXANE;
 
     char*   str2      = { };
     size_t  length  = 0;
@@ -316,6 +317,7 @@ char* MbsDuplicate(const char* str) {
 }
 
 char** NewSplit(const char* str, const char* delim, int* count) {
+    HEXANE;
 
     char **result   = { };
     char **temp_res = { };
@@ -371,6 +373,7 @@ char** NewSplit(const char* str, const char* delim, int* count) {
 }
 
 void FreeSplit(char** split, int count) {
+    HEXANE;
 
     for (auto i = 0; i < count; i++) {
         Free(split[i]);
