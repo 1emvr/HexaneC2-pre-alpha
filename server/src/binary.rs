@@ -16,16 +16,16 @@ struct Section {
     size: u32,
 }
 
-fn get_section_header (target_path: &str, target_section: &str) -> Result<Section> {
+fn get_text_section(target_path: &str) -> Result<Section> {
     let read_data = read_file(target_path)
         .map_err(|e| {
-            wrap_message("ERR", format!("get_section_header: {target_path} : error reading target file").as_str());
+            wrap_message("ERR", format!("get_text_section: {target_path} : error reading target file").as_str());
             return Custom(e.to_string())
         })?;
 
     let pe_file = parse_portable_executable(&read_data)
         .map_err(|e| {
-            wrap_message("ERR", "get_section_header: error converting target file");
+            wrap_message("ERR", "get_text_section: error converting target file");
             return Custom(e.to_string())
         });
 
@@ -38,36 +38,37 @@ fn get_section_header (target_path: &str, target_section: &str) -> Result<Sectio
     })
 }
 
-pub(crate) fn extract_section_data(target_path: &str, target_section: &str, config: &[u8], output_file: &str) -> Result<()> {
-    let mut section_data = get_section_header(target_path, target_section)
+pub(crate) fn extract_section(target_path: &str, config: &[u8], output_file: &str) -> Result<()> {
+    let mut section = get_text_section(target_path)
         .map_err(|e| {
+            wrap_message("ERR", format!("extract_section : {e}").as_str());
             return Custom(e.to_string())
         })?;
 
-    let offset = find_double_u32(&section_data.data, &[0xaa,0xaa,0xaa,0xaa])
+    let offset = find_double_u32(&section.data, &[0xaa,0xaa,0xaa,0xaa])
         .map_err(|e| {
-            wrap_message("ERR", format!("extract_section_data : {e}").as_str());
+            wrap_message("ERR", format!("extract_section : {e}").as_str());
             return Custom(e.to_string());
         })?;
 
-    let size = section_data.size as usize;
+    let size = section.size as usize;
 
     if offset + config.len() > size {
-        wrap_message("ERR", "config is longer than section size");
+        wrap_message("ERR", "extract_section: config is longer than section size");
         return Err(Custom("ConfigError".to_string()))
     }
 
-    section_data.data[offset..offset + config.len()].copy_from_slice(config);
+    section.data[offset..offset + config.len()].copy_from_slice(config);
 
     let mut output = OpenOptions::new().write(true).create(true).open(output_file)
         .map_err(|e| {
-            wrap_message("ERR", format!("extract_section_data: error opening output file: {output_file} : {e}").as_str());
+            wrap_message("ERR", format!("extract_section: error opening output file: {output_file} : {e}").as_str());
             return Custom(e.to_string());
         })?;
 
-    output.write_all(&section_data.data)
+    output.write_all(&section.data)
         .map_err(|e| {
-            wrap_message("ERR", format!("extract_section_data: {:?} : error writing file config: {e}", output).as_str());
+            wrap_message("ERR", format!("extract_section: {:?} : error writing file config: {e}", output).as_str());
             return Custom(e.to_string())
         })?;
 

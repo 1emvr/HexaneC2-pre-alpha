@@ -4,7 +4,7 @@ use std::str::FromStr;
 use rand::Rng;
 
 use crate::stream::Stream;
-use crate::binary::extract_section_data;
+use crate::binary::extract_section;
 use crate::cipher::{crypt_create_key, crypt_xtea};
 use crate::utils::{canonical_path_all, generate_definitions, generate_hashes, generate_includes, generate_object_path, normalize_path, run_command};
 
@@ -223,7 +223,7 @@ impl Hexane {
         let output = &self.builder_cfg.output_name;
 
         shellcode.push_str("/shellcode.bin");
-        extract_section_data(output, ".text", &self.config, output)
+        extract_section(output, &self.config, shellcode.as_str())
     }
 
     fn run_mingw(&mut self, components: Vec<String>) -> Result<()> {
