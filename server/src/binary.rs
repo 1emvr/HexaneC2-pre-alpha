@@ -3,8 +3,8 @@ use std::io::Write;
 use std::fs::{File, OpenOptions};
 use std::path::Path;
 use std::process::Command;
-use pelite::{PeFile, pe32::headers::SectionHeader};
-
+use pe_parser;
+use pe_parser::pe::parse_portable_executable;
 use crate::interface::wrap_message;
 use crate::utils::{find_double_u32, read_file};
 
@@ -12,8 +12,8 @@ use crate::error::Error::Custom as Custom;
 use crate::error::Result as Result;
 
 struct Section {
-    data:       Vec<u8>,
-    section:    SectionHeader,
+    data: Vec<u8>,
+    size: u32,
 }
 
 fn get_section_header (target_path: &str, target_section: &str) -> Result<Section> {
@@ -23,32 +23,19 @@ fn get_section_header (target_path: &str, target_section: &str) -> Result<Sectio
             return Custom(e.to_string())
         })?;
 
-    let pe_file = PeFile::from_bytes(&read_data)
+    let pe_file = parse_portable_executable(&read_data)
         .map_err(|e| {
             wrap_message("ERR", "get_section_header: error converting target file");
             return Custom(e.to_string())
         });
 
-    let mut found: Option<SectionHeader> = None;
+    let head_size = pe_file?.optional_header_64.unwrap().size_of_headers;
+    let code_size = pe_file?.optional_header_64.unwrap().size_of_code;
 
-    for entry in pe_file?.section_headers() {
-        if entry.name()?.to_string() == target_section {
-            found = Some(entry.clone());
-            break;
-        }
-    }
-
-    match found {
-        Some(section_header) => Ok(Section {
-            data:       read_data,
-            section:    section_header,
-        }),
-
-        None => {
-            wrap_message("ERR", format!("cannot find target section: {}", target_section).as_str());
-            Err(Custom("cannot find target section".to_string()))
-        }
-    }
+    Ok(Section {
+        data: read_data[head_size..head_size+code_size],
+        size: code_size,
+    })
 }
 
 pub(crate) fn extract_section_data(target_path: &str, target_section: &str, config: &[u8], output_file: &str) -> Result<()> {
@@ -57,10 +44,15 @@ pub(crate) fn extract_section_data(target_path: &str, target_section: &str, conf
             return Custom(e.to_string())
         })?;
 
-    let offset  = find_double_u32(&section_data.data, &[0xaa,0xaa,0xaa,0xaa])?;
-    let size    = section_data.section.SizeOfRawData as usize;
+    let offset = find_double_u32(&section_data.data, &[0xaa,0xaa,0xaa,0xaa])
+        .map_err(|e| {
+            wrap_message("ERR", format!("extract_section_data : {e}").as_str());
+            return Custom(e.to_string());
+        })?;
 
-    if config.len() > size || offset + config.len() > size {
+    let size = section_data.size as usize;
+
+    if offset + config.len() > size {
         wrap_message("ERR", "config is longer than section size");
         return Err(Custom("ConfigError".to_string()))
     }
