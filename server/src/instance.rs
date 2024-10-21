@@ -77,6 +77,8 @@ pub(crate) fn remove_instance(args: Vec<String>) {
 }
 
 fn map_json_config(file_path: &String) -> Result<Hexane> {
+    wrap_message("INF", "reading json config...");
+
     let curdir = env::current_dir()
         .map_err(|e| {
             wrap_message("ERR", format!("could not get current directory: {e}").as_str());
@@ -93,21 +95,18 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
         return Err(Custom("IOError".to_string()))
     }
 
-    wrap_message("INF", "reading json content");
     let contents = fs::read_to_string(json_file)
         .map_err(|e| {
             wrap_message("ERR", format!("could not read json file: {e}").as_str());
             return Custom(e.to_string())
         })?;
 
-    wrap_message("INF", "parsing json data");
     let json_data = serde_json::from_str::<JsonData>(&contents)
         .map_err(|e| {
             wrap_message("ERR", format!("could not parse json data: {e}").as_str());
             return Custom(e.to_string())
         });
 
-    wrap_message("INF", "creating instance");
     let mut instance = Hexane::default();
 
     let config = json_data.map_err(|e| {
@@ -121,7 +120,6 @@ fn map_json_config(file_path: &String) -> Result<Hexane> {
             return Custom(e.to_string())
         });
 
-    wrap_message("INF", "creating configuration");
     instance.group_id       = 0;
     instance.main_cfg       = config.config;
     instance.loader_cfg     = config.loader;

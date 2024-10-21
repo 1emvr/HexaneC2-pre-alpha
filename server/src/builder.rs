@@ -67,7 +67,6 @@ impl Hexane {
 
         if encrypt {
             let patch_cpy = patch;
-
             patch = crypt_xtea(&patch_cpy, &self.session_key, true)?;
         }
 
@@ -160,7 +159,6 @@ impl Hexane {
     pub fn compile_sources(&mut self) -> Result<()> {
         let root_dir    = &self.builder_cfg.root_directory;
         let build_dir   = &self.compiler_cfg.build_directory;
-        let output      = &self.builder_cfg.output_name;
 
         let mut components  = Vec::new();
         let src_path        = Path::new(root_dir).join("src");
@@ -203,7 +201,7 @@ impl Hexane {
                     command.push_str("nasm");
                     command.push_str(format!(" -f win64 {} -o {}", source, object).as_str());
 
-                    if let Err(e) = run_command(&command.as_str(), format!("{output}-compiler_error").as_str()) {
+                    if let Err(e) = run_command(&command.as_str(), format!("{}-compiler_error", self.builder_cfg.output_name).as_str()) {
                         wrap_message("ERR", format!("compile_sources:: {e} : {command}")
                             .as_str());
 
@@ -221,15 +219,11 @@ impl Hexane {
             return Err(Custom(e.to_string()))
         };
 
-        let mut shellcode: String = self.compiler_cfg.build_directory.to_owned();
+        let mut shellcode = self.compiler_cfg.build_directory.to_owned();
+        let output = &self.builder_cfg.output_name;
+
         shellcode.push_str("/shellcode.bin");
-
-        if let Err(e) = extract_section_data(shellcode.as_str(), ".text", &self.config) {
-            wrap_message("ERR", format!("extract_shellcode:: {e}").as_str());
-            return Err(e)
-        }
-
-        Ok(())
+        extract_section_data(output, ".text", &self.config, output)
     }
 
     fn run_mingw(&mut self, components: Vec<String>) -> Result<()> {
@@ -274,24 +268,10 @@ impl Hexane {
         let output = &self.builder_cfg.output_name.clone();
 
         self.builder_cfg.output_name = format!("{}/{}.exe", build, output);
-
         let command = format!("x86_64-w64-mingw32-g++ {} -o {}", params.join(" "), self.builder_cfg.output_name);
 
         // TODO: build fails because "sections below image base" which is normal for this.
         run_command(command.as_str(), format!("{}-linker_error", output).as_str());
-        Ok(())
-    }
-
-    fn extract_shellcode(&self) -> Result<()> {
-        let mut shellcode: String = self.compiler_cfg.build_directory.to_owned();
-        shellcode.push_str("/shellcode.bin");
-
-        if let Err(e) = extract_section_data(shellcode.as_str(), ".text", &self.config) {
-            wrap_message("ERR", format!("extract_shellcode:: {e}").as_str());
-            return Err(e)
-        }
-
-        // TODO: create option for dll loader
         Ok(())
     }
 }

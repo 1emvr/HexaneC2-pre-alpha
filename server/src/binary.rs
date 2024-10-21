@@ -19,7 +19,7 @@ struct Section {
 fn get_section_header (target_path: &str, target_section: &str) -> Result<Section> {
     let read_data = read_file(target_path)
         .map_err(|e| {
-            wrap_message("ERR", "get_section_header: error reading target file");
+            wrap_message("ERR", format!("get_section_header: {target_path} : error reading target file").as_str());
             return Custom(e.to_string())
         })?;
 
@@ -51,29 +51,29 @@ fn get_section_header (target_path: &str, target_section: &str) -> Result<Sectio
     }
 }
 
-pub(crate) fn extract_section_data(target_path: &str, target_section: &str, config: &[u8]) -> Result<()> {
-    let section_config = get_section_header(target_path, target_section)
+pub(crate) fn extract_section_data(target_path: &str, target_section: &str, config: &[u8], output_file: &str) -> Result<()> {
+    let mut section_data = get_section_header(target_path, target_section)
         .map_err(|e| {
             return Custom(e.to_string())
         })?;
 
-    let offset  = find_double_u32(&section_config.data, &[0xaa,0xaa,0xaa,0xaa])?;
-    let size    = section_config.section.SizeOfRawData as usize;
+    let offset  = find_double_u32(&section_data.data, &[0xaa,0xaa,0xaa,0xaa])?;
+    let size    = section_data.section.SizeOfRawData as usize;
 
     if config.len() > size || offset + config.len() > size {
         wrap_message("ERR", "config is longer than section size");
         return Err(Custom("ConfigError".to_string()))
     }
 
-    section_config.data[offset..offset + config.len()].copy_from_slice(config);
+    section_data.data[offset..offset + config.len()].copy_from_slice(config);
 
-    let mut output = OpenOptions::new().write(true).open(target_path)
+    let mut output = OpenOptions::new().write(true).create(true).open(output_file)
         .map_err(|e| {
-            wrap_message("ERR", format!("extract_section_data: error opening output file: {target_path} : {e}").as_str());
+            wrap_message("ERR", format!("extract_section_data: error opening output file: {output_file} : {e}").as_str());
             return Custom(e.to_string());
         })?;
 
-    output.write_all(&section_config.data)
+    output.write_all(&section_data.data)
         .map_err(|e| {
             wrap_message("ERR", format!("extract_section_data: {:?} : error writing file config: {e}", output).as_str());
             return Custom(e.to_string())
