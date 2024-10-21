@@ -5,6 +5,7 @@
 		"encrypt": false,
 		"hostname": "LENOVO-WRKSTN-L",
 		"config_size": 1024,
+		"retries": 3,
 		"sleeptime": 3,
 		"jitter": 10
 	},

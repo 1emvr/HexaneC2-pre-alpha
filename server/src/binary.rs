@@ -1,10 +1,12 @@
 use std::fs;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::fs::{File, OpenOptions};
-use std::path::Path;
 use std::process::Command;
+use std::path::Path;
+
 use pe_parser;
 use pe_parser::pe::parse_portable_executable;
+
 use crate::interface::wrap_message;
 use crate::utils::{find_double_u32, read_file};
 
@@ -13,7 +15,7 @@ use crate::error::Result as Result;
 
 struct Section {
     data: Vec<u8>,
-    size: u32,
+    size: usize,
 }
 
 fn get_text_section(target_path: &str) -> Result<Section> {
@@ -29,11 +31,18 @@ fn get_text_section(target_path: &str) -> Result<Section> {
             return Custom(e.to_string())
         });
 
-    let head_size = pe_file?.optional_header_64.unwrap().size_of_headers;
-    let code_size = pe_file?.optional_header_64.unwrap().size_of_code;
+    let opt_head = pe_file
+        .unwrap()
+        .optional_header_64;
+
+    let head_size = opt_head.unwrap().size_of_headers as usize;
+    let code_size = opt_head.unwrap().size_of_code as usize;
+
+    let mut data = Vec::new();
+    data.append(read_data[head_size .. head_size + code_size].to_vec().as_mut());
 
     Ok(Section {
-        data: read_data[head_size..head_size+code_size],
+        data: data,
         size: code_size,
     })
 }
@@ -51,9 +60,8 @@ pub(crate) fn extract_section(target_path: &str, config: &[u8], output_file: &st
             return Custom(e.to_string());
         })?;
 
-    let size = section.size as usize;
 
-    if offset + config.len() > size {
+    if offset + config.len() > section.size {
         wrap_message("ERR", "extract_section: config is longer than section size");
         return Err(Custom("ConfigError".to_string()))
     }

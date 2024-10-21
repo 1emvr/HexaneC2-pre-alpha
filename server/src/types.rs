@@ -112,6 +112,7 @@ pub struct Config {
     pub(crate) config_size:     u32, // says "optional" but will be checked for in the config
     pub(crate) sleeptime:       u32,
     pub(crate) jitter:          u16,
+    pub(crate) retries:         i32,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]

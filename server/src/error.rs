@@ -21,7 +21,6 @@ pub enum Error {
     Io(io::Error),
     ParseInt(std::num::ParseIntError),
     SerdeJson(serde_json::error::Error),
-    PeLite(pelite::Error),
     KeySize(KeySizeError),
     Custom(String),
 }
@@ -38,7 +37,6 @@ impl fmt::Display for Error {
             Error::Io(e)        => write!(f, "IO: {}", e),
             Error::ParseInt(e)  => write!(f, "INT: {}", e),
             Error::SerdeJson(e) => write!(f, "JSON: {}", e),
-            Error::PeLite(e)    => write!(f, "PE: {}", e),
             Error::KeySize(e)   => write!(f, "{}", e),
             Error::Custom(msg)  => write!(f, "{}", msg),
         }
@@ -51,7 +49,6 @@ impl std::error::Error for Error {
             Error::Io(e)        => Some(e),
             Error::ParseInt(e)  => Some(e),
             Error::SerdeJson(e) => Some(e),
-            Error::PeLite(e)    => Some(e),
             Error::KeySize(e)   => Some(e),
             Error::Custom(_)    => None,
         }
@@ -73,12 +70,6 @@ impl From<std::num::ParseIntError> for Error {
 impl From<serde_json::error::Error> for Error {
     fn from(err: serde_json::error::Error) -> Self {
         Error::SerdeJson(err)
-    }
-}
-
-impl From<pelite::Error> for Error {
-    fn from(err: pelite::Error) -> Self {
-        Error::PeLite(err)
     }
 }
 

@@ -145,7 +145,7 @@ pub fn list_instances() {
     }
 
     let mut table = Table::new();
-    table.set_titles(row!["gid", "pid", "name", "debug", "net_type", "address", "hostname", "domain", "proxy", "user", "active"]);
+    table.set_titles(row!["gid", "pid", "name", "debug", "address", "hostname", "domain", "proxy", "user", "active"]);
 
     for instance in instances.iter() {
 

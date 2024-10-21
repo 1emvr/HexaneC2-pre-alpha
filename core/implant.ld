@@ -9,6 +9,7 @@ SECTIONS {
 
         *(.text$A);
         *(.text$B);
+        *(.data*);
         *(.rdata*);
 
         FILL(0X00);
