@@ -6,6 +6,7 @@ using namespace Parser;
 using namespace Dispatcher;
 using namespace Memory::Context;
 
+// TODO: delegate functions and api separately to stager/payload
 namespace Main {
     UINT8 RDATA Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
 
