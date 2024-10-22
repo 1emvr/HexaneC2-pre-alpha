@@ -23,7 +23,6 @@ set (SOURCES
         core/src/stream.cpp
         core/src/utils.cpp
         core/src/peers.cpp
-        core/src/sleep.cpp.bak
         core/src/objects.cpp
         core/src/threads.cpp
         core/src/sleep.cpp

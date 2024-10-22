@@ -30,7 +30,7 @@ LPVOID
 
 #define ntstatus 						Ctx->teb->LastErrorValue
 #define GLOBAL_OFFSET					(U_PTR(InstStart()) + U_PTR( &__instance))
-#define HEXANE 							_hexane* Ctx = (_hexane*) C_DREF(GLOBAL_OFFSET)
+#define HEXANE 							_hexane* ctx = (_hexane*) C_DREF(GLOBAL_OFFSET)
 
 #define B_PTR(x)						((PBYTE) x)
 #define C_PTR(x)        				((LPVOID) x)
@@ -513,12 +513,12 @@ struct LdrpVectorHandlerList {
 };
 
 
-typedef struct _peer_data {
+typedef struct _pipe_data {
 	DWORD 		peer_id;
 	HANDLE 		pipe_handle;
 	LPWSTR 		pipe_name;
-	_peer_data	*next;
-}PEER_DATA, *PPEER_DATA;
+	_pipe_data	*next;
+}PIPE_DATA, *PPIPE_DATA;
 
 
 typedef struct _ciphertext {
@@ -621,21 +621,17 @@ typedef struct _memapi {
 	RtlRemoveVectoredExceptionHandler_t RtlRemoveVectoredExceptionHandler;
 	SetProcessValidCallTargets_t SetProcessValidCallTargets;
 
-	DTYPE(GetProcAddress);
-	DTYPE(GetModuleHandleA);
-	DTYPE(LoadLibraryA);
-	DTYPE(FreeLibrary);
-} memapi;
-
-
-typedef struct _heapapi {
 	RtlCreateHeap_t RtlCreateHeap;
 	RtlAllocateHeap_t RtlAllocateHeap;
 	RtlReAllocateHeap_t RtlReAllocateHeap;
 	RtlFreeHeap_t RtlFreeHeap;
 	RtlDestroyHeap_t RtlDestroyHeap;
-} heapapi;
 
+	DTYPE(GetProcAddress);
+	DTYPE(GetModuleHandleA);
+	DTYPE(LoadLibraryA);
+	DTYPE(FreeLibrary);
+} memapi;
 
 typedef struct _enumapi {
 	DTYPE(RegOpenKeyExA);
@@ -703,9 +699,10 @@ struct _hexane {
 // TODO: set standard apis for stagers and payloads
 	PTEB 			teb;
 	LPVOID 			heap;
-	DWORD 			threads;
-	PCOFF_PARAMS	coffs;
-	PPEER_DATA 		peers;
+	DWORD 			n_threads;
+	PCOFF_PARAMS	bof_cache;
+	PPIPE_DATA 		peer_data;
+	PSTREAM        	message_queue;
 
 	struct {
 		UINT_PTR   	address;
@@ -741,15 +738,13 @@ struct _hexane {
 		ULONG	version;
 		ULONG	current_taskid;
         ULONG	peer_id;
-		INT		retries;
+		UINT32	retries;
 		BOOL	checkin;
 	} session;
 
 	struct {
 		PHTTP_CONTEXT 	http;
-		PSTREAM        	message_queue;
-		HANDLE		    pipe_handle;
-		LPWSTR		    pipe_name;
+		PPIPE_DATA 		pipe_data;
 		LPSTR 		    domain;
 		LPVOID	    	env_proxy;
 		SIZE_T	    	env_proxylen;
@@ -757,7 +752,14 @@ struct _hexane {
 		BOOL	    	b_proxy;
 		BOOL	    	b_envproxy;
 		BOOL	    	b_envproxy_check;
-	} network;	
+	} network;
+
+#if defined(STAGER)
+	memapi memapi;
+	enumapi enumapi;
+#elif defined(PAYLOAD)
+#endif
+
 };
 
 #endif
