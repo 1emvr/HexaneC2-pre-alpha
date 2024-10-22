@@ -12,7 +12,7 @@ There are plenty of IOCs that are intrinsic to the methods applied (if you know 
 - testing implant P2P communication/ fixing protocol
 - testing COFF loader
 - re-implement generic thread stack spoofing/ sleepobf
-- initial callback: get ETW-TI/kernel event options
+- initial callback: get ETW-TI info, potential for enumerating security providers (depends on permissions)
 - redirector rotation 
 - client request header configuration and metadata 
 - implement COFF data cache
