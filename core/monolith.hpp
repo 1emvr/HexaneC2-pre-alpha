@@ -353,13 +353,6 @@ typedef struct _coff_params {
 }COFF_PARAMS, *PCOFF_PARAMS;
 
 
-typedef struct _reloc {
-	UINT32 VirtualAddress;
-	UINT32 SymbolTableIndex;
-	UINT16 Type;
-} RELOC, *PRELOC;
-
-
 typedef struct _inject_context {
 	HANDLE  process;
 	DWORD   tid;
@@ -373,6 +366,13 @@ typedef struct _inject_context {
 	UINT32  parameter_size;
 	SHORT   technique;
 } INJECT_CONTEXT, *PINJECT_CONTEXT;
+
+
+typedef struct _reloc {
+	UINT32 VirtualAddress;
+	UINT32 SymbolTableIndex;
+	UINT16 Type;
+} RELOC, *PRELOC;
 
 
 typedef struct _executable {
@@ -405,7 +405,7 @@ typedef struct _executable {
 typedef struct _request_context {
     HINTERNET conn_handle;
     HINTERNET req_handle;
-    LPWSTR endpoint;
+    LPWSTR    endpoint;
 }REQUEST_CONTEXT, *PREQUEST_CONTEXT;
 
 
@@ -420,12 +420,6 @@ typedef struct _hash_map {
 	DWORD	name;
 	LPVOID	address;
 }HASH_MAP, *PHASH_MAP;
-
-
-typedef struct _buffer {
-	PVOID  buffer;
-	UINT32 length;
-} BUFFER, *PBUFFER;
 
 
 typedef struct _mbs_buffer {
@@ -480,15 +474,14 @@ typedef struct _token_data {
 	LPWSTR   password;
 	LPWSTR   domain;
 
-	_token_data* Next;
+	_token_data* next;
 }TOKEN_DATA, *PTOKEN_DATA;
 
 
 typedef struct _parser {
 	LPVOID 	handle;
     LPVOID  buffer;
-	ULONG 	Length;
-	BOOL 	bswap;
+	ULONG 	length;
 } PARSER, *PPARSER;
 
 
@@ -528,21 +521,15 @@ typedef struct _peer_data {
 }PEER_DATA, *PPEER_DATA;
 
 
-typedef struct _heap_info {
-    ULONG_PTR heap_id;
-    DWORD pid;
-}HEAP_INFO, *PHEAP_INFO;
+typedef struct _ciphertext {
+    DWORD table[64];
+}CIPHERTEXT, *PCIPHERTEXT;
 
 
 typedef struct _u32_block {
     UINT32 v0;
     UINT32 v1;
 }U32_BLOCK, *PU32_BLOCK;
-
-
-typedef struct _ciphertext {
-    DWORD table[64];
-}CIPHERTEXT, *PCIPHERTEXT;
 
 
 typedef struct _stream {
