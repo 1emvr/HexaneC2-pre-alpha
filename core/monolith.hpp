@@ -550,7 +550,7 @@ typedef struct _stream {
 	ULONG   	peer_id;
 	ULONG   	task_id;
 	ULONG   	msg_type;
-	ULONG		length;
+	ULONG		msg_length;
 	PBYTE		buffer;
 	BOOL 		ready;
 	_stream  	*next;
