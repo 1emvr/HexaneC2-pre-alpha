@@ -54,13 +54,13 @@ namespace Main {
         // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
         x_assertb(Ctx->modules.kernel32 = (HMODULE) M_PTR(KERNEL32));
         x_assertb(Ctx->modules.kernbase = (HMODULE) M_PTR(KERNELBASE));
+
         x_assertb(F_PTR_HASHES(Ctx->nt.RtlGetVersion, NTDLL, RTLGETVERSION));
+        x_ntassertb(Ctx->nt.RtlGetVersion(&os_version));
 
         Ctx->Session.Version = WIN_VERSION_UNKNOWN;
         os_version.dwOSVersionInfoSize = sizeof(os_version);
-
-        x_ntassertb(Ctx->nt.RtlGetVersion(&os_version));
-
+		
         if (os_version.dwMajorVersion >= 5) {
             if (os_version.dwMajorVersion == 5) {
                 if (os_version.dwMinorVersion == 1) {
@@ -155,7 +155,6 @@ namespace Main {
         MemSet(Config, 0, sizeof(Config));
 
         Ctx->session.peer_id = UnpackUint32(&parser);
-        __debugbreak();
         ParserMemcpy(&parser, &Ctx->config.session_key, nullptr);
 
         if (ENCRYPTED) {
