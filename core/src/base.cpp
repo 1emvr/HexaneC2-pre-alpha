@@ -31,7 +31,7 @@ namespace Main {
 
             if (!DispatchRoutine()) {
                 Ctx->session.retries++;
-                if (retry == Ctx->session.retries) { // retry count set by config
+                if (retry == Ctx->session.retries) { 
                     break;
                 }
 
@@ -46,12 +46,12 @@ namespace Main {
 
 
     BOOL ResolveApi() {
+        // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
         HEXANE;
 
         bool success = true;
         OSVERSIONINFOW os_version = { };
 
-        // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
         x_assertb(Ctx->modules.kernel32 = (HMODULE) M_PTR(KERNEL32));
         x_assertb(Ctx->modules.kernbase = (HMODULE) M_PTR(KERNELBASE));
 
