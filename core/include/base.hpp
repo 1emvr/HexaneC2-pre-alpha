@@ -7,7 +7,7 @@ VOID
 FUNCTION
     Entrypoint();
 
-namespace Implant {
+Main {
     VOID
     FUNCTION
         MainRoutine();
