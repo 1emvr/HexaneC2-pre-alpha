@@ -52,6 +52,10 @@ namespace Main {
         bool success = true;
         OSVERSIONINFOW os_version = { };
 
+		// TODO: separate this in a different API.
+		// create an enumeration module for a stager.
+		// separate api's into groups for minimal win32 loading process
+		// (stager/enumeration/opsec) -> (second stage payload)
         x_assertb(Ctx->modules.kernel32 = (HMODULE) M_PTR(KERNEL32));
         x_assertb(Ctx->modules.kernbase = (HMODULE) M_PTR(KERNELBASE));
 
