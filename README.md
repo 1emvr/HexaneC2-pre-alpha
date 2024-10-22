@@ -15,7 +15,6 @@ There are plenty of IOCs that are intrinsic to the methods applied (if you know 
 - initial callback: get ETW-TI/kernel event options
 - redirector rotation 
 - client request header configuration and metadata 
-- hot-swap configs (sleep/redirectors)
 - implement COFF data cache
 - write documentation
 
@@ -35,6 +34,7 @@ There are plenty of IOCs that are intrinsic to the methods applied (if you know 
 - staging
 
 ### Wish-List:
+- hot-swap configs (sleep/redirectors)
 - server response header configuration
 - forking non-C2 traffic to webpage (filtering)
 - implement dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
