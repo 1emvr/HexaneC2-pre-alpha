@@ -1,4 +1,5 @@
 #include <core/include/base.hpp>
+
 using namespace Xtea;
 using namespace Opsec;
 using namespace Parser;
@@ -55,7 +56,7 @@ namespace Main {
         x_assertb(Ctx->modules.kernbase = (HMODULE) M_PTR(KERNELBASE));
         x_assertb(F_PTR_HASHES(Ctx->nt.RtlGetVersion, NTDLL, RTLGETVERSION));
 
-        Ctx->session.version = WIN_VERSION_UNKNOWN;
+        Ctx->Session.Version = WIN_VERSION_UNKNOWN;
         os_version.dwOSVersionInfoSize = sizeof(os_version);
 
         x_ntassertb(Ctx->nt.RtlGetVersion(&os_version));
