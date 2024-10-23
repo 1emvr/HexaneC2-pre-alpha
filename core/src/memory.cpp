@@ -267,12 +267,14 @@ namespace Memory {
 			    name = module->cracked_name;
 		    }
 
-		    if (PLDR_DATA_TABLE_ENTRY check_module = GetModuleEntry(HashStringW(name, WcsLength(name)))) {
-			    module->base	= (ULONG_PTR) check_module->DllBase;
-			    module->success	= TRUE;
+	    	if ((flags & LoadBof) != LoadBof) {
+			    if (PLDR_DATA_TABLE_ENTRY check_module = GetModuleEntry(HashStringW(name, WcsLength(name)))) {
+				    module->base = (ULONG_PTR) check_module->DllBase;
+				    module->success = TRUE;
 
-			    goto defer;
-		    }
+				    goto defer;
+			    }
+	    	}
 
 	    	auto image = Methods::CreateImage(module->buffer);
 		    if (!ImageCheckArch(image)) {

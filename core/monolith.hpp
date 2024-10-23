@@ -282,6 +282,7 @@ enum ModuleType {
 	LoadLocalFile	= 0x00000001,
 	LoadRemoteFile	= 0x00000002,
 	LoadMemory		= 0x00000003,
+	LoadBof			= 0x00000004,
 	NoLink			= 0x00010000,
 };
 
