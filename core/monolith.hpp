@@ -384,7 +384,7 @@ typedef struct _executable {
 	PBYTE					buffer;
 	PIMAGE_DOS_HEADER		dos_head;
 	PIMAGE_NT_HEADERS		nt_head;
-	LPVOID					base;
+	ULONG_PTR				base;
 
 	IMAGE_SECTION_HEADER 	*section;
 	IMAGE_EXPORT_DIRECTORY 	*exports;
