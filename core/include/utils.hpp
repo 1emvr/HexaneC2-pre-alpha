@@ -42,10 +42,6 @@ namespace Utils {
 
         BOOL
         FUNCTION
-            SymbolScan(CONST CHAR *string, CHAR symbol, SIZE_T length);
-
-        BOOL
-        FUNCTION
             SigCompare(CONST UINT8 *data, CONST CHAR *signature, CONST CHAR *mask);
 
         UINT_PTR

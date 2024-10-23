@@ -9,8 +9,6 @@ using namespace Utils;
 
 namespace Objects {
 
-    PVOID DATA wrapper_return = nullptr;
-
     // TODO: add common BOF/internal implant functions
     HASH_MAP RDATA internal_map[] = {
         { .name = 0, .address = nullptr },
@@ -32,12 +30,12 @@ namespace Objects {
         { .name = 0, .address = nullptr },
     };
 
-
+    PVOID DATA except_return = nullptr;
     LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS exception) {
 
         _stream *stream = CreateTaskResponse(TypeError);
 
-        exception->ContextRecord->IP_REG = U_PTR(wrapper_return);
+        exception->ContextRecord->IP_REG = U_PTR(except_return);
 
         PackUint32(stream,   ERROR_UNHANDLED_EXCEPTION);
         PackUint32(stream,   exception->ExceptionRecord->ExceptionCode);
@@ -52,7 +50,7 @@ namespace Objects {
 
         auto function = (OBJ_ENTRY) address;
 
-        wrapper_return = __builtin_extract_return_addr(__builtin_return_address(0));
+        except_return = __builtin_extract_return_addr(__builtin_return_address(0));
         function((char*)args, size);
     }
 
@@ -69,7 +67,7 @@ namespace Objects {
         }
         // __imp_
         if (HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
-            bool import = SymbolScan(sym_string, '$', MbsLength(sym_string));
+            bool import = StringChar(sym_string, '$', MbsLength(sym_string));
 
             if (import) {
                 char buffer[MAX_PATH] = { };

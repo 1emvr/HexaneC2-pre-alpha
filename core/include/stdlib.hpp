@@ -110,5 +110,8 @@ VOID
 FUNCTION
     Trim(CHAR *str, CHAR delim);
 
+BOOL
+FUNCTION
+    StringChar(CONST CHAR* string, CHAR symbol, SIZE_T length);
 
 #endif // HEXANE_CORELIB_MULTITOOL_HPP

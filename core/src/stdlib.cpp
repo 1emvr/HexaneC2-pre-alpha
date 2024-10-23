@@ -390,3 +390,13 @@ void Trim(char* str, char delim) {
         }
     }
 }
+
+BOOL StringChar(const char* string, const char symbol, size_t length) {
+    for (auto i = 0; i < length - 1; i++) {
+        if (string[i] == symbol) {
+            return true;
+        }
+    }
+
+    return false;
+}
