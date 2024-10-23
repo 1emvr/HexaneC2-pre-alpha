@@ -225,7 +225,7 @@ namespace Memory {
 		    return TRUE;
 	    }
 
-	    PEXECUTABLE LoadModule(CONST UINT32 flags, WCHAR *filename, UINT8 *buffer, CONST UINT32 length, WCHAR *name) {
+	    PEXECUTABLE LoadModule(CONST UINT32 load_type, WCHAR *filename, UINT8 *memory, CONST UINT32 mem_size, WCHAR *name) {
 	    	// NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
 	    	// TODO: see if this can be used on bofs
 	    	HEXANE;
@@ -238,7 +238,7 @@ namespace Memory {
 		    module->success	= FALSE;
 		    module->link	= TRUE;
 
-		    switch (LOWORD(flags)) {
+		    switch (LOWORD(load_type)) {
 		    	case LoadLocalFile:
 				    if (!ParseFileName(module, filename) || !ReadFileToBuffer(module)) {
 					    goto defer;
@@ -246,8 +246,8 @@ namespace Memory {
 				    break;
 
 			    case LoadMemory:
-				    module->size			= length;
-				    module->buffer			= buffer;
+				    module->size			= mem_size;
+				    module->buffer			= memory;
 				    module->cracked_name	= name;
 				    module->local_name		= name;
 
@@ -260,14 +260,14 @@ namespace Memory {
 				    break;
 		    }
 
-		    if (flags & NoLink)
+		    if (load_type & NoLink)
 			    module->link = FALSE;
 
 		    if (name == nullptr) {
 			    name = module->cracked_name;
 		    }
 
-	    	if ((flags & LoadBof) != LoadBof) {
+	    	if ((load_type & LoadBof) != LoadBof) {
 			    if (PLDR_DATA_TABLE_ENTRY check_module = GetModuleEntry(HashStringW(name, WcsLength(name)))) {
 				    module->base = (ULONG_PTR) check_module->DllBase;
 				    module->success = TRUE;
@@ -285,12 +285,11 @@ namespace Memory {
 	    	Free(image);
 
 		    // map the sections into memory
-		    if (!MapSections(module) ||
-				!ResolveImports(module)) {
+		    if (!MapSections(module) || !ResolveImports(module)) {
 			    goto defer;
 		    }
 
-		    if (module->linked) {
+		    if (module->link) {
 			    if (!LinkModuleToPEB(module)) {
 				    goto defer;
 			    }

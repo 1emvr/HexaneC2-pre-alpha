@@ -4,9 +4,7 @@ project(hexane_implant)
 set(CMAKE_CXX_STANDARD 23)
 set(HOME ${CMAKE_SOURCE_DIR})
 
-enable_language(ASM_NASM)
 include_directories(include ${CMAKE_SOURCE_DIR} )
-
 set (SOURCES
         core/src/cipher.cpp
         core/src/commands.cpp
