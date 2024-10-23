@@ -32,7 +32,7 @@ namespace Memory {
     namespace Modules {
         PLDR_DATA_TABLE_ENTRY
         FUNCTION
-            GetModuleEntry(UINT32 HASH);
+            GetModuleEntry(UINT32 hash);
 
         FARPROC
         FUNCTION
@@ -44,7 +44,11 @@ namespace Memory {
 
         BOOL
         FUNCTION
-            MapSections(PLOADMODULE module);
+            MapSections(PEXECUTABLE module);
+
+	    PEXECUTABLE
+        FUNCTION
+            LoadModule(UINT32 flags, WCHAR *filename, UINT8 *buffer, UINT32 length, WCHAR *name);
     }
 
     namespace Execute {
@@ -54,7 +58,7 @@ namespace Memory {
 
         BOOL
         FUNCTION
-            ExecuteShellcode(PARSER parser);
+            ExecuteShellcode(const PARSER &parser);
 
         VOID
         FUNCTION

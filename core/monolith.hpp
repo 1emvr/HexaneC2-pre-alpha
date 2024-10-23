@@ -381,16 +381,19 @@ typedef struct _reloc {
 
 
 typedef struct _executable {
+	BOOL					link;
+	BOOL					success;
 	PBYTE					buffer;
-	PIMAGE_DOS_HEADER		dos_head;
 	PIMAGE_NT_HEADERS		nt_head;
 	ULONG_PTR				base;
 
+	LPWSTR					local_name;
+	PWCHAR					cracked_name;
 	IMAGE_SECTION_HEADER 	*section;
 	IMAGE_EXPORT_DIRECTORY 	*exports;
 	SIZE_T 					size;
 
-	DWORD					task_id;
+	UINT32					task_id;
 	PRELOC 					reloc;
 	PCOFF_SYMBOL 			symbols;
 	POBJECT_MAP 			fn_map;
@@ -548,15 +551,6 @@ typedef struct _stream {
 	_stream  	*next;
 } STREAM, *PSTREAM;
 
-typedef struct _load_module {
-	BOOL      	success;
-	PBYTE	  	buffer;
-	DWORD	  	length;
-	LPWSTR		local_name;
-	PWCHAR		cracked_name;
-	ULONG_PTR	base;
-	BOOL		linked;
-} LOADMODULE, *PLOADMODULE;
 
 typedef struct _ioapi {
 	DTYPE(FileTimeToSystemTime);

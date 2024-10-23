@@ -22,7 +22,7 @@ namespace Objects {
 
     SIZE_T
     FUNCTION
-        GetFunctionMapSize(EXECUTABLE *object);
+        GetFunctionMapSize(EXECUTABLE *image);
 
     VOID
     FUNCTION
@@ -34,12 +34,11 @@ namespace Objects {
 
     VOID
     FUNCTION
-        RemoveCoff(UINT32 coff_id);
-
+        RemoveCoff(UINT32 bof_id);
 
     COFF_PARAMS*
     FUNCTION
-        GetCoff(uint32_t coff_id);
+        GetCoff(uint32_t bof_id);
 
     VOID
     FUNCTION

