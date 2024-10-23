@@ -56,7 +56,7 @@ namespace Objects {
 
     BOOL ProcessSymbol(char* sym_string, void** pointer) {
 
-        char *function  = nullptr;
+        CHAR *function  = nullptr;
 
         *pointer = nullptr;
         // __imp_Beacon
@@ -197,190 +197,72 @@ namespace Objects {
         return success;
     }
 
-    BOOL BaseRelocation(PEXECUTABLE exe) {
-
-        CHAR sym_name[9]    = { };
-        CHAR *name_ptr      = nullptr;
-
-        BOOL success = true;
-
-        const auto buffer   = exe->buffer;
-        const auto symbols  = exe->symbols;
-
-        for (auto sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            void *function = nullptr;
-
-            PIMAGE_SECTION_HEADER section = SECTION_HEADER(buffer, sec_index);
-            PRELOC reloc = RELOC_SECTION(buffer, section);
-
-            for (auto rel_index = 0; rel_index < section->NumberOfRelocations; rel_index++) {
-                PCOFF_SYMBOL head = &symbols[reloc->SymbolTableIndex];
-                DWORD fn_count = 0;
-
-                if (head->First.Value[0]) {
-                    MemSet(sym_name, 0, 9);
-                    MemCopy(sym_name, head->First.Name, 8);
-                    name_ptr = sym_name;
-                }
-                else {
-                    name_ptr = (CHAR*) (symbols + exe->nt_head->FileHeader.NumberOfSymbols) + head->First.Value[1];
-                }
-
-                VOID *reloc_addr    = exe->sec_map[sec_index].address + reloc->VirtualAddress;
-                VOID *sec_addr      = exe->sec_map[head->SectionNumber - 1].address;
-                VOID *fn_addr       = exe->fn_map + fn_count * sizeof(VOID*);
-
-                if (!ProcessSymbol(name_ptr, &function)) {
-                    success = false;
-                    goto defer;
-                }
+    BOOL BaseRelocation(EXECUTABLE *image, void **mem_mapped, int sec_n, bool internal, void *fn_address, char *fn_mapping) {
 #if _WIN64
-                if (function) {
-                    switch (reloc->Type) {
-                        case IMAGE_REL_AMD64_REL32: {
-                            *(VOID**) fn_addr       = function;
-                            *(UINT32*) reloc_addr = U_PTR(fn_addr) - U_PTR(reloc_addr) - sizeof(UINT32);
-                        }
-                        default:
-                            break;
-
-                    }
-                }
-                else {
-                    switch (reloc->Type) {
-                        case IMAGE_REL_AMD64_REL32:     *(uint32_t*) reloc_addr = *(uint32_t*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
-                        case IMAGE_REL_AMD64_REL32_1:   *(uint32_t*) reloc_addr = *(uint32_t*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 1;
-                        case IMAGE_REL_AMD64_REL32_2:   *(uint32_t*) reloc_addr = *(uint32_t*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 2;
-                        case IMAGE_REL_AMD64_REL32_3:   *(uint32_t*) reloc_addr = *(uint32_t*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 3;
-                        case IMAGE_REL_AMD64_REL32_4:   *(uint32_t*) reloc_addr = *(uint32_t*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 4;
-                        case IMAGE_REL_AMD64_REL32_5:   *(uint32_t*) reloc_addr = *(uint32_t*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 5;
-                        case IMAGE_REL_AMD64_ADDR32NB:  *(uint32_t*) reloc_addr = *(uint32_t*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
-                        case IMAGE_REL_AMD64_ADDR64:    *(uint64_t*) reloc_addr = *(uint64_t*) reloc_addr + U_PTR(sec_addr);
-                        default:
-                            break;
-                    }
-                }
-#else
-                if (function) {
-                    switch (reloc_addr->Type) {
-                        case IMAGE_REL_I386_DIR32: {
-                            *(void**) fn_addr       = function;
-                            *(uint32_t*) reloc_addr = U_PTR(fn_addr);
-                        }
-                        default:
-                            break;
-                    }
-                }
-                else {
-                    switch (reloc_addr->Type) {
-                        case IMAGE_REL_I386_DIR32: *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr);
-                        case IMAGE_REL_I386_REL32: *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
-                        default:
-                            break;
-                    }
-                }
-#endif
-                reloc += sizeof(_reloc);
+        if (function) {
+            switch (reloc->Type) {
+            case IMAGE_REL_AMD64_REL32: {
+                *(void**)fn_addr = function;
+                *(uint32*)reloc_addr = U_PTR(fn_addr) - U_PTR(reloc_addr) - sizeof(UINT32);
+            }
+            default:
+                break;
             }
         }
+        else {
+            switch (reloc->Type) {
+            case IMAGE_REL_AMD64_REL32: *(uint32_t*)reloc_addr = *(uint32_t*)reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
+            case IMAGE_REL_AMD64_REL32_1: *(uint32_t*)reloc_addr = *(uint32_t*)reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 1;
+            case IMAGE_REL_AMD64_REL32_2: *(uint32_t*)reloc_addr = *(uint32_t*)reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 2;
+            case IMAGE_REL_AMD64_REL32_3: *(uint32_t*)reloc_addr = *(uint32_t*)reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 3;
+            case IMAGE_REL_AMD64_REL32_4: *(uint32_t*)reloc_addr = *(uint32_t*)reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 4;
+            case IMAGE_REL_AMD64_REL32_5: *(uint32_t*)reloc_addr = *(uint32_t*)reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t) - 5;
+            case IMAGE_REL_AMD64_ADDR32NB: *(uint32_t*)reloc_addr = *(uint32_t*)reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
+            case IMAGE_REL_AMD64_ADDR64: *(uint64_t*)reloc_addr = *(uint64_t*)reloc_addr + U_PTR(sec_addr);
+            default:
+                break;
+            }
+        }
+#else
+        if (function) {
+            switch (reloc_addr->Type) {
+            case IMAGE_REL_I386_DIR32: {
+                *(void**) fn_addr       = function;
+                *(uint32_t*) reloc_addr = U_PTR(fn_addr);
+            }
+            default:
+                break;
+            }
+        }
+        else {
+            switch (reloc_addr->Type) {
+            case IMAGE_REL_I386_DIR32: *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr);
+            case IMAGE_REL_I386_REL32: *(uint32_t*)reloc_addr = (*(uint32_t*)reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32_t);
+            default:
+                break;
+            }
+        }
+#endif
+    }
 
-        defer:
+    BOOL COFFLoader(const char *entrypoint, void *data, void *args, const size_t args_size) {
+        HEXANE;
+
+        bool success    = false;
+        auto image      = (EXECUTABLE*) Malloc(sizeof(EXECUTABLE));
+
+        image->buffer   = B_PTR(data);
+        image->nt_head  = (PIMAGE_NT_HEADERS)(B_PTR(image->buffer) + ((PIMAGE_DOS_HEADER)data)->e_lfanew);
+
+        if (!image || !ImageCheckArch(image)) {
+            goto defer;
+        }
+
+    defer:
         return success;
     }
 
-    BOOL MapSections(PEXECUTABLE module) {
-        HEXANE;
-
-        auto region_size = (SIZE_T) module->nt_head->OptionalHeader.SizeOfImage;
-        const auto pref_base  = module->nt_head->OptionalHeader.ImageBase;
-
-        module->base = pref_base;
-
-        if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (PVOID*) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
-            module->base != pref_base) {
-
-            module->base = 0;
-            region_size = module->nt_head->OptionalHeader.SizeOfImage;
-
-            if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (PVOID*) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE))) {
-                return false;
-            }
-        }
-
-        for (auto i = 0; i < module->nt_head->OptionalHeader.SizeOfHeaders; i++) {
-            B_PTR(module->base)[i] = module->buffer[i];
-        }
-
-        for (auto i = 0; i < module->nt_head->FileHeader.NumberOfSections; i++, module->section++) {
-            for (auto j = 0; j < module->section->SizeOfRawData; j++) {
-
-                (B_PTR(module->base + module->section->VirtualAddress))[j] = (module->buffer + module->section->PointerToRawData)[j];
-            }
-        }
-
-        UINT_PTR base_offset = module->base - pref_base;
-        PIMAGE_DATA_DIRECTORY relocdir  = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
-
-        // if non-zero rva and relocdir exists...
-        if ((module->base - pref_base) && relocdir) {
-            PIMAGE_BASE_RELOCATION reloc = RVA(PIMAGE_BASE_RELOCATION, module->base, relocdir->VirtualAddress);
-
-            do {
-                PBASE_RELOCATION_ENTRY head = (PBASE_RELOCATION_ENTRY) reloc + 1;
-
-                do {
-                    switch (head->Type) {
-                        case IMAGE_REL_BASED_DIR64:     *(UINT32*) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += base_offset; break;
-                        case IMAGE_REL_BASED_HIGHLOW:   *(UINT32*) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += (UINT32) base_offset; break;
-                        case IMAGE_REL_BASED_HIGH:      *(UINT32*) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_offset); break;
-                        case IMAGE_REL_BASED_LOW:       *(UINT32*) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_offset); break;
-                    }
-                    head++;
-
-                } while (B_PTR(head) != B_PTR(reloc) + reloc->SizeOfBlock);
-
-                reloc = (PIMAGE_BASE_RELOCATION) head;
-            } while (reloc->VirtualAddress);
-        }
-
-        module->nt_head->OptionalHeader.ImageBase = module->base; // set the prefered base to the real base
-        return true;
-    }
-
-    SIZE_T GetFunctionMapSize(EXECUTABLE *image) {
-
-        CHAR sym_name[9]    = { };
-        INT counter         = 0;
-
-        for (auto sec_index = 0; sec_index < image->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            const auto section  = SECTION_HEADER(image->buffer, sec_index);
-            auto reloc          = RELOC_SECTION(image->buffer, image->section);
-
-            for (auto rel_index = 0; rel_index < section->NumberOfRelocations; rel_index++) {
-                CHAR *buffer        = nullptr;
-                const auto symbols  = image->symbols;
-
-                if (PCOFF_SYMBOL symbol = &symbols[reloc->SymbolTableIndex]; symbol->First.Value[0]) {
-                    MemSet(sym_name, 0, sizeof(sym_name));
-                    MemCopy(sym_name, symbol->First.Name, 8);
-                    buffer = sym_name;
-                }
-                else {
-                    buffer = RVA(CHAR*, symbols, image->nt_head->FileHeader.NumberOfSymbols) + symbol->First.Value[1];
-                }
-
-                if (HashStringA(buffer, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
-                    counter++;
-                }
-
-                reloc = reloc + sizeof(_reloc);
-            }
-        }
-
-        return sizeof(void*) * counter;
-    }
-
-    VOID AddCoff(COFF_PARAMS *coff) {
+    VOID AddCOFF(COFF_PARAMS *coff) {
         HEXANE;
 
         PCOFF_PARAMS head = ctx->bof_cache;
@@ -408,7 +290,7 @@ namespace Objects {
         }
     }
 
-    COFF_PARAMS* GetCoff(const uint32_t bof_id) {
+    COFF_PARAMS* GetCOFF(const uint32_t bof_id) {
         HEXANE;
 
         auto head = ctx->bof_cache;
@@ -435,7 +317,7 @@ namespace Objects {
         while (true);
     }
 
-    VOID RemoveCoff(CONST UINT32 bof_id) {
+    VOID RemoveCOFF(CONST UINT32 bof_id) {
         HEXANE;
 
         PCOFF_PARAMS prev = { };
@@ -499,70 +381,12 @@ namespace Objects {
         ZeroFree(image, sizeof(EXECUTABLE));
     }
 
-    VOID CoffLoader(CONST CHAR *entrypoint, VOID *data, VOID *args, CONST SIZE_T args_size) {
-        HEXANE;
-        // NOTE: sec_map seems to be the only thing that persists
-
-        EXECUTABLE *image = CreateImageData((UINT8*) data); ;
-        BOOL success = true;
-
-        auto next = (UINT8*) image->base;
-
-        x_assertb(image->buffer    = (UINT8*) data);
-        x_assertb(image->sec_map   = (OBJECT_MAP*) Malloc(sizeof(void*) * sizeof(OBJECT_MAP)));
-
-        x_assertb(ImageCheckArch(image));
-        image->fn_map->size = GetFunctionMapSize(image);
-
-        // NOTE: calculating address/size of sections before base relocation
-        for (auto sec_index = 0; sec_index < image->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            const auto section = SECTION_HEADER(image->buffer, sec_index);
-
-            image->size += section->SizeOfRawData;
-            image->size = (SIZE_T) PAGE_ALIGN(image->size);
-        }
-
-        image->size += image->fn_map->size;
-
-        x_ntassertb(ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (VOID**) &image->base, image->size, &image->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
-
-        for (auto sec_index = 0; sec_index < image->nt_head->FileHeader.NumberOfSections; sec_index++) {
-            const auto section = SECTION_HEADER(image->buffer, sec_index);
-
-            image->sec_map[sec_index].size     = section->SizeOfRawData;
-            image->sec_map[sec_index].address  = next;
-
-            next += image->section->SizeOfRawData;
-            next = PAGE_ALIGN(next);
-
-            MemCopy(image->sec_map[sec_index].address, RVA(PBYTE, image->buffer, image->section->SizeOfRawData), image->section->SizeOfRawData);
-        }
-
-        // NOTE: function map goes after the section map ?
-        image->fn_map = (OBJECT_MAP*) next;
-
-        x_assertb(BaseRelocation(image));
-        x_assertb(ExecuteFunction(image, entrypoint, args, args_size));
-
-    defer:
-        if (success) {
-            // LOG SUCCESS?
-        }
-        else {
-            // LOG ERROR
-        }
-
-        if (image) {
-            Cleanup(image);
-        }
-    }
-
-    VOID CoffThread(COFF_PARAMS *coff) {
+    VOID COFFThread(COFF_PARAMS *coff) {
 
         if (!coff->entrypoint || !coff->data) {
             return;
         }
 
-        CoffLoader(coff->entrypoint, coff->data, coff->args, coff->args_size);
+        COFFLoader(coff->entrypoint, coff->data, coff->args, coff->args_size);
     }
 }

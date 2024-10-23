@@ -18,11 +18,7 @@ namespace Objects {
 
     BOOL
     FUNCTION
-        BaseRelocation(EXECUTABLE *object);
-
-    SIZE_T
-    FUNCTION
-        GetFunctionMapSize(EXECUTABLE *image);
+        BaseRelocation(const EXECUTABLE *object);
 
     VOID
     FUNCTION
@@ -30,19 +26,19 @@ namespace Objects {
 
     VOID
     FUNCTION
-        AddCoff(COFF_PARAMS *object);
+        AddCOFF(COFF_PARAMS *object);
 
     VOID
     FUNCTION
-        RemoveCoff(UINT32 bof_id);
+        RemoveCOFF(UINT32 bof_id);
 
     COFF_PARAMS*
     FUNCTION
-        GetCoff(uint32_t bof_id);
+        GetCOFF(uint32_t bof_id);
 
     VOID
     FUNCTION
-        CoffThread(COFF_PARAMS *params);
+        COFFThread(COFF_PARAMS *params);
 
     VOID
     FUNCTION
@@ -50,7 +46,7 @@ namespace Objects {
 
     VOID
     FUNCTION
-        CoffLoader(CHAR *entrypoint, VOID *data, VOID *args, SIZE_T args_size);
+        COFFLoader(CHAR *entrypoint, VOID *data, VOID *args, SIZE_T args_size);
 
 }
 

@@ -13,6 +13,16 @@ EXTERN_C
 LPVOID
 	InstEnd();
 
+typedef int8_t int8;
+typedef int16_t int16;
+typedef int32_t int32;
+typedef int64_t int64;
+
+typedef uint8_t uint8;
+typedef uint16_t uint16;
+typedef uint32_t uint32;
+typedef uint64_t uint64;
+
 #define WIN_VERSION_UNKNOWN     		0
 #define WIN_VERSION_XP          		1
 #define WIN_VERSION_VISTA       		2
@@ -59,7 +69,7 @@ LPVOID
 #define REG_PEB32(thr) 					((LPVOID) (ULONG_PTR) thr.Ebx + 0x8)
 #define REG_PEB64(thr) 					((LPVOID) (ULONG_PTR) thr.Rdx + 0x10)
 
-#define SECTION_HEADER(data, i)   		((PIMAGE_SECTION_HEADER) B_PTR(data) + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * i))
+#define ITER_SECTION_HEADER(data, i)	((PIMAGE_SECTION_HEADER) B_PTR(data) + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * i))
 #define SYMBOL_TABLE(data, nt_head) 	RVA(_coff_symbol*, data, nt_head->FileHeader.PointerToSymbolTable)
 #define RELOC_SECTION(data, section)	RVA(_reloc*, data, section->PointerToRelocations)
 #define SEC_START(map, index)           U_PTR(B_PTR(map[index].address))
@@ -378,6 +388,7 @@ typedef struct _reloc {
 	UINT32 VirtualAddress;
 	UINT32 SymbolTableIndex;
 	UINT16 Type;
+	INT32	count;
 } RELOC, *PRELOC;
 
 
@@ -387,6 +398,7 @@ typedef struct _executable {
 	PBYTE					buffer;
 	PIMAGE_NT_HEADERS		nt_head;
 	ULONG_PTR				base;
+	LPVOID					text;
 
 	LPWSTR					local_name;
 	PWCHAR					cracked_name;
@@ -399,6 +411,8 @@ typedef struct _executable {
 	PCOFF_SYMBOL 			symbols;
 	POBJECT_MAP 			fn_map;
 	POBJECT_MAP 			sec_map;
+	INT						n_reloc;
+	INT						n_mapping;
 
 	HANDLE 					heap;
 	HANDLE 					handle;

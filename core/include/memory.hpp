@@ -15,7 +15,7 @@ namespace Memory {
 
         PEXECUTABLE
         FUNCTION
-            CreateImageData(UINT8 *data);
+            CreateImage(UINT8 *data);
 
     }
 
