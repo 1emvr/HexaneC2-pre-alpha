@@ -15,6 +15,9 @@
 #include <iphlpapi.h>
 #include <tlhelp32.h>
 #include <aclapi.h>
+#include <evntrace.h>
+#include <evntcons.h>
+#include <shlwapi.h>
 #include <cstdint>
 
 #include <processthreadsapi.h>

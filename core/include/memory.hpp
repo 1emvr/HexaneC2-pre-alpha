@@ -41,6 +41,10 @@ namespace Memory {
         UINT_PTR
         FUNCTION
             LoadExport(CONST CHAR *module_name, CONST CHAR *export_name);
+
+        BOOL
+        FUNCTION
+            MapSections(PLOADMODULE module);
     }
 
     namespace Execute {

