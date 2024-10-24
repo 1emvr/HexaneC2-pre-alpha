@@ -336,17 +336,17 @@ namespace Memory {
 			    }
 		    }
 
-		    for (auto i = 0; i < module->nt_head->OptionalHeader.SizeOfHeaders; i++) {
-			    B_PTR(module->base)[i] = module->buffer[i];
+		    for (auto head_index = 0; head_index < module->nt_head->OptionalHeader.SizeOfHeaders; head_index++) {
+			    B_PTR(module->base)[head_index] = module->buffer[head_index];
 		    }
 
 		    for (auto i = 0; i < module->nt_head->FileHeader.NumberOfSections; i++, module->section++) {
-			    for (auto j = 0; j < module->section->SizeOfRawData; j++) {
-				    (B_PTR(module->base + module->section->VirtualAddress))[j] = (module->buffer + module->section->PointerToRawData)[j];
+			    for (auto sec_index = 0; sec_index < module->section->SizeOfRawData; sec_index++) {
+				    (B_PTR(module->base + module->section->VirtualAddress))[sec_index] = (module->buffer + module->section->PointerToRawData)[sec_index];
 			    }
 		    }
 
-		    UINT_PTR base_offset = module->base - pre_base;
+		    UINT_PTR base_rva = module->base - pre_base;
 		    PIMAGE_DATA_DIRECTORY relocdir = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
 
 		    // if non-zero rva and relocdir exists...
@@ -354,20 +354,20 @@ namespace Memory {
 			    PIMAGE_BASE_RELOCATION reloc = RVA(PIMAGE_BASE_RELOCATION, module->base, relocdir->VirtualAddress);
 
 			    do {
-				    PBASE_RELOCATION_ENTRY head = (PBASE_RELOCATION_ENTRY)reloc + 1;
+				    PBASE_RELOCATION_ENTRY head = (PBASE_RELOCATION_ENTRY) reloc + 1;
 
 				    do {
 					    switch (head->Type) {
-					    case IMAGE_REL_BASED_DIR64:		*(uint32 *)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += base_offset; break;
-					    case IMAGE_REL_BASED_HIGHLOW:	*(uint32 *)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += (uint32) base_offset; break;
-					    case IMAGE_REL_BASED_HIGH:		*(uint32 *)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_offset); break;
-					    case IMAGE_REL_BASED_LOW:		*(uint32 *)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_offset); break;
+					    case IMAGE_REL_BASED_DIR64:		*(uint32 *)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += base_rva; break;
+					    case IMAGE_REL_BASED_HIGHLOW:	*(uint32 *)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += (uint32) base_rva; break;
+					    case IMAGE_REL_BASED_HIGH:		*(uint32 *)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_rva); break;
+					    case IMAGE_REL_BASED_LOW:		*(uint32 *)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_rva); break;
 					    }
 					    head++;
 				    }
 				    while (B_PTR(head) != B_PTR(reloc) + reloc->SizeOfBlock);
 
-				    reloc = (PIMAGE_BASE_RELOCATION)head;
+				    reloc = (PIMAGE_BASE_RELOCATION) head;
 			    }
 			    while (reloc->VirtualAddress);
 		    }
