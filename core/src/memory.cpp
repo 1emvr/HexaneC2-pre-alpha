@@ -145,8 +145,7 @@ namespace Memory {
 		    FARPROC address = nullptr;
 
 		    const auto nt_head = (PIMAGE_NT_HEADERS) (B_PTR(base) + ((PIMAGE_DOS_HEADER) base)->e_lfanew);
-		    const auto exports = (PIMAGE_EXPORT_DIRECTORY) (
-			    B_PTR(base) + nt_head->OptionalHeader.DataDirectory[0].VirtualAddress);
+		    const auto exports = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(base) + nt_head->OptionalHeader.DataDirectory[0].VirtualAddress);
 
 		    if (nt_head->Signature != IMAGE_NT_SIGNATURE) {
 			    return address;
