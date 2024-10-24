@@ -27,30 +27,6 @@ namespace Utils {
         (*count)++;
     }
 
-    UINT32 HashStringA(char const *string, size_t length) {
-
-        auto hash = FNV_OFFSET;
-        if (string) {
-            for (auto i = 0; i < length; i++) {
-                hash ^= string[i];
-                hash *= FNV_PRIME;
-            }
-        }
-        return hash;
-    }
-
-    UINT32 HashStringW(wchar_t const *string, size_t length) {
-
-        auto hash = FNV_OFFSET;
-        if (string) {
-            for (auto i = 0; i < length; i++) {
-                hash ^= string[i];
-                hash *= FNV_PRIME;
-            }
-        }
-        return hash;
-    }
-
     namespace Scanners {
 
         BOOL MapScan(_hash_map* map, uint32_t id, void** pointer) {

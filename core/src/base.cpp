@@ -305,6 +305,7 @@ namespace Main {
 		x_assertb(F_PTR_HMOD(ctx->utilapi.SizeofResource, 							ctx->modules.kernel32, SIZEOFRESOURCE));
 		x_assertb(F_PTR_HMOD(ctx->utilapi.FreeResource, 							ctx->modules.kernel32, FREERESOURCE));
 		x_assertb(F_PTR_HMOD(ctx->utilapi.RtlInitUnicodeString, 					ctx->modules.ntdll, RTLINITUNICODESTRING));
+		x_assertb(F_PTR_HMOD(ctx->utilapi.RtlHashUnicodeString, 					ctx->modules.ntdll, RTLHASHUNICODESTRING));
 		x_assertb(F_PTR_HMOD(ctx->utilapi.RtlRandomEx, 								ctx->modules.ntdll, RTLRANDOMEX));
 		x_assertb(F_PTR_HMOD(ctx->utilapi.NtClose, 									ctx->modules.ntdll, NTCLOSE));
 #pragma endregion

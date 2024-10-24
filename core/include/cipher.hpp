@@ -34,4 +34,20 @@ namespace Xtea {
         XteaDivide (CONST UINT8 *Data, SIZE_T nData, SIZE_T *nOut);
 }
 
+namespace Hash {
+    ULONG
+    FUNCTION
+        LdrHashEntry(UNICODE_STRING uni_name, BOOL xor_hash);
+
+    UINT32
+    FUNCTION
+        HashStringA(CHAR CONST *string, SIZE_T length);
+
+    UINT32
+    FUNCTION
+        HashStringW(WCHAR CONST *string, SIZE_T length);
+
+
+}
+
 #endif //HEXANE_CORELIB_CIPHER_HPP

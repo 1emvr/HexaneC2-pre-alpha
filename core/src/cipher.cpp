@@ -207,3 +207,45 @@ namespace Bcrypt {
     }
 }
 */
+
+namespace Hash {
+    ULONG LdrHashEntry(UNICODE_STRING uni_name, BOOL xor_hash) {
+        HEXANE;
+
+        ULONG result = 0;
+
+        if (!NT_SUCCESS(ntstatus = ctx->utilapi.RtlHashUnicodeString(&uni_name, TRUE, 0, &result))) {
+            return 0;
+        }
+        if (xor_hash) {
+            result &= (32 - 1);
+        }
+
+        return result;
+    }
+
+    UINT32 HashStringA(char const *string, size_t length) {
+
+        auto hash = FNV_OFFSET;
+        if (string) {
+            for (auto i = 0; i < length; i++) {
+                hash ^= string[i];
+                hash *= FNV_PRIME;
+            }
+        }
+        return hash;
+    }
+
+    UINT32 HashStringW(wchar_t const *string, size_t length) {
+
+        auto hash = FNV_OFFSET;
+        if (string) {
+            for (auto i = 0; i < length; i++) {
+                hash ^= string[i];
+                hash *= FNV_PRIME;
+            }
+        }
+        return hash;
+    }
+
+}

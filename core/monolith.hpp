@@ -273,6 +273,7 @@ typedef NTSTATUS(NTAPI* NtSetInformationThread_t)(HANDLE ThreadHandle, THREADINF
 typedef NTSTATUS(NTAPI* RtlCreateProcessParametersEx_t)(PRTL_USER_PROCESS_PARAMETERS* params, PUNICODE_STRING ImagePathName, PUNICODE_STRING DllPath, PUNICODE_STRING CurrentDirectory, PUNICODE_STRING CommandLine, PVOID Environment, PUNICODE_STRING WindowTitle, PUNICODE_STRING DesktopInfo, PUNICODE_STRING ShellInfo, PUNICODE_STRING RuntimeData, ULONG Flags);
 typedef NTSTATUS(NTAPI* NtQuerySystemInformation_t)(SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation, ULONG SystemInformationLength, PULONG ReturnLength);
 typedef NTSTATUS(NTAPI* RtlDestroyProcessParameters_t)(PRTL_USER_PROCESS_PARAMETERS procParams);
+typedef NTSTATUS (NTAPI* RtlHashUnicodeString_t)(PCUNICODE_STRING String, BOOLEAN CaseInSensitive, ULONG HashAlgorithm, PULONG HashValue);
 typedef NTSTATUS (NTAPI* RtlGetVersion_t)(PRTL_OSVERSIONINFOW lpVersionInformation);
 typedef NTSTATUS (NTAPI* NtQuerySystemTime_t)(PLARGE_INTEGER SystemTime);
 typedef ULONG (NTAPI* RtlRandomEx_t)(PULONG Seed);
@@ -740,13 +741,13 @@ typedef struct _utilapi {
 	DTYPE(FreeResource);
 
 	RtlInitUnicodeString_t RtlInitUnicodeString;
+	RtlHashUnicodeString_t RtlHashUnicodeString;
 	RtlRandomEx_t RtlRandomEx;
 	NtClose_t NtClose;
 } utilapi;
 
 
 struct _hexane {
-// TODO: set standard apis for stagers and payloads
 	PTEB 			teb;
 	LPVOID 			heap;
 	DWORD 			n_threads;
@@ -805,6 +806,7 @@ struct _hexane {
 		BOOL	    	b_envproxy_check;
 	} network;
 
+	// TODO: set standard apis for stagers and payloads
 	ioapi ioapi;
 	memapi memapi;
 	netapi netapi;

@@ -26,15 +26,6 @@ namespace Utils {
     FUNCTION
         AppendPointerList(VOID **array[], VOID *pointer, UINT32 *count);
 
-    UINT32
-    FUNCTION
-        HashStringA(CHAR CONST *string, SIZE_T length);
-
-    UINT32
-    FUNCTION
-        HashStringW(WCHAR CONST *string, SIZE_T length);
-
-
     namespace Scanners {
         BOOL
         FUNCTION
