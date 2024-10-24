@@ -166,11 +166,13 @@ namespace Memory {
 	    	WcsConcat(new_load_path, filename);
 
 	    	if (GetFileAttributesW(new_load_path) == INVALID_FILE_ATTRIBUTES) {
-	    		return false; // File not found
+	    		Free(module->cracked_name);
+	    		return false;
 	    	}
 
 		    const wchar_t *location	= ctx->ioapi.PathFindFileNameW(new_load_path);
 	    	if (!location) {
+	    		Free(module->cracked_name);
 	    		return false;
 	    	}
 
