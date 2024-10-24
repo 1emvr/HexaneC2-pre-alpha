@@ -200,19 +200,19 @@ namespace Memory {
 			    return false;
 		    }
 
-		    DWORD size = ctx->ioapi.GetFileSize(handle, nullptr);
+		    SIZE_T size = ctx->ioapi.GetFileSize(handle, nullptr);
 		    if (size == INVALID_FILE_SIZE) {
 			    ctx->utilapi.NtClose(handle);
 			    return false;
 		    }
 
-		    if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (LPVOID*) &module->buffer, size, (PSIZE_T) &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+		    if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (LPVOID*) &module->buffer, size, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
 			    ctx->utilapi.NtClose(handle);
 			    return false;
 		    }
 
-		    if (!ctx->ioapi.ReadFile(handle, module->buffer, size, (LPDWORD) &module->size, nullptr)) {
-		    	ctx->memapi.NtFreeVirtualMemory(NtCurrentProcess(), (LPVOID*) &module->buffer, &module->size, 0);
+		    if (!ctx->ioapi.ReadFile(handle, module->buffer, size, (DWORD *) &module->size, nullptr)) {
+		    	ctx->memapi.NtFreeVirtualMemory(NtCurrentProcess(), (void **) &module->buffer, &module->size, 0);
 			    ctx->utilapi.NtClose(handle);
 			    return false;
 		    }
