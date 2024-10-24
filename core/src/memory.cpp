@@ -149,7 +149,6 @@ namespace Memory {
 	    }
 
 	    BOOL FindModule(EXECUTABLE *module, WCHAR *filename) {
-	    	// TODO: everything loaded with this unit MUST RESIDE IN SYSTEM32
 	    	HEXANE;
 
 		    if (!filename) {
@@ -356,6 +355,8 @@ namespace Memory {
 
 	    PEXECUTABLE LoadModule(const uint32 load_type, wchar_t *filename, uint8 *memory, const uint32 mem_size, wchar_t *name) {
 	    	// NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
+	    	// NOTE: everything loaded with this unit MUST RESIDE IN SYSTEM32 due to limitations of path finding
+	    	//		may add more paths later, but it's unlikely that I will waste my time.
 	    	HEXANE;
 
 		    auto module = (EXECUTABLE *) ctx->memapi.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
