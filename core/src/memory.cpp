@@ -225,7 +225,7 @@ namespace Memory {
 
 		    PIMAGE_NT_HEADERS nt_head		= nullptr;
 		    PIMAGE_DATA_DIRECTORY data_dire = nullptr;
-		    PIMAGE_SECTION_HEADER sec_head	= nullptr;
+		    PIMAGE_SECTION_HEADER section	= nullptr;
 
 		    if (!module) {
 			    return false;
@@ -240,17 +240,18 @@ namespace Memory {
 		    void *text_end = nullptr;
 
 		    for (int sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
-			    sec_head = ITER_SECTION_HEADER(module, sec_index);
+			    section = ITER_SECTION_HEADER(module, sec_index);
 
-		    	// TODO: hash this to comply with the rest of my standard
-			    if (MbsCompare(".text", (char *) sec_head->Name)) {
-				    text_start	= RVA(PVOID, module, sec_head->VirtualAddress);
-				    text_end	= RVA(PVOID, text_start, sec_head->SizeOfRawData);
+		    	// TODO: hash this to comply with the rest of the standard
+			    if (MbsCompare(".text", (char *) section->Name)) {
+				    text_start	= RVA(PVOID, module, section->VirtualAddress);
+				    text_end	= RVA(PVOID, text_start, section->SizeOfRawData);
 				    break;
 			    }
 		    }
 
 		    if (!text_start || !text_end) {
+		    	// NOTE: not sure why this would happen
 			    return false;
 		    }
 
@@ -410,28 +411,23 @@ namespace Memory {
 
 			    for (; delay_desc->DllNameRVA; delay_desc++) {
 			    	HMODULE library = nullptr;
-			    	wchar_t lower[MAX_PATH * sizeof(wchar_t)] = { };
 
-			    	const char *name = (char *) module->base + delay_desc->DllNameRVA;
+			    	const char *lib_name = (char *) module->base + delay_desc->DllNameRVA;
+			    	wchar_t wcs_lib[MAX_PATH * sizeof(wchar_t)] = { };
 
-			    	MbsToWcs(lower, name, MbsLength(name));
-			    	WcsToLower(lower, lower);
+			    	MbsToWcs(wcs_lib, lib_name, MbsLength(lib_name));
 
-				    if (LDR_DATA_TABLE_ENTRY *entry = GetModuleEntry(HashStringA(name, MbsLength(name)))) {
+				    if (LDR_DATA_TABLE_ENTRY *entry = GetModuleEntryByName(wcs_lib)) {
 			    		library = (HMODULE) entry->DllBase;
 			    	}
 				    else {
 				    	// recursive load
-				    	wchar_t next_load[MAX_PATH] = { };
-				    	MbsToWcs(next_load, name, MbsLength(name));
-
-					    EXECUTABLE *new_load = LoadModule(LoadLocalFile, next_load, nullptr, 0, nullptr);
+					    EXECUTABLE *new_load = LoadModule(LoadLocalFile, wcs_lib, nullptr, 0, nullptr);
 				    	if (!new_load || !new_load->success) {
 				    		return false;
 				    	}
 
 				    	library = (HMODULE) new_load->base;
-				    	// recurse^
 				    }
 
 				    first_thunk	= RVA(PIMAGE_THUNK_DATA, module->base, delay_desc->ImportAddressTableRVA);
