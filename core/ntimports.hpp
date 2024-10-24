@@ -28,6 +28,11 @@ typedef LONG NTSTATUS;
 typedef LONG KPRIORITY;
 typedef ULONG LOGICAL;
 
+#define LDRP_IMAGE_DLL				0x00000004
+#define LDRP_ENTRY_INSERTED			0x00008000
+#define LDRP_ENTRY_PROCESSED		0x00004000
+#define LDRP_PROCESS_ATTACH_CALLED	0x00080000
+
 #define STATIC						static
 #define PROCESSOR_FEATURE_MAX		64
 #define MAX_WOW64_SHARED_ENTRIES	16
@@ -162,6 +167,137 @@ typedef enum _EVENT_TYPE {
 
 #define IOCTL_KSEC_ENCRYPT_MEMORY   CTL_CODE(FILE_DEVICE_KSEC, 3, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
 #define IOCTL_KSEC_DECRYPT_MEMORY   CTL_CODE(FILE_DEVICE_KSEC, 4, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
+
+
+typedef struct _KSYSTEM_TIME {
+	ULONG LowPart;
+	LONG High1Time;
+	LONG High2Time;
+} KSYSTEM_TIME, * PKSYSTEM_TIME;
+
+
+typedef enum _ALTERNATIVE_ARCHITECTURE_TYPE {
+	StandardDesign,
+	NEC98x86,
+	EndAlternatives
+} ALTERNATIVE_ARCHITECTURE_TYPE;
+
+
+typedef struct _KUSER_SHARED_DATA {
+	ULONG TickCountLowDeprecated;
+	ULONG TickCountMultiplier;
+
+	volatile KSYSTEM_TIME InterruptTime;
+	volatile KSYSTEM_TIME SystemTime;
+	volatile KSYSTEM_TIME TimeZoneBias;
+
+	USHORT ImageNumberLow;
+	USHORT ImageNumberHigh;
+	WCHAR NtSystemRoot[260];
+	ULONG MaxStackTraceDepth;
+	ULONG CryptoExponent;
+	ULONG TimeZoneId;
+	ULONG LargePageMinimum;
+	ULONG Reserved2[7];
+	ULONG NtProductType;
+	BOOLEAN ProductTypeIsValid;
+	ULONG NtMajorVersion;
+	ULONG NtMinorVersion;
+	BOOLEAN ProcessorFeatures[PROCESSOR_FEATURE_MAX];
+	ULONG Reserved1;
+	ULONG Reserved3;
+
+	volatile ULONG TimeSlip;
+
+	ALTERNATIVE_ARCHITECTURE_TYPE AlternativeArchitecture;
+	LARGE_INTEGER SystemExpirationDate;
+	ULONG SuiteMask;
+	BOOLEAN KdDebuggerEnabled;
+	UCHAR NXSupportPolicy;
+
+	volatile ULONG ActiveConsoleId;
+	volatile ULONG DismountCount;
+
+	ULONG ComPlusPackage;
+	ULONG LastSystemRITEventTickCount;
+	ULONG NumberOfPhysicalPages;
+	BOOLEAN SafeBootMode;
+	union {
+		UCHAR TscQpcData;
+		struct {
+			UCHAR TscQpcEnabled : 1;
+			UCHAR TscQpcSpareFlag : 1;
+			UCHAR TscQpcShift : 6;
+		};
+	};
+	UCHAR TscQpcPad[2];
+
+	union {
+		ULONG TraceLogging;
+		ULONG SharedDataFlags;
+		struct {
+			ULONG DbgErrorPortPresent : 1;
+			ULONG DbgElevationEnabled : 1;
+			ULONG DbgVirtEnabled : 1;
+			ULONG DbgInstallerDetectEnabled : 1;
+			ULONG DbgSystemDllRelocated : 1;
+			ULONG DbgDynProcessorEnabled : 1;
+			ULONG DbgSEHValidationEnabled : 1;
+			ULONG SpareBits : 25;
+		};
+	};
+	ULONG DataFlagsPad[1];
+
+	ULONGLONG TestRetInstruction;
+	ULONG SystemCall;
+	ULONG SystemCallReturn;
+	ULONGLONG SystemCallPad[3];
+
+	union
+	{
+		volatile KSYSTEM_TIME TickCount;
+		volatile ULONG64 TickCountQuad;
+		struct
+		{
+			ULONG ReservedTickCountOverlay[3];
+			ULONG TickCountPad[1];
+		};
+	};
+
+	ULONG Cookie;
+
+	// Entries below all invalid below Windows Vista
+
+	ULONG CookiePad[1];
+	LONGLONG ConsoleSessionForegroundProcessId;
+	ULONG Wow64SharedInformation[MAX_WOW64_SHARED_ENTRIES];
+	USHORT UserModeGlobalLogger[16];
+	ULONG ImageFileExecutionOptions;
+	ULONG LangGenerationCount;
+
+	union {
+		ULONGLONG AffinityPad; // only valid on Windows Vista
+		ULONG_PTR ActiveProcessorAffinity; // only valid on Windows Vista
+		ULONGLONG Reserved5;
+	};
+	volatile ULONG64 InterruptTimeBias;
+	volatile ULONG64 TscQpcBias;
+
+	volatile ULONG ActiveProcessorCount;
+	volatile USHORT ActiveGroupCount;
+	USHORT Reserved4;
+
+	volatile ULONG AitSamplingValue;
+	volatile ULONG AppCompatFlag;
+
+	ULONGLONG SystemDllNativeRelocation;
+	ULONG SystemDllWowRelocation;
+
+	ULONG XStatePad[1];
+	XSTATE_CONFIGURATION XState;
+} KUSER_SHARED_DATA, * PKUSER_SHARED_DATA;
+
+
 
 C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA, TickCountMultiplier) == 0x4);
 C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA, InterruptTime) == 0x8);
@@ -319,6 +455,20 @@ typedef enum _PS_CREATE_STATE {
 } PS_CREATE_STATE;
 
 
+typedef enum _LDR_DLL_LOAD_REASON {
+	LoadReasonStaticDependency,
+	LoadReasonStaticForwarderDependency,
+	LoadReasonDynamicForwarderDependency,
+	LoadReasonDelayloadDependency,
+	LoadReasonDynamicLoad,
+	LoadReasonAsImageLoad,
+	LoadReasonAsDataLoad,
+	LoadReasonEnclavePrimary, // REDSTONE3
+	LoadReasonEnclaveDependency,
+	LoadReasonUnknown = -1
+} LDR_DLL_LOAD_REASON, *PLDR_DLL_LOAD_REASON;
+
+
 typedef struct _PS_CREATE_INFO {
 	SIZE_T Size;
 	PS_CREATE_STATE State;
@@ -402,20 +552,6 @@ typedef struct _RTL_DRIVE_LETTER_CURDIR {
 	UNICODE_STRING DosPath;
 
 } RTL_DRIVE_LETTER_CURDIR, * PRTL_DRIVE_LETTER_CURDIR;
-
-
-typedef struct _KSYSTEM_TIME {
-	ULONG LowPart;
-	LONG High1Time;
-	LONG High2Time;
-} KSYSTEM_TIME, * PKSYSTEM_TIME;
-
-
-typedef enum _ALTERNATIVE_ARCHITECTURE_TYPE {
-	StandardDesign,
-	NEC98x86,
-	EndAlternatives
-} ALTERNATIVE_ARCHITECTURE_TYPE;
 
 
 typedef struct _SYSTEM_PROCESS_INFORMATION {
@@ -505,121 +641,6 @@ typedef struct _RTL_USER_PROCESS_PARAMETERS {
 } RTL_USER_PROCESS_PARAMETERS, * PRTL_USER_PROCESS_PARAMETERS;
 
 
-typedef struct _KUSER_SHARED_DATA {
-	ULONG TickCountLowDeprecated;
-	ULONG TickCountMultiplier;
-
-	volatile KSYSTEM_TIME InterruptTime;
-	volatile KSYSTEM_TIME SystemTime;
-	volatile KSYSTEM_TIME TimeZoneBias;
-
-	USHORT ImageNumberLow;
-	USHORT ImageNumberHigh;
-	WCHAR NtSystemRoot[260];
-	ULONG MaxStackTraceDepth;
-	ULONG CryptoExponent;
-	ULONG TimeZoneId;
-	ULONG LargePageMinimum;
-	ULONG Reserved2[7];
-	ULONG NtProductType;
-	BOOLEAN ProductTypeIsValid;
-	ULONG NtMajorVersion;
-	ULONG NtMinorVersion;
-	BOOLEAN ProcessorFeatures[PROCESSOR_FEATURE_MAX];
-	ULONG Reserved1;
-	ULONG Reserved3;
-
-	volatile ULONG TimeSlip;
-
-	ALTERNATIVE_ARCHITECTURE_TYPE AlternativeArchitecture;
-	LARGE_INTEGER SystemExpirationDate;
-	ULONG SuiteMask;
-	BOOLEAN KdDebuggerEnabled;
-	UCHAR NXSupportPolicy;
-
-	volatile ULONG ActiveConsoleId;
-	volatile ULONG DismountCount;
-
-	ULONG ComPlusPackage;
-	ULONG LastSystemRITEventTickCount;
-	ULONG NumberOfPhysicalPages;
-	BOOLEAN SafeBootMode;
-	union {
-		UCHAR TscQpcData;
-		struct {
-			UCHAR TscQpcEnabled : 1;
-			UCHAR TscQpcSpareFlag : 1;
-			UCHAR TscQpcShift : 6;
-		};
-	};
-	UCHAR TscQpcPad[2];
-
-	union {
-		ULONG TraceLogging;
-		ULONG SharedDataFlags;
-		struct {
-			ULONG DbgErrorPortPresent : 1;
-			ULONG DbgElevationEnabled : 1;
-			ULONG DbgVirtEnabled : 1;
-			ULONG DbgInstallerDetectEnabled : 1;
-			ULONG DbgSystemDllRelocated : 1;
-			ULONG DbgDynProcessorEnabled : 1;
-			ULONG DbgSEHValidationEnabled : 1;
-			ULONG SpareBits : 25;
-		};
-	};
-	ULONG DataFlagsPad[1];
-
-	ULONGLONG TestRetInstruction;
-	ULONG SystemCall;
-	ULONG SystemCallReturn;
-	ULONGLONG SystemCallPad[3];
-
-	union
-	{
-		volatile KSYSTEM_TIME TickCount;
-		volatile ULONG64 TickCountQuad;
-		struct
-		{
-			ULONG ReservedTickCountOverlay[3];
-			ULONG TickCountPad[1];
-		};
-	};
-
-	ULONG Cookie;
-
-	// Entries below all invalid below Windows Vista
-
-	ULONG CookiePad[1];
-	LONGLONG ConsoleSessionForegroundProcessId;
-	ULONG Wow64SharedInformation[MAX_WOW64_SHARED_ENTRIES];
-	USHORT UserModeGlobalLogger[16];
-	ULONG ImageFileExecutionOptions;
-	ULONG LangGenerationCount;
-
-	union {
-		ULONGLONG AffinityPad; // only valid on Windows Vista
-		ULONG_PTR ActiveProcessorAffinity; // only valid on Windows Vista
-		ULONGLONG Reserved5;
-	};
-	volatile ULONG64 InterruptTimeBias;
-	volatile ULONG64 TscQpcBias;
-
-	volatile ULONG ActiveProcessorCount;
-	volatile USHORT ActiveGroupCount;
-	USHORT Reserved4;
-
-	volatile ULONG AitSamplingValue;
-	volatile ULONG AppCompatFlag;
-
-	ULONGLONG SystemDllNativeRelocation;
-	ULONG SystemDllWowRelocation;
-
-	ULONG XStatePad[1];
-	XSTATE_CONFIGURATION XState;
-} KUSER_SHARED_DATA, * PKUSER_SHARED_DATA;
-
-
 typedef enum _PROCESSINFOCLASS {
 	ProcessBasicInformation = 0,
 	ProcessDebugPort = 7,
@@ -629,6 +650,25 @@ typedef enum _PROCESSINFOCLASS {
 	ProcessBreakOnTermination = 29,
 	ProcessCookie = 36
 } PROCESSINFOCLASS;
+
+
+typedef enum _LDR_DDAG_STATE {
+	LdrModulesMerged = -5,
+	LdrModulesInitError = -4,
+	LdrModulesSnapError = -3,
+	LdrModulesUnloaded = -2,
+	LdrModulesUnloading = -1,
+	LdrModulesPlaceHolder = 0,
+	LdrModulesMapping = 1,
+	LdrModulesMapped = 2,
+	LdrModulesWaitingForDependencies = 3,
+	LdrModulesSnapping = 4,
+	LdrModulesSnapped = 5,
+	LdrModulesCondensed = 6,
+	LdrModulesReadyToInit = 7,
+	LdrModulesInitializing = 8,
+	LdrModulesReadyToRun = 9
+} LDR_DDAG_STATE;
 
 
 typedef struct _BASE_RELOCATION_BLOCK {
@@ -650,39 +690,129 @@ typedef struct _PEB_LDR_DATA {
 } PEB_LDR_DATA, * PPEB_LDR_DATA;
 
 
-typedef struct _LDR_DATA_TABLE_ENTRY {
-	LIST_ENTRY InLoadOrderLinks;
-	LIST_ENTRY InMemoryOrderLinks;
-	LIST_ENTRY InInitializationOrderLinks;
-	PVOID DllBase;
-	PVOID EntryPoint;
-	ULONG SizeOfImage;
-	UNICODE_STRING FullDllName;
-	UNICODE_STRING BaseDllName;
-	ULONG Flags;
-	USHORT LoadCount;
-	USHORT TlsIndex;
+typedef BOOLEAN (NTAPI* PLDR_INIT_ROUTINE)(PVOID DllHandle, ULONG Reason, PVOID Context);
+
+
+typedef struct _LDR_SERVICE_TAG_RECORD {
+	struct _LDR_SERVICE_TAG_RECORD *Next;
+	ULONG ServiceTag;
+} LDR_SERVICE_TAG_RECORD, *PLDR_SERVICE_TAG_RECORD;
+
+
+typedef struct _LDRP_CSLIST {
+	PSINGLE_LIST_ENTRY Tail;
+} LDRP_CSLIST, *PLDRP_CSLIST;
+
+
+typedef struct _LDR_DDAG_NODE {
+	LIST_ENTRY Modules;
+	PLDR_SERVICE_TAG_RECORD ServiceTagList;
+	ULONG LoadCount;
+	ULONG LoadWhileUnloadingCount;
+	ULONG LowestLink;
+
 	union {
-		LIST_ENTRY HashLinks;
-		struct {
-			PVOID SectionPointer;
-			ULONG CheckSum;
+		LDRP_CSLIST Dependencies;
+		SINGLE_LIST_ENTRY RemovalLink;
+	};
+
+	LDRP_CSLIST IncomingDependencies;
+	LDR_DDAG_STATE State;
+	SINGLE_LIST_ENTRY CondenseLink;
+	ULONG PreorderNumber;
+} LDR_DDAG_NODE, *PLDR_DDAG_NODE;
+
+
+typedef struct _RTL_BALANCED_NODE {
+	union {
+		struct _RTL_BALANCED_NODE *Children[2];
+		struct
+		{
+			struct _RTL_BALANCED_NODE *Left;
+			struct _RTL_BALANCED_NODE *Right;
 		};
 	};
 	union {
-		ULONG TimeDateStamp;
-		PVOID LoadedImports;
-	} t;
-	PVOID EntryPointActivationContext;
-	PVOID PatchInformation;
-	LIST_ENTRY ForwarderLinks;
-	LIST_ENTRY ServiceTagLinks;
-	LIST_ENTRY StaticLinks;
-	PVOID ContextInformation;
-	ULONG_PTR OriginalBase;
-	LARGE_INTEGER LoadTime;
-} LDR_DATA_TABLE_ENTRY, * PLDR_DATA_TABLE_ENTRY;
+		UCHAR Red : 1;
+		UCHAR Balance : 2;
+		ULONG_PTR ParentValue;
+	};
+} RTL_BALANCED_NODE, *PRTL_BALANCED_NODE;
 
+
+typedef struct _LDR_DATA_TABLE_ENTRY {
+    LIST_ENTRY InLoadOrderLinks;
+    LIST_ENTRY InMemoryOrderLinks;
+
+    union {
+        LIST_ENTRY InInitializationOrderLinks;
+        LIST_ENTRY InProgressLinks;
+    };
+
+    PVOID DllBase;
+    PLDR_INIT_ROUTINE EntryPoint;
+    ULONG SizeOfImage;
+    UNICODE_STRING FullDllName;
+    UNICODE_STRING BaseDllName;
+
+    union {
+        UCHAR FlagGroup[4];
+        ULONG Flags;
+
+        struct {
+            ULONG PackagedBinary : 1;
+            ULONG MarkedForRemoval : 1;
+            ULONG ImageDll : 1;
+            ULONG LoadNotificationsSent : 1;
+            ULONG TelemetryEntryProcessed : 1;
+            ULONG ProcessStaticImport : 1;
+            ULONG InLegacyLists : 1;
+            ULONG InIndexes : 1;
+            ULONG ShimDll : 1;
+            ULONG InExceptionTable : 1;
+            ULONG ReservedFlags1 : 2;
+            ULONG LoadInProgress : 1;
+            ULONG LoadConfigProcessed : 1;
+            ULONG EntryProcessed : 1;
+            ULONG ProtectDelayLoad : 1;
+            ULONG ReservedFlags3 : 2;
+            ULONG DontCallForThreads : 1;
+            ULONG ProcessAttachCalled : 1;
+            ULONG ProcessAttachFailed : 1;
+            ULONG CorDeferredValidate : 1;
+            ULONG CorImage : 1;
+            ULONG DontRelocate : 1;
+            ULONG CorILOnly : 1;
+            ULONG ChpeImage : 1;
+            ULONG ReservedFlags5 : 2;
+            ULONG Redirected : 1;
+            ULONG ReservedFlags6 : 2;
+            ULONG CompatDatabaseProcessed : 1;
+        };
+    };
+
+    USHORT ObsoleteLoadCount;
+    USHORT TlsIndex;
+    LIST_ENTRY HashLinks;
+    ULONG TimeDateStamp;
+	struct _ACTIVATION_CONTEXT *EntryPointActivationContext;
+    PVOID Lock; // RtlAcquireSRWLockExclusive
+    PLDR_DDAG_NODE DdagNode;
+    LIST_ENTRY NodeModuleLink;
+    struct _LDRP_LOAD_CONTEXT *LoadContext;
+    PVOID ParentDllBase;
+    PVOID SwitchBackContext;
+    RTL_BALANCED_NODE BaseAddressIndexNode;
+    RTL_BALANCED_NODE MappingInfoIndexNode;
+    ULONG_PTR OriginalBase;
+    LARGE_INTEGER LoadTime;
+    ULONG BaseNameHashValue;
+    LDR_DLL_LOAD_REASON LoadReason;
+    ULONG ImplicitPathOptions;
+    ULONG ReferenceCount;
+    ULONG DependentLoadFlags;
+    UCHAR SigningLevel; // since REDSTONE2
+} LDR_DATA_TABLE_ENTRY, *PLDR_DATA_TABLE_ENTRY;
 
 typedef const _LDR_DATA_TABLE_ENTRY* PCLDR_DATA_TABLE_ENTRY;
 
