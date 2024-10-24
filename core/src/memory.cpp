@@ -242,6 +242,7 @@ namespace Memory {
 		    for (int sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
 			    sec_head = ITER_SECTION_HEADER(module, sec_index);
 
+		    	// TODO: hash this to comply with the rest of my standard
 			    if (MbsCompare(".text", (char *) sec_head->Name)) {
 				    text_start	= RVA(PVOID, module, sec_head->VirtualAddress);
 				    text_end	= RVA(PVOID, text_start, sec_head->SizeOfRawData);
