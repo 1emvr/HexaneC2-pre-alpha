@@ -346,6 +346,7 @@ namespace Memory {
 	    	PIMAGE_THUNK_DATA org_first				= nullptr;
 
 		    IMAGE_DATA_DIRECTORY *data_dire = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+	    	MBS_BUFFER mbs_import = { };
 
 		    if (data_dire->Size) {
 			    PIMAGE_IMPORT_DESCRIPTOR import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, module->base, data_dire->VirtualAddress);
@@ -391,8 +392,6 @@ namespace Memory {
 						    }
 					    } else {
 						    import_name = RVA(PIMAGE_IMPORT_BY_NAME, module->base, org_first->u1.AddressOfData);
-
-					    	MBS_BUFFER mbs_import = { };
 						    FILL_MBS(mbs_import, import_name->Name);
 
 						    if (!LocalLdrGetProcedureAddress(library, &mbs_import, 0, (void **) &first_thunk->u1.Function)) {
@@ -435,14 +434,14 @@ namespace Memory {
 
 				    for (; org_first->u1.Function; first_thunk++, org_first++) {
 					    if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-						    if (!LocalLdrGetProcedureAddress(library, NULL, (WORD) org_first->u1.Ordinal, (void **) &first_thunk->u1.Function)) {
+						    if (!LocalLdrGetProcedureAddress(library, nullptr, (WORD) org_first->u1.Ordinal, (void **) &first_thunk->u1.Function)) {
 							    return false;
 						    }
 					    } else {
 						    import_name = RVA(PIMAGE_IMPORT_BY_NAME, module->base, org_first->u1.AddressOfData);
+						    FILL_MBS(mbs_import, import_name->Name);
 
-						    FILL_STRING(aString, import_name->Name);
-						    if (!LocalLdrGetProcedureAddress(library, &aString, 0, (void **) &first_thunk->u1.Function)) {
+						    if (!LocalLdrGetProcedureAddress(library, &mbs_import, 0, (void **) &first_thunk->u1.Function)) {
 							    return false;
 						    }
 					    }
