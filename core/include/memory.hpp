@@ -38,10 +38,6 @@ namespace Memory {
         FUNCTION
             GetExportAddress(CONST VOID *base, UINT32 hash);
 
-        UINT_PTR
-        FUNCTION
-            LoadExport(CONST CHAR *module_name, CONST CHAR *export_name);
-
         BOOL
         FUNCTION
             MapSections(PEXECUTABLE module);

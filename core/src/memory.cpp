@@ -148,33 +148,6 @@ namespace Memory {
 		    return address;
 	    }
 
-	    UINT_PTR LoadExport(CONST CHAR *module_name, CONST CHAR *export_name) {
-		    HEXANE;
-
-		    uintptr_t symbol = 0;
-		    bool reload = FALSE;
-
-		    char buffer[MAX_PATH] = {};
-
-		    const auto mod_hash = HashStringA(MbsToLower(buffer, module_name), MbsLength(module_name));
-		    const auto fn_hash = HashStringA(MbsToLower(buffer, export_name), MbsLength(export_name));
-
-		    while (!symbol) {
-			    F_PTR_HASHES(symbol, mod_hash, fn_hash);
-
-			    if (!symbol) {
-				    if (reload || !ctx->memapi.LoadLibraryA((const char *) module_name)) {
-					    // this is sus...
-					    goto defer;
-				    }
-				    reload = TRUE;
-			    }
-		    }
-
-	    defer:
-		    return symbol;
-	    }
-
 	    BOOL FindModule(EXECUTABLE *module, WCHAR *filename) {
 	    	HEXANE;
 
@@ -195,7 +168,7 @@ namespace Memory {
 		    return TRUE;
 	    }
 
-	    BOOL ReadModule(PEXECUTABLE module) {
+	    BOOL ReadModule(EXECUTABLE *module) {
 	    	HEXANE;
 
 		    HANDLE handle = ctx->ioapi.CreateFileW(module->local_name, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
