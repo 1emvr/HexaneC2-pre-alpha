@@ -179,16 +179,11 @@ namespace Memory {
 			    return false;
 		    }
 
-	    	wchar_t new_load_path[MAX_PATH] = L"C:\\Windows\\System32\\";
-	    	WcsConcat(new_load_path, filename);
+	    	// NOTE: search path for all modules limited to System32 folder
+	    	wchar_t location[MAX_PATH] = L"C:\\Windows\\System32\\";
+	    	WcsConcat(location, filename);
 
-	    	if (ctx->ioapi.GetFileAttributesW(new_load_path) == INVALID_FILE_ATTRIBUTES) {
-	    		Free(module->cracked_name);
-	    		return false;
-	    	}
-
-		    const wchar_t *location	= ctx->ioapi.PathFindFileNameW(new_load_path);
-	    	if (!location) {
+	    	if (ctx->ioapi.GetFileAttributesW(location) == INVALID_FILE_ATTRIBUTES) {
 	    		Free(module->cracked_name);
 	    		return false;
 	    	}
