@@ -385,10 +385,9 @@ typedef struct _inject_context {
 
 
 typedef struct _reloc {
-	UINT32 VirtualAddress;
-	UINT32 SymbolTableIndex;
-	UINT16 Type;
-	INT32	count;
+	UINT32	VirtualAddress;
+	UINT32	SymbolTableIndex;
+	UINT16	Type;
 } RELOC, *PRELOC;
 
 

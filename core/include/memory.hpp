@@ -44,7 +44,7 @@ namespace Memory {
 
 	    PEXECUTABLE
         FUNCTION
-            LoadModule(UINT32 flags, WCHAR *filename, UINT8 *buffer, UINT32 length, WCHAR *name);
+            LoadModule(UINT32 load_type, WCHAR *filename, UINT8 *memory, UINT32 mem_size, WCHAR *name);
     }
 
     namespace Execute {

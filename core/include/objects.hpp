@@ -6,11 +6,11 @@ namespace Objects {
     LONG
     WINAPI
     FUNCTION
-        ExceptionHandler(PEXCEPTION_POINTERS exception);
+        ExceptionHandler(EXCEPTION_POINTERS *exception);
 
     BOOL
     FUNCTION
-        ExecuteFunction(EXECUTABLE *object, CONST CHAR *entry, VOID *args, SIZE_T size);
+        ExecuteFunction(EXECUTABLE *image, CONST CHAR *entry, VOID *args, SIZE_T size);
 
     BOOL
     FUNCTION
@@ -18,7 +18,7 @@ namespace Objects {
 
     BOOL
     FUNCTION
-        BaseRelocation(const EXECUTABLE *object);
+        BaseRelocation(EXECUTABLE *image);
 
     VOID
     FUNCTION
@@ -26,7 +26,7 @@ namespace Objects {
 
     VOID
     FUNCTION
-        AddCOFF(COFF_PARAMS *object);
+        AddCOFF(COFF_PARAMS *bof);
 
     VOID
     FUNCTION
@@ -34,7 +34,7 @@ namespace Objects {
 
     COFF_PARAMS*
     FUNCTION
-        GetCOFF(uint32_t bof_id);
+        GetCOFF(UINT32 bof_id);
 
     VOID
     FUNCTION
@@ -42,7 +42,7 @@ namespace Objects {
 
     VOID
     FUNCTION
-        Cleanup(EXECUTABLE *object);
+        Cleanup(EXECUTABLE *image);
 
     VOID
     FUNCTION
