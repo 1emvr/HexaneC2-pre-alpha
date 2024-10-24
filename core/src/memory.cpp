@@ -303,6 +303,7 @@ namespace Memory {
 							    }
 						    }
 						    if (lib_length != 0) {
+						    	// TODO: clean this up
 							    size_t fn_length = full_length - lib_length - 1;
 							    char lib_name[256] = { };
 
