@@ -106,7 +106,7 @@ namespace Memory {
     }
 
     namespace Modules {
-	    LDR_DATA_TABLE_ENTRY *GetModuleEntry(CONST uint32 hash) {
+	    LDR_DATA_TABLE_ENTRY *GetModuleEntry(const uint32 hash) {
 		    const auto head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
 		    for (auto next = head->Flink; next != head; next = next->Flink) {
@@ -123,7 +123,7 @@ namespace Memory {
 		    return nullptr;
 	    }
 
-	    LDR_DATA_TABLE_ENTRY *GetModuleEntryByName(CONST WCHAR *mod_name) {
+	    LDR_DATA_TABLE_ENTRY *GetModuleEntryByName(const wchar_t *mod_name) {
 		    const auto head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
 		    for (auto next = head->Flink; next != head; next = next->Flink) {
@@ -321,13 +321,13 @@ namespace Memory {
 						    	FILL_MBS(mbs_fn_name, fn_name);
 
 						    	MbsToWcs(wcs_lib, lib_name, MbsLength(lib_name));
-							    HMODULE lib_addr = (HMODULE) GetModuleEntryByName(wcs_lib)->DllBase;
+							    LDR_DATA_TABLE_ENTRY *lib_entry = GetModuleEntryByName(wcs_lib);
 
-							    if (!lib_addr || lib_addr == module) {
+							    if (!lib_entry || lib_entry->DllBase == module) {
 								    return false;
 							    }
 
-							    if (!LocalLdrGetProcedureAddress(lib_addr, &mbs_fn_name, 0, &fn_pointer)) {
+							    if (!LocalLdrGetProcedureAddress((HMODULE) lib_entry->DllBase, &mbs_fn_name, 0, &fn_pointer)) {
 								    return false;
 							    }
 						    }
