@@ -1,8 +1,8 @@
 #include <core/include/stdlib.hpp>
 void MemCopy (void *dst, const void *const src, const size_t n) {
 
-    const auto a = (uint8_t*) dst;
-    const auto b = (const uint8_t*) src;
+    const auto a = (uint8*) dst;
+    const auto b = (const uint8*) src;
 
     for (size_t i = 0; i < n; i++) {
         a[i] = b[i];
@@ -11,22 +11,39 @@ void MemCopy (void *dst, const void *const src, const size_t n) {
 
 void *MemSet (void *const dst, const int val, size_t len) {
 
-    auto ptr = (uint8_t*) dst;
+    auto ptr = (uint8*) dst;
     while (len-- > 0) {
         *ptr++ = val;
     }
     return dst;
 }
 
-void MbsCopy (char *dst, const char *src) {
+char* MbsCopy(char *dst, const char *src, size_t n) {
 
-    while ((*dst = *src) != 0x0) {
-        dst++;
-        src++;
+    if (!n) {
+        return dst;
     }
+
+    char *d = dst;
+    size_t copied = 0;
+
+    while (copied < n - 1 && *src) {
+        *d++ = *src++;
+        copied++;
+    }
+
+    *d++ = '\0';
+    copied++;
+
+    while (copied < n) {
+        *d++ = '\0';
+        copied++;
+    }
+
+    return dst;
 }
 
-size_t MbsBoundCompare (const char *str1, const char *str2, size_t len) {
+size_t MbsBoundCompare(const char *str1, const char *str2, size_t len) {
 
     while (len && *str1 && (*str1 == *str2)) {
         len--; str1++; str2++;
@@ -45,13 +62,13 @@ size_t MbsCompare (const char *str1, const char *str2) {
         str1++; str2++;
     }
 
-    return (uint8_t) *str1 - (uint8_t) *str2;
+    return (uint8) *str1 - (uint8) *str2;
 }
 
 size_t MemCompare (const void *const ptr1, const void *const ptr2, size_t len) {
 
-    const auto *p1 = (const uint8_t*) ptr1;
-    const auto *p2 = (const uint8_t*) ptr2;
+    const auto *p1 = (const uint8*) ptr1;
+    const auto *p2 = (const uint8*) ptr2;
 
     while (len--) {
         if (*p1 != *p2) {
@@ -64,10 +81,11 @@ size_t MemCompare (const void *const ptr1, const void *const ptr2, size_t len) {
     return 0;
 }
 
-char *MbsConcat (char *const str1, const char *const str2) {
+char *MbsConcat (char *const dst, const char *const src) {
 
-    MbsCopy(str1 + MbsLength(str1), str2);
-    return str1;
+    size_t len1 = strlen(dst);
+    MbsCopy(dst + len1, src, len1);
+    return dst;
 }
 
 size_t MbsLength (const char* str) {
@@ -94,12 +112,29 @@ size_t WcsLength (const wchar_t *const s) {
     return len;
 }
 
-void WcsCopy (wchar_t *dest, const wchar_t *src) {
-// TODO: fixme
-    while ((*dest = *src) != 0x0000) {
-        dest++;
-        src++;
+wchar_t* WcsCopy(wchar_t *dst, const wchar_t *src, size_t n) {
+
+    if (!n) {
+        return dst;
     }
+
+    wchar_t *d      = dst;
+    size_t copied   = 0;
+
+    while (copied < n - 1 && *src) {
+        *d++ = *src++;
+        copied++;
+    }
+
+    *d++ = L'\0';
+    copied++;
+
+    while (copied < n) {
+        *d++ = L'\0';
+        copied++;
+    }
+
+    return dst;
 }
 
 size_t WcsCompare (const wchar_t *str1, const wchar_t *str2) {
@@ -114,7 +149,8 @@ size_t WcsCompare (const wchar_t *str1, const wchar_t *str2) {
 
 wchar_t *WcsConcat (wchar_t *const str1, const wchar_t *const str2) {
 
-    WcsCopy(str1 + WcsLength(str1), str2 );
+    size_t len1 = WcsLength(str1);
+    WcsCopy(str1 + len1, str2, len1);
     return str1;
 }
 
@@ -149,7 +185,7 @@ char *MbsToLower(char *const dst, const char *const src) {
 
     const auto len = MbsLength(src);
     for (size_t i = 0; i < len; ++i) {
-        dst[i] = ToLowerA((uint8_t) src[i]);
+        dst[i] = ToLowerA((uint8) src[i]);
     }
 
     dst[len] = 0x00;

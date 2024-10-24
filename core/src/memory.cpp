@@ -209,6 +209,117 @@ namespace Memory {
 		    return true;
 	    }
 
+	    BOOL LocalLdrGetProcedureAddress(HMODULE module, const MBS_BUFFER *fn_name, const uint16 ordinal, void **function) {
+
+		    PIMAGE_NT_HEADERS nt_head		= nullptr;
+		    PIMAGE_DATA_DIRECTORY data_dire = nullptr;
+		    PIMAGE_SECTION_HEADER sec_head	= nullptr;
+
+		    if (!module) {
+			    return false;
+		    }
+
+		    nt_head = RVA(PIMAGE_NT_HEADERS, module, ((PIMAGE_DOS_HEADER) module)->e_lfanew);
+		    if (nt_head->Signature != IMAGE_NT_SIGNATURE) {
+			    return false;
+		    }
+
+		    void *text_start = nullptr;
+		    void *text_end = nullptr;
+
+		    for (int sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
+			    sec_head = ITER_SECTION_HEADER(module, sec_index);
+
+			    if (MbsCompare(".text", (char *) sec_head->Name)) {
+				    text_start	= RVA(PVOID, module, sec_head->VirtualAddress);
+				    text_end	= RVA(PVOID, text_start, sec_head->SizeOfRawData);
+				    break;
+			    }
+		    }
+
+		    if (!text_start || !text_end) {
+			    return false;
+		    }
+
+		    data_dire = &nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+
+		    if (data_dire->Size) {
+			    PIMAGE_EXPORT_DIRECTORY exports = RVA(PIMAGE_EXPORT_DIRECTORY, module, data_dire->VirtualAddress);
+
+			    int n_entries = fn_name != nullptr ? exports->NumberOfNames : exports->NumberOfFunctions;
+
+			    for (int ent_index = 0; ent_index < n_entries; ent_index++) {
+				    bool found = false;
+				    uint32 fn_ordinal = 0;
+
+				    if (!fn_name) {
+					    uint32 *pRVA = RVA(uint32 *, module, exports->AddressOfNames + ent_index * 4);
+					    const char *name = RVA(const char *, module, *pRVA);
+
+					    if (MbsLength(name) != fn_name->length) {
+						    continue;
+					    }
+					    if (MbsCompare(name, fn_name->buffer)) {
+						    found = true;
+						    short *pRVA2 = RVA(short *, module, exports->AddressOfNameOrdinals + ent_index * 2);
+						    fn_ordinal = exports->Base + *pRVA2;
+					    }
+				    } else {
+					    short *pRVA2 = RVA(short*, module, exports->AddressOfNameOrdinals + ent_index * 2);
+					    fn_ordinal = exports->Base + *pRVA2;
+
+					    if (fn_ordinal == ordinal) {
+						    found = true;
+					    }
+				    }
+
+				    if (found) {
+					    const uint32 *pfn_rva = RVA(uint32 *, module, exports->AddressOfFunctions + 4 * (fn_ordinal - exports->Base));
+					    void *fn_pointer = RVA(void *, module, *pfn_rva);
+
+					    if (text_start > fn_pointer || text_end < fn_pointer) {
+						    // this is not a pointer to a function, but a reference to another library with the real address
+
+						    size_t full_length = MbsLength((char *) fn_pointer);
+						    int lib_length = 0;
+						    for (int j = 0; j < full_length; j++) {
+							    if (((char *) fn_pointer)[j] == '.') {
+								    lib_length = j;
+								    break;
+							    }
+						    }
+						    if (lib_length != 0) {
+							    size_t func_length = full_length - lib_length - 1;
+							    char libname[256] = { };
+
+							    MbsCopy(libname, (char *) fn_pointer, lib_length);
+							    MbsCopy(libname + lib_length, ".dll", 5);
+
+							    char *funcname = (char *) fn_pointer + lib_length + 1;
+							    MBS_BUFFER funcname_s = { };
+
+							    FILL_STRING(funcname_s, funcname);
+
+							    void *lib_addr = IsModulePresentA(libname);
+							    if (!lib_addr || lib_addr == module) {
+								    return false;
+							    }
+
+							    // call ourselves recursively
+							    if (!LocalLdrGetProcedureAddress(lib_addr, &funcname_s, 0, &fn_pointer)) {
+								    return false;
+							    }
+						    }
+					    }
+					    *function = fn_pointer;
+					    return true;
+				    }
+			    }
+		    }
+		    return false;
+	    }
+
+
 	    BOOL ResolveImports(const EXECUTABLE *module) {
 
 		    PIMAGE_IMPORT_BY_NAME import_name		= nullptr;
@@ -229,9 +340,14 @@ namespace Memory {
 
 			    for (; import_desc->Name; import_desc++) {
 			    	HMODULE library = nullptr;
+			    	wchar_t lower[MAX_PATH * sizeof(wchar_t)] = { };
+
 			    	const char *name = (char *) module->base + import_desc->Name;
 
-				    if (LDR_DATA_TABLE_ENTRY *entry = GetModuleEntry(HashStringA(name, MbsLength(name)))) {
+			    	MbsToWcs(lower, name, MbsLength(name));
+			    	WcsToLower(lower, lower);
+
+				    if (LDR_DATA_TABLE_ENTRY *entry = GetModuleEntry(HashStringW(lower, WcsLength(lower)))) {
 			    		library = (HMODULE) entry->DllBase;
 			    	}
 				    else {
@@ -275,7 +391,12 @@ namespace Memory {
 
 			    for (; delay_desc->DllNameRVA; delay_desc++) {
 			    	HMODULE library = nullptr;
+			    	wchar_t lower[MAX_PATH * sizeof(wchar_t)] = { };
+
 			    	const char *name = (char *) module->base + delay_desc->DllNameRVA;
+
+			    	MbsToWcs(lower, name, MbsLength(name));
+			    	WcsToLower(lower, lower);
 
 				    if (LDR_DATA_TABLE_ENTRY *entry = GetModuleEntry(HashStringA(name, MbsLength(name)))) {
 			    		library = (HMODULE) entry->DllBase;

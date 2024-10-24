@@ -14,9 +14,9 @@ SIZE_T
 FUNCTION
     MemCompare(CONST VOID *ptr1, CONST VOID *ptr2, SIZE_T len);
 
-VOID
+CHAR*
 FUNCTION
-    MbsCopy(CHAR *dst, CONST CHAR *src);
+    MbsCopy(CHAR *dst, CONST CHAR *src, SIZE_T n);
 
 SIZE_T
 FUNCTION
@@ -38,9 +38,9 @@ SIZE_T
 FUNCTION
     WcsLength(CONST WCHAR *s);
 
-VOID
+WCHAR*
 FUNCTION
-    WcsCopy(WCHAR *dest, CONST WCHAR *src);
+    WcsCopy(WCHAR *dest, CONST WCHAR *src, SIZE_T n);
 
 SIZE_T
 FUNCTION
