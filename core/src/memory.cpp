@@ -123,6 +123,24 @@ namespace Memory {
 		    return nullptr;
 	    }
 
+	    LDR_DATA_TABLE_ENTRY *GetModuleEntryByName(CONST WCHAR *mod_name) {
+		    const auto head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
+
+		    for (auto next = head->Flink; next != head; next = next->Flink) {
+			    const auto mod = CONTAINING_RECORD(next, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
+			    const auto name = mod->BaseDllName;
+
+			    wchar_t buffer1[MAX_PATH] = { };
+			    wchar_t buffer2[MAX_PATH] = { };
+
+		    	if (WcsCompare(WcsToLower(buffer1, mod_name), WcsToLower(buffer2, name.Buffer)) == 0) {
+				    return mod;
+			    }
+		    }
+
+		    return nullptr;
+	    }
+
 	    FARPROC GetExportAddress(CONST VOID *base, CONST uint32 hash) {
 		    FARPROC address = nullptr;
 
@@ -253,20 +271,20 @@ namespace Memory {
 				    uint32 fn_ordinal = 0;
 
 				    if (!fn_name) {
-					    uint32 *pRVA = RVA(uint32 *, module, exports->AddressOfNames + ent_index * 4);
-					    const char *name = RVA(const char *, module, *pRVA);
+					    uint32 *p_rva		= RVA(uint32 *, module, exports->AddressOfNames + ent_index * sizeof(uint32));
+					    const char *name	= RVA(const char *, module, *p_rva);
 
 					    if (MbsLength(name) != fn_name->length) {
 						    continue;
 					    }
 					    if (MbsCompare(name, fn_name->buffer)) {
 						    found = true;
-						    short *pRVA2 = RVA(short *, module, exports->AddressOfNameOrdinals + ent_index * 2);
-						    fn_ordinal = exports->Base + *pRVA2;
+						    short *p_rva2 = RVA(short *, module, exports->AddressOfNameOrdinals + ent_index * sizeof(uint16));
+						    fn_ordinal = exports->Base + *p_rva2;
 					    }
 				    } else {
-					    short *pRVA2 = RVA(short*, module, exports->AddressOfNameOrdinals + ent_index * 2);
-					    fn_ordinal = exports->Base + *pRVA2;
+					    int16 *p_rva2 = RVA(short*, module, exports->AddressOfNameOrdinals + ent_index * sizeof(uint16));
+					    fn_ordinal = exports->Base + *p_rva2;
 
 					    if (fn_ordinal == ordinal) {
 						    found = true;
@@ -274,7 +292,7 @@ namespace Memory {
 				    }
 
 				    if (found) {
-					    const uint32 *pfn_rva = RVA(uint32 *, module, exports->AddressOfFunctions + 4 * (fn_ordinal - exports->Base));
+					    const uint32 *pfn_rva = RVA(uint32 *, module, exports->AddressOfFunctions + sizeof(uint32) * (fn_ordinal - exports->Base));
 					    void *fn_pointer = RVA(void *, module, *pfn_rva);
 
 					    if (text_start > fn_pointer || text_end < fn_pointer) {
@@ -282,31 +300,34 @@ namespace Memory {
 
 						    size_t full_length = MbsLength((char *) fn_pointer);
 						    int lib_length = 0;
-						    for (int j = 0; j < full_length; j++) {
-							    if (((char *) fn_pointer)[j] == '.') {
-								    lib_length = j;
+
+						    for (int i = 0; i < full_length; i++) {
+							    if (((char *) fn_pointer)[i] == '.') {
+								    lib_length = i;
 								    break;
 							    }
 						    }
 						    if (lib_length != 0) {
-							    size_t func_length = full_length - lib_length - 1;
-							    char libname[256] = { };
+							    size_t fn_length = full_length - lib_length - 1;
+							    char lib_name[256] = { };
 
-							    MbsCopy(libname, (char *) fn_pointer, lib_length);
-							    MbsCopy(libname + lib_length, ".dll", 5);
+							    MbsCopy(lib_name, (char *) fn_pointer, lib_length);
+							    MbsCopy(lib_name + lib_length, ".dll", 5);
 
-							    char *funcname = (char *) fn_pointer + lib_length + 1;
-							    MBS_BUFFER funcname_s = { };
+						    	wchar_t wcs_lib[MAX_PATH * sizeof(wchar_t)] = { };
+							    char *fn_name = (char *) fn_pointer + lib_length + 1;
 
-							    FILL_STRING(funcname_s, funcname);
+						    	MBS_BUFFER mbs_fn_name = { };
+						    	FILL_MBS(mbs_fn_name, fn_name);
 
-							    void *lib_addr = IsModulePresentA(libname);
+						    	MbsToWcs(wcs_lib, lib_name, MbsLength(lib_name));
+							    HMODULE lib_addr = (HMODULE) GetModuleEntryByName(wcs_lib)->DllBase;
+
 							    if (!lib_addr || lib_addr == module) {
 								    return false;
 							    }
 
-							    // call ourselves recursively
-							    if (!LocalLdrGetProcedureAddress(lib_addr, &funcname_s, 0, &fn_pointer)) {
+							    if (!LocalLdrGetProcedureAddress(lib_addr, &mbs_fn_name, 0, &fn_pointer)) {
 								    return false;
 							    }
 						    }
@@ -368,14 +389,16 @@ namespace Memory {
 
 				    for (; org_first->u1.Function; first_thunk++, org_first++) {
 					    if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-						    if (!LocalLdrGetProcedureAddress(library, NULL, (uint16) org_first->u1.Ordinal, (void **) &first_thunk->u1.Function)) {
+						    if (!LocalLdrGetProcedureAddress(library, nullptr, (uint16) org_first->u1.Ordinal, (void **) &first_thunk->u1.Function)) {
 							    return false;
 						    }
 					    } else {
 						    import_name = RVA(PIMAGE_IMPORT_BY_NAME, module->base, org_first->u1.AddressOfData);
 
-						    FILL_STRING(aString, import_name->Name);
-						    if (!LocalLdrGetProcedureAddress(library, &aString, 0, (void **) &first_thunk->u1.Function)) {
+					    	MBS_BUFFER mbs_import = { };
+						    FILL_MBS(mbs_import, import_name->Name);
+
+						    if (!LocalLdrGetProcedureAddress(library, &mbs_import, 0, (void **) &first_thunk->u1.Function)) {
 								return false;
 						    }
 					    }

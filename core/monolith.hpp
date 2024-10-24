@@ -132,6 +132,15 @@ typedef uint64_t uint64;
 		ptr = nullptr;								\
 	}
 
+#define FILL_MBS(s, b)					\
+	s.length = (USHORT) MbsLength(b);	\
+	s.max_length = s.length;			\
+	s.buffer = b
+
+#define FILL_WCS(s, b)					\
+	s.length = (USHORT) WcsLength(b);	\
+	s.max_length = s.length;			\
+	s.buffer = b
 
 #define InitializeObjectAttributes(ptr, name, attr, root, sec )	\
     (ptr)->Length = sizeof( OBJECT_ATTRIBUTES );				\
@@ -447,12 +456,14 @@ typedef struct _hash_map {
 typedef struct _mbs_buffer {
 	LPSTR 	buffer;
 	ULONG 	length;
+	ULONG	max_length;
 }MBS_BUFFER, *PMBS_BUFFER;
 
 
 typedef struct _wcs_buffer {
 	LPWSTR 	buffer;
 	ULONG 	length;
+	ULONG	max_length;
 }WCS_BUFFER, *PWCS_BUFFER;
 
 
