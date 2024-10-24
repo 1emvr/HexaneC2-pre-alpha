@@ -165,7 +165,7 @@ namespace Memory {
 	    	wchar_t new_load_path[MAX_PATH] = L"C:\\Windows\\System32\\";
 	    	WcsConcat(new_load_path, filename);
 
-	    	if (GetFileAttributesW(new_load_path) == INVALID_FILE_ATTRIBUTES) {
+	    	if (ctx->ioapi.GetFileAttributesW(new_load_path) == INVALID_FILE_ATTRIBUTES) {
 	    		Free(module->cracked_name);
 	    		return false;
 	    	}
@@ -228,23 +228,23 @@ namespace Memory {
 			    }
 
 			    for (; import_desc->Name; import_desc++) {
-			    	CHAR *name = (char *) module->base + import_desc->Name;
 			    	HMODULE library = nullptr;
+			    	const char *name = (char *) module->base + import_desc->Name;
 
 				    if (LDR_DATA_TABLE_ENTRY *entry = GetModuleEntry(HashStringA(name, MbsLength(name)))) {
 			    		library = (HMODULE) entry->DllBase;
 			    	}
 				    else {
-				    	wchar_t filename[MAX_PATH] = { };
-				    	MbsToWcs(filename, name, MbsLength(name));
+				    	// recursive load
+				    	wchar_t next_load[MAX_PATH] = { };
+				    	MbsToWcs(next_load, name, MbsLength(name));
 
-					    EXECUTABLE *new_load = LoadModule(LoadLocalFile, new_load_path, nullptr, 0, nullptr);
+					    EXECUTABLE *new_load = LoadModule(LoadLocalFile, next_load, nullptr, 0, nullptr);
 				    	if (!new_load || !new_load->success) {
 				    		return false;
 				    	}
 
 				    	library = (HMODULE) new_load->base;
-				    	// recurse^
 				    }
 
 				    first_thunk	= RVA(PIMAGE_THUNK_DATA, module->base, import_desc->FirstThunk);
@@ -274,13 +274,24 @@ namespace Memory {
 			    delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, module->base, data_dire->VirtualAddress);
 
 			    for (; delay_desc->DllNameRVA; delay_desc++) {
-				    // use LoadLibraryA for the time being.
-				    // make this recursive in the future.
-			    	// ^ good idea
+			    	HMODULE library = nullptr;
+			    	const char *name = (char *) module->base + delay_desc->DllNameRVA;
 
-				    HMODULE library = IsModulePresentA((char *) (module->base + delay_desc->DllNameRVA));
-				    if (!library) {
-					    library = pLoadLibraryA((LPSTR) (module->base + delay_desc->DllNameRVA));
+				    if (LDR_DATA_TABLE_ENTRY *entry = GetModuleEntry(HashStringA(name, MbsLength(name)))) {
+			    		library = (HMODULE) entry->DllBase;
+			    	}
+				    else {
+				    	// recursive load
+				    	wchar_t next_load[MAX_PATH] = { };
+				    	MbsToWcs(next_load, name, MbsLength(name));
+
+					    EXECUTABLE *new_load = LoadModule(LoadLocalFile, next_load, nullptr, 0, nullptr);
+				    	if (!new_load || !new_load->success) {
+				    		return false;
+				    	}
+
+				    	library = (HMODULE) new_load->base;
+				    	// recurse^
 				    }
 
 				    first_thunk	= RVA(PIMAGE_THUNK_DATA, module->base, delay_desc->ImportAddressTableRVA);

