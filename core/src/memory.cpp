@@ -149,6 +149,7 @@ namespace Memory {
 	    }
 
 	    BOOL FindModule(EXECUTABLE *module, WCHAR *filename) {
+	    	// TODO: everything loaded with this unit MUST RESIDE IN SYSTEM32
 	    	HEXANE;
 
 		    if (!filename) {
@@ -197,10 +198,107 @@ namespace Memory {
 		    return true;
 	    }
 
+	    BOOL ResolveImports(const EXECUTABLE *module) {
+
+		    PIMAGE_IMPORT_BY_NAME import_name		= nullptr;
+		    PIMAGE_DELAYLOAD_DESCRIPTOR delay_desc	= nullptr;
+		    PIMAGE_THUNK_DATA first_thunk			= nullptr;
+	    	PIMAGE_THUNK_DATA org_first				= nullptr;
+
+		    IMAGE_DATA_DIRECTORY *data_dire = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+
+		    if (data_dire->Size) {
+			    PIMAGE_IMPORT_DESCRIPTOR import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, module->base, data_dire->VirtualAddress);
+		    	PIMAGE_IMPORT_DESCRIPTOR scan = import_desc;
+
+			    DWORD count = 0;
+			    for (; scan->Name; scan++) {
+				    count++;
+			    }
+
+			    for (; import_desc->Name; import_desc++) {
+			    	CHAR *name = (char *) module->base + import_desc->Name;
+			    	HMODULE library = nullptr;
+
+				    if (LDR_DATA_TABLE_ENTRY *entry = GetModuleEntry(HashStringA(name, MbsLength(name)))) {
+			    		library = (HMODULE) entry->DllBase;
+			    	}
+				    else {
+				    	wchar_t filename[MAX_PATH] = { };
+				    	MbsToWcs(filename, name, MbsLength(name));
+
+					    EXECUTABLE *new_load = LoadModule(LoadLocalFile, filename, nullptr, 0, nullptr);
+				    	if (!new_load) {
+				    		return false;
+				    	}
+
+				    	library = (HMODULE) new_load->base;
+				    	// recurse^
+				    }
+
+				    first_thunk	= RVA(PIMAGE_THUNK_DATA, module->base, import_desc->FirstThunk);
+				    org_first	= RVA(PIMAGE_THUNK_DATA, module->base, import_desc->OriginalFirstThunk);
+
+				    for (; org_first->u1.Function; first_thunk++, org_first++) {
+					    if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
+						    if (!LocalLdrGetProcedureAddress(library, NULL, (uint16) org_first->u1.Ordinal, (void **) &first_thunk->u1.Function)) {
+							    return false;
+						    }
+					    } else {
+						    import_name = RVA(PIMAGE_IMPORT_BY_NAME, module->base, org_first->u1.AddressOfData);
+
+						    FILL_STRING(aString, import_name->Name);
+						    if (!LocalLdrGetProcedureAddress(library, &aString, 0, (void **) &first_thunk->u1.Function)) {
+								return false;
+						    }
+					    }
+				    }
+			    }
+		    }
+
+		    // handle the delayed import table
+		    data_dire = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT];
+
+		    if (data_dire->Size) {
+			    delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, module->base, data_dire->VirtualAddress);
+
+			    for (; delay_desc->DllNameRVA; delay_desc++) {
+				    // use LoadLibraryA for the time being.
+				    // make this recursive in the future.
+			    	// ^ good idea
+
+				    HMODULE library = IsModulePresentA((char *) (module->base + delay_desc->DllNameRVA));
+				    if (!library) {
+					    library = pLoadLibraryA((LPSTR) (module->base + delay_desc->DllNameRVA));
+				    }
+
+				    first_thunk	= RVA(PIMAGE_THUNK_DATA, module->base, delay_desc->ImportAddressTableRVA);
+				    org_first	= RVA(PIMAGE_THUNK_DATA, module->base, delay_desc->ImportNameTableRVA);
+
+				    for (; org_first->u1.Function; first_thunk++, org_first++) {
+					    if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
+						    if (!LocalLdrGetProcedureAddress(library, NULL, (WORD) org_first->u1.Ordinal, (void **) &first_thunk->u1.Function)) {
+							    return false;
+						    }
+					    } else {
+						    import_name = RVA(PIMAGE_IMPORT_BY_NAME, module->base, org_first->u1.AddressOfData);
+
+						    FILL_STRING(aString, import_name->Name);
+						    if (!LocalLdrGetProcedureAddress(library, &aString, 0, (void **) &first_thunk->u1.Function)) {
+							    return false;
+						    }
+					    }
+				    }
+			    }
+		    }
+
+		    return true;
+	    }
+
 	    BOOL MapSections(EXECUTABLE *module) {
 		    HEXANE;
 
-		    auto region_size		= (SIZE_T)module->nt_head->OptionalHeader.SizeOfImage;
+		    auto region_size		= (SIZE_T) module->nt_head->OptionalHeader.SizeOfImage;
 		    const auto pre_base		= module->nt_head->OptionalHeader.ImageBase;
 
 		    module->base = pre_base;
