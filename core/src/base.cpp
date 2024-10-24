@@ -157,6 +157,7 @@ namespace Main {
 		x_assertb(ctx->modules.kernbase = (HMODULE) M_PTR(KERNELBASE));
 		x_assertb(ctx->modules.shlwapi	= (HMODULE) M_PTR(SHLWAPI));
 
+    	// TODO: refactor to accept name hashes
         x_assertb(ctx->modules.crypt32  = (HMODULE) LoadModule(LoadLocalFile, CRYPT32, nullptr, 0, nullptr));
         x_assertb(ctx->modules.winhttp  = (HMODULE) LoadModule(LoadLocalFile, WINHTTP, nullptr, 0, nullptr));
         x_assertb(ctx->modules.advapi   = (HMODULE) LoadModule(LoadLocalFile, ADVAPI32, nullptr, 0, nullptr));
@@ -269,6 +270,7 @@ namespace Main {
 		x_assertb(F_PTR_HMOD(ctx->enumapi.GetComputerNameExA, 						ctx->modules.kernel32, GETCOMPUTERNAMEEXA));
 		x_assertb(F_PTR_HMOD(ctx->enumapi.RtlGetVersion, 							ctx->modules.ntdll, RTLGETVERSION));
 		x_assertb(F_PTR_HMOD(ctx->enumapi.NtQuerySystemInformation, 				ctx->modules.ntdll, NTQUERYSYSTEMINFORMATION));
+		x_assertb(F_PTR_HMOD(ctx->enumapi.NtQuerySystemTime, 						ctx->modules.ntdll, NTQUERYSYSTEMTIME));
 		x_assertb(F_PTR_HMOD(ctx->enumapi.CLRCreateInstance, 						ctx->modules.kernel32, CLRCREATEINSTANCE));
 #pragma endregion
 

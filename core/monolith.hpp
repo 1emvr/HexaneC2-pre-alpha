@@ -274,6 +274,7 @@ typedef NTSTATUS(NTAPI* RtlCreateProcessParametersEx_t)(PRTL_USER_PROCESS_PARAME
 typedef NTSTATUS(NTAPI* NtQuerySystemInformation_t)(SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation, ULONG SystemInformationLength, PULONG ReturnLength);
 typedef NTSTATUS(NTAPI* RtlDestroyProcessParameters_t)(PRTL_USER_PROCESS_PARAMETERS procParams);
 typedef NTSTATUS (NTAPI* RtlGetVersion_t)(PRTL_OSVERSIONINFOW lpVersionInformation);
+typedef NTSTATUS (NTAPI* NtQuerySystemTime_t)(PLARGE_INTEGER SystemTime);
 typedef ULONG (NTAPI* RtlRandomEx_t)(PULONG Seed);
 
 typedef BOOL (WINAPI* SetProcessValidCallTargets_t)(HANDLE hProcess, PVOID VirtualAddress, SIZE_T RegionSize, ULONG NumberOfOffsets, PCFG_CALL_TARGET_INFO OffsetInformation);
@@ -696,6 +697,7 @@ typedef struct _enumapi {
 				
 	RtlGetVersion_t RtlGetVersion;
 	NtQuerySystemInformation_t NtQuerySystemInformation;
+	NtQuerySystemTime_t NtQuerySystemTime;
 	CLRCreateInstance_t CLRCreateInstance;
 } enumapi;
 

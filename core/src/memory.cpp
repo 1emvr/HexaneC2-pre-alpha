@@ -511,6 +511,93 @@ namespace Memory {
 		    return true;
 	    }
 
+	    BOOL LinkModuleToPEB(EXECUTABLE *module) {
+	    	HEXANE;
+
+		    PIMAGE_NT_HEADERS pNtHeaders;
+		    UNICODE_STRING FullDllName, BaseDllName;
+		    PLDR_DATA_TABLE_ENTRY pLdrEntry = NULL;
+
+		    pNtHeaders = RVA(PIMAGE_NT_HEADERS, module->buffer, ((PIMAGE_DOS_HEADER)module->buffer)->e_lfanew);
+
+		    // convert the names to unicode
+		    ctx->utilapi.RtlInitUnicodeString(&FullDllName, module->local_name);
+		    ctx->utilapi.RtlInitUnicodeString(&BaseDllName, module->cracked_name);
+
+		    pLdrEntry = (PLDR_DATA_TABLE_ENTRY) Malloc(sizeof(LDR_DATA_TABLE_ENTRY));
+		    if (!pLdrEntry) {
+			    return false;
+		    }
+
+		    // start setting the values in the entry
+		    ctx->enumapi.NtQuerySystemTime(&pLdrEntry->LoadTime);
+
+		    // do the obvious ones
+		    pLdrEntry->ReferenceCount = 1;
+		    pLdrEntry->LoadReason = LoadReasonDynamicLoad;
+		    pLdrEntry->OriginalBase = pNtHeaders->OptionalHeader.ImageBase;
+
+		    // set the hash value
+		    pLdrEntry->BaseNameHashValue = LdrHashEntry(
+			    BaseDllName,
+			    FALSE
+		    );
+
+		    // correctly add the base address to the entry
+		    AddBaseAddressEntry(
+			    pLdrEntry,
+			    (PVOID) module->ModuleBase
+		    );
+
+		    // and the rest
+		    pLdrEntry->ImageDll = TRUE;
+		    pLdrEntry->LoadNotificationsSent = TRUE; // lol
+		    pLdrEntry->EntryProcessed = TRUE;
+		    pLdrEntry->InLegacyLists = TRUE;
+		    pLdrEntry->InIndexes = TRUE;
+		    pLdrEntry->ProcessAttachCalled = TRUE;
+		    pLdrEntry->InExceptionTable = FALSE;
+		    pLdrEntry->DllBase = (PVOID) module->ModuleBase;
+		    pLdrEntry->SizeOfImage = pNtHeaders->OptionalHeader.SizeOfImage;
+		    pLdrEntry->TimeDateStamp = pNtHeaders->FileHeader.TimeDateStamp;
+		    pLdrEntry->BaseDllName = BaseDllName;
+		    pLdrEntry->FullDllName = FullDllName;
+		    pLdrEntry->ObsoleteLoadCount = 1;
+		    pLdrEntry->Flags = LDRP_IMAGE_DLL | LDRP_ENTRY_INSERTED | LDRP_ENTRY_PROCESSED | LDRP_PROCESS_ATTACH_CALLED;
+
+		    // set the correct values in the Ddag node struct
+		    pLdrEntry->DdagNode = (PLDR_DDAG_NODE) pHeapAlloc(
+			    pGetProcessHeap(),
+			    HEAP_ZERO_MEMORY,
+			    sizeof(LDR_DDAG_NODE)
+		    );
+
+		    if (!pLdrEntry->DdagNode) {
+			    return 0;
+		    }
+
+		    pLdrEntry->NodeModuleLink.Flink = &pLdrEntry->DdagNode->Modules;
+		    pLdrEntry->NodeModuleLink.Blink = &pLdrEntry->DdagNode->Modules;
+		    pLdrEntry->DdagNode->Modules.Flink = &pLdrEntry->NodeModuleLink;
+		    pLdrEntry->DdagNode->Modules.Blink = &pLdrEntry->NodeModuleLink;
+		    pLdrEntry->DdagNode->State = LdrModulesReadyToRun;
+		    pLdrEntry->DdagNode->LoadCount = 1;
+
+		    // add the hash to the LdrpHashTable
+		    AddHashTableEntry(
+			    pLdrEntry
+		    );
+
+		    // set the entry point
+		    pLdrEntry->EntryPoint = RVA(
+			    PVOID,
+			    module->ModuleBase,
+			    pNtHeaders->OptionalHeader.AddressOfEntryPoint
+		    );
+
+		    return TRUE;
+	    }
+
 	    PEXECUTABLE LoadModule(const uint32 load_type, wchar_t *filename, uint8 *memory, const uint32 mem_size, wchar_t *name) {
 	    	// NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
 	    	// NOTE: everything loaded with this unit MUST RESIDE IN SYSTEM32 due to limitations of path finding
