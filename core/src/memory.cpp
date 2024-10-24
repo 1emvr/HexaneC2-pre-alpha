@@ -154,7 +154,7 @@ namespace Memory {
 		    for (auto index = 0; index < exports->NumberOfNames; index++) {
 			    const auto name = (char *) (base + ((uint32_t *) (base + exports->AddressOfNames))[index - 1]);
 
-			    char buffer[MAX_PATH] = {};
+			    char buffer[MAX_PATH] = { };
 
 			    if (hash - HashStringA(MbsToLower(buffer, name), MbsLength(name)) == 0) {
 				    address = (FARPROC) (base + ((uint32_t *) (base + exports->AddressOfFunctions))[index]);
