@@ -148,7 +148,7 @@ namespace Memory {
 		    return address;
 	    }
 
-	    BOOL FindModule(EXECUTABLE *module, WCHAR *filename) {
+	    BOOL FindModule(EXECUTABLE *module, wchar_t *filename) {
 	    	HEXANE;
 
 		    if (!filename) {
@@ -156,15 +156,25 @@ namespace Memory {
 		    }
 
 		    module->local_name		= filename;
-		    module->cracked_name	= (PWCHAR) ctx->memapi.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, MAX_PATH * 2);
+		    module->cracked_name	= (wchar_t *) Malloc(MAX_PATH * sizeof(wchar_t));
 
 		    if (!module->cracked_name) {
 			    return false;
 		    }
 
-		    CONST WCHAR *location = ctx->ioapi.PathFindFileNameW(filename);
-		    MemCopy(module->cracked_name, location, (WcsLength(location) % (MAX_PATH - 1)) * 2);
+	    	wchar_t new_load_path[MAX_PATH] = L"C:\\Windows\\System32\\";
+	    	WcsConcat(new_load_path, filename);
 
+	    	if (GetFileAttributesW(new_load_path) == INVALID_FILE_ATTRIBUTES) {
+	    		return false; // File not found
+	    	}
+
+		    const wchar_t *location	= ctx->ioapi.PathFindFileNameW(new_load_path);
+	    	if (!location) {
+	    		return false;
+	    	}
+
+		    MemCopy(module->cracked_name, location, (WcsLength(location) % (MAX_PATH - 1)) * 2);
 		    return true;
 	    }
 
@@ -226,8 +236,8 @@ namespace Memory {
 				    	wchar_t filename[MAX_PATH] = { };
 				    	MbsToWcs(filename, name, MbsLength(name));
 
-					    EXECUTABLE *new_load = LoadModule(LoadLocalFile, filename, nullptr, 0, nullptr);
-				    	if (!new_load) {
+					    EXECUTABLE *new_load = LoadModule(LoadLocalFile, new_load_path, nullptr, 0, nullptr);
+				    	if (!new_load || !new_load->success) {
 				    		return false;
 				    	}
 

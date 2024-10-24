@@ -95,7 +95,7 @@ size_t WcsLength (const wchar_t *const s) {
 }
 
 void WcsCopy (wchar_t *dest, const wchar_t *src) {
-
+// TODO: fixme
     while ((*dest = *src) != 0x0000) {
         dest++;
         src++;
