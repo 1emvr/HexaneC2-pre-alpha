@@ -68,6 +68,15 @@ using namespace Memory::Methods;
 		    return address;
 	    }
 
+    	VOID InsertTailList(LIST_ENTRY *const head, LIST_ENTRY *const entry) {
+
+	    	PLIST_ENTRY blink = head->Blink;
+	    	entry->Flink	= head;
+	    	entry->Blink	= blink;
+	    	blink->Flink	= entry;
+	    	head->Blink		= entry;
+	    }
+
 	    PLIST_ENTRY FindHashTable() {
 		    PLIST_ENTRY list = nullptr;
 		    PLIST_ENTRY head = nullptr;
