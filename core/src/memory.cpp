@@ -66,7 +66,7 @@ namespace Memory {
 
             instance.teb->LastErrorValue    = ERROR_SUCCESS;
             instance.base.address           = U_PTR(InstStart());
-            instance.base.size              = U_PTR(InstEnd()) - instance.base.address;
+            instance.base.size              = U_PTR(Inend()) - instance.base.address;
 
             if (!(instance.modules.ntdll = (HMODULE) GetModuleEntry(NTDLL)->DllBase)) {
                 return false;
@@ -239,8 +239,7 @@ namespace Memory {
 	    	head	= &peb->Ldr->InInitializationOrderModuleList;
 	    	entry	= head->Flink;
 
-	    	do
-	    	{
+	    	do {
 	    		current = CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InInitializationOrderLinks);
 	    		entry	= entry->Flink;
 
@@ -265,37 +264,33 @@ namespace Memory {
 
     	PRTL_RB_TREE FindModuleBaseAddressIndex() {
 
-	    	SIZE_T stEnd = 0;
 	    	PRTL_BALANCED_NODE node = nullptr;
 	    	PRTL_RB_TREE index = nullptr;
 
-	    	/*
-				TODO:
-				Implement these manually cause these could totally be hooked
-				and various other reasons
-			*/
 	    	PLDR_DATA_TABLE_ENTRY entry = GetModuleEntry(NTDLL);
-	    	node = &entry->BaseAddressIndexNode;
+	    	size_t end = 0;
 
+	    	node = &entry->BaseAddressIndexNode;
 	    	do {
 	    		node = (PRTL_BALANCED_NODE) (node->ParentValue & ~0x7);
 	    	} while (node->ParentValue & ~0x7);
 
-	    	if (!node->Red) {
 
+	    	if (!node->Red) {
 	    		uint32 length	= 0;
-	    		size_t stBegin	= 0;
+	    		size_t begin	= 0;
 
 	    		PIMAGE_NT_HEADERS pNtHeaders	= RVA(PIMAGE_NT_HEADERS, entry->DllBase, ((PIMAGE_DOS_HEADER) entry->DllBase)->e_lfanew);
 	    		PIMAGE_SECTION_HEADER section	= IMAGE_FIRST_SECTION(pNtHeaders);
 
-	    		for (int i = 0; i < pNtHeaders->FileHeader.NumberOfSections; i++) {
+	    		for (int sec_index = 0; sec_index < pNtHeaders->FileHeader.NumberOfSections; sec_index++) {
 	    			uint32 sec_hash = HashStringA((char *) section->Name, MbsLength((char*) section->Name));
+	    			uint32 dot_data = DOT_DATA;
 
 	    			// TODO: hash ".data"
-	    			if (MemCompare(DOT_DATA, sec_hash, sizeof(uint32)) == 0) {
-	    				stBegin = (size_t) entry->DllBase + section->VirtualAddress;
-	    				length = section->Misc.VirtualSize;
+	    			if (MemCompare((void *) &dot_data, (void *) &sec_hash, sizeof(uint32)) == 0) {
+	    				begin	= (size_t) entry->DllBase + section->VirtualAddress;
+	    				length	= section->Misc.VirtualSize;
 
 	    				break;
 	    			}
@@ -303,21 +298,20 @@ namespace Memory {
 	    			++section;
 	    		}
 
-	    		for (DWORD i = 0; i < length - sizeof(size_t); ++stBegin, ++i) {
-	    			size_t stRet = MemCompare((void *) stBegin, &node, sizeof(size_t));
+	    		for (auto i = 0; i < length - sizeof(size_t); ++begin, ++i) {
+	    			size_t stRet = MemCompare((void *) begin, &node, sizeof(size_t));
 
 	    			if (stRet == sizeof(size_t)) {
-	    				stEnd = stBegin;
+	    				end = begin;
 	    				break;
 	    			}
 	    		}
 
-	    		if (stEnd == 0)
-	    		{
+	    		if (end == 0) {
 	    			return nullptr;
 	    		}
 
-	    		PRTL_RB_TREE rb_tree = (PRTL_RB_TREE) stEnd;
+	    		PRTL_RB_TREE rb_tree = (PRTL_RB_TREE) end;
 
 	    		if (rb_tree && rb_tree->Root && rb_tree->Min) {
 	    			index = rb_tree;
@@ -387,10 +381,12 @@ namespace Memory {
 
 		    for (int sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
 			    section = ITER_SECTION_HEADER(module, sec_index);
-		    	uint32 hash = HashStringA((char *) section->Name, MbsLength((char *) section->Name));
+
+		    	uint32 sec_hash = HashStringA((char *) section->Name, MbsLength((char *) section->Name));
+		    	uint32 dot_text = DOT_TEXT;
 
 		    	// TODO: hash ".text"
-			    if (MemCompare(DOT_TEXT, hash, sizeof(uint32))) {
+			    if (MemCompare((void*) &dot_text, (void*) &sec_hash, sizeof(uint32))) {
 				    text_start	= RVA(PVOID, module, section->VirtualAddress);
 				    text_end	= RVA(PVOID, text_start, section->SizeOfRawData);
 				    break;
@@ -407,7 +403,7 @@ namespace Memory {
 		    if (data_dire->Size) {
 			    PIMAGE_EXPORT_DIRECTORY exports = RVA(PIMAGE_EXPORT_DIRECTORY, module, data_dire->VirtualAddress);
 
-			    int n_entries = fn_name != nullptr ? exports->NumberOfNames : exports->NumberOfFunctions;
+			    int n_entries = !fn_name ? exports->NumberOfFunctions : exports->NumberOfNames;
 
 			    for (int ent_index = 0; ent_index < n_entries; ent_index++) {
 
@@ -453,7 +449,7 @@ namespace Memory {
 							    }
 						    }
 						    if (lib_length != 0) {
-						    	// TODO: clean this up
+						    	// TODO: clean this up. Totally unreadable
 							    size_t fn_length = full_length - lib_length - 1;
 							    char lib_name[256] = { };
 
