@@ -7,16 +7,19 @@ namespace Memory {
     namespace Methods {
         UINT_PTR
         FUNCTION
-            GetStackCookie();
+            FindStackCookie();
 
         PRESOURCE
         FUNCTION
-            GetIntResource(HMODULE base, INT rsrc_id);
+            FindIntResource(HMODULE base, INT rsrc_id);
 
         PEXECUTABLE
         FUNCTION
             CreateImage(UINT8 *data);
 
+        VOID
+        FUNCTION
+            ZeroFree(VOID *pointer, SIZE_T size);
     }
 
     namespace Context {
@@ -29,24 +32,6 @@ namespace Memory {
             ContextDestroy();
     }
 
-    namespace Modules {
-        PLDR_DATA_TABLE_ENTRY
-        FUNCTION
-            GetModuleEntry(UINT32 hash);
-
-        FARPROC
-        FUNCTION
-            GetExportAddress(CONST VOID *base, UINT32 hash);
-
-        BOOL
-        FUNCTION
-            MapSections(PEXECUTABLE module);
-
-	    PEXECUTABLE
-        FUNCTION
-            LoadModule(UINT32 load_type, WCHAR *filename, UINT8 *memory, UINT32 mem_size, WCHAR *name);
-    }
-
     namespace Execute {
         BOOL
         FUNCTION
@@ -54,7 +39,7 @@ namespace Memory {
 
         BOOL
         FUNCTION
-            ExecuteShellcode(const PARSER &parser);
+            ExecuteShellcode(PARSER parser);
 
         VOID
         FUNCTION

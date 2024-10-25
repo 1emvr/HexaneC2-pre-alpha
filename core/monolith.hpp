@@ -95,10 +95,10 @@ typedef uint64_t uint64;
 #define return_defer(x)					ntstatus = x; goto defer
 
 #define INIT_LIST_ENTRY(entry)			((entry)->Blink = (entry)->Flink = (entry))
-#define F_PTR_HMOD(F, M, SH)			(F = (decltype(F)) Memory::Modules::GetExportAddress(M, SH))
-#define F_PTR_HASHES(F, MH, SH)			(F = (decltype(F)) Memory::Modules::GetExportAddress((Memory::Modules::GetModuleEntry(MH)->DllBase), SH))
-#define C_PTR_HASHES(F, MH, SH)			(F = (void*) Memory::Modules::GetExportAddress((Memory::Modules::GetModuleEntry(MH)->DllBase), SH))
-#define M_PTR(MH)						((Memory::Modules::GetModuleEntry(MH))->DllBase)
+#define F_PTR_HMOD(F, M, SH)			(F = (decltype(F)) Modules::FindExportAddress(M, SH))
+#define F_PTR_HASHES(F, MH, SH)			(F = (decltype(F)) Modules::FindExportAddress((Modules::FindModuleEntry(MH)->DllBase), SH))
+#define C_PTR_HASHES(F, MH, SH)			(F = (void*) Modules::FindExportAddress((Modules::FindModuleEntry(MH)->DllBase), SH))
+#define M_PTR(MH)						((Modules::FindModuleEntry(MH))->DllBase)
 
 #if	defined(__GNUC__) || defined(__GNUG__)
 #define __builtin_bswap32 __bswapd
@@ -109,20 +109,9 @@ typedef uint64_t uint64;
 #define ARRAY_LEN(p)		sizeof(p) / sizeof(p[0])
 #define RANGE(x, b, e)		(x >= b && x < e)
 
-#define ZeroFree(x, n) 			\
-	if (x) {					\
-		if (n > 0) {			\
-			MemSet(x, 0, n);	\
-		}						\
-		Free(x);				\
-		x = nullptr;			\
-}
+#define DYN_ARRAY_LEN(i, p)  while (p[i]) { i++; }
 
-#define DYN_ARRAY_LEN(i, p)                  \
-	while (p[i]) {                           \
-		i++;                                 \
-	}
-
+// TODO: get rid of this or fix it
 #define RANDOM_SELECT(ptr, arr)                     \
 	INT idx = 0;                                    \
 	DYN_ARRAY_LEN(idx, arr);                        \
@@ -150,6 +139,13 @@ typedef uint64_t uint64;
     (ptr)->ObjectName = name;									\
     (ptr)->SecurityDescriptor = sec;							\
     (ptr)->SecurityQualityOfService = NULL
+
+#define INSERT_TAIL_LIST(_head_, _entry_)	\
+    PLIST_ENTRY _blink_ = _head_->Blink;	\
+    _entry_->Flink	= _head_;				\
+    _entry_->Blink	= _blink_;				\
+    _blink_->Flink	= _entry_;				\
+    _head_->Blink	= _entry_;				\
 
 
 #ifdef	TRANSPORT_HTTP

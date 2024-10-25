@@ -72,6 +72,8 @@ set (LOADER
 set (INJECT
         inject/threadless/loader.asm
         inject/threadless/OpenFileExecute.cpp
+        core/include/modules.hpp
+        core/include/modules.cpp
 )
 
 add_executable(hexane_implant ${SOURCES} ${COMMANDS} ${LOADER} ${INJECT} ${INCLUDES})
