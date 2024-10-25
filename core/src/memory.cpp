@@ -274,29 +274,28 @@ namespace Memory {
 				Implement these manually cause these could totally be hooked
 				and various other reasons
 			*/
-	    	// TODO: this should be replaced with my GetModuleEntry()
-	    	PLDR_DATA_TABLE_ENTRY entry = FindLdrTableEntry(L"ntdll.dll");
-
+	    	PLDR_DATA_TABLE_ENTRY entry = GetModuleEntry(NTDLL);
 	    	node = &entry->BaseAddressIndexNode;
 
-	    	do
-	    	{
-	    		node = (PRTL_BALANCED_NODE) (node->ParentValue & ~7);
-	    	} while (node->ParentValue & (~7));
+	    	do {
+	    		node = (PRTL_BALANCED_NODE) (node->ParentValue & ~0x7);
+	    	} while (node->ParentValue & ~0x7);
 
 	    	if (!node->Red) {
 
-	    		uint32 dwLen	= 0;
+	    		uint32 length	= 0;
 	    		size_t stBegin	= 0;
 
 	    		PIMAGE_NT_HEADERS pNtHeaders	= RVA(PIMAGE_NT_HEADERS, entry->DllBase, ((PIMAGE_DOS_HEADER) entry->DllBase)->e_lfanew);
 	    		PIMAGE_SECTION_HEADER pSection	= IMAGE_FIRST_SECTION(pNtHeaders);
 
 	    		for (int i = 0; i < pNtHeaders->FileHeader.NumberOfSections; i++) {
-	    			if (!MbsCompare(".data", (const char *) pSection->Name))
-	    			{
+	    			uint32 sec_hash = HashStringA((char *) pSection->Name, MbsLength((char*) pSection->Name));
+
+	    			// TODO: hash ".data"
+	    			if (MemCompare(DOT_DATA, sec_hash, sizeof(uint32)) == 0) {
 	    				stBegin = (size_t) entry->DllBase + pSection->VirtualAddress;
-	    				dwLen = pSection->Misc.VirtualSize;
+	    				length = pSection->Misc.VirtualSize;
 
 	    				break;
 	    			}
@@ -304,7 +303,7 @@ namespace Memory {
 	    			++pSection;
 	    		}
 
-	    		for (DWORD i = 0; i < dwLen - sizeof(size_t); ++stBegin, ++i) {
+	    		for (DWORD i = 0; i < length - sizeof(size_t); ++stBegin, ++i) {
 	    			size_t stRet = MemCompare((void *) stBegin, &node, sizeof(size_t));
 
 	    			if (stRet == sizeof(size_t)) {
