@@ -339,7 +339,7 @@ namespace Memory {
 	    	PLDR_DATA_TABLE_ENTRY node = (PLDR_DATA_TABLE_ENTRY) ((size_t) index - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
 
 	    	do {
-	    		// NOTE: looking for first or previous entry that conforms to memory order
+	    		// NOTE: looking for correct in-memory order placement according to RB Tree
 	    		if (base < node->DllBase) {
 	    			if (!node->BaseAddressIndexNode.Left) {
 	    				break;
