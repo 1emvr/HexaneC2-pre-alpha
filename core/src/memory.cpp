@@ -272,7 +272,7 @@ namespace Memory {
 	    	return TRUE;
 	    }
 
-	    BOOL LocalLdrGetProcedureAddress(HMODULE module, const MBS_BUFFER *fn_name, const uint16 ordinal, void **function) {
+	    BOOL LocalLdrGetExportAddress(HMODULE module, const MBS_BUFFER *fn_name, const uint16 ordinal, void **function) {
 
 		    PIMAGE_NT_HEADERS nt_head		= nullptr;
 		    PIMAGE_DATA_DIRECTORY data_dire = nullptr;
@@ -287,8 +287,8 @@ namespace Memory {
 			    return false;
 		    }
 
-		    void *text_start = nullptr;
-		    void *text_end = nullptr;
+		    void *text_start	= nullptr;
+		    void *text_end		= nullptr;
 
 		    for (int sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
 			    section = ITER_SECTION_HEADER(module, sec_index);
@@ -314,6 +314,7 @@ namespace Memory {
 			    int n_entries = fn_name != nullptr ? exports->NumberOfNames : exports->NumberOfFunctions;
 
 			    for (int ent_index = 0; ent_index < n_entries; ent_index++) {
+
 				    bool found = false;
 				    uint32 fn_ordinal = 0;
 
@@ -329,7 +330,8 @@ namespace Memory {
 						    short *p_rva2 = RVA(short *, module, exports->AddressOfNameOrdinals + ent_index * sizeof(uint16));
 						    fn_ordinal = exports->Base + *p_rva2;
 					    }
-				    } else {
+				    }
+			    	else {
 					    int16 *p_rva2 = RVA(short*, module, exports->AddressOfNameOrdinals + ent_index * sizeof(uint16));
 					    fn_ordinal = exports->Base + *p_rva2;
 
@@ -375,7 +377,7 @@ namespace Memory {
 								    return false;
 							    }
 
-							    if (!LocalLdrGetProcedureAddress((HMODULE) lib_entry->DllBase, &mbs_fn_name, 0, &fn_pointer)) {
+							    if (!LocalLdrGetExportAddress((HMODULE) lib_entry->DllBase, &mbs_fn_name, 0, &fn_pointer)) {
 								    return false;
 							    }
 						    }
@@ -438,14 +440,14 @@ namespace Memory {
 
 				    for (; org_first->u1.Function; first_thunk++, org_first++) {
 					    if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-						    if (!LocalLdrGetProcedureAddress(library, nullptr, (uint16) org_first->u1.Ordinal, (void **) &first_thunk->u1.Function)) {
+						    if (!LocalLdrGetExportAddress(library, nullptr, (uint16) org_first->u1.Ordinal, (void **) &first_thunk->u1.Function)) {
 							    return false;
 						    }
 					    } else {
 						    import_name = RVA(PIMAGE_IMPORT_BY_NAME, module->base, org_first->u1.AddressOfData);
 						    FILL_MBS(mbs_import, import_name->Name);
 
-						    if (!LocalLdrGetProcedureAddress(library, &mbs_import, 0, (void **) &first_thunk->u1.Function)) {
+						    if (!LocalLdrGetExportAddress(library, &mbs_import, 0, (void **) &first_thunk->u1.Function)) {
 								return false;
 						    }
 					    }
@@ -477,6 +479,7 @@ namespace Memory {
 				    		return false;
 				    	}
 
+				    	// TODO: memory leak here. Do something with this new module.
 				    	library = (HMODULE) new_load->base;
 				    }
 
@@ -485,14 +488,14 @@ namespace Memory {
 
 				    for (; org_first->u1.Function; first_thunk++, org_first++) {
 					    if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-						    if (!LocalLdrGetProcedureAddress(library, nullptr, (WORD) org_first->u1.Ordinal, (void **) &first_thunk->u1.Function)) {
+						    if (!LocalLdrGetExportAddress(library, nullptr, (WORD) org_first->u1.Ordinal, (void **) &first_thunk->u1.Function)) {
 							    return false;
 						    }
 					    } else {
 						    import_name = RVA(PIMAGE_IMPORT_BY_NAME, module->base, org_first->u1.AddressOfData);
 						    FILL_MBS(mbs_import, import_name->Name);
 
-						    if (!LocalLdrGetProcedureAddress(library, &mbs_import, 0, (void **) &first_thunk->u1.Function)) {
+						    if (!LocalLdrGetExportAddress(library, &mbs_import, 0, (void **) &first_thunk->u1.Function)) {
 							    return false;
 						    }
 					    }
