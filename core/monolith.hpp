@@ -94,6 +94,7 @@ typedef uint64_t uint64;
 #define x_ntassertb(x)   				ntstatus = x; if (!NT_SUCCESS(ntstatus)) { success = false; goto defer; }
 #define return_defer(x)					ntstatus = x; goto defer
 
+#define INIT_LIST_ENTRY(entry)			((entry)->Blink = (entry)->Flink = (entry))
 #define F_PTR_HMOD(F, M, SH)			(F = (decltype(F)) Memory::Modules::GetExportAddress(M, SH))
 #define F_PTR_HASHES(F, MH, SH)			(F = (decltype(F)) Memory::Modules::GetExportAddress((Memory::Modules::GetModuleEntry(MH)->DllBase), SH))
 #define C_PTR_HASHES(F, MH, SH)			(F = (void*) Memory::Modules::GetExportAddress((Memory::Modules::GetModuleEntry(MH)->DllBase), SH))
@@ -274,6 +275,7 @@ typedef NTSTATUS(NTAPI* RtlCreateProcessParametersEx_t)(PRTL_USER_PROCESS_PARAME
 typedef NTSTATUS(NTAPI* NtQuerySystemInformation_t)(SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation, ULONG SystemInformationLength, PULONG ReturnLength);
 typedef NTSTATUS(NTAPI* RtlDestroyProcessParameters_t)(PRTL_USER_PROCESS_PARAMETERS procParams);
 typedef NTSTATUS (NTAPI* RtlHashUnicodeString_t)(PCUNICODE_STRING String, BOOLEAN CaseInSensitive, ULONG HashAlgorithm, PULONG HashValue);
+typedef BOOLEAN (NTAPI* RtlRbInsertNodeEx_t)(PRTL_RB_TREE Tree, PRTL_BALANCED_NODE Parent, BOOLEAN Right, PRTL_BALANCED_NODE Node);
 typedef NTSTATUS (NTAPI* RtlGetVersion_t)(PRTL_OSVERSIONINFOW lpVersionInformation);
 typedef NTSTATUS (NTAPI* NtQuerySystemTime_t)(PLARGE_INTEGER SystemTime);
 typedef ULONG (NTAPI* RtlRandomEx_t)(PULONG Seed);
@@ -672,6 +674,7 @@ typedef struct _memapi {
 	RtlReAllocateHeap_t RtlReAllocateHeap;
 	RtlFreeHeap_t RtlFreeHeap;
 	RtlDestroyHeap_t RtlDestroyHeap;
+	RtlRbInsertNodeEx_t RtlRbInsertNodeEx;
 
 	DTYPE(GetProcAddress);
 	DTYPE(GetModuleHandleA);
@@ -763,14 +766,17 @@ struct _hexane {
 	struct {
 		HMODULE ntdll;
 		HMODULE kernel32;
+		HMODULE shlwapi;
+	} std_modules;
+
+	struct {
 		HMODULE crypt32;
 		HMODULE winhttp;
 		HMODULE advapi;
 		HMODULE iphlpapi;
 		HMODULE mscoree;
 		HMODULE kernbase;
-		HMODULE shlwapi;
-	} modules;
+	} load_modules;
 
 	struct {
 		PBYTE	session_key;

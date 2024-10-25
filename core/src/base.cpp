@@ -250,6 +250,7 @@ namespace Main {
 		x_assertb(F_PTR_HMOD(ctx->memapi.RtlReAllocateHeap, 						ctx->modules.ntdll, RTLREALLOCATEHEAP));
 		x_assertb(F_PTR_HMOD(ctx->memapi.RtlFreeHeap, 								ctx->modules.ntdll, RTLFREEHEAP));
 		x_assertb(F_PTR_HMOD(ctx->memapi.RtlDestroyHeap, 							ctx->modules.ntdll, RTLDESTROYHEAP));
+		x_assertb(F_PTR_HMOD(ctx->memapi.RtlRbInsertNodeEx, 						ctx->modules.ntdll, RTLRBINSERTNODEEX));
 		x_assertb(F_PTR_HMOD(ctx->memapi.GetProcAddress, 							ctx->modules.kernel32, GETPROCADDRESS));
 		x_assertb(F_PTR_HMOD(ctx->memapi.GetModuleHandleA, 							ctx->modules.kernel32, GETMODULEHANDLEA));
 		x_assertb(F_PTR_HMOD(ctx->memapi.LoadLibraryA, 								ctx->modules.kernel32, LOADLIBRARYA));

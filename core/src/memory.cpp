@@ -227,49 +227,147 @@ namespace Memory {
 		    return true;
 	    }
 
-    	BOOL AddBaseAddressEntry(PLDR_DATA_TABLE_ENTRY pLdrEntry, void *lpBaseAddr) {
+    	PLIST_ENTRY FindHashTable() {
 
-	    	RTLRBINSERTNODEEX pRtlRbInsertNodeEx = (RTLRBINSERTNODEEX)GetFunctionAddress(IsModulePresent(L"ntdll.dll"), "RtlRbInsertNodeEx");
-	    	PRTL_RB_TREE pModBaseAddrIndex = FindModuleBaseAddressIndex();
+	    	PLIST_ENTRY list = nullptr;
+	    	PLIST_ENTRY head = nullptr;
+	    	PLIST_ENTRY entry = nullptr;
+	    	PLDR_DATA_TABLE_ENTRY current = nullptr;
 
-	    	if (!pModBaseAddrIndex)
-	    	{
-	    		return FALSE;
-	    	}
+	    	PPEB peb = PEB_POINTER;
 
-	    	BOOL bRight = FALSE;
-	    	PLDR_DATA_TABLE_ENTRY pLdrNode = (PLDR_DATA_TABLE_ENTRY)((size_t)pModBaseAddrIndex - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
+	    	head	= &peb->Ldr->InInitializationOrderModuleList;
+	    	entry	= head->Flink;
 
 	    	do
 	    	{
-	    		if (lpBaseAddr < pLdrNode->DllBase) {
-	    			if (!pLdrNode->BaseAddressIndexNode.Left) {
-	    				break;
-	    			}
+	    		current = CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InInitializationOrderLinks);
+	    		entry	= entry->Flink;
 
-	    			pLdrNode = (PLDR_DATA_TABLE_ENTRY)((size_t) pLdrNode->BaseAddressIndexNode.Left - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
+	    		if (current->HashLinks.Flink == &current->HashLinks) {
+	    			continue;
 	    		}
 
-	    		else if (lpBaseAddr > pLdrNode->DllBase)
-	    		{
-	    			if (!pLdrNode->BaseAddressIndexNode.Right)
+	    		list = current->HashLinks.Flink;
+
+	    		if (list->Flink == &current->HashLinks) {
+	    			ULONG hash = LdrHashEntry(current->BaseDllName, true);
+
+	    			list = (PLIST_ENTRY) ((size_t)current->HashLinks.Flink - hash * sizeof(LIST_ENTRY));
+	    			break;
+	    		}
+
+	    		list = nullptr;
+	    	} while (head != entry);
+
+	    	return list;
+	    }
+
+    	PRTL_RB_TREE FindModuleBaseAddressIndex() {
+
+	    	SIZE_T stEnd = 0;
+	    	PRTL_BALANCED_NODE node = nullptr;
+	    	PRTL_RB_TREE index = nullptr;
+
+	    	/*
+				TODO:
+				Implement these manually cause these could totally be hooked
+				and various other reasons
+			*/
+	    	// TODO: this should be replaced with my GetModuleEntry()
+	    	PLDR_DATA_TABLE_ENTRY entry = FindLdrTableEntry(L"ntdll.dll");
+
+	    	node = &entry->BaseAddressIndexNode;
+
+	    	do
+	    	{
+	    		node = (PRTL_BALANCED_NODE) (node->ParentValue & ~7);
+	    	} while (node->ParentValue & (~7));
+
+	    	if (!node->Red) {
+
+	    		uint32 dwLen	= 0;
+	    		size_t stBegin	= 0;
+
+	    		PIMAGE_NT_HEADERS pNtHeaders	= RVA(PIMAGE_NT_HEADERS, entry->DllBase, ((PIMAGE_DOS_HEADER) entry->DllBase)->e_lfanew);
+	    		PIMAGE_SECTION_HEADER pSection	= IMAGE_FIRST_SECTION(pNtHeaders);
+
+	    		for (int i = 0; i < pNtHeaders->FileHeader.NumberOfSections; i++) {
+	    			if (!MbsCompare(".data", (const char *) pSection->Name))
 	    			{
-	    				bRight = TRUE;
+	    				stBegin = (size_t) entry->DllBase + pSection->VirtualAddress;
+	    				dwLen = pSection->Misc.VirtualSize;
+
 	    				break;
 	    			}
 
-	    			pLdrNode = (PLDR_DATA_TABLE_ENTRY2)((size_t)pLdrNode->BaseAddressIndexNode.Right - offsetof(LDR_DATA_TABLE_ENTRY2, BaseAddressIndexNode));
+	    			++pSection;
 	    		}
 
-	    		else
+	    		for (DWORD i = 0; i < dwLen - sizeof(size_t); ++stBegin, ++i) {
+	    			size_t stRet = MemCompare((void *) stBegin, &node, sizeof(size_t));
+
+	    			if (stRet == sizeof(size_t)) {
+	    				stEnd = stBegin;
+	    				break;
+	    			}
+	    		}
+
+	    		if (stEnd == 0)
 	    		{
-	    			pLdrNode->DdagNode->LoadCount++;
+	    			return nullptr;
 	    		}
-	    	} while (TRUE);
 
-	    	pRtlRbInsertNodeEx(pModBaseAddrIndex, &pLdrNode->BaseAddressIndexNode, bRight, &pLdrEntry->BaseAddressIndexNode);
+	    		PRTL_RB_TREE rb_tree = (PRTL_RB_TREE) stEnd;
 
-	    	return TRUE;
+	    		if (rb_tree && rb_tree->Root && rb_tree->Min) {
+	    			index = rb_tree;
+	    		}
+	    	}
+
+	    	return index;
+	    }
+
+    	BOOL AddBaseAddressEntry(PLDR_DATA_TABLE_ENTRY entry, void *lpBaseAddr) {
+	    	HEXANE;
+
+	    	PRTL_RB_TREE index = FindModuleBaseAddressIndex();
+
+	    	if (!index) {
+	    		return false;
+	    	}
+
+	    	// NOTE: traverse an RB Tree
+	    	BOOL right_hand = false;
+	    	PLDR_DATA_TABLE_ENTRY node = (PLDR_DATA_TABLE_ENTRY)((size_t)index - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
+
+	    	do
+	    	{
+	    		if (lpBaseAddr < node->DllBase) {
+	    			if (!node->BaseAddressIndexNode.Left) {
+	    				break;
+	    			}
+
+	    			node = (PLDR_DATA_TABLE_ENTRY)((size_t) node->BaseAddressIndexNode.Left - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
+	    		}
+	    		else if (lpBaseAddr > node->DllBase) {
+	    			if (!node->BaseAddressIndexNode.Right) {
+	    				right_hand = true;
+	    				break;
+	    			}
+
+	    			node = (PLDR_DATA_TABLE_ENTRY) ((size_t)node->BaseAddressIndexNode.Right - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
+	    		}
+	    		else {
+	    			node->DdagNode->LoadCount++;
+	    		}
+	    	} while (true);
+
+	    	if (!ctx->memapi.RtlRbInsertNodeEx(index, &node->BaseAddressIndexNode, right_hand, &entry->BaseAddressIndexNode)) {
+	    		return false;
+	    	}
+
+	    	return true;
 	    }
 
 	    BOOL LocalLdrGetExportAddress(HMODULE module, const MBS_BUFFER *fn_name, const uint16 ordinal, void **function) {
@@ -565,6 +663,31 @@ namespace Memory {
 		    return true;
 	    }
 
+    	BOOL AddHashTableEntry(PLDR_DATA_TABLE_ENTRY entry) {
+
+	    	PPEB_LDR_DATA ldr_data;
+	    	PLIST_ENTRY hash_table;
+
+	    	PPEB peb = PEB_POINTER;
+	    	INIT_LIST_ENTRY(&entry->HashLinks);
+
+	    	hash_table = FindHashTable();
+	    	if (!hash_table) {
+	    		return false;
+	    	}
+
+	    	// insert into hash table
+	    	ldr_data = peb->Ldr;
+	    	ULONG hash = LdrHashEntry(entry->BaseDllName, true);
+
+	    	InsertTailList(&hash_table[hash], &entry->HashLinks);
+	    	InsertTailList(&ldr_data->InLoadOrderModuleList, &entry->InLoadOrderLinks);
+	    	InsertTailList(&ldr_data->InMemoryOrderModuleList, &entry->InMemoryOrderLinks);
+	    	InsertTailList(&ldr_data->InInitializationOrderModuleList, &entry->InInitializationOrderLinks);
+
+	    	return true;
+	    }
+
 	    BOOL LinkModule(EXECUTABLE *module) {
 	    	HEXANE;
 
@@ -602,7 +725,7 @@ namespace Memory {
 		    entry->InLegacyLists = true;
 		    entry->InIndexes = true;
 		    entry->ProcessAttachCalled = true;
-		    entry->InExceptionTable = FALSE;
+		    entry->InExceptionTable = false;
 		    entry->DllBase = (void *) module->base;
 		    entry->SizeOfImage = nt_head->OptionalHeader.SizeOfImage;
 		    entry->TimeDateStamp = nt_head->FileHeader.TimeDateStamp;
@@ -625,7 +748,7 @@ namespace Memory {
 		    entry->DdagNode->State = LdrModulesReadyToRun;
 		    entry->DdagNode->LoadCount = 1;
 
-		    // add the hash to the LdrpHashTable
+		    // add the hash to the hash_table
 		    AddHashTableEntry(entry);
 
 		    // set the entry point
@@ -636,8 +759,8 @@ namespace Memory {
 
 	    PEXECUTABLE LoadModule(const uint32 load_type, wchar_t *filename, uint8 *memory, const uint32 mem_size, wchar_t *name) {
 	    	// NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
-	    	// NOTE: everything loaded with this unit MUST RESIDE IN SYSTEM32 due to limitations of path finding
-	    	//		may add more paths later, but it's unlikely that I will waste my time.
+	    	// everything loaded with this unit MUST RESIDE in System32 due to path finding limitations
+	    	// may add more paths later, but it's not likely.
 	    	HEXANE;
 
 		    auto module = (EXECUTABLE *) ctx->memapi.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
@@ -713,6 +836,7 @@ namespace Memory {
 		    module->success = true;
 
 	    defer:
+	    	// TODO: delete the _executable* and keep the base. that's all I need tbh...
 		    return module;
 	    }
 

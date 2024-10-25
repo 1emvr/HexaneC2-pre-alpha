@@ -122,6 +122,29 @@ typedef enum _EVENT_TYPE {
 } EVENT_TYPE;
 
 
+typedef struct _RTL_BALANCED_NODE {
+	union {
+		_RTL_BALANCED_NODE *Children[2];
+		struct {
+			_RTL_BALANCED_NODE *Left;
+			_RTL_BALANCED_NODE *Right;
+		};
+	};
+	union {
+		UCHAR Red : 1;
+		UCHAR Balance : 2;
+		ULONG_PTR ParentValue;
+	};
+} RTL_BALANCED_NODE, *PRTL_BALANCED_NODE;
+
+
+typedef struct _RTL_RB_TREE {
+	PRTL_BALANCED_NODE Root;
+	PRTL_BALANCED_NODE Min;
+} RTL_RB_TREE, *PRTL_RB_TREE;
+
+
+
 #define RTL_USER_PROCESS_PARAMETERS_NORMALIZED	0x01
 #define PS_ATTRIBUTE_NUMBER_MASK				0x0000ffff
 #define PS_ATTRIBUTE_THREAD						0x00010000 // Attribute may be used with thread creation
@@ -685,9 +708,17 @@ typedef struct _BASE_RELOCATION_ENTRY {
 
 
 typedef struct _PEB_LDR_DATA {
-	BYTE Reserved1[8];
-	PVOID Reserved2[3];
-	LIST_ENTRY InMemoryOrderModuleList;
+	ULONG		Length;
+	BOOLEAN		Initialized;
+	PVOID		SsHandle;
+	LIST_ENTRY	InLoadOrderModuleList;
+	LIST_ENTRY	InMemoryOrderModuleList;
+	LIST_ENTRY	InInitializationOrderModuleList;
+	PVOID		EntryInProgress;
+#if (NTDDI_VERSION >= NTDDI_WIN7)
+	UCHAR		ShutdownInProgress;
+	PVOID		ShutdownThreadId;
+#endif
 } PEB_LDR_DATA, * PPEB_LDR_DATA;
 
 
@@ -722,23 +753,6 @@ typedef struct _LDR_DDAG_NODE {
 	SINGLE_LIST_ENTRY CondenseLink;
 	ULONG PreorderNumber;
 } LDR_DDAG_NODE, *PLDR_DDAG_NODE;
-
-
-typedef struct _RTL_BALANCED_NODE {
-	union {
-		struct _RTL_BALANCED_NODE *Children[2];
-		struct
-		{
-			struct _RTL_BALANCED_NODE *Left;
-			struct _RTL_BALANCED_NODE *Right;
-		};
-	};
-	union {
-		UCHAR Red : 1;
-		UCHAR Balance : 2;
-		ULONG_PTR ParentValue;
-	};
-} RTL_BALANCED_NODE, *PRTL_BALANCED_NODE;
 
 
 typedef struct _LDR_DATA_TABLE_ENTRY {
