@@ -158,6 +158,7 @@ namespace Main {
 		x_assertb(ctx->modules.shlwapi	= (HMODULE) M_PTR(SHLWAPI));
 
     	// TODO: refactor to accept name hashes
+    	// TODO: add to a map/list of loaded modules for cleanup/reuse
         x_assertb(ctx->modules.crypt32  = (HMODULE) LoadModule(LoadLocalFile, CRYPT32, nullptr, 0, nullptr)->base);
         x_assertb(ctx->modules.winhttp  = (HMODULE) LoadModule(LoadLocalFile, WINHTTP, nullptr, 0, nullptr)->base);
         x_assertb(ctx->modules.advapi   = (HMODULE) LoadModule(LoadLocalFile, ADVAPI32, nullptr, 0, nullptr)->base);
