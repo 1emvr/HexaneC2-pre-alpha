@@ -52,13 +52,13 @@ typedef uint64_t uint64;
 #define P_TYPE(T, x)					((T*) x)
 
 
-#define FUNCTION						TEXT(B)
-#define CONFIG							TEXT(F)
+#define DTYPE(x)						decltype(x) *x
 #define RDATA							SECTION(".rdata")
 #define DATA							SECTION(".data")
-#define DTYPE(x)						decltype(x) *x
+#define FUNCTION						TEXT_SECTION(B)
+#define CONFIG							TEXT_SECTION(F)
 #define SECTION(x)						__attribute__((used, section(x)))
-#define TEXT(x) 						__attribute__((used, section(".text$" #x "")))
+#define TEXT_SECTION(x) 				__attribute__((used, section(".text$" #x "")))
 #define DLL_EXPORT 						__declspec(dllexport)
 
 #define PS_ATTR_LIST_SIZE(n)			(sizeof(PS_ATTRIBUTE_LIST) + (sizeof(PS_ATTRIBUTE) * (n - 1)))
@@ -767,16 +767,13 @@ struct _hexane {
 		HMODULE ntdll;
 		HMODULE kernel32;
 		HMODULE shlwapi;
-	} std_modules;
-
-	struct {
 		HMODULE crypt32;
 		HMODULE winhttp;
 		HMODULE advapi;
 		HMODULE iphlpapi;
 		HMODULE mscoree;
 		HMODULE kernbase;
-	} load_modules;
+	} modules;
 
 	struct {
 		PBYTE	session_key;

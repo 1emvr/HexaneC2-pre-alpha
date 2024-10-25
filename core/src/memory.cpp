@@ -287,20 +287,20 @@ namespace Memory {
 	    		size_t stBegin	= 0;
 
 	    		PIMAGE_NT_HEADERS pNtHeaders	= RVA(PIMAGE_NT_HEADERS, entry->DllBase, ((PIMAGE_DOS_HEADER) entry->DllBase)->e_lfanew);
-	    		PIMAGE_SECTION_HEADER pSection	= IMAGE_FIRST_SECTION(pNtHeaders);
+	    		PIMAGE_SECTION_HEADER section	= IMAGE_FIRST_SECTION(pNtHeaders);
 
 	    		for (int i = 0; i < pNtHeaders->FileHeader.NumberOfSections; i++) {
-	    			uint32 sec_hash = HashStringA((char *) pSection->Name, MbsLength((char*) pSection->Name));
+	    			uint32 sec_hash = HashStringA((char *) section->Name, MbsLength((char*) section->Name));
 
 	    			// TODO: hash ".data"
 	    			if (MemCompare(DOT_DATA, sec_hash, sizeof(uint32)) == 0) {
-	    				stBegin = (size_t) entry->DllBase + pSection->VirtualAddress;
-	    				length = pSection->Misc.VirtualSize;
+	    				stBegin = (size_t) entry->DllBase + section->VirtualAddress;
+	    				length = section->Misc.VirtualSize;
 
 	    				break;
 	    			}
 
-	    			++pSection;
+	    			++section;
 	    		}
 
 	    		for (DWORD i = 0; i < length - sizeof(size_t); ++stBegin, ++i) {
@@ -389,9 +389,10 @@ namespace Memory {
 
 		    for (int sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
 			    section = ITER_SECTION_HEADER(module, sec_index);
+		    	uint32 hash = HashStringA((char *) section->Name, MbsLength((char *) section->Name));
 
-		    	// TODO: hash this to comply with the rest of the standard
-			    if (MbsCompare(".text", (char *) section->Name)) {
+		    	// TODO: hash ".text"
+			    if (MemCompare(DOT_TEXT, hash, sizeof(uint32))) {
 				    text_start	= RVA(PVOID, module, section->VirtualAddress);
 				    text_end	= RVA(PVOID, text_start, section->SizeOfRawData);
 				    break;
@@ -664,10 +665,9 @@ namespace Memory {
 
     	BOOL AddHashTableEntry(PLDR_DATA_TABLE_ENTRY entry) {
 
-	    	PPEB_LDR_DATA ldr_data;
-	    	PLIST_ENTRY hash_table;
-
+	    	PLIST_ENTRY hash_table = nullptr;
 	    	PPEB peb = PEB_POINTER;
+
 	    	INIT_LIST_ENTRY(&entry->HashLinks);
 
 	    	hash_table = FindHashTable();
@@ -676,13 +676,12 @@ namespace Memory {
 	    	}
 
 	    	// insert into hash table
-	    	ldr_data = peb->Ldr;
 	    	ULONG hash = LdrHashEntry(entry->BaseDllName, true);
 
 	    	InsertTailList(&hash_table[hash], &entry->HashLinks);
-	    	InsertTailList(&ldr_data->InLoadOrderModuleList, &entry->InLoadOrderLinks);
-	    	InsertTailList(&ldr_data->InMemoryOrderModuleList, &entry->InMemoryOrderLinks);
-	    	InsertTailList(&ldr_data->InInitializationOrderModuleList, &entry->InInitializationOrderLinks);
+	    	InsertTailList(&peb->Ldr->InLoadOrderModuleList, &entry->InLoadOrderLinks);
+	    	InsertTailList(&peb->Ldr->InMemoryOrderModuleList, &entry->InMemoryOrderLinks);
+	    	InsertTailList(&peb->Ldr->InInitializationOrderModuleList, &entry->InInitializationOrderLinks);
 
 	    	return true;
 	    }
