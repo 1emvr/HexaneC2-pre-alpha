@@ -327,29 +327,27 @@ namespace Memory {
 	    	return index;
 	    }
 
-    	BOOL AddBaseAddressEntry(PLDR_DATA_TABLE_ENTRY entry, void *lpBaseAddr) {
+    	BOOL AddBaseAddressEntry(PLDR_DATA_TABLE_ENTRY entry, void *base) {
 	    	HEXANE;
 
 	    	PRTL_RB_TREE index = FindModuleBaseAddressIndex();
-
 	    	if (!index) {
 	    		return false;
 	    	}
 
-	    	// NOTE: traverse an RB Tree
-	    	BOOL right_hand = false;
-	    	PLDR_DATA_TABLE_ENTRY node = (PLDR_DATA_TABLE_ENTRY)((size_t)index - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
+	    	bool right_hand = false;
+	    	PLDR_DATA_TABLE_ENTRY node = (PLDR_DATA_TABLE_ENTRY) ((size_t) index - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
 
-	    	do
-	    	{
-	    		if (lpBaseAddr < node->DllBase) {
+	    	do {
+	    		// NOTE: looking for first or previous entry that conforms to memory order
+	    		if (base < node->DllBase) {
 	    			if (!node->BaseAddressIndexNode.Left) {
 	    				break;
 	    			}
 
-	    			node = (PLDR_DATA_TABLE_ENTRY)((size_t) node->BaseAddressIndexNode.Left - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
+	    			node = (PLDR_DATA_TABLE_ENTRY) ((size_t) node->BaseAddressIndexNode.Left - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
 	    		}
-	    		else if (lpBaseAddr > node->DllBase) {
+	    		else if (base > node->DllBase) {
 	    			if (!node->BaseAddressIndexNode.Right) {
 	    				right_hand = true;
 	    				break;
