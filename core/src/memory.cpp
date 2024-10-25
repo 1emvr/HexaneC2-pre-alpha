@@ -115,6 +115,7 @@ namespace Memory {
 			    const auto mod = CONTAINING_RECORD(next, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
 			    const auto name = mod->BaseDllName;
 
+			    // TODO: need checks to prevent overflows
 			    wchar_t buffer[MAX_PATH] = { };
 
 			    if (hash - HashStringW(WcsToLower(buffer, name.Buffer), WcsLength(name.Buffer)) == 0) {
@@ -132,6 +133,7 @@ namespace Memory {
 			    const auto mod = CONTAINING_RECORD(next, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
 			    const auto name = mod->BaseDllName;
 
+			    // TODO: need checks to prevent overflows
 			    wchar_t buffer1[MAX_PATH] = { };
 			    wchar_t buffer2[MAX_PATH] = { };
 
@@ -156,6 +158,7 @@ namespace Memory {
 		    for (auto index = 0; index < exports->NumberOfNames; index++) {
 			    const auto name = (char *) (base + ((uint32_t *) (base + exports->AddressOfNames))[index - 1]);
 
+			    // TODO: need checks to prevent overflows
 			    char buffer[MAX_PATH] = { };
 
 			    if (hash - HashStringA(MbsToLower(buffer, name), MbsLength(name)) == 0) {
@@ -182,6 +185,7 @@ namespace Memory {
 		    }
 
 	    	// NOTE: search path for all modules limited to System32 folder
+		// TODO: name hash search for known dlls in system path/concat names from FindFirstFile/FindNext results
 	    	wchar_t location[MAX_PATH] = L"C:\\Windows\\System32\\";
 	    	WcsConcat(location, filename);
 
@@ -339,7 +343,7 @@ namespace Memory {
 					    void *fn_pointer = RVA(void *, module, *pfn_rva);
 
 					    if (text_start > fn_pointer || text_end < fn_pointer) {
-						    // this is not a pointer to a function, but a reference to another library with the real address
+						    // this is ...
 
 						    size_t full_length = MbsLength((char *) fn_pointer);
 						    int lib_length = 0;
