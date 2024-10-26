@@ -15,6 +15,7 @@ namespace Main {
         HEXANE;
 
         static int retry = 0;
+        // TODO: thread stack spoofing
         do {
             if (!ObfuscateSleep(nullptr, nullptr) ||
                 !RuntimeChecks()) {
