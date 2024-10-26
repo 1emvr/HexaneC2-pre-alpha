@@ -52,7 +52,7 @@ namespace Main {
 
     _stream *out = CreateStreamWithHeaders(TypeCheckin);
 
-    IP_ADAPTER_INFO adapter	= { };
+    IP_ADAPTER_INFO adapter     = { };
     OSVERSIONINFOW os_version   = { };
     BOOL success = false;
 
