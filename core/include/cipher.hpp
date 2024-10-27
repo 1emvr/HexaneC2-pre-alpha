@@ -7,7 +7,6 @@
 #define NROUNDS     (const unsigned int) 64
 
 #include <core/corelib.hpp>
-
 namespace Xtea {
 
     typedef struct _ciphertext {
@@ -19,6 +18,7 @@ namespace Xtea {
         UINT32 v0;
         UINT32 v1;
     } U32_BLOCK, *PU32_BLOCK;
+
 
     VOID
     FUNCTION
