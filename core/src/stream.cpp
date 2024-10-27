@@ -1,5 +1,6 @@
 #include <core/include/stream.hpp>
 namespace Stream {
+    // TODO: add fin flag?
 
     VOID PackInt64 (uint8_t *buffer, uint64_t value) {
 
