@@ -1,6 +1,7 @@
 #ifndef HEXANE_MONOLITH_HPP
 #define HEXANE_MONOLITH_HPP
 #include <core/ntimports.hpp>
+
 EXTERN_C
 ULONG
 	__instance;
@@ -53,8 +54,8 @@ typedef uint64_t uint64;
 
 
 #define DTYPE(x)						decltype(x) *x
-#define RDATA							SECTION(".rdata")
 #define DATA							SECTION(".data")
+#define RDATA							SECTION(".rdata")
 #define FUNCTION						TEXT_SECTION(B)
 #define CONFIG							TEXT_SECTION(F)
 #define SECTION(x)						__attribute__((used, section(x)))
@@ -105,22 +106,10 @@ typedef uint64_t uint64;
 #define __builtin_bswap64 __bswapq
 #endif
 
-#define PAGE_ALIGN(x)		(B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
-#define ARRAY_LEN(p)		sizeof(p) / sizeof(p[0])
-#define RANGE(x, b, e)		(x >= b && x < e)
-
-#define DYN_ARRAY_LEN(i, p)  while (p[i]) { i++; }
-
-// TODO: get rid of this or fix it
-#define RANDOM_SELECT(ptr, arr)                     \
-	INT idx = 0;                                    \
-	DYN_ARRAY_LEN(idx, arr);                        \
-	UINT32 rand = Utils::Random::RandomNumber32();  \
-	if (idx > 0) {                                  \
-		ptr = arr[rand % idx];						\
-	} else {                                        \
-		ptr = nullptr;								\
-	}
+#define PAGE_ALIGN(x)           (B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
+#define ARRAY_LEN(p)            sizeof(p) / sizeof(p[0])
+#define DYN_ARRAY_LEN(i, p)     while (p[i]) { i++; }
+#define RANGE(b, e, x)          (x >= b && x < e)
 
 #define FILL_MBS(s, b)					\
 	s.length = (USHORT) MbsLength(b);	\
@@ -140,22 +129,7 @@ typedef uint64_t uint64;
     (ptr)->SecurityDescriptor = sec;							\
     (ptr)->SecurityQualityOfService = NULL
 
-#define INSERT_TAIL_LIST(_head_, _entry_)	\
-    PLIST_ENTRY _blink_ = _head_->Blink;	\
-    _entry_->Flink	= _head_;				\
-    _entry_->Blink	= _blink_;				\
-    _blink_->Flink	= _entry_;				\
-    _head_->Blink	= _entry_;				\
 
-
-#ifdef	TRANSPORT_HTTP
-#define TRANSPORT_TYPE 1
-#elifdef TRANSPORT_PIPE
-#define TRANSPORT_TYPE 0
-#endif
-#define ROOT_NODE TRANSPORT_TYPE
-
-// TODO: update COFF_INSTANCE hash names
 #ifdef _M_X64
 	#define X64										true
 	#define IP_REG								    Rip
@@ -171,7 +145,7 @@ typedef uint64_t uint64;
     #define COFF_PREP_SYMBOL_SIZE                   6
     #define COFF_PREP_BEACON                        0xd0a409b0  // __imp_Beacon
     #define COFF_PREP_BEACON_SIZE                   (COFF_PREP_SYMBOL_SIZE + 6)
-    #define COFF_INSTANCE                           0xbfded9c9  // .refptr.__instance
+    #define COFF_INSTANCE                           0xbfded9c9  // .refptr.__instance // TODO: update this name hash
 #elif _M_IX86
 	#define X64										false
 	#define IP_REG									Eip
@@ -187,8 +161,15 @@ typedef uint64_t uint64;
     #define COFF_PREP_SYMBOL_SIZE                   7
     #define COFF_PREP_BEACON                        0x4c20aa4f  // __imp__Beacon
     #define COFF_PREP_BEACON_SIZE                   (COFF_PREP_SYMBOL_SIZE + 6)
-    #define COFF_INSTANCE                           0xb341b5b9  // __instance
+    #define COFF_INSTANCE                           0xb341b5b9  // __instance // TODO: update this name hash
 #endif
+
+#ifdef TRANSPORT_HTTP
+    #define TRANSPORT_TYPE 1
+#elifdef TRANSPORT_PIPE
+#   define TRANSPORT_TYPE 0
+#endif
+#define ROOT_NODE TRANSPORT_TYPE
 
 #define EGRESS 										0
 #define INGRESS 									1
@@ -321,16 +302,44 @@ enum DX_MEMORY {
 	DX_MEM_SYSCALL  	= 2,
 };
 
-typedef struct _code {
-    uint8_t* data;
-    uint32_t length;
-} CODE, *PCODE;
+
+typedef struct _hash_map {
+	DWORD	name;
+	LPVOID	address;
+}HASH_MAP, *PHASH_MAP;
+
+
+typedef struct _object_map {
+	PBYTE 	address;
+	SIZE_T 	size;
+}OBJECT_MAP, *POBJECT_MAP;
+
+
+typedef struct _mbs_buffer {
+	LPSTR 	buffer;
+	ULONG 	length;
+	ULONG	max_length;
+}MBS_BUFFER, *PMBS_BUFFER;
+
+
+typedef struct _wcs_buffer {
+	LPWSTR 	buffer;
+	ULONG 	length;
+	ULONG	max_length;
+}WCS_BUFFER, *PWCS_BUFFER;
+
+
+typedef struct _resource {
+    LPVOID  rsrc_lock;
+    HGLOBAL h_global;
+    SIZE_T  size;
+}RESOURCE, *PRESOURCE;
 
 
 typedef struct _threadless {
     PCHAR parent;
     PCHAR module;
-    PCHAR exp;
+    PCHAR export;
     PCODE loader;
     PCODE opcode;
 }THREADLESS, *PTHREADLESS;
@@ -342,12 +351,6 @@ typedef struct _veh_writer {
     PCHAR	signature;
     PCHAR	mask;
 }VEH_WRITER, *PVEH_WRITER;
-
-
-typedef struct _object_map {
-	PBYTE 	address;
-	SIZE_T 	size;
-}OBJECT_MAP, *POBJECT_MAP;
 
 
 typedef struct _coff_symbol {
@@ -447,33 +450,6 @@ typedef struct _proxy_context {
 }PROXY_CONTEXT, *PPROXY_CONTEXT;
 
 
-typedef struct _hash_map {
-	DWORD	name;
-	LPVOID	address;
-}HASH_MAP, *PHASH_MAP;
-
-
-typedef struct _mbs_buffer {
-	LPSTR 	buffer;
-	ULONG 	length;
-	ULONG	max_length;
-}MBS_BUFFER, *PMBS_BUFFER;
-
-
-typedef struct _wcs_buffer {
-	LPWSTR 	buffer;
-	ULONG 	length;
-	ULONG	max_length;
-}WCS_BUFFER, *PWCS_BUFFER;
-
-
-typedef struct _resource {
-    LPVOID  rsrc_lock;
-    HGLOBAL h_global;
-    SIZE_T  size;
-}RESOURCE, *PRESOURCE;
-
-
 typedef struct _proxy {
 	LPWSTR	address;
 	LPWSTR	username;
@@ -511,19 +487,12 @@ typedef struct _token_data {
 }TOKEN_DATA, *PTOKEN_DATA;
 
 
-typedef struct _parser {
-	LPVOID 	handle;
-    LPVOID  buffer;
-	ULONG 	length;
-} PARSER, *PPARSER;
-
-
-typedef struct _smb_pipe_sec_attr{
-	PSID	sid;
-	PSID	sid_low;
-	PACL	p_acl;
-	PSECURITY_DESCRIPTOR sec_desc;
-} SMB_PIPE_SEC_ATTR, *PSMB_PIPE_SEC_ATTR;
+typedef struct _pipe_data {
+	DWORD 		peer_id;
+	HANDLE 		pipe_handle;
+	LPWSTR 		pipe_name;
+	_pipe_data	*next;
+}PIPE_DATA, *PPIPE_DATA;
 
 
 typedef void (*COMMAND)(PARSER *args);
@@ -544,37 +513,6 @@ struct LdrpVectorHandlerList {
     LdrpVectorHandlerEntry *last;
     SRWLOCK 				lock;
 };
-
-
-typedef struct _pipe_data {
-	DWORD 		peer_id;
-	HANDLE 		pipe_handle;
-	LPWSTR 		pipe_name;
-	_pipe_data	*next;
-}PIPE_DATA, *PPIPE_DATA;
-
-
-typedef struct _ciphertext {
-    DWORD table[64];
-}CIPHERTEXT, *PCIPHERTEXT;
-
-
-typedef struct _u32_block {
-    UINT32 v0;
-    UINT32 v1;
-}U32_BLOCK, *PU32_BLOCK;
-
-
-typedef struct _stream {
-	BYTE 		inbound;
-	ULONG   	peer_id;
-	ULONG   	task_id;
-	ULONG   	msg_type;
-	ULONG		msg_length;
-	PBYTE		buffer;
-	BOOL 		ready;
-	_stream  	*next;
-} STREAM, *PSTREAM;
 
 
 typedef struct _ioapi {
@@ -806,15 +744,16 @@ struct _hexane {
 	} network;
 
 	// TODO: set standard apis for stagers and payloads
-	ioapi ioapi;
-	memapi memapi;
-	netapi netapi;
-	enumapi enumapi;
-	secapi secapi;
-	apcapi apcapi;
-	procapi procapi;
-	threadapi threadapi;
-	utilapi utilapi;
+
+    _ioapi ioapi;
+    _secapi secapi; 
+    _netapi netapi;
+    _procapi proapi;
+    _memapi memapi;
+    _enumapi enumapi;
+    _threadapi threadapi;
+    _apcapi  apcapi;
+    _utilapi utilapi;
 };
 
 #endif

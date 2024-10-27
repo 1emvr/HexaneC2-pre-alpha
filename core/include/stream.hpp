@@ -3,6 +3,17 @@
 #include <core/corelib.hpp>
 
 namespace Stream {
+    typedef struct _stream {
+        BYTE 		inbound;
+        ULONG   	peer_id;
+        ULONG   	task_id;
+        ULONG   	msg_type;
+        ULONG		msg_length;
+        PBYTE		buffer;
+        BOOL 		ready;
+        _stream  	*next;
+    } STREAM, *PSTREAM;
+
 	STREAM*
 	FUNCTION
 		CreateStream();

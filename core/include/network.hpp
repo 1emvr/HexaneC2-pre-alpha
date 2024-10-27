@@ -35,6 +35,14 @@ namespace Network {
     }
 
     namespace Smb {
+
+        typedef struct _smb_pipe_sec_attr{
+            PSID	sid;
+            PSID	sid_low;
+            PACL	p_acl;
+            PSECURITY_DESCRIPTOR sec_desc;
+        } SMB_PIPE_SEC_ATTR, *PSMB_PIPE_SEC_ATTR;
+
         BOOL
         FUNCTION
             SmbContextInit(SMB_PIPE_SEC_ATTR *SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr);

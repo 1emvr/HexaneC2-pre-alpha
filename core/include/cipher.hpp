@@ -9,6 +9,17 @@
 #include <core/corelib.hpp>
 
 namespace Xtea {
+
+    typedef struct _ciphertext {
+        DWORD table[64];
+    } CIPHERTEXT, *PCIPHERTEXT;
+
+
+    typedef struct _u32_block {
+        UINT32 v0;
+        UINT32 v1;
+    } U32_BLOCK, *PU32_BLOCK;
+
     VOID
     FUNCTION
         Uint32ToBlock(UINT32 v0, UINT32 v1, UINT8 *dst);

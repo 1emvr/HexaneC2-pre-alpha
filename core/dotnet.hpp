@@ -18,12 +18,12 @@ typedef struct _Type            IType;
 typedef struct _Binder          IBinder;
 typedef struct _MethodInfo      IMethodInfo;
 
-typedef ICLRMetaHost    *PICLRMetaHost;
-typedef ICLRRuntimeInfo *PICLRRuntimeInfo;
-typedef IAssembly       *PIAssembly;
-typedef IEnumUnknown    *PIEnumUnknown;
-typedef IUnknown        *PIUnknown;
-typedef ICorRuntimeHost *PICorRuntimeHost;
+typedef ICLRMetaHost            *PICLRMetaHost;
+typedef ICLRRuntimeInfo         *PICLRRuntimeInfo;
+typedef IAssembly               *PIAssembly;
+typedef IEnumUnknown            *PIEnumUnknown;
+typedef IUnknown                *PIUnknown;
+typedef ICorRuntimeHost         *PICorRuntimeHost;
 
 typedef void* HDOMAINENUM;
 
@@ -489,8 +489,7 @@ typedef struct _MethodInfo {
     MethodInfoVtbl* lpVtbl;
 } MethodInfo, *PMethodInfo;
 
-typedef struct _DOTNET_ARGS
-{
+typedef struct _DOTNET_ARGS {
     /* The random task id associated with the requested DOTNET exec */
     UINT32 RequestID;
 
