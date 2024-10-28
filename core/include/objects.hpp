@@ -34,7 +34,7 @@ namespace Objects {
 
     COFF_PARAMS*
     FUNCTION
-        GetCOFF(UINT32 bof_id);
+        FindCOFF(UINT32 bof_id);
 
     VOID
     FUNCTION

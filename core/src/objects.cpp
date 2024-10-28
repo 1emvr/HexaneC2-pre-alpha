@@ -283,7 +283,7 @@ namespace Objects {
         return success;
     }
 
-    SIZE_T GetFunctionMapSize(_executable *image) {
+    SIZE_T FindFunctionMapSize(_executable *image) {
 
         char sym_name[9]    = { };
         int counter         = 0;
@@ -344,7 +344,7 @@ namespace Objects {
         }
     }
 
-    COFF_PARAMS* GetCOFF(const uint32 bof_id) {
+    COFF_PARAMS* FindCOFF(const uint32 bof_id) {
         HEXANE;
 
         auto head = ctx->bof_cache;
@@ -447,7 +447,7 @@ namespace Objects {
         x_assertb(image->sec_map   = (OBJECT_MAP *) Malloc(sizeof(void*) * sizeof(OBJECT_MAP)));
         x_assertb(ImageCheckArch(image));
 
-        image->fn_map->size = GetFunctionMapSize(image);
+        image->fn_map->size = FindFunctionMapSize(image);
         image->size += image->fn_map->size;
 
         // NOTE: calculating address/size of sections before base relocation
