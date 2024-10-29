@@ -30,10 +30,13 @@ async fn main() {
 
                                 NetworkOptions::Http(http) => {
                                     let endpoints = &http.endpoints;
-                                    warp::reply::with_status(format!("http config received: {:?}", endpoints), warp::http::StatusCode::OK);
+
+                                    println!("http config recieved");
+                                    warp::reply::with_status("http config received", warp::http::StatusCode::OK);
                                 }
 
                                 NetworkOptions::Smb() => {
+                                    println!("smb config recieved");
                                     warp::replay::with_status("smb config received", warp::http::StatusCode::OK);
                                 }
                             }
