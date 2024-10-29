@@ -12,24 +12,11 @@ using namespace Commands;
 namespace Memory {
     namespace Methods {
 
-	  __declspec(naked) UINT_PTR FindStackPointer() {
-		  __asm__ volatile(
-		      "mov %%rsp, %%rax\n"
-	          "ret"
-          );
-      }
-
-        VOID ZeroFree(void **pointer, size_t size) {
-            HEXANE;
-
-            if (*pointer) {
-                if (size) {
-                    MemSet(*pointer, 0, size);
-                }
-
-                Free(*pointer);
-                *pointer = nullptr;
-            }
+	    __declspec(naked) UINT_PTR FindStackPointer() {
+		    __asm__ volatile(
+		        "mov %%rsp, %%rax\n"
+	            "ret"
+            );
         }
 
         PRESOURCE FindIntResource(HMODULE base, CONST INT rsrc_id) {
