@@ -48,7 +48,6 @@ fn main() {
         match args[0].as_str() {
             "exit"      => break,
             "help"      => print_help(),
-
             "implant"   => {
                 if args.len() < 2 {
                     wrap_message("ERR", "invalid input");

@@ -81,20 +81,21 @@ pub(crate) fn load_instance(args: Vec<String>) {
 }
 
 pub(crate) fn remove_instance(args: Vec<String>) {
-    if args.len() < 2 {
+    if args.len() != 3 {
         wrap_message("ERR", "invalid arguments");
         return
     }
 
-    let mut instances = INSTANCES
-        .lock()
-        .map_err(|_| {
+    let output_name = &args[2];
+
+    let mut instances = INSTANCES.lock() {
+        Ok(instances) => instances,
+        Err(_) => {
             wrap_message("ERR", "instances could not be locked");
             return
-        })
-        .unwrap();
+        }
+    }
 
-    let output_name = &args[2];
     if let Some(position) = instances.iter().position(|instance| instance.builder_cfg.output_name == *output_name) {
         wrap_message("INF", format!("removing {}", instances[position].builder_cfg.output_name).as_str());
 
