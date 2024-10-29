@@ -4,10 +4,11 @@ use warp::Filter;
 use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
 
+use crate::types::Hexane;
 
 #[tokio::main]
 async fn main() {
-    let config = Arc::new(Mutex::new(Config{ endpoints: vec![] }));
+    let config = Arc::new(Mutex::new(Hexane));
 
     // TODO: might just pass the entire Hexane struct from the client 
 

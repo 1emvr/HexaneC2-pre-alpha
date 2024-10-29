@@ -3,7 +3,9 @@ use std::env;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use prettytable::{row, Table};
+use reqwest::blocking::Client;
 use rayon::prelude::*;
+use bincode;
 
 use crate::error::Result;
 use crate::error::Error::Custom;
@@ -36,6 +38,28 @@ pub(crate) fn load_instance(args: Vec<String>) {
             return
         }
     };
+
+    let serialized_instance = match bincode::serialize(&instance) {
+        Ok(data) => data,
+        Err(e) => {
+            wrap_message("ERR", format!("serialization failed: {e}").as_str());
+            return
+        }
+    }
+
+    // TODO: create keys before sending to server
+    let client = Client::new();
+    match client.post("http://127.0.0.1:3000/config")
+        .body(serialized_instance)
+        .send() {
+            Ok(response) => {
+                wrap_message("INF", format!("server response: {:?}", response.text().unwrap()));
+            }
+            Err(e) => {
+                wrap_message("ERR", format!("failed to send data: {e}"));
+                return
+            }
+        }
 
     let name = instance.builder_cfg.output_name.clone();
 
