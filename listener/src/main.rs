@@ -5,35 +5,30 @@ use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
 
 use crate::types::Hexane;
+type HexaneStore = Arc<Mutex<Option<Hexane>>>;
 
 #[tokio::main]
 async fn main() {
-    let config = Arc::new(Mutex::new(Hexane));
-
-    // TODO: might just pass the entire Hexane struct from the client 
-
+    let config = Arc::new(Mutex::new(None));
     let routes = {
         let config = Arc::clone(&config);
 
         warp::path("config") 
             .and(warp::post())
-            .and(warp::body::json()) // TODO: send the SerdeJson config from client to http://ip/config during build time
-            .map(move |new_config: Config| {
-                let mut config_guard = config.lock().unwrap();     
-
-                *config_guard = new_config;
-                warp::reply::with_status("config updated", warp::http::StatusCode::OK)
+            .and(warp::body::bytes()) 
+            .map(move |body: bytes::Bytes| {
+                match bincode::deserialize::<Hexane>(&body) {
+                    Ok(des) => {
+                        let mut data_guard = config.lock().unwrap();
+                        *data_guard = Some(des);
+                        warp::reply::with_status("config received", warp::http::StatusCode::OK);
+                    }
+                    Err(e) => {
+                        eprintln!("failed to deserialize hexane config: {:?}", e); 
+                        warp::reply::with_status("invalid data format", warp::http::StatusCode::BAD_REQUEST);
+                    }
+                }
             });
     };
 
-    let routes = warp::any()
-        .and(warp::path::tail())
-        .and(warp::method())
-        .and(warp::body::bytes())
-        .and(with_config(config.clone()))
-        .map(
-            | tail: warp::filters::path::Tail, method: warp::http::Method, body: bytes::Bytes, config: Arc<Mutex<Hexane>> | {
-
-            }
-        );
 }
