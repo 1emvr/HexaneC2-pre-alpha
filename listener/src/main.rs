@@ -13,7 +13,7 @@ type HexaneStore = Arc<Mutex<Option<Hexane>>>;
 async fn main() {
     let config = Arc::new(Mutex::new(None));
     let routes = {
-        let config = Arc::clone(&config);
+        let config_clone = Arc::clone(&config);
 
         warp::path("config") 
             .and(warp::post())
@@ -22,8 +22,8 @@ async fn main() {
 
                 match bincode::deserialize::<Hexane>(&body) {
                     Ok(des) => {
-                        let mut data_guard = config.lock().unwrap();
-                        *data_guard = Some(des.clone());
+                        let mut data_guard = config_clone.lock().unwrap();
+                        data_guard.push(des.clone());
 
                         if let Some(network) = &des.network_cfg {
                             match &network.options {
@@ -34,16 +34,18 @@ async fn main() {
                                 }
 
                                 NetworkOptions::Smb() => {
-
+                                    warp::replay::with_status("smb config received", warp::http::StatusCode::OK);
                                 }
                             }
                         }
-
-                        warp::reply::with_status("config received", warp::http::StatusCode::OK);
+                        else {
+                            eprintln!("error: missing network configuration {:?}", e); 
+                            warp::reply::with_status(format!("error: missing network configuration: {:?}", e), warp::http::StatusCode::BAD_REQUEST);
+                        }
                     }
                     Err(e) => {
                         eprintln!("failed to deserialize hexane config: {:?}", e); 
-                        warp::reply::with_status("invalid data format", warp::http::StatusCode::BAD_REQUEST);
+                        warp::reply::with_status(format!("failed to deserialize hexane config: {:?}", e), warp::http::StatusCode::BAD_REQUEST);
                     }
                 }
             });
