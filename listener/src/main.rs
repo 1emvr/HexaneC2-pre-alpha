@@ -11,6 +11,7 @@ use crate::types::NetworkOptions
 type HexaneStore = Arc<Mutex<Vec<Hexane>>>;
 type EndpointStore = Ac<Mutext<HashSet<String>>>;
 
+
 #[tokio::main]
 async fn main() {
     let instances: HexaneStore = Arc::new(Mutex::new(None));
@@ -25,13 +26,16 @@ async fn main() {
 
         warp::path::param::<String>()
             .and_then(move |endpoint: String| {
-                let endpoints = endpoints.lock().unwrap();
+
+                let endpoints = endpoints
+                    .lock()
+                    .unwrap();
+
                 if endpoints.contains(&endpoint) {
                     async move {
                         Ok::<_, warp::Rejection>(format!("handling request for: {}", endpoint))
                     }
-                }
-                else {
+                } else {
                     async move {
                         Err(warp::reject::not_found())
                     }
@@ -61,7 +65,12 @@ async fn main() {
                                 NetworkOptions::Http(http) => {
                                     let mut endpoint_guard = endpoints.lock().unwrap();
                                     for endpoint in &http.endpoints {
-                                        endpoint_guard.insert(endpoint.clone());
+                                        if endpoint_guard.insert(endpoint.clone()) {
+                                            println!("new endpoint: {}", endpoint);
+                                        }
+                                        else {
+                                            println!("endpoint already exists: {}", endpoint);
+                                        }
                                     }
 
                                     println!("http config recieved");

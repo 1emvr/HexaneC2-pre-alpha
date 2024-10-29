@@ -39,6 +39,15 @@ pub(crate) fn load_instance(args: Vec<String>) {
         }
     };
 
+    let name = instance.builder_cfg.output_name.clone();
+    let instances = INSTANCES.lock().unwrap();
+
+    if instances.iter()
+        .any(|i| i.builder_cfg.output_name == name) {
+            wrap_message("ERR", format!("config with name {} already exists", name).as_str());
+            return
+        }
+
     let serialized_instance = match bincode::serialize(&instance) {
         Ok(data) => data,
         Err(e) => {
@@ -49,7 +58,7 @@ pub(crate) fn load_instance(args: Vec<String>) {
 
     // TODO: create keys before sending to server
     let client = Client::new();
-    match client.post("http://127.0.0.1:3000/config")
+    match client.post("http://127.0.0.1:3000/instances")
         .body(serialized_instance)
         .send() {
             Ok(response) => {
@@ -61,8 +70,6 @@ pub(crate) fn load_instance(args: Vec<String>) {
             }
         }
 
-    let name = instance.builder_cfg.output_name.clone();
-
     wrap_message("INF", "building...");
     if let Err(e) = instance.setup_build() {
         wrap_message("ERR", format!("setting up build failed: {e}").as_str());
@@ -70,7 +77,7 @@ pub(crate) fn load_instance(args: Vec<String>) {
     }
 
     wrap_message("INF", format!("{} is ready", name).as_str());
-    INSTANCES.lock().unwrap().push(instance);
+    instances.push(instance);
 }
 
 pub(crate) fn remove_instance(args: Vec<String>) {
