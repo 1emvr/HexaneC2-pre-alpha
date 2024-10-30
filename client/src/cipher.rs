@@ -1,6 +1,7 @@
-use std::time::{SystemTime, UNIX_EPOCH};
 use rand::{Rng, SeedableRng};
 use rand::rngs::StdRng;
+
+use std::time::{SystemTime, UNIX_EPOCH};
 use std::convert::TryInto;
 
 use crate::error::{Result, KeySizeError, Error};
@@ -16,68 +17,12 @@ struct Cipher {
 }
 
 impl Cipher {
-    fn block_size(&self) -> usize {
-        BLOCK_SIZE
-    }
-
-    fn encrypt(&self, dst: &mut [u8], src: &[u8]) {
-        encrypt_block(self, dst, src);
-    }
-
-    fn decrypt(&self, dst: &mut [u8], src: &[u8]) {
-        decrypt_block(self, dst, src);
-    }
+    fn block_size(&self) -> usize { BLOCK_SIZE }
+    fn encrypt(&self, dst: &mut [u8], src: &[u8]) { encrypt_block(self, dst, src); }
+    fn decrypt(&self, dst: &mut [u8], src: &[u8]) { decrypt_block(self, dst, src); }
 }
 
-pub fn crypt_create_key(length: usize) -> Vec<u8> {
-    let seed = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
-
-    let mut rng = StdRng::seed_from_u64(seed as u64);
-    let mut key = vec![0u8; length];
-
-    for i in 0..length {
-        key[i] = CHARACTERS[rng.gen_range(0..CHARACTERS.len())];
-    }
-
-    key
-}
-
-fn new_cipher(key: &[u8]) -> Result<Cipher> {
-    if key.len() != 16 {
-        return Err(Error::from(KeySizeError(key.len())))
-    }
-    let mut cipher = Cipher {
-        table: [0u32; NUM_ROUNDS]
-    };
-
-    init_cipher(&mut cipher, key);
-    Ok(cipher)
-}
-
-fn xtea_divide(data: &[u8]) -> Vec<&[u8]> {
-    data.chunks(BLOCK_SIZE).collect()
-}
-
-pub fn crypt_xtea(config: &[u8], key: &[u8], encrypt: bool) -> Result<Vec<u8>> {
-    let cipher      = new_cipher(key)?;
-    let sections    = xtea_divide(config);
-    let mut out     = Vec::with_capacity(config.len());
-
-    for section in sections {
-        let mut buf = [0u8; BLOCK_SIZE];
-
-        if encrypt  {
-            cipher.encrypt(&mut buf, section);
-        }
-        else {
-            cipher.decrypt(&mut buf, section);
-        }
-
-        out.extend_from_slice(&buf);
-    }
-
-    Ok(out)
-}
+fn xtea_divide(data: &[u8]) -> Vec<&[u8]> { data.chunks(BLOCK_SIZE).collect() }
 
 fn block_to_u32(src: &[u8]) -> (u32, u32) {
     let r0 = u32::from_be_bytes(src[0..4].try_into().unwrap());
@@ -112,6 +57,52 @@ fn decrypt_block(c: &Cipher, dst: &mut [u8], src: &[u8]) {
     u32_to_block(v0, v1, dst);
 }
 
+pub fn crypt_create_key(length: usize) -> Vec<u8> {
+    let seed = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
+
+    let mut rng = StdRng::seed_from_u64(seed as u64);
+    let mut key = vec![0u8; length];
+
+    for i in 0..length {
+        key[i] = CHARACTERS[rng.gen_range(0..CHARACTERS.len())];
+    }
+
+    key
+}
+
+fn new_cipher(key: &[u8]) -> Result<Cipher> {
+    if key.len() != 16 {
+        return Err(Error::from(KeySizeError(key.len())))
+    }
+    let mut cipher = Cipher {
+        table: [0u32; NUM_ROUNDS]
+    };
+
+    init_cipher(&mut cipher, key);
+    Ok(cipher)
+}
+
+pub fn crypt_xtea(config: &[u8], key: &[u8], encrypt: bool) -> Result<Vec<u8>> {
+    let cipher      = new_cipher(key)?;
+    let sections    = xtea_divide(config);
+    let mut out     = Vec::with_capacity(config.len());
+
+    for section in sections {
+        let mut buf = [0u8; BLOCK_SIZE];
+
+        if encrypt  {
+            cipher.encrypt(&mut buf, section);
+        }
+        else {
+            cipher.decrypt(&mut buf, section);
+        }
+
+        out.extend_from_slice(&buf);
+    }
+
+    Ok(out)
+}
+
 fn init_cipher(c: &mut Cipher, key: &[u8]) {
     let mut k = [0u32; 4];
     let mut sum = 0u32;
@@ -129,6 +120,8 @@ fn init_cipher(c: &mut Cipher, key: &[u8]) {
 }
 
 fn encode_utf16(s: &str) -> Vec<u8> {
-    s.encode_utf16().flat_map(|c| c.to_be_bytes()).collect()
+    s.encode_utf16()
+        .flat_map(|c| c.to_be_bytes())
+        .collect()
 }
 
