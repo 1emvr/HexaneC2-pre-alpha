@@ -34,7 +34,7 @@ async fn handle_connection(stream: TcpStream) {
                 let body = text.chars().collect::<Vec<u8>>();
 
                 // TODO: message processing
-                let fake_resp = "ayooooooo".to_vec();
+                let fake_resp = "ayooooooo".to_string().to_vec();
                 if let Err(e) = sender.send(Message::Text(fake_resp)).await {
                     eprintln!("error sending message: {}", e);
                 }

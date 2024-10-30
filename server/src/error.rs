@@ -7,7 +7,7 @@ pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
-    IoError(io::Error),
+    Io(io::Error),
     ParseInt(std::num::ParseIntError),
     SerdeJson(serde_json::error::Error),
     KeySize(KeySizeError),
