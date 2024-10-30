@@ -3,16 +3,23 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use rand::Rng;
 
+use crate::types::Hexane;
 use crate::stream::Stream;
 use crate::binary::extract_section;
-use crate::cipher::{crypt_create_key, crypt_xtea};
-use crate::utils::{canonical_path_all, generate_definitions, generate_hashes, generate_includes, generate_object_path, normalize_path, run_command};
-
-use crate::types::Hexane;
 use crate::interface::wrap_message;
+use crate::cipher::{crypt_create_key, crypt_xtea};
+use crate::utils::{
+    canonical_path_all,
+    generate_definitions,
+    generate_hashes,
+    generate_includes,
+    generate_object_path,
+    normalize_path,
+    run_command
+};
 
-use crate::error::{Error, Result};
-use crate::error::Error::Custom;
+
+use crate::error::{Error, Result, Custom};
 use crate::rstatic::USERAGENT;
 
 use crate::types::NetworkType::Http as HttpType;
@@ -104,7 +111,6 @@ impl Hexane {
         } else {
             wrap_message("DBG", "no external module names found. continue.");
         }
-
 
         if let Some(network) = self.network_cfg.as_mut() {
             let rtype   = &network.r#type;

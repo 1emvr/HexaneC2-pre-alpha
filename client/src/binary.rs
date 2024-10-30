@@ -1,17 +1,15 @@
-use std::fs;
-use std::io::{Read, Write};
-use std::fs::{File, OpenOptions};
-use std::process::Command;
-use std::path::Path;
-
-use pe_parser;
 use pe_parser::pe::parse_portable_executable;
-
-use crate::interface::wrap_message;
-use crate::utils::{find_double_u32, read_file};
+use std::process::Command;
+use std::fs::{File, OpenOptions};
+use std::io::{Read, Write};
+use std::path::Path;
+use std::fs;
 
 use crate::error::Error::Custom as Custom;
 use crate::error::Result as Result;
+
+use crate::interface::wrap_message;
+use crate::utils::{find_double_u32, read_file};
 
 struct Section {
     data: Vec<u8>,
