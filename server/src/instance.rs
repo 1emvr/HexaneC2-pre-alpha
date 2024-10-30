@@ -88,7 +88,7 @@ pub(crate) fn remove_instance(args: Vec<String>) {
 
     let output_name = &args[2];
 
-    let mut instances = INSTANCES.lock() {
+    let mut instances = match INSTANCES.lock() {
         Ok(instances) => instances,
         Err(_) => {
             wrap_message("ERR", "instances could not be locked");
