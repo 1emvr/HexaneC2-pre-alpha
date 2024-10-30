@@ -3,17 +3,68 @@ mod parser;
 mod stream;
 mod error;
 
-use crate::error::Result;
+use crate::error::{Error, Result};
 
-use std::sync::mpsc;
-use warp::filters::ws::Message;
-use warp::Error as WarpError;
+use std::env;
+use std::net::SocketAddr;
 
-pub struct Operator {
-    pub user_id: usize,
-    pub sender:  Option<UnboundedSender<Result<Message, WarpError>>>
+use futures::{StreamExt, SinkExt};
+use tokio::net::{TcpListener, TcpStream};
+use tokio_tungstenite::{
+    accept_async,
+    tungstenite::protocol::Message
+};
+
+
+// NOTE: client-side connection handler for operators
+
+async fn handle_connection(stream: TcpStream) {
+    let ws = match accept_async(stream).await {
+        Ok(ws) => ws,
+        Err(e) => {
+            eprintln!("error during websocket handshake: {}", e);
+            return
+        }
+    };
+
+    let (mut sender, mut receiver) = ws.split();
+    while let Some(msg) = receiver.next().await {
+        match msg {
+            Ok(Message::Text(text)) => {
+                let body = text.chars().collect::<Vec<u8>>();
+
+                // TODO: message processing
+                let fake_resp = "ayooooooo".to_vec();
+                if let Err(e) = sender.send(Message::Text(fake_resp)).await {
+                    eprintln!("error sending message: {}", e);
+                }
+            },
+            Ok(Message::Close(_)) => {
+
+            },
+            Ok(_) => (),
+            Err(e) => {
+                eprintln!("error processing message: {}", e);
+                break;
+            }
+        }
+    }
 }
 
-pub struct HelloWorld {
-    user_id: usize,
+
+#[tokio::main]
+async fn main() {
+    let addr = env::args().nth(1)
+        .unwrap_or_else(|_| "127.0.0.1:3000".to_string());
+
+    let addr: SocketAddr = addr.parse().expect("invalid address");
+    let listener = TcpListener::bind(&addr)
+        .await
+        .expect("invalid address");
+
+    println!("listening on: {}", addr);
+        
+    while let Ok((stream, _)) = listener.accept().await {
+        tokio::spawn(handle_connection(stream));
+    }
 }
