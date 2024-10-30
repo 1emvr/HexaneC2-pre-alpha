@@ -3,7 +3,7 @@ use std::env;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use prettytable::{row, Table};
-use reqwest::blocking::Client;
+use reqwest::blocking::Client as Client;
 use rayon::prelude::*;
 use bincode;
 
@@ -40,7 +40,7 @@ pub(crate) fn load_instance(args: Vec<String>) {
     };
 
     let name = instance.builder_cfg.output_name.clone();
-    let instances = INSTANCES.lock().unwrap();
+    let mut instances = INSTANCES.lock().unwrap();
 
     if instances.iter()
         .any(|i| i.builder_cfg.output_name == name) {
