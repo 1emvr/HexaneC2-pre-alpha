@@ -13,13 +13,13 @@ pub struct Parser {
 impl Parser {
     pub fn create_parser(buffer: Vec<u8>) -> Parser {
         let mut parser = Parser {
+            msg_type:   0,
+            msg_length: 0,
             msg_buffer: buffer,
             big_endian: true,
-            msg_length: 0,
             pointer:    0,
             peer_id:    0,
             task_id:    0,
-            msg_type:   0,
         };
 
         parser.msg_length   = parser.msg_buffer.len() as u32;
