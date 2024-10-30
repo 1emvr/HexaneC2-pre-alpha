@@ -2,13 +2,13 @@ use std::collections::HashMap;
 use serde::Serialize;
 use serde::Deserialize;
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum BuildType {
     Loader,
     Shellcode,
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum MessageType {
     TypeCheckin,
     TypeTasking,
@@ -16,7 +16,7 @@ pub enum MessageType {
     TypeSegement,
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum CommandType {
     CommandDir,
     CommandMods,
@@ -95,7 +95,7 @@ pub struct Threadless {
 pub struct Threadpool{
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Message {
     pub(crate) msg_type:    String,
     pub(crate) msg:         String,
@@ -112,7 +112,7 @@ pub struct Config {
     pub(crate) config_size:     u32, // says "optional" but will be checked for in the config
     pub(crate) sleeptime:       u32,
     pub(crate) jitter:          u16,
-    pub(crate) retries:         i32,
+    pub(crate) retries:         u32,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -152,7 +152,7 @@ pub struct JsonData {
     pub(crate) loader:  Option<Loader>,
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct MessageParser {
     pub(crate) endian:     u8,
     pub(crate) peer_id:    u32,
@@ -162,7 +162,7 @@ pub struct MessageParser {
     pub(crate) msg_buffer: Vec<u8>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Compiler {
     pub(crate) file_extension:  String,
     pub(crate) build_directory: String,
@@ -172,13 +172,13 @@ pub struct Compiler {
     pub(crate) command:         String,
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct UserSession {
     pub(crate) username: String,
     pub(crate) is_admin: bool,
 }
 
-#[derive(Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub(crate) struct Hexane {
     pub(crate) taskid:          u32,
     pub(crate) peer_id:         u32,
