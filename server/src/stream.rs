@@ -17,7 +17,7 @@ impl Stream {
         self.buffer.push(data);
     }
 
-    pub fn pack_uint3264(&mut self, data: i64) {
+    pub fn pack_uint64(&mut self, data: i64) {
         self.buffer.write_i64::<LittleEndian>(data).unwrap();
     }
 
