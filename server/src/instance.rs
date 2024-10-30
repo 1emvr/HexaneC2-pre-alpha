@@ -54,7 +54,7 @@ pub(crate) fn load_instance(args: Vec<String>) {
             wrap_message("ERR", format!("serialization failed: {e}").as_str());
             return
         }
-    }
+    };
 
     // TODO: create keys before sending to server
     let client = Client::new();
@@ -62,10 +62,10 @@ pub(crate) fn load_instance(args: Vec<String>) {
         .body(serialized_instance)
         .send() {
             Ok(response) => {
-                wrap_message("INF", format!("server response: {:?}", response.text().unwrap()));
+                wrap_message("INF", format!("server response: {:?}", response.text().unwrap()).as_str());
             }
             Err(e) => {
-                wrap_message("ERR", format!("failed to send data: {e}"));
+                wrap_message("ERR", format!("failed to send data: {e}").as_str());
                 return
             }
         }
@@ -94,7 +94,7 @@ pub(crate) fn remove_instance(args: Vec<String>) {
             wrap_message("ERR", "instances could not be locked");
             return
         }
-    }
+    };
 
     if let Some(position) = instances.iter().position(|instance| instance.builder_cfg.output_name == *output_name) {
         wrap_message("INF", format!("removing {}", instances[position].builder_cfg.output_name).as_str());

