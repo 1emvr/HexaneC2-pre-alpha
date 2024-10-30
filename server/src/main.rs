@@ -1,79 +1,106 @@
-mod error;
-mod utils;
 mod types;
-mod stream;
-mod binary;
-mod cipher;
-mod rstatic;
-mod instance;
-mod builder;
-mod interface;
-mod parser;
 
-use crate::instance::{list_instances, load_instance, remove_instance};
-use crate::interface::{init_print_channel, stop_print_channel, wrap_message};
-use crate::utils::print_help;
+use warp::Filter;
+use std::sync::{Arc, Mutex};
+use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
-use serde_json;
-use serde::Deserialize;
+use crate::types::Hexane;
+use crate::types::NetworkOptions
 
-use rand::Rng;
-use core::fmt::Display;
-use std::str::FromStr;
-
-use std::io::stdin;
-use std::io::Write;
-use clap::Parser;
+type HexaneStore = Arc<Mutex<Vec<Hexane>>>;
+type EndpointStore = Ac<Mutext<HashSet<String>>>;
 
 
-fn main() {
-    init_print_channel();
+#[tokio::main]
+async fn main() {
+    let instances: HexaneStore = Arc::new(Mutex::new(None));
+    let endpoints: EndpointStore = Arc::new(Mutex::new(HashSet::new())); 
 
-    loop {
-        let mut user_input = String::new();
+    let base_route = warp::path::end()
+        .map(|| "hexane listener is running");
 
-        stdin().read_line(&mut user_input)
-            .unwrap();
+    // NOTE: dynamic router
+    let dynamic_routes = {
+        let endpoints = Arc::clone(&endpoints);
 
-        let user_input = user_input.trim();
-        if user_input.is_empty() {
-            continue;
-        }
+        warp::path::param::<String>()
+            .and_then(move |endpoint: String| {
 
-        let args: Vec<String> = user_input
-            .split_whitespace()
-            .map(str::to_string)
-            .collect();
+                let endpoints = endpoints
+                    .lock()
+                    .unwrap();
 
-        match args[0].as_str() {
-            "exit"      => break,
-            "help"      => print_help(),
-            "implant"   => {
-                if args.len() < 2 {
-                    wrap_message("ERR", "invalid input");
-                    continue;
+                if endpoints.contains(&endpoint) {
+                    async move {
+                        Ok::<_, warp::Rejection>(format!("handling request for: {}", endpoint))
+                    }
+                } else {
+                    async move {
+                        Err(warp::reject::not_found())
+                    }
                 }
-
-                match args[1].as_str() {
-                    "ls"    => list_instances(),
-                    "load"  => load_instance(args),
-                    "rm"    => remove_instance(args),
-                    _       => wrap_message("ERR", "invalid input")
-                }
-            },
-
-            "listener" => {
-                // TODO: add connection to an external listener
-                match args[1].as_str() {
-                    "connect"   => wrap_message("ERR", "listener not yet implemented"),
-                    _           => wrap_message("ERR", "listener not yet implemented"),
-                }
-            }
-            _ => {
-                wrap_message("ERR", "invalid input")
-            }
-        }
+            })
     }
 
-    stop_print_channel();
+    let config_route = {
+        let instances_clone = Arc::clone(&instances);
+        let endpoints_clone = Arc::clone(&endpoints);
+
+        warp::path("instances") 
+            .and(warp::post())
+            .and(warp::body::bytes()) 
+            .map(move |body: bytes::Bytes| {
+
+                // NOTE: deserialize
+                match bincode::deserialize::<Hexane>(&body) {
+
+                    Ok(des) => {
+                        let mut data_guard = instances_clone.lock().unwrap();
+                        data_guard.push(des.clone());
+
+                        if let Some(network) = &des.network_cfg {
+                            match &network.options {
+
+                                NetworkOptions::Http(http) => {
+                                    let mut endpoint_guard = endpoints.lock().unwrap();
+                                    for endpoint in &http.endpoints {
+                                        if endpoint_guard.insert(endpoint.clone()) {
+                                            println!("new endpoint: {}", endpoint);
+                                        }
+                                        else {
+                                            println!("endpoint already exists: {}", endpoint);
+                                        }
+                                    }
+
+                                    println!("http config recieved");
+                                    warp::reply::with_status("http config received", warp::http::StatusCode::OK);
+                                }
+
+                                NetworkOptions::Smb() => {
+                                    println!("smb config recieved");
+                                    warp::replay::with_status("smb config received", warp::http::StatusCode::OK);
+                                }
+                            }
+                        }
+                        else {
+                            eprintln!("error: missing network configuration {:?}", e); 
+                            warp::reply::with_status(format!("error: missing network configuration: {:?}", e), warp::http::StatusCode::BAD_REQUEST);
+                        }
+                    }
+
+                    Err(e) => {
+                        eprintln!("failed to deserialize hexane config: {:?}", e); 
+                        warp::reply::with_status(format!("failed to deserialize hexane config: {:?}", e), warp::http::StatusCode::BAD_REQUEST);
+                    }
+                }
+            });
+    };
+
+    let routes = base_route
+        .or(dynamic_routes)
+        .or(config_route);
+
+    warp::serve(routines).run(([127, 0, 0, 1], 3000)).await;
+
 }
