@@ -1,11 +1,26 @@
-use tokio_tungstenite::connect_async;
-use url::Url;
+mod types;
+use crate::error::{Result, Error};
 
-async fn listen_websocket() {
-    let url = Url::parse("ws://your-aws-server-url/ws").unwrap();
-    let (ws_stream, _) = connect_async(url).await.expect("failed to connect");
 
-    while let Some(Ok(message)) = ws_stream.next().await {
-        println!("Received: {:?}", message);
-    }
+//#[derive(serde::Deserialize, serde::Serialize)]
+//pub struct RegisterRequest {
+//    user_id: usize,
+//}
+
+//#[derive(serde::Deserialize, serde::Serialize)]
+//pub struct RegisterResponse {
+//    url: String,
+//}
+
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct Event {
+    msg_type: u32,
+    user_id:  Option<usize>,
+    message:  String,
 }
+
+pub struct Client {
+    pub user_id: usize,
+    pub sender: Option<mpsc::UnboundedSender<Result<Message, warp::Error>>>,
+}
+
