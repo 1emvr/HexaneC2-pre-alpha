@@ -15,7 +15,6 @@ use tokio_tungstenite::{
     tungstenite::protocol::Message
 };
 
-
 // NOTE: client-side connection handler for operators
 
 async fn handle_connection(stream: TcpStream) {
@@ -31,7 +30,7 @@ async fn handle_connection(stream: TcpStream) {
     while let Some(msg) = receiver.next().await {
         match msg {
             Ok(Message::Text(text)) => {
-                let body = text.chars().collect();
+                let body = text.chars().collect::<String>();
 
                 // TODO: message processing
                 let fake_resp = "ayooooooo".to_string();
