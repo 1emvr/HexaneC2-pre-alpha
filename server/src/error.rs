@@ -28,6 +28,7 @@ impl fmt::Display for Error {
             Error::ParseInt(e)  => write!(f, "INT: {}", e),
             Error::SerdeJson(e) => write!(f, "JSON: {}", e),
             Error::KeySize(e)   => write!(f, "KEYSIZE: {}", e),
+            Error::Warp(e)      => write!(f, "WARP: {}", e),
             Error::Custom(e)    => write!(f, "{}", e),
         }
     }
@@ -40,6 +41,7 @@ impl std::error::Error for Error {
             Error::ParseInt(e)  => Some(e),
             Error::SerdeJson(e) => Some(e),
             Error::KeySize(e)   => Some(e),
+            Error::Warp(e)      => Some(e),
             Error::Custom(_)    => None,
         }
     }

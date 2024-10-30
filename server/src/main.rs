@@ -31,10 +31,10 @@ async fn handle_connection(stream: TcpStream) {
     while let Some(msg) = receiver.next().await {
         match msg {
             Ok(Message::Text(text)) => {
-                let body = text.chars().collect::<Vec<u8>>();
+                let body = text.chars().collect();
 
                 // TODO: message processing
-                let fake_resp = "ayooooooo".to_string().to_vec();
+                let fake_resp = "ayooooooo".to_string();
                 if let Err(e) = sender.send(Message::Text(fake_resp)).await {
                     eprintln!("error sending message: {}", e);
                 }
@@ -55,7 +55,7 @@ async fn handle_connection(stream: TcpStream) {
 #[tokio::main]
 async fn main() {
     let addr = env::args().nth(1)
-        .unwrap_or_else(|_| "127.0.0.1:3000".to_string());
+        .unwrap_or_else(|| "127.0.0.1:3000".to_string());
 
     let addr: SocketAddr = addr.parse().expect("invalid address");
     let listener = TcpListener::bind(&addr)
