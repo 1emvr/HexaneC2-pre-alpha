@@ -1,0 +1,9 @@
+[package]
+name = "ws_test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+futures-util = "0.3.29"
+tokio = { version = "1.35.0", features = ["full"] }
+tokio-tungstenite = { version = "0.21.0", features = ["native-tls"] }
