@@ -5,65 +5,45 @@ mod error;
 
 use crate::error::{Error, Result};
 
-use std::env;
-use std::net::SocketAddr;
-
-use futures::{StreamExt, SinkExt};
+use log::info;
+use std::{env, io::Error};
 use tokio::net::{TcpListener, TcpStream};
-use tokio_tungstenite::{
-    accept_async,
-    tungstenite::protocol::Message
-};
 
-// NOTE: client-side connection handler for operators
+async fn accept_connection(stream: TcpStream) {
+    let addr = stream.peer_addr()
+        .expect("connected streams should have a peer address");
 
-async fn handle_connection(stream: TcpStream) {
-    let ws = match accept_async(stream).await {
-        Ok(ws) => ws,
-        Err(e) => {
-            eprintln!("error during websocket handshake: {}", e);
-            return
-        }
-    };
+    println!("client address: {}", addr);
+    let ws = tokio_tungstenite::accept_async(stream)
+        .await
+        .expect("error during websocket handshake");
 
-    let (mut sender, mut receiver) = ws.split();
-    while let Some(msg) = receiver.next().await {
-        match msg {
-            Ok(Message::Text(text)) => {
-                let body = text.chars().collect::<String>();
+    println!("websocket connection successful");
 
-                // TODO: message processing
-                let fake_resp = "ayooooooo".to_string();
-                if let Err(e) = sender.send(Message::Text(fake_resp)).await {
-                    eprintln!("error sending message: {}", e);
-                }
-            },
-            Ok(Message::Close(_)) => {
+    let (write, read) = ws.split();
+    read.try_filter(|msg| future::ready(msg.is_text() || msg.is_binary()))
+        .forward()
+        .await
+        .expect("failed to forward message");
 
-            },
-            Ok(_) => (),
-            Err(e) => {
-                eprintln!("error processing message: {}", e);
-                break;
-            }
-        }
-    }
+    println!("server write successful");
 }
 
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     let addr = env::args().nth(1)
         .unwrap_or_else(|| "127.0.0.1:3000".to_string());
 
-    let addr: SocketAddr = addr.parse().expect("invalid address");
-    let listener = TcpListener::bind(&addr)
-        .await
-        .expect("invalid address");
+    let socket = TcpListener::bind(&addr).await;
+    let listener = socket.expect("failed to bind");
 
     println!("listening on: {}", addr);
-        
+
     while let Ok((stream, _)) = listener.accept().await {
-        tokio::spawn(handle_connection(stream));
+        tokio::spawn(accept_connection(stream));
     }
+
+    Ok(())
 }
+
