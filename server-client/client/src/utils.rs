@@ -321,7 +321,6 @@ Implant Management:
   implant ls       - List all loaded implants
   implant load     - Load an implant from a specified configuration
   implant rm       - Remove a loaded implant
-  implant i        - Interact with a specific loaded implant
 
 Listener Management:
   listener attach  - Attach to a listener associated with an implant (not implemented)
