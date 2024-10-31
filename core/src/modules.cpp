@@ -9,6 +9,7 @@ using namespace Memory::Methods;
     namespace Modules {
 
 	    PLDR_DATA_TABLE_ENTRY FindModuleEntry(const uint32 hash) {
+
 		    const auto head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
 		    for (auto next = head->Flink; next != head; next = next->Flink) {
@@ -27,6 +28,7 @@ using namespace Memory::Methods;
 	    }
 
 	    FARPROC FindExportAddress(CONST VOID *base, CONST uint32 hash) {
+
 		    FARPROC address = nullptr;
 
 		    const auto nt_head = (PIMAGE_NT_HEADERS) (B_PTR(base) + ((PIMAGE_DOS_HEADER) base)->e_lfanew);
@@ -200,22 +202,18 @@ using namespace Memory::Methods;
 							    }
 						    }
 						    if (lib_length != 0) {
-							    // TODO: clean this up. Totally unreadable
-
 							    size_t fn_length = full_length - lib_length - 1;
-							    char lib_name[256] = {};
+							    char lib_name[256] = { };
 
 							    MbsCopy(lib_name, (char *) fn_pointer, lib_length);
 							    MbsCopy(lib_name + lib_length, ".dll", 5);
 
-							    wchar_t wcs_lib[MAX_PATH * sizeof(wchar_t)] = {};
 							    char *fn_name = (char *) fn_pointer + lib_length + 1;
-
-							    MBS_BUFFER mbs_fn_name = {};
+							    MBS_BUFFER mbs_fn_name = { };
 							    FILL_MBS(mbs_fn_name, fn_name);
 
-							    MbsToWcs(wcs_lib, lib_name, MbsLength(lib_name));
-							    LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntryByName(wcs_lib);
+							    uint32 name_hash = HashStringA(lib_name, MbsLength(lib_name));
+							    LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(name_hash);
 
 							    if (!lib_entry || lib_entry->DllBase == module) {
 								    return false;
@@ -261,9 +259,9 @@ using namespace Memory::Methods;
 				    const char *name = (char*) module->base + import_desc->Name;
 
 				    MbsToLower(lower, name);
-                    const uint32 name_hash = HashStringA(name, MbsLength(name));
+                    const uint31 name_hash = HashStringA(lower, MbsLength(lower));
 
-				    if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(HashStringA(lower, WcsLength(lower)))) {
+				    if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(name_hash)) {
 					    library = (HMODULE) entry->DllBase;
 				    }
                     else {
@@ -349,6 +347,7 @@ using namespace Memory::Methods;
 	    }
 
 	    PRTL_RB_TREE FindModuleIndex() {
+
 		    PRTL_BALANCED_NODE node = nullptr;
 		    PRTL_RB_TREE index = nullptr;
 
