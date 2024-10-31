@@ -258,7 +258,7 @@ using namespace Memory::Methods;
 				    HMODULE library = nullptr;
 
 				    char lower[MAX_PATH] = { };
-				    const char *name = (char *) module->base + import_desc->Name;
+				    const char *name = (char*) module->base + import_desc->Name;
 
 				    MbsToLower(lower, name);
                     const uint32 name_hash = HashStringA(name, MbsLength(name));
@@ -307,7 +307,7 @@ using namespace Memory::Methods;
 				    HMODULE library = nullptr;
 
 				    char lower[MAX_PATH] = { };
-				    const char *lib_name = (char *) module->base + delay_desc->DllNameRVA;
+				    const char *lib_name = (char*) module->base + delay_desc->DllNameRVA;
 
 				    MbsToLower(lower, lower);
                     const uint32 name_hash = HashStringA(lower, MbsLength(lib_name));

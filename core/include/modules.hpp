@@ -52,7 +52,7 @@
 
 	    BOOL
     	FUNCTION
-    		FindModule(EXECUTABLE *module, WCHAR *filename);
+    		FindModule(EXECUTABLE *module, UINT32 name_hash);
 
 	    BOOL
     	FUNCTION
