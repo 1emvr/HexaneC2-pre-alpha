@@ -1,59 +1,61 @@
 use std::collections::HashMap;
-use serde::Serialize;
-use serde::Deserialize;
 
-#[derive(Serialize, Deserialize, Debug)]
+use serde::Serialize as Ser;
+use serde::Deserialize as Des;
+use serde::ser::{Serialize, Serializer, SerializeStruct};
+
+#[derive(Ser, Des, Debug)]
 pub enum BuildType {
     Loader,
     Shellcode,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Ser, Des, Debug)]
 pub enum MessageType {
-    Config,
-    Checkin,
-    Tasking,
-    Response,
-    Segement,
+    TypeConfig,
+    TypeCheckin,
+    TypeTasking,
+    TypeResponse,
+    TypeSegement,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Ser, Des, Debug)]
 pub enum CommandType {
-    Directory,
-    Modules,
-    Shutdown,
-    UpdatePeer,
-    RemovePeer,
-    NoJob,
+    CommandDir,
+    CommandMods,
+    CommandShutdown,
+    CommandUpdatePeer,
+    CommandRemovePeer,
+    CommandNoJob,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Ser, Des, Debug, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum NetworkType {
     Http,
     Smb,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Ser, Des, Debug, Clone)]
 #[serde(untagged)]
 pub enum NetworkOptions {
     Http(Http),
     Smb(Smb),
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Ser, Des, Debug, Clone)]
 pub struct Network {
     pub r#type:     NetworkType,
     pub options:    NetworkOptions,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Ser, Des, Debug, Clone)]
 pub struct Smb {
     pub egress_peer: String,
     pub egress_pipe: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Ser, Des, Debug, Default, Clone)]
 pub struct Http {
     pub address:    String,
     pub port:       u16,
@@ -64,27 +66,27 @@ pub struct Http {
     pub proxy:      Option<Proxy>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Ser, Des, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum InjectionType {
     Threadless,
     Threadpool,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Ser, Des, Debug)]
 #[serde(untagged)]
 pub enum InjectionOptions {
     Threadless(Threadless),
     Threadpool(Threadpool),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Ser, Des, Debug)]
 pub struct Injection {
     pub r#type: InjectionType,
     pub options: InjectionOptions,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Ser, Des, Debug)]
 pub struct Threadless {
     pub target_process:     String,
     pub target_module:      String,
@@ -93,17 +95,17 @@ pub struct Threadless {
     pub execute_object:     String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Ser, Des, Debug)]
 pub struct Threadpool{
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub struct Message {
     pub msg_type:    String,
     pub msg:         String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Ser, Des, Debug, Default, Clone)]
 pub struct Config {
     pub debug:           bool,
     pub encrypt:         bool,
@@ -117,7 +119,7 @@ pub struct Config {
     pub jitter:          u16,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Ser, Des, Debug, Default)]
 pub struct Builder {
     pub output_name:            String,
     pub root_directory:         String,
@@ -127,7 +129,7 @@ pub struct Builder {
     pub include_directories:    Option<Vec<String>>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Ser, Des, Debug)]
 pub struct Loader {
     pub root_directory: String,
     pub rsrc_script:    String,
@@ -137,7 +139,7 @@ pub struct Loader {
     pub dependencies:   Option<Vec<String>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Ser, Des, Debug, Clone)]
 pub struct Proxy {
     pub address:    String,
     pub proto:      String,
@@ -146,7 +148,7 @@ pub struct Proxy {
     pub password:   Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Ser, Des, Debug)]
 pub struct JsonData {
     pub config:  Config,
     pub builder: Builder,
@@ -155,7 +157,7 @@ pub struct JsonData {
 }
 
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Ser, Des, Debug, Default)]
 pub struct Compiler {
     pub file_extension:  String,
     pub build_directory: String,
@@ -165,13 +167,25 @@ pub struct Compiler {
     pub command:         String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Ser, Des, Debug, Default, Clone)]
 pub struct UserSession {
     pub username: String,
     pub is_admin: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Debug)]
+pub struct Parser {
+    pub msg_buffer: Vec<u8>,
+    pub pointer:    usize,
+    pub big_endian: bool,
+    pub msg_length: u32,
+    pub peer_id:    u32,
+    pub task_id:    u32,
+    pub msg_type:   u32,
+}
+
+
+#[derive(Ser, Des, Debug, Default)]
 pub struct Hexane {
     pub taskid:          u32,
     pub peer_id:         u32,
@@ -189,15 +203,28 @@ pub struct Hexane {
     pub user_session:    UserSession,
 }
 
-#[derive(Debug)]
-pub struct Parser {
-    pub msg_buffer: Vec<u8>,
-    pub pointer:    usize,
-    pub big_endian: bool,
-    pub msg_length: u32,
-    pub peer_id:    u32,
-    pub task_id:    u32,
-    pub msg_type:   u32,
+pub struct HexaneStream {
+    pub peer_id:       u32,
+    pub group_id:      u32,
+    pub network_type:  u8,
+    pub username:      String,
+    pub session_key:   Vec<u8>,
+    pub endpoints:     Vec<String>
 }
 
+impl Serialize for HexaneStream {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("HexaneStream", 6)?;
+        state.serialize_field("peer_id", &self.peer_id)?;
+        state.serialize_field("group_id", &self.group_id)?;
+        state.serialize_field("network_type", &self.network_type)?;
+        state.serialize_field("session_key", &self.session_key)?;
+        state.serialize_field("username", &self.username)?;
+        state.serialize_field("endpoints", &self.endpoints)?;
+        state.end()
+    }
+}
 

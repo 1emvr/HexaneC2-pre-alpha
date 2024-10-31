@@ -1,8 +1,3 @@
-mod types;
-mod parser;
-mod stream;
-mod error;
-
 use std::env;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
@@ -14,8 +9,8 @@ use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::{accept_async, tungstenite::protocol::Message};
 use futures::{StreamExt, SinkExt};
 
-use crate::parser::create_parser;
-use crate::types::{Hexane, Parser, MessageType};
+use hexlib::parser::create_parser;
+use hexlib::types::{Hexane, Parser, MessageType};
 
 type ConfigStore = Arc<Mutex<Vec<Hexane>>>;
 

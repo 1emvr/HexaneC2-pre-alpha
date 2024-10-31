@@ -1,11 +1,11 @@
-mod types;
-mod stream;
-
 use tokio::net::TcpStream;
 use tokio::io::{self, AsyncWriteExt};
+use serde::ser::{Serialize, Serializer, SerializeStruct};
+use serde_json;
 
-use crate::types::{Hexane, MessageType};
-use crate::stream::Stream;
+use hexlib::stream::Stream;
+use hexlib::types::{Hexane, MessageType};
+
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
@@ -26,14 +26,16 @@ async fn main() -> io::Result<()> {
         user_session: Default::default(),
     };
 
-    let serial = to_vec(&data).expect("failed to serialize hexane");
+    let serial = serde_json::to_vec(&data)
+        .expect("failed to serialize hexane");
+
     let mut stream = Stream::new();
 
     let peer_id = 1234;
     let task_id = 1;
     let msg_length = serial.len() as u32;
 
-    stream.create_header(peer_id, task_id, TypeConfig);
+    stream.create_header(peer_id, task_id, MessageType::TypeConfig as u32);
     stream.pack_uint32(msg_length);
     stream.pack_bytes(&serial);
 
