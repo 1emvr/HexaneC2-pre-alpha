@@ -10,20 +10,21 @@ pub enum BuildType {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum MessageType {
-    TypeCheckin,
-    TypeTasking,
-    TypeResponse,
-    TypeSegement,
-    TypeConfig,
+    Config,
+    Checkin,
+    Tasking,
+    Response,
+    Segement,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum CommandType {
-    CommandDir,
-    CommandMods,
-    CommandShutdown,
-    CommandUpdatePeer,
-    CommandNoJob,
+    Directory,
+    Modules,
+    Shutdown,
+    UpdatePeer,
+    RemovePeer,
+    NoJob,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

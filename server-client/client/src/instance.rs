@@ -2,6 +2,7 @@ use std::fs;
 use std::env;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
+
 use prettytable::{row, Table};
 use reqwest::blocking::Client as Client;
 use rayon::prelude::*;
@@ -58,7 +59,8 @@ pub(crate) fn load_instance(args: Vec<String>) {
 
     // TODO: create keys before sending to server
     let client = Client::new();
-    match client.post("http://127.0.0.1:3000/instances")
+
+    match client.post("http://127.0.0.1:3000/instances") // reqwest::Client
         .body(serialized_instance)
         .send() {
             Ok(response) => {

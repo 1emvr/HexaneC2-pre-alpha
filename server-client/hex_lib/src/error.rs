@@ -1,5 +1,6 @@
 use std::io;
 use std::fmt;
+use warp;
 
 use derive_more::From;
 use serde::de::{Deserialize, Deserializer};
@@ -7,7 +8,7 @@ pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
-    IoError(io::Error),
+    Io(io::Error),
     ParseInt(std::num::ParseIntError),
     SerdeJson(serde_json::error::Error),
     KeySize(KeySizeError),
@@ -28,6 +29,7 @@ impl fmt::Display for Error {
             Error::ParseInt(e)  => write!(f, "INT: {}", e),
             Error::SerdeJson(e) => write!(f, "JSON: {}", e),
             Error::KeySize(e)   => write!(f, "KEYSIZE: {}", e),
+            Error::Warp(e)      => write!(f, "WARP: {}", e),
             Error::Custom(e)    => write!(f, "{}", e),
         }
     }
@@ -40,6 +42,7 @@ impl std::error::Error for Error {
             Error::ParseInt(e)  => Some(e),
             Error::SerdeJson(e) => Some(e),
             Error::KeySize(e)   => Some(e),
+            Error::Warp(e)      => Some(e),
             Error::Custom(_)    => None,
         }
     }
