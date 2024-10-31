@@ -5,33 +5,56 @@ mod error;
 
 use std::env;
 use std::net::SocketAddr;
+use std::sync::{Arc, Mutex};
 use log::{info, error};
 
+use serde_json::from_slice;
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::{accept_async, tungstenite::protocol::Message};
 use futures::{StreamExt, SinkExt};
 
+use crate::parser::{Parser, create_parser};
+use crate::types::{Hexane, MessageType};
+
+type ConfigStore = Arc<Mutex<Vec<Hexane>>>;
+static CONFIGS: ConfigStore = Arc::new(Mutex::new(Vec::new()));
+
 // NOTE: client/server messaging
 // TODO: http_server/implant messaging
-async fn process_message(text: String) -> String {
 
-    // TODO: process message by type, starting with MessageType::TypeConfig
-    // deserialize stream object with Parser
-    let parser = CreateParser(text.into_bytes());
+async fn parse_config(buffer: Vec<u8>) -> String {
+    match from_slice::<Hexane>(&buffer) {
 
-    // peer_id, task_id, msg_type, msg_length, [buffer]
-    // should I nest implant commands and use peer_id as "user_id" instead?
-    // for example, first frame is operator information, second frame is implant/command data
-    // TODO: ignore peer_id for now an process message type
-    
-    match parser.msg_type {
-        TypeConfig => {
-            info!("not implemented");
+        Ok(hexane) => {
+            if let Ok(mut configs) = CONFIGS.lock() {
+                configs.push(hexane);
+
+                info!("parse_config: hexane push success");
+                return "200 OK".to_string();
+            }
+            else {
+                error!("parse_config: error on config lock");
+                return "200 OK".to_string(); // always return "200 OK" in case of response enumeration 
+            }
+        }
+        Err(e)=> {
+            error!("parse_config: parser error");
             return "200 OK".to_string();
         }
+    }
+}
+
+async fn process_message(text: String) -> String {
+    let parser = create_parser(text.into_bytes());
+
+    match parser.msg_type {
+        TypeConfig => {
+            let rsp = parse_config(parser.buffer).await;
+            return rsp;
+        }
         _ => {
-            error!("error: unknown message type");
-            return "200 OK".to_string;
+            error!("process_message: unknown message type");
+            return "200 OK".to_string();
         }
     }
 }
@@ -40,7 +63,7 @@ async fn handle_connection(stream: TcpStream) {
     let ws_stream = match accept_async(stream).await {
         Ok(ws) => ws,
         Err(e) => {
-            error!("error during websocket handshake: {}", e);
+            error!("handle_connection: error during websocket handshake: {}", e);
             return
         }
     };
@@ -51,19 +74,17 @@ async fn handle_connection(stream: TcpStream) {
 
             Ok(_) => (),
             Ok(Message::Text(text)) => { // String
-                let resp = process_message(text);
-
-
-                if let Err(e) = sender.send(response).await {
-                    error!("error sending message: {}", e);
+                let rsp = process_message(text).await;
+                if let Err(e) = sender.send(Message::Text(rsp)).await {
+                    error!("handle_connection: error sending message: {}", e);
                 }
             }
             Ok(Message::Close(_)) => {
-                info!("client closing connection");
+                info!("handle_connection: client closing connection");
                 break;
-            };
+            }
             Err(e)=> {
-                error!("error processing message: {}", e);
+                error!("handle_connection: error processing message: {}", e);
                 break;
             }
         }
@@ -75,9 +96,9 @@ async fn main() {
     env_logger::init();
 
     let addr = env::args().nth(1).unwrap_or_else(|| "127.0.0.1:3000".to_string());
-    let addr: SocketAddr = addr.parse().expect("invalid address");
+    let addr: SocketAddr = addr.parse().expect("tokio::main: invalid address");
 
-    let listener = TcpListener::bind(&addr).await.expect("could not bind");
+    let listener = TcpListener::bind(&addr).await.expect("tokio::main: could not bind");
     info!("listening on: {}", addr);
 
     while let Ok((stream, _)) = listener.accept().await {

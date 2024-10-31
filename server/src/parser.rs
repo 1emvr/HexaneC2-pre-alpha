@@ -22,10 +22,10 @@ impl Parser {
             task_id:    0,
         };
 
-        parser.msg_length   = parser.msg_buffer.len() as u32;
         parser.peer_id      = parser.parse_uint32();
         parser.task_id      = parser.parse_uint32();
         parser.msg_type     = parser.parse_uint32();
+        parser.msg_length   = parser.msg_buffer.len() as u32;
 
         parser
     }
