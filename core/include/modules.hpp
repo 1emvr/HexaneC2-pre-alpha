@@ -64,7 +64,7 @@
 
 	    PEXECUTABLE
     	FUNCTION
-    		LoadModule(uint32 load_type, WCHAR *filename, UINT8 *memory, UINT32 mem_size, WCHAR *name);
+    		LoadModule(UINT32 load_type, UINT32 name_hash, UINT8 *memory, UINT32 mem_size, WCHAR *name);
 
 	    BOOL
     	FUNCTION
