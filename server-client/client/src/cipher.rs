@@ -4,7 +4,7 @@ use rand::rngs::StdRng;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::convert::TryInto;
 
-use crate::error::{Result, KeySizeError, Error};
+use hexlib::error::{Result, KeySizeError, Error};
 
 const NUM_ROUNDS:   usize = 64;
 const BLOCK_SIZE:   usize = 8;

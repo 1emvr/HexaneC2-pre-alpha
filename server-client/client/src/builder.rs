@@ -3,8 +3,16 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use rand::Rng;
 
-use crate::types::Hexane;
-use crate::stream::Stream;
+use hexlib::types::Hexane;
+use hexlib::stream::Stream;
+
+use hexlib::types::NetworkType::Http as HttpType;
+use hexlib::types::NetworkOptions::Http as HttpOpt;
+use hexlib::types::NetworkType::Smb as SmbType;
+use hexlib::types::NetworkOptions::Smb as SmbOpt;
+use hexlib::error::{Error, Result, Custom};
+
+use crate::rstatic::USERAGENT;
 use crate::binary::extract_section;
 use crate::interface::wrap_message;
 use crate::cipher::{crypt_create_key, crypt_xtea};
@@ -18,14 +26,6 @@ use crate::utils::{
     run_command
 };
 
-
-use crate::error::{Error, Result, Custom};
-use crate::rstatic::USERAGENT;
-
-use crate::types::NetworkType::Http as HttpType;
-use crate::types::NetworkOptions::Http as HttpOpt;
-use crate::types::NetworkType::Smb as SmbType;
-use crate::types::NetworkOptions::Smb as SmbOpt;
 
 pub static DEBUG_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup' ";
 pub static RELEASE_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup' ";

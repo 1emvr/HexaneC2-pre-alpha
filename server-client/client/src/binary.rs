@@ -5,8 +5,8 @@ use std::io::{Read, Write};
 use std::path::Path;
 use std::fs;
 
-use crate::error::Error::Custom as Custom;
-use crate::error::Result as Result;
+use hexlib::error::Error::Custom as Custom;
+use hexlib::error::Result as Result;
 
 use crate::interface::wrap_message;
 use crate::utils::{find_double_u32, read_file};

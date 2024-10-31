@@ -12,14 +12,16 @@ use std::process::Command;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use http_body_util::BodyExt;
-use crate::error::Result;
-use crate::stream::Stream;
-use crate::types::{Config, Network};
+
+use hexlib::error::Result as Result;
+use hexlib::stream::Stream as Stream;
+use hexlib::error::Error::Custom as Custom;
+use hexlib::types::NetworkType::Http as HttpType;
+use hexlib::types::NetworkType::Smb as SmbType;
+use hexlib::types::{Config, Network};
+
 use crate::interface::wrap_message;
 
-use crate::error::Error::Custom as Custom;
-use crate::types::NetworkType::Http as HttpType;
-use crate::types::NetworkType::Smb as SmbType;
 
 pub const FNV_OFFSET:   u32 = 2166136261;
 pub const FNV_PRIME:    u32 = 16777619;

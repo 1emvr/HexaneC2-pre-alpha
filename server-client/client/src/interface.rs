@@ -1,9 +1,9 @@
 use std::thread;
 use crossbeam_channel::select;
 
-use crate::instance::SESSION;
+use hexlib::types::Message;
 use crate::rstatic::{CHANNEL, DEBUG, EXIT};
-use crate::types::Message;
+use crate::instance::SESSION;
 
 pub fn print_channel() {
     let receiver = &CHANNEL.1;

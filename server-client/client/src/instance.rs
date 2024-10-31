@@ -2,21 +2,20 @@ use std::fs;
 use std::env;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
+use lazy_static::lazy_static;
 
 use prettytable::{row, Table};
 use reqwest::blocking::Client as Client;
 use rayon::prelude::*;
 use bincode;
 
-use crate::error::Result;
-use crate::error::Error::Custom;
+use hexlib::error::Result;
+use hexlib::error::Error::Custom;
+use hexlib::types::{Hexane, JsonData, UserSession};
+use hexlib::types::NetworkOptions::Http as HttpOpts;
+use hexlib::types::NetworkOptions::Smb as SmbOpts;
 use crate::interface::wrap_message;
-use crate::types::{Hexane, JsonData, UserSession};
 
-use crate::types::NetworkOptions::Http as HttpOpts;
-use crate::types::NetworkOptions::Smb as SmbOpts;
-
-use lazy_static::lazy_static;
 
 lazy_static! {
     pub(crate) static ref INSTANCES: Arc<Mutex<Vec<Hexane>>> = Arc::new(Mutex::new(vec![]));

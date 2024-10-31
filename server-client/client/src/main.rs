@@ -1,14 +1,10 @@
-mod error;
 mod utils;
-mod types;
-mod stream;
-mod binary;
 mod cipher;
-mod rstatic;
+mod binary;
 mod instance;
+mod rstatic;
 mod builder;
 mod interface;
-mod parser;
 
 use clap::Parser;
 use std::str::FromStr;
@@ -42,6 +38,7 @@ fn main() {
             "exit"      => break,
             "help"      => print_help(),
             "implant"   => {
+
                 if args.len() < 2 {
                     wrap_message("ERR", "invalid input");
                     continue;

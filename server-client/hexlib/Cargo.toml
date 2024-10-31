@@ -1,5 +1,5 @@
 [package]
-name = "hex_lib"
+name = "hexlib"
 version = "0.1.0"
 edition = "2021"
 

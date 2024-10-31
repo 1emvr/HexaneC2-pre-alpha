@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-hex_lib = {path = "../hex_lib"}
+hexlib = {path = "../hexlib"}
 futures = {version = "0.3.31"}
 futures-util = {version = "0.3.31"}
 futures-channel = {version = "0.3.31"}
