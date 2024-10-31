@@ -14,6 +14,7 @@ pub enum MessageType {
     TypeTasking,
     TypeResponse,
     TypeSegement,
+    TypeConfig,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -109,10 +110,10 @@ pub struct Config {
     pub(crate) hostname:        String,
     pub(crate) working_hours:   Option<String>,
     pub(crate) killdate:        Option<String>,
-    pub(crate) config_size:     u32, // says "optional" but will be checked for in the config
+    pub(crate) config_size:     u32, 
     pub(crate) sleeptime:       u32,
-    pub(crate) jitter:          u16,
     pub(crate) retries:         u32,
+    pub(crate) jitter:          u16,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
