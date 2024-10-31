@@ -22,6 +22,18 @@ async fn process_message(text: String) -> String {
     // peer_id, task_id, msg_type, msg_length, [buffer]
     // should I nest implant commands and use peer_id as "user_id" instead?
     // for example, first frame is operator information, second frame is implant/command data
+    // TODO: ignore peer_id for now an process message type
+    
+    match parser.msg_type {
+        TypeConfig => {
+            info!("not implemented");
+            return "200 OK".to_string();
+        }
+        _ => {
+            error!("error: unknown message type");
+            return "200 OK".to_string;
+        }
+    }
 }
 
 async fn handle_connection(stream: TcpStream) {
