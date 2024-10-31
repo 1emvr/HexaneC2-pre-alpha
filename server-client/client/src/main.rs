@@ -10,20 +10,13 @@ mod builder;
 mod interface;
 mod parser;
 
+use clap::Parser;
+use std::str::FromStr;
+use std::io::stdin;
+
 use crate::instance::{list_instances, load_instance, remove_instance};
 use crate::interface::{init_print_channel, stop_print_channel, wrap_message};
 use crate::utils::print_help;
-
-use serde_json;
-use serde::Deserialize;
-
-use rand::Rng;
-use core::fmt::Display;
-use std::str::FromStr;
-
-use std::io::stdin;
-use std::io::Write;
-use clap::Parser;
 
 
 fn main() {
