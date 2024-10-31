@@ -1,11 +1,13 @@
-use byteorder::{LittleEndian, WriteBytesExt};
-use encoding_rs::UTF_16LE;
+use crate::types::Stream;
 use std::string::FromUtf16Error;
+
+use byteorder::{LittleEndian, WriteBytesExt}; // Import WriteBytesExt to access write_* methods
+use encoding_rs::UTF_16LE;
 
 impl Stream {
     pub fn new() -> Self {
         Stream {
-            buffer: Vec::new()
+            buffer: Vec::new(),
         }
     }
 
@@ -13,16 +15,25 @@ impl Stream {
         self.buffer.push(data);
     }
 
-    pub fn pack_uint64(&mut self, data: i64) {
-        self.buffer.write_i64::<LittleEndian>(data).unwrap();
+    pub fn pack_uint64(&mut self, data: u64) {
+        self.buffer.resize(self.buffer.len() + 8, 0);
+        let mut cursor = &mut self.buffer[self.buffer.len() - 8..];
+
+        cursor.write_u64::<LittleEndian>(data).unwrap();
     }
 
     pub fn pack_uint32(&mut self, data: u32) {
-        self.buffer.write_u32::<LittleEndian>(data).unwrap();
+        self.buffer.resize(self.buffer.len() + 4, 0);
+        let mut cursor = &mut self.buffer[self.buffer.len() - 4..];
+
+        cursor.write_u32::<LittleEndian>(data).unwrap();
     }
 
     pub fn pack_int32(&mut self, data: i32) {
-        self.buffer.write_i32::<LittleEndian>(data).unwrap();
+        self.buffer.resize(self.buffer.len() + 4, 0);
+        let mut cursor = &mut self.buffer[self.buffer.len() - 4..];
+
+        cursor.write_i32::<LittleEndian>(data).unwrap();
     }
 
     pub fn pack_bytes(&mut self, data: &[u8]) {
@@ -41,7 +52,7 @@ impl Stream {
         self.pack_bytes(&encoded);
     }
 
-    pub fn create_header(&mut self, peer_id: u32, msg_type: u32, task_id: u32) {
+    pub fn create_header(&mut self, peer_id: u32, task_id: u32, msg_type: u32) {
         self.pack_uint32(peer_id);
         self.pack_uint32(task_id);
         self.pack_uint32(msg_type);

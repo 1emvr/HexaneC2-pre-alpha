@@ -1,51 +1,47 @@
-use std::env;
+mod types;
+mod stream;
 
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
-use futures_util::{future, pin_mut, StreamExt};
-use futures;
+use tokio::net::TcpStream;
+use tokio::io::{self, AsyncWriteExt};
 
-async fn read_stdin(tx: futures_channel::mpsc::UnboundedSender<Message>) {
-    let mut stdin = tokio::io::stdin();
-    loop {
-        let mut buffer = vec![0; 1024];
-        let n = match stdin.read(&mut buffer).await {
-            Ok(n) => n,
-            Ok(0) | Err(_) => break,
-        };
-
-        buffer.truncate(n);
-        tx.unbounded_send(Message::binary(buffer)).unwrap();
-    }
-}
+use crate::types::{Hexane, MessageType};
+use crate::stream::Stream;
 
 #[tokio::main]
-async fn main() {
-    let url = env::args().nth(1)
-        .unwrap_or_else(|| panic!("usage: ws_client <url>"));
-
-    let (stdin_tx, stdin_rx) = futures::channel::mpsc::unbounded();
-    tokio::spawn(read_stdin(stdin_tx));
-
-    let (ws, _) = connect_async(&url).await
-        .expect("failed to connect");
-
-    println!("websocket handshake successful");
-    let (write, read) = ws.split();
-
-    let stdin_to_ws = stdin_rx.map(Ok).forward(write);
-    let ws_to_stdout = {
-
-        read.for_each(|message| async {
-            let data = message.unwrap().into_data();
-
-            tokio::io::stdout()
-                .write_all(&data)
-                .await
-                .unwrap();
-        })
+async fn main() -> io::Result<()> {
+    let data = Hexane {
+        taskid: 1,
+        peer_id: 1234,
+        group_id: 4321,
+        build_type: 1,
+        session_key: vec![1, 2, 3, 4],
+        shellcode: vec![5, 6, 7, 8],
+        config: vec![9, 10, 11, 12],
+        active: true,
+        main_cfg: Default::default(),
+        builder_cfg: Default::default(),
+        compiler_cfg: Default::default(),
+        network_cfg: None,
+        loader_cfg: None,
+        user_session: Default::default(),
     };
 
-    pin_mut!(stdin_to_ws, ws_to_stdout); 
-    future::select(stdin_to_ws, ws_to_stdout).await;
+    let serial = to_vec(&data).expect("failed to serialize hexane");
+    let mut stream = Stream::new();
+
+    let peer_id = 1234;
+    let task_id = 1;
+    let msg_length = serial.len() as u32;
+
+    stream.create_header(peer_id, task_id, TypeConfig);
+    stream.pack_uint32(msg_length);
+    stream.pack_bytes(&serial);
+
+    let mut socket = TcpStream::connect("127.0.0.1:3000").await?;
+    println!("connected to server");
+
+    socket.write_all(stream.get_buffer()).await?;
+    println!("data sent to server");
+
+    Ok(())
 }

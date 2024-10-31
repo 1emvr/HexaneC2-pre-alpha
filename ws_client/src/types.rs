@@ -200,7 +200,7 @@ pub(crate) struct Parser {
 }
 
 #[derive(Debug)]
-pub struct Stream {
+pub(crate) struct Stream {
     pub(crate) buffer: Vec<u8>,
 }
 
