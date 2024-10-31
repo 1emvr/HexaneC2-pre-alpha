@@ -11,7 +11,6 @@ use std::fs::File;
 use std::process::Command;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use http_body_util::BodyExt;
 
 use hexlib::error::Result as Result;
 use hexlib::stream::Stream as Stream;

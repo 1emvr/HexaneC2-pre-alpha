@@ -6,11 +6,11 @@ use rand::Rng;
 use hexlib::types::Hexane;
 use hexlib::stream::Stream;
 
+use hexlib::error::{Error, Result, Error::Custom};
 use hexlib::types::NetworkType::Http as HttpType;
 use hexlib::types::NetworkOptions::Http as HttpOpt;
 use hexlib::types::NetworkType::Smb as SmbType;
 use hexlib::types::NetworkOptions::Smb as SmbOpt;
-use hexlib::error::{Error, Result, Custom};
 
 use crate::rstatic::USERAGENT;
 use crate::binary::extract_section;

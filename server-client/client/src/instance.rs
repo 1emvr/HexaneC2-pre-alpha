@@ -14,7 +14,9 @@ use hexlib::error::Error::Custom;
 use hexlib::types::{Hexane, JsonData, UserSession};
 use hexlib::types::NetworkOptions::Http as HttpOpts;
 use hexlib::types::NetworkOptions::Smb as SmbOpts;
+
 use crate::interface::wrap_message;
+use crate::builder::HexaneBuilder;
 
 
 lazy_static! {
