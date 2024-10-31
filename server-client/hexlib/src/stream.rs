@@ -2,7 +2,10 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use encoding_rs::UTF_16LE;
 use std::string::FromUtf16Error;
 
-use crate::types::Stream;
+#[derive(Debug)]
+pub struct Stream {
+    pub buffer: Vec<u8>,
+}
 
 impl Stream {
     pub fn new() -> Self {

@@ -30,8 +30,16 @@ use crate::utils::{
 pub static DEBUG_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup' ";
 pub static RELEASE_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup' ";
 
-impl Hexane {
-    pub(crate) fn setup_build(&mut self) -> Result<()> {
+pub trait HexaneBuilder {
+    fn setup_build(&mut self) -> Result<()>;
+    fn compile_sources(&mut self) -> Result<()>;
+    fn create_config_patch(&mut self) -> Result<()>;
+    fn create_binary_patch(&mut self) -> Result<Vec<u8>>;
+    fn run_mingw(&mut self, components: Vec<String>) -> Result<()>;
+}
+
+impl HexaneBuilder for hexlib::types::Hexane {
+    fn setup_build(&mut self) -> Result<()> {
         let mut rng = rand::thread_rng();
 
         self.peer_id = rng.random::<u32>();
@@ -164,7 +172,7 @@ impl Hexane {
         Ok(stream.buffer)
     }
 
-    pub fn compile_sources(&mut self) -> Result<()> {
+    fn compile_sources(&mut self) -> Result<()> {
         let root_dir    = &self.builder_cfg.root_directory;
         let build_dir   = &self.compiler_cfg.build_directory;
 

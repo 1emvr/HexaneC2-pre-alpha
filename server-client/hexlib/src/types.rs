@@ -172,7 +172,7 @@ pub struct UserSession {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
-pub(crate) struct Hexane {
+pub struct Hexane {
     pub taskid:          u32,
     pub peer_id:         u32,
     pub group_id:        u32,
@@ -190,7 +190,7 @@ pub(crate) struct Hexane {
 }
 
 #[derive(Debug)]
-pub(crate) struct Parser {
+pub struct Parser {
     pub msg_buffer: Vec<u8>,
     pub pointer:    usize,
     pub big_endian: bool,
@@ -200,8 +200,4 @@ pub(crate) struct Parser {
     pub msg_type:   u32,
 }
 
-#[derive(Debug)]
-pub struct Stream {
-    pub buffer: Vec<u8>,
-}
 

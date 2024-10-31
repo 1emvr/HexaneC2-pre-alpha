@@ -1,4 +1,4 @@
-use crate::types::Message;
+use hexlib::types::Message;
 
 use crossbeam_channel::unbounded;
 use crossbeam_channel::Receiver as Recv;
