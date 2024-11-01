@@ -524,7 +524,9 @@ namespace Modules {
         } while(ctx->win32.FindNextFileA(handle, &data));
 
         module->cracked_name = (wchar_t *) Malloc(MAX_PATH * sizeof(wchar_t));
+
         if (!module->cracked_name) {
+            Free(module->local_name);
             return false;
         }
 
