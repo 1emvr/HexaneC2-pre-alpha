@@ -98,7 +98,6 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
             return Custom(e.to_string())
         })?;
 
-    // TODO: show commands in errors instead of a debug message
     wrap_message("INF", format!("running command: {cmd}").as_str());
 
     let mut command = match std::env::consts::OS {
