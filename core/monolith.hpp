@@ -32,6 +32,7 @@ typedef uint64_t uint64;
 
 #define GLOBAL_OFFSET                   (U_PTR(InstStart()) + U_PTR( &__instance))
 #define HEXANE                          _hexane* ctx = (_hexane*) C_DREF(GLOBAL_OFFSET)
+#define ntstatus                        ctx->teb->LastErrorValue
 
 #define B_PTR(x)                        ((PBYTE) x)
 #define C_PTR(x)                        ((LPVOID) x)
@@ -175,7 +176,7 @@ s.buffer = b
 
 #define UNMANAGED_PROCESS                           0
 #define MANAGED_PROCESS                             1
-#define ERROR_EXI                                   0x7FFFFFFF
+#define ERROR_EXIT                                  0x7FFFFFFF
 #define DBG_FLAG_OFFSET64                           0x000000BC
 #define DBG_FLAG_OFFSET32                           0x00000068
 #define FLG_HEAP_ENABLE_TAIL_CHECK                  0x00000020
@@ -401,7 +402,7 @@ typedef struct _reloc {
 
 
 typedef struct _executable {
-	BOO                     Llink;
+	BOOL                    Llink;
 	BOOL                    success;
 	PBYTE                   buffer;
 	PIMAGE_NT_HEADERS       nt_head;
