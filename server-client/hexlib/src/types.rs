@@ -206,10 +206,10 @@ pub struct Hexane {
 pub struct HexaneStream {
     pub peer_id:       u32,
     pub group_id:      u32,
-    pub network_type:  u8,
     pub username:      String,
     pub session_key:   Vec<u8>,
-    pub endpoints:     Vec<String>
+    pub endpoints:     Vec<String>,
+    pub network_type:  NetworkType,
 }
 
 impl Serialize for HexaneStream {

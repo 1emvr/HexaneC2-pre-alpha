@@ -86,7 +86,7 @@ pub(crate) fn load_instance(args: Vec<String>) {
 }
 
 pub(crate) fn serialize_config(instance: &Hexane) ->Result<Vec<u8>> {
-    if let Some(network) = &instance.network_cfg.as_mut() {
+    if let Some(network) = &instance.network_cfg {
 
         let rtype = &network.r#type;
         let opts = &network.options;
