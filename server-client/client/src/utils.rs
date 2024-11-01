@@ -72,12 +72,21 @@ pub(crate) fn get_hash_from_string(string: &str) -> u32 {
 }
 
 fn create_hash_macro(input: &str) -> String {
-    let lower = input.to_lowercase();
+    let hash = get_hash_from_string(input.to_lowercase().as_str());
+    
+    let name = input.trim();
+    let collection: Vec<&str> = name.split('.').collect();
 
-    let hash        = get_hash_from_string(&lower);
-    let macro_name  = input.trim_end().to_uppercase();
+    let first = collection.get(0).unwrap_or(&"").trim_matches('"');
+    let second = collection.get(1).unwrap_or(&"").trim_matches('"');
 
-    format!("#define {} 0x{:x}", macro_name.split('.').next().unwrap_or_default(), hash)
+    let macro_name = if first.is_empty() {
+        second
+    } else {
+        first
+    };
+
+    format!("#define {} 0x{:x}", macro_name.to_uppercase(), hash)
 }
 
 pub(crate) fn generate_hashes(strings_file: &str, out_file: &str) -> Result<()> {

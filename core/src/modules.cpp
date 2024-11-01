@@ -137,7 +137,7 @@ using namespace Memory::Methods;
 			    PIMAGE_SECTION_HEADER section = ITER_SECTION_HEADER(module, sec_index);
 
 			    uint32 sec_hash = HashStringA((char *) section->Name, MbsLength((char *) section->Name));
-			    uint32 dot_text = DOT_TEXT;
+			    uint32 dot_text = TEXT;
 
 			    // TODO: hash ".text"
 			    if (MemCompare((void *) &dot_text, (void *) &sec_hash, sizeof(uint32))) {
@@ -184,8 +184,8 @@ using namespace Memory::Methods;
 				    }
 
 				    if (found) {
-					    const uint32 *pfn_rva = RVA(uint32 *, module, exports->AddressOfFunctions + sizeof(uint32) * (fn_ordinal - exports->Base));
-					    void *fn_pointer = RVA(void *, module, *pfn_rva);
+					    const uint32 *pfn_rva = RVA(uint32*, module, exports->AddressOfFunctions + sizeof(uint32) * (fn_ordinal - exports->Base));
+					    void *fn_pointer = RVA(void*, module, *pfn_rva);
 
 					    if (text_start > fn_pointer || text_end < fn_pointer) {
 						    // this is ...
@@ -201,17 +201,19 @@ using namespace Memory::Methods;
 						    }
 						    if (lib_length != 0) {
 							    MBS_BUFFER fn_buffer = { };
-                                size_t fn_length = full_length - lib_length - 1;
 							    char *fn_name = (char *) fn_pointer + lib_length + 1;
 
 							    FILL_MBS(fn_buffer, fn_name);
 
 							    char lower[256] = { };
+							    char lib_name[256] = { };
+
+                                uint8 dot_dll[] = { 0x2e,0x64,0x6c,0x6c,0x00 };
 							    MbsCopy(lib_name, (char*) fn_pointer, lib_length);
-							    MbsCopy(lib_name + lib_length, ".dll", 5);
+							    MbsCopy(lib_name + lib_length, dot_dll, 5);
 
                                 MbsToLower(lower, lib_name);
-							    uint32 name_hash = HashStringA(lower, MbsLength(lower));
+							    uint32 name_hash = HashStringA(lower, lib_length);
 
 							    LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(name_hash);
 							    if (!lib_entry || lib_entry->DllBase == module) {
@@ -366,7 +368,7 @@ using namespace Memory::Methods;
 
 			    for (int sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
 				    uint32 sec_hash = HashStringA((char *) section->Name, MbsLength((char *) section->Name));
-				    uint32 dot_data = DOT_DATA;
+				    uint32 dot_data = DATA;
 
 				    // TODO: hash ".data"
 				    if (MemCompare((void *) &dot_data, (void *) &sec_hash, sizeof(uint32)) == 0) {
