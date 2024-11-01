@@ -206,11 +206,13 @@ using namespace Memory::Methods;
 
 							    FILL_MBS(fn_buffer, fn_name);
 
-							    char lib_name[256] = { };
+							    char lower[256] = { };
 							    MbsCopy(lib_name, (char*) fn_pointer, lib_length);
 							    MbsCopy(lib_name + lib_length, ".dll", 5);
 
-							    uint32 name_hash = HashStringA(lib_name, MbsLength(lib_name));
+                                MbsToLower(lower, lib_name);
+							    uint32 name_hash = HashStringA(lower, MbsLength(lower));
+
 							    LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(name_hash);
 							    if (!lib_entry || lib_entry->DllBase == module) {
 								    return false;
