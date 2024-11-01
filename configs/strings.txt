@@ -1,3 +1,6 @@
+.text
+.data
+.rdata
 ntdll.dll
 kernel32.dll
 kernelbase.dll

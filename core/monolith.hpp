@@ -54,8 +54,6 @@ typedef uint64_t uint64;
 
 
 #define DTYPE(x)						decltype(x) *x
-#define DATA							SECTION(".data")
-#define RDATA							SECTION(".rdata")
 #define FUNCTION						TEXT_SECTION(B)
 #define CONFIG							TEXT_SECTION(F)
 #define SECTION(x)						__attribute__((used, section(x)))
