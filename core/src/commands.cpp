@@ -7,12 +7,12 @@ using namespace Dispatcher;
 namespace Commands {
 
   __attribute__((used, section(".rdata"))) HASH_MAP cmd_map[] = {
-        { .name = DIRECTORYLIST, 	.address = (void(*)(_parser*)) Commands::DirectoryList        },
-        { .name = PROCESSMODULES,	.address = (void(*)(_parser*)) Commands::ProcessModules       },
-        { .name = PROCESSLIST,		.address = (void(*)(_parser*)) Commands::ProcessList          },
-        { .name = ADDPEER,			.address = (void(*)(_parser*)) Commands::CommandAddPeer       },
-        { .name = REMOVEPEER,		.address = (void(*)(_parser*)) Commands::CommandRemovePeer    },
-        { .name = SHUTDOWN,			.address = (void(*)(_parser*)) Commands::Shutdown             },
+        { .name = DIRECTORYLIST, 	.address = (void*) Commands::DirectoryList        },
+        { .name = PROCESSMODULES,	.address = (void*) Commands::ProcessModules       },
+        { .name = PROCESSLIST,		.address = (void*) Commands::ProcessList          },
+        { .name = ADDPEER,			.address = (void*) Commands::CommandAddPeer       },
+        { .name = REMOVEPEER,		.address = (void*) Commands::CommandRemovePeer    },
+        { .name = SHUTDOWN,			.address = (void*) Commands::Shutdown             },
         { .name = 0,				.address = nullptr		                                      },
     };
 

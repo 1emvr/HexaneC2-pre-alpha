@@ -1,3 +1,6 @@
+#define TEXT 0x88a82ec2
+#define DATA 0x701b9d81
+#define RDATA 0xa11c35e9
 #define NTDLL 0xa62a3b3b
 #define KERNEL32 0xa3e6f6c3
 #define KERNELBASE 0xbd6d9917
