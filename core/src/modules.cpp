@@ -58,10 +58,10 @@ namespace Modules {
     VOID InsertTailList(LIST_ENTRY *const head, LIST_ENTRY *const entry) {
         PLIST_ENTRY blink = head->Blink;
 
-        entry->Flink	= head;
-        entry->Blink	= blink;
-        blink->Flink	= entry;
-        head->Blink		= entry;
+        entry->Flink   = head;
+        entry->Blink   = blink;
+        blink->Flink   = entry;
+        head->Blink	= entry;
     }
 
     PLIST_ENTRY FindHashTable() {
@@ -233,13 +233,11 @@ namespace Modules {
     }
 
     BOOL ResolveImports(const EXECUTABLE *module) {
-
         PIMAGE_IMPORT_BY_NAME import_name      = nullptr;
         PIMAGE_DELAYLOAD_DESCRIPTOR delay_desc = nullptr;
         PIMAGE_THUNK_DATA first_thunk          = nullptr;
         PIMAGE_THUNK_DATA org_first            = nullptr;
 
-        // TODO: document this logic for later use
         IMAGE_DATA_DIRECTORY *data_dire = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
         MBS_BUFFER mbs_import = { };
 
@@ -345,12 +343,11 @@ namespace Modules {
     }
 
     PRTL_RB_TREE FindModuleIndex() {
-
         PRTL_BALANCED_NODE node = nullptr;
-        PRTL_RB_TREE index = nullptr;
+        PRTL_RB_TREE index      = nullptr;
 
         PLDR_DATA_TABLE_ENTRY entry = FindModuleEntry(NTDLL);
-        size_t end = 0;
+        SIZE_T end = 0;
 
         node = &entry->BaseAddressIndexNode;
         do {
@@ -504,14 +501,13 @@ namespace Modules {
     BOOL FindModule(EXECUTABLE *module, const uint32 name_hash) {
         HEXANE;
 
-        LARGE_INTEGER size = { };
+        LARGE_INTEGER size    = { };
         WIN32_FIND_DATAA data = { };
 
         if (!name_hash) {
             return false;
         }
 
-        // TODO: rewrite this shit again to use FindFirstFileA. also install gitlab
         HANDLE handle = ctx->win32.FindFirstFileA((char*) sys32_all, &data);
         if (handle == INVALID_HANDLE_VALUE) {
             return false;
