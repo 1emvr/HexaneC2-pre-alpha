@@ -8,7 +8,7 @@ using namespace Modules;
 using namespace Dispatcher;
 using namespace Memory::Context;
 
-// TODO: delegate functions and api separately to stager/payload
+// TODO: consider hash-tables for API struct
 namespace Main {
     UINT8
     __attribute__((used, section(".data"))) Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
