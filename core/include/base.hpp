@@ -7,7 +7,7 @@ VOID
 FUNCTION
     Entrypoint();
 
-Main {
+namespace Main {
     VOID
     FUNCTION
         MainRoutine();

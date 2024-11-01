@@ -1,6 +1,12 @@
 #define NTDLL 0xa62a3b3b
 #define KERNEL32 0xa3e6f6c3
 #define KERNELBASE 0xbd6d9917
+#define SHLWAPI 0x8ec4c73b
+#define CRYPT32 0xcf00ed58
+#define WINHTTP 0x91bd45a3
+#define ADVAPI32 0x39794115
+#define IPHLPAPI 0xfc84966a
+#define MSCOREE 0x51d79d77
 #define LOADLIBRARYA 0x4dbc712f
 #define FREELIBRARY 0x2e672dee
 #define HEAP32LISTFIRST 0xba7980bc

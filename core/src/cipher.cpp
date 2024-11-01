@@ -100,7 +100,7 @@ namespace Xtea {
         int32_t offset      = 0;
 
         auto cipher     = (_ciphertext*) Malloc(sizeof(_ciphertext));
-        const auto key  = m_key ? m_key : Ctx->config.session_key;
+        const auto key  = m_key ? m_key : ctx->config.session_key;
 
         InitCipher(cipher, key);
 

@@ -1,6 +1,12 @@
 ntdll.dll
 kernel32.dll
 kernelbase.dll
+shlwapi.dll
+crypt32.dll
+winhttp.dll
+advapi32.dll
+iphlpapi.dll
+mscoree.dll
 LoadLibraryA
 FreeLibrary
 Heap32ListFirst

