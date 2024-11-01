@@ -440,10 +440,10 @@ namespace Modules {
 
                 do {
                     switch (head->Type) {
-                        case IMAGE_REL_BASED_DIR64: *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += base_rva; break;
+                        case IMAGE_REL_BASED_DIR64:   *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += base_rva; break;
                         case IMAGE_REL_BASED_HIGHLOW: *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += (uint32) base_rva; break;
-                        case IMAGE_REL_BASED_HIGH: *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_rva); break;
-                        case IMAGE_REL_BASED_LOW: *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_rva); break;
+                        case IMAGE_REL_BASED_HIGH:    *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_rva); break;
+                        case IMAGE_REL_BASED_LOW:     *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_rva); break;
                     }
                     head++;
                 } while (B_PTR(head) != B_PTR(reloc) + reloc->SizeOfBlock);
