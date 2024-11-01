@@ -725,4 +725,4 @@ struct _hexane {
         NtClose_t NtClose;
     } win32;
 };
-#endif
+#endif
