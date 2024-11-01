@@ -4,7 +4,7 @@
 
 EXTERN_C
 ULONG
-__instance;
+:__instance;
 
 EXTERN_C
 LPVOID
@@ -734,6 +734,4 @@ struct _hexane {
         NtClose_t NtClose;
     } win32;
 };
-
-#endif
-
+#endif
