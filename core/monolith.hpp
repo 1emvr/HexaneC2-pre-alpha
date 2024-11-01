@@ -337,11 +337,11 @@ typedef struct _resource {
 
 
 typedef struct _threadless {
-    PCHAR parent;
-    PCHAR module;
-    PCHAR export;
-    PCODE loader;
-    PCODE opcode;
+    PCHAR       target_process;
+    PCHAR       target_module;
+    PCHAR       target_export;
+    POBJECT_MAP loader;
+    POBJECT_MAP opcode;
 }THREADLESS, *PTHREADLESS;
 
 
@@ -495,7 +495,6 @@ typedef struct _pipe_data {
 }PIPE_DATA, *PPIPE_DATA;
 
 
-typedef void (*COMMAND)(PARSER *args);
 typedef void (*OBJ_ENTRY)(char* args, uint32_t size);
 
 

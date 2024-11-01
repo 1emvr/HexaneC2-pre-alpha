@@ -120,13 +120,13 @@ namespace Memory {
                 return false;
             }
 
-            const auto cmd = (COMMAND) RVA(PBYTE, ctx->base.address, pointer);
+            const auto cmd = (void(*)(_parser*)) RVA(PBYTE, ctx->base.address, pointer);
             cmd(&parser);
 
             return true;
         }
 
-        BOOL ExecuteShellcode(CONST PARSER &parser) {
+        BOOL ExecuteShellcode(_parser parser) {
             HEXANE;
 
             void *base      = nullptr;

