@@ -101,7 +101,15 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
     // TODO: show commands in errors instead of a debug message
     wrap_message("INF", format!("running command: {cmd}").as_str());
 
-    let mut command = Command::new("powershell");
+    let mut command = match std::env::consts::OS {
+        "windows" => Command::new("powershell"),
+        "linux"   => Command::new("bash"),
+        _ => {
+            wrap_message("ERR", "unknown OS");
+            return Err(Custom("unknown OS".to_string()))
+        }
+    };
+
     command.arg("-c").arg(cmd);
 
     let output = command.output()

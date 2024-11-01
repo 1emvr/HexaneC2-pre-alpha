@@ -186,21 +186,14 @@ impl HexaneBuilder for hexlib::types::Hexane {
             })?;
 
         for path in entries {
-            let mut source = String::new();
-
-            if std::env::consts::OS == "windows" {
-                source = normalize_path(path
-                    .to_str()
-                    .unwrap()
-                    .into());
-            }
-            else {
-                source = path
-                    .clone()
-                    .into_os_string()
-                    .into_string()
-                    .unwrap();
-            }
+            let source = match std::env::consts::OS {
+                "windows" => normalize_path(path.to_str().unwrap().into()),
+                "linux"   => path.clone().into_os_string().into_string().unwrap(),
+                _ => {
+                    wrap_message("ERR", "unknown OS");
+                    return Err(Custom("unknown OS".to_string()))
+                }
+            };
 
             let mut object_file = generate_object_path(&source, Path::new(build_dir))
                 .map_err(|e| {
