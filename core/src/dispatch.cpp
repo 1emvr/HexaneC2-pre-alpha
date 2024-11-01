@@ -60,21 +60,21 @@ namespace Dispatcher {
         _parser parser = { };
         _stream *queue = { };
 
-        if (msg->length > MESSAGE_MAX) {
-            QueueSegments(B_PTR(msg->buffer), msg->length);
+        if (msg->msg_length > MESSAGE_MAX) {
+            QueueSegments(B_PTR(msg->buffer), msg->msg_length);
         }
         else {
-            CreateParser(&parser, B_PTR(msg->buffer), msg->length);
+            CreateParser(&parser, B_PTR(msg->buffer), msg->msg_length);
 
             queue            = CreateStream();
             queue->peer_id   = __builtin_bswap32(UnpackUint32(&parser));
             queue->task_id   = __builtin_bswap32(UnpackUint32(&parser));
             queue->msg_type  = __builtin_bswap32(UnpackUint32(&parser));
 
-            queue->length   = parser.Length;
-            queue->buffer   = B_PTR(Realloc(queue->buffer, queue->length));
+            queue->msg_length  = parser.length;
+            queue->buffer      = B_PTR(Realloc(queue->buffer, queue->msg_length));
 
-            MemCopy(queue->buffer, parser.buffer, queue->length);
+            MemCopy(queue->buffer, parser.buffer, queue->msg_length);
             AddMessage(queue);
 
             DestroyParser(&parser);
@@ -127,17 +127,17 @@ namespace Dispatcher {
 
         for (auto head = ctx->transport.message_queue; head; head = head->next) {
             if (head->buffer) {
-                CreateParser(&parser, B_PTR(head->buffer), head->length);
+                CreateParser(&parser, B_PTR(head->buffer), head->msg_length);
 
                 PackUint32(out, head->peer_id);
                 PackUint32(out, head->task_id);
                 PackUint32(out, head->msg_type);
 
                 if (ROOT_NODE) {
-                    PackBytes(out, B_PTR(head->buffer), head->length);
+                    PackBytes(out, B_PTR(head->buffer), head->msg_length);
                 }
                 else {
-                    AppendBuffer(&out->buffer, head->buffer, (uint32_t*) &out->length, head->length);
+                    AppendBuffer(&out->buffer, head->buffer, (uint32_t*) &out->msg_length, head->msg_length);
                 }
                 break;
             }
@@ -212,7 +212,7 @@ namespace Dispatcher {
 
         _parser parser = { };
 
-        CreateParser(&parser, B_PTR(in->buffer), in->length);
+        CreateParser(&parser, B_PTR(in->buffer), in->msg_length);
         UnpackUint32(&parser);
 
         auto task_id = UnpackUint32(&parser);

@@ -30,7 +30,7 @@ namespace Commands {
 
     UINT_PTR
     FUNCTION
-        GetCommandAddress(UINT32 name);
+        FindCommandAddress(UINT32 name);
 }
 
 #endif //HEXANE_CORELIB_COMMANDS_HPP

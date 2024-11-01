@@ -544,7 +544,6 @@ struct _hexane {
 	DWORD 			n_threads;
 	PCOFF_PARAMS	bof_cache;
 	PPIPE_DATA 		peer_data;
-	PSTREAM        	message_queue;
 
 	struct {
 		UINT_PTR   	address;
@@ -595,7 +594,8 @@ struct _hexane {
 		BOOL	    	b_proxy;
 		BOOL	    	b_envproxy;
 		BOOL	    	b_envproxy_check;
-	} network;
+	    PSTREAM        	message_queue;
+	} transport;
 
 	// TODO: set standard apis for stagers and payloads
 

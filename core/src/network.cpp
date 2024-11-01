@@ -63,8 +63,8 @@ namespace Network {
             } while (in_length > 0);
 
             *stream = (_stream*) Malloc(sizeof(_stream));
-            (*stream)->buffer   = B_PTR(response);
-            (*stream)->length   = total;
+            (*stream)->buffer     = B_PTR(response);
+            (*stream)->msg_length = total;
 
         defer:
             if (!success) {
@@ -255,7 +255,7 @@ namespace Network {
                 }
             }
 
-            x_assertb(ctx->win32.WinHttpSendRequest(handle, nullptr, 0, out->buffer, out->length, out->length, 0));
+            x_assertb(ctx->win32.WinHttpSendRequest(handle, nullptr, 0, out->buffer, out->msg_length, out->msg_length, 0));
             x_assertb(ctx->win32.WinHttpReceiveResponse(handle, nullptr));
             x_assertb(ctx->win32.WinHttpQueryHeaders(handle, query, nullptr, &status, &n_status, nullptr));
 
@@ -347,7 +347,7 @@ namespace Network {
             uint32_t total  = 0;
 
             do {
-                const auto length = __min((in->length - total), PIPE_BUFFER_MAX);
+                const auto length = __min((in->msg_length - total), PIPE_BUFFER_MAX);
 
                 if (!ctx->win32.ReadFile(handle, B_PTR(in->buffer) + total, length, (DWORD*) &read, nullptr)) {
                     if (ntstatus == ERROR_NO_DATA) {
@@ -357,7 +357,7 @@ namespace Network {
 
                 total += read;
             }
-            while (total < in->length);
+            while (total < in->msg_length);
             return true;
         }
 
@@ -368,7 +368,7 @@ namespace Network {
             uint32_t write = 0;
 
             do {
-                const auto length = __min((out->length - total), PIPE_BUFFER_MAX);
+                const auto length = __min((out->msg_length - total), PIPE_BUFFER_MAX);
 
                 if (!ctx->win32.WriteFile(handle, B_PTR(out->buffer) + total, length, (DWORD*) &write, nullptr)) {
                     return false;
@@ -376,7 +376,7 @@ namespace Network {
 
                 total += write;
             }
-            while (total < out->length);
+            while (total < out->msg_length);
             return true;
         }
 
