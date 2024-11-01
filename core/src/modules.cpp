@@ -17,7 +17,7 @@ using namespace Memory::Methods;
 			    const auto name = mod->BaseDllName;
 
 			    // TODO: need checks to prevent overflows tho unlikely
-			    wchar_t buffer[MAX_PATH] = {};
+			    wchar_t buffer[MAX_PATH] = { };
 
 			    if (hash - HashStringW(WcsToLower(buffer, name.Buffer), WcsLength(name.Buffer)) == 0) {
 				    return mod;
@@ -42,7 +42,7 @@ using namespace Memory::Methods;
 			    const auto name = (char *) (base + ((uint32_t *) (base + exports->AddressOfNames))[index - 1]);
 
 			    // TODO: need checks to prevent overflows
-			    char buffer[MAX_PATH] = {};
+			    char buffer[MAX_PATH] = { };
 
 			    if (hash - HashStringA(MbsToLower(buffer, name), MbsLength(name)) == 0) {
 				    address = (FARPROC) (base + ((uint32_t *) (base + exports->AddressOfFunctions))[index]);
@@ -97,15 +97,14 @@ using namespace Memory::Methods;
 	    }
 
 	    BOOL AddHashTableEntry(PLDR_DATA_TABLE_ENTRY entry) {
-		    PLIST_ENTRY hash_table = nullptr;
+
 		    PPEB peb = PEB_POINTER;
-
-		    INIT_LIST_ENTRY(&entry->HashLinks);
-
-		    hash_table = FindHashTable();
+		    PLIST_ENTRY hash_table = FindHashTable();
 		    if (!hash_table) {
 			    return false;
 		    }
+
+		    INIT_LIST_ENTRY(&entry->HashLinks);
 
 		    // insert into hash table
 		    ULONG hash = LdrHashEntry(entry->BaseDllName, true);
@@ -119,15 +118,14 @@ using namespace Memory::Methods;
 	    }
 
 	    BOOL LocalLdrFindExportAddress(HMODULE module, const MBS_BUFFER *fn_name, const uint16 ordinal, void **function) {
-		    PIMAGE_NT_HEADERS nt_head = nullptr;
-		    PIMAGE_DATA_DIRECTORY data_dire = nullptr;
+
 		    PIMAGE_SECTION_HEADER section = nullptr;
 
 		    if (!module) {
 			    return false;
 		    }
 
-		    nt_head = RVA(PIMAGE_NT_HEADERS, module, ((PIMAGE_DOS_HEADER) module)->e_lfanew);
+		    PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, module, ((PIMAGE_DOS_HEADER) module)->e_lfanew);
 		    if (nt_head->Signature != IMAGE_NT_SIGNATURE) {
 			    return false;
 		    }
@@ -136,7 +134,7 @@ using namespace Memory::Methods;
 		    void *text_end = nullptr;
 
 		    for (int sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
-			    section = ITER_SECTION_HEADER(module, sec_index);
+			    PIMAGE_SECTION_HEADER section = ITER_SECTION_HEADER(module, sec_index);
 
 			    uint32 sec_hash = HashStringA((char *) section->Name, MbsLength((char *) section->Name));
 			    uint32 dot_text = DOT_TEXT;
@@ -154,7 +152,7 @@ using namespace Memory::Methods;
 			    return false;
 		    }
 
-		    data_dire = &nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+		    PIMAGE_DATA_DIRECTORY data_dire = &nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 
 		    if (data_dire->Size) {
 			    const IMAGE_EXPORT_DIRECTORY *exports = RVA(PIMAGE_EXPORT_DIRECTORY, module, data_dire->VirtualAddress);
@@ -192,7 +190,7 @@ using namespace Memory::Methods;
 					    if (text_start > fn_pointer || text_end < fn_pointer) {
 						    // this is ...
 
-						    size_t full_length = MbsLength((char *) fn_pointer);
+						    size_t full_length = MbsLength((char*) fn_pointer);
 						    int lib_length = 0;
 
 						    for (int i = 0; i < full_length; i++) {
@@ -265,9 +263,7 @@ using namespace Memory::Methods;
 					    library = (HMODULE) entry->DllBase;
 				    }
                     else {
-					    // recursive load
-
-					    EXECUTABLE *new_load = LoadModule(LoadLocalFile, name_hash, nullptr, 0, nullptr);
+					    EXECUTABLE *new_load = ImportModule(LoadLocalFile, name_hash, nullptr, 0, nullptr);
 					    if (!new_load || !new_load->success) {
 						    return false;
 					    }
@@ -314,7 +310,7 @@ using namespace Memory::Methods;
 					    library = (HMODULE) entry->DllBase;
 				    }
                     else {
-					    EXECUTABLE *new_load = LoadModule(LoadLocalFile, name_hash, nullptr, 0, nullptr);
+					    EXECUTABLE *new_load = ImportModule(LoadLocalFile, name_hash, nullptr, 0, nullptr);
 					    if (!new_load || !new_load->success) {
 						    return false;
 					    }
@@ -632,7 +628,7 @@ using namespace Memory::Methods;
 		    return true;
 	    }
 
-	    PEXECUTABLE LoadModule(const uint32 load_type, const uint32 name_hash, uint8 *memory, const uint32 mem_size, wchar_t *name) {
+	    PEXECUTABLE ImportModule(const uint32 load_type, const uint32 name_hash, uint8 *memory, const uint32 mem_size, wchar_t *name) {
 		    // NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
 		    // everything loaded with this unit MUST RESIDE in System32 due to path finding limitations
 		    // may add more paths later or change search logic, but it's not likely.
