@@ -187,8 +187,8 @@ namespace Modules {
                     const uint32 *pfn_rva = RVA(uint32*, module, exports->AddressOfFunctions + sizeof(uint32) * (fn_ordinal - exports->Base));
                     void *fn_pointer = RVA(void*, module, *pfn_rva);
 
+                    // this is ...
                     if (text_start > fn_pointer || text_end < fn_pointer) {
-                        // this is ...
 
                         size_t full_length = MbsLength((char*) fn_pointer);
                         int lib_length = 0;
@@ -199,7 +199,9 @@ namespace Modules {
                                 break;
                             }
                         }
+
                         if (lib_length != 0) {
+
                             MBS_BUFFER fn_buffer = { };
                             char *fn_name = (char *) fn_pointer + lib_length + 1;
 
@@ -366,7 +368,6 @@ namespace Modules {
                 uint32 sec_hash = HashStringA((char *) section->Name, MbsLength((char *) section->Name));
                 uint32 dot_data = DATA;
 
-                // TODO: hash ".data"
                 if (MemCompare((void *) &dot_data, (void *) &sec_hash, sizeof(uint32)) == 0) {
                     begin = (size_t) entry->DllBase + section->VirtualAddress;
                     length = section->Misc.VirtualSize;
@@ -580,7 +581,7 @@ namespace Modules {
         }
 
         // start setting the values in the entry
-        ctx->enumapi.NtQuerySystemTime(&entry->LoadTime);
+        ctx->win32.NtQuerySystemTime(&entry->LoadTime);
 
         // do the obvious ones
         entry->ReferenceCount = 1;
