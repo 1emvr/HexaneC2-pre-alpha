@@ -383,7 +383,7 @@ namespace Main {
         }
 #endif
 #ifdef TRANSPORT_PIPE
-        ParserWcscpy(&parser, &ctx->network.pipe_name, nullptr);
+        ParserWcscpy(&parser, &ctx->transport.egress_pipe, nullptr);
 #endif
 
     defer:

@@ -58,7 +58,7 @@ namespace Peers {
                     Free(head->pipe_name);
                 }
                 if (head->pipe_handle) {
-                    ctx->nt.NtClose(head->pipe_handle);
+                    ctx->win32.NtClose(head->pipe_handle);
                     head->pipe_handle = nullptr;
                 }
 
@@ -95,7 +95,7 @@ namespace Peers {
 
             if (ntstatus == ERROR_PIPE_BUSY) {
                 if (!ctx->win32.WaitNamedPipeW(pipe_name, 5000)) {
-                    ctx->nt.NtClose(handle);
+                    ctx->win32.NtClose(handle);
                     return false;
                 }
             }
@@ -109,7 +109,7 @@ namespace Peers {
                     buffer = Malloc(total);
 
                     if (!ctx->win32.ReadFile(handle, buffer, total, &read, nullptr) || read != total) {
-                        ctx->nt.NtClose(handle);
+                        ctx->win32.NtClose(handle);
                         return false;
                     }
 

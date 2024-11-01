@@ -432,9 +432,9 @@ namespace Objects {
         }
 
         if (image->sec_map) {
-            MemSet(image->sec_map, image->nt_head->FileHeader.NumberOfSections * sizeof(IMAGE_SECTION_HEADER));
-            Free(image->sec_map);
 
+            MemSet(image->sec_map, 0, image->nt_head->FileHeader.NumberOfSections * sizeof(IMAGE_SECTION_HEADER));
+            Free(image->sec_map);
             image->sec_map = nullptr;
         }
 

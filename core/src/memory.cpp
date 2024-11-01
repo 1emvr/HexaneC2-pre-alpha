@@ -176,7 +176,7 @@ namespace Memory {
             bof->bof_id		= UnpackUint32(&parser);
             bof->task_id    = ctx->session.current_taskid;
 
-            // TODO: with previously loaded BOFs (peer_id, task_id, msg_type, msg_length, [entrypoint, null, args, etc..])
+            // TODO: with previously loaded BOFs (peer_id, task_id, type, length, [entrypoint, null, args, etc..])
             // TODO: test that bof data size being zero is a correct way to do this
 
             if (!bof->data_size) {

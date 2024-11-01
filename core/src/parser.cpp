@@ -1,16 +1,16 @@
 #include <core/include/parser.hpp>
 namespace Parser {
 
-    VOID ParserBytecpy(_parser *const parser, uint8_t *const dst) {
+    VOID ParserBytecpy(_parser *const parser, uint8 *const dst) {
 
         const auto byte = UnpackByte(parser);
         MemCopy(dst, (void*) &byte, 1);
     }
 
-    VOID ParserStrcpy(_parser *const parser, char **const dst, uint32_t *const n_out) {
+    VOID ParserStrcpy(_parser *const parser, char **const dst, uint32 *const n_out) {
         HEXANE;
 
-        uint32_t length     = 0;
+        uint32 length     = 0;
         const auto buffer   = UnpackString(parser, &length);
 
         if (length) {
@@ -23,10 +23,10 @@ namespace Parser {
         }
     }
 
-    VOID ParserWcscpy(_parser *const parser, wchar_t **const dst, uint32_t *const n_out) {
+    VOID ParserWcscpy(_parser *const parser, wchar_t **const dst, uint32 *const n_out) {
         HEXANE;
 
-        uint32_t length     = 0;
+        uint32 length     = 0;
         const auto buffer   = UnpackWString(parser, &length);
 
         if (length) {
@@ -42,10 +42,10 @@ namespace Parser {
         defer:
     }
 
-    VOID ParserMemcpy(_parser *const parser, uint8_t **const dst, uint32_t *const n_out) {
+    VOID ParserMemcpy(_parser *const parser, uint8 **const dst, uint32 *const n_out) {
         HEXANE;
 
-        uint32_t length     = 0;
+        uint32 length     = 0;
         const auto buffer   = UnpackBytes(parser, &length);
 
         if (length) {
@@ -59,13 +59,13 @@ namespace Parser {
         defer:
     }
 
-    VOID CreateParser(_parser *parser, uint8_t *buffer, uint32_t length) {
+    VOID CreateParser(_parser *parser, uint8 *buffer, uint32 length) {
         HEXANE;
 
         x_assert(parser->handle = Malloc(length));
         MemCopy(parser->handle, buffer, length);
 
-        parser->Length  = length;
+        parser->length  = length;
         parser->buffer  = parser->handle;
 
         defer:
@@ -77,7 +77,7 @@ namespace Parser {
         if (parser) {
             if (parser->handle) {
 
-                MemSet(parser->handle, 0, parser->Length);
+                MemSet(parser->handle, 0, parser->length);
                 Free(parser->handle);
 
                 parser->buffer = nullptr;
@@ -87,13 +87,13 @@ namespace Parser {
     }
 
     BYTE UnpackByte (_parser *const parser) {
-        uint8_t data = 0;
+        uint8 data = 0;
 
-        if (parser->Length >= 1) {
+        if (parser->length >= 1) {
             MemCopy(&data, parser->buffer, 1);
 
             parser->buffer = B_PTR(parser->buffer) + 1;
-            parser->Length -= 1;
+            parser->length -= 1;
         }
 
         return data;
@@ -103,11 +103,11 @@ namespace Parser {
 
         int16_t data = 0;
 
-        if (parser->Length >= 2) {
+        if (parser->length >= 2) {
             MemCopy(&data, parser->buffer, 2);
 
             parser->buffer = B_PTR(parser->buffer) + 2;
-            parser->Length -= 2;
+            parser->length -= 2;
         }
 
         return data;
@@ -115,16 +115,16 @@ namespace Parser {
 
     ULONG UnpackUint32 (_parser *const parser) {
 
-        uint32_t data = 0;
+        uint32 data = 0;
 
-        if (!parser || parser->Length < 4) {
+        if (!parser || parser->length < 4) {
             return 0;
         }
 
         MemCopy(&data, parser->buffer, 4);
 
         parser->buffer = B_PTR(parser->buffer) + 4;
-        parser->Length -= 4;
+        parser->length -= 4;
 
         return (BSWAP)
                ? __builtin_bswap32((int32_t) data)
@@ -133,16 +133,16 @@ namespace Parser {
 
     ULONG64 UnpackUint64 (_parser *const parser) {
 
-        uint64_t data = 0;
+        uint64 data = 0;
 
-        if (!parser || parser->Length < 8) {
+        if (!parser || parser->length < 8) {
             return 0;
         }
 
         MemCopy(&data, parser->buffer, 8);
 
         parser->buffer = B_PTR(parser->buffer) + 8;
-        parser->Length -= 8;
+        parser->length -= 8;
 
         return (BSWAP)
                ? __builtin_bswap64((int64_t) data)
@@ -153,26 +153,26 @@ namespace Parser {
 
         int32_t data = 0;
 
-        if (!parser || parser->Length < 4) {
+        if (!parser || parser->length < 4) {
             return 0;
         }
 
         MemCopy(&data, parser->buffer, 4);
 
         parser->buffer = B_PTR(parser->buffer) + 4;
-        parser->Length -= 4;
+        parser->length -= 4;
 
         return (BSWAP)
                ? __builtin_bswap32(data) != 0
                : data != 0;
     }
 
-    PBYTE UnpackBytes (_parser *const parser, uint32_t *const n_out) {
+    PBYTE UnpackBytes (_parser *const parser, uint32 *const n_out) {
 
-        uint8_t *output     = { };
-        uint32_t length     = 0;
+        uint8 *output     = { };
+        uint32 length     = 0;
 
-        if (!parser || parser->Length < 4) {
+        if (!parser || parser->length < 4) {
             return nullptr;
         }
 
@@ -185,17 +185,17 @@ namespace Parser {
             return nullptr;
         }
 
-        parser->Length -= length;
+        parser->length -= length;
         parser->buffer = B_PTR(parser->buffer) + length;
 
         return output;
     }
 
-    LPSTR UnpackString(_parser *const parser, uint32_t *const n_out) {
+    LPSTR UnpackString(_parser *const parser, uint32 *const n_out) {
         return (char*) UnpackBytes(parser, n_out);
     }
 
-    LPWSTR UnpackWString(_parser *const parser, uint32_t *const n_out) {
+    LPWSTR UnpackWString(_parser *const parser, uint32 *const n_out) {
         return (wchar_t*) UnpackBytes(parser, n_out);
     }
 }

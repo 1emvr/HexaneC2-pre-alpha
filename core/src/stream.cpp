@@ -34,14 +34,14 @@ namespace Stream {
         return stream;
     }
 
-    _stream * CreateStreamWithHeaders(uint32_t msg_type) {
+    _stream * CreateStreamWithHeaders(uint32_t type) {
         HEXANE;
 
         _stream *stream = CreateStream();
 
         PackUint32(stream, ctx->session.peer_id);
         PackUint32(stream, ctx->session.current_taskid);
-        PackUint32(stream, msg_type);
+        PackUint32(stream, type);
 
         return stream;
     }
@@ -70,11 +70,11 @@ namespace Stream {
                 MemSet(stream->buffer, 0, stream->length);
                 Free(stream->buffer);
 
-                stream->buffer      = nullptr;
-                stream->peer_id     = 0;
-                stream->task_id     = 0;
-                stream->msg_type    = 0;
-                stream->length      = 0;
+                stream->buffer   = nullptr;
+                stream->peer_id  = 0;
+                stream->task_id  = 0;
+                stream->type     = 0;
+                stream->length   = 0;
             }
 
             Free(stream);
