@@ -11,7 +11,8 @@ using namespace Memory::Methods;
 namespace Objects {
 
     // TODO: add common BOF/internal implant functions
-    HASH_MAP RDATA internal_map[] = {
+    HASH_MAP
+    __attribute__((used, section(".rdata"))) internal_map[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
@@ -21,7 +22,8 @@ namespace Objects {
         { .name = 0, .address = nullptr },
     };
 
-    HASH_MAP RDATA bof_map[] = {
+    HASH_MAP
+    __attribute__((used, section(".rdata"))) bof_map[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
@@ -31,7 +33,9 @@ namespace Objects {
         { .name = 0, .address = nullptr },
     };
 
-    PVOID DATA wrapper_return = nullptr;
+    PVOID
+    __attribute__((used, section(".data"))) wrapper_return = nullptr;
+
     LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS exception) {
 
         _stream *stream = CreateTaskResponse(TypeError);

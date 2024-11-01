@@ -10,7 +10,8 @@ using namespace Memory::Context;
 
 // TODO: delegate functions and api separately to stager/payload
 namespace Main {
-    UINT8 RDATA Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
+    UINT8
+    __attribute__((used, section(".data"))) Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
 
     VOID MainRoutine() {
         HEXANE;

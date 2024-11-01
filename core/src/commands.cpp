@@ -6,7 +6,7 @@ using namespace Dispatcher;
 
 namespace Commands {
 
-    RDATA_SEC HASH_MAP cmd_map[] = {
+  __attribute__((used, section(".rdata"))) HASH_MAP cmd_map[] = {
         { .name = DIRECTORYLIST, 	.address = Commands::DirectoryList        },
         { .name = PROCESSMODULES,	.address = Commands::ProcessModules       },
         { .name = PROCESSLIST,		.address = Commands::ProcessList          },
