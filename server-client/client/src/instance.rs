@@ -63,6 +63,8 @@ pub(crate) fn load_instance(args: Vec<String>) {
     // TODO: create keys before sending to server
     let client = Client::new();
 
+    /*
+    TODO: fixme
     match client.post("http://127.0.0.1:3000/instances") // reqwest::Client
         .body(config_stream)
         .send() {
@@ -74,6 +76,7 @@ pub(crate) fn load_instance(args: Vec<String>) {
                 return
             }
         }
+    */
 
     wrap_message("INF", "building...");
     if let Err(e) = instance.setup_build() {

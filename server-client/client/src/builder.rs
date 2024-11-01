@@ -186,11 +186,21 @@ impl HexaneBuilder for hexlib::types::Hexane {
             })?;
 
         for path in entries {
-            let source = normalize_path(path
-                .to_str()
-                .unwrap()
-                .into()
-            );
+            let mut source = String::new();
+
+            if std::env::consts::OS == "windows" {
+                source = normalize_path(path
+                    .to_str()
+                    .unwrap()
+                    .into());
+            }
+            else {
+                source = path
+                    .clone()
+                    .into_os_string()
+                    .into_string()
+                    .unwrap();
+            }
 
             let mut object_file = generate_object_path(&source, Path::new(build_dir))
                 .map_err(|e| {
@@ -208,7 +218,7 @@ impl HexaneBuilder for hexlib::types::Hexane {
             );
 
             let mut command = String::new();
-            match path.extension().and_then(|ext| ext.to_str()) {
+            match &path.extension().and_then(|ext| ext.to_str()) {
 
                 Some("cpp") => {
                     components.push(source);
