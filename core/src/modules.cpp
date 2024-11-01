@@ -644,7 +644,7 @@ namespace Modules {
 
   PEXECUTABLE ImportModule(const uint32 load_type, const uint32 name_hash, uint8 *memory, const uint32 mem_size, wchar_t *name) {
     // NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
-    // everything loaded with this unit MUST RESIDE in System32 due to path finding limitations
+    // everything loaded with this unit MUST RESIDE in System32 due to hashing 
     // may add more paths later or change search logic, but it's not likely.
 
     HEXANE;
