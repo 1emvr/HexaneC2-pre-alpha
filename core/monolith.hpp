@@ -2,17 +2,9 @@
 #define HEXANE_MONOLITH_HPP
 #include <core/ntimports.hpp>
 
-EXTERN_C
-ULONG
-:__instance;
-
-EXTERN_C
-LPVOID
-InstStart();
-
-EXTERN_C
-LPVOID
-InstEnd();
+EXTERN_C ULONG __instance;
+EXTERN_C LPVOID InstStart();
+EXTERN_C LPVOID InstEnd();
 
 typedef int8_t int8;
 typedef int16_t int16;
@@ -38,35 +30,34 @@ typedef uint64_t uint64;
 #define WIN_VERSION_2016_X      		11
 
 
-#define ntstatus 					    ctx->teb->LastErrorValue
 #define GLOBAL_OFFSET                   (U_PTR(InstStart()) + U_PTR( &__instance))
-#define HEXANE 						    _hexane* ctx = (_hexane*) C_DREF(GLOBAL_OFFSET)
+#define HEXANE                          _hexane* ctx = (_hexane*) C_DREF(GLOBAL_OFFSET)
 
-#define B_PTR(x)						((PBYTE) x)
-#define C_PTR(x)        				((LPVOID) x)
-#define U_PTR(x)        				((UINT_PTR) x)
-#define S_PTR(x)        				((CONST CHAR*) x)
+#define B_PTR(x)                        ((PBYTE) x)
+#define C_PTR(x)                        ((LPVOID) x)
+#define U_PTR(x)                        ((UINT_PTR) x)
+#define S_PTR(x)                        ((CONST CHAR*) x)
 
-#define C_DREF(x)       				(*(VOID**) x)
-#define R_CAST(T, x)					(reinterpret_cast<T*>(x))
-#define RVA(T, b, r)					((T) U_PTR(b) + U_PTR(r))
-#define P_TYPE(T, x)					((T*) x)
+#define C_DREF(x)                       (*(VOID**) x)
+#define R_CAST(T, x)                    (reinterpret_cast<T*>(x))
+#define RVA(T, b, r)                    ((T) U_PTR(b) + U_PTR(r))
+#define P_TYPE(T, x)                    ((T*) x)
 
 
 #define DTYPE(x)						decltype(x) *x
 #define FUNCTION						TEXT_SECTION(B)
-#define CONFIG						    TEXT_SECTION(F)
-#define SECTION(x)					    __attribute__((used, section(x)))
-#define TEXT_SECTION(x) 				__attribute__((used, section(".text$" #x "")))
-#define DLL_EXPORT 					    __declspec(dllexport)
+#define CONFIG                          TEXT_SECTION(F)
+#define SECTION(x)                      __attribute__((used, section(x)))
+#define TEXT_SECTION(x)                 __attribute__((used, section(".text$" #x "")))
+#define DLL_EXPORT                      __declspec(dllexport)
 
-#define PS_ATTR_LIST_SIZE(n)			(sizeof(PS_ATTRIBUTE_LIST) + (sizeof(PS_ATTRIBUTE) * (n - 1)))
+#define PS_ATTR_LIST_SIZE(n)            (sizeof(PS_ATTRIBUTE_LIST) + (sizeof(PS_ATTRIBUTE) * (n - 1)))
 #define MODULE_NAME(mod)				(mod->BaseDllName.Buffer)
 
-#define PEB_POINTER64				    ((PPEB) __readgsqword(0x60))
-#define PEB_POINTER32				    ((PPEB) __readfsdword(0x30))
-#define REG_PEB32(thr) 				    ((LPVOID) (ULONG_PTR) thr.Ebx + 0x8)
-#define REG_PEB64(thr) 				    ((LPVOID) (ULONG_PTR) thr.Rdx + 0x10)
+#define PEB_POINTER64                   ((PPEB) __readgsqword(0x60))
+#define PEB_POINTER32                   ((PPEB) __readfsdword(0x30))
+#define REG_PEB32(thr)                  ((LPVOID) (ULONG_PTR) thr.Ebx + 0x8)
+#define REG_PEB64(thr)                  ((LPVOID) (ULONG_PTR) thr.Rdx + 0x10)
 
 #define ITER_SECTION_HEADER(data, i)	((PIMAGE_SECTION_HEADER) B_PTR(data) + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * i))
 #define SYMBOL_TABLE(data, nt_head) 	RVA(_coff_symbol*, data, nt_head->FileHeader.PointerToSymbolTable)
@@ -76,28 +67,28 @@ typedef uint64_t uint64;
 
 #define NtCurrentProcess()              ((HANDLE) (LONG_PTR) -1)
 #define NtCurrentThread()               ((HANDLE) (LONG_PTR) -2)
-#define PIPE_BUFFER_MAX				    (64 * 1000 - 1)
-#define NT_SUCCESS(x)				    (x >= 0)
+#define PIPE_BUFFER_MAX                 (64 * 1000 - 1)
+#define NT_SUCCESS(x)                   (x >= 0)
 
-#define NONCE_SIZE					    ((uint32_t) 16)
-#define DH_KEY_SIZE				        ((uint32_t) 2048)
+#define NONCE_SIZE                      ((uint32_t) 16)
+#define DH_KEY_SIZE                     ((uint32_t) 2048)
 #define AES_KEY_SIZE					((uint32_t) 16)
 
-#define Malloc(s)					    ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, s)
-#define Realloc(p, s) 	    		    ctx->win32.RtlReAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, p, s)
+#define Malloc(s)                       ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, s)
+#define Realloc(p, s)                   ctx->win32.RtlReAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, p, s)
 #define Free(s) 			    	    ctx->win32.RtlFreeHeap(ctx->heap, 0, s)
 
-#define x_assert(x)     				if (!(x)) goto defer
-#define x_assertb(x) 				    if (!(x)) { success = false; goto defer; }
-#define x_ntassert(x)   				ntstatus = x; if (!NT_SUCCESS(ntstatus)) goto defer
-#define x_ntassertb(x)   			    ntstatus = x; if (!NT_SUCCESS(ntstatus)) { success = false; goto defer; }
-#define return_defer(x)			        ntstatus = x; goto defer
+#define x_assert(x)                     if (!(x)) goto defer
+#define x_assertb(x)                    if (!(x)) { success = false; goto defer; }
+#define x_ntassert(x)                   ntstatus = x; if (!NT_SUCCESS(ntstatus)) goto defer
+#define x_ntassertb(x)                  ntstatus = x; if (!NT_SUCCESS(ntstatus)) { success = false; goto defer; }
+#define return_defer(x)                 ntstatus = x; goto defer
 
-#define INIT_LIST_ENTRY(entry)		    ((entry)->Blink = (entry)->Flink = (entry))
-#define F_PTR_HMOD(F, M, SH)			(F = (decltype(F)) Modules::FindExportAddress(M, SH))
-#define F_PTR_HASHES(F, MH, SH)		    (F = (decltype(F)) Modules::FindExportAddress((Modules::FindModuleEntry(MH)->DllBase), SH))
-#define C_PTR_HASHES(F, MH, SH)		    (F = (void*) Modules::FindExportAddress((Modules::FindModuleEntry(MH)->DllBase), SH))
-#define M_PTR(MH)					    ((Modules::FindModuleEntry(MH))->DllBase)
+#define INIT_LIST_ENTRY(entry)          ((entry)->Blink = (entry)->Flink = (entry))
+#define F_PTR_HMOD(F, M, SH)            (F = (decltype(F)) Modules::FindExportAddress(M, SH))
+#define F_PTR_HASHES(F, MH, SH)         (F = (decltype(F)) Modules::FindExportAddress((Modules::FindModuleEntry(MH)->DllBase), SH))
+#define C_PTR_HASHES(F, MH, SH)         (F = (void*) Modules::FindExportAddress((Modules::FindModuleEntry(MH)->DllBase), SH))
+#define M_PTR(MH)                       ((Modules::FindModuleEntry(MH))->DllBase)
 
 #if	defined(__GNUC__) || defined(__GNUG__)
 #define __builtin_bswap32 __bswapd
@@ -108,24 +99,24 @@ typedef uint64_t uint64;
 #define PAGE_ALIGN(x)           (B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
 #define ARRAY_LEN(p)            sizeof(p) / sizeof(p[0])
 #define DYN_ARRAY_LEN(i, p)     while (p[i]) { i++; }
-#define RANGE(b, e, x)          (x >= b && x < e)
+#define IN-RANGE(b, e, x)       (x >= b && x < e)
 
-#define FILL_MBS(s, b)			   \
+#define FILL_MBS(s, b)                 \
 s.length = (USHORT) MbsLength(b);  \
-s.max_length = s.length;		   \
+s.max_length = s.length;           \
 s.buffer = b
 
-#define FILL_WCS(s, b)			   \
+#define FILL_WCS(s, b)                 \
 s.length = (USHORT) WcsLength(b);  \
-s.max_length = s.length;		   \
+s.max_length = s.length;           \
 s.buffer = b
 
 #define InitializeObjectAttributes(ptr, name, attr, root, sec) \
-(ptr)->Length = sizeof( OBJECT_ATTRIBUTES );				   \
-(ptr)->RootDirectory = root;								   \
-(ptr)->Attributes = attr;								       \
-(ptr)->ObjectName = name;								       \
-(ptr)->SecurityDescriptor = sec;							   \
+(ptr)->Length = sizeof( OBJECT_ATTRIBUTES);                \
+(ptr)->RootDirectory = root;                               \
+(ptr)->Attributes = attr;                                  \
+(ptr)->ObjectName = name;                                  \
+(ptr)->SecurityDescriptor = sec;                           \
 (ptr)->SecurityQualityOfService = NULL
 
 
