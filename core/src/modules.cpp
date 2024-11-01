@@ -524,8 +524,11 @@ namespace Modules {
         continue;
       }
 
+      const char *name = data.cFileName;
+
       if (HashStringA(name, MbsLength(name)) == name_hash) {
-        module->local_name = name;
+        module->local_name = (wchar_t*) Malloc(MbsLength(name) * sizeof(wchar_t) + 1);
+        MbsToWcs(module->local_name, name, MbsLength(name));
       }
     } while(ctx->win32.FindNextFileA(handle, &data));
     
@@ -535,7 +538,7 @@ namespace Modules {
     }
 
     MemCopy(module->cracked_name, sys32, sizeof(sys32));
-    MbsToWcs(module->cracked_name + (sizeof(sys32)), module->local_name);
+    MemCopy(module->cracked_name + (sizeof(sys32)), module->local_name, WcsLength(module->local_name));
 
     return true;
   }

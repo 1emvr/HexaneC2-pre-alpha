@@ -104,8 +104,8 @@ namespace Utils {
 
             ctx->win32.GetSystemTimeAsFileTime(&file_time);
 
-            large_iwin32.LowPart    = file_time.dwLowDateTime;
-            large_iwin32.HighPart   = (long) file_time.dwHighDateTime;
+            large_int.LowPart    = file_time.dwLowDateTime;
+            large_int.HighPart   = (long) file_time.dwHighDateTime;
 
             return large_iwin32.QuadPart;
         }
