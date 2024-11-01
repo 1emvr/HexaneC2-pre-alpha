@@ -159,12 +159,12 @@ using namespace Memory::Methods;
 			    const uint32 n_entries = !fn_name ? exports->NumberOfFunctions : exports->NumberOfNames;
 
 			    for (int ent_index = 0; ent_index < n_entries; ent_index++) {
-				    bool found = false;
+				    bool found        = false;
 				    uint32 fn_ordinal = 0;
 
 				    if (!fn_name) {
-					    uint32 *p_rva = RVA(uint32 *, module, exports->AddressOfNames + ent_index * sizeof(uint32));
-					    const char *name = RVA(const char *, module, *p_rva);
+					    uint32 *p_rva = RVA(uint32*, module, exports->AddressOfNames + ent_index * sizeof(uint32));
+					    const char *name = RVA(const char*, module, *p_rva);
 
 					    if (MbsLength(name) != fn_name->length) {
 						    continue;
@@ -194,30 +194,29 @@ using namespace Memory::Methods;
 						    int lib_length = 0;
 
 						    for (int i = 0; i < full_length; i++) {
-							    if (((char *) fn_pointer)[i] == '.') {
+							    if (((char*) fn_pointer)[i] == '.') {
 								    lib_length = i;
 								    break;
 							    }
 						    }
 						    if (lib_length != 0) {
-							    size_t fn_length = full_length - lib_length - 1;
-							    char lib_name[256] = { };
-
-							    MbsCopy(lib_name, (char *) fn_pointer, lib_length);
-							    MbsCopy(lib_name + lib_length, ".dll", 5);
-
+							    MBS_BUFFER fn_buffer = { };
+                                size_t fn_length = full_length - lib_length - 1;
 							    char *fn_name = (char *) fn_pointer + lib_length + 1;
-							    MBS_BUFFER mbs_fn_name = { };
-							    FILL_MBS(mbs_fn_name, fn_name);
+
+							    FILL_MBS(fn_buffer, fn_name);
+
+							    char lib_name[256] = { };
+							    MbsCopy(lib_name, (char*) fn_pointer, lib_length);
+							    MbsCopy(lib_name + lib_length, ".dll", 5);
 
 							    uint32 name_hash = HashStringA(lib_name, MbsLength(lib_name));
 							    LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(name_hash);
-
 							    if (!lib_entry || lib_entry->DllBase == module) {
 								    return false;
 							    }
 
-							    if (!LocalLdrFindExportAddress((HMODULE) lib_entry->DllBase, &mbs_fn_name, 0, &fn_pointer)) {
+							    if (!LocalLdrFindExportAddress((HMODULE) lib_entry->DllBase, &fn_buffer, 0, &fn_pointer)) {
 								    return false;
 							    }
 						    }
