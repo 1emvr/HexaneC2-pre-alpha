@@ -25,9 +25,8 @@ namespace Main {
             if (!CheckTime()) {
                 continue;
             }
-            if (!ctx->session.checkin &&
-                !ctx->message_queue) {
-                if (!CheckEnvironment()) {
+            if (!ctx->session.checkin && !ctx->message_queue) {
+                if (!EnumSystem()) {
                     break;
                 }
             }

@@ -11,7 +11,10 @@ use bincode;
 
 use hexlib::error::Result;
 use hexlib::error::Error::Custom;
-use hexlib::types::{Hexane, JsonData, UserSession};
+use hexlib::types::{Hexane, HexaneStream, JsonData, UserSession};
+
+use hexlib::types::NetworkType::Http as HttpType;
+use hexlib::types::NetworkType::Smb as SmbType;
 use hexlib::types::NetworkOptions::Http as HttpOpts;
 use hexlib::types::NetworkOptions::Smb as SmbOpts;
 
@@ -50,19 +53,18 @@ pub(crate) fn load_instance(args: Vec<String>) {
             return
         }
 
-    let serialized_instance = match bincode::serialize(&instance) {
-        Ok(data) => data,
-        Err(e) => {
-            wrap_message("ERR", format!("serialization failed: {e}").as_str());
+    // TODO: get network type and if http, collect endpoints
+    let config_stream = serialize_config(&instance)
+        .map_err(|e| {
+            wrap_message("ERR", format!("serialize_instance: {}", e).as_str());
             return
-        }
-    };
-
+        });
+        
     // TODO: create keys before sending to server
     let client = Client::new();
 
     match client.post("http://127.0.0.1:3000/instances") // reqwest::Client
-        .body(serialized_instance)
+        .body(config_stream)
         .send() {
             Ok(response) => {
                 wrap_message("INF", format!("server response: {:?}", response.text().unwrap()).as_str());
@@ -81,6 +83,52 @@ pub(crate) fn load_instance(args: Vec<String>) {
 
     wrap_message("INF", format!("{} is ready", name).as_str());
     instances.push(instance);
+}
+
+pub(crate) fn serialize_config(instance: &Hexane) ->Result<Vec<u8>> {
+    if let Some(network) = &instance.network_cfg.as_mut() {
+
+        let rtype = &network.r#type;
+        let opts = &network.options;
+
+        let mut endpoints: Vec<String> = Vec::new();
+        match (rtype, &opts) {
+
+            (HttpType, HttpOpts(ref http)) => {
+                for endpoint in &http.endpoints {
+                    endpoints.push(endpoint.clone());
+                }
+            }
+
+            (SmbType, SmbOpts(ref smb)) => (),
+            _ => {
+                wrap_message("ERR", "serialize_instance: unknown network type");
+                return Err(Custom("serialize_instance: unknown network type".to_string()))
+            }
+        }
+
+        let session = SESSION.lock().unwrap();
+        let config_stream = HexaneStream {
+            peer_id:       instance.peer_id.clone(),
+            group_id:      instance.group_id.clone(),
+            network_type:  rtype.clone(),
+            username:      session.username.clone(),
+            session_key:   vec![],
+            endpoints:     endpoints, 
+        };
+
+        match serde_json::to_vec(&config_stream) {
+            Ok(data) => Ok(data),
+            Err(e) => {
+                wrap_message("ERR", format!("serialization failed: {e}").as_str());
+                Err(Custom(format!("serialization failed: {e}").to_string()))
+            }
+        }
+    }
+    else {
+        wrap_message("ERR", "serialize_instance: network configuration missing");
+        Err(Custom("serialize_instance: network configuration missing".to_string()))
+    }
 }
 
 pub(crate) fn remove_instance(args: Vec<String>) {

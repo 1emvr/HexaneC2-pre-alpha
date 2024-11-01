@@ -14,6 +14,10 @@ Main {
 
     BOOL
     FUNCTION
+        EnumSystem();
+
+    BOOL
+    FUNCTION
         ResolveApi();
 
     BOOL
