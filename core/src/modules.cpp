@@ -650,25 +650,26 @@ namespace Modules {
         module->link = true;
 
         switch (LOWORD(load_type)) {
-            case LoadLocalFile:
-            if (!FindModule(module, name_hash) || !ReadModule(module)) {
-                goto defer;
-            }
-            break;
+            case LoadLocalFile: {
+				if (!FindModule(module, name_hash) || !ReadModule(module)) {
+					goto defer;
+				}
+				break;
+			},
+            case LoadMemory: {
+				module->size         = mem_size;
+				module->buffer       = memory;
+				module->cracked_name = name;
+				module->local_name   = name;
 
-            case LoadMemory:
-            module->size = mem_size;
-            module->buffer = memory;
-            module->cracked_name = name;
-            module->local_name = name;
-
-            if (name == nullptr) {
-                goto defer;
-            }
-            break;
+				if (name == nullptr) {
+					goto defer;
+				}
+				break;
+			},
 
             default:
-            break;
+			break;
         }
 
         if (load_type & NoLink)
