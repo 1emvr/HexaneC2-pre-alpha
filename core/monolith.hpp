@@ -175,7 +175,7 @@ s.buffer = b
 
 #define UNMANAGED_PROCESS                           0
 #define MANAGED_PROCESS                             1
-#define ERROR_EXI                                  T0x7FFFFFFF
+#define ERROR_EXI                                   0x7FFFFFFF
 #define DBG_FLAG_OFFSET64                           0x000000BC
 #define DBG_FLAG_OFFSET32                           0x00000068
 #define FLG_HEAP_ENABLE_TAIL_CHECK                  0x00000020
@@ -296,8 +296,8 @@ enum DX_MEMORY {
 
 
 typedef struct _hash_map {
-	DWORD	name;
-	LPVOID   address;
+	DWORD   name;
+	LPVOID  address;
 }HASH_MAP, *PHASH_MAP;
 
 
@@ -316,14 +316,14 @@ typedef struct _buffer {
 typedef struct _mbs_buffer {
 	LPSTR    buffer;
 	ULONG    length;
-	ULONG	max_length;
+	ULONG    max_length;
 }MBS_BUFFER, *PMBS_BUFFER;
 
 
 typedef struct _wcs_buffer {
-	LPWSTR    buffer;
-	ULONG 	length;
-	ULONG	 max_length;
+	LPWSTR   buffer;
+	ULONG    length;
+	ULONG    max_length;
 }WCS_BUFFER, *PWCS_BUFFER;
 
 
@@ -346,8 +346,8 @@ typedef struct _threadless {
 typedef struct _veh_writer {
     LPVOID   target;
     PWCHAR   mod_name;
-    PCHAR	signature;
-    PCHAR	mask;
+    PCHAR    signature;
+    PCHAR    mask;
 }VEH_WRITER, *PVEH_WRITER;
 
 
@@ -366,15 +366,15 @@ typedef struct _coff_symbol {
 
 
 typedef struct _coff_params {
-	PCHAR	    entrypoint;
-	DWORD	    entrypoint_length;
-	PVOID	    data;
-	PVOID	    args;
-	SIZE_T       data_size;
-	SIZE_T       args_size;
-	UINT32       task_id;
-	UINT32       bof_id;
-    BOOL	     b_cache;
+	PCHAR    entrypoint;
+	DWORD    entrypoint_length;
+	PVOID    data;
+	PVOID    args;
+	SIZE_T   data_size;
+	SIZE_T   args_size;
+	UINT32   task_id;
+	UINT32   bof_id;
+    BOOL     b_cache;
 	_coff_params *next;
 }COFF_PARAMS, *PCOFF_PARAMS;
 
@@ -386,7 +386,6 @@ typedef struct _inject_context {
 	HANDLE  thread;
 	SHORT   arch;
 	BOOL    b_stdout;
-
 	BOOL    suspend_awake;
 	LPVOID  parameter;
 	UINT32  parameter_size;
@@ -395,42 +394,42 @@ typedef struct _inject_context {
 
 
 typedef struct _reloc {
-	UINT32	VirtualAddress;
-	UINT32	SymbolTableIndex;
-	UINT16	Type;
+	UINT32  VirtualAddress;
+	UINT32  SymbolTableIndex;
+	UINT16  Type;
 } RELOC, *PRELOC;
 
 
 typedef struct _executable {
-	BOOL					link;
-	BOOL					success;
-	PBYTE				   buffer;
-	PIMAGE_NT_HEADERS	   nt_head;
-	ULONG_PTR			   base;
-	LPVOID				  text;
+	BOO                     Llink;
+	BOOL                    success;
+	PBYTE                   buffer;
+	PIMAGE_NT_HEADERS       nt_head;
+	ULONG_PTR               base;
+	LPVOID                  text;
 
-	LPWSTR				  local_name;
-	LPWSTR				  cracked_name;
+	LPWSTR                  local_name;
+	LPWSTR                  cracked_name;
 	IMAGE_SECTION_HEADER    *section;
 	IMAGE_EXPORT_DIRECTORY  *exports;
-	SIZE_T 				 size;
+	SIZE_T                  size;
 
-	UINT32				  task_id;
-	PRELOC 				 reloc;
-	PCOFF_SYMBOL 		   symbols;
-	POBJECT_MAP 			fn_map;
-	POBJECT_MAP 			sec_map;
-	INT					 n_reloc;
-	INT					 n_mapping;
+	UINT32                  task_id;
+	PRELOC                  reloc;
+	PCOFF_SYMBOL            symbols;
+	POBJECT_MAP             fn_map;
+	POBJECT_MAP             sec_map;
+	INT                     n_reloc;
+	INT                     n_mapping;
 
-	HANDLE 				 heap;
-	HANDLE 				 handle;
-	HANDLE 				 thread;
-	PPS_ATTRIBUTE_LIST 	 attrs;
+	HANDLE                  heap;
+	HANDLE                  handle;
+	HANDLE                  thread;
+	PPS_ATTRIBUTE_LIST      attrs;
 	PRTL_USER_PROCESS_PARAMETERS params;
-	PS_CREATE_INFO 		 create;
-	_executable 			*next;
+	PS_CREATE_INFO          create;
 
+	_executable *next;
 } EXECUTABLE, *PEXECUTABLE;
 
 
@@ -449,25 +448,25 @@ typedef struct _proxy_context {
 
 
 typedef struct _proxy {
-	LPWSTR	address;
-	LPWSTR	username;
-	LPWSTR	password;
+	LPWSTR address;
+	LPWSTR username;
+	LPWSTR password;
 }PROXY, *PPROXY;
 
 
 typedef struct _http_context {
-	HINTERNET   handle;
-	LPWSTR  	useragent;
-	LPWSTR  	method;
-	LPWSTR	  address;
-	INT 		port;
-	LPCWSTR	 accept;
-	ULONG	   access;
-	ULONG 	  flags;
-	INT 		n_endpoints;
-	LPWSTR	  *endpoints;
-	LPWSTR	  *headers;
-	PROXY	   *proxy;
+	HINTERNET    handle;
+	LPWSTR       useragent;
+	LPWSTR       method;
+	LPWSTR       address;
+	INT          port;
+	LPCWSTR      accept;
+	ULONG        access;
+	ULONG        flags;
+	INT          n_endpoints;
+	LPWSTR       *endpoints;
+	LPWSTR       *headers;
+	PROXY        *proxy;
 }HTTP_CONTEXT, *PHTTP_CONTEXT;
 
 
@@ -486,9 +485,9 @@ typedef struct _token_data {
 
 
 typedef struct _pipe_data {
-	DWORD 	  peer_id;
-	HANDLE 	 pipe_handle;
-	LPWSTR 	 pipe_name;
+	DWORD    peer_id;
+	HANDLE   pipe_handle;
+	LPWSTR   pipe_name;
 	_pipe_data  *next;
 }PIPE_DATA, *PPIPE_DATA;
 
@@ -497,10 +496,10 @@ typedef void (*OBJ_ENTRY)(char* args, uint32_t size);
 
 
 struct LdrpVectorHandlerEntry {
-    LdrpVectorHandlerEntry 		*flink;
-    LdrpVectorHandlerEntry 		*blink;
-    uint64_t 					unknown1;
-    uint64_t 					unknown2;
+    LdrpVectorHandlerEntry *flink;
+    LdrpVectorHandlerEntry *blink;
+    uint64_t               unknown1;
+    uint64_t               unknown2;
     PVECTORED_EXCEPTION_HANDLER handler;
 };
 
@@ -520,21 +519,22 @@ typedef struct _parser {
 
 
 typedef struct _stream {
-    BYTE 	inbound;
-    ULONG    peer_id;
-    ULONG    task_id;
-    ULONG    type;
-    ULONG    length;
-    PBYTE	buffer;
-    BOOL 	ready;
+    BYTE    inbound;
+    ULONG   peer_id;
+    ULONG   task_id;
+    ULONG   type;
+    ULONG   length;
+    PBYTE   buffer;
+    BOOL    ready;
+
     _stream  *next;
 } STREAM, *PSTREAM;
 
 
 struct _hexane {
-	PTEB 		 teb;
-	LPVOID 	   heap;
-	DWORD 		n_threads;
+	PTEB          teb;
+	LPVOID        heap;
+	DWORD         n_threads;
 	PCOFF_PARAMS  bof_cache;
 	PPIPE_DATA    peers;
 
@@ -566,29 +566,29 @@ struct _hexane {
 	} config;
 
 	struct {
-		WORD	arch;
-		ULONG   ppid;
-		ULONG   pid;
-		ULONG   tid;
-		ULONG   version;
-		ULONG   current_taskid;
-        ULONG   peer_id;
-		UINT32  retries;
-		BOOL	checkin;
+		WORD   arch;
+		ULONG  ppid;
+		ULONG  pid;
+		ULONG  tid;
+		ULONG  version;
+		ULONG  current_taskid;
+        ULONG  peer_id;
+		UINT32 retries;
+		BOOL   checkin;
 	} session;
 
 	struct {
-		PHTTP_CONTEXT  http;
-		PPIPE_DATA 	pipe_data;
+		PHTTP_CONTEXT http;
+		PPIPE_DATA    pipe_data;
         LPWSTR         egress_name;
         HANDLE         egress_handle;
-		LPSTR 		 domain;
-		LPVOID	     env_proxy;
-		SIZE_T	     env_proxylen;
-		BOOL  	     b_ssl;
-		BOOL	       b_proxy;
-		BOOL	       b_envproxy;
-		BOOL	       b_envproxy_check;
+		LPSTR          domain;
+		LPVOID         env_proxy;
+		SIZE_T         env_proxylen;
+		BOOL           b_ssl;
+		BOOL           b_proxy;
+		BOOL           b_envproxy;
+		BOOL           b_envproxy_check;
 	    PSTREAM        message_queue;
 	} transport;
 
