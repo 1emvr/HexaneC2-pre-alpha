@@ -14,7 +14,7 @@ namespace Threads {
         thread_attr.Entry.ValuePtr      = &cid;
         thread_attr.Length              = sizeof(PROC_THREAD_ATTRIBUTE_LIST);
 
-        ntstatus = Ctx->nt.NtCreateThreadEx(&thread, THREAD_ALL_ACCESS, nullptr, process, (PUSER_THREAD_START_ROUTINE) entry, args, false, 0, 0, 0, (PS_ATTRIBUTE_LIST*)&thread_attr);
+        ntstatus = ctx->win32.NtCreateThreadEx(&thread, THREAD_ALL_ACCESS, nullptr, process, (PUSER_THREAD_START_ROUTINE) entry, args, false, 0, 0, 0, (PS_ATTRIBUTE_LIST*)&thread_attr);
         if (NT_SUCCESS(ntstatus)) {
             if (tid) {
                 *tid = U_PTR(cid.UniqueThread);

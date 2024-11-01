@@ -216,7 +216,7 @@ namespace Hash {
 
         ULONG result = 0;
 
-        if (!NT_SUCCESS(ntstatus = ctx->utilapi.RtlHashUnicodeString(&uni_name, TRUE, 0, &result))) {
+        if (!NT_SUCCESS(ntstatus = ctx->win32.RtlHashUnicodeString(&uni_name, TRUE, 0, &result))) {
             return 0;
         }
         if (xor_hash) {

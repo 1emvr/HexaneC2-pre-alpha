@@ -85,9 +85,9 @@ typedef uint64_t uint64;
 #define DH_KEY_SIZE						((uint32_t) 2048)
 #define AES_KEY_SIZE					((uint32_t) 16)
 
-#define Malloc(s)						ctx->memapi.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, s)
-#define Realloc(p, s) 	    			ctx->memapi.RtlReAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, p, s)
-#define Free(s) 			    		ctx->memapi.RtlFreeHeap(ctx->heap, 0, s)
+#define Malloc(s)						ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, s)
+#define Realloc(p, s) 	    			ctx->win32.RtlReAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, p, s)
+#define Free(s) 			    		ctx->win32.RtlFreeHeap(ctx->heap, 0, s)
 
 #define x_assert(x)     				if (!(x)) goto defer
 #define x_assertb(x) 					if (!(x)) { success = false; goto defer; }

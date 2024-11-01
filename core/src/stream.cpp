@@ -39,8 +39,8 @@ namespace Stream {
 
         _stream *stream = CreateStream();
 
-        PackUint32(stream, Ctx->session.peer_id);
-        PackUint32(stream, Ctx->session.current_taskid);
+        PackUint32(stream, ctx->session.peer_id);
+        PackUint32(stream, ctx->session.current_taskid);
         PackUint32(stream, msg_type);
 
         return stream;

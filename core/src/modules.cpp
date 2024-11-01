@@ -412,12 +412,12 @@ using namespace Memory::Methods;
 
 		    module->base = pre_base;
 
-		    if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
+		    if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
 		        module->base != pre_base) {
 			    module->base = 0;
 			    region_size = module->nt_head->OptionalHeader.SizeOfImage;
 
-			    if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE))) {
+			    if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE))) {
 				    return false;
 			    }
 		    }
@@ -495,7 +495,7 @@ using namespace Memory::Methods;
 			    }
 		    } while (true);
 
-		    if (!ctx->memapi.RtlRbInsertNodeEx(index, &node->BaseAddressIndexNode, right_hand, &entry->BaseAddressIndexNode)) {
+		    if (!ctx->win32.RtlRbInsertNodeEx(index, &node->BaseAddressIndexNode, right_hand, &entry->BaseAddressIndexNode)) {
 			    return false;
 		    }
 
@@ -523,7 +523,7 @@ using namespace Memory::Methods;
 		    wchar_t location[MAX_PATH] = L"C:\\Windows\\System32\\";
 		    WcsConcat(location, filename);
 
-		    if (ctx->ioapi.GetFileAttributesW(location) == INVALID_FILE_ATTRIBUTES) {
+		    if (ctx->win32.GetFileAttributesW(location) == INVALID_FILE_ATTRIBUTES) {
 			    Free(module->cracked_name);
 			    return false;
 		    }
@@ -535,29 +535,29 @@ using namespace Memory::Methods;
 	    BOOL ReadModule(EXECUTABLE *module) {
 		    HEXANE;
 
-		    HANDLE handle = ctx->ioapi.CreateFileW(module->local_name, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
+		    HANDLE handle = ctx->win32.CreateFileW(module->local_name, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
 		    if (handle == INVALID_HANDLE_VALUE) {
 			    return false;
 		    }
 
-		    SIZE_T size = ctx->ioapi.GetFileSize(handle, nullptr);
+		    SIZE_T size = ctx->win32.GetFileSize(handle, nullptr);
 		    if (size == INVALID_FILE_SIZE) {
-			    ctx->utilapi.NtClose(handle);
+			    ctx->win32.NtClose(handle);
 			    return false;
 		    }
 
-		    if (!NT_SUCCESS(ntstatus = ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (void **) &module->buffer, size, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
-			    ctx->utilapi.NtClose(handle);
+		    if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void **) &module->buffer, size, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+			    ctx->win32.NtClose(handle);
 			    return false;
 		    }
 
-		    if (!ctx->ioapi.ReadFile(handle, module->buffer, size, (DWORD *) &module->size, nullptr)) {
-			    ctx->memapi.NtFreeVirtualMemory(NtCurrentProcess(), (void **) &module->buffer, &module->size, 0);
-			    ctx->utilapi.NtClose(handle);
+		    if (!ctx->win32.ReadFile(handle, module->buffer, size, (DWORD *) &module->size, nullptr)) {
+			    ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void **) &module->buffer, &module->size, 0);
+			    ctx->win32.NtClose(handle);
 			    return false;
 		    }
 
-		    ctx->utilapi.NtClose(handle);
+		    ctx->win32.NtClose(handle);
 		    return true;
 	    }
 
@@ -570,8 +570,8 @@ using namespace Memory::Methods;
 
 		    nt_head = RVA(PIMAGE_NT_HEADERS, module->buffer, ((PIMAGE_DOS_HEADER)module->buffer)->e_lfanew);
 
-		    ctx->utilapi.RtlInitUnicodeString(&FullDllName, module->local_name);
-		    ctx->utilapi.RtlInitUnicodeString(&BaseDllName, module->cracked_name);
+		    ctx->win32.RtlInitUnicodeString(&FullDllName, module->local_name);
+		    ctx->win32.RtlInitUnicodeString(&BaseDllName, module->cracked_name);
 
 		    PLDR_DATA_TABLE_ENTRY entry = (PLDR_DATA_TABLE_ENTRY) Malloc(sizeof(LDR_DATA_TABLE_ENTRY));
 		    if (!entry) {

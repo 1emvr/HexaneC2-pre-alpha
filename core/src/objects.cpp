@@ -117,7 +117,7 @@ namespace Objects {
         const auto file_head = image->nt_head->FileHeader;
 
         // NOTE: register veh as execution safety net
-        if (!(veh_handle = ctx->memapi.RtlAddVectoredExceptionHandler(1, &ExceptionHandler))) {
+        if (!(veh_handle = ctx->win32.RtlAddVectoredExceptionHandler(1, &ExceptionHandler))) {
             goto defer;
         }
 
@@ -145,14 +145,14 @@ namespace Objects {
                     protect |= PAGE_NOCACHE;
                 }
 
-                if (!NT_SUCCESS(ntstatus = ctx->memapi.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &image->sec_map[sec_index].address, &image->sec_map[sec_index].size, protect, nullptr))) {
+                if (!NT_SUCCESS(ntstatus = ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &image->sec_map[sec_index].address, &image->sec_map[sec_index].size, protect, nullptr))) {
                     goto defer;
                 }
             }
         }
 
         if (image->fn_map->size) {
-            if (!NT_SUCCESS(ntstatus = ctx->memapi.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &image->fn_map->address, &image->fn_map->size, PAGE_READONLY, nullptr))) {
+            if (!NT_SUCCESS(ntstatus = ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &image->fn_map->address, &image->fn_map->size, PAGE_READONLY, nullptr))) {
                 goto defer;
             }
         }
@@ -192,7 +192,7 @@ namespace Objects {
 
     defer:
         if (veh_handle) {
-            ctx->memapi.RtlRemoveVectoredExceptionHandler(veh_handle);
+            ctx->win32.RtlRemoveVectoredExceptionHandler(veh_handle);
         }
 
         return success;
@@ -416,7 +416,7 @@ namespace Objects {
         if (!image || !image->base) {
             return;
         }
-        if (!NT_SUCCESS(ntstatus = ctx->memapi.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &image->base, &image->size, PAGE_READWRITE, nullptr))) {
+        if (!NT_SUCCESS(ntstatus = ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &image->base, &image->size, PAGE_READWRITE, nullptr))) {
             // LOG ERROR
             return;
         }
@@ -426,7 +426,7 @@ namespace Objects {
         uintptr_t pointer   = image->base;
         size_t size         = image->size;
 
-        if (!NT_SUCCESS(ntstatus = ctx->memapi.NtFreeVirtualMemory(NtCurrentProcess(), (void **) &pointer, &size, MEM_RELEASE))) {
+        if (!NT_SUCCESS(ntstatus = ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void **) &pointer, &size, MEM_RELEASE))) {
             // LOG ERROR
             return;
         }
@@ -466,7 +466,7 @@ namespace Objects {
         }
 
         // NOTE: allocate space for sections
-        x_ntassertb(ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), (void **) &image->base, image->size, &image->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+        x_ntassertb(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void **) &image->base, image->size, &image->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
 
         for (uint16_t sec_index = 0; sec_index < image->nt_head->FileHeader.NumberOfSections; sec_index++) {
             const auto section = ITER_SECTION_HEADER(image->buffer, sec_index);

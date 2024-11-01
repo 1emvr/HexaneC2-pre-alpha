@@ -74,7 +74,7 @@ namespace Opsec {
         MEMORYSTATUSEX stats = { };
         stats.dwLength = sizeof(stats);
 
-        ctx->enumapi.GlobalMemoryStatusEx(&stats);
+        ctx->win32.GlobalMemoryStatusEx(&stats);
         return stats.ullAvailPhys > 4;
     }
 

