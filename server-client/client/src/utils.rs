@@ -73,7 +73,7 @@ pub(crate) fn get_hash_from_string(string: &str) -> u32 {
 
 fn create_hash_macro(input: &str) -> String {
     let hash = get_hash_from_string(input.to_lowercase().as_str());
-    
+
     let name = input.trim();
     let collection: Vec<&str> = name.split('.').collect();
 
@@ -120,53 +120,6 @@ pub(crate) fn find_double_u32(data: &[u8], egg: &[u8]) -> Result<usize> {
     }
 
     Err(Custom("egg was not found".to_string()))
-}
-
-pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
-    let log_dir = Path::new("./logs");
-
-    if !log_dir.exists() {
-        fs::create_dir_all(&log_dir)
-            .map_err(|e| {
-                wrap_message("ERR", format!("run_command:: create_dir_all: {:?} : {e}", log_dir).as_str());
-                return Custom(e.to_string())
-            })?;
-    }
-
-    let mut log_file = File::create(&log_dir.join(logname))
-        .map_err(|e| {
-            wrap_message("ERR", format!("run_command: file::create: {:?} : {e}", log_dir.join(logname)).as_str());
-            return Custom(e.to_string())
-        })?;
-
-    let mut command = Command::new("powershell");
-    command.arg("-c").arg(cmd);
-
-    let output = command.output()
-        .map_err(|e| {
-            wrap_message("ERR", format!("run_command: {:?} : {e}", command).as_str());
-            return Custom(e.to_string())
-        })?;
-
-    if !&output.stderr.is_empty() {
-
-        log_file.write_all(&output.stderr)
-            .map_err(|e| {
-                wrap_message("ERR", format!("run_command: {e}").as_str());
-                return Custom(e.to_string())
-            })?;
-
-        wrap_message("ERR", &format!("run_command: check {}/{} for details", log_dir.display(), logname));
-        return Err(Custom("run command failed".to_string()))
-    }
-
-    match output.status.success() {
-        true => Ok(()),
-        false  => {
-            wrap_message("ERR", "running command failed");
-            Err(Custom("run command failed".to_string()))
-        }
-    }
 }
 
 pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {

@@ -655,7 +655,7 @@ namespace Modules {
 					goto defer;
 				}
 				break;
-			},
+			}
             case LoadMemory: {
 				module->size         = mem_size;
 				module->buffer       = memory;
@@ -666,7 +666,7 @@ namespace Modules {
 					goto defer;
 				}
 				break;
-			},
+			}
 
             default:
 			break;
@@ -708,9 +708,11 @@ namespace Modules {
         }
 
         // trigger tls callbacks, set permissions and call the entry point
-        if (!BeginExecution(module)) {
-            goto defer;
-        }
+		/*
+				if (!BeginExecution(module)) {
+					goto defer;
+				}
+				*/
 
         module->success = true;
 

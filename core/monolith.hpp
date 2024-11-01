@@ -402,7 +402,7 @@ typedef struct _reloc {
 
 
 typedef struct _executable {
-	BOOL                    Llink;
+	BOOL                    link;
 	BOOL                    success;
 	PBYTE                   buffer;
 	PIMAGE_NT_HEADERS       nt_head;
