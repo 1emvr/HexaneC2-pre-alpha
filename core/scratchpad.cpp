@@ -1,3 +1,8 @@
+#define CALL_FUNCTION(mod_i, fn_i) \
+    (reinterpret_cast<decltype(&win32[mod_i].functions[fn_i].function)>(win32[mod_i].functions[fn_i].function))
+
+
+
 struct FunctionEntry {
   UINT32 fn_hash;
   LVPOID function;
