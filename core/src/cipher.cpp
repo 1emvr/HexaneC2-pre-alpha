@@ -1,13 +1,13 @@
 #include <core/include/cipher.hpp>
 namespace Xtea {
 
-    VOID Uint32ToBlock(const uint32_t v0, const uint32_t v1, uint8_t *dst)  {
+    VOID Uint32ToBlock(const uint32 v0, const uint32 v1, uint8 *dst)  {
 
         dst[0] = v0 >> 24; dst[1] = v0 >> 16; dst[2] = v0 >> 8; dst[3] = v0;
         dst[4] = v1 >> 24; dst[5] = v1 >> 16; dst[6] = v1 >> 8; dst[7] = v1;
     }
 
-    VOID XteaEncrypt(const _ciphertext *const cipher, uint8_t *const dst, const uint8_t *const src) {
+    VOID XteaEncrypt(const _ciphertext *const cipher, uint8 *const dst, const uint8 *const src) {
 
         _u32_block block = {
             block.v0 = src[0] << 24 | src[1] << 16 | src[2] << 8 | src[3],
@@ -22,7 +22,7 @@ namespace Xtea {
         Uint32ToBlock(block.v0, block.v1, dst);
     }
 
-    VOID XteaDecrypt(const _ciphertext *const cipher, uint8_t *const dst, const uint8_t *const src) {
+    VOID XteaDecrypt(const _ciphertext *const cipher, uint8 *const dst, const uint8 *const src) {
 
         _u32_block block = {
             block.v0 = src[0] << 24 | src[1] << 16 | src[2] << 8 | src[3],
@@ -37,17 +37,18 @@ namespace Xtea {
         Uint32ToBlock(block.v0, block.v1, dst);
     }
 
-    PBYTE *XteaDivide (const uint8_t *const data, const size_t n_data, size_t *const n_out) {
+    PBYTE *XteaDivide (const uint8 *const data, const size_t n_data, size_t *const n_out) {
         HEXANE;
 
         const auto n_sec    = (n_data + 8) -1 / 8;
-        const auto sections = (uint8_t**) Malloc(n_sec * sizeof(uint8_t*));
+        const auto sections = (uint8**) Malloc(n_sec * sizeof(uint8*));
 
         for (auto index = 0; index < n_sec; index++) {
-            if (!(sections[index] = B_PTR(Malloc(sizeof(uint8_t) * 8)))) {
+            if (!(sections[index] = B_PTR(Malloc(sizeof(uint8) * 8)))) {
 
                 for (auto i = 0; i < index; i++) {
-                    ZeroFree(sections[i], sizeof(uint64_t));
+                    MemSet(sections[i], 0, sizeof(uint64));
+                    Free(sections[i]);
                 }
 
                 Free(sections);
@@ -70,19 +71,19 @@ namespace Xtea {
         return sections;
     }
 
-    VOID InitCipher (_ciphertext *const cipher, const uint8_t *const m_key) {
+    VOID InitCipher (_ciphertext *const cipher, const uint8 *const m_key) {
 
-        uint32_t key[4] = { };
-        uint32_t sum    = { };
+        uint32 key[4] = { };
+        uint32 sum    = { };
 
         auto delta = XTEA_DELTA;
-        for (uint32_t key_index = 0; key_index < ARRAY_LEN(key); key_index++) {
+        for (uint32 key_index = 0; key_index < ARRAY_LEN(key); key_index++) {
 
             auto m_index = key_index << 2;
             key[key_index] = m_key[m_index+0] << 24 | m_key[m_index+1] << 16 | m_key[m_index+2] << 8  | m_key[m_index+3];
         }
 
-        for (uint32_t blk_index = 0; blk_index < NROUNDS;) {
+        for (uint32 blk_index = 0; blk_index < NROUNDS;) {
             cipher->table[blk_index] = sum + key[sum & 3];
             blk_index++;
 
@@ -92,10 +93,10 @@ namespace Xtea {
         }
     }
 
-    VOID XteaCrypt(uint8_t *const data, const size_t n_data, uint8_t *const m_key, const bool encrypt) {
+    VOID XteaCrypt(uint8 *const data, const size_t n_data, uint8 *const m_key, const bool encrypt) {
         HEXANE;
 
-        uint8_t **sections  = nullptr;
+        uint8 **sections  = nullptr;
         size_t n_secs       = 0;
         int32_t offset      = 0;
 
@@ -108,21 +109,22 @@ namespace Xtea {
         MemSet(data, 0, n_data);
 
         for (auto sec_index = 0; sec_index < n_secs; sec_index++) {
-            uint8_t buffer[8] = { };
+            uint8 buffer[8] = { };
 
             encrypt
                 ? XteaEncrypt(cipher, buffer, sections[sec_index])
                 : XteaDecrypt(cipher, buffer, sections[sec_index]);
 
-            MemCopy(RVA(uint8_t*, data, offset), C_PTR(buffer), sizeof(uint64_t));
+            MemCopy(RVA(uint8*, data, offset), C_PTR(buffer), sizeof(uint64));
             MemSet(buffer, 0, 8);
 
-            offset += sizeof(uint64_t);
+            offset += sizeof(uint64);
         }
 
-        for (uint64_t sec_index = 0; sec_index < n_secs; sec_index++) {
+        for (uint64 sec_index = 0; sec_index < n_secs; sec_index++) {
             if (sections[sec_index]) {
-                ZeroFree(sections[sec_index], sizeof(uint64_t));
+                MemSet(sections[sec_index], 0, sizeof(uint64));
+                Free(sections[sec_index]);
             } else {
                 break;
             }
@@ -139,10 +141,10 @@ namespace Xtea {
 TODO: experimental
 namespace Bcrypt {
 
-    BOOL DeriveDHSharedSecret(const BCRYPT_ALG_HANDLE provider_handle, const BCRYPT_KEY_HANDLE private_key, uint8_t *server_public, const uint32_t server_pub_size, uint8_t *shared_secret, uint32_t *shared_secret_size) {
+    BOOL DeriveDHSharedSecret(const BCRYPT_ALG_HANDLE provider_handle, const BCRYPT_KEY_HANDLE private_key, uint8 *server_public, const uint32 server_pub_size, uint8 *shared_secret, uint32 *shared_secret_size) {
 
         BCRYPT_KEY_HANDLE pub_handle = nullptr;
-        uint32_t secret_size = 0;
+        uint32 secret_size = 0;
 
         if (!NT_SUCCESS(ntstatus = BCryptImportKeyPair(provider_handle, nullptr, BCRYPT_DH_PUBLIC_BLOB, &pub_handle, server_public, server_pub_size, 0)) ||
             !NT_SUCCESS(ntstatus = BCryptSecretAgreement(private_key, pub_handle, &hSecretAgreement, 0)) ||
@@ -154,10 +156,10 @@ namespace Bcrypt {
         return NT_SUCCESS(BCryptDestroyKey(pub_handle));
     }
 
-    BOOL DeriveSessionKey(BCRYPT_ALG_HANDLE provider_handle, uint8_t *shared_secret, const uint8_t *nonce, const uint32_t counter, uint8_t *session_key) {
+    BOOL DeriveSessionKey(BCRYPT_ALG_HANDLE provider_handle, uint8 *shared_secret, const uint8 *nonce, const uint32 counter, uint8 *session_key) {
 
         BCRYPT_HASH_HANDLE hash_handle = nullptr;
-        uint8_t combined[NONCE_SIZE + sizeof(counter)];
+        uint8 combined[NONCE_SIZE + sizeof(counter)];
 
         MemCopy(combined, nonce, NONCE_SIZE);
         MemCopy(combined + NONCE_SIZE, &counter, sizeof(counter));
@@ -167,18 +169,18 @@ namespace Bcrypt {
         }
     }
 
-    BOOL FirstKey(uint8_t *server_public, const uint32_t server_public_size) {
+    BOOL FirstKey(uint8 *server_public, const uint32 server_public_size) {
 
         BCRYPT_ALG_HANDLE provider_handle   = nullptr;
         BCRYPT_KEY_HANDLE private_key       = nullptr;
 
         bool success = true;
 
-        uint8_t session_key[AES_KEY_SIZE]   = { };
-        uint8_t shared_secret[AES_KEY_SIZE] = { };
+        uint8 session_key[AES_KEY_SIZE]   = { };
+        uint8 shared_secret[AES_KEY_SIZE] = { };
 
-        const auto nonce = (uint8_t*) Malloc(NONCE_SIZE);
-        uint32_t counter = 0;
+        const auto nonce = (uint8*) Malloc(NONCE_SIZE);
+        uint32 counter = 0;
 
         if (!NT_SUCCESS(ntstatus = BCryptOpenAlgorithmProvider(&provider_handle, BCRYPT_DH_ALGORITHM, nullptr, 0)) ||
             !NT_SUCCESS(ntstatus = BCryptGenerateKeyPair(provider_handle, &private_key, DH_KEY_SIZE, 0)) ||
@@ -187,7 +189,7 @@ namespace Bcrypt {
             goto defer;
         }
 
-        uint32_t shared_secret_size = AES_KEY_SIZE;
+        uint32 shared_secret_size = AES_KEY_SIZE;
         if (!DeriveDHSharedSecret(provider_handle, private_key, server_public, server_public_size, shared_secret, &shared_secret_size)) {
             success = false;
             goto defer;

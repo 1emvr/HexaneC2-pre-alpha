@@ -5,9 +5,7 @@
 
 namespace Memory {
     namespace Methods {
-        UINT_PTR
-        FUNCTION
-            FindStackCookie();
+        __declspec(naked) UINT_PTR FindStackPointer();
 
         PRESOURCE
         FUNCTION
@@ -16,10 +14,6 @@ namespace Memory {
         PEXECUTABLE
         FUNCTION
             CreateImage(UINT8 *data);
-
-        VOID
-        FUNCTION
-            ZeroFree(VOID *pointer, SIZE_T size);
     }
 
     namespace Context {

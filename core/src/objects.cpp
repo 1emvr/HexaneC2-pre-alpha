@@ -432,11 +432,14 @@ namespace Objects {
         }
 
         if (image->sec_map) {
-            ZeroFree(image->sec_map, image->nt_head->FileHeader.NumberOfSections * sizeof (IMAGE_SECTION_HEADER));
+            MemSet(image->sec_map, image->nt_head->FileHeader.NumberOfSections * sizeof(IMAGE_SECTION_HEADER));
+            Free(image->sec_map);
+
             image->sec_map = nullptr;
         }
 
-        ZeroFree(image, sizeof(EXECUTABLE));
+        MemSet(image, 0, sizeof(EXECUTABLE));
+        Free(image);
     }
 
     VOID COFFLoader(const char *entrypoint, void *data, void *args, const size_t args_size) {

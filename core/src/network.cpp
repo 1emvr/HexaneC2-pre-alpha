@@ -68,10 +68,13 @@ namespace Network {
 
         defer:
             if (!success) {
-                ZeroFree(response, total);
+                MemSet(response, 0, total);
+                Free(response);
             }
 
-            ZeroFree(buffer, last_read);
+            MemSet(buffer, 0, last_read);
+            Free(buffer);
+
             return success;
         }
 
