@@ -649,7 +649,7 @@ namespace Modules {
 
     HEXANE;
 
-    auto module = (EXECUTABLE *) ctx->memapi.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
+    auto module = (EXECUTABLE *) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
     if (!module) {
       return nullptr;
     }

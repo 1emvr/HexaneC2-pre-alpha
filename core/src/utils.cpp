@@ -107,7 +107,7 @@ namespace Utils {
             large_int.LowPart    = file_time.dwLowDateTime;
             large_int.HighPart   = (long) file_time.dwHighDateTime;
 
-            return large_iwin32.QuadPart;
+            return large_int.QuadPart;
         }
 
         BOOL InWorkingHours() {
