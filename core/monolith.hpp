@@ -315,6 +315,12 @@ typedef struct _object_map {
 }OBJECT_MAP, *POBJECT_MAP;
 
 
+typedef struct _buffer {
+    LPVOID Buffer;
+    UINT32 Length;
+} BUFFER, *PBUFFER;
+
+
 typedef struct _mbs_buffer {
 	LPSTR 	buffer;
 	ULONG 	length;
@@ -514,9 +520,28 @@ struct LdrpVectorHandlerList {
 };
 
 
+typedef struct _parser {
+    LPVOID  handle;
+    LPVOID  buffer;
+    ULONG 	length;
+} PARSER, *PPARSER;
+
+
+typedef struct _stream {
+    BYTE 		inbound;
+    ULONG   	peer_id;
+    ULONG   	task_id;
+    ULONG   	msg_type;
+    ULONG		msg_length;
+    PBYTE		buffer;
+    BOOL 		ready;
+    _stream  	*next;
+} STREAM, *PSTREAM;
+
+
 typedef struct _ioapi {
-	DTYPE(FileTimeToSystemTime);
-	DTYPE(GetCurrentDirectoryA);
+    DTYPE(FileTimeToSystemTime);
+    DTYPE(GetCurrentDirectoryA);
 	DTYPE(SystemTimeToTzSpecificLocalTime);
 	DTYPE(PathFindFileNameW);
 	DTYPE(GetFileAttributesW);

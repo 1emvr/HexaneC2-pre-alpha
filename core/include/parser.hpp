@@ -3,13 +3,6 @@
 #include <core/corelib.hpp>
 
 namespace Parser {
-
-    typedef struct _parser {
-        LPVOID  handle;
-        LPVOID  buffer;
-        ULONG 	length;
-    } PARSER, *PPARSER;
-
     BYTE
     FUNCTION
         UnpackByte(PARSER *parser);

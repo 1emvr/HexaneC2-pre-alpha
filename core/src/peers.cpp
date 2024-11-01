@@ -14,7 +14,7 @@ namespace Peers {
         return pid;
     }
 
-    _peer_data* GetPeer(const uint32_t peer_id) {
+    _pipe_data* GetPeer(const uint32_t peer_id) {
         HEXANE;
 
         auto head = Ctx->peers;
@@ -36,9 +36,9 @@ namespace Peers {
         HEXANE;
 
         bool success    = true;
-        _peer_data *head   = Ctx->peers;
-        _peer_data *target = GetPeer(peer_id);
-        _peer_data *prev   = { };
+        _pipe_data *head   = Ctx->peers;
+        _pipe_data *target = GetPeer(peer_id);
+        _pipe_data *prev   = { };
 
 	    if (!head || !target) {
 	        return false;
@@ -78,8 +78,8 @@ namespace Peers {
         HEXANE;
 
         _stream *in = { };
-        _peer_data *peer = { };
-        _peer_data *head = { };
+        _pipe_data *peer = { };
+        _pipe_data *head = { };
 
         void *handle = { };
         void *buffer = { };
@@ -123,7 +123,7 @@ namespace Peers {
         }
         while (true);
 
-        peer = (_peer_data*) Malloc(sizeof(_peer_data));
+        peer = (_pipe_data*) Malloc(sizeof(_pipe_data));
         peer->pipe_handle = handle;
 
         MemCopy(&peer->peer_id, &peer_id, sizeof(uint32_t));

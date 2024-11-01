@@ -7,7 +7,7 @@ namespace Peers {
     FUNCTION
         PeekPeerId(_stream *stream);
 
-    PPEER_DATA
+    PPIPE_DATA
     FUNCTION
         GetPeer(UINT32 peer_id);
 
