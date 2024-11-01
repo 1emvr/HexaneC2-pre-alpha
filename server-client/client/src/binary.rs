@@ -84,8 +84,6 @@ pub(crate) fn extract_section(target_path: &str, config: &[u8], output_file: &st
 pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
     let log_dir = Path::new("./logs");
 
-
-    wrap_message("INF", "create log dir");
     if !log_dir.exists() {
         fs::create_dir_all(&log_dir)
             .map_err(|e| {
@@ -94,14 +92,12 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
             })?;
     }
 
-    wrap_message("INF", "create log file");
     let mut log_file = File::create(&log_dir.join(logname))
         .map_err(|e| {
             wrap_message("ERR", format!("run_command: file::create: {e}").as_str());
             return Custom(e.to_string())
         })?;
 
-    wrap_message("INF", "match std::env::consts::OS");
     let mut command = match std::env::consts::OS {
         "windows" => Command::new("powershell"),
         "linux"   => Command::new("bash"),
@@ -111,11 +107,7 @@ pub(crate) fn run_command(cmd: &str, logname: &str) -> Result<()> {
         }
     };
 
-    wrap_message("INF", "adding args");
     command.arg("-c").arg(cmd);
-
-    wrap_message("INF", format!("Command path: {:?}", command.get_program()).as_str());
-    wrap_message("INF", format!("Command args: {:?}", command.get_args()).as_str());
 
     let output = command.output()
         .map_err(|e| {
