@@ -590,7 +590,7 @@ namespace Modules {
     }
 
     // start setting the values in the entry
-    ctx->enumapi.NtQuerySystemTime(&entry->LoadTime);
+    ctx->win32.NtQuerySystemTime(&entry->LoadTime);
 
     // do the obvious ones
     entry->ReferenceCount = 1;
@@ -649,7 +649,9 @@ namespace Modules {
 
     HEXANE;
 
-    auto module = (EXECUTABLE *) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
+    EXECUTABLE *image = nullptr;
+    EXECUTABLE *module = (EXECUTABLE*) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
+
     if (!module) {
       return nullptr;
     }
@@ -695,7 +697,7 @@ namespace Modules {
       }
     }
 
-    const auto image = CreateImage(module->buffer);
+    image = CreateImage(module->buffer);
     if (!ImageCheckArch(image)) {
       goto defer;
     }
@@ -715,9 +717,11 @@ namespace Modules {
     }
 
     // trigger tls callbacks, set permissions and call the entry point
+    /*
     if (!BeginExecution(module)) {
       goto defer;
     }
+    */
 
     module->success = true;
 
