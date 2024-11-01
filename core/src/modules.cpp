@@ -99,8 +99,8 @@ namespace Modules {
     }
 
     BOOL AddHashTableEntry(PLDR_DATA_TABLE_ENTRY entry) {
-
         PPEB peb = PEB_POINTER;
+
         PLIST_ENTRY hash_table = FindHashTable();
         if (!hash_table) {
             return false;
@@ -140,7 +140,6 @@ namespace Modules {
             uint32 sec_hash = HashStringA((char *) section->Name, MbsLength((char *) section->Name));
             uint32 dot_text = TEXT;
 
-            // TODO: hash ".text"
             if (MemCompare((void *) &dot_text, (void *) &sec_hash, sizeof(uint32))) {
                 text_start = RVA(PVOID, module, section->VirtualAddress);
                 text_end = RVA(PVOID, text_start, section->SizeOfRawData);
@@ -160,8 +159,8 @@ namespace Modules {
             const uint32 n_entries = !fn_name ? exports->NumberOfFunctions : exports->NumberOfNames;
 
             for (int ent_index = 0; ent_index < n_entries; ent_index++) {
-                bool found        = false;
                 uint32 fn_ordinal = 0;
+                bool found = false;
 
                 if (!fn_name) {
                     uint32 *p_rva = RVA(uint32*, module, exports->AddressOfNames + ent_index * sizeof(uint32));
