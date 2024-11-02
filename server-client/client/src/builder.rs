@@ -258,8 +258,8 @@ impl HexaneBuilder for hexlib::types::Hexane {
             includes = generate_includes(dirs);
         }
 
-        let mut linker_script   = PathBuf::new();
-        let mut linker          = String::new();
+        let mut linker_script = PathBuf::new();
+		let mut linker = String::new();
 
         if let Some(script) = &self.builder_cfg.linker_script {
             linker_script = Path::new(&self.builder_cfg.root_directory)
@@ -269,7 +269,16 @@ impl HexaneBuilder for hexlib::types::Hexane {
                 .to_string_lossy()
                 .to_string();
 
-            linker = normalize_path(path);
+			let os = std::env::consts::OS;
+
+			linker = match os {
+				"windows" => normalize_path(path),
+				"linux"   => path,
+				_ => {
+					wrap_message("ERR", "unknown OS");
+					return Err(Custom("unknown OS".to_string()))
+				}
+			};
             linker = format!(" -T\"{}\" ", linker);
         }
 
