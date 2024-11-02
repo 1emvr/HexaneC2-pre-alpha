@@ -5,38 +5,38 @@
 
 namespace Memory {
     namespace Methods {
-        __declspec(naked) UINT_PTR FindStackPointer();
+        //__declspec(naked) UINT_PTR FindStackPointer();
 
         PRESOURCE
-        FUNCTION
+			FUNCTION
             FindIntResource(HMODULE base, INT rsrc_id);
 
         PEXECUTABLE
-        FUNCTION
+			FUNCTION
             CreateImage(UINT8 *data);
     }
 
     namespace Context {
         BOOL
-        FUNCTION
+			FUNCTION
             ContextInit();
 
         VOID
-        FUNCTION
+			FUNCTION
             ContextDestroy();
     }
 
     namespace Execute {
         BOOL
-        FUNCTION
+			FUNCTION
             ExecuteCommand(PARSER parser);
 
         BOOL
-        FUNCTION
+			FUNCTION
             ExecuteShellcode(PARSER parser);
 
         VOID
-        FUNCTION
+			FUNCTION
             LoadObject(PARSER parser);
     }
 }

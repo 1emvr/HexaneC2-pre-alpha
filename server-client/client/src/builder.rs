@@ -26,8 +26,8 @@ use crate::utils::{
 };
 
 
-pub static DEBUG_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup' ";
-pub static RELEASE_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup' ";
+pub static DEBUG_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh' ";
+pub static RELEASE_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh' ";
 
 pub trait HexaneBuilder {
     fn setup_build(&mut self) -> Result<()>;
@@ -202,7 +202,7 @@ impl HexaneBuilder for hexlib::types::Hexane {
                 })?;
 
             object_file.set_extension("o");
-                        
+
             let object = match os {
                 "windows" => normalize_path(object_file.to_string_lossy().to_string()),
                 "linux"   => object_file.to_string_lossy().to_string(),

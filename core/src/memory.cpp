@@ -11,13 +11,14 @@ using namespace Commands;
 
 namespace Memory {
     namespace Methods {
-
-        __declspec(naked) UINT_PTR FindStackPointer() {
-            __asm__ volatile(
-                "mov %%rsp, %%rax\n"
-                "ret"
-            );
-        }
+		/*
+				__declspec(naked) UINT_PTR FindStackPointer() {
+					__asm__ volatile(
+									 "mov %%rsp, %%rax"
+									 "ret"
+									 );
+				}
+		*/
 
         PRESOURCE FindIntResource(HMODULE base, CONST INT rsrc_id) {
             HEXANE;
@@ -30,7 +31,7 @@ namespace Memory {
             x_assert(object->size       = ctx->win32.SizeofResource(base, rsrc_info));
             x_assert(object->rsrc_lock  = ctx->win32.LockResource(object->h_global));
 
-        defer:
+			defer:
             return object;
         }
 
@@ -125,7 +126,7 @@ namespace Memory {
 
             return true;
         }
-      // TODO: process migration
+		// TODO: process migration
 
         BOOL ExecuteShellcode(_parser parser) {
             HEXANE;
