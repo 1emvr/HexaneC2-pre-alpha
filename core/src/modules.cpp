@@ -1,7 +1,5 @@
 #include <core/include/modules.hpp>
 
-// TODO: github did not save any of my progress somehow. moving to gitlab.
-
 using namespace Hash;
 using namespace Opsec;
 using namespace Memory::Methods;
@@ -187,7 +185,7 @@ namespace Modules {
                     const uint32 *pfn_rva = RVA(uint32*, module, exports->AddressOfFunctions + sizeof(uint32) * (fn_ordinal - exports->Base));
                     void *fn_pointer = RVA(void*, module, *pfn_rva);
 
-                    // this is ...
+                    // this is another module...
                     if (text_start > fn_pointer || text_end < fn_pointer) {
 
                         size_t full_length = MbsLength((char*) fn_pointer);
