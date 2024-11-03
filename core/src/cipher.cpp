@@ -112,8 +112,8 @@ namespace Xtea {
             uint8 buffer[8] = { };
 
             encrypt
-                ? XteaEncrypt(cipher, buffer, sections[sec_index])
-                : XteaDecrypt(cipher, buffer, sections[sec_index]);
+				? XteaEncrypt(cipher, buffer, sections[sec_index])
+				: XteaDecrypt(cipher, buffer, sections[sec_index]);
 
             MemCopy(RVA(uint8*, data, offset), C_PTR(buffer), sizeof(uint64));
             MemSet(buffer, 0, 8);

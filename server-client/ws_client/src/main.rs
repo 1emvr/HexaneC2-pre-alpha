@@ -61,20 +61,11 @@ fn connect_server(url: &str) -> Result<WebSocketUpgrade> {
 
 }
 
-fn serialize_hexane() -> Result<String> {
-    let data = HexaneStream {
-        peer_id:       123,
-        group_id:      321,
-        username:      "lemur".to_string(),
-        session_key:   vec![1,2,3,4,5,6,7,8],
-        endpoints:     vec!["/bullshit".to_string()],
-        network_type:  NetworkType::Http,
-    };
-
+fn serialize_test<T: Serialize>(data: T) -> Result<String> {
     let json = match serde_json::to_string(&data) {
         Ok(json) => json,
         Err(e) => {
-            println!("failed to serialize hexane stream to JSON");
+            println!("[ERR] error serializing data to json");
             return Err(Error::SerdeJson(e))
         }
     };
@@ -87,9 +78,21 @@ fn main() {
     let mut socket = connect_server(url)
         .expect("cannot connect");
 
-    let json = match serialize_hexane() {
+    let data = HexaneStream {
+        peer_id:       123,
+        group_id:      321,
+        username:      "lemur".to_string(),
+        session_key:   vec![1,2,3,4,5,6,7,8],
+        endpoints:     vec!["/bullshit".to_string()],
+        network_type:  NetworkType::Http,
+    };
+
+    let json = match serialize_test(data) {
         Ok(json) => json,
-        Err(_) => return
+        Err(e) => {
+            println!("serialization error: {}", e);
+            return
+        }
     };
 
     write_server(json, &mut socket);
