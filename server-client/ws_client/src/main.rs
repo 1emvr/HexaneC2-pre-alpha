@@ -26,10 +26,6 @@ fn parse_json(rsp: String) {
     }
 }
 
-fn parse_binary() {
-    println!("[INF] non-text server response. Not printing...");
-}
-
 fn main() {
     let (mut socket, _response) = connect(Url::parse("ws://127.0.0.1:3000").unwrap())
         .expect("[ERR] error connecting to server");
@@ -53,7 +49,8 @@ fn main() {
             .expect("[ERR] failed to send message");
 
         match socket.read_message() {
-            Ok(_) => parse_binary(rsp),
+            Ok(_) => println!("[WRN] received non-JSON data from the server"),
+
             Ok(Text(rsp)) => parse_json(rsp),
             Err(e) => {
                 println!("[ERR] error reading from server: {}", e);
