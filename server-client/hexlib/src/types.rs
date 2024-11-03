@@ -203,6 +203,7 @@ pub struct Hexane {
     pub user_session:    UserSession,
 }
 
+#[derive(Ser, Des)]
 pub struct HexaneStream {
     pub peer_id:       u32,
     pub group_id:      u32,
@@ -211,20 +212,3 @@ pub struct HexaneStream {
     pub endpoints:     Vec<String>,
     pub network_type:  NetworkType,
 }
-
-impl Serialize for HexaneStream {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_struct("HexaneStream", 6)?;
-        state.serialize_field("peer_id", &self.peer_id)?;
-        state.serialize_field("group_id", &self.group_id)?;
-        state.serialize_field("network_type", &self.network_type)?;
-        state.serialize_field("session_key", &self.session_key)?;
-        state.serialize_field("username", &self.username)?;
-        state.serialize_field("endpoints", &self.endpoints)?;
-        state.end()
-    }
-}
-

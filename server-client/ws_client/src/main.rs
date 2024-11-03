@@ -1,14 +1,19 @@
 use url::Url;
 use std::io::{self, Write};
 
+use hexlib::stream::Stream;
+use hexlib::types::{HexaneStream, MessageType, NetworkType};
+use hexlib::error::{Result, Error};
+
 use tungstenite::{connect, Message};
+use tungstenite::handshake::server::Response as ServerResponse;
 use tungstenite::Message::Text as Text;
 
 use serde::ser::{Serialize, Serializer, SerializeStruct};
 use serde_json;
 
-use hexlib::stream::Stream;
-use hexlib::types::{HexaneStream, MessageType, NetworkType};
+type WebSocketUpgrade = tungstenite::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>; 
+
 
 fn parse_json(rsp: String) {
     println!("[INF] reading json response");
@@ -26,36 +31,66 @@ fn parse_json(rsp: String) {
     }
 }
 
-fn main() {
-    let (mut socket, _response) = connect(Url::parse("ws://127.0.0.1:3000").unwrap())
-        .expect("[ERR] error connecting to server");
+fn write_server(json: String, socket: &mut WebSocketUpgrade) -> Result<()> {
+    socket.write_message(Message::Text(json.clone()))
+        .expect("[ERR] failed to send message");
 
-    loop {
-        println!("> ");
-        let mut input = String::new();
+    match socket.read_message() {
+        Ok(_) => println!("[WRN] received non-JSON data from the server"),
 
-        io::stdout().flush()
-            .expect("[ERR] fatal: cannot flush stdout");
-
-        io::stdin().read_line(&mut input)
-            .expect("[ERR] fatal: cannot read stdin");
-
-        let args = input.trim().to_string();
-        if args.to_lowercase() == "exit" {
-            break;
-        }
-
-	    socket.write_message(Message::Text(args.clone()))
-            .expect("[ERR] failed to send message");
-
-        match socket.read_message() {
-            Ok(_) => println!("[WRN] received non-JSON data from the server"),
-
-            Ok(Text(rsp)) => parse_json(rsp),
-            Err(e) => {
-                println!("[ERR] error reading from server: {}", e);
-                break;
-            }
+        Ok(Text(rsp)) => parse_json(rsp),
+        Err(e) => {
+            println!("[ERR] error reading from server: {}", e);
+            return Err(Error::Tungstenite(e))
         }
     }
+
+    Ok(())
+}
+
+fn connect_server(url: &str) -> Result<WebSocketUpgrade> {
+    let (mut socket, _rsp) = match connect(url) {
+        Ok(ok) => ok,
+        Err(e) => {
+            println!("[ERR] error connecting to server");
+            return Err(Error::Tungstenite(e))
+        }
+    };
+
+    Ok(socket)
+
+}
+
+fn serialize_hexane() -> Result<String> {
+    let data = HexaneStream {
+        peer_id:       123,
+        group_id:      321,
+        username:      "lemur".to_string(),
+        session_key:   vec![1,2,3,4,5,6,7,8],
+        endpoints:     vec!["/bullshit".to_string()],
+        network_type:  NetworkType::Http,
+    };
+
+    let json = match serde_json::to_string(&data) {
+        Ok(json) => json,
+        Err(e) => {
+            println!("failed to serialize hexane stream to JSON");
+            return Err(Error::SerdeJson(e))
+        }
+    };
+
+    Ok(json)
+}
+
+fn main() {
+    let url = "ws://127.0.0.1:3000";
+    let mut socket = connect_server(url)
+        .expect("cannot connect");
+
+    let json = match serialize_hexane() {
+        Ok(json) => json,
+        Err(_) => return
+    };
+
+    write_server(json, &mut socket);
 }

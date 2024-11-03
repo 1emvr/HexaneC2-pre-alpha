@@ -5,14 +5,14 @@ use lazy_static::lazy_static;
 use log::{info, error};
 
 use serde_json::from_slice;
+use futures::{StreamExt, SinkExt};
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::{accept_async, tungstenite::protocol::Message};
-use futures::{StreamExt, SinkExt};
 
 use hexlib::parser::create_parser;
-use hexlib::types::{Hexane, Parser, MessageType};
+use hexlib::types::{Hexane, HexaneStream, Parser, MessageType};
 
-type ConfigStore = Arc<Mutex<Vec<Hexane>>>;
+type ConfigStore = Arc<Mutex<Vec<HexaneStream>>>;
 
 lazy_static! {
     pub(crate) static ref CONFIGS: ConfigStore = Arc::new(Mutex::new(Vec::new()));
@@ -22,9 +22,9 @@ lazy_static! {
 // TODO: http_server/implant messaging
 
 async fn parse_config(buffer: Vec<u8>) -> String {
-	println!("[INF] parsing config");
+	println!("[INF] parsing config...");
 
-    match from_slice::<Hexane>(&buffer) { //TODO: change this to HexaneStream type
+    match from_slice::<HexaneStream>(&buffer) { //TODO: change this to HexaneStream type
         Ok(hexane) => {
 
             if let Ok(mut configs) = CONFIGS.lock() {
@@ -36,7 +36,7 @@ async fn parse_config(buffer: Vec<u8>) -> String {
             }
         }
         Err(e)=> {
-            println!("[ERR] parse_config: parser error");
+            println!("[ERR] parse_config: parser error. not a hexane stream type");
         }
     }
 
@@ -45,7 +45,7 @@ async fn parse_config(buffer: Vec<u8>) -> String {
 
 async fn process_message(text: String) -> String {
     let parser = create_parser(text.into_bytes());
-	println!("[INF] processing message");
+    println!("[INF] processing message: {:?}", &parser.msg_buffer);
 
     match parser.msg_type {
         TypeConfig => {
