@@ -22,9 +22,11 @@ lazy_static! {
 // TODO: http_server/implant messaging
 
 async fn parse_config(buffer: Vec<u8>) -> String {
-    match from_slice::<Hexane>(&buffer) {
+	println!("[INF] parsing config");
 
+    match from_slice::<Hexane>(&buffer) { //TODO: change this to HexaneStream type
         Ok(hexane) => {
+
             if let Ok(mut configs) = CONFIGS.lock() {
                 configs.push(hexane);
                 println!("[INF] parse_config: hexane push success");
@@ -43,6 +45,7 @@ async fn parse_config(buffer: Vec<u8>) -> String {
 
 async fn process_message(text: String) -> String {
     let parser = create_parser(text.into_bytes());
+	println!("[INF] processing message");
 
     match parser.msg_type {
         TypeConfig => {
@@ -65,21 +68,28 @@ async fn handle_connection(stream: TcpStream) {
         }
     };
 
+	println!("[INF] ws handshake successful");
+
     let (mut sender, mut receiver) = ws_stream.split();
     while let Some(msg) = receiver.next().await {
         match msg {
 
-            Ok(_) => (),
-            Ok(Message::Text(text)) => { // String
+            Ok(Message::Text(text)) => { // <- String type
                 let rsp = process_message(text).await;
                 if let Err(e) = sender.send(Message::Text(rsp)).await {
                     println!("[ERR] handle_connection: error sending message: {}", e);
                 }
-            }
+            },
             Ok(Message::Close(_)) => {
                 println!("[INF] handle_connection: client closing connection");
                 break;
-            }
+            },
+            Ok(Message::Binary(_)) => {
+                println!("[INF] handle_connection: TODO: Message::Binary");
+            },
+            Ok(_) => {
+                println!("[INF] handle_connection: unknown message type. Ignoring...");
+            },
             Err(e)=> {
                 println!("[ERR] handle_connection: error processing message: {}", e);
                 break;
