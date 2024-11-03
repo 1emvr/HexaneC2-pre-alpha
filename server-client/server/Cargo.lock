@@ -352,6 +352,7 @@ dependencies = [
  "lazy_static",
  "serde",
  "serde_json",
+ "tungstenite 0.24.0",
  "warp",
 ]
 
