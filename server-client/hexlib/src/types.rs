@@ -17,6 +17,7 @@ pub enum MessageType {
     TypeTasking,
     TypeResponse,
     TypeSegement,
+	TypeCommand,
 }
 
 #[derive(Ser, Des, Debug)]

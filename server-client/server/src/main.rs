@@ -44,7 +44,7 @@ async fn parse_config(buffer: Vec<u8>) -> String {
 }
 
 async fn process_message(text: String) -> String {
-    let parser = create_parser(text.into_bytes());
+    //let parser = create_parser(text.into_bytes());
     println!("[INF] processing message: {:?}", &parser.msg_buffer);
 
 	/*
@@ -75,7 +75,7 @@ async fn process_message(text: String) -> String {
     }
 
 	 */
-    match parser.msg_type {
+    //match parser.msg_type {
         TypeConfig => {
             let rsp = parse_config(parser.msg_buffer).await;
             return rsp;
