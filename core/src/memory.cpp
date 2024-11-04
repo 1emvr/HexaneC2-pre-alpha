@@ -11,16 +11,13 @@ using namespace Commands;
 
 namespace Memory {
     namespace Methods {
-		/*
-				__declspec(naked) UINT_PTR FindStackPointer() {
-					__asm__ volatile(
-									 "mov %%rsp, %%rax"
-									 "ret"
-									 );
-				}
-		*/
+		__declspec(naked) UINT_PTR FindStackPointer() {
+			__asm__ volatile(
+							 "mov %%rsp, %%rax"
+							 "ret");
+		}
 
-        PRESOURCE FindIntResource(HMODULE base, CONST INT rsrc_id) {
+		PRESOURCE FindIntResource(HMODULE base, CONST INT rsrc_id) {
             HEXANE;
 
             HRSRC rsrc_info		= { };
