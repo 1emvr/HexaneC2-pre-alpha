@@ -47,11 +47,41 @@ async fn process_message(text: String) -> String {
     let parser = create_parser(text.into_bytes());
     println!("[INF] processing message: {:?}", &parser.msg_buffer);
 
+	/*
+	TODO: 
+
+    pub struct ServerPacket {
+        pub peer_id:  u32,
+	    pub msg_type: u32,
+	    pub buffer:   Vec {
+
+	        pub struct HexaneStream {
+                pub peer_id:       u32,
+                pub group_id:      u32,
+                pub username:      String,
+                pub session_key:   Vec<u8>,
+                pub endpoints:     Vec<String>,
+                pub network_type:  NetworkType,
+            }
+
+	        OR
+	        pub struct Command {
+	            pub cmd_id: u32,
+	            pub cmd: Vec<u8>,
+	            pub args: Vec<u8>
+            }
+	??
+        }
+    }
+
+	 */
     match parser.msg_type {
         TypeConfig => {
             let rsp = parse_config(parser.msg_buffer).await;
             return rsp;
         }
+		TypeCommand => {
+		}
         _ => {
             println!("[ERR] process_message: unknown message type");
             return "200 OK".to_string();
