@@ -59,10 +59,10 @@ namespace Modules {
 		VOID *buffer = nullptr;
 		DWORD buffer_size = 0;
 
-		//TODO: fix all function parameters
+		// TODO: string hash module_name
 		ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, &buffer_size);
 
-		while (status == STATUS_INFO_LENGTH_MISMATCH) {
+		while (ntstatus == STATUS_INFO_LENGTH_MISMATCH) {
 			if (buffer) {
 				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buffer_size, MEM_RELEASE);
 			}
@@ -71,10 +71,10 @@ namespace Modules {
 				return 0;
 			}
 			
-			status = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, &buffer_size);
+			ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, &buffer_size);
 		}
 
-		if (!NT_SUCCESS(status)) {
+		if (!NT_SUCCESS(ntstatus)) {
 			if (buffer) {
 				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buffer_size, MEM_RELEASE);
 			}
