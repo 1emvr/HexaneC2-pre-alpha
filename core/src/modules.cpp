@@ -63,8 +63,8 @@ namespace Modules {
 		ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, &buffer_size);
 
 		while (status == STATUS_INFO_LENGTH_MISMATCH) {
-			if (buffer != nullptr) {
-				ctx->win32.NtFreeVirtualMemory(buffer, 0, MEM_RELEASE);
+			if (buffer) {
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buffer_size, MEM_RELEASE);
 			}
 
 			if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), &buffer, 0, buffer_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
