@@ -18,6 +18,19 @@
 #include <core/corelib.hpp>
 
 namespace Utils {
+
+	BOOL
+	FUNCTION
+	    WriteToDisk(CONST WCHAR *path, CONST UINT8 *data, SIZE_T size);
+
+	BOOL
+	FUNCTION
+	    ReadFromDisk(CONST WCHAR *path, UINT8 *data, SIZE_T size);
+
+	BOOL
+	FUNCTION
+	    DestroyFileData(CONST WCHAR *path, SIZE_T size);
+
     VOID
     FUNCTION
         AppendBuffer(UINT8 **buffer, CONST UINT8 *target, UINT32 *capacity, UINT32 length);

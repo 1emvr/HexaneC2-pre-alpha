@@ -49,7 +49,6 @@ typedef ULONG LOGICAL;
 #define XSTATE_MASK_GSSE                    (1i64 << (XSTATE_GSSE))
 
 #define MAXIMUM_XSTATE_FEATURES             64
-
 	//
 	// Extended processor state configuration
 	//

