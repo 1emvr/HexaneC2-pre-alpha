@@ -188,7 +188,7 @@ namespace Intel {
 
 	BOOL DriverUnload(HANDLE handle, wchar_t *driver_name, size_t size) {
 
-		BOOL success = false;
+		bool success = false;
 		if (handle && handle != INVALID_HANDLE_VALUE) {
 			KERNEL32$CloseHandle(handle);
 		}
