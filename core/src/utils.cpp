@@ -161,9 +161,12 @@ namespace Utils {
             MemSet(buffer, 0, size);
 
         defer:
-            if (buffer) { Free(buffer); }
+            if (buffer) {
+				Free(buffer);
+			}
             return address;
         }
+
 
     }
 

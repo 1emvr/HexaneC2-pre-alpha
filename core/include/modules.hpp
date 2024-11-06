@@ -34,6 +34,10 @@
 		FUNCTION
 		    FindKernelModule(CHAR *module_name);
 
+		LPVOID
+		FUNCTION
+		    FindSection(CONST CHAR* section_name, UINT_PTR base, UINT32 *size);
+
 	    BOOL
     	FUNCTION
     		AddHashTableEntry(PLDR_DATA_TABLE_ENTRY entry);

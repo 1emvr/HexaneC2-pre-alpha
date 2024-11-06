@@ -1,6 +1,8 @@
 #include <intel_driver.hpp>
 namespace Intel {
 
+	__attribute__((used, section(".data"))) uintptr_t piddb_lock = 0;
+
 	BOOL IsRunning() {
 		const HANDLE handle = KERNEL32$CreateFileW(L"\\\\.\\Nal", FILE_ANY_ACCESS, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (handle && handle != INVALID_HANDLE_VALUE) {
