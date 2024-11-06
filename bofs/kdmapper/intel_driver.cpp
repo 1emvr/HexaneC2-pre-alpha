@@ -1,7 +1,9 @@
 #include <intel_driver.hpp>
 namespace Intel {
 
-	__attribute__((used, section(".data"))) uintptr_t piddb_lock = 0;
+	__attribute__((used, section(".data"))) uintptr_t piddb_lock_ptr = 0;
+	__attribute__((used, section(".data"))) uintptr_t piddb_cache_ptr = 0;
+	__attribute__((used, section(".data"))) uintptr_t ntoskrnl = 0;
 
 	BOOL IsRunning() {
 		const HANDLE handle = KERNEL32$CreateFileW(L"\\\\.\\Nal", FILE_ANY_ACCESS, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -59,7 +61,7 @@ namespace Intel {
 		bool enabled = false;
 		uint32_t se_debug = 20UL;
 
-		// NOTE: should this be dynamically loaded through FindModuleEntry instead? (probably fine...)
+		// NOTE: should this be dynamically loaded through FindExportAddress instead? (probably fine...)
 		const auto RtlAdjustPrivilege = (RtlAdjustPrivilege_t) KERNEL32$GetProcAddress(ntdll, "RtlAdjustPrivilege");
 
 		if (!NT_SUCCESS(ntstatus = RtlAdjustPrivilege(se_debug, true, false, &enabled))) {
