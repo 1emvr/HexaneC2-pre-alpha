@@ -30,6 +30,10 @@
     	FUNCTION
     		FindExportAddress(CONST VOID *base, uint32 hash);
 
+		UINT_PTR
+		FUNCTION
+		    FindKernelModule(CHAR *module_name);
+
 	    BOOL
     	FUNCTION
     		AddHashTableEntry(PLDR_DATA_TABLE_ENTRY entry);

