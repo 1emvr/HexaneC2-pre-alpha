@@ -53,6 +53,54 @@ namespace Modules {
         return address;
     }
 
+	UINT_PTR FindKernelModule(char *module_name) {
+		HEXANE;
+
+		VOID *buffer = nullptr;
+		DWORD buffer_size = 0;
+
+		//TODO: fix all function parameters
+		ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, &buffer_size);
+
+		while (status == STATUS_INFO_LENGTH_MISMATCH) {
+			if (buffer != nullptr) {
+				ctx->win32.NtFreeVirtualMemory(buffer, 0, MEM_RELEASE);
+			}
+
+			if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), &buffer, 0, buffer_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+				return 0;
+			}
+			
+			status = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, &buffer_size);
+		}
+
+		if (!NT_SUCCESS(status)) {
+			if (buffer) {
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buffer_size, MEM_RELEASE);
+			}
+			return 0;
+		}
+
+		const auto modules = (PRTL_PROCESS_MODULES) buffer;
+		if (!modules){
+			return 0;
+		}
+
+		for (auto i = 0; i < modules->NumberOfModules; ++i) {
+			const char *current_module_name = (char*) modules->Modules[i].FullPathName + modules->Modules[i].OffsetToFileName;
+
+			if (!MbsCompare(current_module_name, module_name)) {
+				const uintptr_t result = (uintptr_t) modules->Modules[i].ImageBase;
+
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buffer_size, MEM_RELEASE);
+				return result;
+			}
+		}
+
+		ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buffer_size, MEM_RELEASE);
+		return 0;
+	}
+
     VOID InsertTailList(LIST_ENTRY *const head, LIST_ENTRY *const entry) {
         PLIST_ENTRY blink = head->Blink;
 

@@ -251,16 +251,21 @@ namespace Intel {
 		if (!handle || handle == INVALID_HANDLE_VALUE) {
 
 			// TODO: return an NTSTATUS from DriverLoad/Unload 
-			DriverUnload(handle, driver_name);
+			DriverUnload(handle, driver_name, size);
 			goto defer;
 		}
 
+		ntoskrnl = GetKernelAddress("");
+		// TODO: FINISH
+
+		success = true;
+
 	defer:
+		if (driver_path) {
+			NTDLL$RtlFreeHeap(ctx->heap, 0, driver_path);
+			driver_path = nullptr;
+		}
 		if (!success) {
-			if (driver_path) {
-				NTDLL$RtlFreeHeap(ctx->heap, 0, driver_path);
-				driver_path = nullptr;
-			}
 			if (handle) {
 				KERNEL32$CloseHandle(handle);
 				handle = nullptr;
