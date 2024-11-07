@@ -56,8 +56,8 @@ namespace Utils {
 		}
 
 		DWORD write = 0;
-		if (!WriteFile(handle, rand_data, new_length, &write, NULL) || write != new_length) {
-			//Log(L"[!] Error dumping data inside the disk");
+		if (!ctx->win32.WriteFile(handle, rand_data, new_length, &write, NULL) || write != new_length) {
+			//Log(L"[!] Error dumping data on disk");
 			goto defer;
 		} 
 
@@ -74,6 +74,18 @@ namespace Utils {
 		return success;
 	}
 
+	PVOID FindRelativeAddress(HANDLE handle, void *offset, uint32 offset_offset, uint32 offset_size) {
+		HEXANE;
+
+		uintptr_t instr = (uintptr_t) offset;
+		int32 rip_offset = 0;
+
+		if (!NT_SUCCESS(ntstatus = ctx->win32.NtReadVirtualMemory(handle, instr + offset_offset, &rip_offset, sizeof(int32), nullptr))) {
+			return nullptr;
+		}
+
+		return (void*) (instr + offset_size + rip_offset);
+	}
 
 	VOID AppendBuffer(uint8_t **buffer, const uint8_t *const target, uint32_t *capacity, const uint32_t length) {
         HEXANE;
