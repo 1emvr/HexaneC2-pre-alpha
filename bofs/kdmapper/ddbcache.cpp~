@@ -1,0 +1,6 @@
+#include <ddbcache.hpp>
+
+Clear PiDDBCacheTable(HANDLE handle) {
+
+	ddb_lock
+}

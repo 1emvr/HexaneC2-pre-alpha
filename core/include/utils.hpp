@@ -54,7 +54,11 @@ namespace Utils {
 
         UINT_PTR
         FUNCTION
-            SignatureScan(VOID *process, UINT_PTR start, UINT32 size, CONST CHAR *signature, CONST CHAR *mask);
+            SignatureScan(HANDLE process, UINT_PTR base, UINT32 size, CONST CHAR *signature, CONST CHAR *mask);
+
+		UINT_PTR
+		FUNCTION
+		    SignatureScanSection(HANDLE handle, CONST CHAR *sec_name, UINT_PTR base, CONST CHAR *signature, CONST CHAR *mask);
     }
 
     namespace Time {

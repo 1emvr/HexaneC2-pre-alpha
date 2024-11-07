@@ -1,4 +1,5 @@
 #include <core/include/utils.hpp>
+using namespace Modules;
 using namespace Utils::Random;
 
 namespace Utils {
@@ -142,18 +143,18 @@ namespace Utils {
             return (*mask == 0x00);
         }
 
-        UINT_PTR SignatureScan(void* process, const uintptr_t start, const uint32_t size, const char* signature, const char* mask) {
+        UINT_PTR SignatureScan(HANDLE handle, const uintptr_t base, const uint32_t size, const char* signature, const char* mask) {
             HEXANE;
 
             size_t read         = 0;
             uintptr_t address   = 0;
 
             auto buffer = (uint8_t*) Malloc(size);
-            x_ntassert(ctx->win32.NtReadVirtualMemory(process, (void*) start, buffer, size, &read));
+            x_ntassert(ctx->win32.NtReadVirtualMemory(handle, (void*) base, buffer, size, &read));
 
             for (auto i = 0; i < size; i++) {
                 if (SigCompare(buffer + i, signature, mask)) {
-                    address = start + i;
+                    address = base + i;
                     break;
                 }
             }
@@ -167,7 +168,15 @@ namespace Utils {
             return address;
         }
 
+		UINT_PTR SignatureScanSection(HANDLE handle, const char *sec_name, uintptr_t base, const char *signature, const char *mask) {
 
+			uint32 size = 0;
+			uintptr_t section = FindSection(handle, sec_name, base, &size);
+			if (!section) {
+				return 0;
+			}
+			return SignatureScan(handle, section, size, signature, mask);
+		}
     }
 
     namespace Time {

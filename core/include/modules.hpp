@@ -34,7 +34,7 @@
 		FUNCTION
 		    FindKernelModule(CHAR *module_name);
 
-		LPVOID
+		UINT_PTR
 		FUNCTION
 		    FindSection(CONST CHAR* section_name, UINT_PTR base, UINT32 *size);
 

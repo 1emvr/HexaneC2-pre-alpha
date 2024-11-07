@@ -101,10 +101,10 @@ namespace Modules {
 		return 0;
 	}
 
-	LPVOID FindSection(const char* section_name, uintptr_t base, uint32_t *size) {
+	UINT_PTR FindSection(const char* section_name, uintptr_t base, uint32_t *size) {
 
+		uintptr_t sec_address = 0;
 		size_t name_length = MbsLength(section_name);
-		void *sec_address = 0;
 
 		PIMAGE_NT_HEADERS nt_head = (PIMAGE_NT_HEADERS)(base + ((PIMAGE_D0S_HEADER) base)->e_lfanew);
 		PIMAGE_SECTION_HEADER sec_head = IMAGE_FIRST_SECTION(nt_head);
@@ -112,15 +112,18 @@ namespace Modules {
 		for (auto i = 0; i < nt_head->FileHeader.NumberOfSections; i++) {
 			PIMAGE_SECTION_HEADER section = &sec_head[i];
 
-			if (MemCompare(section_name, section->Name, name_length) == 0 && name_length == MbsLength(section->Name)) {
-				if (!section->VirtualAddress) {
-					return 0;
-				}
-				if (size) {
-					*size = section->Misc.VirtualSize
-				}
+			if (name_length == MbsLength(section->Name)) {
+				if (MemCompare(section_name, section->Name, name_length) == 0) {
 
-				sec_address = (void*) base + section->VirtualAddress;
+					if (!section->VirtualAddress) {
+						return 0;
+					}
+					if (size) {
+						*size = section->Misc.VirtualSize;
+					}
+
+					sec_address = (void*) base + section->VirtualAddress;
+				}
 			}
 		}
 
