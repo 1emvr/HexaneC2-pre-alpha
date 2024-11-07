@@ -106,7 +106,6 @@ namespace Intel {
 			return false;
 		}
 
-		// Overwrite the pointer with function
 		if (!Beacon$WriteToReadOnlyMemory(handle, &injected_jmp, nt_add_atom, sizeof(injected_jmp)))
 			return false;
 
