@@ -42,8 +42,6 @@ namespace Intel {
 	BOOL UnmapIoSpace(HANDLE handle, UINT_PTR address, UINT32 size);
 
 	BOOL GetPhysicalAddress(HANDLE handle, UINT_PTR address, UINT_PTR* out_physical_address);
-	BOOL ReadMemory(HANDLE handle, UINT_PTR address, void* buffer, UINT_PTR size);
-	BOOL WriteMemory(HANDLE handle, UINT_PTR address, void* buffer, UINT_PTR size);
 	BOOL WriteToReadOnlyMemory(HANDLE handle, UINT_PTR address, void* buffer, UINT32 size);
 
 	/*added by herooyyy*/
