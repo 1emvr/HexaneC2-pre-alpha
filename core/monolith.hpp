@@ -184,6 +184,7 @@ s.buffer = b
 #define FLG_HEAP_VALIDATE_PARAMETERS                0x40000000
 #define ADDRESS_MAX                                 0xFFFFFFFFFFF70000
 #define VM_MAX                                      0x70000000
+#define IOCTL1                                      0x80862007
 
 #pragma region TLV
 #define HEADER_SIZE                                 (sizeof(uint32_t) * 3)

