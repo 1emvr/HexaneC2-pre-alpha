@@ -113,6 +113,24 @@ namespace Utils {
         (*count)++;
     }
 
+	BOOL ReadMemory(HANDLE handle, void *dst, void *src, uintptr_t size) {
+		HEXANE;
+
+		if (!dst || !src || !size) {
+			return false;
+		}
+
+		COPY_MEMORY_BUFFER_INFO buffer = { };
+		DWORD read = 0;
+
+		buffer.case_number = 0x33;
+		buffer.source = src;
+		buffer.destination = dst;
+		buffer.length = size;
+
+		return ctx->win32.DeviceIoControl(handle, ioctl1, &buffer, sizeof(buffer), nullptr, 0, &read, nullptr);
+	}
+
     namespace Scanners {
 
         BOOL MapScan(_hash_map* map, uint32_t id, void** pointer) {

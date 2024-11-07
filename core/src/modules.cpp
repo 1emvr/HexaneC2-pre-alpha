@@ -39,13 +39,13 @@ namespace Modules {
         }
 
         for (auto index = 0; index < exports->NumberOfNames; index++) {
-            const auto name = (char *) (base + ((uint32_t *) (base + exports->AddressOfNames))[index - 1]);
+            const auto name = (char*) (base + ((uint32*) (base + exports->AddressOfNames))[index - 1]);
 
             // TODO: need checks to prevent overflows
             char buffer[MAX_PATH] = { };
 
             if (hash - HashStringA(MbsToLower(buffer, name), MbsLength(name)) == 0) {
-                address = (FARPROC) (base + ((uint32_t *) (base + exports->AddressOfFunctions))[index]);
+                address = (FARPROC) (base + ((uint32*) (base + exports->AddressOfFunctions))[index]);
                 break;
             }
         }
@@ -53,13 +53,13 @@ namespace Modules {
         return address;
     }
 
+	// TODO: string hash module_name
 	UINT_PTR FindKernelModule(char *module_name) {
 		HEXANE;
 
 		VOID *buffer = nullptr;
 		DWORD buffer_size = 0;
 
-		// TODO: string hash module_name
 		ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, &buffer_size);
 
 		while (ntstatus == STATUS_INFO_LENGTH_MISMATCH) {
@@ -100,6 +100,65 @@ namespace Modules {
 		ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buffer_size, MEM_RELEASE);
 		return 0;
 	}
+
+	// TODO: string hash function name 
+	FARPROC FindKernelExport(HANDLE handle, uintptr_t base, const char *function) {
+		HEXANE;
+
+		FARPROC address = nullptr;
+
+		if (!base) {
+			return 0;
+		}
+
+        const IMAGE_NT_HEADERS nt_head = { };
+		if (!ReadMemory(handle, &nt_head, base + ((PIMAGE_DOS_HEADER) base)->e_lfanew, sizeof(nt_head)) ||
+			nt_head->Signature != IMAGE_NT_SIGNATURE) {
+			goto defer;
+		}
+
+		const auto exports = nt_head.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
+		const auto exports_size = nt_head.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size;
+
+		if (!exports || !exports_size) {
+			goto defer;
+		}
+
+		const PIMAGE_EXPORT_DIRECTORY export_data = nullptr;
+		if (!NT_SUCCESS(ntstatus = cxt->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void*) &export_data, 0, exports_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+			goto defer;
+		}
+		
+		if (!ReadMemory(handle, export_data, base + exports, exports_size)) {
+			goto defer;
+		}
+		
+		for (auto index = 0; index < export_data->NumberOfNames; i++) {
+            const auto name = (char*) (base + ((uint32*) (base + exports->AddressOfNames))[index - 1]);
+
+			if (MbsCompare(name, function) == 0) {
+				const auto ord = (uint16*) (base + ((uint16*) (base + exports->AddressOfOrdinals))[index]);
+				if (ord <= 0x1000) {
+					break;
+				}
+
+				address = (uint32*) (base + ((uint32*) (base + exports->AddressOfFunctions))[index]);
+				if (address >= base + exports && address <= base + exports + exports_size) {
+					address = nullptr;
+				}
+
+				break;
+			}
+		}
+
+	defer:
+		if (export_data) {
+			ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void*) &export_data, exports_size, MEM_RELEASE);
+			export_data = nullptr;
+		}
+
+		return address;
+	} 
 
 	UINT_PTR FindSection(const char* section_name, uintptr_t base, uint32_t *size) {
 

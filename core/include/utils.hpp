@@ -39,6 +39,10 @@ namespace Utils {
     FUNCTION
         AppendPointerList(VOID **array[], VOID *pointer, UINT32 *count);
 
+	BOOL
+	FUNCTION
+	    ReadMemory(HANDLE handle, VOID *dst, VOID *src, UINT_PTR size);
+
     namespace Scanners {
         BOOL
         FUNCTION
