@@ -59,7 +59,7 @@ namespace Intel {
 	std::wstring GetDriverNameW();
 	LPWSTR GetDriverPath();
 
-	// NOTE: exposed in order to use templates ig. Not sure it's necessary.
+	// NOTE: exposed in order to use templated arguments. Not sure it's necessary.
 	template<typename T, typename ...A>
 	bool CallKernelFunction(HANDLE handle, T *out_result, UINT_PTR kernel_function_address, const A ...arguments) {
 		constexpr auto call_void = std::is_same_v<T, void>;
