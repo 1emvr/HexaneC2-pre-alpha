@@ -19,47 +19,41 @@ lazy_static! {
     pub(crate) static ref CONFIGS: ConfigStore = Arc::new(Mutex::new(Vec::new()));
 }
 
-// NOTE: client/server messaging
-// TODO: http_server/implant messaging
 
 async fn parse_config(buffer: Vec<u8>) -> String {
-	println!("[INF] parsing config...");
-
-    match from_slice::<HexaneStream>(&buffer) { //TODO: change this to HexaneStream type
+    match from_slice::<HexaneStream>(&buffer) { 
         Ok(hexane) => {
 
             if let Ok(mut configs) = CONFIGS.lock() {
                 configs.push(hexane);
-                println!("[INF] parse_config: hexane push success");
+                return "[INF] parse_config: config push success".to_string();
             }
             else {
-                println!("[ERR] parse_config: error on config lock");
+                return "[ERR] parse_config: error on config lock".to_string();
             }
         }
         Err(e)=> {
-            println!("[ERR] parse_config: parser error. not a hexane stream type");
+            return "[ERR] parse_config: parser error. not a HexaneStream type (??)".to_string();
         }
     }
-
-    return "200 OK".to_string()
 }
 
 async fn process_message(text: String) -> String {
-    //let parser = create_parser(text.into_bytes());
     println!("[INF] processing message: {}", text);
 
-	let des = deserialize_json(text);
-
+	let des: ServerPacket = serde_json::from_str::<ServerPacket>(text.as_str());
     match msg_type {
+
         TypeConfig => {
             let rsp = parse_config(parser.msg_buffer).await;
             return rsp;
         }
 		TypeCommand => {
+			// TODO: parse command to TLV and queue per implant peer_id
+			return "[INF] command was processed".to_string();
 		}
         _ => {
-            println!("[ERR] process_message: unknown message type");
-            return "200 OK".to_string();
+            return "[ERR] process_message: unknown user message type".to_string();
         }
     }
 }
@@ -79,24 +73,32 @@ async fn handle_connection(stream: TcpStream) {
     while let Some(msg) = receiver.next().await {
         match msg {
 
-            Ok(Message::Text(text)) => { // <- String type
+            Ok(Message::Text(text)) => {
                 let rsp = process_message(text).await;
                 if let Err(e) = sender.send(Message::Text(rsp)).await {
-                    println!("[ERR] handle_connection: error sending message: {}", e);
+                    println!("[ERR] handle_connection: error sending message to user: {}", e);
                 }
             },
             Ok(Message::Close(_)) => {
-                println!("[INF] handle_connection: client closing connection");
+				if let Err(e) = sender.send("[INF] handle_connection: user closing connection").await {
+					println!("[ERR] handle_connection: sending \"close connection\" message failed: {}", e);
+				}
                 break;
             },
             Ok(Message::Binary(_)) => {
-                println!("[INF] handle_connection: TODO: Message::Binary");
+                if let Err(e) = sender.send("[INF] handle_connection: binary message from user. Ignoring...").await {
+					println!("[ERR] handle_connection: sending \"binary message\" message failed: {}", e);
+				}
             },
             Ok(_) => {
-                println!("[INF] handle_connection: unknown message type. Ignoring...");
+                if let Err(e) = sender.send("[INF] handle_connection: unknown message type from user. Ignoring...").await {
+					println!("[ERR] handle_connection: sending \"invalid message\" message failed: {}", e);
+				}
             },
             Err(e)=> {
-                println!("[ERR] handle_connection: error processing message: {}", e);
+                if let Err(e) = sender.send("[ERR] handle_connection: error processing message from user: {}", e).await {
+					println!("[ERR] handle_connection: sending \"receive message\" message failed: {}", e);
+				}
                 break;
             }
         }
