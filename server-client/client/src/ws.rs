@@ -106,6 +106,7 @@ pub fn ws_session(url: String) {
 			break;
 		}
 
+		// TODO: server-side command parsing
 		let command_data = args[0..].join(" ");
 		let packet = ServerPacket {
 			peer_id:  123, // TODO: dynamically get peer id for implant
@@ -132,5 +133,5 @@ pub fn ws_session(url: String) {
 		}
 	}
 
-	wrap_message("INF", "main menu");
+	wrap_message("INF", "main menu ->");
 }
