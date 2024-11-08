@@ -125,8 +125,8 @@ pub fn ws_session(url: String) {
 
 				let command_data = args[0..].join(" ");
 
-				// TODO: Valid commands need converted to TLV: (peer_id, task_id, msg_type, msg_length, [command data])
-				// NOTE: Client provides peer_id and msg_type. Server provides task_id, command data/length
+				// TODO: Valid commands need converted to TLV by the server: (peer_id, task_id, msg_type, msg_length, [command data])
+				// NOTE: Client provides peer_id and msg_type. Server provides task_id and command buffer
 				ServerPacket {
 					peer_id: 123,
 					msg_type: MessageType::TypeCommand,
