@@ -20,7 +20,12 @@ lazy_static! {
 }
 
 
+// TODO: create the data layer
+// TODO: needs placed in the data layer
 async fn parse_config(buffer: Vec<u8>) -> String {
+	let config: HexaneStream = serde_json::from_str(buffer.as_str());
+
+	// FIXME: this is not proper deserialization
     match from_slice::<HexaneStream>(&buffer) { 
         Ok(hexane) => {
 
@@ -41,11 +46,17 @@ async fn parse_config(buffer: Vec<u8>) -> String {
 async fn process_message(text: String) -> String {
     println!("[INF] processing message: {}", text);
 
-	let des: ServerPacket = serde_json::from_str::<ServerPacket>(text.as_str());
-    match msg_type {
+	let des: ServerPacket = match serde_json::from_str::<ServerPacket>(text.as_str()) {
+		Ok(des) => des,
+		Err(e) => {
+			return format!("[ERR] invalid packet structure from user: {}", e)
+		}
+	}
+
+    match des.msg_type {
 
         TypeConfig => {
-            let rsp = parse_config(parser.msg_buffer).await;
+            let rsp = parse_config(des.buffer).await;
             return rsp;
         }
 		TypeCommand => {
