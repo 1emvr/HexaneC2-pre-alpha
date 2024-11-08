@@ -10,7 +10,8 @@ use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::{accept_async, tungstenite::protocol::Message};
 
 use hexlib::parser::create_parser;
-use hexlib::types::{Hexane, HexaneStream, Parser, MessageType};
+use hexlib::types::{ Hexane, HexaneStream, Parser, MessageType };
+use hexlib::{ serialize_json, deserialize_json };
 
 type ConfigStore = Arc<Mutex<Vec<HexaneStream>>>;
 
@@ -45,37 +46,11 @@ async fn parse_config(buffer: Vec<u8>) -> String {
 
 async fn process_message(text: String) -> String {
     //let parser = create_parser(text.into_bytes());
-    println!("[INF] processing message: {:?}", &parser.msg_buffer);
+    println!("[INF] processing message: {}", text);
 
-	/*
-	TODO: 
+	let des = deserialize_json(text);
 
-    pub struct ServerPacket {
-        pub peer_id:  u32,
-	    pub msg_type: u32,
-	    pub buffer:   Vec {
-
-	        pub struct HexaneStream {
-                pub peer_id:       u32,
-                pub group_id:      u32,
-                pub username:      String,
-                pub session_key:   Vec<u8>,
-                pub endpoints:     Vec<String>,
-                pub network_type:  NetworkType,
-            }
-
-	        OR
-	        pub struct Command {
-	            pub cmd_id: u32,
-	            pub cmd: Vec<u8>,
-	            pub args: Vec<u8>
-            }
-	??
-        }
-    }
-
-	 */
-    //match parser.msg_type {
+    match msg_type {
         TypeConfig => {
             let rsp = parse_config(parser.msg_buffer).await;
             return rsp;

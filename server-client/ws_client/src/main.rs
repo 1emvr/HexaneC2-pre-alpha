@@ -2,8 +2,9 @@ use url::Url;
 use std::io::{self, Write};
 
 use hexlib::stream::Stream;
-use hexlib::types::{HexaneStream, MessageType, NetworkType};
 use hexlib::error::{Result, Error};
+use hexlib::types::{HexaneStream, ServerPacket, MessageType, NetworkType};
+use hexlib::{json_serialize, json_deserialize};
 
 use tungstenite::{connect, Message};
 use tungstenite::handshake::server::Response as ServerResponse;
@@ -61,24 +62,14 @@ fn connect_server(url: &str) -> Result<WebSocketUpgrade> {
 
 }
 
-fn serialize_test<T: Serialize>(data: T) -> Result<String> {
-    let json = match serde_json::to_string(&data) {
-        Ok(json) => json,
-        Err(e) => {
-            println!("[ERR] error serializing data to json");
-            return Err(Error::SerdeJson(e))
-        }
-    };
-
-    Ok(json)
-}
-
 fn main() {
     let url = "ws://127.0.0.1:3000";
-    let mut socket = connect_server(url)
-        .expect("cannot connect");
 
-    let data = HexaneStream {
+    let mut socket = connect_server(url)
+        .expect("[ERR] cannot connect");
+
+	println!("[INF] connected to server");
+    let config = HexaneStream {
         peer_id:       123,
         group_id:      321,
         username:      "lemur".to_string(),
@@ -87,13 +78,32 @@ fn main() {
         network_type:  NetworkType::Http,
     };
 
-    let json = match serialize_test(data) {
+	println!("[INF] serializing config");
+    let cfg_json = match json_serialize(config) {
         Ok(json) => json,
         Err(e) => {
-            println!("serialization error: {}", e);
+            println!("[ERR] config serialization error: {}", e);
             return
         }
     };
 
-    write_server(json, &mut socket);
+	let packet = ServerPacket {
+		peer_id: 1,
+		msg_type: MessageType::TypeConfig,
+		buffer: cfg_json,
+	};
+
+	println!("[INF] serializing packet");
+	let json_packet = match json_serialize(packet) {
+		Ok(json) => json,
+		Err(e) => {
+			println!("[ERR] packet serialization error: {}", e);
+			return
+		}
+	};
+
+	println!("[INF] sending to server");
+    write_server(json_packet, &mut socket);
+
+	println!("[INF] complete");
 }
