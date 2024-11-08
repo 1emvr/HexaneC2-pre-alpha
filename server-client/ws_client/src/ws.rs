@@ -24,29 +24,29 @@ fn parse_packet(rsp: String) {
         Ok(packet) => {
 			match packet.msg_type {
 				MessageType::TypeConfig => {
-					println!("[INF] config updated: {:?}", packet.buffer);
+					println!("[INF] config updated: {:?}", packet);
 				}
 				MessageType::TypeCommand => {
-					println!("[INF] command received: {:?}", packet.buffer);
+					println!("[INF] command received: {:?}", packet);
 				}
 				MessageType::TypeCheckin => {
 					// TODO: print checkin information (hostname, username, ip, ETWTi if applicable, other...)
-					println!("[INF] TypeCheckin: {:?}", packet.buffer);
+					println!("[INF] TypeCheckin: {:?}", packet);
 				}
 				MessageType::TypeTasking => {
 					// TODO: update task counter and fetch user commands
-					println!("[INF] TypeTasking: {:?}", packet.buffer);
+					println!("[INF] TypeTasking: {:?}", packet);
 				}
 				MessageType::TypeResponse => {
 					// TODO: print response data in json format.
-					println!("[INF] TypeResponse: {:?}", packet.buffer);
+					println!("[INF] TypeResponse: {:?}", packet);
 				}
 				MessageType::TypeSegment => {
 					// TODO: create buffers for fragmented packets. Print/store when re-constructed.
-					println!("[INF] TypeSegment: {:?}", packet.buffer);
+					println!("[INF] TypeSegment: {:?}", packet);
 				}
 				_ => {
-					println!("[WRN] unhandled message type: {:?}", packet.msg_type);
+					println!("[WRN] unhandled message: {:?}", packet);
 				}
 			}
 		}
@@ -65,7 +65,7 @@ fn send_server(json: String, socket: &mut WebSocketUpgrade) -> Result<String> {
     match socket.read_message() {
         Ok(Text(rsp)) => Ok(rsp),
         Ok(_) => {
-			println!("[WRN] received non-JSON data from the server: {}", rsp),
+			println!("[WRN] received non-JSON data from the server");
             Err(Error::Custom("invalid JSON".to_string()))
 		}
         Err(e) => {
@@ -94,7 +94,7 @@ fn main() {
         .expect("[ERR] cannot connect");
 
 	println!("[INF] connected to server");
-    let config = HexaneStream {
+    let fake_config = HexaneStream {
         peer_id:       123,
         group_id:      321,
         username:      "lemur".to_string(),
@@ -103,11 +103,11 @@ fn main() {
         network_type:  NetworkType::Http,
     };
 
-	println!("[INF] serializing config");
-    let cfg_json = match serde_json::to_string(&config) {
+	println!("[INF] serializing fake_config");
+    let cfg_json = match serde_json::to_string(&fake_config) {
         Ok(json) => json,
         Err(e) => {
-            println!("[ERR] config serialization error: {}", e);
+            println!("[ERR] fake_config serialization error: {}", e);
             return
         }
     };
@@ -130,8 +130,10 @@ fn main() {
 	println!("[INF] sending to server");
     let rsp = match send_server(json_packet, &mut socket) {
 		Ok(rsp) => {
-			// TODO: unwrap ServerPacket
 			parse_packet(rsp);
+		}
+		Err(e) => {
+			println!("[ERR] {}", e);
 		}
 	}
 

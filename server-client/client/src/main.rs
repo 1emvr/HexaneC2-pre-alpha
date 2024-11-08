@@ -1,3 +1,4 @@
+mod ws;
 mod utils;
 mod cipher;
 mod binary;
@@ -13,6 +14,7 @@ use std::io::stdin;
 use crate::instance::{list_instances, load_instance, remove_instance};
 use crate::interface::{init_print_channel, stop_print_channel, wrap_message};
 use crate::utils::print_help;
+use crate::ws::ws_session;
 
 
 fn main() {
@@ -53,10 +55,15 @@ fn main() {
             },
 
             "listener" => {
-                // TODO: add connection to an external listener
-                match args[1].as_str() {
-                    "connect"   => wrap_message("ERR", "listener not yet implemented"),
-                    _           => wrap_message("ERR", "listener not yet implemented"),
+
+				if args.len() != 3 {
+					wrap_message("ERR", "invalid input"),
+					continue;
+				}
+
+				match args[1].as_str() {
+                    "connect" => ws_session(args[2]); // NOTE: returned results aren't necessary in the main loop. All errors are handled by callee.
+                    _         => wrap_message("ERR", "invalid input"),
                 }
             }
             _ => {
