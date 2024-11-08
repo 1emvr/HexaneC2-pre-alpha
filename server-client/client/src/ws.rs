@@ -96,48 +96,22 @@ pub fn ws_session(url: String) {
 	wrap_message("INF connected to {}", url);
 	loop {
 		let mut input = String::new();
-		io::stdout().flush().unwrap();
-
 		println!("> ");
 
+		io::stdout().flush().unwrap();
 		stdin().read_line(&mut input).unwrap();
-		let input = input.trim();
 
+		let input = input.trim();
 		if input.eq_ignore_ascii_case("exit") {
 			break;
 		}
 
-		let args: Vec<String> = input.split_whitespace()
-			.map(str::to_string)
-			.collect();
-
-		if args.is_empty() {
-			continue;
+		let command_data = args[0..].join(" ");
+		let packet = ServerPacket {
+			peer_id:  123, // TODO: dynamically get peer id for implant
+			msg_type: MessageType::TypeCommand,
+			buffer:   command_data
 		}
-		
-		let packet = match args[0].as_str() {
-			"process" => {
-				// TODO: process list, process modules, process migrate (pid)
-				if args.len() != 2 {
-					wrap_message("ERR", "process usage: list | modules | migrate <pid>");
-					continue;
-				}
-
-				let command_data = args[0..].join(" ");
-
-				// TODO: Valid commands need converted to TLV by the server: (peer_id, task_id, msg_type, msg_length, [command data])
-				// NOTE: Client provides peer_id and msg_type. Server provides task_id and command buffer
-				ServerPacket {
-					peer_id: 123,
-					msg_type: MessageType::TypeCommand,
-					buffer: command_data
-				}
-			},
-			_ => {
-				wrap_message("ERR", "invalid input");
-				continue;
-			}
-		};
 
 		let server_packet = match serde_json::to_string(&packet) {
 			Ok(json) => json,
