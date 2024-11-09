@@ -18,48 +18,8 @@ namespace Intel {
 		
 	constexpr DWORD timestamp = 0x5284EAC3;
 
-	BOOL ClearPiDDBCacheTable(HANDLE handle);
-	BOOL ExAcquireResourceExclusiveLite(HANDLE handle, PVOID resource, BOOLEAN wait);
-	BOOL ExReleaseResourceLite(HANDLE handle, PVOID resource);
-	BOOLEAN RtlDeleteElementGenericTableAvl(HANDLE handle, PVOID table, PVOID buffer);
-	PVOID RtlLookupElementGenericTableAvl(HANDLE handle, PRTL_AVL_TABLE table, PVOID buffer);
-	PiDDBCacheEntry* LookupEntry(HANDLE handle, PRTL_AVL_TABLE cache_table, ULONG timestamp, CONST WCHAR *name);
-	PVOID ResolveRelativeAddress(HANDLE handle, PVOID instruction, ULONG offset, ULONG instruction_size);
-	BOOL AcquireDebugPrivilege();
-
-	UINT_PTR FindPatternAtKernel(HANDLE handle, UINT_PTR address, UINT_PTR size, UINT8 *mask, CONST CHAR *sz_mask);
-	UINT_PTR FindSectionAtKernel(HANDLE handle, CONST CHAR *sec_name, UINT_PTR module_ptr, PULONG size);
-	UINT_PTR FindPatternInSectionAtKernel(HANDLE handle, CONST CHAR *sec_name, UINT_PTR module_ptr, UINT8 *mask, CONST CHAR *sz_mask);
-
-	BOOL ClearKernelHashBucketList(HANDLE handle);
-	BOOL ClearWdFilterDriverList(HANDLE handle);
-
-	BOOL IsRunning();
-	HANDLE LoadDriver();
-	BOOL Unload(HANDLE handle);
-
-	UINT64 MapIoSpace(HANDLE handle, UINT_PTR physical_address, UINT32 size);
-	BOOL UnmapIoSpace(HANDLE handle, UINT_PTR address, UINT32 size);
-
-	BOOL GetPhysicalAddress(HANDLE handle, UINT_PTR address, UINT_PTR* out_physical_address);
-	BOOL WriteToReadOnlyMemory(HANDLE handle, UINT_PTR address, void* buffer, UINT32 size);
-
-	/*added by herooyyy*/
-	UINT_PTR MmAllocateIndependentPagesEx(HANDLE handle, UINT32 size);
-	BOOL MmFreeIndependentPages(HANDLE handle, UINT_PTR address, UINT32 size);
-	BOOLEAN MmSetPageProtection(HANDLE handle, UINT_PTR address, UINT32 size, ULONG new_protect);
-	
-	UINT_PTR AllocatePool(HANDLE handle, nt::POOL_TYPE pool_type, UINT_PTR size);
-
-	bool FreePool(HANDLE handle, UINT_PTR address);
-	UINT_PTR GetKernelModuleExport(HANDLE handle, UINT_PTR kernel_module_base, const std::string& function_name);
-	bool ClearMmUnloadedDrivers(HANDLE handle);
-	std::wstring GetDriverNameW();
-	LPWSTR GetDriverPath();
-
-	// NOTE: exposed in order to use templated arguments. Not sure it's necessary.
 	template<typename T, typename ...A>
-	bool CallKernelFunction(HANDLE handle, UINT_PTR function, T *result, const A ...arguments) {
+	BOOL CallKernelFunction(HANDLE handle, UINT_PTR function, T *result, const A ...arguments) {
 
 		constexpr auto call_void = std::is_same_v<T, void>; // might need statically compiled
 		static_assert(sizeof...(A) <= 4);

