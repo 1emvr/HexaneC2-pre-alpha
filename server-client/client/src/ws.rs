@@ -111,15 +111,18 @@ fn send_packet(packet: ServerPacket, socket: &mut WebSocketUpgrade) -> Result<()
 	Ok(())
 }
 
-pub fn ws_update_config(config_stream: String, url: String) -> Result<()> {
+pub fn ws_update_config(instance: &Hexane) -> Result<()> {
 	// TODO: smb configs don't have a C2 callback address. They should be assigned by groups somehow.
-    let mut socket = match connect_server(url.as_str()) {
+    let mut socket = match connect_server(instance.main_cfg.address) {
 		Ok(socket) => socket,
 		Err(e) => {
 			wrap_message("ERR", format!("update_config: {e}").as_str());
 			return Err(Error::Custom(e.to_string()))
 		}
 	};
+
+	let config_stream = serde_json::to_string(&instance)
+		.expect("Hexane serialization error");
 
 	let packet = ServerPacket {
 		peer_id:  123, // TODO: dynamically get peer id for implant

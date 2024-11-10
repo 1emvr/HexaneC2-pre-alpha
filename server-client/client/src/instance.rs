@@ -61,9 +61,9 @@ pub(crate) fn load_instance(args: Vec<String>) {
     }
 
     instances.push(instance);
-	// TODO: push instance and pass pid to get callback address
-	// smb does not have C2 callback address and needs to be assigned one when adding to peer group
-	// this is to let the update_server function contact the correct address (?)
+	// TODO: smb does not have C2 callback address and needs to be assigned one when adding to peer group
+	// this is to let the update_server function contact the correct address 
+	// should user be required to provide address, or automatically assigned one from a peer group?
 
 	if let Err(e) = update_server(&instance) {
 		wrap_message("ERR", format!("load_instance: {e}").as_str());
