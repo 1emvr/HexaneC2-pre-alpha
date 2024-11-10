@@ -14,64 +14,8 @@ use serde_json;
 
 type WebSocketUpgrade = tungstenite::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>; 
 
-// TODO: move to client data layer
-fn parse_packet(rsp: String) {
-    println!("[INF] reading json response");
 
-    let parsed: Result<ServerPacket> = serde_json::from_str(&rsp)
-		.expect("parse_packet: serde_json::from_str");
-
-	match parsed {
-
-		// NOTE: all messages are parsed server-side. The response data will be returned here.
-        Ok(packet) => {
-			match packet.msg_type {
-				MessageType::TypeConfig => {
-					println!("[INF] config updated");
-				}
-				MessageType::TypeCommand => {
-					println!("[INF] command received");
-				}
-				MessageType::TypeTasking => {
-					// TODO: update task counter and fetch user commands
-					println!("[INF] task request recieved");
-				}
-				MessageType::TypeCheckin => {
-					// TODO: print checkin information (hostname, username, ip, ETWTi if applicable, other...)
-					println!("[INF] TypeCheckin: {:?}", packet.buffer);
-				}
-				MessageType::TypeResponse => {
-					// TODO: print response data in json format.
-					println!("[INF] response: {:?}", packet.buffer);
-				}
-				MessageType::TypeSegment => {
-					// TODO: create buffers for fragmented packets. Print/store when re-constructed.
-					println!("[INF] segmented message");
-				}
-				_ => {
-					println!("[WRN] unhandled message type");
-				}
-			}
-		}
-
-        Err(e) => {
-            println!("[ERR] server response is not valid JSON: {}", e);
-            println!("[INF] server response: {}", rsp);
-        }
-    }
-}
-
-fn connect_server(url: &str) -> Result<WebSocketUpgrade> {
-    match connect(url) {
-        Ok((socket, _)) => Ok(socket),
-        Err(e) => {
-            println!("[ERR] error connecting to server");
-            return Err(Error::Tungstenite(e))
-        }
-    }
-}
-
-fn send_server(json: String, socket: &mut WebSocketUpgrade) -> Result<String> {
+fn send_packet(json: String, socket: &mut WebSocketUpgrade) -> Result<String> {
     socket.write_message(Message::Text(json.clone()))
         .expect("[ERR] failed to send message");
 
@@ -89,21 +33,21 @@ fn send_server(json: String, socket: &mut WebSocketUpgrade) -> Result<String> {
 }
 
 // TODO: send HexaneStream automatically on build
-fn send_packet(packet: ServerPacket, socket: &mut WebSocketUpgrade) -> Result<()> {
+fn transmit_server(packet: ServerPacket, socket: &mut WebSocketUpgrade) -> Result<()> {
 	let server_packet = match serde_json::to_string(&packet) {
 		Ok(json) => json,
 		Err(e) => {
-			wrap_message("ERR", format!("send_packet: {e}").as_str());
+			wrap_message("ERR", format!("transmit_server: {e}").as_str());
 			return Err(Error::Custom(e.to_string()))
 		}
 	};
 
-	let rsp = match send_server(server_packet, socket) {
+	let rsp = match send_packet(server_packet, socket) {
 		Ok(rsp) => {
 			parse_packet(rsp);
 		}
 		Err(e) => {
-			wrap_message("ERR", format!("send_packet: {e}").as_str());
+			wrap_message("ERR", format!("transmit_server: {e}").as_str());
 			return Err(Error::Custom(e.to_string()))
 		}
 	};
@@ -111,34 +55,14 @@ fn send_packet(packet: ServerPacket, socket: &mut WebSocketUpgrade) -> Result<()
 	Ok(())
 }
 
-pub fn ws_update_config(instance: &Hexane) -> Result<()> {
-	// TODO: all operations/interface should be server-side. the client should only handle ws connections
-	// this will also reduce the amount of specific data types necessary to perform client-server communication
-
-    let mut socket = match connect_server(instance.main_cfg.address) {
-		Ok(socket) => socket,
-		Err(e) => {
-			wrap_message("ERR", format!("update_config: {e}").as_str());
-			return Err(Error::Custom(e.to_string()))
-		}
-	};
-
-	let config_stream = serde_json::to_string(&instance)
-		.expect("Hexane serialization error");
-
-	let packet = ServerPacket {
-		peer_id:  123, // TODO: dynamically get peer id for implant
-		msg_type: MessageType::TypeConfig,
-		buffer:   config_stream 
-	};
-
-	if let Err(e) = send_packet(packet, &mut socket) {
-		wrap_message("ERR", "update_config: {e}");
-		return Err(Error::Custom(e.to_string()))
-	};
-
-	socket.close(None).expect("failed to close WebSocket");
-	Ok(())
+fn connect_server(url: &str) -> Result<WebSocketUpgrade> {
+    match connect(url) {
+        Ok((socket, _)) => Ok(socket),
+        Err(e) => {
+            println!("[ERR] error connecting to server");
+            return Err(Error::Tungstenite(e))
+        }
+    }
 }
 
 pub fn ws_interactive(url: String) {
@@ -150,7 +74,7 @@ pub fn ws_interactive(url: String) {
 		}
 	};
 
-	wrap_message("INF", "connected to {url}");
+	wrap_message("INF", format!("connected to {url}"));
 	loop {
 		let mut input = String::new();
 		println!("> ");
@@ -163,14 +87,13 @@ pub fn ws_interactive(url: String) {
 			break;
 		}
 
-		// TODO: server-side command parsing
 		let packet = ServerPacket {
-			peer_id:  123, // TODO: dynamically get peer id for implant
+			peer_id:  123,
 			msg_type: MessageType::TypeCommand,
 			buffer:   input.to_string()
 		};
 
-		if let Err(e) = send_packet(packet, &mut socket) {
+		if let Err(e) = transmit_server(packet, &mut socket) {
 			wrap_message("ERR", "packet send failed: {e}");
 		};
 	}

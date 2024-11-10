@@ -217,8 +217,7 @@ pub struct HexaneStream {
 
 #[derive(Ser, Des)]
 pub struct ServerPacket {
-    pub peer_id:  u32,
-	pub msg_type: MessageType,
-	pub buffer:   String,
+    pub username:  String,
+	pub buffer:    String,
 }
 
