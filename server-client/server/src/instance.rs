@@ -17,7 +17,6 @@ use hexlib::types::NetworkOptions::Smb as SmbOpts;
 
 use crate::interface::wrap_message;
 use crate::builder::HexaneBuilder;
-use crate::ws::ws_update_config;
 
 use lazy_static::lazy_static;
 
@@ -79,25 +78,12 @@ pub(crate) fn remove_instance(args: Vec<&str>) -> String {
     }
 }
 
-fn map_json_config(file_path: &str) -> Result<Hexane> {
+fn list_instance() -> String {
+	// TODO: serialize instance data and return to the client
+}
+
+fn map_json_config(contents: &str) -> Result<Hexane> {
 	// TODO: sending json configs over the wire instead of using local files
-    let curdir = env::current_dir()
-        .map_err(|e| {
-            format!("could not get current directory: {e}")
-        });
-
-    let json_file = curdir
-        .unwrap()
-        .join("json")
-        .join(file_path);
-
-    if !json_file.exists() {
-        return Err("json file does not exist".to_string())
-    }
-
-    let contents = fs::read_to_string(json_file)
-        .map_err(|e| format!("could not read json file: {e}"))?;
-
     let json_data = serde_json::from_str::<JsonData>(&contents)
         .map_err(|e| format!("could not parse json data: {e}"))?;
 
