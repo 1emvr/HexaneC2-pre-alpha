@@ -96,8 +96,8 @@ pub(crate) fn update_server(instance: &Hexane) ->Result<()> {
         let config_stream = HexaneStream {
             peer_id:       instance.peer_id.clone(),
             group_id:      instance.group_id.clone(),
-            network_type:  rtype.clone(),
             username:      session.username.clone(),
+            network_type:  rtype.clone(),
             session_key:   vec![],
             endpoints:     endpoints, 
         };

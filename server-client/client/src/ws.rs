@@ -126,9 +126,7 @@ pub fn ws_update_config(config_stream: String, url: String) -> Result<()> {
 		return Err(e)
 	}
 
-	socket.close(None)
-		.expect("Failed to close WebSocket");
-
+	socket.close(None).expect("failed to close WebSocket");
 	Ok(())
 }
 
@@ -167,8 +165,6 @@ pub fn ws_interactive(url: String) {
 		}
 	}
 
-	socket.close(None)
-		.expect("Failed to close WebSocket");
-
+	socket.close(None).expect("failed to close WebSocket");
 	wrap_message("INF", "main menu ->");
 }
