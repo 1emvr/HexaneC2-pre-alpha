@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use hexlib::stream::Stream;
 use hexlib::error::{Result, Error};
-use hexlib::types::{HexaneStream, ServerPacket, MessageType, NetworkType};
+use hexlib::types::{Hexane, HexaneStream, ServerPacket, MessageType, NetworkType};
 use crate::interface::wrap_message;
 
 use tungstenite::{connect, Message};
@@ -98,7 +98,7 @@ fn send_packet(packet: ServerPacket, socket: &mut WebSocketUpgrade) -> Result<()
 		}
 	};
 
-	let rsp = match send_server(server_packet, &mut socket) {
+	let rsp = match send_server(server_packet, socket) {
 		Ok(rsp) => {
 			parse_packet(rsp);
 		}

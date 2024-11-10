@@ -84,7 +84,7 @@ pub(crate) fn update_server(instance: &Hexane) ->Result<()> {
         match (rtype, &opts) {
 
             (HttpType, HttpOpts(ref http)) => {
-				address = &http.address;
+				address = http.address;
                 for endpoint in &http.endpoints {
                     endpoints.push(endpoint.clone());
                 }
@@ -118,6 +118,7 @@ pub(crate) fn update_server(instance: &Hexane) ->Result<()> {
         };
 
 		// TODO: pass the server url in the config (?)
+		// ws:// is different from http://. How does the updater know where to connect?
 		ws_update_config(config)
 	}
 	else {
