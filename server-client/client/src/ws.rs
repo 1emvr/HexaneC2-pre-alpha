@@ -13,6 +13,7 @@ use serde_json;
 
 type WebSocketUpgrade = tungstenite::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>; 
 
+// TODO: move to client data layer
 fn parse_packet(rsp: String) {
     println!("[INF] reading json response");
 
@@ -57,6 +58,16 @@ fn parse_packet(rsp: String) {
     }
 }
 
+fn connect_server(url: &str) -> Result<WebSocketUpgrade> {
+    match connect(url) {
+        Ok((socket, _)) => Ok(socket),
+        Err(e) => {
+            println!("[ERR] error connecting to server");
+            return Err(Error::Tungstenite(e))
+        }
+    };
+}
+
 fn send_server(json: String, socket: &mut WebSocketUpgrade) -> Result<String> {
     socket.write_message(Message::Text(json.clone()))
         .expect("[ERR] failed to send message");
@@ -74,29 +85,63 @@ fn send_server(json: String, socket: &mut WebSocketUpgrade) -> Result<String> {
     }
 }
 
-fn connect_server(url: &str) -> Result<WebSocketUpgrade> {
-    match connect(url) {
-        Ok((socket, _)) => Ok(socket),
-        Err(e) => {
-            println!("[ERR] error connecting to server");
-            return Err(Error::Tungstenite(e))
-        }
-    };
+// TODO: send HexaneStream automatically on build
+fn send_packet(packet: ServerPacket, socket: &mut WebSocketUpgrade) -> Result<()> {
+	let server_packet = match serde_json::to_string(&packet) {
+		Ok(json) => json,
+		Err(e) => {
+			wrap_message("ERR", "send_packet: {}", e);
+			return Err(e)
+		}
+	};
+
+	let rsp = match send_server(server_packet, &mut socket) {
+		Ok(rsp) => {
+			parse_packet(rsp);
+		}
+		Err(e) => {
+			wrap_message("ERR", "send_packet: {e}");
+			return Err(e)
+		}
+	}
 }
 
-// TODO: send HexaneStream automatically on build
-
-
-pub fn ws_session(url: String) {
+pub fn ws_update_config(config_stream: String, url: String) -> Result<()> {
     let mut socket = match connect_server(url) {
 		Ok(socket) => socket,
 		Err(e) => {
-			wrap_message("ERR", "cannot connect to server: {}", e);
+			wrap_message("ERR", "update_config: {e}");
+			return Err(e)
+		}
+	}
+
+	let packet = ServerPacket {
+		peer_id:  123, // TODO: dynamically get peer id for implant
+		msg_type: MessageType::TypeConfig,
+		buffer:   config_stream 
+	}
+
+	if let Err(e) = send_packet(socket, packet) {
+		wrap_message("ERR", "update_config: {e}");
+		return Err(e)
+	}
+
+	socket.close(None)
+		.expect("Failed to close WebSocket");
+
+	Ok(())
+}
+
+pub fn ws_interactive(url: String) {
+    let mut socket = match connect_server(url) {
+		Ok(socket) => socket,
+		Err(e) => {
+			wrap_message("ERR", "ws_session: {e}");
 			return
 		}
 	}
 
-	wrap_message("INF connected to {}", url);
+	wrap_message("INF", "connected to {url}");
 	loop {
 		let mut input = String::new();
 		println!("> ");
@@ -117,24 +162,13 @@ pub fn ws_session(url: String) {
 			buffer:   command_data
 		}
 
-		let server_packet = match serde_json::to_string(&packet) {
-			Ok(json) => json,
-			Err(e) => {
-				println!("[ERR] server packet serialization error: {}", e);
-				return
-			}
-		};
-
-		let rsp = match send_server(server_packet, &mut socket) {
-			Ok(rsp) => {
-				parse_packet(rsp);
-			}
-			Err(e) => {
-				println!("[ERR] {}", e);
-				continue;
-			}
+		if let Err(e) = send_packet(socket, packet) {
+			wrap_message("ERR", "packet send failed: {e}");
 		}
 	}
+
+	socket.close(None)
+		.expect("Failed to close WebSocket");
 
 	wrap_message("INF", "main menu ->");
 }

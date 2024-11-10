@@ -19,7 +19,7 @@ use hexlib::types::NetworkOptions::Smb as SmbOpts;
 
 use crate::interface::wrap_message;
 use crate::builder::HexaneBuilder;
-use crate::ws::send_packet;
+use crate::ws::ws_update_config;
 
 use lazy_static::lazy_static;
 
@@ -40,7 +40,7 @@ pub(crate) fn load_instance(args: Vec<String>) {
     let mut instance = match map_json_config(&args[2]) {
         Ok(instance) => instance,
         Err(e) => {
-            wrap_message("ERR", format!("loading instance failed: {e}").as_str());
+            wrap_message("ERR", format!("load_instance: {e}").as_str());
             return
         }
     };
@@ -56,12 +56,12 @@ pub(crate) fn load_instance(args: Vec<String>) {
 
     wrap_message("INF", "building...");
     if let Err(e) = instance.setup_build() {
-        wrap_message("ERR", format!("setting up build failed: {e}").as_str());
+        wrap_message("ERR", format!("load_instance: {e}").as_str());
         return
     }
 
 	if let Err(e) = update_server(&instance) {
-		wrap_message("ERR", format!("sending config data to server: {e}").as_str());
+		wrap_message("ERR", format!("load_instance: {e}").as_str());
 		return
 	}
 
@@ -110,22 +110,7 @@ pub(crate) fn update_server(instance: &Hexane) ->Result<()> {
             }
         }
 
-		let packet_stream = ServerPacket {
-			peer_id:  instance.peer_id.clone(),
-			msg_type: MessageType::TypeConfig,
-			buffer:   config.clone(),
-		}
-
-		let stream = match serde_json::to_string(&packet_stream) {
-			Ok(data) => data,
-			Err(e) => {
-                wrap_message("ERR", format!("packet serialization failed: {e}").as_str());
-                Err(Custom(format!("packet serialization failed: {e}").to_string()))
-			}
-		}
-
-		// ws::send_packet(&packet)
-		Ok(())
+		ws_update_config(&config)
 	}
 	else {
 		wrap_message("ERR", "serialize_instance: network configuration missing");
