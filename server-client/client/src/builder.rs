@@ -73,10 +73,6 @@ impl HexaneBuilder for hexlib::types::Hexane {
         Ok(())
     }
 
-	fn update_server() {
-
-	}
-
     fn create_config_patch(&mut self) -> Result<()> {
         self.session_key = crypt_create_key(16);
 

@@ -3,6 +3,7 @@ use std::io::{self, Write};
 use hexlib::stream::Stream;
 use hexlib::error::{Result, Error};
 use hexlib::types::{HexaneStream, ServerPacket, MessageType, NetworkType};
+use crate::interface::wrap_message;
 
 use tungstenite::{connect, Message};
 use tungstenite::handshake::server::Response as ServerResponse;
@@ -17,36 +18,38 @@ type WebSocketUpgrade = tungstenite::WebSocket<tungstenite::stream::MaybeTlsStre
 fn parse_packet(rsp: String) {
     println!("[INF] reading json response");
 
-    let parsed: Result<ServerPacket, _> = serde_json::from_str(&rsp);
+    let parsed: Result<ServerPacket> = serde_json::from_str(&rsp)
+		.expect("parse_packet: serde_json::from_str");
+
 	match parsed {
 
 		// NOTE: all messages are parsed server-side. The response data will be returned here.
         Ok(packet) => {
 			match packet.msg_type {
 				MessageType::TypeConfig => {
-					println!("[INF] config updated: {:?}", packet);
+					println!("[INF] config updated");
 				}
 				MessageType::TypeCommand => {
-					println!("[INF] command received: {:?}", packet);
-				}
-				MessageType::TypeCheckin => {
-					// TODO: print checkin information (hostname, username, ip, ETWTi if applicable, other...)
-					println!("[INF] TypeCheckin: {:?}", packet);
+					println!("[INF] command received");
 				}
 				MessageType::TypeTasking => {
 					// TODO: update task counter and fetch user commands
-					println!("[INF] TypeTasking: {:?}", packet);
+					println!("[INF] task request recieved");
+				}
+				MessageType::TypeCheckin => {
+					// TODO: print checkin information (hostname, username, ip, ETWTi if applicable, other...)
+					println!("[INF] TypeCheckin: {:?}", packet.buffer);
 				}
 				MessageType::TypeResponse => {
 					// TODO: print response data in json format.
-					println!("[INF] TypeResponse: {:?}", packet);
+					println!("[INF] response: {:?}", packet.buffer);
 				}
 				MessageType::TypeSegment => {
 					// TODO: create buffers for fragmented packets. Print/store when re-constructed.
-					println!("[INF] TypeSegment: {:?}", packet);
+					println!("[INF] segmented message");
 				}
 				_ => {
-					println!("[WRN] unhandled message: {:?}", packet);
+					println!("[WRN] unhandled message type");
 				}
 			}
 		}
@@ -65,7 +68,7 @@ fn connect_server(url: &str) -> Result<WebSocketUpgrade> {
             println!("[ERR] error connecting to server");
             return Err(Error::Tungstenite(e))
         }
-    };
+    }
 }
 
 fn send_server(json: String, socket: &mut WebSocketUpgrade) -> Result<String> {
@@ -90,8 +93,8 @@ fn send_packet(packet: ServerPacket, socket: &mut WebSocketUpgrade) -> Result<()
 	let server_packet = match serde_json::to_string(&packet) {
 		Ok(json) => json,
 		Err(e) => {
-			wrap_message("ERR", "send_packet: {}", e);
-			return Err(e)
+			wrap_message("ERR", format!("send_packet: {e}").as_str());
+			return Err(Error::Custom(e.to_string()))
 		}
 	};
 
@@ -100,44 +103,47 @@ fn send_packet(packet: ServerPacket, socket: &mut WebSocketUpgrade) -> Result<()
 			parse_packet(rsp);
 		}
 		Err(e) => {
-			wrap_message("ERR", "send_packet: {e}");
-			return Err(e)
+			wrap_message("ERR", format!("send_packet: {e}").as_str());
+			return Err(Error::Custom(e.to_string()))
 		}
-	}
+	};
+
+	Ok(())
 }
 
 pub fn ws_update_config(config_stream: String, url: String) -> Result<()> {
-    let mut socket = match connect_server(url) {
+	// TODO: smb configs don't have a C2 callback address. They should be assigned by groups somehow.
+    let mut socket = match connect_server(url.as_str()) {
 		Ok(socket) => socket,
 		Err(e) => {
-			wrap_message("ERR", "update_config: {e}");
-			return Err(e)
+			wrap_message("ERR", format!("update_config: {e}").as_str());
+			return Err(Error::Custom(e.to_string()))
 		}
-	}
+	};
 
 	let packet = ServerPacket {
 		peer_id:  123, // TODO: dynamically get peer id for implant
 		msg_type: MessageType::TypeConfig,
 		buffer:   config_stream 
-	}
+	};
 
-	if let Err(e) = send_packet(socket, packet) {
+	if let Err(e) = send_packet(packet, &mut socket) {
 		wrap_message("ERR", "update_config: {e}");
-		return Err(e)
-	}
+		return Err(Error::Custom(e.to_string()))
+	};
 
 	socket.close(None).expect("failed to close WebSocket");
 	Ok(())
 }
 
 pub fn ws_interactive(url: String) {
-    let mut socket = match connect_server(url) {
+    let mut socket = match connect_server(url.as_str()) {
 		Ok(socket) => socket,
 		Err(e) => {
 			wrap_message("ERR", "ws_session: {e}");
 			return
 		}
-	}
+	};
 
 	wrap_message("INF", "connected to {url}");
 	loop {
@@ -145,7 +151,7 @@ pub fn ws_interactive(url: String) {
 		println!("> ");
 
 		io::stdout().flush().unwrap();
-		stdin().read_line(&mut input).unwrap();
+		io::stdin().read_line(&mut input).unwrap();
 
 		let input = input.trim();
 		if input.eq_ignore_ascii_case("exit") {
@@ -153,16 +159,15 @@ pub fn ws_interactive(url: String) {
 		}
 
 		// TODO: server-side command parsing
-		let command_data = args[0..].join(" ");
 		let packet = ServerPacket {
 			peer_id:  123, // TODO: dynamically get peer id for implant
 			msg_type: MessageType::TypeCommand,
-			buffer:   command_data
-		}
+			buffer:   input.to_string()
+		};
 
-		if let Err(e) = send_packet(socket, packet) {
+		if let Err(e) = send_packet(packet, &mut socket) {
 			wrap_message("ERR", "packet send failed: {e}");
-		}
+		};
 	}
 
 	socket.close(None).expect("failed to close WebSocket");

@@ -60,13 +60,17 @@ pub(crate) fn load_instance(args: Vec<String>) {
         return
     }
 
+    instances.push(instance);
+	// TODO: push instance and pass pid to get callback address
+	// smb does not have C2 callback address and needs to be assigned one when adding to peer group
+	// this is to let the update_server function contact the correct address (?)
+
 	if let Err(e) = update_server(&instance) {
 		wrap_message("ERR", format!("load_instance: {e}").as_str());
 		return
 	}
 
     wrap_message("INF", format!("{} is ready", name).as_str());
-    instances.push(instance);
 }
 
 pub(crate) fn update_server(instance: &Hexane) ->Result<()> {
@@ -74,11 +78,13 @@ pub(crate) fn update_server(instance: &Hexane) ->Result<()> {
 
         let rtype = &network.r#type;
         let opts = &network.options;
+		let address = String::new();
 
         let mut endpoints: Vec<String> = Vec::new();
         match (rtype, &opts) {
 
             (HttpType, HttpOpts(ref http)) => {
+				address = &http.address;
                 for endpoint in &http.endpoints {
                     endpoints.push(endpoint.clone());
                 }
@@ -97,6 +103,7 @@ pub(crate) fn update_server(instance: &Hexane) ->Result<()> {
             peer_id:       instance.peer_id.clone(),
             group_id:      instance.group_id.clone(),
             username:      session.username.clone(),
+			address:       address.clone(),
             network_type:  rtype.clone(),
             session_key:   vec![],
             endpoints:     endpoints, 
@@ -107,10 +114,11 @@ pub(crate) fn update_server(instance: &Hexane) ->Result<()> {
             Err(e) => {
                 wrap_message("ERR", format!("hexane serialization failed: {e}").as_str());
                 Err(Custom(format!("hexane serialization failed: {e}").to_string()))
-            }
-        }
+            }?
+        };
 
-		ws_update_config(&config)
+		// TODO: pass the server url in the config (?)
+		ws_update_config(config)
 	}
 	else {
 		wrap_message("ERR", "serialize_instance: network configuration missing");
