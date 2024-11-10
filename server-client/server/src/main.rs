@@ -1,47 +1,19 @@
+mod data;
+
 use std::env;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
-use lazy_static::lazy_static;
-use log::{info, error};
 
 use serde_json::from_slice;
 use futures::{StreamExt, SinkExt};
-use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::{accept_async, tungstenite::protocol::Message};
+use tokio::net::{TcpListener, TcpStream};
 
-use hexlib::parser::create_parser;
-use hexlib::types::{ Hexane, HexaneStream, Parser, MessageType };
 use hexlib::{ serialize_json, deserialize_json };
+use hexlib::types::MessageType;
 
-type ConfigStore = Arc<Mutex<Vec<HexaneStream>>>;
+use crate::data::parse_config;
 
-lazy_static! {
-    pub(crate) static ref CONFIGS: ConfigStore = Arc::new(Mutex::new(Vec::new()));
-}
-
-
-// TODO: create the data layer
-// TODO: needs placed in the data layer
-async fn parse_config(buffer: Vec<u8>) -> String {
-	let config: HexaneStream = serde_json::from_str(buffer.as_str());
-
-	// FIXME: this is not proper deserialization
-    match from_slice::<HexaneStream>(&buffer) { 
-        Ok(hexane) => {
-
-            if let Ok(mut configs) = CONFIGS.lock() {
-                configs.push(hexane);
-                return "[INF] parse_config: config push success".to_string();
-            }
-            else {
-                return "[ERR] parse_config: error on config lock".to_string();
-            }
-        }
-        Err(e)=> {
-            return "[ERR] parse_config: parser error. not a HexaneStream type (??)".to_string();
-        }
-    }
-}
 
 async fn process_message(text: String) -> String {
     println!("[INF] processing message: {}", text);
@@ -118,12 +90,18 @@ async fn handle_connection(stream: TcpStream) {
 
 #[tokio::main]
 async fn main() {
-    let addr = env::args().nth(1).unwrap_or_else(|| "127.0.0.1:3000".to_string());
-    let addr: SocketAddr = addr.parse().expect("tokio::main: invalid address");
+    let addr = env::args()
+		.nth(1)
+		.unwrap_or_else(|| "ws://127.0.0.1:3000".to_string());
 
-    let listener = TcpListener::bind(&addr).await.expect("tokio::main: could not bind");
+    let addr: SocketAddr = addr.parse()
+		.expect("tokio::main: invalid address");
+
+    let listener = TcpListener::bind(&addr)
+		.await
+		.expect("tokio::main: could not bind");
+
     println!("[INF] listening on: {}", addr);
-
     while let Ok((stream, _)) = listener.accept().await {
         tokio::spawn(handle_connection(stream));
     }

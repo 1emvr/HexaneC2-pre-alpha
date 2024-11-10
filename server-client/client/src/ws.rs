@@ -84,6 +84,9 @@ fn connect_server(url: &str) -> Result<WebSocketUpgrade> {
     };
 }
 
+// TODO: send HexaneStream automatically on build
+
+
 pub fn ws_session(url: String) {
     let mut socket = match connect_server(url) {
 		Ok(socket) => socket,

@@ -2,7 +2,6 @@ use std::fs;
 use std::env;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
-use lazy_static::lazy_static;
 
 use prettytable::{row, Table};
 use reqwest::blocking::Client as Client;
@@ -11,7 +10,7 @@ use bincode;
 
 use hexlib::error::Result;
 use hexlib::error::Error::Custom;
-use hexlib::types::{Hexane, HexaneStream, JsonData, UserSession};
+use hexlib::types::{Hexane, HexaneStream, ServerPacket, JsonData, UserSession};
 
 use hexlib::types::NetworkType::Http as HttpType;
 use hexlib::types::NetworkType::Smb as SmbType;
@@ -20,7 +19,9 @@ use hexlib::types::NetworkOptions::Smb as SmbOpts;
 
 use crate::interface::wrap_message;
 use crate::builder::HexaneBuilder;
+use crate::ws::send_packet;
 
+use lazy_static::lazy_static;
 
 lazy_static! {
     pub(crate) static ref INSTANCES: Arc<Mutex<Vec<Hexane>>> = Arc::new(Mutex::new(vec![]));
@@ -53,42 +54,22 @@ pub(crate) fn load_instance(args: Vec<String>) {
             return
         }
 
-    // TODO: get network type and if http, collect endpoints
-    let config_stream = serialize_config(&instance)
-        .map_err(|e| {
-            wrap_message("ERR", format!("serialize_instance: {}", e).as_str());
-            return
-        });
-        
-    // TODO: create keys before sending to server
-    let client = Client::new();
-
-    /*
-    TODO: fixme
-    match client.post("http://127.0.0.1:3000/instances") // reqwest::Client
-        .body(config_stream)
-        .send() {
-            Ok(response) => {
-                wrap_message("INF", format!("server response: {:?}", response.text().unwrap()).as_str());
-            }
-            Err(e) => {
-                wrap_message("ERR", format!("failed to send data: {e}").as_str());
-                return
-            }
-        }
-    */
-
     wrap_message("INF", "building...");
     if let Err(e) = instance.setup_build() {
         wrap_message("ERR", format!("setting up build failed: {e}").as_str());
         return
     }
 
+	if let Err(e) = update_server(&instance) {
+		wrap_message("ERR", format!("sending config data to server: {e}").as_str());
+		return
+	}
+
     wrap_message("INF", format!("{} is ready", name).as_str());
     instances.push(instance);
 }
 
-pub(crate) fn serialize_config(instance: &Hexane) ->Result<Vec<u8>> {
+pub(crate) fn update_server(instance: &Hexane) ->Result<()> {
     if let Some(network) = &instance.network_cfg {
 
         let rtype = &network.r#type;
@@ -110,6 +91,7 @@ pub(crate) fn serialize_config(instance: &Hexane) ->Result<Vec<u8>> {
             }
         }
 
+		// TODO: implement session key
         let session = SESSION.lock().unwrap();
         let config_stream = HexaneStream {
             peer_id:       instance.peer_id.clone(),
@@ -120,16 +102,33 @@ pub(crate) fn serialize_config(instance: &Hexane) ->Result<Vec<u8>> {
             endpoints:     endpoints, 
         };
 
-        match serde_json::to_vec(&config_stream) {
-            Ok(data) => Ok(data),
+        let config = match serde_json::to_string(&config_stream) {
+            Ok(data) => data,
             Err(e) => {
-                wrap_message("ERR", format!("serialization failed: {e}").as_str());
-                Err(Custom(format!("serialization failed: {e}").to_string()))
+                wrap_message("ERR", format!("hexane serialization failed: {e}").as_str());
+                Err(Custom(format!("hexane serialization failed: {e}").to_string()))
             }
         }
-    }
-    else {
-        wrap_message("ERR", "serialize_instance: network configuration missing");
+
+		let packet_stream = ServerPacket {
+			peer_id:  instance.peer_id.clone(),
+			msg_type: MessageType::TypeConfig,
+			buffer:   config.clone(),
+		}
+
+		let stream = match serde_json::to_string(&packet_stream) {
+			Ok(data) => data,
+			Err(e) => {
+                wrap_message("ERR", format!("packet serialization failed: {e}").as_str());
+                Err(Custom(format!("packet serialization failed: {e}").to_string()))
+			}
+		}
+
+		// ws::send_packet(&packet)
+		Ok(())
+	}
+	else {
+		wrap_message("ERR", "serialize_instance: network configuration missing");
         Err(Custom("serialize_instance: network configuration missing".to_string()))
     }
 }
