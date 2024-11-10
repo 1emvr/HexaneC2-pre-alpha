@@ -1,22 +1,16 @@
-mod data;
+mod interface;
 
 use std::env;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 
 use serde_json::from_slice;
-use futures::{StreamExt, SinkExt};
 use tokio_tungstenite::tungstenite::protocol::Message;
-use tokio::net::{TcpListener, TcpStream};
-
-use Message::Binary as Binary;
-use Message::Close as Close;
-use Message::Text as Text;
+use tokio::net::{ TcpListener, TcpStream };
+use futures::{ StreamExt, SinkExt };
 
 use hexlib::{ serialize_json, deserialize_json };
 use hexlib::types::MessageType;
-
-use crate::data::parse_config;
 
 
 async fn process_packet(text: String) -> String {
@@ -29,7 +23,23 @@ async fn process_packet(text: String) -> String {
 		}
 	}
 
-	// TODO: parse buffer strings
+	let args: Vec<&str> = des.buffer
+		.split_whitespace()
+		.collect();
+
+	match args[0] {
+		"exit" => return "[INF] exiting...",
+		"help" => print_help(),
+
+		"implant" => {
+			match args[1].as_str() {
+				"ls"    => list_instances(),
+				"load"  => load_instance(args),
+				"rm"    => remove_instance(args),
+				_       => return "[ERR] invalid input",
+	        }
+	    }
+	}
 }
 
 async fn handle_connection(stream: TcpStream) {
@@ -45,18 +55,18 @@ async fn handle_connection(stream: TcpStream) {
 
     while let Some(msg) = receiver.next().await {
         match msg {
-            Ok(Binary(_)) => {
+            Ok(Message::Binary(_)) => {
                 let rsp = process_packet(text).await;
                 if let Err(e) = sender.send(Message::Text(rsp)).await {
 					println!("[ERR] handle_connection: sending \"binary message\" message failed: {}", e);
 				}
             },
-            Ok(Text(text)) => {
+            Ok(Message::Text(text)) => {
                 if let Err(e) = sender.send("INF TODO: json message").await {
                     println!("[ERR] handle_connection: sending \"json message\" message failed: {}", e);
                 }
             },
-            Ok(Close(_)) => {
+            Ok(Message::Close(_)) => {
 				if let Err(e) = sender.send("[INF] handle_connection: TODO: close message").await {
 					println!("[ERR] handle_connection: sending \"close connection\" message failed: {}", e);
 				}
