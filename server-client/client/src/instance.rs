@@ -76,9 +76,9 @@ pub(crate) fn load_instance(args: Vec<String>) {
 pub(crate) fn update_server(instance: &Hexane) ->Result<()> {
     if let Some(network) = &instance.network_cfg {
 
+		let address = String::new();
         let rtype = &network.r#type;
         let opts = &network.options;
-		let address = String::new();
 
         let mut endpoints: Vec<String> = Vec::new();
         match (rtype, &opts) {
@@ -117,8 +117,8 @@ pub(crate) fn update_server(instance: &Hexane) ->Result<()> {
             }?
         };
 
-		// TODO: pass the server url in the config (?)
-		// ws:// is different from http://. How does the updater know where to connect?
+		// TODO: pass the server url in the config
+		// ws:// is different from http://. How does the updater know where to push the update?
 		ws_update_config(config)
 	}
 	else {

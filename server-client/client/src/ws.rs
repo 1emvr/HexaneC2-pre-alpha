@@ -113,6 +113,9 @@ fn send_packet(packet: ServerPacket, socket: &mut WebSocketUpgrade) -> Result<()
 
 pub fn ws_update_config(instance: &Hexane) -> Result<()> {
 	// TODO: smb configs don't have a C2 callback address. They should be assigned by groups somehow.
+	// TODO: get client ws address to connect and push updates
+	// TODO: maybe build/ everything should be server-side
+
     let mut socket = match connect_server(instance.main_cfg.address) {
 		Ok(socket) => socket,
 		Err(e) => {
