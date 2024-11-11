@@ -1,4 +1,4 @@
-use hexlib::types::HexaneStream;
+use crate::types::HexaneStream;
 use lazy_static::lazy_static;
 
 type ConfigStore = Arc<Mutex<Vec<HexaneStream>>>;

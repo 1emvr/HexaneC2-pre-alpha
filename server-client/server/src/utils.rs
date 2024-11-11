@@ -1,25 +1,19 @@
+use crate::error::Result as Result;
+use crate::error::Error::Custom as Custom;
+
+use crate::stream::Stream as Stream;
+use crate::types::NetworkType::Http as HttpType;
+use crate::types::NetworkType::Smb as SmbType;
+use crate::types::{Config, Network};
+
 use std::io;
-use std::io::ErrorKind;
-use std::io::BufRead;
-use std::io::BufReader;
-use std::io::Write;
-use std::io::Read;
+use std::io::{ ErrorKind, Read, BufRead, BufReader };
 
 use std::{env, fs};
 use std::fs::File;
 
-use std::process::Command;
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
-
-use hexlib::error::Result as Result;
-use hexlib::stream::Stream as Stream;
-use hexlib::error::Error::Custom as Custom;
-use hexlib::types::NetworkType::Http as HttpType;
-use hexlib::types::NetworkType::Smb as SmbType;
-use hexlib::types::{Config, Network};
-
-use crate::interface::wrap_message;
+use std::path::{ Path, PathBuf };
 
 
 pub const FNV_OFFSET:   u32 = 2166136261;
@@ -128,8 +122,7 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
     let file_name = match source_path.file_name() {
         Some(name) => name,
         None => {
-            wrap_message("ERR", format!("could not extract file name from source: {source}").as_str());
-            return Err(io::Error::new(ErrorKind::InvalidInput, "invalid source file").into());
+            return Err(Custom(format!("could not extract file name from source: {source}")))
         }
     };
 
@@ -141,8 +134,7 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
     let output_str = match output_path.to_str() {
         Some(output) => output.replace("/", "\\"),
         None => {
-            wrap_message("ERR", &format!("could not convert output path to string: {}", output_path.display()));
-            return Err(io::Error::new(ErrorKind::InvalidInput, "Invalid output path").into());
+            return Err(Custom(format!("could not convert output path to string: {}", output_path.display())))
         }
     };
 
@@ -151,10 +143,7 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
 
 pub fn canonical_path_all(src_path: &PathBuf) -> Result<Vec<PathBuf>> {
     let entries = fs::read_dir(&src_path)
-        .map_err(|e| {
-            wrap_message("ERR", format!("canonical_path_all: {e}").as_str());
-            return Custom(e.to_string())
-        })?;
+        .map_err(|e| Custom(format!("canonical_path_all: {e}")))?;
 
     let all = entries
         .filter_map(|entry| entry.ok())
@@ -186,8 +175,7 @@ pub fn generate_object_path(source_path: &str, build_dir: &Path) -> Result<PathB
             Ok(build_dir.join(filename))
     }
     else {
-        wrap_message("ERR", "generate_object_path: ??");
-        Err(Custom("generate_object_path: ??".to_string()))
+        return Err(Custom("generate_object_path: ??".to_string()))
     }
 }
 
@@ -271,8 +259,8 @@ fn encode_utf16(s: &str) -> Vec<u8> {
         .collect()
 }
 
-pub fn print_help() {
-    println!(r#"
+pub fn print_help() -> String {
+    format!(r#"
 Available Commands:
 
 General:
@@ -287,6 +275,6 @@ Implant Management:
 Listener Management:
   listener attach  - Attach to a listener associated with an implant (not implemented)
 
-"#);
+"#)
 }
 

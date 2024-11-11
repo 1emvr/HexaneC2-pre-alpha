@@ -1,23 +1,7 @@
-use std::fs;
-use std::env;
-use std::str::FromStr;
+use crate::error::Result;
+use crate::types::{ Hexane, JsonData, UserSession };
+
 use std::sync::{ Arc, Mutex };
-
-use bincode;
-use rayon::prelude::*;
-
-use hexlib::error::Result;
-use hexlib::error::Error::Custom;
-use hexlib::types::{Hexane, HexaneStream, ServerPacket, JsonData, UserSession};
-
-use hexlib::types::NetworkType::Http as HttpType;
-use hexlib::types::NetworkType::Smb as SmbType;
-use hexlib::types::NetworkOptions::Http as HttpOpts;
-use hexlib::types::NetworkOptions::Smb as SmbOpts;
-
-use crate::interface::wrap_message;
-use crate::builder::HexaneBuilder;
-
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -30,7 +14,7 @@ lazy_static! {
 
 pub(crate) fn load_instance(args: Vec<&str>) -> String {
     if args.len() != 3 {
-        "[ERR] invalid arguments"
+        return "[ERR] invalid arguments".to_string()
     }
 
     let mut instance = match map_json_config(&args[2]) {
@@ -58,39 +42,37 @@ pub(crate) fn load_instance(args: Vec<&str>) -> String {
 
 pub(crate) fn remove_instance(args: Vec<&str>) -> String {
     if args.len() != 3 {
-        return "invalid arguments"
+        return "invalid arguments".to_string()
     }
 
     let output_name = &args[2];
     let mut instances = match INSTANCES.lock() {
         Ok(instances) => instances,
         Err(_) => {
-            return "instances could not be locked"
+            return "instances could not be locked".to_string()
         }
     };
 
     if let Some(position) = instances.iter().position(|instance| instance.builder_cfg.output_name == *output_name) {
         instances.remove(position);
-        return "instance removed"
+        return "instance removed".to_string()
     }
     else {
-        return "implant not found"
+        return "implant not found".to_string()
     }
 }
 
-fn list_instance() -> String {
+pub(crate) fn list_instances() -> String {
 	// TODO: serialize instance data and return to the client
+	return "[INF] TODO: implement list_instances()".to_string()
 }
 
 fn map_json_config(contents: &str) -> Result<Hexane> {
 	// TODO: sending json configs over the wire instead of using local files
-    let json_data = serde_json::from_str::<JsonData>(&contents)
+    let config = serde_json::from_str::<JsonData>(&contents)
         .map_err(|e| format!("could not parse json data: {e}"))?;
 
     let mut instance = Hexane::default();
-
-    let config = json_data
-		.map_err(|e| format!("map_json_config: {e}"))?;
 
     let session = SESSION.lock()
         .map_err(|e| format!("map_json_config: {e}"))?;
