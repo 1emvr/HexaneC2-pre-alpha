@@ -62,8 +62,8 @@ async fn process_packet(sender: &mut SenderSink, receiver: &mut RecvStream, msg:
 	};
 
 	match des.msg_type {
-		MessageType::TypeCommand => parse_command(des.buffer),
-		MessageType::TypeConfig => parse_config(des.buffer),
+		MessageType::TypeCommand => parse_command(sender, receiver, des.buffer).await,
+		MessageType::TypeConfig => parse_config(sender, reveiver, des.buffer).await,
 		_ => return "[ERR] invalid input".to_string()
 	}
 }
