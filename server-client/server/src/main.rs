@@ -42,6 +42,7 @@ async fn process_packet(msg: Vec<u8>) -> String {
 		"exit" => return "[INF] exiting...".to_string(),
 		"help" => crate::utils::print_help(),
 
+		// TODO: test that these at least work
 		"implant" => {
 			match args[1] {
 				"ls"   => list_instances(),
@@ -103,7 +104,7 @@ async fn handle_connection(stream: TcpStream) {
 async fn main() {
     let addr = env::args()
 		.nth(1)
-		.unwrap_or_else(|| "ws://127.0.0.1:3000".to_string());
+		.unwrap_or_else(|| "127.0.0.1:3000".to_string());
 
     let addr: SocketAddr = addr.parse()
 		.expect("tokio::main: invalid address");

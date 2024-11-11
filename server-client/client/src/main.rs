@@ -1,76 +1,100 @@
-mod ws;
-mod utils;
-mod cipher;
-mod binary;
-mod instance;
-mod rstatic;
-mod builder;
-mod interface;
+use hexlib::types::ServerPacket;
+use hexlib::error::{ Result, Error };
 
-use clap::Parser;
-use std::str::FromStr;
-use std::io::stdin;
+use std::io::{ self, Write };
+use tungstenite::{ connect, Message };
+use tungstenite::handshake::server::Response as ServerResponse;
+use tungstenite::Message::Text as Text;
+use serde_json;
 
-use crate::instance::{list_instances, load_instance, remove_instance};
-use crate::interface::{init_print_channel, stop_print_channel, wrap_message};
-use crate::utils::print_help;
-use crate::ws::ws_interactive;
+type WebSocketUpgrade = tungstenite::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>; 
 
 
-fn main() {
-    init_print_channel();
+fn send_packet(json: String, socket: &mut WebSocketUpgrade) -> Result<String> {
+    socket.write_message(Message::Text(json.clone()))
+        .expect("[ERR] failed to send message");
 
-    loop {
-        let mut user_input = String::new();
-
-        stdin().read_line(&mut user_input)
-            .unwrap();
-
-        let user_input = user_input.trim();
-        if user_input.is_empty() {
-            continue;
-        }
-
-        let args: Vec<String> = user_input
-            .split_whitespace()
-            .map(str::to_string)
-            .collect();
-
-        match args[0].as_str() {
-            "exit"      => break,
-            "help"      => print_help(),
-            "implant"   => {
-
-                if args.len() < 2 {
-                    wrap_message("ERR", "invalid input");
-                    continue;
-                }
-
-                match args[1].as_str() {
-                    "ls"    => list_instances(),
-                    "load"  => load_instance(args),
-                    "rm"    => remove_instance(args),
-                    _       => wrap_message("ERR", "invalid input")
-                }
-            },
-
-            "listener" => {
-
-				if args.len() != 3 {
-					wrap_message("ERR", "invalid input");
-					continue;
-				}
-
-				match args[1].as_str() {
-                    "connect" => ws_interactive(args[2]), // NOTE: returned results aren't necessary in the main loop. All errors are handled by callee.
-                    _         => wrap_message("ERR", "invalid input"),
-                }
-            }
-            _ => {
-                wrap_message("ERR", "invalid input")
-            }
+    match socket.read_message() {
+        Ok(Text(rsp)) => Ok(rsp),
+        Ok(_) => {
+			println!("[WRN] received non-JSON data from the server");
+            Err(Error::Custom("invalid JSON".to_string()))
+		}
+        Err(e) => {
+            println!("[ERR] error reading from server: {}", e);
+            Err(Error::Tungstenite(e))
         }
     }
+}
 
-    stop_print_channel();
+// TODO: send HexaneStream automatically on build
+fn transmit_server(packet: ServerPacket, socket: &mut WebSocketUpgrade) -> Result<()> {
+	let server_packet = match serde_json::to_string(&packet) {
+		Ok(json) => json,
+		Err(e) => {
+			wrap_message("ERR", format!("transmit_server: {e}").as_str());
+			return Err(Error::Custom(e.to_string()))
+		}
+	};
+
+	let rsp = match send_packet(server_packet, socket) {
+		Ok(rsp) => {
+			parse_packet(rsp);
+		}
+		Err(e) => {
+			wrap_message("ERR", format!("transmit_server: {e}").as_str());
+			return Err(Error::Custom(e.to_string()))
+		}
+	};
+
+	Ok(())
+}
+
+fn connect_server(url: &str) -> Result<WebSocketUpgrade> {
+    match connect(url) {
+        Ok((socket, _)) => Ok(socket),
+        Err(e) => {
+            println!("[ERR] error connecting to server");
+            return Err(Error::Tungstenite(e))
+        }
+    }
+}
+
+pub fn main() {
+    let url = std::env::args().nth(1)
+		.unwrap_or_else(|| "ws://127.0.0.1:3000".to_string());
+
+    let mut socket = match connect_server(url.as_str()) {
+		Ok(socket) => socket,
+		Err(e) => {
+			wrap_message("ERR", "ws_session: {e}");
+			return
+		}
+	};
+
+	wrap_message("INF", format!("connected to {url}"));
+	loop {
+		let mut input = String::new();
+		println!("> ");
+
+		io::stdout().flush().unwrap();
+		io::stdin().read_line(&mut input).unwrap();
+
+		let input = input.trim();
+		if input.eq_ignore_ascii_case("exit") {
+			break;
+		}
+
+		let packet = ServerPacket {
+			username: "lemur".to_string(),
+			buffer:   input.to_string()
+		};
+
+		if let Err(e) = transmit_server(packet, &mut socket) {
+			wrap_message("ERR", "packet send failed: {e}");
+		};
+	}
+
+	socket.close(None).expect("failed to close WebSocket");
+	wrap_message("INF", "main menu ->");
 }
