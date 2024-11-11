@@ -1,5 +1,8 @@
+mod interface;
+
 use hexlib::types::ServerPacket;
 use hexlib::error::{ Result, Error };
+use crate::interface::{ init_print_channel, wrap_message, stop_print_channel };
 
 use std::io::{ self, Write };
 use tungstenite::{ connect, Message };
@@ -9,6 +12,10 @@ use serde_json;
 
 type WebSocketUpgrade = tungstenite::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>; 
 
+// TODO: response will be ServerPacket{ String } 
+fn parse_packet(json: String) -> Result<()> {
+	Ok(())
+}
 
 fn send_packet(json: String, socket: &mut WebSocketUpgrade) -> Result<String> {
     socket.write_message(Message::Text(json.clone()))
@@ -27,7 +34,6 @@ fn send_packet(json: String, socket: &mut WebSocketUpgrade) -> Result<String> {
     }
 }
 
-// TODO: send HexaneStream automatically on build
 fn transmit_server(packet: ServerPacket, socket: &mut WebSocketUpgrade) -> Result<()> {
 	let server_packet = match serde_json::to_string(&packet) {
 		Ok(json) => json,
@@ -38,14 +44,17 @@ fn transmit_server(packet: ServerPacket, socket: &mut WebSocketUpgrade) -> Resul
 	};
 
 	let rsp = match send_packet(server_packet, socket) {
-		Ok(rsp) => {
-			parse_packet(rsp);
-		}
+		Ok(rsp) => rsp,
 		Err(e) => {
 			wrap_message("ERR", format!("transmit_server: {e}").as_str());
 			return Err(Error::Custom(e.to_string()))
 		}
 	};
+
+	if let Err(e) = parse_packet(rsp) {
+		wrap_message("ERR", format!("transmit_server: {e}").as_str());
+		return Err(Error::Custom(e.to_string()))
+	}
 
 	Ok(())
 }
@@ -61,6 +70,8 @@ fn connect_server(url: &str) -> Result<WebSocketUpgrade> {
 }
 
 pub fn main() {
+	init_print_channel();
+
     let url = std::env::args().nth(1)
 		.unwrap_or_else(|| "ws://127.0.0.1:3000".to_string());
 
@@ -72,7 +83,8 @@ pub fn main() {
 		}
 	};
 
-	wrap_message("INF", format!("connected to {url}"));
+	wrap_message("INF", format!("connected to {url}").as_str());
+
 	loop {
 		let mut input = String::new();
 		println!("> ");
@@ -96,5 +108,5 @@ pub fn main() {
 	}
 
 	socket.close(None).expect("failed to close WebSocket");
-	wrap_message("INF", "main menu ->");
+	stop_print_channel();
 }

@@ -1,9 +1,17 @@
 use std::thread;
 use crossbeam_channel::select;
+use crossbeam_channel::unbounded;
+use crossbeam_channel::Receiver as Recv;
+use crossbeam_channel::Sender as Send;
 
 use hexlib::types::Message;
-use crate::rstatic::{CHANNEL, DEBUG, EXIT};
-use crate::instance::SESSION;
+use lazy_static::lazy_static;
+
+lazy_static!(
+    pub(crate) static ref CHANNEL: (Send<Message>, Recv<Message>)   = unbounded();
+    pub(crate) static ref EXIT: (Send<()>, Recv<()>)                = unbounded();
+);
+
 
 pub fn print_channel() {
     let receiver = &CHANNEL.1;
@@ -15,12 +23,7 @@ pub fn print_channel() {
                 break;
             },
             recv(receiver) -> message => {
-
                 if let Ok(m) = message {
-                    if !*DEBUG && m.msg_type == "DBG" {
-                        continue;
-                    }
-
                     println!("[{}] {}", m.msg_type, m.msg);
                 }
             }
@@ -29,24 +32,12 @@ pub fn print_channel() {
 }
 
 pub fn init_print_channel() {
-    thread::spawn(|| {
-        print_channel();
-    });
-
-    get_session();
+    thread::spawn(|| print_channel());
 }
 
 pub fn stop_print_channel() {
     let sender = &EXIT.0;
     sender.send(()).unwrap();
-}
-
-
-pub fn get_session(){
-    let mut session = SESSION.lock().unwrap();
-
-    session.username = "lemur".to_owned();
-    session.is_admin = true;
 }
 
 pub fn wrap_message(typ: &str, msg: &str) {
