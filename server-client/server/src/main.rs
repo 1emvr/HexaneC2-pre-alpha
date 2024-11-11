@@ -18,16 +18,8 @@ use crate::instance::{ list_instances, load_instance, remove_instance };
 use crate::types::ServerPacket;
 
 
-async fn process_packet(msg: Vec<u8>) -> String {
-	let text: &str = match std::str::from_utf8(&msg) {
-
-		Ok(text) => text,
-		Err(e) => {
-			return format!("[ERR] process_packet: error converting binary to utf8: {}", e)
-		}
-	};
-
-	let des: ServerPacket = match serde_json::from_str::<ServerPacket>(text) {
+async fn process_packet(msg: String) -> String {
+	let des: ServerPacket = match serde_json::from_str::<ServerPacket>(msg.as_str()) {
 		Ok(des) => des,
 		Err(e) => {
 			return format!("[ERR] process_packet: invalid packet structure from user: {}", e)
@@ -59,7 +51,7 @@ async fn handle_connection(stream: TcpStream) {
     let ws_stream = match tokio_tungstenite::accept_async(stream).await {
         Ok(ws) => ws,
         Err(e) => {
-            println!("[ERR] handle_connection: error during websocket handshake: {}", e);
+            println!("[ERR] handle_error during websocket handshake: {}", e);
             return
         }
     };
@@ -68,30 +60,33 @@ async fn handle_connection(stream: TcpStream) {
 
     while let Some(msg) = receiver.next().await {
         match msg {
-            Ok(Message::Binary(msg)) => {
+            Ok(Message::Text(msg)) => {
+				println!("[DBG] incoming json message from client");
                 let rsp = process_packet(msg).await;
-                if let Err(e) = sender.send(Message::Text(rsp)).await {
-					println!("[ERR] handle_connection: sending \"binary message\" message failed: {}", e);
-				}
-            },
-            Ok(Message::Text(_msg)) => {
+
                 if let Err(e) = sender.send(Message::Text("json txt".to_string())).await {
                     println!("[ERR] handle_connection: sending \"json message\" message failed: {}", e);
                 }
             },
             Ok(Message::Close(_)) => {
+				println!("[DBG] closing client websocket");
+
 				if let Err(e) = sender.send(Message::Text("closing...".to_string())).await {
 					println!("[ERR] handle_connection: sending \"close connection\" message failed: {}", e);
 				}
                 break;
             },
             Err(e)=> {
+				println!("[DBG] error parsing message from client");
+
                 if let Err(e) = sender.send(Message::Text(format!("{}", e))).await {
 					println!("[ERR] handle_connection: sending \"receive message\" message failed: {}", e);
 				}
                 break;
             }
             Ok(_) => {
+				println!("[DBG] unhandled message type from client");
+
                 if let Err(e) = sender.send(Message::Text("unhandled message".to_string())).await {
 					println!("[ERR] handle_connection: sending \"invalid message\" message failed: {}", e);
 				}
