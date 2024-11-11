@@ -17,10 +17,10 @@ struct Section {
 
 fn get_text_section(target_path: &str) -> Result<Section> {
     let read_data = read_file(target_path)
-        .map_err(|e| format!("get_text_section: {target_path}: error reading target file"))?;
+        .map_err(|e| format!("get_text_section: {target_path}: error reading target file: {e}"))?;
 
     let pe_file = parse_portable_executable(&read_data)
-        .map_err(|e| "get_text_section: error converting target file".to_string());
+        .map_err(|e| format!("get_text_section: error converting target file: {e}"));
 
     let opt_head = pe_file
         .unwrap()

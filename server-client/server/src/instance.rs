@@ -1,10 +1,12 @@
 use crate::error::Result;
-use crate::types::{ Hexane, JsonData, UserSession };
+use crate::types::{ Hexane, JsonData, UserSession, WebSocketConnection };
 
-use std::sync::{ Arc, Mutex };
+use std::sync::Arc;
+use tokio::sync::Mutex;
 use lazy_static::lazy_static;
 
 lazy_static! {
+
     pub(crate) static ref INSTANCES: Arc<Mutex<Vec<Hexane>>> = Arc::new(Mutex::new(vec![]));
     pub(crate) static ref SESSION: Mutex<UserSession> = Mutex::new(UserSession {
         username: "".to_owned(),
@@ -12,69 +14,70 @@ lazy_static! {
     });
 }
 
-pub(crate) fn load_instance(args: Vec<&str>) -> String {
+pub(crate) async fn load_instance(ws_conn: &mut WebSocketConnection, args: Vec<&str>) {
     if args.len() != 3 {
-        return "[ERR] invalid arguments".to_string()
+        ws_conn.send("[ERR] invalid arguments".to_string()).await;
+		return
     }
 
-    let mut instance = match map_json_config(&args[2]) {
+    let mut instance = match map_json_config(&args[2]).await {
         Ok(instance) => instance,
         Err(e) => {
-            return format!("[ERR] {e}")
+            ws_conn.send(format!("[ERR] {}", e)).await;
+			return
         }
     };
 
     let name = instance.builder_cfg.output_name.clone();
-    let mut instances = INSTANCES.lock().unwrap();
+    let mut instances = INSTANCES.lock().await;
 
     if instances.iter()
         .any(|i| i.builder_cfg.output_name == name) {
-            return format!("[ERR] config with name {} already exists", name)
+            ws_conn.send(format!("[ERR] config with name {} already exists", name)).await;
+			return
         }
 
     if let Err(e) = instance.setup_build() {
-        return format!("[ERR] {e}")
+        ws_conn.send(format!("[ERR] {e}")).await;
+		return
     }
 
     instances.push(instance);
-    return format!("{} is ready", name)
+    ws_conn.send(format!("{} is ready", name)).await;
 }
 
-pub(crate) fn remove_instance(args: Vec<&str>) -> String {
+pub(crate) async fn interact_instance(ws_conn: &mut WebSocketConnection, args: Vec<&str>) {
+	ws_conn.send("[INF] implement interact_instance".to_string()).await;
+}
+
+pub(crate) async fn remove_instance(ws_conn: &mut WebSocketConnection, args: Vec<&str>) {
     if args.len() != 3 {
-        return "invalid arguments".to_string()
+        ws_conn.send("invalid arguments".to_string()).await;
+		return
     }
 
     let output_name = &args[2];
-    let mut instances = match INSTANCES.lock() {
-        Ok(instances) => instances,
-        Err(_) => {
-            return "instances could not be locked".to_string()
-        }
-    };
+    let mut instances = INSTANCES.lock().await;
 
     if let Some(position) = instances.iter().position(|instance| instance.builder_cfg.output_name == *output_name) {
         instances.remove(position);
-        return "instance removed".to_string()
+        ws_conn.send("instance removed".to_string()).await;
+		return
     }
-    else {
-        return "implant not found".to_string()
-    }
+
+	ws_conn.send("implant not found".to_string()).await;
 }
 
-pub(crate) fn list_instances() -> String {
-	// TODO: serialize instance data and return to the client
-	return "[INF] TODO: implement list_instances()".to_string()
+pub(crate) async fn list_instances(ws_conn: &mut WebSocketConnection) {
+	ws_conn.send("[INF] TODO: implement list_instances()".to_string()).await;
 }
 
-fn map_json_config(contents: &str) -> Result<Hexane> {
+async fn map_json_config(contents: &str) -> Result<Hexane> {
     let config = serde_json::from_str::<JsonData>(&contents)
         .map_err(|e| format!("could not parse json data: {e}"))?;
 
     let mut instance = Hexane::default();
-
-    let session = SESSION.lock()
-        .map_err(|e| format!("map_json_config: {e}"))?;
+    let session = SESSION.lock().await;
 
     instance.group_id       = 0;
     instance.main_cfg       = config.config;
@@ -85,3 +88,4 @@ fn map_json_config(contents: &str) -> Result<Hexane> {
 
     Ok(instance)
 }
+

@@ -7,40 +7,26 @@ mod utils;
 mod types;
 mod error;
 
-use crate::instance::{ list_instances, load_instance, remove_instance };
-use crate::types::ServerPacket;
 use crate::utils::print_help;
+use crate::types::{ MessageType, ServerPacket, WebSocketConnection };
+use crate::instance::{
+	list_instances,
+	load_instance,
+	remove_instance,
+	interact_instance
+};
 
 use std::env;
 use std::net::SocketAddr;
 use std::sync::{ Arc, atomic::{ AtomicBool, Ordering }}; 
 
+use futures::StreamExt;
 use tokio_tungstenite::tungstenite::protocol::Message;
 use tokio::net::{ TcpListener, TcpStream };
-use futures::{ StreamExt, SinkExt };
-
-type SenderSink = SplitSink<WebSocketStream<TcpStream>, Message>;
-type RecvStream = SplitStream<WebSocketStream<TcpStream>>;
 
 
-struct WebSocketConnection {
-	sender: SenderSink,
-	receiver: RecvStream,
-}
-
-impl WebSocketConnection {
-	async fn send(&mut self, msg: String) -> Result<()> {
-		self.sender.send(Message::Text(msg)).await
-	}
-
-	async fn receive(&mut self) -> Option<Message> {
-		self.receiver.next().await.transpose().ok().flatten()
-	}
-}
-
-
-async fn interact_instance(ws_conn: &mut WebSocketConnection, args: Vec<&str>) {
-// TODO: implement and move to instance.rs
+async fn parse_config(ws_conn: &mut WebSocketConnection, buffer: String) {
+	// TODO: parse and store hexane json
 }
 
 async fn parse_command(ws_conn: &mut WebSocketConnection, buffer: String, exit_flag: Arc<AtomicBool>) {
@@ -48,30 +34,32 @@ async fn parse_command(ws_conn: &mut WebSocketConnection, buffer: String, exit_f
 
 	println!("[INF] matching arguments");
 	match args[0] {
-		"help" => ws_conn.send(Message::Text(print_help())).await.unwrap_or_default(),
 
+		"help" => ws_conn.send(print_help()).await.unwrap_or_default(),
 		"implant" => {
+
 			if args.len() < 2 {
-				ws_conn.send(Message::Text("[ERR] invalid input")).await.unwrap_or_default();
+				ws_conn.send("[ERR] invalid input".to_string()).await.unwrap_or_default();
 				return
 			}
+
 			match args[1] {
-				"ls"   => list_instances(ws_conn.sender).await,
-				"load" => load_instance(ws_conn.sender, args).await,
-				"rm"   => remove_instance(ws_conn.sender, args).await,
+				"ls"   => list_instances(ws_conn).await,
+				"load" => load_instance(ws_conn, args).await,
+				"rm"   => remove_instance(ws_conn, args).await,
 				"i"    => interact_instance(ws_conn, args).await,
 				_ => {
-					ws_conn.sender.send(Message::Text("[ERR] invalid input")).await.unwrap_or_default(),
+					ws_conn.send("[ERR] invalid input".to_string()).await.unwrap_or_default();
 				}
 			}
 		},
 
 		"exit" => {
-			ws_conn.send(Message::Text("[INF] exiting...")).await.unwrap_or_default();
+			ws_conn.send("[INF] exiting...".to_string()).await.unwrap_or_default();
 			exit_flag.store(true, Ordering::Relaxed);
 		}
 		_ => {
-			ws_conn.sender.send(Message::Text("[ERR] invalid input")).await.unwrap_or_default();
+			ws_conn.send("[ERR] invalid input".to_string()).await.unwrap_or_default();
 		}
 	}
 }
@@ -82,8 +70,8 @@ async fn process_packet(ws_conn: &mut WebSocketConnection, msg: String, exit_fla
 	let des: ServerPacket = match serde_json::from_str::<ServerPacket>(msg.as_str()) {
 		Ok(des) => des,
 		Err(e) => {
-			println!("[ERR] process_packet: invalid packet structure from user: {}", e);
-			return format!("[ERR] process_packet: invalid packet structure from user: {}", e)
+			ws_conn.send(format!("[ERR] process_packet: invalid packet structure from user: {}", e));
+			return
 		}
 	};
 
@@ -91,12 +79,13 @@ async fn process_packet(ws_conn: &mut WebSocketConnection, msg: String, exit_fla
 		MessageType::TypeCommand => parse_command(ws_conn, des.buffer, exit_flag).await,
 		MessageType::TypeConfig => parse_config(ws_conn, des.buffer).await,
 		_ => {
-			ws_conn.sender.send(Message::Text("[ERR] invalid input")).await
+			let _ = ws_conn.send("[ERR] invalid input".to_string()).await;
+			return
 		}
 	}
 }
 
-async fn handle_connection(stream: TcpStream, exit_flag Arc<AtomicBool>) {
+async fn handle_connection(stream: TcpStream, exit_flag: Arc<AtomicBool>) {
     let ws_stream = match tokio_tungstenite::accept_async(stream).await {
         Ok(ws) => ws,
         Err(e) => {
@@ -108,28 +97,26 @@ async fn handle_connection(stream: TcpStream, exit_flag Arc<AtomicBool>) {
     let (mut sender, mut receiver) = ws_stream.split();
 	let mut ws_conn = WebSocketConnection { sender, receiver };
 
-    while let Some(msg) = receiver.next().await {
+    while let Some(msg) = ws_conn.receiver.next().await {
         match msg {
             Ok(Message::Text(msg)) => {
 				println!("[DBG] incoming json message from client");
-                let rsp = process_packet(ws_conn, msg, exit_flag).await;
+                process_packet(&mut ws_conn, msg, exit_flag.clone()).await;
             },
             Ok(Message::Close(_)) => {
 				println!("[DBG] closing client websocket");
-				if let Err(e) = sender.send(Message::Text("closing...".to_string())).await {
-					println!("[ERR] handle_connection: sending \"close connection\" message failed: {}", e);
-				}
-
                 break;
             },
             Err(e)=> {
-				println!("[DBG] error parsing message from client");
-                if let Err(e) = sender.send(Message::Text(format!("{}", e))).await {
-					println!("[ERR] handle_connection: sending \"receive message\" message failed: {}", e);
-				}
+				println!("[DBG] error parsing message from client: {}", e);
             }
-			_ => continue;
+			_ => continue,
         }
+
+		if exit_flag.load(Ordering::Relaxed) {
+			println!("[INF] resetting closed connection");
+			break;
+		}
     }
 }
 
@@ -149,13 +136,13 @@ async fn main() {
     println!("[INF] listening on: {}", addr);
 
 	loop {
-		let (stream, _) = listener.accept().await {
+		let (stream, _) = match listener.accept().await {
 			Ok(conn) => conn,
 			Err(e) => {
 				println!("[ERR] failed to accept connection: {}", e);
 				continue;
 			}
-		}
+		};
 
 		let exit_flag = arc_exit.clone();
 		tokio::spawn(async move {

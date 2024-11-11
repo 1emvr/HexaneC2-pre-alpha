@@ -11,7 +11,7 @@ use crate::types::NetworkOptions::Http as HttpOpt;
 use crate::types::NetworkType::Smb as SmbType;
 use crate::types::NetworkOptions::Smb as SmbOpt;
 
-use crate::error::{ Error, Result, Error::Custom };
+use crate::error::{ Result, Error::Custom };
 use crate::binary::{ extract_section, run_command };
 use crate::cipher::{ crypt_create_key, crypt_xtea };
 use crate::utils::{

@@ -6,11 +6,10 @@ use crate::types::NetworkType::Http as HttpType;
 use crate::types::NetworkType::Smb as SmbType;
 use crate::types::{Config, Network};
 
-use std::io;
-use std::io::{ ErrorKind, Read, BufRead, BufReader };
 
-use std::{env, fs};
 use std::fs::File;
+use std::{ env, fs };
+use std::io::{ Read, BufRead, BufReader };
 
 use std::collections::HashMap;
 use std::path::{ Path, PathBuf };
