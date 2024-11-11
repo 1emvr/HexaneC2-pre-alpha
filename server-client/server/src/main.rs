@@ -76,7 +76,7 @@ async fn parse_command(ws_conn: &mut WebSocketConnection, buffer: String, exit_f
 	}
 }
 
-async fn process_packet(ws_conn: &mut WebSocketConnection, msg: String) {
+async fn process_packet(ws_conn: &mut WebSocketConnection, msg: String, exit_flag: Arc<AtomicBool>) {
 	println!("[DBG] processing packet");
 
 	let des: ServerPacket = match serde_json::from_str::<ServerPacket>(msg.as_str()) {
@@ -88,7 +88,7 @@ async fn process_packet(ws_conn: &mut WebSocketConnection, msg: String) {
 	};
 
 	match des.msg_type {
-		MessageType::TypeCommand => parse_command(ws_conn, des.buffer, Arc::new(AtomicBool::new(false))).await,
+		MessageType::TypeCommand => parse_command(ws_conn, des.buffer, exit_flag).await,
 		MessageType::TypeConfig => parse_config(ws_conn, des.buffer).await,
 		_ => {
 			ws_conn.sender.send(Message::Text("[ERR] invalid input")).await
@@ -112,7 +112,7 @@ async fn handle_connection(stream: TcpStream, exit_flag Arc<AtomicBool>) {
         match msg {
             Ok(Message::Text(msg)) => {
 				println!("[DBG] incoming json message from client");
-                let rsp = process_packet(ws_conn, msg).await;
+                let rsp = process_packet(ws_conn, msg, exit_flag).await;
             },
             Ok(Message::Close(_)) => {
 				println!("[DBG] closing client websocket");
