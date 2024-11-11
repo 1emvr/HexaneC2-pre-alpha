@@ -16,33 +16,54 @@ use futures::{ StreamExt, SinkExt };
 
 use crate::instance::{ list_instances, load_instance, remove_instance };
 use crate::types::ServerPacket;
+use crate::utils::print_help;
 
+type SenderSink = SplitSink<WebSocketStream<TcpStream>, Message>;
+type RecvStream = SplitStream<WebSocketStream<TcpStream>>;
 
-async fn process_packet(msg: String) -> String {
+async fn interact_instance(sender: &mut SenderSink, receiver: &mut RecvStream, args: Vec<&str>) {
+// TODO: implement and move to instance.rs
+}
+
+async fn parse_command(sender: &mut SenderSink, receiver: &mut RecvStream, buffer: String) {
+	let args: Vec<&str> = buffer.split_whitespace().collect();
+
+	println!("[INF] matching arguments");
+	match args[0] {
+		"help" => sender.send(Message::Text(print_help())).await,
+		"exit" => sender.send(Message::Text("[INF] exiting...")).await,
+
+		"implant" => {
+			if args.len() < 2 {
+				sender.send(Message::Text("[ERR] invalid input")).await;
+				return
+			}
+			match args[1] {
+				"ls"   => list_instances(sender).await,
+				"load" => load_instance(sender, args).await,
+				"rm"   => remove_instance(sender, args).await,
+				"i"    => interact_instance(sender, receiver, args).await,
+				_      => sender.send(Message::Text("[ERR] invalid input")).await
+			}
+		}
+		_ => sender.send(Message::Text("[ERR] invalid input")).await;
+	}
+}
+
+async fn process_packet(sender: &mut SenderSink, receiver: &mut RecvStream, msg: String) -> String {
+	println!("[DBG] processing packet");
+
 	let des: ServerPacket = match serde_json::from_str::<ServerPacket>(msg.as_str()) {
 		Ok(des) => des,
 		Err(e) => {
+			println!("[ERR] process_packet: invalid packet structure from user: {}", e);
 			return format!("[ERR] process_packet: invalid packet structure from user: {}", e)
 		}
 	};
 
-	let args: Vec<&str> = des.buffer
-		.split_whitespace()
-		.collect();
-
-	match args[0] {
-		"exit" => return "[INF] exiting...".to_string(),
-		"help" => crate::utils::print_help(),
-
-		// TODO: test that these at least work
-		"implant" => {
-			match args[1] {
-				"ls"   => list_instances(),
-				"load" => load_instance(args),
-				"rm"   => remove_instance(args),
-				_      => return "[ERR] invalid input".to_string(),
-	        }
-	    }
+	match des.msg_type {
+		MessageType::TypeCommand => parse_command(des.buffer),
+		MessageType::TypeConfig => parse_config(des.buffer),
 		_ => return "[ERR] invalid input".to_string()
 	}
 }
@@ -62,9 +83,10 @@ async fn handle_connection(stream: TcpStream) {
         match msg {
             Ok(Message::Text(msg)) => {
 				println!("[DBG] incoming json message from client");
-                let rsp = process_packet(msg).await;
+                let rsp = process_packet(sender, receiver, msg).await;
 
-                if let Err(e) = sender.send(Message::Text("json txt".to_string())).await {
+				println!("[DBG] sending response: {:?}", rsp);
+                if let Err(e) = sender.send(Message::Text(rsp)).await {
                     println!("[ERR] handle_connection: sending \"json message\" message failed: {}", e);
                 }
             },

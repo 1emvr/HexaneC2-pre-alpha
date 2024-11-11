@@ -68,7 +68,6 @@ pub(crate) fn list_instances() -> String {
 }
 
 fn map_json_config(contents: &str) -> Result<Hexane> {
-	// TODO: sending json configs over the wire instead of using local files
     let config = serde_json::from_str::<JsonData>(&contents)
         .map_err(|e| format!("could not parse json data: {e}"))?;
 
