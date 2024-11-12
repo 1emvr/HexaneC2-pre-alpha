@@ -88,6 +88,7 @@ fn transmit_server(packet: ServerPacket, socket: &mut WebSocketUpgrade) -> Resul
 		}
 	};
 
+	// TODO: hangs here when server fails to respond
 	println!("sending ServerPacket");
 	let rsp = match send_packet(server_packet, socket) {
 		Ok(rsp) => rsp,
@@ -134,7 +135,7 @@ pub fn main() {
 
 	loop {
 		let mut input = String::new();
-		println!("> ");
+		println!("OK... ");
 
 		io::stdout().flush().unwrap();
 		io::stdin().read_line(&mut input).unwrap();
