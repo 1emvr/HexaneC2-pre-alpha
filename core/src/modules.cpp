@@ -302,18 +302,21 @@ namespace Modules {
                 uint32 fn_ordinal = 0;
 
                 if (!fn_name) {
+
                     uint32 *p_rva = RVA(uint32*, base, exports->AddressOfNames + entry_index * sizeof(uint32));
                     char *name = RVA(char*, base, *p_rva);
 
                     if (MbsLength(name) != fn_name->length) {
                         continue;
                     }
+
                     if (MbsCompare(name, fn_name->buffer)) {
                         found = true;
-                        short *p_rva2 = RVA(short *, base, exports->AddressOfNameOrdinals + entry_index * sizeof(uint16));
+                        short *p_rva2 = RVA(short*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(uint16));
                         fn_ordinal = exports->Base + *p_rva2;
                     }
                 } else {
+
                     int16 *p_rva2 = RVA(short*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(uint16));
                     fn_ordinal = exports->Base + *p_rva2;
 
