@@ -66,6 +66,9 @@ async fn parse_command(ws_conn: &mut WebSocketConnection, buffer: String, exit_f
 
 async fn process_packet(ws_conn: &mut WebSocketConnection, msg: String, exit_flag: Arc<AtomicBool>) {
 	println!("[DBG] processing packet");
+	/*
+	ServerPacket { MessageType::TypeCommand, "lemur", "implant load {json buffer}"}
+	 */
 
 	let des: ServerPacket = match serde_json::from_str::<ServerPacket>(msg.as_str()) {
 		Ok(des) => des,

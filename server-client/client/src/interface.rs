@@ -4,12 +4,12 @@ use crossbeam_channel::unbounded;
 use crossbeam_channel::Receiver as Recv;
 use crossbeam_channel::Sender as Send;
 
-use hexlib::types::Message;
+use hexlib::types::ChannelMessage;
 use lazy_static::lazy_static;
 
 lazy_static!(
-    pub(crate) static ref CHANNEL: (Send<Message>, Recv<Message>)   = unbounded();
-    pub(crate) static ref EXIT: (Send<()>, Recv<()>)                = unbounded();
+    pub(crate) static ref CHANNEL: (Send<ChannelMessage>, Recv<ChannelMessage>) = unbounded();
+    pub(crate) static ref EXIT: (Send<()>, Recv<()>) = unbounded();
 );
 
 
@@ -43,7 +43,7 @@ pub fn stop_print_channel() {
 pub fn wrap_message(typ: &str, msg: &str) {
     let sender = &CHANNEL.0;
 
-    let message = Message {
+    let message = ChannelMessage {
         msg_type:   typ.to_string(),
         msg:        msg.to_string(),
     };

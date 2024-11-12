@@ -1,7 +1,7 @@
 mod interface;
 
-use hexlib::types::ServerPacket;
 use hexlib::error::{ Result, Error };
+use hexlib::types::{ ServerPacket, MessageType };
 use crate::interface::{ init_print_channel, wrap_message, stop_print_channel };
 
 use std::io::{ self, Write };
@@ -15,6 +15,46 @@ type WebSocketUpgrade = tungstenite::WebSocket<tungstenite::stream::MaybeTlsStre
 // TODO: response will be ServerPacket{ String } 
 fn parse_packet(json: String) -> Result<()> {
 	Ok(())
+}
+
+fn read_json(file_name: &str) -> String {
+	return String::new()
+}
+
+fn parse_command(input: &str) -> Result<ServerPacket> {
+	/*
+	implant load => MessageType::TypeConfig
+	implant ls => MessageType::TypeCommand
+	implant rm => MessageType::TypeCommand
+	implant i => MessageType::TypeCommand
+	help => MessageType::TypeCommand
+	exit => MessageType::TypeCommand
+
+	 */
+
+	let split: Vec<&str> = input.split(" ").collect();
+
+	let mut packet = ServerPacket {
+		username: "lemur".to_string(),
+		msg_type: MessageType::TypeCommand,
+		buffer:   "".to_string(),
+	};
+
+	if split.len() >= 2 {
+        if split[1] == "load" {
+			packet.msg_type = MessageType::TypeConfig;
+			packet.buffer = read_json(split[2]);
+        }
+		else {
+			packet.buffer = input.to_string();
+		}
+    }
+	else {
+		println!("[ERR] invalid input");
+		return Err(Error::Custom("[ERR] invalid input".to_string()));
+	}
+
+	Ok(packet)
 }
 
 fn send_packet(json: String, socket: &mut WebSocketUpgrade) -> Result<String> {
@@ -97,9 +137,11 @@ pub fn main() {
 			break;
 		}
 
-		let packet = ServerPacket {
-			username: "lemur".to_string(),
-			buffer:   input.to_string()
+		let packet = match parse_command(input) {
+			Ok(packet) => packet,
+			Err(e) => {
+				continue;
+			}
 		};
 
 		if let Err(e) = transmit_server(packet, &mut socket) {

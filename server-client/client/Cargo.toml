@@ -19,6 +19,7 @@ encoding_rs = "0.8.34"
 pe-parser = "0.6.0"
 rayon = "1.10.0"
 prettytable = "0.10.0"
+futures = { version = "0.3.31", default-features = false }
 futures-util = "0.3.29"
 tokio = { version = "1.35.0", features = ["full"] }
 tokio-tungstenite = { version = "0.21.0", features = ["native-tls"] }

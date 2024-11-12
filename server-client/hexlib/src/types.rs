@@ -1,8 +1,13 @@
 use std::collections::HashMap;
-
 use serde::Serialize as Ser;
 use serde::Deserialize as Des;
-use serde::ser::{Serialize, Serializer, SerializeStruct};
+
+use futures::{ StreamExt, SinkExt };
+use futures::stream::{ SplitStream, SplitSink };
+
+use tokio::net::TcpStream;
+use tokio_tungstenite::tungstenite::protocol::Message;
+use tokio_tungstenite::WebSocketStream;
 
 #[derive(Ser, Des, Debug)]
 pub enum BuildType {
@@ -101,7 +106,7 @@ pub struct Threadpool{
 }
 
 #[derive(Debug)]
-pub struct Message {
+pub struct ChannelMessage {
     pub msg_type:    String,
     pub msg:         String,
 }
@@ -217,7 +222,27 @@ pub struct HexaneStream {
 
 #[derive(Ser, Des)]
 pub struct ServerPacket {
+	pub msg_type:  MessageType,
     pub username:  String,
 	pub buffer:    String,
 }
 
+
+pub(crate) type SenderSink = SplitSink<WebSocketStream<TcpStream>, Message>;
+pub(crate) type RecvStream = SplitStream<WebSocketStream<TcpStream>>;
+
+
+pub(crate) struct WebSocketConnection {
+	pub sender: SenderSink,
+	pub receiver: RecvStream,
+}
+
+impl WebSocketConnection {
+	pub(crate) async fn send(&mut self, msg: String) -> Result<(), tokio_tungstenite::tungstenite::Error> {
+		self.sender.send(Message::Text(msg)).await
+	}
+
+	pub(crate) async fn receive(&mut self) -> Option<Message> {
+		self.receiver.next().await.transpose().ok().flatten()
+	}
+}

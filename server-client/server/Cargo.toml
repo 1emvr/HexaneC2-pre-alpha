@@ -22,7 +22,7 @@ tokio-stream = "0.1.14"
 tokio = { version = "1.28", features = ["macros", "sync", "rt-multi-thread"] }
 tungstenite = {version = "0.24.0", optional=false}
 tokio-tungstenite = {version = "0.24.0", optional=false}
-futures = { version = "0.3", default-features = false }
+futures = { version = "0.3.31", default-features = false }
 crossbeam-channel = {version="0.5.13"}
 
 byteorder = {version="1.5.0", optional=false}
