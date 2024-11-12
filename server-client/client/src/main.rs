@@ -18,21 +18,28 @@ fn parse_packet(json: String) -> Result<()> {
 	Ok(())
 }
 
-fn read_json(file_name: &str) -> String {
-	return String::new()
+fn read_json(target_path: &str) -> Result<String>{
+	let mut read_data = Vec::new();
+	let mut read_file = match File::open(target_path) {
+		Ok(file) => file,
+		Err(e) => {
+			println!("json open error");
+			return Err(Error::Custom("json read error".to_string()));
+		}
+	};
+
+	match read_file.read_to_end(&mut read_data) {
+		Ok(read) => read,
+		Err(e) => {
+			println!("json read error");
+			return Err(Error::Custom("json read error".to_string()));
+		}
+	};
+
+	Ok(read_data)
 }
 
 fn parse_command(input: &str) -> Result<ServerPacket> {
-	/*
-	implant load => MessageType::TypeConfig
-	implant ls => MessageType::TypeCommand
-	implant rm => MessageType::TypeCommand
-	implant i => MessageType::TypeCommand
-	help => MessageType::TypeCommand
-	exit => MessageType::TypeCommand
-
-	 */
-
 	let split: Vec<&str> = input.split(" ").collect();
 
 	let mut packet = ServerPacket {
