@@ -256,29 +256,31 @@ namespace Modules {
         return true;
     }
 
-    BOOL LocalLdrFindExportAddress(HMODULE module, const MBS_BUFFER *fn_name, const uint16 ordinal, void **function) {
+	// TODO: needs testing
+    BOOL LocalLdrFindExportAddress(HMODULE base, const MBS_BUFFER *fn_name, const uint16 ordinal, void **function) {
         PIMAGE_SECTION_HEADER section = nullptr;
 
         void *text_start = nullptr;
         void *text_end = nullptr;
 
-        if (!module) {
+        if (!base) {
             return false;
         }
 
-        PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, module, ((PIMAGE_DOS_HEADER) module)->e_lfanew);
+        PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, base, ((PIMAGE_DOS_HEADER)base)->e_lfanew);
         if (nt_head->Signature != IMAGE_NT_SIGNATURE) {
             return false;
         }
 
         for (int sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
-            PIMAGE_SECTION_HEADER section = ITER_SECTION_HEADER(module, sec_index);
+            PIMAGE_SECTION_HEADER section = ITER_SECTION_HEADER(base, sec_index);
 
             uint32 sec_hash = HashStringA((char *) section->Name, MbsLength((char *) section->Name));
             uint32 dot_text = TEXT;
 
-            if (MemCompare((void *) &dot_text, (void *) &sec_hash, sizeof(uint32))) {
-                text_start = RVA(PVOID, module, section->VirtualAddress);
+            if (MemCompare((void*) &dot_text, (void *) &sec_hash, sizeof(uint32))) {
+
+                text_start = RVA(void*, base, section->VirtualAddress);
                 text_end = RVA(PVOID, text_start, section->SizeOfRawData);
                 break;
             }
@@ -292,7 +294,7 @@ namespace Modules {
         PIMAGE_DATA_DIRECTORY data_dire = &nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 
         if (data_dire->Size) {
-            const IMAGE_EXPORT_DIRECTORY *exports = RVA(PIMAGE_EXPORT_DIRECTORY, module, data_dire->VirtualAddress);
+            const IMAGE_EXPORT_DIRECTORY *exports = RVA(PIMAGE_EXPORT_DIRECTORY, base, data_dire->VirtualAddress);
             const uint32 n_entries = !fn_name ? exports->NumberOfFunctions : exports->NumberOfNames;
 
             for (int ent_index = 0; ent_index < n_entries; ent_index++) {
@@ -300,19 +302,19 @@ namespace Modules {
                 bool found = false;
 
                 if (!fn_name) {
-                    uint32 *p_rva = RVA(uint32*, module, exports->AddressOfNames + ent_index * sizeof(uint32));
-                    const char *name = RVA(const char*, module, *p_rva);
+                    uint32 *p_rva = RVA(uint32*, base, exports->AddressOfNames + ent_index * sizeof(uint32));
+                    const char *name = RVA(const char*, base, *p_rva);
 
                     if (MbsLength(name) != fn_name->length) {
                         continue;
                     }
                     if (MbsCompare(name, fn_name->buffer)) {
                         found = true;
-                        short *p_rva2 = RVA(short *, module, exports->AddressOfNameOrdinals + ent_index * sizeof(uint16));
+                        short *p_rva2 = RVA(short *, base, exports->AddressOfNameOrdinals + ent_index * sizeof(uint16));
                         fn_ordinal = exports->Base + *p_rva2;
                     }
                 } else {
-                    int16 *p_rva2 = RVA(short*, module, exports->AddressOfNameOrdinals + ent_index * sizeof(uint16));
+                    int16 *p_rva2 = RVA(short*, base, exports->AddressOfNameOrdinals + ent_index * sizeof(uint16));
                     fn_ordinal = exports->Base + *p_rva2;
 
                     if (fn_ordinal == ordinal) {
@@ -321,8 +323,8 @@ namespace Modules {
                 }
 
                 if (found) {
-                    const uint32 *pfn_rva = RVA(uint32*, module, exports->AddressOfFunctions + sizeof(uint32) * (fn_ordinal - exports->Base));
-                    void *fn_pointer = RVA(void*, module, *pfn_rva);
+                    const uint32 *pfn_rva = RVA(uint32*, base, exports->AddressOfFunctions + sizeof(uint32) * (fn_ordinal - exports->Base));
+                    void *fn_pointer = RVA(void*, base, *pfn_rva);
 
                     // this is another module...
                     if (text_start > fn_pointer || text_end < fn_pointer) {
@@ -344,17 +346,17 @@ namespace Modules {
 
                             FILL_MBS(fn_buffer, fn_name);
 
-                            char lower[256] = { };
                             char lib_name[256] = { };
+                            char lower[256]    = { };
 
                             MbsCopy(lib_name, (char*) fn_pointer, lib_length);
                             MbsCopy(lib_name + lib_length, (char*) dot_dll, 5);
-
                             MbsToLower(lower, lib_name);
+
                             uint32 name_hash = HashStringA(lower, lib_length);
 
                             LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(name_hash);
-                            if (!lib_entry || lib_entry->DllBase == module) {
+                            if (!lib_entry || lib_entry->DllBase == base) {
                                 return false;
                             }
 

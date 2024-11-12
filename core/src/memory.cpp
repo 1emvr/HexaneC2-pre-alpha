@@ -86,11 +86,11 @@ namespace Memory {
             auto heap = ctx->heap;
 
             // free bof executables
+			// free ctx->strings
+
             for (auto head = ctx->bof_cache; head; head = head->next) {
                 RemoveCOFF(head->bof_id);
             }
-
-			// free ctx->strings
 
             if (free) {
                 free(heap, 0, ctx);
