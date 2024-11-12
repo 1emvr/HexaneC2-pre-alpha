@@ -4,7 +4,8 @@ use hexlib::error::{ Result, Error };
 use hexlib::types::{ ServerPacket, MessageType };
 use crate::interface::{ init_print_channel, wrap_message, stop_print_channel };
 
-use std::io::{ self, Write };
+use std::fs::File;
+use std::io::{ self, Read, Write };
 use tungstenite::{ connect, Message };
 use tungstenite::handshake::server::Response as ServerResponse;
 use tungstenite::Message::Text as Text;
@@ -24,7 +25,7 @@ fn read_json(target_path: &str) -> Result<String>{
 		Ok(file) => file,
 		Err(e) => {
 			println!("json open error");
-			return Err(Error::Custom("json read error".to_string()));
+			return Err(Error::Custom("json read error".to_string()))
 		}
 	};
 
@@ -32,11 +33,22 @@ fn read_json(target_path: &str) -> Result<String>{
 		Ok(read) => read,
 		Err(e) => {
 			println!("json read error");
-			return Err(Error::Custom("json read error".to_string()));
+			return Err(Error::Custom("json read error".to_string()))
 		}
 	};
 
-	Ok(read_data)
+	/*
+
+	let data = match str::from_utf8(read_data) {
+		Ok(data) => data,
+		Err(e) => {
+			println!("string convert error");
+			return Err(Error::Custom("string convert error".to_string()))
+		}
+	};
+	 */
+
+	Ok(String::from_utf8(read_data).unwrap())
 }
 
 fn parse_command(input: &str) -> Result<ServerPacket> {
@@ -50,8 +62,14 @@ fn parse_command(input: &str) -> Result<ServerPacket> {
 
 	if split.len() >= 2 {
         if split[1] == "load" {
+
 			packet.msg_type = MessageType::TypeConfig;
-			packet.buffer = read_json(split[2]);
+			packet.buffer = match read_json(split[2]) {
+				Ok(json) => json,
+				Err(e) => {
+					return Err(Error::Custom("parse command failed".to_string()))
+				}
+			}
         }
 		else {
 			packet.buffer = input.to_string();

@@ -14,13 +14,8 @@ lazy_static! {
     });
 }
 
-pub(crate) async fn load_instance(ws_conn: &mut WebSocketConnection, args: Vec<&str>) {
-    if args.len() != 3 {
-        ws_conn.send("[ERR] invalid arguments".to_string()).await;
-		return
-    }
-
-    let mut instance = match map_json_config(&args[2]).await {
+pub(crate) async fn load_instance(ws_conn: &mut WebSocketConnection, config: String) {
+    let mut instance = match map_json_config(config).await {
         Ok(instance) => instance,
         Err(e) => {
             ws_conn.send(format!("[ERR] {}", e)).await;
@@ -72,7 +67,7 @@ pub(crate) async fn list_instances(ws_conn: &mut WebSocketConnection) {
 	ws_conn.send("[INF] TODO: implement list_instances()".to_string()).await;
 }
 
-async fn map_json_config(contents: &str) -> Result<Hexane> {
+async fn map_json_config(contents: String) -> Result<Hexane> {
     let config = serde_json::from_str::<JsonData>(&contents)
         .map_err(|e| format!("could not parse json data: {e}"))?;
 

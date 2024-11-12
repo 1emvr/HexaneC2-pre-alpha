@@ -25,11 +25,6 @@ use tokio_tungstenite::tungstenite::protocol::Message;
 use tokio::net::{ TcpListener, TcpStream };
 
 
-async fn process_config(ws_conn: &mut WebSocketConnection, buffer: String) {
-	// TODO: parse and store hexane json
-	ws_conn.send("TODO: process config json".to_string()).await;
-}
-
 async fn parse_command(ws_conn: &mut WebSocketConnection, buffer: String, exit_flag: Arc<AtomicBool>) {
 	let args: Vec<&str> = buffer.split_whitespace().collect();
 
@@ -46,7 +41,6 @@ async fn parse_command(ws_conn: &mut WebSocketConnection, buffer: String, exit_f
 
 			match args[1] {
 				"ls"   => list_instances(ws_conn).await,
-				"load" => load_instance(ws_conn, args).await,
 				"rm"   => remove_instance(ws_conn, args).await,
 				"i"    => interact_instance(ws_conn, args).await,
 				_ => {
@@ -81,7 +75,7 @@ async fn process_packet(ws_conn: &mut WebSocketConnection, msg: String, exit_fla
 
 	match des.msg_type {
 		MessageType::TypeCommand => parse_command(ws_conn, des.buffer, exit_flag).await,
-		MessageType::TypeConfig => process_config(ws_conn, des.buffer).await,
+		MessageType::TypeConfig => load_instance(ws_conn, des.buffer).await,
 		_ => {
 			let _ = ws_conn.send("[ERR] invalid input".to_string()).await;
 			return
