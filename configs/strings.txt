@@ -10,6 +10,7 @@ winhttp.dll
 advapi32.dll
 iphlpapi.dll
 mscoree.dll
+DeviceIoControl
 FileTimeToSystemTime
 GetCurrentDirectoryA
 SystemTimeToTzSpecificLocalTime

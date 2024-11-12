@@ -597,6 +597,7 @@ struct _hexane {
 	// TODO: set standard apis for stagers and payloads
 
     struct {
+		DTYPE(DeviceIoControl);
         DTYPE(FileTimeToSystemTime);
         DTYPE(GetCurrentDirectoryA);
         DTYPE(SystemTimeToTzSpecificLocalTime);

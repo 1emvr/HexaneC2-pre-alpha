@@ -175,7 +175,8 @@ namespace Main {
         x_assertb(ctx->modules.iphlpapi = (HMODULE) ImportModule(LoadLocalFile, IPHLPAPI, nullptr, 0, nullptr)->base);
         x_assertb(ctx->modules.mscoree  = (HMODULE) ImportModule(LoadLocalFile, MSCOREE, nullptr, 0, nullptr)->base);
 
-#pragma region ioapi
+#pragma region IOAPI
+		x_assertb(F_PTR_HMOD(ctx->win32.DeviceIoControl,                        ctx->modules.kernel32, DEVICEIOCONTROL));
 		x_assertb(F_PTR_HMOD(ctx->win32.FileTimeToSystemTime, 					ctx->modules.kernel32, FILETIMETOSYSTEMTIME));
 		x_assertb(F_PTR_HMOD(ctx->win32.GetCurrentDirectoryA, 					ctx->modules.kernel32, GETCURRENTDIRECTORYA));
 		x_assertb(F_PTR_HMOD(ctx->win32.SystemTimeToTzSpecificLocalTime, 		ctx->modules.kernel32, SYSTEMTIMETOTZSPECIFICLOCALTIME));

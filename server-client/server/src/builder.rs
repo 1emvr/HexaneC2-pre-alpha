@@ -31,9 +31,8 @@ pub static USERAGENT: &'static str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) 
 
 impl Hexane {
     pub fn setup_build(&mut self) -> Result<String> {
-        self.peer_id = rand::thread_rng()
-			.gen::<u32>();
-
+		// TODO: user does not get to choose directories. must follow strict path structure.
+        self.peer_id = rand::thread_rng().gen::<u32>();
         self.compiler_cfg.build_directory = format!("./payload/{}", &self.builder_cfg.output_name);
 
         let compiler_flags = if self.main_cfg.debug {
@@ -162,9 +161,9 @@ impl Hexane {
         let build_dir   = &self.compiler_cfg.build_directory;
 
         let mut components  = Vec::new();
-        let src_path        = Path::new(root_dir).join("src");
+        let src_path        = Path::new("./core/src");
 
-        let entries = canonical_path_all(&src_path)
+        let entries = canonical_path_all(src_path)
             .map_err(|e| format!("compile_sources::canonical_path_all: {:?}:{e}", src_path))?;
 
         let os = std::env::consts::OS;

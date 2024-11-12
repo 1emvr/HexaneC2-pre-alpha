@@ -2,6 +2,7 @@
 
 using namespace Hash;
 using namespace Opsec;
+using namespace Utils;
 using namespace Memory::Methods;
 
 __attribute__((used, section(".rdata"))) uint8 sys32w[] = { 0x43,0x00,0x3a,0x00,0x5c,0x00,0x5c,0x00,0x57,0x00,0x69,0x00,0x6e,0x00,0x64,0x00,0x6f,0x00,0x77,0x00,0x73,0x00,0x5c,0x00,0x5c,0x00,0x53,0x00,0x79,0x00,0x73,0x00,0x74,0x00,0x65,0x00,0x6d,0x00,0x33,0x00,0x32,0x00,0x5c,0x00,0x5c,0x00,0x00,0x00 };
@@ -58,20 +59,20 @@ namespace Modules {
 		HEXANE;
 
 		VOID *buffer = nullptr;
-		DWORD buffer_size = 0;
+		SIZE_T buffer_size = 0;
 
-		ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, &buffer_size);
+		ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, (PULONG)&buffer_size);
 
 		while (ntstatus == STATUS_INFO_LENGTH_MISMATCH) {
 			if (buffer) {
 				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buffer_size, MEM_RELEASE);
 			}
 
-			if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), &buffer, 0, buffer_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+			if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), &buffer, 0, &buffer_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
 				return 0;
 			}
 			
-			ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, &buffer_size);
+			ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, (PULONG)&buffer_size);
 		}
 
 		if (!NT_SUCCESS(ntstatus)) {
@@ -105,46 +106,48 @@ namespace Modules {
 	FARPROC FindKernelExport(HANDLE handle, uintptr_t base, const char *function) {
 		HEXANE;
 
-		FARPROC address = nullptr;
+		UINT_PTR address = 0;
+		SIZE_T exports_size = 0;
+		PIMAGE_EXPORT_DIRECTORY export_data = nullptr;
+		PIMAGE_EXPORT_DIRECTORY exports = nullptr;
 
 		if (!base) {
 			return 0;
 		}
 
-        const IMAGE_NT_HEADERS nt_head = { };
-		if (!ReadMemory(handle, &nt_head, base + ((PIMAGE_DOS_HEADER) base)->e_lfanew, sizeof(nt_head)) ||
-			nt_head->Signature != IMAGE_NT_SIGNATURE) {
+        IMAGE_NT_HEADERS nt_head = { };
+		if (!ReadMemory(handle, &nt_head, (void*) base + ((PIMAGE_DOS_HEADER)base)->e_lfanew, sizeof(nt_head)) ||
+			nt_head.Signature != IMAGE_NT_SIGNATURE) {
 			goto defer;
 		}
 
-		const auto exports = nt_head.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
-		const auto exports_size = nt_head.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size;
+		exports = (PIMAGE_EXPORT_DIRECTORY) nt_head.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
+		exports_size = nt_head.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size;
 
 		if (!exports || !exports_size) {
 			goto defer;
 		}
 
-		const PIMAGE_EXPORT_DIRECTORY export_data = nullptr;
-		if (!NT_SUCCESS(ntstatus = cxt->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void*) &export_data, 0, exports_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+		if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**)&export_data, 0, (PSIZE_T)&exports_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
 			goto defer;
 		}
 		
-		if (!ReadMemory(handle, export_data, base + exports, exports_size)) {
+		if (!ReadMemory(handle, export_data, C_PTR(base + U_PTR(exports)), exports_size)) {
 			goto defer;
 		}
 		
-		for (auto index = 0; index < export_data->NumberOfNames; i++) {
+		for (auto index = 0; index < export_data->NumberOfNames; index++) {
             const auto name = (char*) (base + ((uint32*) (base + exports->AddressOfNames))[index - 1]);
 
 			if (MbsCompare(name, function) == 0) {
-				const auto ord = (uint16*) (base + ((uint16*) (base + exports->AddressOfOrdinals))[index]);
-				if (ord <= 0x1000) {
+				const auto ord = (uint16*) (base + ((uint16*) (base + exports->AddressOfNameOrdinals))[index]);
+				if (*ord <= 0x1000) {
 					break;
 				}
 
-				address = (uint32*) (base + ((uint32*) (base + exports->AddressOfFunctions))[index]);
-				if (address >= base + exports && address <= base + exports + exports_size) {
-					address = nullptr;
+                address = (base + ((uint32*) (base + exports->AddressOfFunctions))[index]);
+				if (address >= base + U_PTR(exports) && address <= base + U_PTR(exports) + exports_size) {
+					address = 0; // function address is out of range, somehow (?)
 				}
 
 				break;
@@ -153,11 +156,11 @@ namespace Modules {
 
 	defer:
 		if (export_data) {
-			ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void*) &export_data, exports_size, MEM_RELEASE);
+			ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void**) &export_data, &exports_size, MEM_RELEASE);
 			export_data = nullptr;
 		}
 
-		return address;
+		return (FARPROC) address;
 	} 
 
 	UINT_PTR FindSection(const char* section_name, uintptr_t base, uint32_t *size) {
@@ -165,13 +168,13 @@ namespace Modules {
 		uintptr_t sec_address = 0;
 		size_t name_length = MbsLength(section_name);
 
-		PIMAGE_NT_HEADERS nt_head = (PIMAGE_NT_HEADERS)(base + ((PIMAGE_D0S_HEADER) base)->e_lfanew);
+		PIMAGE_NT_HEADERS nt_head = (PIMAGE_NT_HEADERS) (base + ((PIMAGE_DOS_HEADER) base)->e_lfanew);
 		PIMAGE_SECTION_HEADER sec_head = IMAGE_FIRST_SECTION(nt_head);
 
 		for (auto i = 0; i < nt_head->FileHeader.NumberOfSections; i++) {
 			PIMAGE_SECTION_HEADER section = &sec_head[i];
 
-			if (name_length == MbsLength(section->Name)) {
+			if (name_length == MbsLength((char*) section->Name)) {
 				if (MemCompare(section_name, section->Name, name_length) == 0) {
 
 					if (!section->VirtualAddress) {
@@ -181,7 +184,7 @@ namespace Modules {
 						*size = section->Misc.VirtualSize;
 					}
 
-					sec_address = (void*) base + section->VirtualAddress;
+					sec_address = base + section->VirtualAddress;
 				}
 			}
 		}
@@ -658,15 +661,15 @@ namespace Modules {
             }
         } while(ctx->win32.FindNextFileA(handle, &data));
 
-        module->cracked_name = (wchar_t *) Malloc(MAX_PATH * sizeof(wchar_t));
+        module->cracked_name = (wchar_t*) Malloc(MAX_PATH * sizeof(wchar_t));
 
         if (!module->cracked_name) {
             Free(module->local_name);
             return false;
         }
 
-        WcsCopy(module->cracked_name, sys32w);
-        WcsCopy(module->cracked_name + WcsLength(sys32w), module->local_name);
+        WcsCopy(module->cracked_name, (wchar_t*)sys32w, WcsLength((wchar_t*)sys32w));
+        WcsCopy(module->cracked_name + WcsLength((wchar_t*)sys32w), module->local_name, WcsLength(module->local_name));
 
         return true;
     }

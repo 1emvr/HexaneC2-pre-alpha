@@ -140,7 +140,7 @@ pub fn source_to_outpath(source: String, outpath: &String) -> Result<String> {
     Ok(output_str)
 }
 
-pub fn canonical_path_all(src_path: &PathBuf) -> Result<Vec<PathBuf>> {
+pub fn canonical_path_all(src_path: &Path) -> Result<Vec<PathBuf>> {
     let entries = fs::read_dir(&src_path)
         .map_err(|e| Custom(format!("canonical_path_all: {e}")))?;
 

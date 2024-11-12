@@ -30,6 +30,17 @@ typedef LONG NTSTATUS;
 typedef LONG KPRIORITY;
 typedef ULONG LOGICAL;
 
+typedef struct _UNICODE_STRING {
+  USHORT Length;
+  USHORT MaximumLength;
+  PWSTR  Buffer;
+} UNICODE_STRING, *PUNICODE_STRING;
+typedef const PUNICODE_STRING PCUNICODE_STRING;
+
+constexpr auto IOCTL1 = 0x80862007;
+constexpr auto PAGE_SIZE = 0x1000;
+constexpr auto STATUS_INFO_LENGTH_MISMATCH = 0xC0000004;
+
 #define LDRP_IMAGE_DLL				0x00000004
 #define LDRP_ENTRY_INSERTED			0x00008000
 #define LDRP_ENTRY_PROCESSED		0x00004000
@@ -169,6 +180,26 @@ typedef struct _HashBucketEntry {
 	UNICODE_STRING DriverName;
 	ULONG CertHash[5];
 } HashBucketEntry, * PHashBucketEntry;
+
+
+typedef struct _RTL_PROCESS_MODULE_INFORMATION {
+	HANDLE Section;
+	PVOID  MappedBase;
+	PVOID  ImageBase;
+	ULONG  ImageSize;
+	ULONG  Flags;
+	USHORT LoadOrderIndex;
+	USHORT InitOrderIndex;
+	USHORT LoadCount;
+	USHORT OffsetToFileName;
+	UCHAR  FullPathName[256];
+} RTL_PROCESS_MODULE_INFORMATION, *PRTL_PROCESS_MODULE_INFORMATION;
+
+
+typedef struct _RTL_PROCESS_MODULES {
+	ULONG NumberOfModules;
+	RTL_PROCESS_MODULE_INFORMATION Modules[1];
+} RTL_PROCESS_MODULES, *PRTL_PROCESS_MODULES;
 
 
 typedef enum _PS_ATTRIBUTE_NUM {
@@ -517,14 +548,6 @@ typedef struct _CLIENT_ID {
 } CLIENT_ID, * PCLIENT_ID;
 
 
-typedef struct _UNICODE_STRING {
-	USHORT Length;
-	USHORT MaximumLength;
-	PWSTR  Buffer;
-} UNICODE_STRING;
-typedef UNICODE_STRING* PUNICODE_STRING;
-
-typedef const PUNICODE_STRING PCUNICODE_STRING;
 
 typedef struct _OBJECT_ATTRIBUTES {
 	ULONG Length;
