@@ -67,7 +67,7 @@ namespace Utils {
 
 	defer:
 		if (rand_data) {
-			ctx->win32.RtlFreeHeap(GetProcessHeap(), 0, rand_data);
+			ctx->win32.RtlFreeHeap(ctx->heap, 0, rand_data);
 		}
 		if (handle) {
 			ctx->win32.NtClose(handle);
