@@ -47,7 +47,7 @@ namespace Utils {
 			goto defer;
 		}
 
-		new_length = size + ((long long) RandomNumber32() * (long long) RandomNumber32()) % 2000000 + 1000;
+		new_length = size + ((intptr_t) RandomNumber32() * (intptr_t) RandomNumber32()) % 2000000 + 1000;
 	
 		rand_data = (uint8*) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, new_length);
 		if (!rand_data) {
@@ -59,7 +59,7 @@ namespace Utils {
 			rand_data[i] = (uint8)(RandomNumber32() % 255);
 		}
 		if (!ctx->win32.WriteFile(handle, rand_data, new_length, &write, NULL) || write != new_length) {
-			//Log(L"[!] Error dumping data on disk");
+			// LOG ERROR
 			goto defer;
 		} 
 
