@@ -33,7 +33,7 @@ pub(crate) async fn load_instance(ws_conn: &mut WebSocketConnection, config: Str
         }
 
     if let Err(e) = instance.setup_build() {
-        ws_conn.send(format!("[ERR] {e}")).await;
+        ws_conn.send(format!("[ERR] {}", e)).await;
 		return
     }
 

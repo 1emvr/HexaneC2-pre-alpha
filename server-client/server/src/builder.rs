@@ -3,8 +3,8 @@ use std::path::{ Path, PathBuf };
 use std::str::FromStr;
 use rand::prelude::*;
 
-use crate::types::Hexane;
 use crate::stream::Stream;
+use crate::types::{ Hexane, WebSocketConnection };
 
 use crate::types::NetworkType::Http as HttpType;
 use crate::types::NetworkOptions::Http as HttpOpt;
@@ -24,21 +24,22 @@ use crate::utils::{
 };
 
 
-pub static DEBUG_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh' ";
-pub static RELEASE_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh' ";
+pub static DEBUG_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup,--gc-sections' ";
+pub static RELEASE_FLAGS: &'static str = "-std=c++23 -Os -nostdlib -fno-asynchronous-unwind-tables -masm=intel -fno-ident -fpack-struct=8 -falign-functions=1 -ffunction-sections -fdata-sections -falign-jumps=1 -w -falign-labels=1 -fPIC -fno-builtin '-Wl,--no-seh,--enable-stdcall-fixup,--gc-sections' ";
 pub static USERAGENT: &'static str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
 
 
 impl Hexane {
     pub fn setup_build(&mut self) -> Result<String> {
-		// TODO: user does not get to choose directories. must follow strict path structure.
         self.peer_id = rand::thread_rng().gen::<u32>();
         self.compiler_cfg.build_directory = format!("./payload/{}", &self.builder_cfg.output_name);
 
         let compiler_flags = if self.main_cfg.debug {
+			println!("[INF] {}: using debug flags", &self.builder_cfg.output_name);
             DEBUG_FLAGS.parse().unwrap()
         }
         else {
+			println!("[INF] {}: using release flags", &self.builder_cfg.output_name);
             RELEASE_FLAGS.parse().unwrap()
         };
 
@@ -61,14 +62,17 @@ impl Hexane {
 
         self.session_key = crypt_create_key(16);
         if self.main_cfg.encrypt {
+			println!("[INF] {}: encrypting config using xtea", &self.builder_cfg.output_name);
+
             let patch_cpy = patch;
             patch = crypt_xtea(&patch_cpy, &self.session_key, true)?;
         }
 
         self.config = patch;
 
+		println!("[INF] {}: compiling sources...", &self.builder_cfg.output_name);
         if let Err(e) = self.compile_sources() {
-				return Err(Custom(format!("setup_build: {e}")))
+				return Err(Custom(format!("setup_build: {}", e)))
         }
 
         Ok("setup_build: done.".to_string())
@@ -198,7 +202,7 @@ impl Hexane {
                     command.push_str(format!(" -f win64 {} -o {}", source, object).as_str());
 
                     if let Err(e) = run_command(&command.as_str(), format!("{}-compiler_error", self.builder_cfg.output_name).as_str()) {
-                        return Err(Custom(format!("compile_sources::{e} : {command}")))
+                        return Err(Custom(format!("compile_sources::{:?} : {:?}", e, command)))
                     }
 
                     components.push(object);
@@ -223,54 +227,25 @@ impl Hexane {
         let main_cfg    = &self.main_cfg;
         let network_cfg = &self.network_cfg.as_ref().unwrap();
 
-        let definitions     = generate_definitions(main_cfg, network_cfg);
-        let mut includes    = String::new();
-
-        if let Some(dirs) = &self.builder_cfg.include_directories {
-            includes = generate_includes(dirs);
-        }
-
-        let mut linker_script = PathBuf::new();
-		let mut linker = String::new();
-
-        if let Some(script) = &self.builder_cfg.linker_script {
-            linker_script = Path::new(&self.builder_cfg.root_directory)
-                .join(script);
-
-            let path = linker_script
-                .to_string_lossy()
-                .to_string();
-
-			let os = std::env::consts::OS;
-
-			linker = match os {
-				"windows" => normalize_path(path),
-				"linux"   => path,
-				_         => return Err(Custom("unknown OS".to_string()))
-			};
-            linker = format!(" -T\"{}\" ", linker);
-        }
-
-        let flags   = self.compiler_cfg.flags.clone();
+        let definitions = generate_definitions(main_cfg, network_cfg);
+        let flags = self.compiler_cfg.flags.clone();
         let sources = components.join(" ");
-
-        includes.push_str(" -I\".\" ");
 
         let mut params = Vec::new();
         params.push(sources);
-        params.push(includes);
         params.push(definitions);
-        params.push(linker);
         params.push(flags);
 
         let build = &self.compiler_cfg.build_directory;
         let output = &self.builder_cfg.output_name.clone();
 
-        self.builder_cfg.output_name = format!("{}/{}.exe", build, output);
-        let command = format!("x86_64-w64-mingw32-g++ {} -o {}", params.join(" "), self.builder_cfg.output_name);
+        self.builder_cfg.output_name = format!("{}\\{}.exe", build, output);
+        let command = format!("x86_64-w64-mingw32-g++ {} -I\".\" -T\".\\core\\implant.ld\" -o {}", params.join(" "), self.builder_cfg.output_name);
 
         // TODO: build fails because of "section(s) below image base", which is normal for this.
         run_command(command.as_str(), format!("{}-linker_error", output).as_str());
+		println!("[INF] {}: command : {}", self.builder_cfg.output_name, command);
+
         Ok(())
     }
 }

@@ -9,6 +9,7 @@ SECTIONS {
 
         *(.text$A);
         *(.text$B);
+        *(.data*);
         *(.rdata*);
 
         FILL(0X00);
@@ -18,7 +19,6 @@ SECTIONS {
         *(.global);
         *(.text$E);
         *(.text$F);
-        *(.data*);
     }
     .eh_frame : {
         *(.eh_frame)

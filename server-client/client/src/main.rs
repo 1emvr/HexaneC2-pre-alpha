@@ -84,8 +84,13 @@ fn parse_command(input: &str) -> Result<ServerPacket> {
 }
 
 fn send_packet(json: String, socket: &mut WebSocketUpgrade) -> Result<String> {
-    socket.write_message(Message::Text(json.clone()))
-        .expect("[ERR] failed to send message");
+    match socket.write_message(Message::Text(json.clone())) {
+		Ok(write) => (),
+		Err(e) => {
+			println!("[ERR] connection closed");
+			return Err(Error::Custom("connection closed".to_string()))
+		}
+	}
 
     match socket.read_message() {
         Ok(Text(rsp)) => {
