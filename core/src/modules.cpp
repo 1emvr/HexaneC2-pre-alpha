@@ -202,6 +202,7 @@ namespace Modules {
     }
 
     PLIST_ENTRY FindHashTable() {
+
         PLIST_ENTRY list = nullptr;
         PLIST_ENTRY head = nullptr;
         PLIST_ENTRY entry = nullptr;
