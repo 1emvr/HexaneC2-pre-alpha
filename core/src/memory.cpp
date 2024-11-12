@@ -90,6 +90,8 @@ namespace Memory {
                 RemoveCOFF(head->bof_id);
             }
 
+			// free ctx->strings
+
             if (free) {
                 free(heap, 0, ctx);
             }
