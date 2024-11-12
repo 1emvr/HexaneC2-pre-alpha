@@ -297,12 +297,12 @@ namespace Modules {
             const IMAGE_EXPORT_DIRECTORY *exports = RVA(PIMAGE_EXPORT_DIRECTORY, base, data_dire->VirtualAddress);
             const uint32 n_entries = !fn_name ? exports->NumberOfFunctions : exports->NumberOfNames;
 
-            for (int ent_index = 0; ent_index < n_entries; ent_index++) {
-                uint32 fn_ordinal = 0;
+            for (int entry_index = 0; entry_index < n_entries; entry_index++) {
                 bool found = false;
+                uint32 fn_ordinal = 0;
 
                 if (!fn_name) {
-                    uint32 *p_rva = RVA(uint32*, base, exports->AddressOfNames + ent_index * sizeof(uint32));
+                    uint32 *p_rva = RVA(uint32*, base, exports->AddressOfNames + entry_index * sizeof(uint32));
                     const char *name = RVA(const char*, base, *p_rva);
 
                     if (MbsLength(name) != fn_name->length) {
@@ -310,11 +310,11 @@ namespace Modules {
                     }
                     if (MbsCompare(name, fn_name->buffer)) {
                         found = true;
-                        short *p_rva2 = RVA(short *, base, exports->AddressOfNameOrdinals + ent_index * sizeof(uint16));
+                        short *p_rva2 = RVA(short *, base, exports->AddressOfNameOrdinals + entry_index * sizeof(uint16));
                         fn_ordinal = exports->Base + *p_rva2;
                     }
                 } else {
-                    int16 *p_rva2 = RVA(short*, base, exports->AddressOfNameOrdinals + ent_index * sizeof(uint16));
+                    int16 *p_rva2 = RVA(short*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(uint16));
                     fn_ordinal = exports->Base + *p_rva2;
 
                     if (fn_ordinal == ordinal) {
