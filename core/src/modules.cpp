@@ -303,7 +303,7 @@ namespace Modules {
 
                 if (!fn_name) {
                     uint32 *p_rva = RVA(uint32*, base, exports->AddressOfNames + entry_index * sizeof(uint32));
-                    const char *name = RVA(const char*, base, *p_rva);
+                    char *name = RVA(char*, base, *p_rva);
 
                     if (MbsLength(name) != fn_name->length) {
                         continue;
