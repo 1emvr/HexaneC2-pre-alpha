@@ -14,6 +14,7 @@ type WebSocketUpgrade = tungstenite::WebSocket<tungstenite::stream::MaybeTlsStre
 
 // TODO: response will be ServerPacket{ String } 
 fn parse_packet(json: String) -> Result<()> {
+	println!("server response: {:?}", json);
 	Ok(())
 }
 
@@ -62,7 +63,10 @@ fn send_packet(json: String, socket: &mut WebSocketUpgrade) -> Result<String> {
         .expect("[ERR] failed to send message");
 
     match socket.read_message() {
-        Ok(Text(rsp)) => Ok(rsp),
+        Ok(Text(rsp)) => {
+			println!("received response from server in json format");
+			Ok(rsp)
+		}
         Ok(_) => {
 			println!("[WRN] received non-JSON data from the server");
             Err(Error::Custom("invalid JSON".to_string()))
@@ -75,6 +79,7 @@ fn send_packet(json: String, socket: &mut WebSocketUpgrade) -> Result<String> {
 }
 
 fn transmit_server(packet: ServerPacket, socket: &mut WebSocketUpgrade) -> Result<()> {
+	println!("serializing ServerPacket");
 	let server_packet = match serde_json::to_string(&packet) {
 		Ok(json) => json,
 		Err(e) => {
@@ -83,6 +88,7 @@ fn transmit_server(packet: ServerPacket, socket: &mut WebSocketUpgrade) -> Resul
 		}
 	};
 
+	println!("sending ServerPacket");
 	let rsp = match send_packet(server_packet, socket) {
 		Ok(rsp) => rsp,
 		Err(e) => {
@@ -91,6 +97,7 @@ fn transmit_server(packet: ServerPacket, socket: &mut WebSocketUpgrade) -> Resul
 		}
 	};
 
+	println!("parsing response");
 	if let Err(e) = parse_packet(rsp) {
 		wrap_message("ERR", format!("transmit_server: {e}").as_str());
 		return Err(Error::Custom(e.to_string()))
