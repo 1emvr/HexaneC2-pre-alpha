@@ -49,7 +49,7 @@ namespace Utils {
 
 		new_length = size + ((long long) RandomNumber32() * (long long) RandomNumber32()) % 2000000 + 1000;
 	
-		rand_data = (uint8*) ctx->win32.RtlAllocateHeap(GetProcessHeap(), HEAP_ZERO_MEMORY, new_length);
+		rand_data = (uint8*) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, new_length);
 		if (!rand_data) {
 			ctx->win32.NtClose(handle);
 			goto defer;

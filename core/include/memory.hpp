@@ -5,8 +5,6 @@
 
 namespace Memory {
     namespace Methods {
-        //__declspec(naked) UINT_PTR FindStackPointer();
-
         PRESOURCE
 			FUNCTION
             FindIntResource(HMODULE base, INT rsrc_id);
