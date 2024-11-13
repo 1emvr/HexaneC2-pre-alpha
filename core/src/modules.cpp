@@ -356,10 +356,10 @@ namespace Modules {
                             char *fn_name = (char *) fn_pointer + lib_length + 1;
 
 							MemSet(local_buffer, 0, MAX_PATH);
-                            MbsConcat(local_buffer, (char*) fn_pointer);
-                            MbsConcat(local_buffer, (char*) dot_dll);
+                            MbsConcat((char*) local_buffer, (char*) fn_pointer);
+                            MbsConcat((char*) local_buffer, (char*) dot_dll);
                             
-                            LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(HashStringA(MbsToLower(local_buffer, lib_name), lib_length));
+                            LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(HashStringA(MbsToLower((char*) local_buffer, lib_name), lib_length));
                             if (!lib_entry || lib_entry->DllBase == base) {
                                 return false;
                             }
@@ -408,8 +408,9 @@ namespace Modules {
                 }
                 else {
 					MemSet(local_buffer, 0, MAX_PATH);
+					MbsToWcs((wchar_t*) local_buffer, name);
 
-                    EXECUTABLE *new_load = ImportModule(LoadLocalFile, MbsToWcs(local_buffer, name), nullptr, 0, nullptr);
+                    EXECUTABLE *new_load = ImportModule(LoadLocalFile, (wchar_t*) local_buffer, nullptr, 0, nullptr);
                     if (!new_load || !new_load->success) {
                         return false;
                     }
@@ -443,8 +444,6 @@ namespace Modules {
             delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, module->base, data_dire->VirtualAddress);
 
             for (; delay_desc->DllNameRVA; delay_desc++) {
-
-                char lower[MAX_PATH] = { };
                 HMODULE library = nullptr;
 
                 const char *lib_name = (char*) module->base + delay_desc->DllNameRVA;
@@ -454,7 +453,10 @@ namespace Modules {
                     library = (HMODULE) entry->DllBase;
                 }
                 else {
-                    EXECUTABLE *new_load = ImportModule(LoadLocalFile, name_hash, nullptr, 0, nullptr);
+					MemSet(local_buffer, 0, MAX_PATH);
+					MbsToWcs((wchar_t*) local_buffer, lib_name);
+
+                    EXECUTABLE *new_load = ImportModule(LoadLocalFile, (wchar_t*) local_buffer, nullptr, 0, nullptr);
                     if (!new_load || !new_load->success) {
                         return false;
                     }

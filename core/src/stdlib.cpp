@@ -192,35 +192,24 @@ char *MbsToLower(char *const dst, const char *const src) {
     return dst;
 }
 
-size_t MbsToWcs (wchar_t *dst, const char *src, const size_t size) {
+size_t MbsToWcs (wchar_t *dst, const char *src, const size_t length) {
 
-    auto count = size;
-    while (--count) {
-        if (!(*dst++ = *src++)) {
-            return size - count - 1;
-        }
-    }
+	for (size_t i = 0; i < length; i++) {
+		dst[i] = (wchar_t)src[i] | 0x00;
+	}
 
-    return size - count;
+	dst[length] = L'\0';
+	return WcsLength(dst);
 }
 
-size_t WcsToMbs (char *const str, const wchar_t *wcs, size_t size) {
+size_t WcsToMbs (char *const dst, const wchar_t *src, size_t length) {
 
-    auto count = 0;
-    while (count < size) {
-        if (*wcs > 255) {
-            return -1;
-        }
+	for (size_t i = 0; i < length; i++) {
+		dst[i] = (char)(src[i] & 0xff);
+	}
 
-        str[count] = *wcs;
-        if (*wcs++ == 0x0000) {
-            break;
-        }
-        count++;
-    }
-
-    str[count] = 0;
-    return count;
+	dst[i] = '\0';
+	return MbsLength(dst);
 }
 
 int MbsEndsWith (const char *string, const char *const end) {
