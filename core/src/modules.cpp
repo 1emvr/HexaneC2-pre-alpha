@@ -39,24 +39,24 @@ namespace Modules {
     FARPROC FindExportAddress(const void *base, const uint32 hash) {
         FARPROC address = nullptr;
 
-        const auto nt_head = (PIMAGE_NT_HEADERS) (B_PTR(base) + ((PIMAGE_DOS_HEADER) base)->e_lfanew);
-        const auto exports = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(base) + nt_head->OptionalHeader.DataDirectory[0].VirtualAddress);
+        const auto nt_head = (PIMAGE_NT_HEADERS) (base + ((PIMAGE_DOS_HEADER) base)->e_lfanew);
+        const auto exports = (PIMAGE_EXPORT_DIRECTORY) (base + nt_head->OptionalHeader.DataDirectory[0].VirtualAddress);
 
         if (nt_head->Signature != IMAGE_NT_SIGNATURE) {
             return address;
         }
 
+		const auto functions = (uint32*) (U_PTR(base) + exports->AddressOfFunctions);
+		const auto ordinals = (uint16*) (U_PTR(base) + exports->AddressOfNameOrdinals);
+		const auto names = (uint32*) (U_PTR(base) + exports->AddressOfNames);
+		
         for (auto index = 0; index < exports->NumberOfNames; index++) {
-            const auto name = (char*) (base + ((uint32*) (base + exports->AddressOfNames))[index - 1]);
+            const auto name = (char*) (U_PTR(base) + names[index]);
 
-			// NOTE: test breaking - gets the right name, but accesses wrong function RVA : (RVA(DeviceIoControl) + 4) -> "DisableThreadLibraryCalls" (?)
-			// need to test with other apis, Find out why.
-
-            // TODO: need checks to prevent overflows
             char buffer[MAX_PATH] = { };
 
             if (hash - HashStringA(MbsToLower(buffer, name), MbsLength(name)) == 0) {
-                address = (FARPROC) (base + ((uint32*) (base + exports->AddressOfFunctions))[index]);
+                address = (FARPROC) (U_PTR(base) + functions[ordinals[index]]); // NOTE: changed to index functions by ordinals[i]
                 break;
             }
         }
@@ -80,7 +80,7 @@ namespace Modules {
 
 			if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), &buffer, 0, &buffer_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE)) ||
 				!NT_SUCCESS(ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, (PULONG)&buffer_size))) {
-				return 0
+				return 0;
 			}
 		}
 
