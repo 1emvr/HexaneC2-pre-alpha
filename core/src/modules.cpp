@@ -387,8 +387,6 @@ namespace Modules {
         PIMAGE_THUNK_DATA org_first            = nullptr;
 
         IMAGE_DATA_DIRECTORY *data_dire = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
-        MBS_BUFFER mbs_import = { };
-
         UINT8 local_buffer[MAX_PATH] = { };
 
         if (data_dire->Size) {
@@ -416,6 +414,7 @@ namespace Modules {
                         return false;
                     }
 
+					// TODO: still has dangling pointer to _executable->strings/memory. big problem. fix it now
                     library = (HMODULE) new_load->base;
                 }
 
@@ -429,9 +428,7 @@ namespace Modules {
                         }
                     } else {
                         import_name = RVA(PIMAGE_IMPORT_BY_NAME, module->base, org_first->u1.AddressOfData);
-                        FILL_MBS(mbs_import, import_name->Name);
-
-                        if (!LocalLdrFindExportAddress(library, &mbs_import, 0, (void**) &first_thunk->u1.Function)) {
+                        if (!LocalLdrFindExportAddress(library, import_name, 0, (void**) &first_thunk->u1.Function)) {
                             return false;
                         }
                     }
@@ -476,9 +473,7 @@ namespace Modules {
                         }
                     } else {
                         import_name = RVA(PIMAGE_IMPORT_BY_NAME, module->base, org_first->u1.AddressOfData);
-                        FILL_MBS(mbs_import, import_name->Name);
-
-                        if (!LocalLdrFindExportAddress(library, &mbs_import, 0, (void **) &first_thunk->u1.Function)) {
+                        if (!LocalLdrFindExportAddress(library, import_name, 0, (void**) &first_thunk->u1.Function)) {
                             return false;
                         }
                     }
