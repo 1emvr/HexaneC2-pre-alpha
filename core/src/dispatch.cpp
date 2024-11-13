@@ -64,21 +64,25 @@ namespace Dispatcher {
             QueueSegments(B_PTR(msg->buffer), msg->length);
         }
         else {
+            AddMessage(msg);
+            /*
+            // TODO: the re-packaging of messages seems unecessary
             CreateParser(&parser, B_PTR(msg->buffer), msg->length);
 
             queue            = CreateStream();
             queue->peer_id   = __builtin_bswap32(UnpackUint32(&parser));
             queue->task_id   = __builtin_bswap32(UnpackUint32(&parser));
-            queue->type  = __builtin_bswap32(UnpackUint32(&parser));
+            queue->type      = __builtin_bswap32(UnpackUint32(&parser));
 
-            queue->length  = parser.length;
-            queue->buffer      = B_PTR(Realloc(queue->buffer, queue->length));
+            queue->length    = parser.length;
+            queue->buffer    = B_PTR(Realloc(queue->buffer, queue->length));
 
             MemCopy(queue->buffer, parser.buffer, queue->length);
             AddMessage(queue);
 
             DestroyParser(&parser);
             DestroyStream(msg);
+             */
         }
     }
 
@@ -133,12 +137,10 @@ namespace Dispatcher {
                 PackUint32(out, head->task_id);
                 PackUint32(out, head->type);
 
-                if (ROOT_NODE) {
-                    PackBytes(out, B_PTR(head->buffer), head->length);
-                }
-                else {
-                    AppendBuffer(&out->buffer, head->buffer, (uint32_t*) &out->length, head->length);
-                }
+                ROOT_NODE 
+                    ? PackBytes(out, B_PTR(head->buffer), head->length)
+                    : AppendBuffer(&out->buffer, head->buffer, (uint32_t*) &out->length, head->length);
+
                 break;
             }
         }
