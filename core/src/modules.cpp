@@ -68,10 +68,12 @@ namespace Modules {
 	UINT_PTR FindKernelModule(char *module_name) {
 		HEXANE;
 
-		VOID *buffer = nullptr;
-		SIZE_T buffer_size = 0;
+		void *buffer = nullptr;
+		size_t buffer_size = 0;
 
-		ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, (PULONG)&buffer_size);
+		if (!NT_SUCCESS(ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, (PULONG)&buffer_size))) {
+			return 0;
+		}
 
 		while (ntstatus == STATUS_INFO_LENGTH_MISMATCH) {
 			if (buffer) {
