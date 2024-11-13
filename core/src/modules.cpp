@@ -43,7 +43,7 @@ namespace Modules {
             const auto name = (char*) (base + ((uint32*) (base + exports->AddressOfNames))[index - 1]);
 
 			// NOTE: test breaking - gets the right name, but accesses wrong function RVA : (DeviceIoControl + 4) -> DisableThreadLibraryCalls (?)
-			// need to test with other apis
+			// need to test with other apis, Find out why
 
             // TODO: need checks to prevent overflows
             char buffer[MAX_PATH] = { };
