@@ -214,16 +214,16 @@ namespace Hash {
     ULONG LdrHashEntry(UNICODE_STRING uni_name, BOOL xor_hash) {
         HEXANE;
 
-        ULONG result = 0;
+        uint32 hash = 0;
 
-        if (!NT_SUCCESS(ntstatus = ctx->win32.RtlHashUnicodeString(&uni_name, TRUE, 0, &result))) {
+        if (!NT_SUCCESS(ntstatus = ctx->win32.RtlHashUnicodeString(&uni_name, TRUE, 0, &hash))) {
             return 0;
         }
         if (xor_hash) {
-            result &= (32 - 1);
+            hash &= (32 - 1);
         }
 
-        return result;
+        return hash;
     }
 
     UINT32 HashStringA(char const *string, size_t length) {
