@@ -272,13 +272,12 @@ namespace Modules {
     BOOL LocalLdrFindExportAddress(HMODULE base, const char *export_name, const uint16 ordinal, void **function) {
 
         PIMAGE_SECTION_HEADER section = nullptr;
-
         uint8 local_buffer[MAX_PATH] = { };
 
         void *text_start = nullptr;
         void *text_end = nullptr;
 
-        if (!base) {
+        if (!base || (export_name && ordinal)) {
             return false;
         }
 
@@ -287,16 +286,16 @@ namespace Modules {
             return false;
         }
 
+        uint32 dot_text = TEXT;
+
         for (int sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
             PIMAGE_SECTION_HEADER section = ITER_SECTION_HEADER(base, sec_index);
 
             uint32 sec_hash = HashStringA((char *) section->Name, MbsLength((char *) section->Name));
-            uint32 dot_text = TEXT;
-
             if (MemCompare((void*) &dot_text, (void *) &sec_hash, sizeof(uint32))) {
 
                 text_start = RVA(void*, base, section->VirtualAddress);
-                text_end = RVA(PVOID, text_start, section->SizeOfRawData);
+                text_end = RVA(void*, text_start, section->SizeOfRawData);
                 break;
             }
         }
@@ -314,19 +313,17 @@ namespace Modules {
 
             for (int entry_index = 0; entry_index < n_entries; entry_index++) {
 
-                uint32 ordinal = 0;
+                uint32 _ordinal = 0;
                 bool found = false;
 
-                if (!export_name) {
-					// TODO: change this to the normal convention i'm already using
+                if (export_name) {
                     uint32 *_name_rva = RVA(uint32*, base, exports->AddressOfNames + entry_index * sizeof(uint32));
                     char *name = RVA(char*, base, *_name_rva);
 
                     if (MbsCompare(name, export_name)) {
-						// TODO: change this to the normal convention i'm already using
                         found = true;
 
-                        int16 *_ord_rva = RVA(short*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(uint16));
+                        int16 *_ord_rva = RVA(int16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(uint16));
                         _ordinal = exports->Base + *_ord_rva;
                     }
                 } else {
@@ -339,7 +336,6 @@ namespace Modules {
                 }
 
                 if (found) {
-					// TODO: change this to the normal convention i'm already using
                     const uint32 *function_rva = RVA(uint32*, base, exports->AddressOfFunctions + sizeof(uint32) * (fn_ordinal - exports->Base));
                     void *fn_pointer = RVA(void*, base, *function_rva);
 
