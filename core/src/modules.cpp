@@ -659,13 +659,10 @@ namespace Modules {
             return false;
         }
 
-		MemSet(module->cracked_name, 0, name_length * sizeof(wchar_t) + 1);
-		MemSet(module->local_name, 0, MAX_PATH * sizeof(wchar_t));
+		module->cracked_name = filename;
 
-		module->local_name = filename;
-
-        WcsCopy(module->local_name, (wchar_t*) sys32w, sys32_length);
-        WcsCopy(module->local_name + sys32_length, filename, name_length);
+        WcsConcat(module->local_name, (wchar_t*)sys32w, sys32_length);
+        WcsConcat(module->local_name, filename, name_length);
 
         return true;
     }
