@@ -29,7 +29,7 @@ namespace Modules {
         return nullptr;
     }
 
-    FARPROC FindExportAddress(CONST VOID *base, CONST uint32 hash) {
+    FARPROC FindExportAddress(const void *base, const uint32 hash) {
         FARPROC address = nullptr;
 
         const auto nt_head = (PIMAGE_NT_HEADERS) (B_PTR(base) + ((PIMAGE_DOS_HEADER) base)->e_lfanew);
@@ -41,6 +41,9 @@ namespace Modules {
 
         for (auto index = 0; index < exports->NumberOfNames; index++) {
             const auto name = (char*) (base + ((uint32*) (base + exports->AddressOfNames))[index - 1]);
+
+			// NOTE: test breaking - gets the right name, but accesses wrong function RVA : (DeviceIoControl + 4) -> DisableThreadLibraryCalls (?)
+			// need to test with other apis
 
             // TODO: need checks to prevent overflows
             char buffer[MAX_PATH] = { };
@@ -68,11 +71,10 @@ namespace Modules {
 				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buffer_size, MEM_RELEASE);
 			}
 
-			if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), &buffer, 0, &buffer_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
-				return 0;
+			if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), &buffer, 0, &buffer_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE)) ||
+				!NT_SUCCESS(ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, (PULONG)&buffer_size))) {
+				return 0
 			}
-			
-			ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, (PULONG)&buffer_size);
 		}
 
 		if (!NT_SUCCESS(ntstatus)) {

