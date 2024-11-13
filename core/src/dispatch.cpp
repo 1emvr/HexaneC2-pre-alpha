@@ -107,9 +107,9 @@ namespace Dispatcher {
             MemCopy(&peer_id, buffer, 4);
             MemCopy(&task_id, buffer + 4, 4);
 
-            queue->peer_id    = peer_id;
-            queue->task_id    = task_id;
-            queue->type   = TypeSegment;
+            queue->peer_id = peer_id;
+            queue->task_id = task_id;
+            queue->type    = TypeSegment;
 
             PackUint32(queue, index);
             PackUint32(queue, n_seg);
