@@ -57,15 +57,19 @@ namespace Dispatcher {
     VOID MessageQueue(_stream *msg) {
         HEXANE;
 
-        _parser parser = { };
-        _stream *queue = { };
+        //_parser parser = { };
+        //_stream *queue = { };
 
+        msg->length > MESSAGE_MAX
+            ? QueueSegments(B_PTR(msg->buffer), msg->length)
+            : AddMessage(msg);
+
+        /*
         if (msg->length > MESSAGE_MAX) {
             QueueSegments(B_PTR(msg->buffer), msg->length);
         }
         else {
             AddMessage(msg);
-            /*
             // TODO: the re-packaging of messages seems unecessary
             CreateParser(&parser, B_PTR(msg->buffer), msg->length);
 
