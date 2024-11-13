@@ -336,10 +336,10 @@ namespace Modules {
                 }
 
                 if (found) {
-                    const uint32 *function_rva = RVA(uint32*, base, exports->AddressOfFunctions + sizeof(uint32) * (fn_ordinal - exports->Base));
+                    const uint32 *function_rva = RVA(uint32*, base, exports->AddressOfFunctions + sizeof(uint32) * (_ordinal - exports->Base));
                     void *fn_pointer = RVA(void*, base, *function_rva);
 
-                    // this is another module...
+                    // NOTE: this is another module...
                     if (text_start > fn_pointer || text_end < fn_pointer) {
 
                         size_t full_length = MbsLength((char*) fn_pointer);
@@ -369,6 +369,7 @@ namespace Modules {
                             }
                         }
                     }
+
                     *function = fn_pointer;
                     return true;
                 }
