@@ -119,6 +119,7 @@ async fn handle_connection(stream: TcpStream, exit_flag: Arc<AtomicBool>) {
 }
 
 #[tokio::main]
+// main routine: tls websocket. 
 async fn main() {
     let addr = env::args().nth(1)
 		.unwrap_or_else(|| "127.0.0.1:3000".to_string());
@@ -141,6 +142,8 @@ async fn main() {
 				continue;
 			}
 		};
+
+		println!("[INF] accepting connection from client");
 
 		let exit_flag = arc_exit.clone();
 		tokio::spawn(async move {

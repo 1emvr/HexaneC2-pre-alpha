@@ -1,8 +1,8 @@
-use rand::{Rng, SeedableRng};
 use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
 
-use std::time::{SystemTime, UNIX_EPOCH};
 use std::convert::TryInto;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use hexlib::error::{Result, KeySizeError, Error};
 

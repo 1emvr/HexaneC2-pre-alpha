@@ -2,10 +2,12 @@ mod interface;
 
 use hexlib::error::{ Result, Error };
 use hexlib::types::{ ServerPacket, MessageType };
+
 use crate::interface::{ init_print_channel, wrap_message, stop_print_channel };
 
 use std::fs::File;
 use std::io::{ self, Read, Write };
+
 use tungstenite::{ connect, Message };
 use tungstenite::handshake::server::Response as ServerResponse;
 use tungstenite::Message::Text as Text;
@@ -13,7 +15,10 @@ use serde_json;
 
 type WebSocketUpgrade = tungstenite::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>; 
 
-// TODO: response will be ServerPacket{ String } 
+// TODO: options for payload build:
+// 1. build locally with client. send configuration data up to the server.
+// 2. build server-side and transmit data back to the client
+
 fn parse_packet(json: String) -> Result<()> {
 	println!("server response: {:?}", json);
 	Ok(())
@@ -25,7 +30,7 @@ fn read_json(target_path: &str) -> Result<String>{
 		Ok(file) => file,
 		Err(e) => {
 			println!("json open error");
-			return Err(Error::Custom("json read error".to_string()))
+			return Err(Error::Custom("json open error: {e}".to_string()))
 		}
 	};
 
@@ -33,7 +38,7 @@ fn read_json(target_path: &str) -> Result<String>{
 		Ok(read) => read,
 		Err(e) => {
 			println!("json read error");
-			return Err(Error::Custom("json read error".to_string()))
+			return Err(Error::Custom("json read error: {e}".to_string()))
 		}
 	};
 
@@ -71,13 +76,9 @@ fn parse_command(input: &str) -> Result<ServerPacket> {
 				}
 			}
         }
-		else {
-			packet.buffer = input.to_string();
-		}
     }
 	else {
-		println!("[ERR] invalid input");
-		return Err(Error::Custom("[ERR] invalid input".to_string()));
+		packet.buffer = input.to_string();
 	}
 
 	Ok(packet)
