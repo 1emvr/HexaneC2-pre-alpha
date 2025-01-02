@@ -214,7 +214,7 @@ namespace Hash {
     ULONG LdrHashEntry(UNICODE_STRING uni_name, BOOL xor_hash) {
         HEXANE;
 
-        uint32 hash = 0;
+        ULONG hash = 0;
 
         if (!NT_SUCCESS(ntstatus = ctx->win32.RtlHashUnicodeString(&uni_name, TRUE, 0, &hash))) {
             return 0;

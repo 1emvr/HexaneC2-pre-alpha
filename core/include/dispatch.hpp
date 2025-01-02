@@ -5,35 +5,35 @@
 namespace Dispatcher {
     VOID
     FUNCTION
-        MessageQueue(STREAM *msg);
+    MessageQueue(STREAM *msg);
 
     VOID
     FUNCTION
-        PrepareEgress(STREAM *out);
+	PrepareEgress(STREAM *out);
 
     VOID
     FUNCTION
-        AddMessage(STREAM *out);
+    PrepareIngress(STREAM *in);
 
     VOID
     FUNCTION
-        RemoveMessage(STREAM *target);
+    AddMessage(STREAM *out);
 
     VOID
     FUNCTION
-        QueueSegments(UINT8 *buffer, UINT32 length);
+	RemoveMessage(STREAM *target);
 
     VOID
     FUNCTION
-        PrepareIngress(STREAM *in);
+    QueueSegments(UINT8 *buffer, UINT32 length);
 
     VOID
     FUNCTION
-        CommandDispatch(STREAM *in);
+    CommandDispatch(STREAM *in);
 
     BOOL
     FUNCTION
-        DispatchRoutine();
+    DispatchRoutine();
 }
 #endif //HEXANE_CORELIB_DISPATCH_HPP
 

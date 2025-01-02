@@ -607,7 +607,9 @@ struct _hexane {
         DTYPE(GetFileAttributesW);
         DTYPE(CreateFileW);
         DTYPE(FindFirstFileA);
+        DTYPE(FindFirstFileW);
         DTYPE(FindNextFileA);
+        DTYPE(FindNextFileW);
         DTYPE(FindClose);
         DTYPE(GetFileSize);
         DTYPE(ReadFile);

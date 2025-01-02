@@ -17,7 +17,7 @@ type WebSocketUpgrade = tungstenite::WebSocket<tungstenite::stream::MaybeTlsStre
 
 // TODO: options for payload build:
 // 1. build locally with client. send configuration data up to the server.
-// 2. build server-side and transmit data back to the client
+// 2. build server-side and transmit payload back to the client
 
 fn parse_packet(json: String) -> Result<()> {
 	println!("server response: {:?}", json);

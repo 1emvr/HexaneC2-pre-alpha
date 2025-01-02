@@ -208,7 +208,7 @@ size_t WcsToMbs (char *const dst, const wchar_t *src, size_t length) {
 		dst[i] = (char)(src[i] & 0xff);
 	}
 
-	dst[i] = '\0';
+	dst[length * sizeof(wchar_t)] = '\0';
 	return MbsLength(dst);
 }
 

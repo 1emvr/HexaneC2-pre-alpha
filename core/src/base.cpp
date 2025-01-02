@@ -225,7 +225,9 @@ namespace Main {
 		x_assertb(F_PTR_HMOD(ctx->win32.GetFileAttributesW, 					ctx->modules.kernel32, GETFILEATTRIBUTESW));
 		x_assertb(F_PTR_HMOD(ctx->win32.CreateFileW, 							ctx->modules.kernel32, CREATEFILEW));
 		x_assertb(F_PTR_HMOD(ctx->win32.FindFirstFileA, 						ctx->modules.kernel32, FINDFIRSTFILEA));
+		x_assertb(F_PTR_HMOD(ctx->win32.FindFirstFileW, 						ctx->modules.kernel32, FINDFIRSTFILEW));
 		x_assertb(F_PTR_HMOD(ctx->win32.FindNextFileA, 							ctx->modules.kernel32, FINDNEXTFILEA));
+		x_assertb(F_PTR_HMOD(ctx->win32.FindNextFileW, 							ctx->modules.kernel32, FINDNEXTFILEW));
 		x_assertb(F_PTR_HMOD(ctx->win32.FindClose, 								ctx->modules.kernel32, FINDCLOSE));
 		x_assertb(F_PTR_HMOD(ctx->win32.GetFileSize, 							ctx->modules.kernel32, GETFILESIZE));
 		x_assertb(F_PTR_HMOD(ctx->win32.ReadFile, 								ctx->modules.kernel32, READFILE));

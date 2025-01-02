@@ -5,12 +5,10 @@ using namespace Opsec;
 using namespace Utils;
 using namespace Memory::Methods;
 
-__attribute__((used, section(".rdata"))) uint8 dot_dll[] = { 0x2e,0x64,0x6c,0x6c,0x00 };
-__attribute__((used, section(".rdata"))) uint8 sys32w[] = {
-	0x43,0x00,0x3a,0x00,0x5c,0x00,0x5c,0x00,0x57,0x00,0x69,0x00,0x6e,0x00,0x64,0x00,
-	0x6f,0x00,0x77,0x00,0x73,0x00,0x5c,0x00,0x5c,0x00,0x53,0x00,0x79,0x00,0x73,0x00,
-	0x74,0x00,0x65,0x00,0x6d,0x00,0x33,0x00,0x32,0x00,0x5c,0x00,0x5c,0x00,0x00,0x00,
-};
+__attribute__((used, section(".rdata"))) wchar_t dot_dll[] = { 0x2e,0x00,0x64,0x00,0x6c,0x00,0x6c,0x00,0x00 };
+__attribute__((used, section(".rdata"))) wchar_t sys32w[] = {
+	0x43,0x00,0x3a,0x00,0x2f,0x00,0x57,0x00,0x69,0x00,0x6e,0x00,0x64,0x00,0x6f,0x00,0x77,0x00,0x73,0x00,
+	0x2f,0x00,0x53,0x00,0x79,0x00,0x73,0x00,0x74,0x00,0x65,0x00,0x6d,0x00,0x33,0x00,0x32,0x00,0x00 };
 
 namespace Modules {
 
@@ -268,7 +266,7 @@ namespace Modules {
     BOOL LocalLdrFindExportAddress(HMODULE base, const char *export_name, const uint16 ordinal, void **function) {
 
         PIMAGE_SECTION_HEADER section = nullptr;
-        uint8 local_buffer[MAX_PATH] = { };
+        UINT8 local_buffer[MAX_PATH] = { };
 
         void *text_start = nullptr;
         void *text_end = nullptr;
@@ -323,7 +321,7 @@ namespace Modules {
                         _ordinal = exports->Base + *_ord_rva;
                     }
                 } else {
-                    int16 *_ord_rva = RVA(uint16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(uint16));
+                    int16 *_ord_rva = RVA(int16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(int16));
                     _ordinal = exports->Base + *_ord_rva;
 
                     if (_ordinal == ordinal) {
@@ -332,8 +330,8 @@ namespace Modules {
                 }
 
                 if (found) {
-                    const uint32 *function_rva = RVA(uint32*, base, exports->AddressOfFunctions + sizeof(uint32) * (_ordinal - exports->Base));
-                    void *fn_pointer = RVA(void*, base, *function_rva);
+                    CONST UINT32 *function_rva = RVA(uint32*, base, exports->AddressOfFunctions + sizeof(uint32) * (_ordinal - exports->Base));
+                    VOID *fn_pointer = RVA(void*, base, *function_rva);
 
                     // NOTE: this is another module...
                     if (text_start > fn_pointer || text_end < fn_pointer) {
@@ -349,18 +347,18 @@ namespace Modules {
                         }
 
                         if (lib_length != 0) {
-                            char *fn_name = (char *) fn_pointer + lib_length + 1;
+                            char *found_name = (char *) fn_pointer + lib_length + 1;
 
 							MemSet(local_buffer, 0, MAX_PATH);
                             MbsConcat((char*) local_buffer, (char*) fn_pointer);
                             MbsConcat((char*) local_buffer, (char*) dot_dll);
                             
-                            LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(HashStringA(MbsToLower((char*) local_buffer, lib_name), lib_length));
+                            LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(HashStringA(MbsToLower((char*) local_buffer, found_name), lib_length));
                             if (!lib_entry || lib_entry->DllBase == base) {
                                 return false;
                             }
 
-                            if (!LocalLdrFindExportAddress((HMODULE) lib_entry->DllBase, fn_name, 0, &fn_pointer)) {
+                            if (!LocalLdrFindExportAddress((HMODULE) lib_entry->DllBase, found_name, 0, &fn_pointer)) {
                                 return false;
                             }
                         }
@@ -399,14 +397,15 @@ namespace Modules {
 
                 const char *name = (char*) module->base + import_desc->Name;
 
-                if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(HashStringA(MbsToLower(local_buffer, name), MbsLength(name)))) {
+                if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(HashStringA(MbsToLower((char*) local_buffer, name), MbsLength(name)))) {
                     library = (HMODULE) entry->DllBase;
                 }
                 else {
 					MemSet(local_buffer, 0, MAX_PATH);
-					MbsToWcs((wchar_t*) local_buffer, name);
+					MbsToWcs((wchar_t*) local_buffer, name, MbsLength(name));
 
-                    EXECUTABLE *new_load = ImportModule(LoadLocalFile, (wchar_t*) local_buffer, nullptr, 0, nullptr);
+					// NOTE: use MbsLength for the buffer length only 
+                    EXECUTABLE *new_load = ImportModule(LoadLocalFile, HashStringW((wchar_t*) local_buffer, WcsLength((wchar_t*) local_buffer)), nullptr, 0, nullptr);
                     if (!new_load || !new_load->success) {
                         return false;
                     }
@@ -425,7 +424,7 @@ namespace Modules {
                         }
                     } else {
                         import_name = RVA(PIMAGE_IMPORT_BY_NAME, module->base, org_first->u1.AddressOfData);
-                        if (!LocalLdrFindExportAddress(library, import_name, 0, (void**) &first_thunk->u1.Function)) {
+                        if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (void**) &first_thunk->u1.Function)) {
                             return false;
                         }
                     }
@@ -442,17 +441,18 @@ namespace Modules {
             for (; delay_desc->DllNameRVA; delay_desc++) {
                 HMODULE library = nullptr;
 
-                const char *lib_name = (char*) module->base + delay_desc->DllNameRVA;
-                const uint32 name_hash = HashStringA(MbsToLower(lower, lib_Name), MbsLength(lib_name));
+                const CHAR *lib_name = (char*) module->base + delay_desc->DllNameRVA;
+				const SIZE_T lib_length = MbsLength(lib_name);
+                const UINT32 name_hash = HashStringA(MbsToLower((char*) local_buffer, lib_name), lib_length);
 
                 if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(name_hash)) {
                     library = (HMODULE) entry->DllBase;
                 }
                 else {
 					MemSet(local_buffer, 0, MAX_PATH);
-					MbsToWcs((wchar_t*) local_buffer, lib_name);
+					MbsToWcs((wchar_t*) local_buffer, lib_name, MbsLength(lib_name));
 
-                    EXECUTABLE *new_load = ImportModule(LoadLocalFile, (wchar_t*) local_buffer, nullptr, 0, nullptr);
+                    EXECUTABLE *new_load = ImportModule(LoadLocalFile, HashStringW((wchar_t*) local_buffer, WcsLength((wchar_t*) local_buffer)), nullptr, 0, nullptr);
                     if (!new_load || !new_load->success) {
                         return false;
                     }
@@ -466,12 +466,12 @@ namespace Modules {
 
                 for (; org_first->u1.Function; first_thunk++, org_first++) {
                     if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-                        if (!LocalLdrFindExportAddress(library, nullptr, (WORD) org_first->u1.Ordinal, (void **) &first_thunk->u1.Function)) {
+                        if (!LocalLdrFindExportAddress(library, nullptr, (uint16) org_first->u1.Ordinal, (void **) &first_thunk->u1.Function)) {
                             return false;
                         }
                     } else {
                         import_name = RVA(PIMAGE_IMPORT_BY_NAME, module->base, org_first->u1.AddressOfData);
-                        if (!LocalLdrFindExportAddress(library, import_name, 0, (void**) &first_thunk->u1.Function)) {
+                        if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (void**) &first_thunk->u1.Function)) {
                             return false;
                         }
                     }
@@ -496,15 +496,15 @@ namespace Modules {
 
 
         if (!node->Red) {
-            uint32 length = 0;
-            size_t begin = 0;
+            UINT32 length = 0;
+            SIZE_T begin = 0;
 
             PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, entry->DllBase, ((PIMAGE_DOS_HEADER) entry->DllBase)->e_lfanew);
             PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(nt_head);
 
             for (int sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
-                uint32 sec_hash = HashStringA((char*) section->Name, MbsLength((char*) section->Name));
-                uint32 dot_data = DATA;
+                UINT32 sec_hash = HashStringA((char*) section->Name, MbsLength((char*) section->Name));
+                UINT32 dot_data = DATA;
 
                 if (MemCompare((void*) &dot_data, (void*) &sec_hash, sizeof(uint32)) == 0) {
                     begin = (size_t) entry->DllBase + section->VirtualAddress;
@@ -633,34 +633,67 @@ namespace Modules {
         return true;
     }
 
-    BOOL GetModulePath(EXECUTABLE *module, const wchar_t *filename) {
-		// NOTE: limited to C:/Windows/System32
+    BOOL GetModulePath(EXECUTABLE *module, const uint32 name_hash) {
         HEXANE;
 
-        if (!filename) {
+		WCHAR filename[MAX_PATH] = { };
+		WIN32_FIND_DATAW data = { };
+		BOOL success = false;
+
+        if (!name_hash) {
             return false;
         }
 
-		const size_t name_length = WcsLength(filename);
-		const size_t sys32_length = WcsLength((wchar_t*) sys32w);
+		HANDLE handle = ctx->win32.FindFirstFileW((wchar_t*)sys32w, &data);
+		if (INVALID_HANDLE_VALUE == handle) {
+			goto defer;
+		}
 
-        module->cracked_name = (wchar_t*) Malloc(name_length * sizeof(wchar_t) + 1);
+		// TODO: skip entries that are not *.dll
+		do {
+			if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+				continue;
+			} else {
+				if (HashStringW(data.cFileName, WcsLength(data.cFileName)) - name_hash == 0) {
+					MemCopy(filename, data.cFileName, WcsLength(data.cFileName));
+				}
+			}
+		} while (ctx->win32.FindNextFileW(handle, &data) != 0);
+
+		if (!filename[0]) {
+			goto defer;
+		}
+
+        module->cracked_name = (wchar_t*) Malloc(WcsLength(filename) * sizeof(wchar_t) + 1);
 		if (!module->cracked_name) {
-			return false;
+			goto defer;
 		}
 
         module->local_name = (wchar_t*) Malloc(MAX_PATH * sizeof(wchar_t));
         if (!module->local_name) {
-            Free(module->cracked_name);
-            return false;
+            goto defer;
         }
 
-		module->cracked_name = filename;
+        WcsConcat(module->local_name, sys32w);
+		WcsConcat(module->local_name, filename);
+		MemCopy(module->cracked_name, filename, WcsLength(filename));
 
-        WcsConcat(module->local_name, (wchar_t*)sys32w, sys32_length);
-        WcsConcat(module->local_name, filename, name_length);
+		success = true;
 
-        return true;
+	defer:
+		if (!success) {
+			if (module->cracked_name) {
+				Free(module->cracked_name);
+			}
+			if (module->local_name) {
+				Free(module->local_name);
+			}
+		}
+
+		if (handle) {
+			ctx->win32.NtClose(handle);
+		}
+        return success;
     }
 
     BOOL ReadModule(EXECUTABLE *module) {
@@ -719,7 +752,7 @@ namespace Modules {
         entry->OriginalBase   = nt_head->OptionalHeader.ImageBase;
 
         // set the hash value
-        entry->BaseNameHashValue = LdrHashEntry(BaseDllName, false);
+        entry->BaseNameHashValue = LdrHashEntry(entry->BaseDllName, false);
 
         // correctly add the base address to the entry
         AddModuleEntry(entry, (void *) module->base);
@@ -763,7 +796,7 @@ namespace Modules {
         return true;
     }
 
-    PEXECUTABLE ImportModule(const uint32 load_type, const wchar_t *filename, uint8 *memory, const uint32 mem_size, wchar_t *name) {
+    PEXECUTABLE ImportModule(const uint32 load_type, const uint32 name_hash, uint8 *memory, const uint32 mem_size, wchar_t *name) {
         // NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
         HEXANE;
 
@@ -779,11 +812,12 @@ namespace Modules {
 
         switch (LOWORD(load_type)) {
             case LoadLocalFile: {
-
-				__debugbreak();
-				if (!GetModulePath(module, filename) || !ReadModule(module)) {
+				// TODO: using name hashes for file search would need to hash every entry in the directory, creating performance overhead.
+				// how bad would it perform? Is the stealth payoff worth it? needs testing.
+				if (!GetModulePath(module, name_hash) || !ReadModule(module)) {
 					goto defer;
 				}
+
 				break;
 			}
             case LoadMemory: {

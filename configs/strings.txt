@@ -18,7 +18,9 @@ PathFindFileNameW
 GetFileAttributesW
 CreateFileW
 FindFirstFileA
+FindFirstFileW
 FindNextFileA
+FindNextFileW
 FindClose
 GetFileSize
 ReadFile
