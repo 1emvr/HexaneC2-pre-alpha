@@ -7,8 +7,19 @@ using namespace Stream;
 using namespace Modules;
 using namespace Dispatcher;
 using namespace Memory::Context;
+using namespace Main;
 
 // TODO: consider hash-tables for API struct
+
+VOID Entrypoint() {
+
+    if (!ContextInit() || !ResolveApi() || !ReadConfig()) {
+        return;
+    }
+
+    MainRoutine();
+}
+
 namespace Main {
     UINT8 __attribute__((used, section(".data"))) Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
 
@@ -160,6 +171,7 @@ namespace Main {
 
     BOOL ResolveApi() {
         // TODO: create separate ResolveApi for loader and payload
+		__debugbreak();
 		HEXANE;
 
 		bool success = true;
@@ -373,13 +385,3 @@ namespace Main {
     }
 }
 
-using namespace Main;
-VOID Entrypoint() {
-
-	__debugbreak();
-    if (!ContextInit() || !ResolveApi() || !ReadConfig()) {
-        return;
-    }
-
-    MainRoutine();
-}

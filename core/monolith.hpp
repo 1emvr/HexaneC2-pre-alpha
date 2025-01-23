@@ -2,7 +2,7 @@
 #define HEXANE_MONOLITH_HPP
 #include <core/ntimports.hpp>
 
-EXTERN_C ULONG __instance;
+EXTERN_C ULONG __global;
 EXTERN_C LPVOID InstStart();
 EXTERN_C LPVOID InstEnd();
 
@@ -30,9 +30,9 @@ typedef uint64_t uint64;
 #define WIN_VERSION_2016_X      		11
 
 
-#define GLOBAL_OFFSET                   (U_PTR(InstStart()) + U_PTR( &__instance))
-#define HEXANE                          _hexane* ctx = (_hexane*) C_DREF(GLOBAL_OFFSET)
 #define ntstatus                        ctx->teb->LastErrorValue
+#define GLOBAL_OFFSET                   (U_PTR(InstStart()) + U_PTR( &__global ))
+#define HEXANE                          _hexane *ctx = (_hexane*) C_DREF(GLOBAL_OFFSET)
 
 #define B_PTR(x)                        ((PBYTE) x)
 #define C_PTR(x)                        ((LPVOID) x)
