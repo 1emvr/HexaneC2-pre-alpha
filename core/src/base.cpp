@@ -171,7 +171,6 @@ namespace Main {
 
     BOOL ResolveApi() {
         // TODO: create separate ResolveApi for loader and payload
-		__debugbreak();
 		HEXANE;
 
 		bool success = true;

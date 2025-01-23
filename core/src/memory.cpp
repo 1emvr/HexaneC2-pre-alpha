@@ -69,7 +69,6 @@ namespace Memory {
                 return false;
             }
 
-			__debugbreak();
             void *global = (LPVOID) instance.base.address + U_PTR(&__global);
 			void *glob_a = global;
 

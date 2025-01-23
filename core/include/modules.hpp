@@ -20,6 +20,10 @@
     	FUNCTION
     	FindModuleEntry(UINT32 hash);
 
+		BOOL
+		FUNCTION
+		GetModulePath(EXECUTABLE *module, const uint32 name_hash);
+
 	    PLDR_DATA_TABLE_ENTRY
     	FUNCTION
     	FindModuleEntryByName(CONST WCHAR *mod_name);
