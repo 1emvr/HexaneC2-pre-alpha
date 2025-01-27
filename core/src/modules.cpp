@@ -652,8 +652,8 @@ namespace Modules {
         }
 
 		__debugbreak();
-		MemCopy(filename, (char*)sys32, sizeof(sys32));
-		MemCopy(filename + sizeof(sys32), (char*)dot_dll, sizeof(dot_dll));
+		MemCopy(B_PTR(filename), (char*)sys32, sizeof(sys32));
+		WcsConcat(filename, (wchar_t*)dot_dll);
 
 		handle = ctx->win32.FindFirstFileW(filename, &data);
 		if (INVALID_HANDLE_VALUE == handle) {
@@ -675,8 +675,8 @@ namespace Modules {
 			goto defer;
 		}
 
-		MemCopy(module->local_name, (char*)sys32, sizeof(sys32));
-		MemCopy(module->local_name + sizeof(sys32), filename, WcsLength(filename) * sizeof(wchar_t));
+		MemCopy(B_PTR(module->local_name), (char*)sys32, sizeof(sys32));
+		WcsConcat(module->local_name, (wchar_t*)filename);
 
         module->cracked_name = (wchar_t*) Malloc(WcsLength(filename) * sizeof(wchar_t) + 1);
 		if (!module->cracked_name) {
