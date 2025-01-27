@@ -5,9 +5,10 @@ using namespace Opsec;
 using namespace Utils;
 using namespace Memory::Methods;
 
-__attribute__((used, section(".rdata"))) char dot_dll[] = { 0x2e,0x64,0x6c,0x6c,0x00 };
-__attribute__((used, section(".rdata"))) char sys32[] = {
-	0x43,0x3a,0x5c,0x5c,0x57,0x69,0x6e,0x64,0x6f,0x77,0x73,0x5c,0x5c,0x53,0x79,0x73,0x74,0x65,0x6d,0x33,0x32,0x5c,0x5c,0x2a,0x00
+__attribute__((used, section(".rdata"))) uint8_t dot_dll[] = { 0x2e,0x64,0x6c,0x6c,0x00 };
+__attribute__((used, section(".rdata"))) uint8_t sys32[] = {
+	0x43,0x3a,0x2f,0x57,0x69,0x6e,0x64,0x6f,0x77,0x73,0x2f,0x53,0x79,0x73,0x74,0x65,
+	0x6d,0x33,0x32,0x2f,0x2a,0x2e,0x64,0x6c,0x6c,0x00
 };
 
 namespace Modules {
@@ -638,19 +639,26 @@ namespace Modules {
 
 		WCHAR filename[MAX_PATH] = { };
 		WIN32_FIND_DATAW data = { };
+		HANDLE handle = { };
 		BOOL success = false;
 
         if (!name_hash) {
             return false;
         }
 
-		__debugbreak();
-		HANDLE handle = ctx->win32.FindFirstFileW((wchar_t*)sys32w, &data);
+        module->local_name = (wchar_t*) Malloc(MAX_PATH);
+        if (!module->local_name) {
+            goto defer;
+        }
+
+		MbsToWcs(filename, (char*)sys32, MbsLength((char*)sys32));
+
+		handle = ctx->win32.FindFirstFileW(filename, &data);
 		if (INVALID_HANDLE_VALUE == handle) {
 			goto defer;
 		}
 
-		// TODO: skip entries that are not *.dll
+		MemSet(filename, 0, MbsLength((char*)sys32));
 		do {
 			if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 				continue;
@@ -665,20 +673,13 @@ namespace Modules {
 			goto defer;
 		}
 
+		WcsConcat(module->local_name, filename);
         module->cracked_name = (wchar_t*) Malloc(WcsLength(filename) * sizeof(wchar_t) + 1);
 		if (!module->cracked_name) {
 			goto defer;
 		}
 
-        module->local_name = (wchar_t*) Malloc(MAX_PATH * sizeof(wchar_t));
-        if (!module->local_name) {
-            goto defer;
-        }
-
-        WcsConcat(module->local_name, (wchar_t*)sys32w);
-		WcsConcat(module->local_name, filename);
-		MemCopy(module->cracked_name, filename, WcsLength(filename));
-
+		MemCopy(module->cracked_name, filename, WcsLength(filename) * sizeof(wchar_t) + 1);
 		success = true;
 
 	defer:
@@ -691,6 +692,7 @@ namespace Modules {
 			}
 		}
 
+		__debugbreak();
 		if (handle) {
 			ctx->win32.NtClose(handle);
 		}
@@ -799,7 +801,6 @@ namespace Modules {
 
     PEXECUTABLE ImportModule(const uint32 load_type, const uint32 name_hash, uint8 *memory, const uint32 mem_size, wchar_t *name) {
         // NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
-		__debugbreak();
         HEXANE;
 
         EXECUTABLE *module = (EXECUTABLE *) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
