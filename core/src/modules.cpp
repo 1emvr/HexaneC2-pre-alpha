@@ -389,9 +389,9 @@ namespace Modules {
             DWORD count = 0;
 			// NOTE: access violation trying to access import_desc. the image might be broken.
 			// TEST: watch it read the image for import descriptor.
-            auto import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, module->base, data_dire->VirtualAddress);
-
 			__debugbreak();
+
+            auto import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, module->base, data_dire->VirtualAddress);
             for (auto scan = import_desc; scan->Name; scan++) {
                 count++;
             }
