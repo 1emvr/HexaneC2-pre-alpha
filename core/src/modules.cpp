@@ -390,7 +390,8 @@ namespace Modules {
             auto import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, module->base, data_dire->VirtualAddress);
 
 			__debugbreak();
-			// access violation trying to access import_desc. the image might be broken.
+			// NOTE: access violation trying to access import_desc. the image might be broken.
+			// TEST: watch it read the image for import descriptor.
             for (auto scan = import_desc; scan->Name; scan++) {
                 count++;
             }
