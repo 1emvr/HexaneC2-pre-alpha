@@ -375,7 +375,6 @@ namespace Modules {
 
     BOOL ResolveImports(const EXECUTABLE *module) {
 
-		__debugbreak();
         PIMAGE_IMPORT_BY_NAME import_name      = nullptr;
         PIMAGE_DELAYLOAD_DESCRIPTOR delay_desc = nullptr;
 
@@ -387,11 +386,14 @@ namespace Modules {
 			return false;
 		}
 
-        PIMAGE_DATA_DIRECTORY data_dire = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+        PIMAGE_DATA_DIRECTORY data_dire = module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress;
         UINT8 local_buffer[MAX_PATH] = { };
 
         if (data_dire->Size) {
             DWORD count = 0;
+
+			// NOTE: changed to use data_dire->Virtual address instead of a pointer to the index
+			__debugbreak();
 
             PIMAGE_IMPORT_DESCRIPTOR import_desc = (PIMAGE_IMPORT_DESCRIPTOR) B_PTR(module->base) + data_dire->VirtualAddress;
             for (auto scan = import_desc; scan->Name; scan++) {
