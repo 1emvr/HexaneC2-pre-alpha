@@ -24,13 +24,9 @@ There are plenty of IOCs that are intrinsic to the methods applied (if you know 
 - protocol support (do not break)
 - access control/ filtering
 - forwarding through reverse proxy (nginx)
+- user database
 - (optional) "LetsEncrypt"
 - (optional) multiple egress profiles
-
-#### C2 Server:
-- external listener
-- save states db
-- staging
 
 ### Wish-List:
 - hot-swap configs (sleep/redirectors)
