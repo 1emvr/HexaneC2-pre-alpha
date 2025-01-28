@@ -19,7 +19,6 @@ There are plenty of IOCs that are intrinsic to the methods applied (if you know 
 - write documentation
 
 ### C2 infrastructure:
-#### Redirectors:
 - re-implement http listener
 - automation of infraC2
 - protocol support (do not break)
