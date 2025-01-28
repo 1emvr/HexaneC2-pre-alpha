@@ -2,7 +2,7 @@
 ## Overview:
 A compilation of publicly available resources with minimal UI/UX features. A good portion of the code is derived from https://github.com/HavocFramework/Havoc, taking inspiration from other popular frameworks as well.
 
-This is meant to lay the groundwork for my custom implementations, reasearch & development rather than being a feature-rich user experience (it's unpolished). This is not a production-ready C2 and I do not recommend using it in any real environments. 
+This is meant to lay the groundwork for my custom implementations/ R&D rather than being a feature-rich user experience (it's unpolished). This is not a production-ready C2 and I do not recommend using it in any real environments. 
 
 There are plenty of IOCs that are intrinsic to the methods applied (if you know them, you can change it) and network communication is completely naked at the moment (no options or transforms for headers).
 
