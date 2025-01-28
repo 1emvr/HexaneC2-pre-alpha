@@ -37,4 +37,4 @@ There are plenty of IOCs that are intrinsic to the methods applied (if you know 
 - server response header configuration
 - forking non-C2 traffic to webpage (filtering)
 - implement indirect syscalls/proxying through kernbase/kern32
-- server logging
+- operator logging
