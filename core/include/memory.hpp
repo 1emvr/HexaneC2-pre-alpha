@@ -9,9 +9,9 @@ namespace Memory {
 			FUNCTION
             FindIntResource(HMODULE base, INT rsrc_id);
 
-        PEXECUTABLE
+        VOID 
 			FUNCTION
-            CreateImage(UINT8 *data);
+            FindHeaders(EXECUTABLE *exe);
     }
 
     namespace Context {

@@ -27,17 +27,12 @@ namespace Memory {
             return object;
         }
 
-        PEXECUTABLE CreateImage(uint8 *data) {
+        VOID FindHeaders(EXECUTABLE *exe) {
             HEXANE;
 
-            auto image = (EXECUTABLE*) Malloc(sizeof(_executable));
-
-            image->buffer   = data;
-            image->nt_head  = (PIMAGE_NT_HEADERS) (B_PTR(image->buffer) + ((PIMAGE_DOS_HEADER) data)->e_lfanew);
-            image->symbols  = (PCOFF_SYMBOL) (B_PTR(image->buffer) + image->nt_head->FileHeader.PointerToSymbolTable);
-            image->exports  = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(image->buffer) + image->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
-
-            return image;
+            exe->nt_head  = (PIMAGE_NT_HEADERS) (B_PTR(exe->buffer) + ((PIMAGE_DOS_HEADER)exe->buffer)->e_lfanew);
+            exe->symbols  = (PCOFF_SYMBOL) (B_PTR(exe->buffer) + exe->nt_head->FileHeader.PointerToSymbolTable);
+            exe->exports  = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(exe->buffer) + exe->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
         }
     }
 

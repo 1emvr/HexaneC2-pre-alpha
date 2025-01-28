@@ -445,9 +445,11 @@ namespace Objects {
     VOID COFFLoader(char *entrypoint, void *data, void *args, size_t args_size) {
         HEXANE;
         // NOTE: sec_map seems to be the only thing that persists
+		// TODO: this no longer exists. Apply new.
 
-        auto image    = CreateImage((uint8 *) data); ;
-        auto next     = (uint8 *) image->base;
+		EXECUTABLE *image = nullptr;
+        //auto image    = CreateImage((uint8 *) data);
+        auto next     = (uint8*) image->base;
         bool success  = true;
 
         x_assertb(image->buffer    = (uint8 *) data);

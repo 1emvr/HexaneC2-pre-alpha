@@ -406,18 +406,18 @@ typedef struct _executable {
 	BOOL                    link;
 	BOOL                    success;
 	PBYTE                   buffer;
-	PIMAGE_NT_HEADERS       nt_head;
 	ULONG_PTR               base;
 	LPVOID                  text;
 
 	LPWSTR                  local_name;
 	LPWSTR                  cracked_name;
+	SIZE_T                  size;
+	UINT32                  task_id;
+
+	PRELOC                  reloc;
+	IMAGE_NT_HEADERS        *nt_head;
 	IMAGE_SECTION_HEADER    *section;
 	IMAGE_EXPORT_DIRECTORY  *exports;
-	SIZE_T                  size;
-
-	UINT32                  task_id;
-	PRELOC                  reloc;
 	PCOFF_SYMBOL            symbols;
 	POBJECT_MAP             fn_map;
 	POBJECT_MAP             sec_map;

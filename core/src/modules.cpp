@@ -375,6 +375,7 @@ namespace Modules {
 
     BOOL ResolveImports(const EXECUTABLE *module) {
 
+		__debugbreak();
         PIMAGE_IMPORT_BY_NAME import_name      = nullptr;
         PIMAGE_DELAYLOAD_DESCRIPTOR delay_desc = nullptr;
 
@@ -543,13 +544,17 @@ namespace Modules {
     BOOL MapModule(EXECUTABLE *module) {
         HEXANE;
 
-        auto region_size = (size_t) module->nt_head->OptionalHeader.SizeOfImage;
+		if (!module->nt_head) {
+			return false;
+		}
         const auto pre_base = module->nt_head->OptionalHeader.ImageBase;
+        auto region_size = (size_t) module->nt_head->OptionalHeader.SizeOfImage;
 
         module->base = pre_base;
 
         if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
             module->base != pre_base) {
+
             module->base = 0;
             region_size = module->nt_head->OptionalHeader.SizeOfImage;
 
@@ -558,10 +563,18 @@ namespace Modules {
             }
         }
 
+		if (!module->base) {
+			return false;
+		}
+
+		module->section = IMAGE_FIRST_SECTION(module->nt_head); 
+
+		// copy headers to allocated buffer
         for (auto head_index = 0; head_index < module->nt_head->OptionalHeader.SizeOfHeaders; head_index++) {
             B_PTR(module->base)[head_index] = module->buffer[head_index];
         }
 
+		// copy section @ address to allocated buffer
         for (auto i = 0; i < module->nt_head->FileHeader.NumberOfSections; i++, module->section++) {
             for (auto sec_index = 0; sec_index < module->section->SizeOfRawData; sec_index++) {
                 (B_PTR(module->base + module->section->VirtualAddress))[sec_index] = (module->buffer + module->section->PointerToRawData)[sec_index];
@@ -651,7 +664,6 @@ namespace Modules {
             goto defer;
         }
 
-		__debugbreak();
 		MemCopy(B_PTR(filename), (char*)sys32, sizeof(sys32));
 		WcsConcat(filename, (wchar_t*)dot_dll);
 
@@ -697,7 +709,7 @@ namespace Modules {
 		}
 
 		if (handle) {
-			ctx->win32.NtClose(handle);
+			ctx->win32.FindClose(handle);
 		}
         return success;
     }
@@ -807,8 +819,6 @@ namespace Modules {
         HEXANE;
 
         EXECUTABLE *module = (EXECUTABLE *) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
-		EXECUTABLE *image = nullptr;
-
         if (!module) {
             return nullptr;
         }
@@ -849,6 +859,7 @@ namespace Modules {
             name = module->cracked_name;
         }
 
+		// see if we can find the mod already loaded in memory
         if ((load_type & LoadBof) != LoadBof) {
             if (LDR_DATA_TABLE_ENTRY *check_module = FindModuleEntry(HashStringW(name, WcsLength(name)))) {
                 module->base = (uintptr_t) check_module->DllBase;
@@ -858,13 +869,10 @@ namespace Modules {
             }
         }
 
-        image = CreateImage(module->buffer);
-        if (!ImageCheckArch(image)) {
+        FindHeaders(module);
+        if (!ImageCheckArch(module)) {
             goto defer;
         }
-
-        // TODO: DestroyImage(module);
-        Free(image);
 
         // map the sections into memory
         if (!MapModule(module) || !ResolveImports(module)) {
