@@ -387,6 +387,7 @@ namespace Modules {
 			return false;
 		}
 
+		// NOTE: import_dire->Size and VirtualAddress are correct when dereferenced. import_desc->Name causes access violation.
 		import_dire = &mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
         if (import_dire->Size) {
 
@@ -892,6 +893,7 @@ namespace Modules {
         }
 
         // map the sections into memory
+		// TODO: fix ResolveImports
         if (!MapModule(mod) || !ResolveImports(mod)) {
             goto defer;
         }
