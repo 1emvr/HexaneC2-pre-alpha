@@ -23,6 +23,7 @@ FindNextFileA
 FindNextFileW
 FindClose
 GetFileSize
+IsBadReadPtr
 ReadFile
 LookupAccountSidW
 LookupPrivilegeValueA

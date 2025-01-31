@@ -228,6 +228,7 @@ namespace Main {
 		x_assertb(F_PTR_HMOD(ctx->win32.RtlRandomEx, 							ctx->modules.ntdll, RTLRANDOMEX));
 		x_assertb(F_PTR_HMOD(ctx->win32.NtClose, 								ctx->modules.ntdll, NTCLOSE));
 
+		x_assertb(F_PTR_HMOD(ctx->win32.IsBadReadPtr,                           ctx->modules.kernel32, ISBADREADPTR));
 		x_assertb(F_PTR_HMOD(ctx->win32.DeviceIoControl,                        ctx->modules.kernel32, DEVICEIOCONTROL));
 		x_assertb(F_PTR_HMOD(ctx->win32.FileTimeToSystemTime, 					ctx->modules.kernel32, FILETIMETOSYSTEMTIME));
 		x_assertb(F_PTR_HMOD(ctx->win32.GetCurrentDirectoryA, 					ctx->modules.kernel32, GETCURRENTDIRECTORYA));

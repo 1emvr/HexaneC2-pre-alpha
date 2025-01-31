@@ -374,7 +374,6 @@ namespace Modules {
     }
 
     BOOL ResolveImports(const EXECUTABLE *mod) {
-		PIMAGE_DATA_DIRECTORY import_dire = nullptr;
         PIMAGE_IMPORT_BY_NAME import_name = nullptr;
 
 		LDR_DATA_TABLE_ENTRY *entry    = nullptr;
@@ -388,10 +387,16 @@ namespace Modules {
 		}
 
 		// NOTE: import_dire->Size and VirtualAddress are correct when dereferenced. import_desc->Name causes access violation.
-		import_dire = &mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+		// TODO: disect data structures and cross-reference (?) Cannot find the issue.
+
+		auto import_dire = mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]; // try without &
         if (import_dire->Size) {
 
             auto import_desc = (PIMAGE_IMPORT_DESCRIPTOR) mod->base + import_dire->VirtualAddress; // shlwapi.dll + 0x4a038
+			if (ctx->win32.IsBadReadPtr(import_desc->Name, 0x1000)) {
+				return false;
+			}
+
             for (; import_desc->Name; import_desc++) {
 
                 CONST CHAR *name = (char*) mod->base + import_desc->Name;

