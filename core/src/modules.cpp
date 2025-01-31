@@ -393,7 +393,7 @@ namespace Modules {
         if (import_dire->Size) {
 
             auto import_desc = (PIMAGE_IMPORT_DESCRIPTOR) mod->base + import_dire->VirtualAddress; // shlwapi.dll + 0x4a038
-			if (ctx->win32.IsBadReadPtr(import_desc->Name, 0x1000)) {
+			if (ctx->win32.IsBadReadPtr(import_desc->Name, 0x4)) {
 				return false;
 			}
 

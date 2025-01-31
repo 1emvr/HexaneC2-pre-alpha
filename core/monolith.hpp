@@ -45,7 +45,7 @@ typedef uint64_t uint64;
 #define P_TYPE(T, x)                    ((T*) x)
 
 
-#define DTYPE(x)						
+#define DTYPE(x)						(decltype x) *x
 #define FUNCTION						TEXT_SECTION(B)
 #define CONFIG                          TEXT_SECTION(F)
 #define SECTION(x)                      __attribute__((used, section(x)))
