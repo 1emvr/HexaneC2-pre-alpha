@@ -374,6 +374,7 @@ namespace Modules {
     }
 
     BOOL ResolveImports(const EXECUTABLE *mod) {
+		HEXANE; 
         PIMAGE_IMPORT_BY_NAME import_name = nullptr;
 
 		LDR_DATA_TABLE_ENTRY *entry    = nullptr;
@@ -382,24 +383,14 @@ namespace Modules {
 
         UINT8 local_buffer[MAX_PATH] = { };
 
-		if (mod->nt_head->Signature != IMAGE_NT_SIGNATURE) {
-			return false;
-		}
-
-		// NOTE: import_dire->Size and VirtualAddress are correct when dereferenced. import_desc->Name causes access violation.
-		// TODO: disect data structures and cross-reference (?) Cannot find the issue.
-
-		auto import_dire = mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]; // try without &
+		auto import_dire = (PIMAGE_DATA_DIRECTORY) &mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]; 
         if (import_dire->Size) {
 
-            auto import_desc = (PIMAGE_IMPORT_DESCRIPTOR) mod->base + import_dire->VirtualAddress; // shlwapi.dll + 0x4a038
-			if (ctx->win32.IsBadReadPtr(import_desc->Name, 0x4)) {
-				return false;
-			}
-
+			__debugbreak();
+            auto import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, import_dire->VirtualAddress); // shlwapi.dll + 0x4a038
             for (; import_desc->Name; import_desc++) {
 
-                CONST CHAR *name = (char*) mod->base + import_desc->Name;
+                CONST CHAR *name = RVA(char*, mod->base, import_desc->Name);
                 HMODULE library  = nullptr;
 
 				// can we find the module already loaded in memory?
@@ -438,7 +429,7 @@ namespace Modules {
             }
         }
 
-		//import_dire = &module->nt_head->OptionalHeader[IMAGE_DIRECTORY_ENTRY_IMPORT];
+		//import_dire = (PIMAGE_DATA_DIRECTORY) &module->nt_head->OptionalHeader[IMAGE_DIRECTORY_ENTRY_IMPORT];
         // handle the delayed import table
 
         if (import_dire->Size) {
@@ -447,7 +438,7 @@ namespace Modules {
             for (; delay_desc->DllNameRVA; delay_desc++) {
                 HMODULE library = nullptr;
 
-                const CHAR *lib_name = (char*) mod->base + delay_desc->DllNameRVA;
+                const CHAR *lib_name = RVA(char*, mod->base, delay_desc->DllNameRVA);
 				const SIZE_T lib_length = MbsLength(lib_name);
                 const UINT32 name_hash = HashStringA(MbsToLower((char*) local_buffer, lib_name), lib_length);
 
@@ -554,21 +545,21 @@ namespace Modules {
 		UINT_PTR base_rva  = 0;
 		PIMAGE_DATA_DIRECTORY relocdir = nullptr;
 		
-		if (!mod->nt_head) {
+		if (mod->nt_head->Signature != IMAGE_NT_SIGNATURE) {
 			return false;
 		}
 
-        mod->base = mod->nt_head->OptionalHeader.ImageBase;
+        mod->base = 0; //mod->nt_head->OptionalHeader.ImageBase;
         region_size = (size_t) mod->nt_head->OptionalHeader.SizeOfImage;
 
-        if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &mod->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
-            mod->base != mod->nt_head->OptionalHeader.ImageBase ||
-			region_size != mod->nt_head->OptionalHeader.SizeOfImage) {
+        if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &mod->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
+            U_PTR(mod->base) != mod->nt_head->OptionalHeader.ImageBase) {
 
             mod->base = 0;
             region_size = (size_t) mod->nt_head->OptionalHeader.SizeOfImage;
 
-            if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &mod->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
+			// NOTE: test non-prefered image base
+            if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &mod->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
 				region_size != mod->nt_head->OptionalHeader.SizeOfImage) {
                 goto defer;
             }
@@ -580,7 +571,7 @@ namespace Modules {
 
 		// copy headers to allocated buffer
         for (auto head_index = 0; head_index < mod->nt_head->OptionalHeader.SizeOfHeaders; head_index++) {
-            B_PTR(mod->base)[head_index] = B_PTR(mod->buffer)[head_index];
+            mod->base[head_index] = mod->buffer[head_index];
         }
 
 		mod->section = IMAGE_FIRST_SECTION(mod->nt_head); 
@@ -588,15 +579,15 @@ namespace Modules {
 		// copy section address to allocated buffer
         for (auto i = 0; i < mod->nt_head->FileHeader.NumberOfSections; i++, mod->section++) {
             for (auto sec_index = 0; sec_index < mod->section->SizeOfRawData; sec_index++) {
-                (B_PTR(mod->base + mod->section->VirtualAddress))[sec_index] = (B_PTR(mod->buffer + mod->section->PointerToRawData))[sec_index];
+                (mod->base + mod->section->VirtualAddress)[sec_index] = (mod->buffer + mod->section->PointerToRawData)[sec_index];
             }
         }
 
-        base_rva = mod->base - mod->nt_head->OptionalHeader.SizeOfImage;
-        relocdir = &mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
+        base_rva = U_PTR(mod->base) - U_PTR(mod->nt_head->OptionalHeader.ImageBase);
+        relocdir = (PIMAGE_DATA_DIRECTORY) &mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
 
         // if non-zero rva and relocdir exists...
-        if ((mod->base - mod->nt_head->OptionalHeader.ImageBase) && relocdir) {
+        if (base_rva && relocdir) {
             PIMAGE_BASE_RELOCATION reloc = RVA(PIMAGE_BASE_RELOCATION, mod->base, relocdir->VirtualAddress);
 
             do {
@@ -616,7 +607,7 @@ namespace Modules {
             } while (reloc->VirtualAddress);
         }
 
-        mod->nt_head->OptionalHeader.ImageBase = mod->base; // set the prefered base to the real base
+        mod->nt_head->OptionalHeader.ImageBase = U_PTR(mod->base); // set the prefered base to the real base
 		success = true;
 
 	defer:
@@ -787,7 +778,7 @@ namespace Modules {
         // do the obvious ones
         entry->ReferenceCount = 1;
         entry->LoadReason     = LoadReasonDynamicLoad;
-        entry->OriginalBase   = nt_head->OptionalHeader.ImageBase;
+        entry->OriginalBase   = mod->nt_head->OptionalHeader.ImageBase;
 
         // set the hash value
         entry->BaseNameHashValue = LdrHashEntry(entry->BaseDllName, false);
@@ -804,8 +795,8 @@ namespace Modules {
         entry->ProcessAttachCalled = true;
         entry->InExceptionTable    = false;
         entry->DllBase     = (void*) mod->base;
-        entry->SizeOfImage = nt_head->OptionalHeader.SizeOfImage;
-        entry->TimeDateStamp = nt_head->FileHeader.TimeDateStamp;
+        entry->SizeOfImage = mod->nt_head->OptionalHeader.SizeOfImage;
+        entry->TimeDateStamp = mod->nt_head->FileHeader.TimeDateStamp;
         entry->BaseDllName = base_name;
         entry->FullDllName = full_name;
         entry->ObsoleteLoadCount = 1;
@@ -829,7 +820,7 @@ namespace Modules {
         AddHashTableEntry(entry);
 
         // set the entry point
-        entry->EntryPoint = (PLDR_INIT_ROUTINE) RVA(void *, mod->base, nt_head->OptionalHeader.AddressOfEntryPoint);
+        entry->EntryPoint = (PLDR_INIT_ROUTINE) RVA(LPVOID, mod->base, mod->nt_head->OptionalHeader.AddressOfEntryPoint);
 
         return true;
     }
@@ -851,7 +842,7 @@ namespace Modules {
 
 		if (name_hash && (load_type & LoadBof) != LoadBof) { 
 			if (check_mod = FindModuleEntry(name_hash)) {
-                mod->base = (uintptr_t) check_mod->DllBase;
+                mod->base = B_PTR(check_mod->DllBase);
                 mod->success = true;
 
 				goto defer;
@@ -891,7 +882,6 @@ namespace Modules {
             name = mod->cracked_name;
         }
 
-		__debugbreak();
         FindHeaders(mod);
         if (!ImageCheckArch(mod)) {
             goto defer;

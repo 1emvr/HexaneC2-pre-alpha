@@ -416,17 +416,17 @@ namespace Objects {
         if (!image || !image->base) {
             return;
         }
-        if (!NT_SUCCESS(ntstatus = ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &image->base, &image->size, PAGE_READWRITE, nullptr))) {
+        if (!NT_SUCCESS(ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &image->base, &image->size, PAGE_READWRITE, nullptr))) {
             // LOG ERROR
             return;
         }
 
         MemSet((void*) image->base, 0, image->size);
 
-        uintptr_t pointer   = image->base;
-        size_t size         = image->size;
+        void *pointer   = (void*) image->base;
+        size_t size     = image->size;
 
-        if (!NT_SUCCESS(ntstatus = ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void **) &pointer, &size, MEM_RELEASE))) {
+        if (!NT_SUCCESS(ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE))) {
             // LOG ERROR
             return;
         }

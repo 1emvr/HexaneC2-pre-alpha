@@ -41,11 +41,11 @@ typedef uint64_t uint64;
 
 #define C_DREF(x)                       (*(VOID**) x)
 #define R_CAST(T, x)                    (reinterpret_cast<T*>(x))
-#define RVA(T, b, r)                    ((T) (ULONG_PTR)b + r)
+#define RVA(T, b, r)                    ((T) (U_PTR(b) + U_PTR(r)))
 #define P_TYPE(T, x)                    ((T*) x)
 
 
-#define DTYPE(x)						(decltype x) *x
+#define DTYPE(x)						decltype(x) *x
 #define FUNCTION						TEXT_SECTION(B)
 #define CONFIG                          TEXT_SECTION(F)
 #define SECTION(x)                      __attribute__((used, section(x)))
@@ -406,7 +406,7 @@ typedef struct _executable {
 	BOOL                    link;
 	BOOL                    success;
 	PBYTE                   buffer;
-	ULONG_PTR               base;
+	PBYTE                   base;
 	LPVOID                  text;
 
 	LPWSTR                  local_name;
