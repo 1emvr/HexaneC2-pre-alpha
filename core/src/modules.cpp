@@ -386,7 +386,6 @@ namespace Modules {
 		auto import_dire = (PIMAGE_DATA_DIRECTORY) &mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]; 
         if (import_dire->Size) {
 
-			__debugbreak();
             auto import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, import_dire->VirtualAddress); // shlwapi.dll + 0x4a038
             for (; import_desc->Name; import_desc++) {
 
@@ -549,7 +548,7 @@ namespace Modules {
 			return false;
 		}
 
-        mod->base = 0; //mod->nt_head->OptionalHeader.ImageBase;
+        mod->base = mod->nt_head->OptionalHeader.ImageBase;
         region_size = (size_t) mod->nt_head->OptionalHeader.SizeOfImage;
 
         if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &mod->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
@@ -851,8 +850,6 @@ namespace Modules {
 
         switch (LOWORD(load_type)) {
             case LoadLocalFile: {
-				// TODO: using name hashes for file search would need to hash every entry in the directory, creating performance overhead.
-				// how bad would it perform? Is the stealth payoff worth it? needs testing.
 				if (!GetModulePath(mod, name_hash) || !ReadModule(mod)) {
 					goto defer;
 				}
@@ -888,7 +885,7 @@ namespace Modules {
         }
 
         // map the sections into memory
-		// TODO: fix ResolveImports
+		__debugbreak();
         if (!MapModule(mod) || !ResolveImports(mod)) {
             goto defer;
         }
@@ -904,7 +901,7 @@ namespace Modules {
 				if (!BeginExecution(mod)) {
 					goto defer;
 				}
-				*/
+		*/
 
         mod->success = true;
 
