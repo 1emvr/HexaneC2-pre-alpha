@@ -12,7 +12,6 @@ There are plenty of IOCs that are intrinsic to the methods applied (if you know 
 - testing implant P2P communication/ fixing protocol
 - testing COFF loader
 - re-implement generic thread stack spoofing/ sleepobf
-- initial callback: get ETW-TI info, potential for enumerating security providers (depends on permissions)
 - redirector rotation 
 - client request header configuration and metadata 
 - implement COFF data cache
@@ -21,12 +20,9 @@ There are plenty of IOCs that are intrinsic to the methods applied (if you know 
 ### C2 infrastructure:
 - re-implement http listener
 - automation of infraC2
-- protocol support (do not break)
 - access control/ filtering
 - forwarding through reverse proxy (nginx)
 - user database
-- (optional) "LetsEncrypt"
-- (optional) multiple egress profiles
 
 ### Wish-List:
 - hot-swap configs (sleep/redirectors)
