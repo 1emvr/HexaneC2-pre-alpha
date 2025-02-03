@@ -411,7 +411,8 @@ typedef struct _executable {
 
 	LPWSTR                  local_name;
 	LPWSTR                  cracked_name;
-	SIZE_T                  size;
+	SIZE_T                  base_size;
+	SIZE_T                  buf_size;
 	UINT32                  task_id;
 
 	PRELOC                  reloc;
