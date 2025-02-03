@@ -386,22 +386,19 @@ namespace Modules {
 		auto import_dire = (PIMAGE_DATA_DIRECTORY) &mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]; 
         if (import_dire->Size) {
 
-            auto import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, import_dire->VirtualAddress); // shlwapi.dll + 0x4a038
+            auto import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, import_dire->VirtualAddress); 
             for (; import_desc->Name; import_desc++) {
 
-                CONST CHAR *name = RVA(char*, mod->base, import_desc->Name);
                 HMODULE library  = nullptr;
+                CONST CHAR *name = RVA(char*, mod->base, import_desc->Name);
+				CONST UINT32 hash = HashStringA(MbsToLower(local_buffer, name), MbsLength(name));
 
 				// can we find the module already loaded in memory?
-                if (entry = FindModuleEntry(HashStringA(MbsToLower((char*)local_buffer, name), MbsLength(name)))) {
+                if (entry = FindModuleEntry(hash)) {
                     library = (HMODULE) entry->DllBase;
                 }
                 else {
-					MemSet(local_buffer, 0, MAX_PATH);
-					MbsToWcs((wchar_t*) local_buffer, name, MbsLength(name));
-
-					// NOTE: use MbsLength for the buffer length only 
-                    EXECUTABLE *new_load = ImportModule(LoadLocalFile, HashStringW((wchar_t*) local_buffer, WcsLength((wchar_t*) local_buffer)), nullptr, 0, nullptr);
+                    EXECUTABLE *new_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr);
                     if (!new_load || !new_load->success) {
                         return false;
                     }
@@ -548,7 +545,7 @@ namespace Modules {
 			return false;
 		}
 
-        mod->base = mod->nt_head->OptionalHeader.ImageBase;
+        mod->base = B_PTR(mod->nt_head->OptionalHeader.ImageBase);
         region_size = (size_t) mod->nt_head->OptionalHeader.SizeOfImage;
 
         if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &mod->base, 0, &region_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
@@ -885,7 +882,6 @@ namespace Modules {
         }
 
         // map the sections into memory
-		__debugbreak();
         if (!MapModule(mod) || !ResolveImports(mod)) {
             goto defer;
         }
