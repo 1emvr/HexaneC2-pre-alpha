@@ -264,13 +264,13 @@ namespace Modules {
     }
 
 	// TODO: needs testing
-    BOOL LocalLdrFindExportAddress(HMODULE base, const char *export_name, const uint16 ordinal, void **function) {
+    BOOL LocalLdrFindExportAddress(HMODULE base, CONST CHAR *export_name, CONST UINT16 ordinal, VOID **function) {
 
         PIMAGE_SECTION_HEADER section = nullptr;
         UINT8 buffer[MAX_PATH] = { };
 
-        void *text_start = nullptr;
-        void *text_end = nullptr;
+        VOID *text_start = nullptr;
+        VOID *text_end = nullptr;
 
         if (!base || (export_name && ordinal)) {
             return false;
@@ -281,48 +281,46 @@ namespace Modules {
             return false;
         }
 
-        uint32 dot_text = TEXT;
+        UINT32 dot_text = TEXT;
 
         for (int sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
             PIMAGE_SECTION_HEADER section = ITER_SECTION_HEADER(base, sec_index);
+            UINT32 sec_hash = HashStringA((PCHAR) section->Name, MbsLength((PCHAR) section->Name));
 
-            uint32 sec_hash = HashStringA((char *) section->Name, MbsLength((char *) section->Name));
-            if (MemCompare((void*) &dot_text, (void *) &sec_hash, sizeof(uint32))) {
-
-                text_start = RVA(void*, base, section->VirtualAddress);
-                text_end = RVA(void*, text_start, section->SizeOfRawData);
+            if (MemCompare((VOID*) &dot_text, (VOID*) &sec_hash, sizeof(UINT32))) {
+                text_start = RVA(VOID*, base, section->VirtualAddress);
+                text_end = RVA(VOID*, text_start, section->SizeOfRawData);
                 break;
             }
         }
 
+        // NOTE: not sure why this would happen
         if (!text_start || !text_end) {
-            // NOTE: not sure why this would happen
             return false;
         }
 
         PIMAGE_DATA_DIRECTORY data_dire = &nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 
         if (data_dire->Size) {
-            const IMAGE_EXPORT_DIRECTORY *exports = RVA(PIMAGE_EXPORT_DIRECTORY, base, data_dire->VirtualAddress);
-            const uint32 n_entries = !export_name ? exports->NumberOfFunctions : exports->NumberOfNames;
+            CONST IMAGE_EXPORT_DIRECTORY *exports = RVA(PIMAGE_EXPORT_DIRECTORY, base, data_dire->VirtualAddress);
+            CONST UINT32 n_entries = !export_name ? exports->NumberOfFunctions : exports->NumberOfNames;
 
             for (int entry_index = 0; entry_index < n_entries; entry_index++) {
-
-                uint32 _ordinal = 0;
-                bool found = false;
+                UINT32 _ordinal = 0;
+                BOOL found = false;
 
                 if (export_name) {
-                    uint32 *_name_rva = RVA(uint32*, base, exports->AddressOfNames + entry_index * sizeof(uint32));
-                    char *name = RVA(char*, base, *_name_rva);
+                    UINT32 *_name_rva = RVA(UINT32*, base, exports->AddressOfNames + entry_index * sizeof(UINT32));
+                    PCHAR name = RVA(PCHAR, base, *_name_rva);
 
                     if (MbsCompare(name, export_name)) {
                         found = true;
 
-                        int16 *_ord_rva = RVA(int16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(uint16));
+                        INT16 *_ord_rva = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(UINT16));
                         _ordinal = exports->Base + *_ord_rva;
                     }
                 } else {
-                    int16 *_ord_rva = RVA(int16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(int16));
+                    INT16 *_ord_rva = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(INT16));
                     _ordinal = exports->Base + *_ord_rva;
 
                     if (_ordinal == ordinal) {
@@ -331,30 +329,28 @@ namespace Modules {
                 }
 
                 if (found) {
-                    CONST UINT32 *function_rva = RVA(uint32*, base, exports->AddressOfFunctions + sizeof(uint32) * (_ordinal - exports->Base));
-                    VOID *fn_pointer = RVA(void*, base, *function_rva);
+                    CONST UINT32 *function_rva = RVA(UINT32*, base, exports->AddressOfFunctions + sizeof(UINT32) * (_ordinal - exports->Base));
+                    VOID *fn_pointer = RVA(LPVOID, base, *function_rva);
 
                     // NOTE: this is another module...
                     if (text_start > fn_pointer || text_end < fn_pointer) {
+                        SIZE_T real_length = 0;
 
-                        size_t full_length = MbsLength((char*) fn_pointer);
-                        size_t lib_length = 0;
-
-                        for (size_t i = 0; i < full_length; i++) {
-                            if (((char*) fn_pointer)[i] == '.') {
-                                lib_length = i;
+                        for (SIZE_T i = 0; i < MbsLength((PCHAR)fn_pointer); i++) {
+                            if (((PCHAR) fn_pointer)[i] == '.') {
+                                real_length = i;
                                 break;
                             }
                         }
 
-                        if (lib_length != 0) {
-                            char *found_name = (char *) fn_pointer + lib_length + 1;
+                        if (real_length != 0) {
+                            CONST PCHAR found_name = (PCHAR) fn_pointer + real_length + 1;
 
 							MemSet(buffer, 0, MAX_PATH);
-                            MbsConcat((char*) buffer, (char*) fn_pointer);
-                            MbsConcat((char*) buffer, (char*) dot_dll);
+                            MbsConcat((PCHAR) buffer, (PCHAR) fn_pointer);
+                            MbsConcat((PCHAR) buffer, (PCHAR) dot_dll);
                             
-                            LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(HashStringA(MbsToLower((char*) buffer, found_name), lib_length));
+                            LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(HashStringA(MbsToLower((PCHAR) buffer, found_name), real_length));
                             if (!lib_entry || lib_entry->DllBase == base) {
                                 return false;
                             }
