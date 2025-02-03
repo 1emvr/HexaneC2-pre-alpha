@@ -267,7 +267,7 @@ namespace Modules {
     BOOL LocalLdrFindExportAddress(HMODULE base, const char *export_name, const uint16 ordinal, void **function) {
 
         PIMAGE_SECTION_HEADER section = nullptr;
-        UINT8 local_buffer[MAX_PATH] = { };
+        UINT8 buffer[MAX_PATH] = { };
 
         void *text_start = nullptr;
         void *text_end = nullptr;
@@ -350,11 +350,11 @@ namespace Modules {
                         if (lib_length != 0) {
                             char *found_name = (char *) fn_pointer + lib_length + 1;
 
-							MemSet(local_buffer, 0, MAX_PATH);
-                            MbsConcat((char*) local_buffer, (char*) fn_pointer);
-                            MbsConcat((char*) local_buffer, (char*) dot_dll);
+							MemSet(buffer, 0, MAX_PATH);
+                            MbsConcat((char*) buffer, (char*) fn_pointer);
+                            MbsConcat((char*) buffer, (char*) dot_dll);
                             
-                            LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(HashStringA(MbsToLower((char*) local_buffer, found_name), lib_length));
+                            LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(HashStringA(MbsToLower((char*) buffer, found_name), lib_length));
                             if (!lib_entry || lib_entry->DllBase == base) {
                                 return false;
                             }
@@ -375,12 +375,7 @@ namespace Modules {
 
     BOOL ResolveImports(const EXECUTABLE *mod) {
 		HEXANE; 
-
-		LDR_DATA_TABLE_ENTRY *entry    = nullptr;
-        PIMAGE_THUNK_DATA first_thunk  = nullptr;
-        PIMAGE_THUNK_DATA org_first    = nullptr;
-
-        UINT8 local_buffer[MAX_PATH] = { };
+        UINT8 buffer[MAX_PATH] = { };
 
 		auto import_dire = (PIMAGE_DATA_DIRECTORY) &mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]; 
         if (import_dire->Size) {
@@ -391,10 +386,10 @@ namespace Modules {
 				__debugbreak();
                 HMODULE library = nullptr;
                 CONST CHAR *name = RVA(PCHAR, mod->base, import_desc->Name);
-				CONST UINT32 hash = HashStringA(MbsToLower((PCHAR)local_buffer, name), MbsLength(name));
+				CONST UINT32 hash = HashStringA(MbsToLower((PCHAR)buffer, name), MbsLength(name));
 
 				// can we find the module already loaded in memory?
-                if (entry = FindModuleEntry(hash)) {
+                if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(hash)) {
                     library = (HMODULE) entry->DllBase;
                 }
                 else {
@@ -406,8 +401,8 @@ namespace Modules {
                     library = (HMODULE) new_load->base;
                 }
 
-                first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
-                org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
+                PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
+                PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
 
                 for (; org_first->u1.Function; first_thunk++, org_first++) {
                     if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
@@ -428,13 +423,13 @@ namespace Modules {
         // handle the delayed import table
 
         if (import_dire->Size) {
-            auto delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->base, import_dire->VirtualAddress);
 
+            auto delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->base, import_dire->VirtualAddress);
             for (; delay_desc->DllNameRVA; delay_desc++) {
 
                 HMODULE library = nullptr;
                 const CHAR *lib_name = RVA(char*, mod->base, delay_desc->DllNameRVA);
-                const UINT32 hash = HashStringA(MbsToLower((char*)local_buffer, lib_name), MbsLength(lib_name));
+                const UINT32 hash = HashStringA(MbsToLower((char*)buffer, lib_name), MbsLength(lib_name));
 
                 if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(hash)) {
                     library = (HMODULE) entry->DllBase;
@@ -444,13 +439,12 @@ namespace Modules {
                     if (!new_load || !new_load->success) {
                         return false;
                     }
-
                     // TODO: memory leak here. Do something with this new module.
                     library = (HMODULE) new_load->base;
                 }
 
-                first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
-                org_first = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportNameTableRVA);
+                PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
+                PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportNameTableRVA);
 
                 for (; org_first->u1.Function; first_thunk++, org_first++) {
                     if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
