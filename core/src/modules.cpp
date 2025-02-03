@@ -406,12 +406,12 @@ namespace Modules {
 
                 for (; org_first->u1.Function; first_thunk++, org_first++) {
                     if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-                        if (!LocalLdrFindExportAddress(library, nullptr, (UINT16) org_first->u1.Ordinal, (VOID**) &first_thunk->u1.Function)) {
+                        if (!LocalLdrFindExportAddress(library, nullptr, (UINT16) org_first->u1.Ordinal, (VOID **) &first_thunk->u1.Function)) {
                             return false;
                         }
                     } else {
 						PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
-                        if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID**) &first_thunk->u1.Function)) {
+                        if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID **) &first_thunk->u1.Function)) {
                             return false;
                         }
                     }
@@ -428,8 +428,8 @@ namespace Modules {
             for (; delay_desc->DllNameRVA; delay_desc++) {
 
                 HMODULE library = nullptr;
-                const CHAR *lib_name = RVA(char*, mod->base, delay_desc->DllNameRVA);
-                const UINT32 hash = HashStringA(MbsToLower((char*)buffer, lib_name), MbsLength(lib_name));
+                const CHAR *lib_name = RVA(PCHAR, mod->base, delay_desc->DllNameRVA);
+                const UINT32 hash = HashStringA(MbsToLower((PCHAR)buffer, lib_name), MbsLength(lib_name));
 
                 if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(hash)) {
                     library = (HMODULE) entry->DllBase;
@@ -448,12 +448,12 @@ namespace Modules {
 
                 for (; org_first->u1.Function; first_thunk++, org_first++) {
                     if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-                        if (!LocalLdrFindExportAddress(library, nullptr, (uint16) org_first->u1.Ordinal, (void **) &first_thunk->u1.Function)) {
+                        if (!LocalLdrFindExportAddress(library, nullptr, (UINT16) org_first->u1.Ordinal, (VOID **) &first_thunk->u1.Function)) {
                             return false;
                         }
                     } else {
                         PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
-                        if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (void**) &first_thunk->u1.Function)) {
+                        if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID **) &first_thunk->u1.Function)) {
                             return false;
                         }
                     }
