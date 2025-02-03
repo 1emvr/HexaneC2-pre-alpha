@@ -389,11 +389,11 @@ namespace Modules {
                     library = (HMODULE) entry->DllBase;
                 }
                 else {
+					// TODO: still has dangling pointer to _executable->strings/memory. big problem. fix it now
                     EXECUTABLE *new_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr);
                     if (!new_load || !new_load->success) {
                         return false;
                     }
-					// TODO: still has dangling pointer to _executable->strings/memory. big problem. fix it now
                     library = (HMODULE) new_load->base;
                 }
 
@@ -431,11 +431,11 @@ namespace Modules {
                     library = (HMODULE) entry->DllBase;
                 }
                 else {
+					// TODO: still has dangling pointer to _executable->strings/memory. big problem. fix it now
                     EXECUTABLE *new_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr);
                     if (!new_load || !new_load->success) {
                         return false;
                     }
-                    // TODO: memory leak here. Do something with this new module.
                     library = (HMODULE) new_load->base;
                 }
 
