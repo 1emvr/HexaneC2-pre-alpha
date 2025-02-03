@@ -389,9 +389,10 @@ namespace Modules {
             auto import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, import_dire->VirtualAddress); 
             for (; import_desc->Name; import_desc++) {
 
-                HMODULE library  = nullptr;
-                CONST CHAR *name = RVA(char*, mod->base, import_desc->Name);
-				CONST UINT32 hash = HashStringA(MbsToLower(local_buffer, name), MbsLength(name));
+				__debugbreak();
+                HMODULE library = nullptr;
+                CONST CHAR *name = RVA(PCHAR, mod->base, import_desc->Name);
+				CONST UINT32 hash = HashStringA(MbsToLower((PCHAR)local_buffer, name), MbsLength(name));
 
 				// can we find the module already loaded in memory?
                 if (entry = FindModuleEntry(hash)) {
@@ -402,7 +403,6 @@ namespace Modules {
                     if (!new_load || !new_load->success) {
                         return false;
                     }
-
 					// TODO: still has dangling pointer to _executable->strings/memory. big problem. fix it now
                     library = (HMODULE) new_load->base;
                 }
@@ -412,12 +412,12 @@ namespace Modules {
 
                 for (; org_first->u1.Function; first_thunk++, org_first++) {
                     if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-                        if (!LocalLdrFindExportAddress(library, nullptr, (uint16) org_first->u1.Ordinal, (void **) &first_thunk->u1.Function)) {
+                        if (!LocalLdrFindExportAddress(library, nullptr, (UINT16) org_first->u1.Ordinal, (VOID**) &first_thunk->u1.Function)) {
                             return false;
                         }
                     } else {
                         import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
-                        if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (void**) &first_thunk->u1.Function)) {
+                        if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID**) &first_thunk->u1.Function)) {
                             return false;
                         }
                     }
