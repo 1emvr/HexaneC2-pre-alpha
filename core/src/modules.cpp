@@ -752,7 +752,6 @@ namespace Modules {
 
 
     BOOL LinkModule(EXECUTABLE *mod) {
-		// TODO: needs tested
         HEXANE;
 
 		PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, mod->buffer, ((PIMAGE_DOS_HEADER)mod->buffer)->e_lfanew);
@@ -771,18 +770,14 @@ namespace Modules {
         // start setting the values in the entry
         ctx->win32.NtQuerySystemTime(&entry->LoadTime);
 
-        // do the obvious ones
-        entry->ReferenceCount = 1;
-        entry->LoadReason     = LoadReasonDynamicLoad;
-        entry->OriginalBase   = mod->nt_head->OptionalHeader.ImageBase;
-
-        // set the hash value
+        entry->ReferenceCount    = 1;
+        entry->LoadReason        = LoadReasonDynamicLoad;
+        entry->OriginalBase      = mod->nt_head->OptionalHeader.ImageBase;
         entry->BaseNameHashValue = LdrHashEntry(entry->BaseDllName, false);
 
         // correctly add the base address to the entry
         AddModuleEntry(entry, (LPVOID) mod->base);
 
-        // and the rest
         entry->ImageDll = true;
         entry->LoadNotificationsSent = true; 
         entry->EntryProcessed = true;
@@ -796,10 +791,10 @@ namespace Modules {
         entry->BaseDllName   = base_name;
         entry->FullDllName   = full_name;
         entry->ObsoleteLoadCount = 1;
-        entry->Flags = LDRP_IMAGE_DLL | LDRP_ENTRY_INSERTED | LDRP_ENTRY_PROCESSED | LDRP_PROCESS_ATTACH_CALLED;
 
-        // set the correct values in the Ddag node struct
+        entry->Flags = LDRP_IMAGE_DLL | LDRP_ENTRY_INSERTED | LDRP_ENTRY_PROCESSED | LDRP_PROCESS_ATTACH_CALLED;
         entry->DdagNode = (PLDR_DDAG_NODE) Malloc(sizeof(LDR_DDAG_NODE));
+
         if (!entry->DdagNode) {
             return 0;
         }
@@ -812,10 +807,7 @@ namespace Modules {
         entry->DdagNode->State = LdrModulesReadyToRun;
         entry->DdagNode->LoadCount = 1;
 
-        // add the hash to the hash_table
         AddHashTableEntry(entry);
-
-        // set the entry point
         entry->EntryPoint = (PLDR_INIT_ROUTINE) RVA(LPVOID, mod->base, mod->nt_head->OptionalHeader.AddressOfEntryPoint);
 
         return true;
@@ -851,7 +843,6 @@ namespace Modules {
 				if (!GetModulePath(mod, name_hash) || !ReadModule(mod)) {
 					goto defer;
 				}
-
 				break;
 			}
             case LoadMemory: {
