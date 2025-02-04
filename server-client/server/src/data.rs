@@ -12,6 +12,7 @@ async fn parse_config(buffer: String) -> String {
 	let config: HexaneStream = serde_json::from_str(buffer.as_str());
 
 	// FIXME: this is not proper deserialization
+	// TODO: server needs to handle null-packets. currently segfaults.
     match from_slice::<HexaneStream>(&buffer) { 
         Ok(hexane) => {
 
