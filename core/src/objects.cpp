@@ -416,15 +416,15 @@ namespace Objects {
         if (!image || !image->base) {
             return;
         }
-        if (!NT_SUCCESS(ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &image->base, &image->size, PAGE_READWRITE, nullptr))) {
+        if (!NT_SUCCESS(ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &image->base, &image->buf_size, PAGE_READWRITE, nullptr))) {
             // LOG ERROR
             return;
         }
 
-        MemSet((void*) image->base, 0, image->size);
+        MemSet((void*) image->base, 0, image->base_size);
 
         void *pointer   = (void*) image->base;
-        size_t size     = image->size;
+        size_t size     = image->buf_size;
 
         if (!NT_SUCCESS(ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &pointer, &size, MEM_RELEASE))) {
             // LOG ERROR
@@ -457,25 +457,25 @@ namespace Objects {
         x_assertb(ImageCheckArch(image));
 
         image->fn_map->size = FindFunctionMapSize(image);
-        image->size += image->fn_map->size;
+        image->base_size += image->fn_map->size;
 
         // NOTE: calculating address/size of sections before base relocation
         for (uint16_t sec_index = 0; sec_index < image->nt_head->FileHeader.NumberOfSections; sec_index++) {
             const auto section = ITER_SECTION_HEADER(image->buffer, sec_index);
 
-            image->size += section->SizeOfRawData;
-            image->size = (size_t) PAGE_ALIGN(image->size);
+            image->base_size += section->SizeOfRawData;
+            image->base_size = (size_t) PAGE_ALIGN(image->base_size);
         }
 
         // NOTE: allocate space for sections
-        x_ntassertb(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void **) &image->base, image->size, &image->size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+        x_ntassertb(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void **) &image->base, image->base_size, &image->base_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
 
         for (uint16_t sec_index = 0; sec_index < image->nt_head->FileHeader.NumberOfSections; sec_index++) {
             const auto section = ITER_SECTION_HEADER(image->buffer, sec_index);
 
             // NOTE: every section will be assigned here before base relocation
-            image->sec_map[sec_index].size     = section->SizeOfRawData;
-            image->sec_map[sec_index].address  = next;
+            image->sec_map[sec_index].size    = section->SizeOfRawData;
+            image->sec_map[sec_index].address = next;
 
             next += image->section->SizeOfRawData;
             next = PAGE_ALIGN(next);

@@ -12,6 +12,10 @@
     	FUNCTION
     	FindHashTable();
 
+		VOID
+		FUNCTION
+		DestroyModule(EXECUTABLE *mod);
+
     	VOID
     	FUNCTION
     	InsertTailList(LIST_ENTRY *head, LIST_ENTRY *entry);
@@ -50,7 +54,7 @@
 
 	    PEXECUTABLE
     	FUNCTION
-		ImportModule(CONST UINT32 load_type, CONST UINT32 name_hash, UINT8 *memory, CONST UINT32 mem_size, WCHAR *name);
+		ImportModule(CONST UINT32 load_type, CONST UINT32 name_hash, UINT8 *memory, CONST UINT32 mem_size, WCHAR *name, BOOL cache);
 
 	    BOOL
     	FUNCTION

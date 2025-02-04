@@ -59,20 +59,23 @@ namespace Modules {
         return address;
     }
 
-	BOOL DestroyModule(EXECUTABLE *mod) {
+	VOID DestroyModule(EXECUTABLE *mod) {
 		HEXANE;
 
-		if (mod->base) {
-			ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void**) &mod->base, &mod->base_size, MEM_RELEASE);
-		}
-		if (mod->buffer) {
-			ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void**) &mod->buffer, &mod->buf_size, MEM_RELEASE);
-		}
-		if (mod->local_name) {
-			Free(mod->local_name);
-		}
-		if (mod->cracked_name) {
-			Free(mod->cracked_name);
+		if (mod) {
+			if (mod->base) {
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->base, &mod->base_size, MEM_RELEASE);
+			}
+			if (mod->buffer) {
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, &mod->buf_size, MEM_RELEASE);
+			}
+			if (mod->local_name) {
+				Free(mod->local_name);
+			}
+			if (mod->cracked_name) {
+				Free(mod->cracked_name);
+			}
+			Free(mod);
 		}
 	}
 
@@ -406,7 +409,7 @@ namespace Modules {
                 }
                 else {
 					// TODO: still has dangling pointer to _executable->strings/memory. big problem. fix it now
-                    EXECUTABLE *new_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr);
+                    EXECUTABLE *new_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
                     if (!new_load || !new_load->success) {
                         return false;
                     }
@@ -448,7 +451,7 @@ namespace Modules {
                 }
                 else {
 					// TODO: still has dangling pointer to _executable->strings/memory. big problem. fix it now
-                    EXECUTABLE *new_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr);
+                    EXECUTABLE *new_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
                     if (!new_load || !new_load->success) {
                         return false;
                     }
@@ -554,7 +557,7 @@ namespace Modules {
 
 			// NOTE: test non-prefered image base
             if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &mod->base, 0, &mod->base_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
-				region_size != mod->nt_head->OptionalHeader.SizeOfImage) {
+				mod->base_size != mod->nt_head->OptionalHeader.SizeOfImage) {
                 goto defer;
             }
         }
@@ -607,7 +610,7 @@ namespace Modules {
 	defer:
 		if (!success) {
 			if (mod->base) {
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void**) &mod->base, &region_size, MEM_RELEASE);
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void**) &mod->base, &mod->base_size, MEM_RELEASE);
 			}
 		}
 
@@ -823,9 +826,7 @@ namespace Modules {
         // NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
         HEXANE;
 
-		if (WINHTTP - name_hash == 0) {
-			__debugbreak();
-		}
+		__debugbreak();
         EXECUTABLE *mod = (EXECUTABLE*) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
         if (!mod) {
             return nullptr;
@@ -905,6 +906,7 @@ namespace Modules {
 
         defer:
 		if (!mod->success) {
+			// NOTE: DestroyModule might be trying to free INVALID_HANDLE_VALUE
 			DestroyModule(mod);
 
 			mod->buffer = nullptr;
