@@ -502,7 +502,7 @@ namespace Modules {
                 UINT32 sec_hash = HashStringA((char*) section->Name, MbsLength((char*) section->Name));
                 UINT32 dot_data = DATA;
 
-                if (MemCompare((VOID*) &dot_data, (VOID*) &sec_hash, sizeof(UINT32)) == 0) {
+                if (MemCompare((LPVOID)&dot_data, (LPVOID)&sec_hash, sizeof(UINT32)) == 0) {
                     begin = (SIZE_T) entry->DllBase + section->VirtualAddress;
                     length = section->Misc.VirtualSize;
                     break;
@@ -511,8 +511,8 @@ namespace Modules {
                 ++section;
             }
 
-            for (INT i = 0; i < length - sizeof(SIZE_T); ++begin, ++i) {
-                SIZE_T stRet = MemCompare((VOID*) begin, &node, sizeof(SIZE_T));
+            for (INT index = 0; index < length - sizeof(SIZE_T); ++begin, ++index) {
+                SIZE_T stRet = MemCompare((LPVOID)begin, &node, sizeof(SIZE_T));
 
                 if (stRet == sizeof(SIZE_T)) {
                     end = begin;
@@ -520,7 +520,7 @@ namespace Modules {
                 }
             }
 
-            if (end == 0) {
+            if (!end) {
                 return nullptr;
             }
 
