@@ -916,7 +916,7 @@ namespace Modules {
 				mod->buffer = nullptr;
 			}
 		}
-        // TODO: delete the _executable* and keep the base. that's all I need tbh...
+
         return mod;
     }
 
