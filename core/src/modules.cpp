@@ -408,12 +408,12 @@ namespace Modules {
                     library = (HMODULE) entry->DllBase;
                 }
                 else {
-					// TODO: still has dangling pointer to _executable->strings/memory. big problem. fix it now
                     EXECUTABLE *new_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
                     if (!new_load || !new_load->success) {
                         return false;
                     }
                     library = (HMODULE) new_load->base;
+					DestroyModule(new_load);
                 }
 
                 PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
@@ -450,12 +450,12 @@ namespace Modules {
                     library = (HMODULE) entry->DllBase;
                 }
                 else {
-					// TODO: still has dangling pointer to _executable->strings/memory. big problem. fix it now
                     EXECUTABLE *new_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
                     if (!new_load || !new_load->success) {
                         return false;
                     }
                     library = (HMODULE) new_load->base;
+					DestroyModule(new_load);
                 }
 
                 PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
@@ -623,7 +623,7 @@ namespace Modules {
             return false;
         }
 
-        PLDR_DATA_TABLE_ENTRY node = (PLDR_DATA_TABLE_ENTRY) ((SIZE_T) index - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
+        PLDR_DATA_TABLE_ENTRY node = (PLDR_DATA_TABLE_ENTRY) ((SIZE_T)index - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
         BOOL right_hand = false;
 
         do {
@@ -632,14 +632,14 @@ namespace Modules {
                 if (!node->BaseAddressIndexNode.Left) {
                     break;
                 }
-                node = (PLDR_DATA_TABLE_ENTRY) ((SIZE_T) node->BaseAddressIndexNode.Left - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
+                node = (PLDR_DATA_TABLE_ENTRY) ((SIZE_T)node->BaseAddressIndexNode.Left - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
 
             } else if (base > node->DllBase) {
                 if (!node->BaseAddressIndexNode.Right) {
                     right_hand = true;
                     break;
                 }
-                node = (PLDR_DATA_TABLE_ENTRY) ((SIZE_T) node->BaseAddressIndexNode.Right - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
+                node = (PLDR_DATA_TABLE_ENTRY) ((SIZE_T)node->BaseAddressIndexNode.Right - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
 
             } else {
                 node->DdagNode->LoadCount++;
