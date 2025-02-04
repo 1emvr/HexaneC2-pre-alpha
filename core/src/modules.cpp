@@ -499,7 +499,7 @@ namespace Modules {
             PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(nt_head);
 
             for (int sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
-                UINT32 sec_hash = HashStringA((char*) section->Name, MbsLength((char*) section->Name));
+                UINT32 sec_hash = HashStringA((CHAR*) section->Name, MbsLength((char*) section->Name));
                 UINT32 dot_data = DATA;
 
                 if (MemCompare((LPVOID)&dot_data, (LPVOID)&sec_hash, sizeof(UINT32)) == 0) {
@@ -525,7 +525,6 @@ namespace Modules {
             }
 
             PRTL_RB_TREE rb_tree = (PRTL_RB_TREE) end;
-
             if (rb_tree && rb_tree->Root && rb_tree->Min) {
                 index = rb_tree;
             }
@@ -619,12 +618,12 @@ namespace Modules {
     BOOL AddModuleEntry(PLDR_DATA_TABLE_ENTRY entry, CONST VOID *base) {
         HEXANE;
 
-        PRTL_RB_TREE index = FindModuleIndex();
-        if (!index) {
+        PRTL_RB_TREE index = nullptr;
+		if (!(index = FindModuleIndex())) {
             return false;
         }
 
-        PLDR_DATA_TABLE_ENTRY node = (PLDR_DATA_TABLE_ENTRY) ((size_t) index - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
+        PLDR_DATA_TABLE_ENTRY node = (PLDR_DATA_TABLE_ENTRY) ((SIZE_T) index - offsetof(LDR_DATA_TABLE_ENTRY, BaseAddressIndexNode));
         BOOL right_hand = false;
 
         do {
@@ -796,7 +795,7 @@ namespace Modules {
         entry->DdagNode = (PLDR_DDAG_NODE) Malloc(sizeof(LDR_DDAG_NODE));
 
         if (!entry->DdagNode) {
-            return 0;
+            return false;
         }
 
         entry->NodeModuleLink.Flink = &entry->DdagNode->Modules;
