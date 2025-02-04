@@ -854,7 +854,7 @@ namespace Modules {
 
 				break;
 			}
-			// TODO: this conflicts with the MapModule function
+			// TODO: this conflicts with the MapModule function (mod->buf or mod->base)
             case LoadMemory: {
 				mod->buf_size     = mem_size;
 				mod->buffer       = memory;
