@@ -145,14 +145,14 @@ namespace Objects {
                     protect |= PAGE_NOCACHE;
                 }
 
-                if (!NT_SUCCESS(ntstatus = ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &image->sec_map[sec_index].address, &image->sec_map[sec_index].size, protect, nullptr))) {
+                if (!NT_SUCCESS(ntstatus = ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), (VOID**)&image->sec_map[sec_index].address, &image->sec_map[sec_index].size, protect, nullptr))) {
                     goto defer;
                 }
             }
         }
 
         if (image->fn_map->size) {
-            if (!NT_SUCCESS(ntstatus = ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), (void **) &image->fn_map->address, &image->fn_map->size, PAGE_READONLY, nullptr))) {
+            if (!NT_SUCCESS(ntstatus = ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), (VOID**)&image->fn_map->address, &image->fn_map->size, PAGE_READONLY, nullptr))) {
                 goto defer;
             }
         }
@@ -171,7 +171,6 @@ namespace Objects {
             // NOTE: compare symbols to entry names / entrypoint
             if (MemCompare(sym_name, entry, MbsLength(entry)) == 0) {
                 entrypoint = image->sec_map[symbols[sym_index].SectionNumber - 1].address + symbols[sym_index].Value;
-
             }
         }
 
@@ -180,7 +179,6 @@ namespace Objects {
             if (entrypoint >= image->sec_map[sec_index].address && entrypoint < image->sec_map[sec_index].address + image->sec_map[sec_index].size) {
 
                 const auto section = ITER_SECTION_HEADER(image->buffer, sec_index);
-
                 if ((section->Characteristics & IMAGE_SCN_MEM_EXECUTE) != IMAGE_SCN_MEM_EXECUTE) {
                     goto defer;
                 }
@@ -237,6 +235,7 @@ namespace Objects {
                         case IMAGE_REL_AMD64_REL32: {
                             *(void **) fn_addr       = function;
                             *(uint32 *) reloc_addr = U_PTR(fn_addr) - U_PTR(reloc_addr) - sizeof(uint32);
+							break;
                         }
                         default:
                         break;
@@ -245,15 +244,15 @@ namespace Objects {
                 }
                 else {
                     switch (reloc->Type) {
-                        case IMAGE_REL_AMD64_REL32:     *(uint32 *) reloc_addr = *(uint32 *) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32);
-                        case IMAGE_REL_AMD64_REL32_1:   *(uint32 *) reloc_addr = *(uint32 *) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32) - 1;
-                        case IMAGE_REL_AMD64_REL32_2:   *(uint32 *) reloc_addr = *(uint32 *) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32) - 2;
-                        case IMAGE_REL_AMD64_REL32_3:   *(uint32 *) reloc_addr = *(uint32 *) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32) - 3;
-                        case IMAGE_REL_AMD64_REL32_4:   *(uint32 *) reloc_addr = *(uint32 *) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32) - 4;
-                        case IMAGE_REL_AMD64_REL32_5:   *(uint32 *) reloc_addr = *(uint32 *) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32) - 5;
-                        case IMAGE_REL_AMD64_ADDR32NB:  *(uint32 *) reloc_addr = *(uint32 *) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32);
-                        case IMAGE_REL_AMD64_ADDR64:    *(uint64 *) reloc_addr = *(uint64 *) reloc_addr + U_PTR(sec_addr);
-                        default:
+					case IMAGE_REL_AMD64_REL32:     *(UINT32*) reloc_addr = *(UINT32*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(UINT32); break;
+					case IMAGE_REL_AMD64_REL32_1:   *(UINT32*) reloc_addr = *(UINT32*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(UINT32) - 1; break;
+					case IMAGE_REL_AMD64_REL32_2:   *(UINT32*) reloc_addr = *(UINT32*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(UINT32) - 2; break;
+					case IMAGE_REL_AMD64_REL32_3:   *(UINT32*) reloc_addr = *(UINT32*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(UINT32) - 3; break;
+					case IMAGE_REL_AMD64_REL32_4:   *(UINT32*) reloc_addr = *(UINT32*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(UINT32) - 4; break;
+					case IMAGE_REL_AMD64_REL32_5:   *(UINT32*) reloc_addr = *(UINT32*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(UINT32) - 5; break;
+					case IMAGE_REL_AMD64_ADDR32NB:  *(UINT32*) reloc_addr = *(UINT32*) reloc_addr + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(UINT32); break;
+					case IMAGE_REL_AMD64_ADDR64:    *(UINT64*) reloc_addr = *(UINT64*) reloc_addr + U_PTR(sec_addr); break;
+                    default:
                         break;
                     }
                 }
@@ -261,8 +260,9 @@ namespace Objects {
                 if (function) {
                     switch (reloc_addr->Type) {
                         case IMAGE_REL_I386_DIR32: {
-                            *(void **) fn_addr       = function;
-                            *(uint32 *) reloc_addr = U_PTR(fn_addr);
+                            *(VOID**) fn_addr = function;
+                            *(UINT32*) reloc_addr = U_PTR(fn_addr);
+							break;
                         }
                         default:
                         break;
@@ -270,9 +270,9 @@ namespace Objects {
                 }
                 else {
                     switch (reloc_addr->Type) {
-                        case IMAGE_REL_I386_DIR32: *(uint32 *)reloc_addr = (*(uint32 *)reloc_addr) + U_PTR(sec_addr);
-                        case IMAGE_REL_I386_REL32: *(uint32 *)reloc_addr = (*(uint32 *)reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(uint32);
-                        default:
+					case IMAGE_REL_I386_DIR32: *(UINT32*)reloc_addr = (*(UINT32*)reloc_addr) + U_PTR(sec_addr); break;
+					case IMAGE_REL_I386_REL32: *(UINT32*)reloc_addr = (*(UINT32*)reloc_addr) + U_PTR(sec_addr) - U_PTR(reloc_addr) - sizeof(UINT32); break;
+                    default:
                         break;
                     }
                 }
