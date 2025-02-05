@@ -452,8 +452,8 @@ namespace Modules {
 				}
 
 				__debugbreak();
-				IMAGE_THUNK_DATA *first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->FirstThunk);
-				IMAGE_THUNK_DATA *org_first = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->OriginalFirstThunk);
+				auto first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->FirstThunk);
+				auto org_first = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->OriginalFirstThunk);
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
