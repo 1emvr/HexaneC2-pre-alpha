@@ -452,13 +452,9 @@ namespace Modules {
 					//NOTE: test without cleanup.
                 }
 
+				__debugbreak();
                 PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
                 PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
-
-				__debugbreak();
-				// TODO: needs checked for memory leaks/access violations
-				// NOTE: need to keep our dependencies beyond this point. Once the thunks are mapped we still need next_load->base.
-				// added to a list? next_load will be leaked otherwise. (probably OK)
 
                 for (; org_first->u1.Function; first_thunk++, org_first++) {
                     if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
@@ -475,16 +471,14 @@ namespace Modules {
             }
         }
 
-		//import_dire = (PIMAGE_DATA_DIRECTORY) &module->nt_head->OptionalHeader[IMAGE_DIRECTORY_ENTRY_IMPORT];
         // handle the delayed import table
-
         if (import_dire->Size) {
             auto delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->base, import_dire->VirtualAddress);
 
             for (; delay_desc->DllNameRVA; delay_desc++) {
                 HMODULE library = nullptr;
 
-				if (!(name = RVA(PCHAR, mod->base, delay_desc->DllNameRVA)) ||
+				if (!(name = RVA(CHAR*, mod->base, delay_desc->DllNameRVA)) ||
 					!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
 					return false;
 				}
