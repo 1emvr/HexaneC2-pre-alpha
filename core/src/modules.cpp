@@ -125,7 +125,7 @@ namespace Modules {
             CONST IMAGE_EXPORT_DIRECTORY *exports = RVA(PIMAGE_EXPORT_DIRECTORY, base, data_dire->VirtualAddress);
             CONST UINT32 n_entries = !export_name ? exports->NumberOfFunctions : exports->NumberOfNames;
 
-            for (int entry_index = 0; entry_index < n_entries; entry_index++) {
+            for (INT entry_index = 0; entry_index < n_entries; entry_index++) {
                 UINT32 _ordinal = 0;
                 BOOL found = false;
 
@@ -245,7 +245,7 @@ namespace Modules {
 		PIMAGE_EXPORT_DIRECTORY exports = nullptr;
 
 		if (!base) {
-			goto defer;
+			return nullptr;
 		}
 
         IMAGE_NT_HEADERS nt_head = { };
@@ -383,8 +383,8 @@ namespace Modules {
 
             if (list->Flink == &current->HashLinks) {
                 ULONG hash = LdrHashEntry(current->BaseDllName, true);
-                list = (PLIST_ENTRY) ((size_t) current->HashLinks.Flink - hash * sizeof(LIST_ENTRY));
 
+                list = (PLIST_ENTRY) ((size_t) current->HashLinks.Flink - hash * sizeof(LIST_ENTRY));
                 break;
             }
 
