@@ -413,15 +413,17 @@ namespace Modules {
                         return false;
                     }
                     library = (HMODULE) next_load->base;
-					CleanupModule(next_load);
+					//CleanupModule(next_load);
+					//NOTE: test without cleanup.
                 }
 
                 PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
                 PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
 
 				__debugbreak();
-				// NOTE: we do need to keep our dependencies beyond this point. Once the thunks are mapped we still need next_load->base.
-				// should they be added to a list? next_load will be dangling otherwise. (probably OK)
+				// TODO: needs checked for memory leaks/access violations
+				// NOTE: need to keep our dependencies beyond this point. Once the thunks are mapped we still need next_load->base.
+				// added to a list? next_load will be leaked otherwise. (probably OK)
 
                 for (; org_first->u1.Function; first_thunk++, org_first++) {
                     if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
@@ -460,7 +462,8 @@ namespace Modules {
                         return false;
                     }
                     library = (HMODULE) next_load->base;
-					CleanupModule(next_load);
+					//CleanupModule(next_load);
+					//NOTE: test without cleanup.
                 }
 
                 PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
