@@ -421,7 +421,7 @@ namespace Modules {
 
 				__debugbreak();
 				// NOTE: we do need to keep our dependencies beyond this point. Once the thunks are mapped, we still need the next_load->base.
-				// should they be added to a list and cleaned-up before process exit? next_load will be dangling otherwise. 
+				// should they be added to a list? next_load will be dangling otherwise. (probably OK)
 
                 for (; org_first->u1.Function; first_thunk++, org_first++) {
                     if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
