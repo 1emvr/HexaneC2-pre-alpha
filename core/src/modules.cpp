@@ -18,7 +18,7 @@ namespace Modules {
 		UINT_PTR sec_address = 0;
 		SIZE_T name_length = MbsLength(section_name);
 
-		const auto nt_head = (PIMAGE_NT_HEADERS) (base + ((PIMAGE_DOS_HEADER) base)->e_lfanew);
+		const auto nt_head = RVA(PIMAGE_NT_HEADERS, base, ((PIMAGE_DOS_HEADER)base)->e_lfanew);
 		const auto sec_head = IMAGE_FIRST_SECTION(nt_head);
 
 		for (auto i = 0; i < nt_head->FileHeader.NumberOfSections; i++) {
@@ -59,24 +59,23 @@ namespace Modules {
     FARPROC FindExportAddress(const VOID *base, const UINT32 hash) {
         FARPROC address = nullptr;
 
-        const auto nt_head = (PIMAGE_NT_HEADERS) (base + ((PIMAGE_DOS_HEADER) base)->e_lfanew);
-        const auto exports = (PIMAGE_EXPORT_DIRECTORY) (base + nt_head->OptionalHeader.DataDirectory[0].VirtualAddress);
+        const auto nt_head = RVA(PIMAGE_NT_HEADERS, base, ((PIMAGE_DOS_HEADER) base)->e_lfanew);
+        const auto exports = RVA(PIMAGE_EXPORT_DIRECTORY, base, nt_head->OptionalHeader.DataDirectory[0].VirtualAddress);
 
         if (nt_head->Signature != IMAGE_NT_SIGNATURE) {
             return address;
         }
 
-		const auto functions = (UINT32*) (U_PTR(base) + exports->AddressOfFunctions);
-		const auto ordinals = (UINT16*) (U_PTR(base) + exports->AddressOfNameOrdinals);
-		const auto names = (UINT32*) (U_PTR(base) + exports->AddressOfNames);
+		const auto functions = RVA(UINT32*, base, exports->AddressOfFunctions);
+		const auto ordinals = RVA(UINT16*, base, exports->AddressOfNameOrdinals);
+		const auto names = RVA(UINT32*, base, exports->AddressOfNames);
 		
         for (auto index = 0; index < exports->NumberOfNames; index++) {
-            const auto name = (CHAR*) (U_PTR(base) + names[index]);
-
+            const auto name = RVA(CHAR*, base, names[index]);
             char buffer[MAX_PATH] = { };
 
             if (hash - HashStringA(MbsToLower(buffer, name), MbsLength(name)) == 0) {
-                address = (FARPROC) (U_PTR(base) + functions[ordinals[index]]); // NOTE: changed to index functions by ordinals[i]
+                address = RVA(FARPROC, base, functions[ordinals[index]]); // NOTE: changed to index functions by ordinals[i]
                 break;
             }
         }
@@ -251,7 +250,7 @@ namespace Modules {
 		}
 
         IMAGE_NT_HEADERS nt_head = { };
-		if (!ReadMemory(handle, &nt_head, (void*) base + ((PIMAGE_DOS_HEADER)base)->e_lfanew, sizeof(nt_head)) ||
+		if (!ReadMemory(handle, &nt_head, RVA(LPVOID, base, ((PIMAGE_DOS_HEADER)base)->e_lfanew), sizeof(nt_head)) ||
 			nt_head.Signature != IMAGE_NT_SIGNATURE) {
 			goto defer;
 		}
@@ -263,16 +262,16 @@ namespace Modules {
 			goto defer;
 		}
 
-		if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**)&data, 0, (PSIZE_T)&size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE)) || 
-			!ReadMemory(handle, data, C_PTR(base + U_PTR(exports)), size)) {
+		if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (VOID**)&data, 0, (PSIZE_T)&size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE)) || 
+			!ReadMemory(handle, data, RVA(LPVOID, base, exports), size)) {
 			goto defer;
 		}
 		
 		for (auto index = 0; index < data->NumberOfNames; index++) {
-            const auto name = (CHAR*) (base + ((UINT32*) (base + exports->AddressOfNames))[index - 1]);
+            const auto name = RVA(CHAR*, base, ((UINT32*)(base + exports->AddressOfNames))[index - 1]);
 
 			if (MbsCompare(name, function) == 0) {
-				const auto ord = (UINT16*) (base + ((UINT16*) (base + exports->AddressOfNameOrdinals))[index]);
+				const auto ord = RVA(UINT16*, base, ((UINT16*) (base + exports->AddressOfNameOrdinals))[index]);
 				if (*ord <= 0x1000) {
 					break;
 				}
@@ -312,7 +311,7 @@ namespace Modules {
             goto defer;
         }
 
-		MemCopy(B_PTR(filename), (PCHAR)sys32, sizeof(sys32));
+		MemCopy(B_PTR(filename), B_PTR(sys32), sizeof(sys32));
 		WcsConcat(filename, (WCHAR*)dot_dll);
 
 		handle = ctx->win32.FindFirstFileW(filename, &data);
@@ -435,7 +434,7 @@ namespace Modules {
                 HMODULE library = nullptr;
 
                 if (!(name = RVA(PCHAR, mod->base, import_desc->Name)) ||
-					!(hash = HashStringA(MbsToLower((PCHAR)buffer, name), MbsLength(name)))) {
+					!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
 					return false;
 				}
 
@@ -486,7 +485,7 @@ namespace Modules {
                 HMODULE library = nullptr;
 
 				if (!(name = RVA(PCHAR, mod->base, delay_desc->DllNameRVA)) ||
-					!(hash = HashStringA(MbsToLower((PCHAR)buffer, name), MbsLength(name)))) {
+					!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
 					return false;
 				}
 
@@ -509,12 +508,12 @@ namespace Modules {
 
                 for (; org_first->u1.Function; first_thunk++, org_first++) {
                     if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-                        if (!LocalLdrFindExportAddress(library, nullptr, (UINT16) org_first->u1.Ordinal, (VOID **) &first_thunk->u1.Function)) {
+                        if (!LocalLdrFindExportAddress(library, nullptr, (UINT16) org_first->u1.Ordinal, (VOID**) &first_thunk->u1.Function)) {
                             return false;
                         }
                     } else {
                         PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
-                        if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID **) &first_thunk->u1.Function)) {
+                        if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID**) &first_thunk->u1.Function)) {
                             return false;
                         }
                     }
