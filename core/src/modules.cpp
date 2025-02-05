@@ -476,7 +476,7 @@ namespace Modules {
                             return false;
                         }
 						// NOTE: we do need to keep our dependencies beyond this point. Once the thunks are mapped, we still need the new_load->base.
-						// should they be added to a list and cleaned-up before process exit? (maybe not.)
+						// should they be added to a list and cleaned-up before process exit? new_load will be dangling otherwise.
                     }
                 }
             }
