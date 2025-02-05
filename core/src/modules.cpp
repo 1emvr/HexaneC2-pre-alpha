@@ -408,18 +408,20 @@ namespace Modules {
                     library = (HMODULE) entry->DllBase;
                 }
                 else {
-                    EXECUTABLE *new_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
-                    if (!new_load || !new_load->success) {
+                    EXECUTABLE *next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
+                    if (!next_load || !next_load->success) {
                         return false;
                     }
-                    library = (HMODULE) new_load->base;
-					CleanupModule(new_load);
+                    library = (HMODULE) next_load->base;
+					CleanupModule(next_load);
                 }
 
                 PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
                 PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
 
 				__debugbreak();
+				// NOTE: we do need to keep our dependencies beyond this point. Once the thunks are mapped, we still need the next_load->base.
+				// should they be added to a list and cleaned-up before process exit? next_load will be dangling otherwise. 
 
                 for (; org_first->u1.Function; first_thunk++, org_first++) {
                     if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
@@ -453,12 +455,12 @@ namespace Modules {
                     library = (HMODULE) entry->DllBase;
                 }
                 else {
-                    EXECUTABLE *new_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
-                    if (!new_load || !new_load->success) {
+                    EXECUTABLE *next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
+                    if (!next_load || !next_load->success) {
                         return false;
                     }
-                    library = (HMODULE) new_load->base;
-					CleanupModule(new_load);
+                    library = (HMODULE) next_load->base;
+					CleanupModule(next_load);
 					//
                 }
 
@@ -475,8 +477,6 @@ namespace Modules {
                         if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID **) &first_thunk->u1.Function)) {
                             return false;
                         }
-						// NOTE: we do need to keep our dependencies beyond this point. Once the thunks are mapped, we still need the new_load->base.
-						// should they be added to a list and cleaned-up before process exit? new_load will be dangling otherwise.
                     }
                 }
             }
