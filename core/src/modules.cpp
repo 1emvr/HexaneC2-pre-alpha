@@ -13,10 +13,10 @@ __attribute__((used, section(".rdata"))) uint8_t sys32[] = {
 
 namespace Modules {
 
-	UINT_PTR FindSection(const char* section_name, uintptr_t base, uint32_t *size) {
+	UINT_PTR FindSection(CONST CHAR* section_name, UINT_PTR base, UINT32 *size) {
 
-		uintptr_t sec_address = 0;
-		size_t name_length = MbsLength(section_name);
+		UINT_PTR sec_address = 0;
+		SIZE_T name_length = MbsLength(section_name);
 
 		const auto nt_head = (PIMAGE_NT_HEADERS) (base + ((PIMAGE_DOS_HEADER) base)->e_lfanew);
 		const auto sec_head = IMAGE_FIRST_SECTION(nt_head);
@@ -24,17 +24,14 @@ namespace Modules {
 		for (auto i = 0; i < nt_head->FileHeader.NumberOfSections; i++) {
 			PIMAGE_SECTION_HEADER section = &sec_head[i];
 
-			if (name_length == MbsLength((char*) section->Name)) {
+			if (name_length == MbsLength((CHAR*) section->Name)) {
 				if (MemCompare(section_name, section->Name, name_length) == 0) {
 
-					if (!section->VirtualAddress) {
+					if (!section->VirtualAddress || !size) {
 						return 0;
 					}
-					if (size) {
-						*size = section->Misc.VirtualSize;
-					}
-
 					sec_address = base + section->VirtualAddress;
+					*size = section->Misc.VirtualSize;
 				}
 			}
 		}
@@ -192,8 +189,7 @@ namespace Modules {
         return false;
     }
 
-	// TODO: string hash module_name
-	UINT_PTR FindKernelModule(char *module_name) {
+	UINT_PTR FindKernelModule(CHAR *module_name) {
 		HEXANE;
 
 		VOID *buffer = nullptr;
