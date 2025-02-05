@@ -495,8 +495,8 @@ namespace Modules {
 					//NOTE: test without cleanup.
 				}
 
-				IMAGE_THUNK_DATA *first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, delay_desc->ImportAddressTableRVA);
-				IMAGE_THUNK_DATA *org_first = RVA(IMAGE_THUNK_DATA*, mod->base, delay_desc->ImportNameTableRVA);
+				auto first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, delay_desc->ImportAddressTableRVA);
+				auto org_first = RVA(IMAGE_THUNK_DATA*, mod->base, delay_desc->ImportNameTableRVA);
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
