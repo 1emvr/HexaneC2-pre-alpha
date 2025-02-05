@@ -61,7 +61,7 @@ namespace Modules {
 	VOID CleanupModule(EXECUTABLE *mod) {
 		HEXANE;
 
-		// NOTE: the module will remain allocated in memory until manually freed (mod and mod->base).
+		// NOTE: the module object and base will remain allocated in memory until manually freed (mod and mod->base).
 		if (mod) {
 			if (mod->buffer) {
 				MemSet(mod->buffer, 0, mod->buf_size);
@@ -132,8 +132,8 @@ namespace Modules {
 		HEXANE;
 
 		UINT_PTR address = 0;
-		SIZE_T exports_size = 0;
-		PIMAGE_EXPORT_DIRECTORY export_data = nullptr;
+		SIZE_T size = 0;
+		PIMAGE_EXPORT_DIRECTORY data = nullptr;
 		PIMAGE_EXPORT_DIRECTORY exports = nullptr;
 
 		if (!base) {
@@ -147,21 +147,18 @@ namespace Modules {
 		}
 
 		exports = (PIMAGE_EXPORT_DIRECTORY) nt_head.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
-		exports_size = nt_head.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size;
+		size = nt_head.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size;
 
-		if (!exports || !exports_size) {
+		if (!exports || !size) {
 			goto defer;
 		}
 
-		if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**)&export_data, 0, (PSIZE_T)&exports_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+		if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (void**)&data, 0, (PSIZE_T)&size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE)) || 
+			!ReadMemory(handle, data, C_PTR(base + U_PTR(exports)), size)) {
 			goto defer;
 		}
 		
-		if (!ReadMemory(handle, export_data, C_PTR(base + U_PTR(exports)), exports_size)) {
-			goto defer;
-		}
-		
-		for (auto index = 0; index < export_data->NumberOfNames; index++) {
+		for (auto index = 0; index < data->NumberOfNames; index++) {
             const auto name = (CHAR*) (base + ((UINT32*) (base + exports->AddressOfNames))[index - 1]);
 
 			if (MbsCompare(name, function) == 0) {
@@ -171,7 +168,7 @@ namespace Modules {
 				}
 
                 address = (base + ((UINT32*) (base + exports->AddressOfFunctions))[index]);
-				if (address >= base + U_PTR(exports) && address <= base + U_PTR(exports) + exports_size) {
+				if (address >= base + U_PTR(exports) && address <= base + U_PTR(exports) + size) {
 					address = 0; // function address is out of range, somehow (?)
 				}
 
@@ -180,9 +177,9 @@ namespace Modules {
 		}
 
 	defer:
-		if (export_data) {
-			ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &export_data, &exports_size, MEM_RELEASE);
-			export_data = nullptr;
+		if (data) {
+			ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &data, &size, MEM_RELEASE);
+			data = nullptr;
 		}
 
 		return (FARPROC) address;
@@ -250,8 +247,8 @@ namespace Modules {
 
             if (list->Flink == &current->HashLinks) {
                 ULONG hash = LdrHashEntry(current->BaseDllName, true);
-
                 list = (PLIST_ENTRY) ((size_t) current->HashLinks.Flink - hash * sizeof(LIST_ENTRY));
+
                 break;
             }
 
@@ -352,8 +349,7 @@ namespace Modules {
                     CONST UINT32 *function_rva = RVA(UINT32*, base, exports->AddressOfFunctions + sizeof(UINT32) * (_ordinal - exports->Base));
                     VOID *fn_pointer = RVA(LPVOID, base, *function_rva);
 
-                    // NOTE: this is another module...
-                    if (text_start > fn_pointer || text_end < fn_pointer) {
+                    if (text_start > fn_pointer || text_end < fn_pointer) { // NOTE: this is another module...
                         SIZE_T real_length = 0;
 
                         for (SIZE_T i = 0; i < MbsLength((PCHAR)fn_pointer); i++) {
@@ -391,17 +387,21 @@ namespace Modules {
 
     BOOL ResolveImports(const EXECUTABLE *mod) {
 		HEXANE; 
+
+		CHAR *name = { };
         UINT8 buffer[MAX_PATH] = { };
+		UINT32 hash = 0;
 
 		auto import_dire = (PIMAGE_DATA_DIRECTORY) &mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]; 
-        if (import_dire->Size) {
 
+        if (import_dire->Size) {
             auto import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, import_dire->VirtualAddress); 
+
             for (; import_desc->Name; import_desc++) {
 
                 HMODULE library = nullptr;
-                CONST CHAR *name = RVA(PCHAR, mod->base, import_desc->Name);
-				CONST UINT32 hash = HashStringA(MbsToLower((PCHAR)buffer, name), MbsLength(name));
+                name = RVA(PCHAR, mod->base, import_desc->Name);
+				hash = HashStringA(MbsToLower((PCHAR)buffer, name), MbsLength(name));
 
 				// look for dependencies already loaded in memory
                 if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(hash)) {
@@ -420,7 +420,7 @@ namespace Modules {
                 PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
 
 				__debugbreak();
-				// NOTE: we do need to keep our dependencies beyond this point. Once the thunks are mapped, we still need the next_load->base.
+				// NOTE: we do need to keep our dependencies beyond this point. Once the thunks are mapped we still need next_load->base.
 				// should they be added to a list? next_load will be dangling otherwise. (probably OK)
 
                 for (; org_first->u1.Function; first_thunk++, org_first++) {
@@ -442,13 +442,13 @@ namespace Modules {
         // handle the delayed import table
 
         if (import_dire->Size) {
-
             auto delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->base, import_dire->VirtualAddress);
-            for (; delay_desc->DllNameRVA; delay_desc++) {
 
+            for (; delay_desc->DllNameRVA; delay_desc++) {
                 HMODULE library = nullptr;
-                const CHAR *lib_name = RVA(PCHAR, mod->base, delay_desc->DllNameRVA);
-                const UINT32 hash = HashStringA(MbsToLower((PCHAR)buffer, lib_name), MbsLength(lib_name));
+
+                name = RVA(PCHAR, mod->base, delay_desc->DllNameRVA);
+                hash = HashStringA(MbsToLower((PCHAR)buffer, name), MbsLength(name));
 
 				// look for dependencies already loaded in memory
                 if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(hash)) {
@@ -461,7 +461,6 @@ namespace Modules {
                     }
                     library = (HMODULE) next_load->base;
 					CleanupModule(next_load);
-					//
                 }
 
                 PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
