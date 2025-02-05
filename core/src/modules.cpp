@@ -91,6 +91,9 @@ namespace Modules {
         LPVOID text_start = nullptr;
         LPVOID text_end = nullptr;
 
+		UINT32 sec_hash = 0;
+		UINT32 dot_text = TEXT;
+
         if (!base || (export_name && ordinal)) {
             return false;
         }
@@ -100,18 +103,15 @@ namespace Modules {
         if (nt_head->Signature != IMAGE_NT_SIGNATURE) {
             return false;
         }
-
 		// Locate .text section
         for (INT sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
-
             PIMAGE_SECTION_HEADER section = ITER_SECTION_HEADER(base, sec_index);
-            UINT32 sec_hash = HashStringA((PCHAR)section->Name, MbsLength((PCHAR)section->Name));
-			UINT32 dot_text = TEXT;
 
+            sec_hash = HashStringA((PCHAR)section->Name, MbsLength((PCHAR)section->Name));
 			if (!sec_hash) {
 				return false;
 			}
-            if (MemCompare((LPVOID)&dot_text, (LPVOID)&sec_hash, sizeof(UINT32)) == 0) {
+            if (dot_text == sec_hash) {
                 text_start = RVA(LPVOID, base, section->VirtualAddress);
                 text_end = RVA(LPVOID, text_start, section->SizeOfRawData);
                 break;
@@ -449,9 +449,9 @@ namespace Modules {
 					if (!next_load || !next_load->success) {
 						return false;
 					}
+
 					library = (HMODULE)next_load->base;
-					//CleanupModule(next_load);
-					//NOTE: test without cleanup.
+					CleanupModule(next_load);
 				}
 
 				auto first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->FirstThunk);
