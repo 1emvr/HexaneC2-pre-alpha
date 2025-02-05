@@ -75,8 +75,6 @@ namespace Modules {
 				MemSet(mod->cracked_name, 0, WcsLength(mod->cracked_name) * sizeof(wchar_t));
 				Free(mod->cracked_name);
 			}
-
-			Free(mod);
 		}
 	}
 
@@ -902,12 +900,15 @@ namespace Modules {
 			if (!mod->success) {
 				CleanupModule(mod);
 
-				// NOTE: mod->base is always freed manually. CleanupModule does not handle it.
+				// NOTE: mod and mod->base are always freed manually. CleanupModule does not handle them.
 				if (mod->base) {
 					ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->base, &mod->base_size, MEM_RELEASE);
 				}
 				mod->buffer = nullptr;
 				mod->base = nullptr;
+
+				Free(mod);
+				mod = nullptr;
 
 			} else {
 				if (!cache) {
