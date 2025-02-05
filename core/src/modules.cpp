@@ -61,7 +61,7 @@ namespace Modules {
 	VOID CleanupModule(EXECUTABLE *mod) {
 		HEXANE;
 
-		// NOTE: the module will remain allocated in memory until manually freed (mod->base).
+		// NOTE: the module will remain allocated in memory until manually freed (mod and mod->base).
 		if (mod) {
 			if (mod->buffer) {
 				MemSet(mod->buffer, 0, mod->buf_size);
