@@ -398,10 +398,12 @@ namespace Modules {
             auto import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, import_dire->VirtualAddress); 
 
             for (; import_desc->Name; import_desc++) {
-
                 HMODULE library = nullptr;
-                name = RVA(PCHAR, mod->base, import_desc->Name);
-				hash = HashStringA(MbsToLower((PCHAR)buffer, name), MbsLength(name));
+
+                if (!(name = RVA(PCHAR, mod->base, import_desc->Name)) ||
+					!(hash = HashStringA(MbsToLower((PCHAR)buffer, name), MbsLength(name)))) {
+					return false;
+				}
 
 				// look for dependencies already loaded in memory
                 if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(hash)) {
@@ -449,8 +451,10 @@ namespace Modules {
             for (; delay_desc->DllNameRVA; delay_desc++) {
                 HMODULE library = nullptr;
 
-                name = RVA(PCHAR, mod->base, delay_desc->DllNameRVA);
-                hash = HashStringA(MbsToLower((PCHAR)buffer, name), MbsLength(name));
+				if (!(name = RVA(PCHAR, mod->base, delay_desc->DllNameRVA)) ||
+					!(hash = HashStringA(MbsToLower((PCHAR)buffer, name), MbsLength(name)))) {
+					return false;
+				}
 
 				// look for dependencies already loaded in memory
                 if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(hash)) {
