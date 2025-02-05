@@ -461,7 +461,7 @@ namespace Modules {
 							return false;
 						}
 					} else {
-						PIMAGE_IMPORT_BY_NAME import_name = RVA(IMAGE_IMPORT_BY_NAME*, mod->base, org_first->u1.AddressOfData);
+						const auto import_name = RVA(IMAGE_IMPORT_BY_NAME*, mod->base, org_first->u1.AddressOfData);
 						if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID**) &first_thunk->u1.Function)) {
 							return false;
 						}
@@ -504,7 +504,7 @@ namespace Modules {
 							return false;
 						}
 					} else {
-						PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
+						const auto import_name = RVA(IMAGE_IMPORT_BY_NAME*, mod->base, org_first->u1.AddressOfData);
 						if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID**) &first_thunk->u1.Function)) {
 							return false;
 						}
