@@ -26,7 +26,7 @@
 
 		BOOL
 		FUNCTION
-		GetModulePath(EXECUTABLE *module, const uint32 name_hash);
+		FindModulePath(EXECUTABLE *module, const uint32 name_hash);
 
 	    PLDR_DATA_TABLE_ENTRY
     	FUNCTION

