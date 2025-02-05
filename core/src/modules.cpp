@@ -403,15 +403,13 @@ namespace Modules {
 
     BOOL AddHashTableEntry(PLDR_DATA_TABLE_ENTRY entry) {
         PPEB peb = PEB_POINTER;
-
         PLIST_ENTRY hash_table = FindHashTable();
+
         if (!hash_table) {
             return false;
         }
 
         INIT_LIST_ENTRY(&entry->HashLinks);
-
-        // insert into hash table
         ULONG hash = LdrHashEntry(entry->BaseDllName, true);
 
         InsertTailList(&hash_table[hash], &entry->HashLinks);
@@ -880,7 +878,7 @@ namespace Modules {
 			if (!mod->success) {
 				CleanupModule(mod);
 
-				// NOTE: mod and mod->base are always freed manually. CleanupModule does not handle them.
+				// NOTE: mod* and mod->base are always freed manually. CleanupModule does not handle them.
 				if (mod->base) {
 					ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->base, &mod->base_size, MEM_RELEASE);
 				}
@@ -888,8 +886,6 @@ namespace Modules {
 				mod->base = nullptr;
 
 				Free(mod);
-				mod = nullptr;
-
 			} else {
 				if (!cache) {
 					CleanupModule(mod);
