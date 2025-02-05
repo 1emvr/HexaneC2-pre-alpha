@@ -95,6 +95,7 @@ namespace Modules {
             return false;
         }
 
+		__debugbreak();
         PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, base, ((PIMAGE_DOS_HEADER)base)->e_lfanew);
         if (nt_head->Signature != IMAGE_NT_SIGNATURE) {
             return false;
@@ -104,10 +105,13 @@ namespace Modules {
         for (INT sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
 
             PIMAGE_SECTION_HEADER section = ITER_SECTION_HEADER(base, sec_index);
-            UINT32 sec_hash = HashStringA((PCHAR) section->Name, MbsLength((PCHAR) section->Name));
+            UINT32 sec_hash = HashStringA((PCHAR)section->Name, MbsLength((PCHAR)section->Name));
 			UINT32 dot_text = TEXT;
 
-            if (MemCompare((LPVOID) &dot_text, (LPVOID)&sec_hash, sizeof(UINT32))) {
+			if (!sec_hash) {
+				return false;
+			}
+            if (MemCompare((LPVOID)&dot_text, (LPVOID)&sec_hash, sizeof(UINT32)) == 0) {
                 text_start = RVA(LPVOID, base, section->VirtualAddress);
                 text_end = RVA(LPVOID, text_start, section->SizeOfRawData);
                 break;
@@ -436,11 +440,11 @@ namespace Modules {
 					return false;
 				}
 
+				MemSet(buffer, 0, MAX_PATH);
 				// look for dependencies already loaded in memory
 				if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(hash)) {
-					library = (HMODULE) entry->DllBase;
-				}
-				else {
+					library = (HMODULE)entry->DllBase;
+				} else {
 					EXECUTABLE *next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
 					if (!next_load || !next_load->success) {
 						return false;
@@ -450,7 +454,6 @@ namespace Modules {
 					//NOTE: test without cleanup.
 				}
 
-				__debugbreak();
 				auto first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->FirstThunk);
 				auto org_first = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->OriginalFirstThunk);
 

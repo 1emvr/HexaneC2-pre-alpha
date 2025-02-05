@@ -229,6 +229,9 @@ namespace Hash {
     UINT32 HashStringA(char const *string, size_t length) {
 
         auto hash = FNV_OFFSET;
+		if (!length) {
+			return 0;
+		}
         if (string) {
             for (auto i = 0; i < length; i++) {
                 hash ^= string[i];
@@ -241,6 +244,9 @@ namespace Hash {
     UINT32 HashStringW(wchar_t const *string, size_t length) {
 
         auto hash = FNV_OFFSET;
+		if (!length) {
+			return 0;
+		}
         if (string) {
             for (auto i = 0; i < length; i++) {
                 hash ^= string[i];
