@@ -403,7 +403,7 @@ namespace Modules {
                 CONST CHAR *name = RVA(PCHAR, mod->base, import_desc->Name);
 				CONST UINT32 hash = HashStringA(MbsToLower((PCHAR)buffer, name), MbsLength(name));
 
-				// can we find the module already loaded in memory?
+				// look for dependencies already loaded in memory
                 if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(hash)) {
                     library = (HMODULE) entry->DllBase;
                 }
@@ -419,7 +419,6 @@ namespace Modules {
                 PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
                 PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
 
-				// NOTE: heap corruption at some point beyond here...
 				__debugbreak();
 
                 for (; org_first->u1.Function; first_thunk++, org_first++) {
@@ -449,6 +448,7 @@ namespace Modules {
                 const CHAR *lib_name = RVA(PCHAR, mod->base, delay_desc->DllNameRVA);
                 const UINT32 hash = HashStringA(MbsToLower((PCHAR)buffer, lib_name), MbsLength(lib_name));
 
+				// look for dependencies already loaded in memory
                 if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(hash)) {
                     library = (HMODULE) entry->DllBase;
                 }
@@ -459,6 +459,7 @@ namespace Modules {
                     }
                     library = (HMODULE) new_load->base;
 					CleanupModule(new_load);
+					//
                 }
 
                 PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
@@ -474,6 +475,8 @@ namespace Modules {
                         if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID **) &first_thunk->u1.Function)) {
                             return false;
                         }
+						// NOTE: we do need to keep our dependencies beyond this point. Once the thunks are mapped, we still need the new_load->base.
+						// should they be added to a list and cleaned-up before process exit?
                     }
                 }
             }
