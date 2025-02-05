@@ -549,13 +549,15 @@ struct _hexane {
 	struct {
 		HMODULE ntdll;
 		HMODULE kernel32;
-		HMODULE shlwapi;
-		HMODULE crypt32;
-		HMODULE winhttp;
-		HMODULE advapi;
-		HMODULE iphlpapi;
-		HMODULE mscoree;
 		HMODULE kernbase;
+		struct {
+			PEXECUTABLE shlwapi;
+			PEXECUTABLE crypt32;
+			PEXECUTABLE winhttp;
+			PEXECUTABLE advapi;
+			PEXECUTABLE iphlpapi;
+			PEXECUTABLE mscoree;
+		} dload;
 	} modules;
 
 	struct {

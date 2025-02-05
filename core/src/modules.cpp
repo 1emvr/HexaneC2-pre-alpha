@@ -58,20 +58,21 @@ namespace Modules {
         return address;
     }
 
-	VOID DestroyModule(EXECUTABLE *mod) {
+	VOID CleanupModule(EXECUTABLE *mod) {
 		HEXANE;
 
+		// NOTE: the module will remain allocated in memory until manually freed (mod->base).
 		if (mod) {
-			if (mod->base) {
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->base, &mod->base_size, MEM_RELEASE);
-			}
 			if (mod->buffer) {
+				MemSet(mod->buffer, 0, mod->buf_size);
 				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, &mod->buf_size, MEM_RELEASE);
 			}
 			if (mod->local_name) {
+				MemSet(mod->local_name, 0, WcsLength(mod->local_name) * sizeof(wchar_t));
 				Free(mod->local_name);
 			}
 			if (mod->cracked_name) {
+				MemSet(mod->cracked_name, 0, WcsLength(mod->cracked_name) * sizeof(wchar_t));
 				Free(mod->cracked_name);
 			}
 
@@ -414,7 +415,7 @@ namespace Modules {
                         return false;
                     }
                     library = (HMODULE) new_load->base;
-					DestroyModule(new_load);
+					CleanupModule(new_load);
                 }
 
                 PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
@@ -459,7 +460,7 @@ namespace Modules {
                         return false;
                     }
                     library = (HMODULE) new_load->base;
-					DestroyModule(new_load);
+					CleanupModule(new_load);
                 }
 
                 PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
@@ -897,16 +898,22 @@ namespace Modules {
         mod->success = true;
 
         defer:
-		if (!mod->success) {
-			DestroyModule(mod);
+		if (mod) {
+			if (!mod->success) {
+				CleanupModule(mod);
 
-			mod->buffer = nullptr;
-			mod->base = nullptr;
-		}
-		if (!cache) {
-			if (mod->buffer) {
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, &mod->buf_size, MEM_RELEASE);
+				// NOTE: mod->base is always freed manually. CleanupModule does not handle it.
+				if (mod->base) {
+					ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->base, &mod->base_size, MEM_RELEASE);
+				}
 				mod->buffer = nullptr;
+				mod->base = nullptr;
+
+			} else {
+				if (!cache) {
+					CleanupModule(mod);
+					mod->buffer = nullptr;
+				}
 			}
 		}
 

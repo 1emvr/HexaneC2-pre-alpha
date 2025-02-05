@@ -14,7 +14,7 @@
 
 		VOID
 		FUNCTION
-		DestroyModule(EXECUTABLE *mod);
+		CleanupModule(EXECUTABLE *mod);
 
     	VOID
     	FUNCTION
