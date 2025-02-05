@@ -68,11 +68,11 @@ namespace Modules {
 				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, &mod->buf_size, MEM_RELEASE);
 			}
 			if (mod->local_name) {
-				MemSet(mod->local_name, 0, WcsLength(mod->local_name) * sizeof(wchar_t));
+				MemSet(mod->local_name, 0, MAX_PATH);
 				Free(mod->local_name);
 			}
 			if (mod->cracked_name) {
-				MemSet(mod->cracked_name, 0, WcsLength(mod->cracked_name) * sizeof(wchar_t));
+				MemSet(mod->cracked_name, 0, MAX_PATH);
 				Free(mod->cracked_name);
 			}
 		}
