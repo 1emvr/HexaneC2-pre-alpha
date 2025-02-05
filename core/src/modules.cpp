@@ -402,6 +402,7 @@ namespace Modules {
     }
 
     BOOL AddHashTableEntry(PLDR_DATA_TABLE_ENTRY entry) {
+
         PPEB peb = PEB_POINTER;
         PLIST_ENTRY hash_table = FindHashTable();
 
