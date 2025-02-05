@@ -289,8 +289,8 @@ namespace Modules {
         PIMAGE_SECTION_HEADER section = nullptr;
         UINT8 buffer[MAX_PATH] = { };
 
-        VOID *text_start = nullptr;
-        VOID *text_end = nullptr;
+        LPVOID text_start = nullptr;
+        LPVOID text_end = nullptr;
 
         if (!base || (export_name && ordinal)) {
             return false;
@@ -301,20 +301,21 @@ namespace Modules {
             return false;
         }
 
-        UINT32 dot_text = TEXT;
-
+		// Locate .text section
         for (int sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
+
             PIMAGE_SECTION_HEADER section = ITER_SECTION_HEADER(base, sec_index);
             UINT32 sec_hash = HashStringA((PCHAR) section->Name, MbsLength((PCHAR) section->Name));
+			UINT32 dot_text = TEXT;
 
-            if (MemCompare((VOID*) &dot_text, (VOID*) &sec_hash, sizeof(UINT32))) {
-                text_start = RVA(VOID*, base, section->VirtualAddress);
-                text_end = RVA(VOID*, text_start, section->SizeOfRawData);
+            if (MemCompare((LPVOID) &dot_text, (LPVOID)&sec_hash, sizeof(UINT32))) {
+                text_start = RVA(LPVOID, base, section->VirtualAddress);
+                text_end = RVA(LPVOID, text_start, section->SizeOfRawData);
                 break;
             }
         }
 
-        // NOTE: not sure why this would happen
+        // didn't find .text (?) 
         if (!text_start || !text_end) {
             return false;
         }
@@ -419,14 +420,17 @@ namespace Modules {
                 PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
                 PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
 
+				// NOTE: heap corruption at some point beyond here...
+				__debugbreak();
+
                 for (; org_first->u1.Function; first_thunk++, org_first++) {
                     if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-                        if (!LocalLdrFindExportAddress(library, nullptr, (UINT16) org_first->u1.Ordinal, (VOID **) &first_thunk->u1.Function)) {
+                        if (!LocalLdrFindExportAddress(library, nullptr, (UINT16) org_first->u1.Ordinal, (VOID**) &first_thunk->u1.Function)) {
                             return false;
                         }
                     } else {
 						PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
-                        if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID **) &first_thunk->u1.Function)) {
+                        if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID**) &first_thunk->u1.Function)) {
                             return false;
                         }
                     }
@@ -816,7 +820,6 @@ namespace Modules {
         // NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
         HEXANE;
 
-		__debugbreak();
         EXECUTABLE *mod = (EXECUTABLE*) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
         if (!mod) {
             return nullptr;
@@ -916,4 +919,3 @@ namespace Modules {
         return false;
     }
 }
-
