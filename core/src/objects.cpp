@@ -106,7 +106,7 @@ namespace Objects {
 
         void *veh_handle = nullptr;
         void *entrypoint = nullptr;
-        char *sym_name   = nullptr;
+        char *sym_name = nullptr;
 
         bool success = false;
         const auto file_head = image->nt_head->FileHeader;
@@ -158,9 +158,8 @@ namespace Objects {
 
             if (symbols[sym_index].First.Value[0]) {
                 sym_name = symbols[sym_index].First.Name; // inlined
-            }
-            else {
-                sym_name = (char*)(symbols + file_head.NumberOfSymbols) + symbols[sym_index].First.Value[1]; // not inlined
+            } else {
+                sym_name = (CHAR*)(symbols + file_head.NumberOfSymbols) + symbols[sym_index].First.Value[1]; // not inlined
             }
 
             // NOTE: compare symbols to entry names / entrypoint
@@ -212,8 +211,7 @@ namespace Objects {
                     MemSet(sym_name, 0, 9);
                     MemCopy(sym_name, head->First.Name, 8);
                     name_ptr = sym_name;
-                }
-                else {
+                } else {
                     name_ptr = (char*) (image->symbols + image->nt_head->FileHeader.NumberOfSymbols) + head->First.Value[1];
                 }
 
@@ -233,7 +231,7 @@ namespace Objects {
 							break;
                         }
                         default:
-                        break;
+							break;
 
                     }
                 }
