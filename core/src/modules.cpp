@@ -167,7 +167,7 @@ BOOL LocalLdrGetProcedureAddress(HMODULE hLibrary, PANSI_STRING ProcName, WORD O
 
         if (data_dire->Size) {
             const auto *exports = RVA(IMAGE_EXPORT_DIRECTORY, base, data_dire->VirtualAddress);
-            CONST UINT32 n_entries = !export_name ? exports->NumberOfFunctions : exports->NumberOfNames;
+            const UINT32 n_entries = !export_name ? exports->NumberOfFunctions : exports->NumberOfNames;
 
             for (INT entry_index = 0; entry_index < n_entries; entry_index++) {
                 UINT32 _ordinal = 0;
@@ -198,29 +198,26 @@ BOOL LocalLdrGetProcedureAddress(HMODULE hLibrary, PANSI_STRING ProcName, WORD O
 
                     if (text_start > fn_pointer || text_end < fn_pointer) { // NOTE: this is another module...
                         SIZE_T length = MbsLength((CHAR*)fn_pointer);
+						const auto found_name = (CHAR*)fn_pointer + length + 1; // TODO: check that this is correct.
 
-                        if (length) {
-                            const auto found_name = (CHAR*)fn_pointer + length + 1;
+						MemSet(buffer, 0, MAX_PATH);
+						LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(HashStringA(MbsToLower((CHAR*)buffer, found_name), length));
+						if (!lib_entry || lib_entry->DllBase == base) {
+							return false;
+						}
 
-							MemSet(buffer, 0, MAX_PATH);
-                            LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(HashStringA(MbsToLower((CHAR*)buffer, found_name), length));
-                            if (!lib_entry || lib_entry->DllBase == base) {
-                                return false;
-                            }
+						if (!LocalLdrFindExportAddress((HMODULE)lib_entry->DllBase, found_name, 0, &fn_pointer)) {
+							return false;
+						}
+					}
 
-                            if (!LocalLdrFindExportAddress((HMODULE)lib_entry->DllBase, found_name, 0, &fn_pointer)) {
-                                return false;
-                            }
-                        }
-                    }
-
-                    *function = fn_pointer;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+					*function = fn_pointer;
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	UINT_PTR FindKernelModule(CHAR *module_name) {
 		HEXANE;
