@@ -197,17 +197,10 @@ BOOL LocalLdrGetProcedureAddress(HMODULE hLibrary, PANSI_STRING ProcName, WORD O
                     auto fn_pointer = RVA(VOID*, base, *function_rva);
 
                     if (text_start > fn_pointer || text_end < fn_pointer) { // NOTE: this is another module.
-                        SIZE_T real_length = 0;
+                        SIZE_T real_length = MbsLength((CHAR*)fn_pointer);
 
-                        for (SIZE_T i = 0; i < MbsLength((CHAR*)fn_pointer); i++) {
-                            if (((CHAR*) fn_pointer)[i] == '.') {
-                                real_length = i;
-                                break;
-                            }
-                        }
-
-                        if (real_length != 0) {
-                            CONST CHAR *found_name = (CHAR*)fn_pointer + real_length + 1;
+                        if (real_length) {
+                            const auto found_name = (CHAR*)fn_pointer + real_length + 1;
 
 							MemSet(buffer, 0, MAX_PATH);
                             MbsConcat((CHAR*)buffer, (CHAR*)fn_pointer);
