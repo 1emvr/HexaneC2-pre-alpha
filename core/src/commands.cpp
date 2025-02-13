@@ -225,8 +225,8 @@ namespace Commands {
 
     VOID CommandAddPeer(PARSER *parser) {
 
-        auto pipe_name  = UnpackWString(parser, nullptr);
-        auto peer_id    = UnpackUint32(parser);
+        auto pipe_name = UnpackWString(parser, nullptr);
+        auto peer_id = UnpackUint32(parser);
 
         AddPeer(pipe_name, peer_id);
     }
@@ -237,7 +237,7 @@ namespace Commands {
         RemovePeer(peer_id);
     }
 
-    VOID Shutdown (PARSER *parser) {
+    VOID Shutdown(PARSER *parser) {
         HEXANE;
 
         // Send final message
@@ -245,7 +245,6 @@ namespace Commands {
         // Exit
         ntstatus = ERROR_EXIT;
     }
-
 
     UINT_PTR FindCommandAddress(const uint32 name_id) {
 
