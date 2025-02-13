@@ -104,7 +104,7 @@ namespace Modules {
 
 		// Locate .text section
         for (INT sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
-            const auto section = RVA(IMAGE_SECTION_HEADER*, &nt_head->OptionalHeader, nt_head->FileHeader.SizeOfOptionalHeader + sec_index * sizeof(IMAGE_SECTION_HEADER));
+            const auto section = RVA(IMAGE_SECTION_HEADER*, &nt_head->OptionalHeader, nt_head->FileHeader.SizeOfOptionalHeader + (sec_index * sizeof(IMAGE_SECTION_HEADER)));
 
             if (!(sec_hash = HashStringA((PCHAR)section->Name, MbsLength((PCHAR)section->Name)))) {
 				return false;
