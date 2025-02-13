@@ -83,50 +83,6 @@ namespace Modules {
         return address;
     }
 
-BOOL LocalLdrGetProcedureAddress(HMODULE hLibrary, PANSI_STRING ProcName, WORD Ordinal, PVOID* FunctionAddress) {
-	if (ProcName == NULL && Ordinal == 0) {
-		printf("LocalLdrGetProcedureAddress: provide either a Function name or Ordinal\n");
-		return FALSE;
-	}
-
-	if (ProcName != NULL && Ordinal != 0) {
-		printf("LocalLdrGetProcedureAddress: provide Function name or Ordinal, not both\n");
-		return FALSE;
-	}
-
-	BOOL ok = FALSE;
-	if (hLibrary != NULL) {
-		ok = _LocalLdrGetProcedureAddress(hLibrary, ProcName, Ordinal, FunctionAddress);
-		if (ok) return TRUE;
-	}
-
-	// some deprecated DLLs have their functions implemented in KERNEL32 and KERNELBASE
-	PVOID kernel32_addr = IsModulePresent(L"KERNEL32.dll");
-	if (kernel32_addr != hLibrary) {
-		ok = _LocalLdrGetProcedureAddress(kernel32_addr, ProcName, Ordinal, FunctionAddress);
-	}
-	if (ok) return TRUE;
-
-	PVOID kernelbase_addr = IsModulePresent(L"KERNELBASE.dll");
-	if (kernelbase_addr != hLibrary) {
-		ok = _LocalLdrGetProcedureAddress(kernelbase_addr, ProcName, Ordinal, FunctionAddress);
-	}
-	if (ok) return TRUE;
-
-	//printf("Using fallback LdrGetProcedureAddress for resolving an unknown function address\n");
-
-	*FunctionAddress = NULL;
-	LDRGETPROCADDRESS pLdrGetProcedureAddress = NULL;
-	STRING funcname_s = { 0 };
-
-	FILL_STRING(funcname_s, "LdrGetProcedureAddress");
-
-	_LocalLdrGetProcedureAddress(IsModulePresent(L"ntdll.dll"), &funcname_s, 0, (PVOID*)&pLdrGetProcedureAddress);
-	pLdrGetProcedureAddress(hLibrary, ProcName, Ordinal, FunctionAddress);
-
-	return *FunctionAddress != NULL;
-}
-
     BOOL LocalLdrFindExportAddress(HMODULE base, CONST CHAR *export_name, CONST UINT16 ordinal, VOID **function) {
 
         PIMAGE_SECTION_HEADER section = nullptr;
