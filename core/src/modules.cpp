@@ -134,9 +134,7 @@ BOOL LocalLdrGetProcedureAddress(HMODULE hLibrary, PANSI_STRING ProcName, WORD O
 
         LPVOID text_start = nullptr;
         LPVOID text_end = nullptr;
-
 		UINT32 sec_hash = 0;
-		UINT32 dot_text = TEXT;
 
 		if ((!base) || (!export_name || !ordinal) || (export_name && ordinal)) {
 			return false;
@@ -150,12 +148,12 @@ BOOL LocalLdrGetProcedureAddress(HMODULE hLibrary, PANSI_STRING ProcName, WORD O
 
 		// Locate .text section
         for (INT sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
-            PIMAGE_SECTION_HEADER section = ITER_SECTION_HEADER(base, sec_index);
+            const auto section = RVA(IMAGE_SECTION_HEADER*, &nt_head->OptionalHeader, nt_head->FileHeader.SizeOfOptionalHeader + sec_index * sizeof(IMAGE_SECTION_HEADER));
 
             if (!(sec_hash = HashStringA((PCHAR)section->Name, MbsLength((PCHAR)section->Name)))) {
 				return false;
 			}
-            if (dot_text == sec_hash) {
+            if (TEXT == sec_hash) {
                 text_start = RVA(LPVOID, base, section->VirtualAddress);
                 text_end = RVA(LPVOID, text_start, section->SizeOfRawData);
                 break;
