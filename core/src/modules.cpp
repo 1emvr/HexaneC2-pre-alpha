@@ -166,7 +166,7 @@ BOOL LocalLdrGetProcedureAddress(HMODULE hLibrary, PANSI_STRING ProcName, WORD O
         IMAGE_DATA_DIRECTORY *data_dire = &nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 
         if (data_dire->Size) {
-            const auto *exports = RVA(IMAGE_EXPORT_DIRECTORY*, base, data_dire->VirtualAddress);
+            const auto *exports = RVA(IMAGE_EXPORT_DIRECTORY, base, data_dire->VirtualAddress);
             CONST UINT32 n_entries = !export_name ? exports->NumberOfFunctions : exports->NumberOfNames;
 
             for (INT entry_index = 0; entry_index < n_entries; entry_index++) {
@@ -194,19 +194,16 @@ BOOL LocalLdrGetProcedureAddress(HMODULE hLibrary, PANSI_STRING ProcName, WORD O
 
                 if (found) {
                     const auto function_rva = RVA(UINT32*, base, exports->AddressOfFunctions + sizeof(UINT32) * (_ordinal - exports->Base));
-                    auto fn_pointer = RVA(VOID*, base, *function_rva);
+                    const auto fn_pointer = RVA(VOID*, base, *function_rva);
 
-                    if (text_start > fn_pointer || text_end < fn_pointer) { // NOTE: this is another module.
-                        SIZE_T real_length = MbsLength((CHAR*)fn_pointer);
+                    if (text_start > fn_pointer || text_end < fn_pointer) { // NOTE: this is another module...
+                        SIZE_T length = MbsLength((CHAR*)fn_pointer);
 
-                        if (real_length) {
-                            const auto found_name = (CHAR*)fn_pointer + real_length + 1;
+                        if (length) {
+                            const auto found_name = (CHAR*)fn_pointer + length + 1;
 
 							MemSet(buffer, 0, MAX_PATH);
-                            MbsConcat((CHAR*)buffer, (CHAR*)fn_pointer);
-                            MbsConcat((CHAR*)buffer, (CHAR*)dot_dll);
-                            
-                            LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(HashStringA(MbsToLower((CHAR*)buffer, found_name), real_length));
+                            LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(HashStringA(MbsToLower((CHAR*)buffer, found_name), length));
                             if (!lib_entry || lib_entry->DllBase == base) {
                                 return false;
                             }
