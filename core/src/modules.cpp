@@ -134,10 +134,10 @@ namespace Modules {
                     const auto name = RVA(CHAR*, base, *_name_rva);
 
                     if (MbsCompare(name, export_name)) {
-                        found = true;
-
                         const auto _ord_rva = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(UINT16));
+
                         _ordinal = exports->Base + *_ord_rva;
+                        found = true;
                     }
                 } else {
                     const auto = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(INT16));
