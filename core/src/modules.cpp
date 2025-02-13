@@ -166,7 +166,7 @@ BOOL LocalLdrGetProcedureAddress(HMODULE hLibrary, PANSI_STRING ProcName, WORD O
         IMAGE_DATA_DIRECTORY *data_dire = &nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 
         if (data_dire->Size) {
-            CONST IMAGE_EXPORT_DIRECTORY *exports = RVA(PIMAGE_EXPORT_DIRECTORY, base, data_dire->VirtualAddress);
+            const auto *exports = RVA(IMAGE_EXPORT_DIRECTORY*, base, data_dire->VirtualAddress);
             CONST UINT32 n_entries = !export_name ? exports->NumberOfFunctions : exports->NumberOfNames;
 
             for (INT entry_index = 0; entry_index < n_entries; entry_index++) {
@@ -193,10 +193,10 @@ BOOL LocalLdrGetProcedureAddress(HMODULE hLibrary, PANSI_STRING ProcName, WORD O
                 }
 
                 if (found) {
-                    CONST UINT32 *function_rva = RVA(UINT32*, base, exports->AddressOfFunctions + sizeof(UINT32) * (_ordinal - exports->Base));
-                    VOID *fn_pointer = RVA(LPVOID, base, *function_rva);
+                    const auto function_rva = RVA(UINT32*, base, exports->AddressOfFunctions + sizeof(UINT32) * (_ordinal - exports->Base));
+                    auto fn_pointer = RVA(VOID*, base, *function_rva);
 
-                    if (text_start > fn_pointer || text_end < fn_pointer) { // NOTE: this is another module...
+                    if (text_start > fn_pointer || text_end < fn_pointer) { // NOTE: this is another module.
                         SIZE_T real_length = 0;
 
                         for (SIZE_T i = 0; i < MbsLength((CHAR*)fn_pointer); i++) {
