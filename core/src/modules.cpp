@@ -96,7 +96,6 @@ namespace Modules {
 			return false;
 		}
 
-		__debugbreak();
         PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, base, ((PIMAGE_DOS_HEADER)base)->e_lfanew);
         if (nt_head->Signature != IMAGE_NT_SIGNATURE) {
             return false;
@@ -442,11 +441,13 @@ namespace Modules {
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
+						__debugbreak();
 						if (!LocalLdrFindExportAddress(library, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
 					} else {
 						const auto import_name = RVA(IMAGE_IMPORT_BY_NAME*, mod->base, org_first->u1.AddressOfData);
+						__debugbreak();
 						if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
