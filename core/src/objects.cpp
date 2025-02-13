@@ -433,7 +433,6 @@ namespace Objects {
     VOID COFFLoader(CHAR *entrypoint, VOID *data, VOID *args, SIZE_T args_size) {
         HEXANE;
         // NOTE: sec_map seems to be the only thing that persists
-		// TODO: this no longer exists. Apply new.
 
 		EXECUTABLE *image = nullptr;
         //EXECUTABLE image = CreateImage((uint8 *) data);
