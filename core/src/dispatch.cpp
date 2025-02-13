@@ -18,8 +18,7 @@ namespace Dispatcher {
 
         if (!ctx->transport.message_queue) {
             ctx->transport.message_queue = out;
-        }
-        else {
+        } else {
             while (head->next) {
                 head = head->next;
             }
@@ -41,8 +40,7 @@ namespace Dispatcher {
             if (head == target) {
                 if (prev) {
                     prev->next = head->next;
-                }
-                else {
+                } else {
                     ctx->transport.message_queue = head->next;
                 }
 
@@ -175,9 +173,9 @@ namespace Dispatcher {
     BOOL DispatchRoutine() {
         HEXANE;
 
-        bool success    = true;
-        _stream *out    = CreateStream();
-        _stream *in     = { };
+        bool success = true;
+        _stream *out = CreateStream();
+        _stream *in = { };
 
     retry:
         if (!ctx->transport.message_queue) {
