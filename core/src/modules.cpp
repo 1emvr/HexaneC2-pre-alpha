@@ -106,7 +106,7 @@ namespace Modules {
         for (INT sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
             const auto section = RVA(IMAGE_SECTION_HEADER*, &nt_head->OptionalHeader, nt_head->FileHeader.SizeOfOptionalHeader + (sec_index * sizeof(IMAGE_SECTION_HEADER)));
 
-            if (!(sec_hash = HashStringA((PCHAR)section->Name, MbsLength((PCHAR)section->Name)))) {
+            if (!(sec_hash = HashStringA((CHAR*)section->Name, MbsLength((CHAR*)section->Name)))) {
 				return false;
 			}
             if (TEXT == sec_hash) {
@@ -181,7 +181,7 @@ namespace Modules {
 		VOID *buffer = nullptr;
 		SIZE_T buf_size = 0;
 
-		if (!NT_SUCCESS(ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buf_size, (PULONG)&buf_size))) {
+		if (!NT_SUCCESS(ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buf_size, (PULONG)&buf_size))) {
 			return 0;
 		}
 
@@ -189,8 +189,8 @@ namespace Modules {
 			if (buffer) {
 				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buf_size, MEM_RELEASE);
 			}
-			if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), &buffer, 0, &buf_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE)) ||
-				!NT_SUCCESS(ntstatus = ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation, buffer, buf_size, (ULONG*)&buf_size))) {
+			if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), &buffer, 0, &buf_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE)) ||
+				!NT_SUCCESS(ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation, buffer, buf_size, (ULONG*)&buf_size))) {
 				return 0;
 			}
 		}
