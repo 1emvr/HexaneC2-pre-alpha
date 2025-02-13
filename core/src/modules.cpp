@@ -154,8 +154,8 @@ BOOL LocalLdrGetProcedureAddress(HMODULE hLibrary, PANSI_STRING ProcName, WORD O
 				return false;
 			}
             if (TEXT == sec_hash) {
-                text_start = RVA(LPVOID, base, section->VirtualAddress);
-                text_end = RVA(LPVOID, text_start, section->SizeOfRawData);
+                text_start = RVA(VOID*, base, section->VirtualAddress);
+                text_end = RVA(VOID*, text_start, section->SizeOfRawData);
                 break;
             }
         }
@@ -163,7 +163,7 @@ BOOL LocalLdrGetProcedureAddress(HMODULE hLibrary, PANSI_STRING ProcName, WORD O
             return false;
         }
 
-        PIMAGE_DATA_DIRECTORY data_dire = &nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+        IMAGE_DATA_DIRECTORY *data_dire = &nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 
         if (data_dire->Size) {
             CONST IMAGE_EXPORT_DIRECTORY *exports = RVA(PIMAGE_EXPORT_DIRECTORY, base, data_dire->VirtualAddress);
@@ -174,17 +174,17 @@ BOOL LocalLdrGetProcedureAddress(HMODULE hLibrary, PANSI_STRING ProcName, WORD O
                 BOOL found = false;
 
                 if (export_name) {
-                    CONST UINT32 *_name_rva = RVA(UINT32*, base, exports->AddressOfNames + entry_index * sizeof(UINT32));
-                    PCHAR name = RVA(CHAR*, base, *_name_rva);
+                    const auto _name_rva = RVA(UINT32*, base, exports->AddressOfNames + entry_index * sizeof(UINT32));
+                    const auto name = RVA(CHAR*, base, *_name_rva);
 
                     if (MbsCompare(name, export_name)) {
                         found = true;
 
-                        INT16 *_ord_rva = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(UINT16));
+                        const auto _ord_rva = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(UINT16));
                         _ordinal = exports->Base + *_ord_rva;
                     }
                 } else {
-                    INT16 *_ord_rva = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(INT16));
+                    const auto = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(INT16));
                     _ordinal = exports->Base + *_ord_rva;
 
                     if (_ordinal == ordinal) {
