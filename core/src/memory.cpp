@@ -104,7 +104,7 @@ namespace Memory {
         BOOL ExecuteCommand(_parser parser) {
             HEXANE;
 
-            uintptr_t pointer = 0;
+            UINT_PTR pointer = 0;
 
             const auto cmd_id = UnpackUint32(&parser);
             if (cmd_id == NOJOB) {
@@ -121,8 +121,8 @@ namespace Memory {
 
             return true;
         }
-		// TODO: process migration
 
+		// TODO: process migration
         BOOL ExecuteShellcode(_parser parser) {
             HEXANE;
 
