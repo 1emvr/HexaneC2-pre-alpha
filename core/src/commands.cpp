@@ -246,7 +246,7 @@ namespace Commands {
         ntstatus = ERROR_EXIT;
     }
 
-    UINT_PTR FindCommandAddress(const uint32 name_id) {
+    UINT_PTR FindCommandAddress(CONST UINT32 name_id) {
 
         for (uint32 i = 0 ;; i++) {
             if (!cmd_map[i].name) {
