@@ -417,14 +417,16 @@ namespace Modules {
 			for (; import_desc->Name; import_desc++) {
 				HMODULE library = nullptr;
 
+				MemSet(buffer, 0, MAX_PATH);
 				if (!(name = RVA(PCHAR, mod->base, import_desc->Name)) ||
 					!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
 					return false;
 				}
 
-				MemSet(buffer, 0, MAX_PATH);
 				// look for dependencies already loaded in memory
-				if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(hash)) {
+				LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(hash);
+
+				if (entry) {
 					library = (HMODULE)entry->DllBase;
 				} else {
 					EXECUTABLE *next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
@@ -436,7 +438,6 @@ namespace Modules {
 					CleanupModule(next_load);
 				}
 
-				__debugbreak();
 				IMAGE_THUNK_DATA *first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->FirstThunk);
 				IMAGE_THUNK_DATA *org_first = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->OriginalFirstThunk);
 
@@ -462,13 +463,16 @@ namespace Modules {
 			for (; delay_desc->DllNameRVA; delay_desc++) {
 				HMODULE library = nullptr;
 
+				MemSet(buffer, 0, MAX_PATH);
 				if (!(name = RVA(CHAR*, mod->base, delay_desc->DllNameRVA)) ||
 					!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
 					return false;
 				}
 
 				// look for dependencies already loaded in memory
-				if (LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(hash)) {
+				LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(hash);
+
+				if (entry) {
 					library = (HMODULE)entry->DllBase;
 				} else {
 					EXECUTABLE *next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
@@ -476,8 +480,7 @@ namespace Modules {
 						return false;
 					}
 					library = (HMODULE)next_load->base;
-					//CleanupModule(next_load);
-					//NOTE: test without cleanup.
+					CleanupModule(next_load);
 				}
 
 				IMAGE_THUNK_DATA *first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, delay_desc->ImportAddressTableRVA);
@@ -874,6 +877,7 @@ namespace Modules {
 		HEXANE;
 
 		// NOTE: the module object and base will remain allocated until manually freed (mod* and mod->base).
+		__debugbreak();
 		if (mod) {
 			if (mod->buffer) {
 				MemSet(mod->buffer, 0, mod->buf_size);
