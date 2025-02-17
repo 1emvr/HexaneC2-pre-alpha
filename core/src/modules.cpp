@@ -18,8 +18,8 @@ namespace Modules {
 		UINT_PTR sec_address = 0;
 		SIZE_T name_length = MbsLength(section_name);
 
-		const auto nt_head = RVA(PIMAGE_NT_HEADERS, base, ((PIMAGE_DOS_HEADER)base)->e_lfanew);
-		const auto sec_head = IMAGE_FIRST_SECTION(nt_head);
+		CONST PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, base, ((PIMAGE_DOS_HEADER)base)->e_lfanew);
+		CONST PIMAGE_SECTION_HEADER sec_head = IMAGE_FIRST_SECTION(nt_head);
 
 		for (INT i = 0; i < nt_head->FileHeader.NumberOfSections; i++) {
 			PIMAGE_SECTION_HEADER section = &sec_head[i];
@@ -40,11 +40,11 @@ namespace Modules {
 	}
 
     PLDR_DATA_TABLE_ENTRY FindModuleEntry(const uint32 hash) {
-        const auto head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
+        CONST LIST_ENTRY *head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
         for (auto next = head->Flink; next != head; next = next->Flink) {
-            const auto mod = CONTAINING_RECORD(next, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
-            const auto name = mod->BaseDllName;
+            LDR_DATA_TABLE_ENTRY *mod = CONTAINING_RECORD(next, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
+            CONST UNICODE_STRING name = mod->BaseDllName;
 
             WCHAR buffer[MAX_PATH] = { };
 
@@ -59,20 +59,20 @@ namespace Modules {
     FARPROC FindExportAddress(const VOID *base, const UINT32 hash) {
         FARPROC address = nullptr;
 
-        const auto nt_head = RVA(PIMAGE_NT_HEADERS, base, ((PIMAGE_DOS_HEADER) base)->e_lfanew);
-        const auto exports = RVA(PIMAGE_EXPORT_DIRECTORY, base, nt_head->OptionalHeader.DataDirectory[0].VirtualAddress);
+        CONST PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, base, ((PIMAGE_DOS_HEADER) base)->e_lfanew);
+        CONST PIMAGE_EXPORT_DIRECTORY exports = RVA(PIMAGE_EXPORT_DIRECTORY, base, nt_head->OptionalHeader.DataDirectory[0].VirtualAddress);
 
         if (nt_head->Signature != IMAGE_NT_SIGNATURE) {
             return address;
         }
 
-		const auto functions = RVA(UINT32*, base, exports->AddressOfFunctions);
-		const auto ordinals = RVA(UINT16*, base, exports->AddressOfNameOrdinals);
-		const auto names = RVA(UINT32*, base, exports->AddressOfNames);
+		CONST UINT16 *ordinals = RVA(UINT16*, base, exports->AddressOfNameOrdinals);
+		CONST UINT32 *functions = RVA(UINT32*, base, exports->AddressOfFunctions);
+		CONST UINT32 *names = RVA(UINT32*, base, exports->AddressOfNames);
 		
         for (INT index = 0; index < exports->NumberOfNames; index++) {
-            const auto name = RVA(CHAR*, base, names[index]);
-            char buffer[MAX_PATH] = { };
+            CONST CHAR *name = RVA(CHAR*, base, names[index]);
+            CHAR buffer[MAX_PATH] = { };
 
             if (hash - HashStringA(MbsToLower(buffer, name), MbsLength(name)) == 0) {
                 address = RVA(FARPROC, base, functions[ordinals[index]]); // NOTE: changed to index functions by ordinals[i]
@@ -103,7 +103,7 @@ namespace Modules {
 
 		// Locate .text section
         for (INT sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
-            const auto section = RVA(IMAGE_SECTION_HEADER*, &nt_head->OptionalHeader, nt_head->FileHeader.SizeOfOptionalHeader + (sec_index * sizeof(IMAGE_SECTION_HEADER)));
+            CONST IMAGE_SECTION_HEADER *section = RVA(IMAGE_SECTION_HEADER*, &nt_head->OptionalHeader, nt_head->FileHeader.SizeOfOptionalHeader + (sec_index * sizeof(IMAGE_SECTION_HEADER)));
 
             if (!(sec_hash = HashStringA((CHAR*)section->Name, MbsLength((CHAR*)section->Name)))) {
 				return false;
@@ -121,25 +121,25 @@ namespace Modules {
         IMAGE_DATA_DIRECTORY *data_dire = &nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 
         if (data_dire->Size) {
-            const auto *exports = RVA(IMAGE_EXPORT_DIRECTORY, base, data_dire->VirtualAddress);
-            const UINT32 n_entries = !export_name ? exports->NumberOfFunctions : exports->NumberOfNames;
+            CONST IMAGE_EXPORT_DIRECTORY *exports = RVA(IMAGE_EXPORT_DIRECTORY*, base, data_dire->VirtualAddress);
+            CONST UINT32 n_entries = !export_name ? exports->NumberOfFunctions : exports->NumberOfNames;
 
-            for (INT entry_index = 0; entry_index < n_entries; entry_index++) {
+            for (auto entry_index = 0; entry_index < n_entries; entry_index++) {
                 UINT32 _ordinal = 0;
                 BOOL found = false;
 
                 if (export_name) {
-                    const auto _name_rva = RVA(UINT32*, base, exports->AddressOfNames + entry_index * sizeof(UINT32));
-                    const auto name = RVA(CHAR*, base, *_name_rva);
+                    CONST UINT32 *_name_rva = RVA(UINT32*, base, exports->AddressOfNames + entry_index * sizeof(UINT32));
+                    CONST CHAR *name = RVA(CHAR*, base, *_name_rva);
 
                     if (MbsCompare(name, export_name)) {
-                        const auto _ord_rva = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(UINT16));
+                        CONST INT16 *_ord_rva = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(UINT16));
 
                         _ordinal = exports->Base + *_ord_rva;
                         found = true;
                     }
                 } else {
-                    const auto = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(INT16));
+                    CONST INT16 *_ord_rva = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(INT16));
                     _ordinal = exports->Base + *_ord_rva;
 
                     if (_ordinal == ordinal) {
@@ -148,12 +148,12 @@ namespace Modules {
                 }
 
                 if (found) {
-                    const auto function_rva = RVA(UINT32*, base, exports->AddressOfFunctions + sizeof(UINT32) * (_ordinal - exports->Base));
-                    const auto fn_pointer = RVA(VOID*, base, *function_rva);
+                    UINT32 *function_rva = RVA(UINT32*, base, exports->AddressOfFunctions + sizeof(UINT32) * (_ordinal - exports->Base));
+                    VOID *fn_pointer = RVA(VOID*, base, *function_rva);
 
                     if (text_start > fn_pointer || text_end < fn_pointer) { // NOTE: this is another module...
                         SIZE_T length = MbsLength((CHAR*)fn_pointer);
-						const auto found_name = (CHAR*)fn_pointer + length + 1; // TODO: check that this is correct.
+						CONST CHAR *found_name = (CHAR*)fn_pointer + length + 1; // TODO: check that this is correct.
 
 						MemSet(buffer, 0, MAX_PATH);
 						LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(HashStringA(MbsToLower((CHAR*)buffer, found_name), length));
@@ -201,7 +201,7 @@ namespace Modules {
 			return 0;
 		}
 
-		const auto modules = (PRTL_PROCESS_MODULES) buffer;
+		CONST PRTL_PROCESS_MODULES modules = (PRTL_PROCESS_MODULES) buffer;
 		if (!modules){
 			return 0;
 		}
@@ -253,10 +253,10 @@ namespace Modules {
 		}
 		
 		for (auto index = 0; index < data->NumberOfNames; index++) {
-            const auto name = RVA(CHAR*, base, ((UINT32*)(base + exports->AddressOfNames))[index - 1]);
+            CONST CHAR *name = RVA(CHAR*, base, ((UINT32*)(base + exports->AddressOfNames))[index - 1]);
 
 			if (MbsCompare(name, function) == 0) {
-				const auto ord = RVA(UINT16*, base, ((UINT16*) (base + exports->AddressOfNameOrdinals))[index]);
+				CONST UINT16 *ord = RVA(UINT16*, base, ((UINT16*) (base + exports->AddressOfNameOrdinals))[index]);
 				if (*ord <= 0x1000) {
 					break;
 				}
@@ -409,10 +409,10 @@ namespace Modules {
 		UINT8 buffer[MAX_PATH] = { };
 		UINT32 hash = 0;
 
-		auto import_dire = (IMAGE_DATA_DIRECTORY*)&mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]; 
+		IMAGE_DATA_DIRECTORY *import_dire = (IMAGE_DATA_DIRECTORY*)&mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]; 
 
 		if (import_dire->Size) {
-			auto import_desc = RVA(IMAGE_IMPORT_DESCRIPTOR*, mod->base, import_dire->VirtualAddress); 
+			IMAGE_IMPORT_DESCRIPTOR *import_desc = RVA(IMAGE_IMPORT_DESCRIPTOR*, mod->base, import_dire->VirtualAddress); 
 
 			for (; import_desc->Name; import_desc++) {
 				HMODULE library = nullptr;
@@ -436,18 +436,17 @@ namespace Modules {
 					CleanupModule(next_load);
 				}
 
-				auto first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->FirstThunk);
-				auto org_first = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->OriginalFirstThunk);
+				__debugbreak();
+				IMAGE_THUNK_DATA *first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->FirstThunk);
+				IMAGE_THUNK_DATA *org_first = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->OriginalFirstThunk);
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-						__debugbreak();
 						if (!LocalLdrFindExportAddress(library, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
 					} else {
-						const auto import_name = RVA(IMAGE_IMPORT_BY_NAME*, mod->base, org_first->u1.AddressOfData);
-						__debugbreak();
+						CONST IMAGE_IMPORT_BY_NAME *import_name = RVA(IMAGE_IMPORT_BY_NAME*, mod->base, org_first->u1.AddressOfData);
 						if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
@@ -458,7 +457,7 @@ namespace Modules {
 
 		// handle the delayed import table
 		if (import_dire->Size) {
-			auto delay_desc = RVA(IMAGE_DELAYLOAD_DESCRIPTOR*, mod->base, import_dire->VirtualAddress);
+			IMAGE_DELAYLOAD_DESCRIPTOR *delay_desc = RVA(IMAGE_DELAYLOAD_DESCRIPTOR*, mod->base, import_dire->VirtualAddress);
 
 			for (; delay_desc->DllNameRVA; delay_desc++) {
 				HMODULE library = nullptr;
@@ -481,8 +480,8 @@ namespace Modules {
 					//NOTE: test without cleanup.
 				}
 
-				auto first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, delay_desc->ImportAddressTableRVA);
-				auto org_first = RVA(IMAGE_THUNK_DATA*, mod->base, delay_desc->ImportNameTableRVA);
+				IMAGE_THUNK_DATA *first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, delay_desc->ImportAddressTableRVA);
+				IMAGE_THUNK_DATA *org_first = RVA(IMAGE_THUNK_DATA*, mod->base, delay_desc->ImportNameTableRVA);
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
@@ -490,7 +489,7 @@ namespace Modules {
 							return false;
 						}
 					} else {
-						const auto import_name = RVA(IMAGE_IMPORT_BY_NAME*, mod->base, org_first->u1.AddressOfData);
+						CONST IMAGE_IMPORT_BY_NAME *import_name = RVA(IMAGE_IMPORT_BY_NAME*, mod->base, org_first->u1.AddressOfData);
 						if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}

