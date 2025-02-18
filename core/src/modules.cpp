@@ -409,6 +409,7 @@ namespace Modules {
 		UINT8 buffer[MAX_PATH] = { };
 		UINT32 hash = 0;
 
+		__debugbreak();
 		IMAGE_DATA_DIRECTORY *import_dire = (IMAGE_DATA_DIRECTORY*)&mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]; 
 
 		if (import_dire->Size) {
@@ -773,7 +774,7 @@ namespace Modules {
         // NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
         HEXANE;
 
-        EXECUTABLE *mod = (EXECUTABLE*) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
+        EXECUTABLE *mod = (EXECUTABLE*)ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
         if (!mod) {
             return nullptr;
         }
@@ -867,7 +868,6 @@ namespace Modules {
 		HEXANE;
 
 		// NOTE: the module object and base will remain allocated until manually freed (mod* and mod->base).
-		__debugbreak();
 		if (mod) {
 			if (mod->buffer) {
 				MemSet(mod->buffer, 0, mod->buf_size);

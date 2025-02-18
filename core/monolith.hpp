@@ -123,7 +123,7 @@ s.buffer = b
 #define CLEANUP_MODULE(x)      \
 	CleanupModule(x);          \
 	x->buffer = nullptr;       \
-	x->local_name = nullptr;	  \
+	x->local_name = nullptr;   \
 	x->cracked_name = nullptr;
 
 #define DESTROY_MODULE(x)      \
@@ -133,9 +133,12 @@ s.buffer = b
 	x->cracked_name = nullptr; \
 	if (x->base) {             \
 	    ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &x->base, &x->base_size, MEM_RELEASE);\
-	}\
-	x->base = nullptr; \
-	Free(x);
+	}                          \
+	x->base = nullptr;         \
+	if (x) {                   \
+	    Free(x);               \
+        x = nullptr;           \
+    }
 
 #ifdef _M_X64
 #define X64                                     true
