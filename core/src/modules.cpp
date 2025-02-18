@@ -435,7 +435,7 @@ namespace Modules {
 					}
 
 					library = (HMODULE)next_load->base;
-					CleanupModule(next_load);
+					CLEANUP_MODULE(next_load);
 				}
 
 				IMAGE_THUNK_DATA *first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->FirstThunk);
@@ -480,7 +480,7 @@ namespace Modules {
 						return false;
 					}
 					library = (HMODULE)next_load->base;
-					CleanupModule(next_load);
+					CLEANUP_MODULE(next_load);
 				}
 
 				IMAGE_THUNK_DATA *first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, delay_desc->ImportAddressTableRVA);
@@ -852,20 +852,10 @@ namespace Modules {
         defer:
 		if (mod) {
 			if (!mod->success) {
-				CleanupModule(mod);
-
-				// NOTE: mod* and mod->base are always freed manually. CleanupModule does not handle them.
-				if (mod->base) {
-					ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->base, &mod->base_size, MEM_RELEASE);
-				}
-				mod->buffer = nullptr;
-				mod->base = nullptr;
-
-				Free(mod);
+				DESTROY_MODULE(mod);
 			} else {
 				if (!cache) {
-					CleanupModule(mod);
-					mod->buffer = nullptr;
+					CLEANUP_MODULE(mod);
 				}
 			}
 		}
