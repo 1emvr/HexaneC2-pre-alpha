@@ -5,83 +5,83 @@
     namespace Modules {
 
 	    PRTL_RB_TREE
-    	FUNCTION
+    	FUNCTION __stdcall
 		FindModuleIndex();
 
 	    PLIST_ENTRY
-    	FUNCTION
+    	FUNCTION __stdcall
     	FindHashTable();
 
 		VOID
-		FUNCTION
+		FUNCTION __stdcall
 		CleanupModule(EXECUTABLE *mod);
 
     	VOID
-    	FUNCTION
+    	FUNCTION __stdcall
     	InsertTailList(LIST_ENTRY *head, LIST_ENTRY *entry);
 
 	    PLDR_DATA_TABLE_ENTRY
-    	FUNCTION
+    	FUNCTION __stdcall
     	FindModuleEntry(UINT32 hash);
 
 		BOOL
-		FUNCTION
+		FUNCTION __stdcall
 		FindModulePath(EXECUTABLE *module, const uint32 name_hash);
 
 	    PLDR_DATA_TABLE_ENTRY
-    	FUNCTION
+    	FUNCTION __stdcall
     	FindModuleEntryByName(CONST WCHAR *mod_name);
 
 	    FARPROC
-    	FUNCTION
+    	FUNCTION __stdcall
 		FindExportAddress(CONST VOID *base, uint32 hash);
 
 		UINT_PTR
-		FUNCTION
+		FUNCTION __stdcall
 		FindKernelModule(CHAR *module_name);
 
 		UINT_PTR
-		FUNCTION
+		FUNCTION __stdcall
 		FindSection(CONST CHAR* section_name, UINT_PTR base, UINT32 *size);
 
 	    BOOL
-    	FUNCTION
+    	FUNCTION __stdcall
     	AddHashTableEntry(PLDR_DATA_TABLE_ENTRY entry);
 
 	    BOOL
-    	FUNCTION
+    	FUNCTION __stdcall
     	LocalLdrFindExportAddress(HMODULE module, CONST CHAR *fn_name, UINT16 ordinal, VOID **function);
 
 	    PEXECUTABLE
-    	FUNCTION
+    	FUNCTION __stdcall
 		ImportModule(CONST UINT32 load_type, CONST UINT32 name_hash, UINT8 *memory, CONST UINT32 mem_size, WCHAR *name, BOOL cache);
 
 	    BOOL
-    	FUNCTION
+    	FUNCTION __stdcall
     	ResolveImports(CONST EXECUTABLE *module);
 
 	    BOOL
-    	FUNCTION
+    	FUNCTION __stdcall
     	MapModule(EXECUTABLE *module);
 
 	    BOOL
-    	FUNCTION
+    	FUNCTION __stdcall
     	AddModuleEntry(PLDR_DATA_TABLE_ENTRY entry, CONST VOID *base);
 
 	    BOOL
-    	FUNCTION
+    	FUNCTION __stdcall
 		FindModule(EXECUTABLE *module, UINT32 name_hash);
 
 	    BOOL
-    	FUNCTION
+    	FUNCTION __stdcall
     	ReadModule(EXECUTABLE *module);
 
 	    BOOL
-    	FUNCTION
+    	FUNCTION __stdcall
     	LinkModule(EXECUTABLE *module);
 
 	    BOOL
-    	FUNCTION
+    	FUNCTION __stdcall
     	ConcealLibrary(EXECUTABLE pdModule, BOOL bConceal);
     }
 
