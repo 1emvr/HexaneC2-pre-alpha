@@ -439,6 +439,10 @@ namespace Modules {
 					__debugbreak();
 					/*
 					  NOTE: disassembly does not match with this and erases RAX without ever using it.
+					  __debugbreak();
+					  debug028:0000015FD2643A7F jmp     short loc_15FD2643AC6
+
+					  debug028:0000015FD2643AC6 loc_15FD2643AC6:  
 					  debug028:0000015FD2643AC6 mov     eax, [rdi] <-- instantly deletes LDR_DATA_TABLE_ENTRY*
 					  debug028:0000015FD2643AC8 mov     rdx, [rbx+10h]
 					  debug028:0000015FD2643ACC cmp     qword ptr [rdx+rax], 0 <-- unknown comparison (??)
