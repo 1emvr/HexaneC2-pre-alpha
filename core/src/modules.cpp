@@ -405,52 +405,71 @@ namespace Modules {
 	BOOL ResolveImports(CONST EXECUTABLE *mod) {
 		HEXANE; 
 
-		CHAR *name = { };
 		UINT8 buffer[MAX_PATH] = { };
+		CHAR *name = nullptr;
+		BOOL success = false;
 		UINT32 hash = 0;
 
-		__debugbreak();
+		IMAGE_IMPORT_DESCRIPTOR *import_desc = nullptr;
+		IMAGE_DELAYLOAD_DESCRIPTOR *delay_desc = nullptr;
+		IMAGE_IMPORT_BY_NAME *import_name = nullptr;
+
+		HMODULE library = nullptr;
+		EXECUTABLE *next_load = nullptr;
+		LDR_DATA_TABLE_ENTRY *dep = nullptr;
+
+		IMAGE_THUNK_DATA *first_thunk = nullptr;
+		IMAGE_THUNK_DATA *org_first = nullptr;
+
 		IMAGE_DATA_DIRECTORY *import_dire = (IMAGE_DATA_DIRECTORY*)&mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]; 
 
 		if (import_dire->Size) {
-			IMAGE_IMPORT_DESCRIPTOR *import_desc = RVA(IMAGE_IMPORT_DESCRIPTOR*, mod->base, import_dire->VirtualAddress); 
+			import_desc = RVA(IMAGE_IMPORT_DESCRIPTOR*, mod->base, import_dire->VirtualAddress); 
 
 			for (; import_desc->Name; import_desc++) {
-				HMODULE library = nullptr;
-
 				MemSet(buffer, 0, MAX_PATH);
+
 				if (!(name = RVA(PCHAR, mod->base, import_desc->Name)) ||
 					!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
-					return false;
+					goto defer;
 				}
 
 				// look for dependencies already loaded in memory
-				LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(hash);
+				if (dep = FindModuleEntry(hash)) {
+					__debugbreak();
+					/*
+					  NOTE: disassembly does not match with this and erases RAX without ever using it.
+					  debug028:0000015FD2643AC6 mov     eax, [rdi] <-- instantly deletes LDR_DATA_TABLE_ENTRY*
+					  debug028:0000015FD2643AC8 mov     rdx, [rbx+10h]
+					  debug028:0000015FD2643ACC cmp     qword ptr [rdx+rax], 0 <-- unknown comparison (??)
+					  debug028:0000015FD2643AD1 jnz     loc_15FD2643A44
+					  debug028:0000015FD2643AD7 add     rdi, 14h
+					  debug028:0000015FD2643ADB jmp     loc_15FD2643A21
+					 */
 
-				if (entry) {
-					library = (HMODULE)entry->DllBase;
+					library = (HMODULE)dep->DllBase;
 				} else {
-					EXECUTABLE *next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
-					if (!next_load || !next_load->success) {
-						return false;
+					next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
+					if (!next_load || !next_load->base) {
+						goto defer;
 					}
 
 					library = (HMODULE)next_load->base;
 					CLEANUP_MODULE(next_load);
 				}
 
-				IMAGE_THUNK_DATA *first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->FirstThunk);
-				IMAGE_THUNK_DATA *org_first = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->OriginalFirstThunk);
+				first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->FirstThunk);
+				org_first = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->OriginalFirstThunk);
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
 						if (!LocalLdrFindExportAddress(library, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
-							return false;
+							goto defer;
 						}
 					} else {
-						CONST IMAGE_IMPORT_BY_NAME *import_name = RVA(IMAGE_IMPORT_BY_NAME*, mod->base, org_first->u1.AddressOfData);
+						import_name = RVA(IMAGE_IMPORT_BY_NAME*, mod->base, org_first->u1.AddressOfData);
 						if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
-							return false;
+							goto defer;
 						}
 					}
 				}
@@ -458,54 +477,58 @@ namespace Modules {
 		}
 
 		// handle the delayed import table
+		dep = nullptr;
+		library = nullptr;
+		next_load = nullptr;
+
 		if (import_dire->Size) {
-			IMAGE_DELAYLOAD_DESCRIPTOR *delay_desc = RVA(IMAGE_DELAYLOAD_DESCRIPTOR*, mod->base, import_dire->VirtualAddress);
+			delay_desc = RVA(IMAGE_DELAYLOAD_DESCRIPTOR*, mod->base, import_dire->VirtualAddress);
 
 			for (; delay_desc->DllNameRVA; delay_desc++) {
-				HMODULE library = nullptr;
-
 				MemSet(buffer, 0, MAX_PATH);
+
 				if (!(name = RVA(CHAR*, mod->base, delay_desc->DllNameRVA)) ||
 					!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
-					return false;
+					goto defer;
 				}
 
 				// look for dependencies already loaded in memory
-				LDR_DATA_TABLE_ENTRY *entry = FindModuleEntry(hash);
-
-				if (entry) {
-					library = (HMODULE)entry->DllBase;
+				if (dep = FindModuleEntry(hash)) {
+					library = (HMODULE)dep->DllBase;
 				} else {
-					EXECUTABLE *next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
-					if (!next_load || !next_load->success) {
-						return false;
+					next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
+					if (!next_load || !next_load->base) {
+						goto defer;
 					}
+
 					library = (HMODULE)next_load->base;
 					CLEANUP_MODULE(next_load);
 				}
 
-				IMAGE_THUNK_DATA *first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, delay_desc->ImportAddressTableRVA);
-				IMAGE_THUNK_DATA *org_first = RVA(IMAGE_THUNK_DATA*, mod->base, delay_desc->ImportNameTableRVA);
+				first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, delay_desc->ImportAddressTableRVA);
+				org_first = RVA(IMAGE_THUNK_DATA*, mod->base, delay_desc->ImportNameTableRVA);
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
 						if (!LocalLdrFindExportAddress(library, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
-							return false;
+							goto defer;
 						}
 					} else {
-						CONST IMAGE_IMPORT_BY_NAME *import_name = RVA(IMAGE_IMPORT_BY_NAME*, mod->base, org_first->u1.AddressOfData);
+						import_name = RVA(IMAGE_IMPORT_BY_NAME*, mod->base, org_first->u1.AddressOfData);
 						if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
-							return false;
+							goto defer;
 						}
 					}
 				}
 			}
 		}
 
-		return true;
+		success = true;
+	defer:
+		return success;
 	}
 
-    PRTL_RB_TREE FindModuleIndex() {
+	PRTL_RB_TREE FindModuleIndex() {
         PRTL_BALANCED_NODE node = nullptr;
         PRTL_RB_TREE index      = nullptr;
 
