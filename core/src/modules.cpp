@@ -437,20 +437,6 @@ namespace Modules {
 				// look for dependencies already loaded in memory
 				if (dep = FindModuleEntry(hash)) {
 					__debugbreak();
-					/*
-					  NOTE: disassembly does not match with this and erases RAX without ever using it.
-					  __debugbreak();
-					  debug028:0000015FD2643A7F jmp     short loc_15FD2643AC6
-
-					  debug028:0000015FD2643AC6 loc_15FD2643AC6:  
-					  debug028:0000015FD2643AC6 mov     eax, [rdi] <-- instantly deletes LDR_DATA_TABLE_ENTRY*
-					  debug028:0000015FD2643AC8 mov     rdx, [rbx+10h]
-					  debug028:0000015FD2643ACC cmp     qword ptr [rdx+rax], 0 <-- unknown comparison (??)
-					  debug028:0000015FD2643AD1 jnz     loc_15FD2643A44
-					  debug028:0000015FD2643AD7 add     rdi, 14h
-					  debug028:0000015FD2643ADB jmp     loc_15FD2643A21
-					 */
-
 					library = (HMODULE)dep->DllBase;
 				} else {
 					next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
