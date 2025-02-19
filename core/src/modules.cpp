@@ -408,25 +408,18 @@ namespace Modules {
 		UINT8 buffer[MAX_PATH] = { };
 		CHAR *name = nullptr;
 		BOOL success = false;
-		UINT32 hash = 0;
 
-		IMAGE_IMPORT_DESCRIPTOR *import_desc = nullptr;
-		IMAGE_DELAYLOAD_DESCRIPTOR *delay_desc = nullptr;
-		IMAGE_IMPORT_BY_NAME *import_name = nullptr;
-
-		HMODULE library = nullptr;
-		EXECUTABLE *next_load = nullptr;
-		LDR_DATA_TABLE_ENTRY *dep = nullptr;
-
-		IMAGE_THUNK_DATA *first_thunk = nullptr;
-		IMAGE_THUNK_DATA *org_first = nullptr;
-
-		IMAGE_DATA_DIRECTORY *import_dire = (IMAGE_DATA_DIRECTORY*)&mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]; 
+		PIMAGE_DATA_DIRECTORY import_dire = (PIMAGE_DATA_DIRECTORY)&mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]; 
 
 		if (import_dire->Size) {
-			import_desc = RVA(IMAGE_IMPORT_DESCRIPTOR*, mod->base, import_dire->VirtualAddress); 
+			PIMAGE_IMPORT_DESCRIPTOR import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, import_dire->VirtualAddress); 
 
 			for (; import_desc->Name; import_desc++) {
+				UINT32 hash = 0;
+				HMODULE library = nullptr;
+				PLDR_DATA_TABLE_ENTRY dep = nullptr;
+				EXECUTABLE *next_load = nullptr;
+
 				MemSet(buffer, 0, MAX_PATH);
 
 				if (!(name = RVA(PCHAR, mod->base, import_desc->Name)) ||
@@ -436,7 +429,7 @@ namespace Modules {
 
 				// look for dependencies already loaded in memory
 				if (dep = FindModuleEntry(hash)) {
-					__debugbreak();
+					// NOTE: disassembly DOES NOT MATCH. What the fuck is happening?
 					library = (HMODULE)dep->DllBase;
 				} else {
 					next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
@@ -448,8 +441,8 @@ namespace Modules {
 					CLEANUP_MODULE(next_load);
 				}
 
-				first_thunk = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->FirstThunk);
-				org_first = RVA(IMAGE_THUNK_DATA*, mod->base, import_desc->OriginalFirstThunk);
+				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
+				PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
@@ -457,7 +450,7 @@ namespace Modules {
 							goto defer;
 						}
 					} else {
-						import_name = RVA(IMAGE_IMPORT_BY_NAME*, mod->base, org_first->u1.AddressOfData);
+						PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
 						if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
 							goto defer;
 						}
@@ -467,14 +460,15 @@ namespace Modules {
 		}
 
 		// handle the delayed import table
-		dep = nullptr;
-		library = nullptr;
-		next_load = nullptr;
-
 		if (import_dire->Size) {
-			delay_desc = RVA(IMAGE_DELAYLOAD_DESCRIPTOR*, mod->base, import_dire->VirtualAddress);
+			PIMAGE_DELAYLOAD_DESCRIPTOR delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->base, import_dire->VirtualAddress);
 
 			for (; delay_desc->DllNameRVA; delay_desc++) {
+				UINT32 hash = 0;
+				HMODULE library = nullptr;
+				PLDR_DATA_TABLE_ENTRY dep = nullptr;
+				EXECUTABLE *next_load = nullptr;
+
 				MemSet(buffer, 0, MAX_PATH);
 
 				if (!(name = RVA(CHAR*, mod->base, delay_desc->DllNameRVA)) ||
