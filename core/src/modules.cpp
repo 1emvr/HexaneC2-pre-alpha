@@ -400,28 +400,84 @@ namespace Modules {
         return true;
     }
 
-	// TODO: needs testing
+	BOOL ResolveImports(PDARKMODULE pdModule) {
+		PIMAGE_NT_HEADERS pNtHeaders;
+		PIMAGE_DATA_DIRECTORY pDataDir;
+		PIMAGE_IMPORT_BY_NAME pImportByName;
+		PIMAGE_IMPORT_DESCRIPTOR pImportDesc;
+		PIMAGE_DELAYLOAD_DESCRIPTOR pDelayDesc;
+		PIMAGE_THUNK_DATA pFirstThunk, pOrigFirstThunk;
+		BOOL ok;
 
+		LOADLIBRARYA pLoadLibraryA = (LOADLIBRARYA)GetFunctionAddress(IsModulePresent(L"Kernel32.dll"), "LoadLibraryA");
+
+		STRING aString = { 0 };
+
+		pNtHeaders = RVA(PIMAGE_NT_HEADERS, pdModule->pbDllData, ((PIMAGE_DOS_HEADER)pdModule->pbDllData)->e_lfanew);
+		pDataDir = &pNtHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+
+		// handle the import table
+		if (pDataDir->Size) {
+				pImportDesc = RVA(PIMAGE_IMPORT_DESCRIPTOR, pdModule->ModuleBase, pDataDir->VirtualAddress );
+				DWORD dwImportCount = 0;
+
+				for (auto iter = pImportDesc->Name; iter; iter++) {
+					dwImportCount++;
+				}
+
+				for (; pImportDesc->Name; pImportDesc++) {
+					HMODULE hLibrary = IsModulePresentA((char*)(pdModule->ModuleBase + pImportDesc->Name));
+					if (hLibrary == NULL) {
+						hLibrary = pLoadLibraryA((LPSTR)(pdModule->ModuleBase + pImportDesc->Name));
+					}
+
+					pFirstThunk = RVA(PIMAGE_THUNK_DATA, pdModule->ModuleBase, pImportDesc->FirstThunk);
+					pOrigFirstThunk = RVA(PIMAGE_THUNK_DATA, pdModule->ModuleBase, pImportDesc->OriginalFirstThunk);
+
+					for (; pOrigFirstThunk->u1.Function; pFirstThunk++, pOrigFirstThunk++) {
+						if (IMAGE_SNAP_BY_ORDINAL(pOrigFirstThunk->u1.Ordinal)) {
+							ok = LocalLdrGetProcedureAddress(hLibrary, NULL, (WORD)pOrigFirstThunk->u1.Ordinal, (PVOID*)&(pFirstThunk->u1.Function));
+							if (!ok)
+								return FALSE;
+						}
+						else {
+							pImportByName = RVA(PIMAGE_IMPORT_BY_NAME, pdModule->ModuleBase, pOrigFirstThunk->u1.AddressOfData);
+
+							FILL_STRING(aString, pImportByName->Name);
+							ok = LocalLdrGetProcedureAddress(hLibrary, &aString, 0, (PVOID*)&(pFirstThunk->u1.Function));
+							if (!ok)
+								return FALSE;
+						}
+					}
+				}
+			}
+
+		// handle the delayed import table
+		return TRUE;
+	}
 	BOOL ResolveImports(CONST EXECUTABLE *mod) {
 		HEXANE; 
 
 		UINT8 buffer[MAX_PATH] = { };
 		CHAR *name = nullptr;
+		UINT32 hash = 0;
+
+		UINT_PTR library = 0;
+		PEXECUTABLE next_load = nullptr;
+		PLDR_DATA_TABLE_ENTRY dep = nullptr;
 
 		PIMAGE_DATA_DIRECTORY import_dire = (PIMAGE_DATA_DIRECTORY)&mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]; 
+		PIMAGE_IMPORT_BY_NAME import_name = nullptr;
+		PIMAGE_THUNK_DATA first_thunk = nullptr;
+	    PIMAGE_THUNK_DATA org_first = nullptr;
 
 		if (import_dire->Size) {
 			PIMAGE_IMPORT_DESCRIPTOR import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, import_dire->VirtualAddress); 
 
 			for (; import_desc->Name; import_desc++) {
-				UINT32 hash = 0;
-				HMODULE library = nullptr;
-				PLDR_DATA_TABLE_ENTRY dep = nullptr;
-				EXECUTABLE *next_load = nullptr;
-
 				MemSet(buffer, 0, MAX_PATH);
 
-				if (!(name = RVA(PCHAR, mod->base, import_desc->Name)) ||
+				if (!(name = RVA(CHAR*, mod->base, import_desc->Name)) ||
 					!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
 					return false;
 				}
@@ -429,30 +485,29 @@ namespace Modules {
 				// look for dependencies already loaded in memory
 				__debugbreak();
 				if (dep = FindModuleEntry(hash)) {
-					// NOTE: disassembly DOES NOT MATCH. What the fuck is happening?
-					library = (HMODULE)dep->DllBase;
+					// NOTE: disassembly DOES NOT MATCH. Just throws away dep*, what the fuck is happening?
+					library = U_PTR(dep->DllBase);
 				} else {
 					next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
 					if (!next_load || !next_load->base) {
 						return false;
 					}
 
-					library = (HMODULE)next_load->base;
+					library = U_PTR(next_load->base);
 					CLEANUP_MODULE(next_load);
 				}
 
-				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
-				PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
-				PIMAGE_IMPORT_BY_NAME import_name = nullptr;
+				first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
+				org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-						if (!LocalLdrFindExportAddress(library, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
+						if (!LocalLdrFindExportAddress((HMODULE)library, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
 					} else {
 						import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
-						if (!LocalLdrFindExportAddress(library, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
+						if (!LocalLdrFindExportAddress((HMODULE)library, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
 					}
@@ -465,11 +520,6 @@ namespace Modules {
 			PIMAGE_DELAYLOAD_DESCRIPTOR delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->base, import_dire->VirtualAddress);
 
 			for (; delay_desc->DllNameRVA; delay_desc++) {
-				UINT32 hash = 0;
-				HMODULE library = nullptr;
-				PLDR_DATA_TABLE_ENTRY dep = nullptr;
-				EXECUTABLE *next_load = nullptr;
-
 				MemSet(buffer, 0, MAX_PATH);
 
 				if (!(name = RVA(CHAR*, mod->base, delay_desc->DllNameRVA)) ||
@@ -490,9 +540,8 @@ namespace Modules {
 					CLEANUP_MODULE(next_load);
 				}
 
-				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
-				PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportNameTableRVA);
-				PIMAGE_IMPORT_BY_NAME import_name = nullptr;
+				first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
+				org_first = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportNameTableRVA);
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
