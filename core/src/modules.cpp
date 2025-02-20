@@ -478,7 +478,8 @@ namespace Modules {
 
 				// look for dependencies already loaded in memory
 				if (dep = FindModuleEntry(hash)) {
-					library = dep->DllBase;
+					volatile auto temp = dep->DllBase;
+					library = temp;
 				} else {
 					next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
 					if (!next_load || !next_load->base) {
