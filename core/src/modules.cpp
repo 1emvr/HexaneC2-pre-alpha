@@ -410,8 +410,8 @@ namespace Modules {
 			PIMAGE_IMPORT_DESCRIPTOR import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, import_dire->VirtualAddress); 
 
 			for (; import_desc->Name; import_desc++) {
-				VOID *lib = 0;
-				CHAR *name = 0;
+				VOID *lib = nullptr;
+				CHAR *name = nullptr;
 				UINT32 hash = 0;
 
 				MemSet(buffer, 0, MAX_PATH);
@@ -458,8 +458,8 @@ namespace Modules {
 			PIMAGE_DELAYLOAD_DESCRIPTOR delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->base, import_dire->VirtualAddress);
 
 			for (; delay_desc->DllNameRVA; delay_desc++) {
-				VOID *lib = 0;
-				CHAR *name = 0;
+				VOID *lib = nullptr;
+				CHAR *name = nullptr;
 				UINT32 hash = 0;
 
 				MemSet(buffer, 0, MAX_PATH);
