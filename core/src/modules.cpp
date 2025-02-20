@@ -426,13 +426,13 @@ namespace Modules {
 					volatile auto temp = dep->DllBase;
 					lib = temp;
 				} else {
-					PEXECUTABLE dep = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
-					if (!dep || !dep->base) {
+					PEXECUTABLE next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
+					if (!next_load || !next_load->base) {
 						return false;
 					}
 
-					lib = dep->base;
-					CLEANUP_MODULE(dep);
+					lib = next_load->base;
+					CLEANUP_MODULE(next_load);
 				}
 
 				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
@@ -473,13 +473,13 @@ namespace Modules {
 					volatile auto temp = dep->DllBase;
 					lib = temp;
 				} else {
-					PEXECUTABLE dep = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
-					if (!dep || !dep->base) {
+					PEXECUTABLE next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
+					if (!next_load || !next_load->base) {
 						return false;
 					}
 
-					lib = dep->base;
-					CLEANUP_MODULE(dep);
+					lib = next_load->base;
+					CLEANUP_MODULE(next_load);
 				}
 
 				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
