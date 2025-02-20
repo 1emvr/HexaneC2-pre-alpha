@@ -432,7 +432,6 @@ namespace Modules {
 				dep = FindModuleEntry(hash);
 				if (dep) {
 					// NOTE: disassembly DOES NOT MATCH. Just throws away dep*, what the fuck is happening?
-					_mm_lfence();
 					library = dep->DllBase;
 				} else {
 					next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
