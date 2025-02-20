@@ -426,7 +426,6 @@ namespace Modules {
 					!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
 					return false;
 				}
-
 				// look for dependencies already loaded in memory
 				__debugbreak();
 				{
@@ -475,19 +474,20 @@ namespace Modules {
 					!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
 					return false;
 				}
-
 				// look for dependencies already loaded in memory
-				if (dep = FindModuleEntry(hash)) {
-					volatile auto temp = dep->DllBase;
-					library = temp;
-				} else {
-					next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
-					if (!next_load || !next_load->base) {
-						return false;
-					}
+				{
+					if (dep = FindModuleEntry(hash)) {
+						volatile auto temp = dep->DllBase;
+						library = temp;
+					} else {
+						next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
+						if (!next_load || !next_load->base) {
+							return false;
+						}
 
-					library = next_load->base;
-					CLEANUP_MODULE(next_load);
+						library = next_load->base;
+						CLEANUP_MODULE(next_load);
+					}
 				}
 
 				first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
