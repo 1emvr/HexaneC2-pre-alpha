@@ -100,7 +100,7 @@ namespace Modules {
 		}
 
 		PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, mod, ((PIMAGE_DOS_HEADER)mod)->e_lfanew);
-        if (mod->nt_head->Signature != IMAGE_NT_SIGNATURE) {
+        if (nt_head->Signature != IMAGE_NT_SIGNATURE) {
             return false;
         }
 
