@@ -404,17 +404,15 @@ namespace Modules {
 		HEXANE; 
 
 		UINT8 buffer[MAX_PATH] = { };
-		CHAR *name = nullptr;
-		VOID *library = 0;
-
 		PIMAGE_DATA_DIRECTORY import_dire = (PIMAGE_DATA_DIRECTORY)&mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]; 
 
 		if (import_dire->Size) {
 			PIMAGE_IMPORT_DESCRIPTOR import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, import_dire->VirtualAddress); 
 
 			for (; import_desc->Name; import_desc++) {
+				VOID *lib = 0;
+				CHAR *name = 0;
 				UINT32 hash = 0;
-				VOID *library = 0;
 
 				MemSet(buffer, 0, MAX_PATH);
 
@@ -424,19 +422,17 @@ namespace Modules {
 				}
 				// look for dependencies already loaded in memory
 				__debugbreak();
-				{
-					if (PLDR_DATA_TABLE_ENTRY dep = FindModuleEntry(hash)) {
-						volatile auto temp = dep->DllBase;
-						library = temp;
-					} else {
-						PEXECUTABLE dep = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
-						if (!dep || !dep->base) {
-							return false;
-						}
-
-						library = dep->base;
-						CLEANUP_MODULE(dep);
+				if (PLDR_DATA_TABLE_ENTRY dep = FindModuleEntry(hash)) {
+					volatile auto temp = dep->DllBase;
+					lib = temp;
+				} else {
+					PEXECUTABLE dep = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
+					if (!dep || !dep->base) {
+						return false;
 					}
+
+					lib = dep->base;
+					CLEANUP_MODULE(dep);
 				}
 
 				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
@@ -444,12 +440,12 @@ namespace Modules {
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-						if (!LocalLdrFindExportAddress((HMODULE)library, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
+						if (!LocalLdrFindExportAddress((HMODULE)lib, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
 					} else {
 						PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
-						if (!LocalLdrFindExportAddress((HMODULE)library, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
+						if (!LocalLdrFindExportAddress((HMODULE)lib, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
 					}
@@ -462,8 +458,9 @@ namespace Modules {
 			PIMAGE_DELAYLOAD_DESCRIPTOR delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->base, import_dire->VirtualAddress);
 
 			for (; delay_desc->DllNameRVA; delay_desc++) {
+				VOID *lib = 0;
+				CHAR *name = 0;
 				UINT32 hash = 0;
-				VOID *library = 0;
 
 				MemSet(buffer, 0, MAX_PATH);
 
@@ -472,19 +469,17 @@ namespace Modules {
 					return false;
 				}
 				// look for dependencies already loaded in memory
-				{
-					if (PLDR_DATA_TABLE_ENTRY dep = FindModuleEntry(hash)) {
-						volatile auto temp = dep->DllBase;
-						library = temp;
-					} else {
-						PEXECUTABLE dep = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
-						if (!dep || !dep->base) {
-							return false;
-						}
-
-						library = dep->base;
-						CLEANUP_MODULE(dep);
+				if (PLDR_DATA_TABLE_ENTRY dep = FindModuleEntry(hash)) {
+					volatile auto temp = dep->DllBase;
+					lib = temp;
+				} else {
+					PEXECUTABLE dep = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
+					if (!dep || !dep->base) {
+						return false;
 					}
+
+					lib = dep->base;
+					CLEANUP_MODULE(dep);
 				}
 
 				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
@@ -492,12 +487,12 @@ namespace Modules {
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-						if (!LocalLdrFindExportAddress((HMODULE)library, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
+						if (!LocalLdrFindExportAddress((HMODULE)lib, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
 					} else {
 						PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
-						if (!LocalLdrFindExportAddress((HMODULE)library, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
+						if (!LocalLdrFindExportAddress((HMODULE)lib, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
 					}
