@@ -407,7 +407,7 @@ namespace Modules {
 		CHAR *name = nullptr;
 		UINT32 hash = 0;
 
-		volatile void *library = 0;
+		VOID *library = 0;
 		PEXECUTABLE next_load = nullptr;
 		PLDR_DATA_TABLE_ENTRY dep = nullptr;
 
@@ -429,18 +429,21 @@ namespace Modules {
 
 				// look for dependencies already loaded in memory
 				__debugbreak();
-				dep = FindModuleEntry(hash);
-				if (dep) {
-					// NOTE: disassembly DOES NOT MATCH. Just throws away dep*, what the fuck is happening?
-					library = dep->DllBase;
-				} else {
-					next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
-					if (!next_load || !next_load->base) {
-						return false;
-					}
+				{
+					dep = FindModuleEntry(hash);
+					if (dep) {
+						// NOTE: disassembly DOES NOT MATCH. Just throws away dep*, what the fuck is happening?
+						volatile auto temp = dep->DllBase;
+						library = temp;
+					} else {
+						next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
+						if (!next_load || !next_load->base) {
+							return false;
+						}
 
-					library = next_load->base;
-					CLEANUP_MODULE(next_load);
+						library = next_load->base;
+						CLEANUP_MODULE(next_load);
+					}
 				}
 
 				first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
