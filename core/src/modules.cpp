@@ -83,7 +83,7 @@ namespace Modules {
         return address;
     }
 
-    BOOL LocalLdrFindExportAddress(HMODULE base, CONST CHAR *export_name, CONST UINT16 ordinal, VOID **function) {
+    BOOL LocalLdrFindExportAddress(HMODULE mod, CONST CHAR *export_name, CONST UINT16 ordinal, VOID **function) {
 
         PIMAGE_SECTION_HEADER section = nullptr;
         UINT8 buffer[MAX_PATH] = { };
@@ -92,16 +92,20 @@ namespace Modules {
         LPVOID text_end = nullptr;
 		UINT32 sec_hash = 0;
 
-		if ((!base) || (!export_name || !ordinal) || (export_name && ordinal)) {
+		if (!mod) {
+			return false;
+		}
+		if ((!export_name && !ordinal) || (export_name && ordinal)) { /* can't have both. */
 			return false;
 		}
 
-        PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, base, ((PIMAGE_DOS_HEADER)base)->e_lfanew);
-        if (nt_head->Signature != IMAGE_NT_SIGNATURE) {
+		PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, mod, ((PIMAGE_DOS_HEADER)mod)->e_lfanew);
+        if (mod->nt_head->Signature != IMAGE_NT_SIGNATURE) {
             return false;
         }
 
 		// Locate .text section
+		__debugbreak();
         for (INT sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
             CONST IMAGE_SECTION_HEADER *section = RVA(IMAGE_SECTION_HEADER*, &nt_head->OptionalHeader, nt_head->FileHeader.SizeOfOptionalHeader + (sec_index * sizeof(IMAGE_SECTION_HEADER)));
 
@@ -109,7 +113,7 @@ namespace Modules {
 				return false;
 			}
             if (TEXT == sec_hash) {
-                text_start = RVA(VOID*, base, section->VirtualAddress);
+                text_start = RVA(VOID*, mod, section->VirtualAddress);
                 text_end = RVA(VOID*, text_start, section->SizeOfRawData);
                 break;
             }
@@ -121,7 +125,9 @@ namespace Modules {
         IMAGE_DATA_DIRECTORY *data_dire = &nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 
         if (data_dire->Size) {
-            CONST IMAGE_EXPORT_DIRECTORY *exports = RVA(IMAGE_EXPORT_DIRECTORY*, base, data_dire->VirtualAddress);
+			__debugbreak();
+
+            CONST IMAGE_EXPORT_DIRECTORY *exports = RVA(IMAGE_EXPORT_DIRECTORY*, mod, data_dire->VirtualAddress);
             CONST UINT32 n_entries = !export_name ? exports->NumberOfFunctions : exports->NumberOfNames;
 
             for (auto entry_index = 0; entry_index < n_entries; entry_index++) {
@@ -129,17 +135,17 @@ namespace Modules {
                 BOOL found = false;
 
                 if (export_name) {
-                    CONST UINT32 *_name_rva = RVA(UINT32*, base, exports->AddressOfNames + entry_index * sizeof(UINT32));
-                    CONST CHAR *name = RVA(CHAR*, base, *_name_rva);
+                    CONST UINT32 *_name_rva = RVA(UINT32*, mod, exports->AddressOfNames + entry_index * sizeof(UINT32));
+                    CONST CHAR *name = RVA(CHAR*, mod, *_name_rva);
 
                     if (MbsCompare(name, export_name)) {
-                        CONST INT16 *_ord_rva = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(UINT16));
+                        CONST INT16 *_ord_rva = RVA(INT16*, mod, exports->AddressOfNameOrdinals + entry_index * sizeof(UINT16));
 
                         _ordinal = exports->Base + *_ord_rva;
                         found = true;
                     }
                 } else {
-                    CONST INT16 *_ord_rva = RVA(INT16*, base, exports->AddressOfNameOrdinals + entry_index * sizeof(INT16));
+                    CONST INT16 *_ord_rva = RVA(INT16*, mod, exports->AddressOfNameOrdinals + entry_index * sizeof(INT16));
                     _ordinal = exports->Base + *_ord_rva;
 
                     if (_ordinal == ordinal) {
@@ -148,16 +154,16 @@ namespace Modules {
                 }
 
                 if (found) {
-                    UINT32 *function_rva = RVA(UINT32*, base, exports->AddressOfFunctions + sizeof(UINT32) * (_ordinal - exports->Base));
-                    VOID *fn_pointer = RVA(VOID*, base, *function_rva);
+                    UINT32 *function_rva = RVA(UINT32*, mod, exports->AddressOfFunctions + sizeof(UINT32) * (_ordinal - exports->Base));
+                    VOID *fn_pointer = RVA(VOID*, mod, *function_rva);
 
-                    if (text_start > fn_pointer || text_end < fn_pointer) { // NOTE: this is another module...
+                    if (text_start > fn_pointer || text_end < fn_pointer) { /* NOTE: this is another module... */
                         SIZE_T length = MbsLength((CHAR*)fn_pointer);
-						CONST CHAR *found_name = (CHAR*)fn_pointer + length + 1; // TODO: check that this is correct.
+						CONST CHAR *found_name = (CHAR*)fn_pointer + length + 1; /* TODO: check that this is correct. */
 
 						MemSet(buffer, 0, MAX_PATH);
 						LDR_DATA_TABLE_ENTRY *lib_entry = FindModuleEntry(HashStringA(MbsToLower((CHAR*)buffer, found_name), length));
-						if (!lib_entry || lib_entry->DllBase == base) {
+						if (!lib_entry || lib_entry->DllBase == mod) {
 							return false;
 						}
 
@@ -434,17 +440,16 @@ namespace Modules {
 					CLEANUP_MODULE(next_load);
 				}
 
-				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
-				PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
+				volatile PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
+				volatile PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
 
-				__debugbreak();
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
 						if (!LocalLdrFindExportAddress((HMODULE)lib, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
 					} else {
-						PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
+						volatile PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
 						if (!LocalLdrFindExportAddress((HMODULE)lib, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}

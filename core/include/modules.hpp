@@ -26,7 +26,7 @@
 
 		BOOL
 		FUNCTION __stdcall
-		FindModulePath(EXECUTABLE *module, const uint32 name_hash);
+		FindModulePath(EXECUTABLE *mod, const uint32 name_hash);
 
 	    PLDR_DATA_TABLE_ENTRY
     	FUNCTION __stdcall
@@ -50,19 +50,22 @@
 
 	    BOOL
     	FUNCTION __stdcall
-    	LocalLdrFindExportAddress(HMODULE module, CONST CHAR *fn_name, UINT16 ordinal, VOID **function);
+    	LocalLdrFindExportAddress(HMODULE mod, CONST CHAR *fn_name, UINT16 ordinal, VOID **function);
 
-	    PEXECUTABLE
+#pragma GCC push_options
+#pragma GCC optimize("O0")
+	    BOOL
+    	FUNCTION __stdcall
+    	ResolveImports(CONST EXECUTABLE *mod);
+#pragma GCC pop_options
+
+		PEXECUTABLE
     	FUNCTION __stdcall
 		ImportModule(CONST UINT32 load_type, CONST UINT32 name_hash, UINT8 *memory, CONST UINT32 mem_size, WCHAR *name, BOOL cache);
 
 	    BOOL
     	FUNCTION __stdcall
-    	ResolveImports(CONST EXECUTABLE *module);
-
-	    BOOL
-    	FUNCTION __stdcall
-    	MapModule(EXECUTABLE *module);
+    	MapModule(EXECUTABLE *mod);
 
 	    BOOL
     	FUNCTION __stdcall
@@ -70,15 +73,15 @@
 
 	    BOOL
     	FUNCTION __stdcall
-		FindModule(EXECUTABLE *module, UINT32 name_hash);
+		FindModule(EXECUTABLE *mod, UINT32 name_hash);
 
 	    BOOL
     	FUNCTION __stdcall
-    	ReadModule(EXECUTABLE *module);
+    	ReadModule(EXECUTABLE *mod);
 
 	    BOOL
     	FUNCTION __stdcall
-    	LinkModule(EXECUTABLE *module);
+    	LinkModule(EXECUTABLE *mod);
 
 	    BOOL
     	FUNCTION __stdcall
