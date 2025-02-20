@@ -404,10 +404,11 @@ namespace Modules {
 		HEXANE; 
 
 		UINT8 buffer[MAX_PATH] = { };
+
 		CHAR *name = nullptr;
+		VOID *library = 0;
 		UINT32 hash = 0;
 
-		VOID *library = 0;
 		PEXECUTABLE next_load = nullptr;
 		PLDR_DATA_TABLE_ENTRY dep = nullptr;
 
