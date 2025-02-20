@@ -421,7 +421,6 @@ namespace Modules {
 					return false;
 				}
 				// look for dependencies already loaded in memory
-				__debugbreak();
 				if (PLDR_DATA_TABLE_ENTRY dep = FindModuleEntry(hash)) {
 					volatile auto temp = dep->DllBase;
 					lib = temp;
@@ -438,6 +437,7 @@ namespace Modules {
 				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
 				PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
 
+				__debugbreak();
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
 						if (!LocalLdrFindExportAddress((HMODULE)lib, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
