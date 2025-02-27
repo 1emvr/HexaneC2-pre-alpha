@@ -403,99 +403,77 @@ namespace Modules {
         return true;
     }
 
+	BOOL ResolveEntries(CONST EXECUTABLE *mod, PIMAGE_THUNK_DATA thunk_a, PIMAGE_THUNK_DATA thunk_b, VOID *lib) {
+		
+		for (; thunk_b && thunk_b->u1.Function; thunk_a++, thunk_b++) {
+			if (thunk_a->u1.Function != thunk_b->u1.AddressOfData) {
+				continue;
+			}
+
+			if (IMAGE_SNAP_BY_ORDINAL(thunk_b->u1.Ordinal)) {
+				if (!LocalLdrFindExportAddress((HMODULE)lib, nullptr, (UINT16)thunk_b->u1.Ordinal, (VOID**)&thunk_a->u1.Function)) {
+					return false;
+				}
+			} else {
+				PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, thunk_b->u1.AddressOfData);
+				if (!LocalLdrFindExportAddress((HMODULE)lib, import_name->Name, 0, (VOID**)&thunk_a->u1.Function)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
 	BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR<LATE_LOAD_ENTRY>& late_loads) {
 		HEXANE; 
 
 		UINT8 buffer[MAX_PATH] = { };
-		PIMAGE_DATA_DIRECTORY import_dire = (PIMAGE_DATA_DIRECTORY)&mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]; 
 
-		if (import_dire->Size) {
-			PIMAGE_IMPORT_DESCRIPTOR import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, import_dire->VirtualAddress); 
+		struct ImportSections {
+			UINT32 directory;
+			BOOL delayed;
+		};
 
-			for (; import_desc->Name; import_desc++) {
-				VOID *lib = nullptr;
-				CHAR *name = nullptr;
-				UINT32 hash = 0;
+		ImportSections import_sections[] = { /* encapsulate the two for ease of use */
+			{ IMAGE_DIRECTORY_ENTRY_IMPORT, false },
+			{ IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT, true },
+		};
 
-				MemSet(buffer, 0, MAX_PATH);
+		for (const auto sec_index = 0; sec_index < ARRAY_LEN(import_sections); sec_index++) {
+			PIMAGE_DATA_DIRECTORY directory = (PIMAGE_DATA_DIRECTORY)&mod->nt_head->OptionalHeader.DataDirectory[import_sections[sec_index].directory]; 
 
-				if (!(name = RVA(CHAR*, mod->base, import_desc->Name)) ||
-					!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
-					return false;
-				}
+			if (import_dire->Size) {
+				auto desc = import_sections[sec_index].delayed
+					? RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->base, directory->VirtualAddress)
+					: RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, directory->VirtualAddress);
 
-				/* looking for msvcrt.dll, both of these calls failed for unknown reason */
-				if (PLDR_DATA_TABLE_ENTRY dep = FindModuleEntry(hash)) {
-					volatile auto temp = dep->DllBase;
-					lib = temp;
-				} else {
-					push_back(late_loads, { hash, nullptr });
-					continue;
-				}
+				for (; desc->Name; desc++) {
+					VOID *lib = nullptr;
+					CHAR *name = nullptr;
+					UINT32 hash = 0;
 
-				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
-				PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
+					MemSet(buffer, 0, MAX_PATH);
+					const auto rva = import_sections[sec_index].delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)desc)->DllNameRVA : desc->Name;
 
-				for (; org_first && org_first->u1.Function; first_thunk++, org_first++) {
-					if (first_thunk->u1.Function != org_first->u1.AddressOfData) { 
-						continue; /* already loaded */
+					if (
+						!(name = RVA(CHAR*, mod->base, rva) ||
+						!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name))))) {
+						return false;
 					}
 
-					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-						if (!LocalLdrFindExportAddress((HMODULE)lib, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
-							return false;
-						}
+					if (PLDR_DATA_TABLE_ENTRY dep = FindModuleEntry(hash)) {
+						volatile auto temp = dep->DllBase; /* aggressive compiler optimizations wants to remove lib from being assigned, so volatile is necessary */
+						lib = temp;
 					} else {
-						PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
-						if (!LocalLdrFindExportAddress((HMODULE)lib, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
-							return false;
-						}
-					}
-				}
-			}
-		}
-
-		// handle the delayed import table
-		if (import_dire->Size) {
-			PIMAGE_DELAYLOAD_DESCRIPTOR delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->base, import_dire->VirtualAddress);
-
-			for (; delay_desc->DllNameRVA; delay_desc++) {
-				VOID *lib = nullptr;
-				CHAR *name = nullptr;
-				UINT32 hash = 0;
-
-				MemSet(buffer, 0, MAX_PATH);
-
-				if (!(name = RVA(CHAR*, mod->base, delay_desc->DllNameRVA)) ||
-					!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
-					return false;
-				}
-				// look for dependencies already loaded in memory
-				if (PLDR_DATA_TABLE_ENTRY dep = FindModuleEntry(hash)) {
-					volatile auto temp = dep->DllBase;
-					lib = temp;
-				} else {
-					push_back(late_loads, { hash, nullptr });
-					continue;
-				}
-
-				PIMAGE_THUNK_DATA address_table = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
-				PIMAGE_THUNK_DATA name_table = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportNameTableRVA);
-
-				for (; name_table->u1.Function; address_table++, name_table++) {
-					if (address_table->u1.Function != name_table->u1.AddressOfData) {
-						continue; /* already loaded */
+						push_back(late_loads, { hash, nullptr });
+						continue;
 					}
 
-					if (IMAGE_SNAP_BY_ORDINAL(name_table->u1.Ordinal)) {
-						if (!LocalLdrFindExportAddress((HMODULE)lib, nullptr, (UINT16)name_table->u1.Ordinal, (VOID**)&address_table->u1.Function)) {
-							return false;
-						}
-					} else {
-						PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, name_table->u1.AddressOfData);
-						if (!LocalLdrFindExportAddress((HMODULE)lib, import_name->Name, 0, (VOID**)&address_table->u1.Function)) {
-							return false;
-						}
+					PIMAGE_THUNK_DATA thunk_a = RVA(PIMAGE_THUNK_DATA, mod->base, import_sections[sec_index].delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)desc)->ImportAddressTableRVA : desc->FirstThunk);
+					PIMAGE_THUNK_DATA thunk_b = RVA(PIMAGE_THUNK_DATA, mod->base, import_sections[sec_index].delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)desc)->ImportNameTableRVA : desc->OriginalFirstThunk);
+
+					if (!ResolveEntries(mod, thunk_a, thunk_b, lib)) {
+						return false;
 					}
 				}
 			}
