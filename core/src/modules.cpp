@@ -841,7 +841,12 @@ namespace Modules {
         }
 
         // map the sections into memory
-		SimpleVector<LATE_LOAD_ENTRY> late_loads = nullptr;
+		struct LATE_LOAD_ENTRY {
+			UINT32 hash;
+			PEXECUTABLE mod;
+		};
+
+		SimpleVector<LATE_LOAD_ENTRY> late_loads;
 		init_vector(late_loads);
 
         if (!MapModule(mod) || !ResolveImports(mod)) {
