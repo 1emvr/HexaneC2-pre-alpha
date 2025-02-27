@@ -456,8 +456,7 @@ namespace Modules {
 					MemSet(buffer, 0, MAX_PATH);
 					const auto rva = delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->DllNameRVA : descriptor->Name;
 
-					if (
-						!(name = RVA(CHAR*, mod->base, rva) ||
+					if (!(name = RVA(CHAR*, mod->base, rva) ||
 						!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name))))) {
 						return false;
 					}
