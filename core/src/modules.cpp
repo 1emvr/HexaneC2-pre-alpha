@@ -862,7 +862,7 @@ namespace Modules {
 		if (!MapModule(mod) || !ResolveImports(mod, late_loads)) {
 			goto defer;
 		}
-		if (late_loads.length) {
+		if (late_loads.length) { /* prevent recursive calls to ResolveImports */
 			if (!ResolveLateLoadModlues(late_loads) || !ResolveImports(mod, late_loads)) {
 				goto defer;
 			}
