@@ -67,7 +67,7 @@ namespace Modules {
 
 	BOOL
 	FUNCTION __stdcall
-	ProcessLateLoadModules(VECTOR<LATE_LOAD_ENTRY>& mods);
+	ResolveLateLoadModules(VECTOR<LATE_LOAD_ENTRY>& mods);
 
 	PEXECUTABLE
 	FUNCTION __stdcall

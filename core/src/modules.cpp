@@ -424,66 +424,76 @@ namespace Modules {
 		return true;
 	}
 
-	BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR<LATE_LOAD_ENTRY>& late_loads) {
-		HEXANE; 
+BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR<LATE_LOAD_ENTRY>& late_loads) {
+    HEXANE; 
 
-		UINT8 buffer[MAX_PATH] = { };
+    UINT8 buffer[MAX_PATH] = { };
 
-		struct ImportSections {
-			UINT32 directory;
-			BOOL delayed;
-		};
+    struct ImportSections {
+        UINT32 directory;
+        BOOL delayed;
+    };
 
-		ImportSections import_sections[] = { 
-			{ IMAGE_DIRECTORY_ENTRY_IMPORT, false },
-			{ IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT, true },
-		};
+    ImportSections import_sections[] = { 
+        { IMAGE_DIRECTORY_ENTRY_IMPORT, false },
+        { IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT, true },
+    };
 
-		for (const auto sec_index = 0; sec_index < ARRAY_LEN(import_sections); sec_index++) {
-			PIMAGE_DATA_DIRECTORY directory = (PIMAGE_DATA_DIRECTORY)&mod->nt_head->OptionalHeader.DataDirectory[import_sections[sec_index].directory]; 
+    for (auto sec_index = 0; sec_index < ARRAY_LEN(import_sections); sec_index++) {
+        PIMAGE_DATA_DIRECTORY directory = (PIMAGE_DATA_DIRECTORY)&mod->nt_head->OptionalHeader.DataDirectory[import_sections[sec_index].directory]; 
+        PIMAGE_IMPORT_DESCRIPTOR import_desc = nullptr;
+        PIMAGE_DELAYLOAD_DESCRIPTOR delay_desc = nullptr;
 
-			if (directory->Size) {
-				auto descriptor = import_sections[sec_index].delayed
-					? RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->base, directory->VirtualAddress)
-					: RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, directory->VirtualAddress);
+        if (directory->Size) {
+            VOID *descriptor = nullptr;
 
-				for (; descriptor->Name; descriptor++) {
-					BOOL delayed = import_sections[sec_index].delayed;
-					VOID *lib = nullptr;
-					CHAR *name = nullptr;
-					UINT32 hash = 0;
+            if (import_sections[sec_index].delayed) {
+                delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->base, directory->VirtualAddress);
+                descriptor = delay_desc;
+            } else {
+                import_desc = RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, directory->VirtualAddress);
+                descriptor = import_desc;
+            }
 
-					MemSet(buffer, 0, MAX_PATH);
-					const auto rva = delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->DllNameRVA : descriptor->Name;
+            while (descriptor) {
+                VOID *lib = nullptr;
+                CHAR *name = nullptr;
+                UINT32 hash = 0;
 
-					if (!(name = RVA(CHAR*, mod->base, rva) ||
-						!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name))))) {
-						return false;
-					}
+                MemSet(buffer, 0, MAX_PATH);
+                const auto rva = import_sections[sec_index].delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->DllNameRVA : ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->Name;
 
-					if (PLDR_DATA_TABLE_ENTRY dep = FindModuleEntry(hash)) {
-						volatile auto temp = dep->DllBase; /* aggressive compiler optimizations wants to remove lib from being assigned, so volatile is necessary */
-						lib = temp;
-					} else {
-						push_back(late_loads, { hash, nullptr });
-						continue;
-					}
+                if (!(name = RVA(CHAR*, mod->base, rva)) || 
+                    !(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
+                    return false;
+                }
 
-					PIMAGE_THUNK_DATA thunk_a = RVA(PIMAGE_THUNK_DATA, mod->base, delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->ImportAddressTableRVA : descriptor->FirstThunk);
-					PIMAGE_THUNK_DATA thunk_b = RVA(PIMAGE_THUNK_DATA, mod->base, delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->ImportNameTableRVA : descriptor->OriginalFirstThunk);
+                if (PLDR_DATA_TABLE_ENTRY dep = FindModuleEntry(hash)) {
+                    volatile auto temp = dep->DllBase;  /* Prevent compiler optimizations */
+                    lib = temp;
+                } else {
+                    push_back(late_loads, { hash, nullptr });
+                    descriptor = import_sections[sec_index].delayed ? (VOID*)((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor + 1) : (VOID*)((PIMAGE_IMPORT_DESCRIPTOR)descriptor + 1);
+                    continue;
+                }
 
-					if (!ResolveEntries(mod, thunk_a, thunk_b, lib)) {
-						return false;
-					}
-				}
-			}
-		}
+                PIMAGE_THUNK_DATA thunk_a = RVA(PIMAGE_THUNK_DATA, mod->base, import_sections[sec_index].delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->ImportAddressTableRVA : ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->FirstThunk);
+                PIMAGE_THUNK_DATA thunk_b = RVA(PIMAGE_THUNK_DATA, mod->base, import_sections[sec_index].delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->ImportNameTableRVA : ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->OriginalFirstThunk);
 
-		return true;
-	}
+                if (!ResolveEntries(mod, thunk_a, thunk_b, lib)) {
+                    return false;
+                }
+
+                descriptor = import_sections[sec_index].delayed ? (VOID*)((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor + 1) : (VOID*)((PIMAGE_IMPORT_DESCRIPTOR)descriptor + 1);
+            }
+        }
+    }
+
+    return true;
+}
 
 #define MAX_PROCESSED_MODULES 32
-	BOOL ProcessLateLoadModules(VECTOR<LATE_LOAD_ENTRY>& mods) {
+	BOOL ResolveLateLoadModules(VECTOR<LATE_LOAD_ENTRY>& mods) {
 
 		UINT32 processed_mods[MAX_PROCESSED_MODULES] = { };
 		UINT32 processed_count = 0; /* do not overflow the stack */
@@ -493,7 +503,7 @@ namespace Modules {
 			BOOL processed = false;
 
 			for (auto i = 0; i < processed_count; i++) {
-				if (processed_mods[i] == mods[entry].hash) {
+				if (processed_mods[i] == vec_at(mods, entry).hash) {
 					processed = true;
 					break;
 				}
@@ -502,18 +512,18 @@ namespace Modules {
 				continue;
 			}
 
-			mods[entry].mod = ImportModule(LoadLocalFile, mods[entry].hash, nullptr, 0, nullptr, false);
-			if (!mods[entry].mod || !mods[entry].mod->success) {
+			vec_at(mods, entry).mod = ImportModule(LoadLocalFile, vec_at(mods, entry).hash, nullptr, 0, nullptr, false);
+			if (!vec_at(mods, entry).mod || !vec_at(mods, entry).mod->success) {
 				goto defer;  
 			}
 
 			if (processed_count < MAX_PROCESSED_MODULES) {
-				processed_mods[processed_count++] = mods[entry].hash;
+				processed_mods[processed_count++] = vec_at(mods, entry).hash;
 			}
 		}
 
 		for (auto entry = 0; entry < vec_size(mods); entry++) {
-			if (mods[entry].mod && !ResolveImports(mods[entry].mod, mods)) {
+			if (vec_at(mods, entry).mod && !ResolveImports(vec_at(mods, entry).mod, mods)) {
 				goto defer;
 			}
 		}
@@ -522,8 +532,8 @@ namespace Modules {
 
 	defer:
 		for (auto entry = 0; entry < vec_size(mods); entry++) {
-			if (mods[entry].mod) {
-				CleanupModule(&mods[entry].mod, !success);
+			if (vec_at(mods, entry).mod) {
+				CleanupModule(&vec_at(mods, entry).mod, !success);
 			}
 		}
 
@@ -863,7 +873,7 @@ namespace Modules {
 			goto defer;
 		}
 		if (late_loads.length) { /* prevent recursive calls to ResolveImports */
-			if (!ResolveLateLoadModlues(late_loads) || !ResolveImports(mod, late_loads)) {
+			if (!ResolveLateLoadModules(late_loads) || !ResolveImports(mod, late_loads)) {
 				goto defer;
 			}
 		}
