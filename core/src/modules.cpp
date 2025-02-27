@@ -849,12 +849,12 @@ namespace Modules {
 		SimpleVector<LATE_LOAD_ENTRY> late_loads;
 		init_vector(late_loads);
 
-        if (!MapModule(mod) || !ResolveImports(mod)) {
+        if (!MapModule(mod) || !ResolveImports(mod /*, late_loads*/)) {
             goto defer;
         }
 
 		/*
-		if (!ProcessLateLoadModules()) {
+		if (!ProcessLateLoadModules(late_loads)) {
 			goto defer;
 		}
 		*/
