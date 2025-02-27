@@ -33,7 +33,6 @@ typedef uint64_t uint64;
 #define ntstatus                        ctx->teb->LastErrorValue
 #define GLOBAL_OFFSET                   (U_PTR(InstStart()) + U_PTR( &__global ))
 #define HEXANE                          _hexane *ctx = (_hexane*) C_DREF(GLOBAL_OFFSET)
-#define __xdbg()                        __asm__ volatile("int 3")
 
 #define B_PTR(x)                        ((PBYTE) x)
 #define C_PTR(x)                        ((LPVOID) x)

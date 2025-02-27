@@ -55,11 +55,6 @@
 	    BOOL
     	FUNCTION __stdcall
     	ResolveImports(CONST EXECUTABLE *mod);
-		/*
-#pragma GCC push_options
-#pragma GCC optimize("O0")
-#pragma GCC pop_options
-		*/
 
 		PEXECUTABLE
     	FUNCTION __stdcall

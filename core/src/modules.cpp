@@ -434,7 +434,7 @@ namespace Modules {
 					}
 
 					lib = next_load->base;
-					CleanupModule(next_load, false);
+					CleanupModule(&next_load, false);
 				}
 
 				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
@@ -442,11 +442,13 @@ namespace Modules {
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
+						__debugbreak();
 						if (!LocalLdrFindExportAddress((HMODULE)lib, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
 					} else {
 						PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
+						__debugbreak();
 						if (!LocalLdrFindExportAddress((HMODULE)lib, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
@@ -456,6 +458,7 @@ namespace Modules {
 		}
 
 		// handle the delayed import table
+		__debugbreak();
 		if (import_dire->Size) {
 			PIMAGE_DELAYLOAD_DESCRIPTOR delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->base, import_dire->VirtualAddress);
 
@@ -481,7 +484,7 @@ namespace Modules {
 					}
 
 					lib = next_load->base;
-					CleanupModule(next_load, false);
+					CleanupModule(&next_load, false);
 				}
 
 				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
@@ -489,11 +492,13 @@ namespace Modules {
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
+						__debugbreak();
 						if (!LocalLdrFindExportAddress((HMODULE)lib, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
 					} else {
 						PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
+						__debugbreak();
 						if (!LocalLdrFindExportAddress((HMODULE)lib, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
@@ -502,7 +507,6 @@ namespace Modules {
 			}
 		}
 
-		__xdbg();
 		return true;
 	}
 
@@ -851,7 +855,7 @@ namespace Modules {
 
         mod->success = true;
 
-        defer:
+	defer:
 		if (mod) {
 			if (!mod->success) {
 				CleanupModule(&mod, true);
