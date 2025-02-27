@@ -442,18 +442,19 @@ namespace Modules {
 		for (const auto sec_index = 0; sec_index < ARRAY_LEN(import_sections); sec_index++) {
 			PIMAGE_DATA_DIRECTORY directory = (PIMAGE_DATA_DIRECTORY)&mod->nt_head->OptionalHeader.DataDirectory[import_sections[sec_index].directory]; 
 
-			if (import_dire->Size) {
-				auto desc = import_sections[sec_index].delayed
+			if (directory->Size) {
+				auto descriptor = import_sections[sec_index].delayed
 					? RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->base, directory->VirtualAddress)
 					: RVA(PIMAGE_IMPORT_DESCRIPTOR, mod->base, directory->VirtualAddress);
 
-				for (; desc->Name; desc++) {
+				for (; descriptor->Name; descriptor++) {
+					BOOL delayed = import_sections[sec_index].delayed;
 					VOID *lib = nullptr;
 					CHAR *name = nullptr;
 					UINT32 hash = 0;
 
 					MemSet(buffer, 0, MAX_PATH);
-					const auto rva = import_sections[sec_index].delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)desc)->DllNameRVA : desc->Name;
+					const auto rva = delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->DllNameRVA : descriptor->Name;
 
 					if (
 						!(name = RVA(CHAR*, mod->base, rva) ||
@@ -469,8 +470,8 @@ namespace Modules {
 						continue;
 					}
 
-					PIMAGE_THUNK_DATA thunk_a = RVA(PIMAGE_THUNK_DATA, mod->base, import_sections[sec_index].delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)desc)->ImportAddressTableRVA : desc->FirstThunk);
-					PIMAGE_THUNK_DATA thunk_b = RVA(PIMAGE_THUNK_DATA, mod->base, import_sections[sec_index].delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)desc)->ImportNameTableRVA : desc->OriginalFirstThunk);
+					PIMAGE_THUNK_DATA thunk_a = RVA(PIMAGE_THUNK_DATA, mod->base, delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->ImportAddressTableRVA : descriptor->FirstThunk);
+					PIMAGE_THUNK_DATA thunk_b = RVA(PIMAGE_THUNK_DATA, mod->base, delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->ImportNameTableRVA : descriptor->OriginalFirstThunk);
 
 					if (!ResolveEntries(mod, thunk_a, thunk_b, lib)) {
 						return false;
