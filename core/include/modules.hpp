@@ -14,7 +14,7 @@
 
 		VOID
 		FUNCTION __stdcall
-		CleanupModule(EXECUTABLE *mod);
+		CleanupModule(EXECUTABLE **mod, BOOL destroy);
 
     	VOID
     	FUNCTION __stdcall
