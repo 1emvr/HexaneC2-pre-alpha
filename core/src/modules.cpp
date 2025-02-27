@@ -479,21 +479,21 @@ namespace Modules {
 					continue;
 				}
 
-				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
-				PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportNameTableRVA);
+				PIMAGE_THUNK_DATA address_table = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
+				PIMAGE_THUNK_DATA name_table = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportNameTableRVA);
 
-				for (; org_first->u1.Function; first_thunk++, org_first++) {
-					if (first_thunk->u1.Function != org_first->u1.AddressOfData) {
+				for (; name_table->u1.Function; address_table++, name_table++) {
+					if (address_table->u1.Function != name_table->u1.AddressOfData) {
 						continue; /* already loaded */
 					}
 
-					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-						if (!LocalLdrFindExportAddress((HMODULE)lib, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
+					if (IMAGE_SNAP_BY_ORDINAL(name_table->u1.Ordinal)) {
+						if (!LocalLdrFindExportAddress((HMODULE)lib, nullptr, (UINT16)name_table->u1.Ordinal, (VOID**)&address_table->u1.Function)) {
 							return false;
 						}
 					} else {
-						PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
-						if (!LocalLdrFindExportAddress((HMODULE)lib, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
+						PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, name_table->u1.AddressOfData);
+						if (!LocalLdrFindExportAddress((HMODULE)lib, import_name->Name, 0, (VOID**)&address_table->u1.Function)) {
 							return false;
 						}
 					}
