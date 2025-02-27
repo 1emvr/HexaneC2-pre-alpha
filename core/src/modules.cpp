@@ -406,7 +406,7 @@ namespace Modules {
 	BOOL ResolveEntries(CONST EXECUTABLE *mod, PIMAGE_THUNK_DATA thunk_a, PIMAGE_THUNK_DATA thunk_b, VOID *lib) {
 		
 		for (; thunk_b && thunk_b->u1.Function; thunk_a++, thunk_b++) {
-			if (thunk_a->u1.Function != thunk_b->u1.AddressOfData) {
+			if (thunk_a->u1.Function != thunk_b->u1.AddressOfData) { /* already resolved */
 				continue;
 			}
 
