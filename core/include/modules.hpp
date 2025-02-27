@@ -2,11 +2,6 @@
 #define MODULES_H
 #include <core/corelib.hpp>
 
-struct LATE_LOAD_ENTRY {
-	UINT32 hash;
-	PEXECUTABLE mod;
-};
-
 namespace Modules {
 
 	PRTL_RB_TREE
@@ -63,11 +58,11 @@ namespace Modules {
 
 	BOOL
 	FUNCTION __stdcall
-	ResolveImports(CONST EXECUTABLE *mod, VECTOR<LATE_LOAD_ENTRY>& late_loads);
+	ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads);
 
 	BOOL
 	FUNCTION __stdcall
-	ResolveLateLoadModules(VECTOR<LATE_LOAD_ENTRY>& mods);
+	ResolveLateLoadModules(VECTOR& mods);
 
 	PEXECUTABLE
 	FUNCTION __stdcall

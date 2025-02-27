@@ -424,9 +424,9 @@ namespace Modules {
 		return true;
 	}
 
-BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR<LATE_LOAD_ENTRY>& late_loads) {
-    HEXANE; 
+BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
 
+	__debugbreak();
     UINT8 buffer[MAX_PATH] = { };
 
     struct ImportSections {
@@ -497,7 +497,7 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR<LATE_LOAD_ENTRY>& late_loads) 
 }
 
 #define MAX_PROCESSED_MODULES 32
-	BOOL ResolveLateLoadModules(VECTOR<LATE_LOAD_ENTRY>& mods) {
+	BOOL ResolveLateLoadModules(VECTOR& mods) {
 
 		UINT32 processed_mods[MAX_PROCESSED_MODULES] = { };
 		UINT32 processed_count = 0; /* do not overflow the stack */
@@ -814,7 +814,7 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR<LATE_LOAD_ENTRY>& late_loads) 
         HEXANE;
         // Code based off of https://github.com/bats3c/DarkLoadLibrary
 
-		VECTOR<LATE_LOAD_ENTRY> late_loads;
+		VECTOR late_loads;
         EXECUTABLE *mod = (EXECUTABLE*)ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
         if (!mod) {
             return nullptr;
@@ -871,7 +871,6 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR<LATE_LOAD_ENTRY>& late_loads) 
             goto defer;
         }
 
-		__debugbreak();
 		init_vector(late_loads);
 		if (!MapModule(mod) || !ResolveImports(mod, late_loads)) {
 			goto defer;

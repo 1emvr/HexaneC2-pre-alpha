@@ -1,0 +1,72 @@
+#include <core/include/vector.hpp>
+// Define the structure for our vector
+// Initialize the vector
+void FUNCTION init_vector(VECTOR& vec) {
+    vec.data = nullptr;
+    vec.capacity = 0;
+    vec.length = 0;
+}
+
+void FUNCTION push_back(VECTOR& vec, const LATE_LOAD_ENTRY& value) {
+	HEXANE;
+
+    if (vec.length == vec.capacity) {
+        size_t new_capacity = (vec.capacity == 0) ? 1 : vec.capacity * 2;
+        LATE_LOAD_ENTRY* new_data = (LATE_LOAD_ENTRY*) Malloc(new_capacity);
+
+        if (vec.data) {
+            MemCopy((void*)new_data, (void*)vec.data, vec.length * sizeof(LATE_LOAD_ENTRY));
+            Free((void*)vec.data);
+        }
+
+        vec.data = new_data;
+        vec.capacity = new_capacity;
+    }
+
+    vec.data[vec.length] = value;
+    ++vec.length;
+}
+
+LATE_LOAD_ENTRY& FUNCTION vec_at(VECTOR& vec, size_t index) {
+    if (index >= vec.length) {
+        /* throw std::out_of_range("Index out of range"); */
+    }
+    return vec.data[index];
+}
+
+const LATE_LOAD_ENTRY& FUNCTION vec_at(const VECTOR& vec, size_t index) {
+    if (index >= vec.length) {
+        /* throw std::out_of_range("Index out of range"); */
+    }
+    return vec.data[index];
+}
+
+// Return the current number of elements
+size_t FUNCTION vec_size(const VECTOR& vec) {
+    return vec.length;
+}
+
+// Return true if the vector is empty
+bool FUNCTION vec_empty(const VECTOR& vec) {
+    return vec.length == 0;
+}
+
+// Remove the last element
+void FUNCTION pop_back(VECTOR& vec) {
+    if (vec.length > 0) {
+        --vec.length;
+    }
+}
+
+// Clear all elements
+void FUNCTION vec_clear(VECTOR& vec) {
+    vec.length = 0;
+}
+
+// Destructor-like function to free the memory
+void FUNCTION free_vector(VECTOR& vec) {
+	HEXANE;
+    if (vec.data) {
+        Free((void*)vec.data);
+    }
+}

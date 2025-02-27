@@ -1,6 +1,5 @@
 #ifndef CORELIB_HPP
 #define CORELIB_HPP
-
 #include <core/monolith.hpp>
 #include <core/include/names.hpp>
 #include <core/include/cipher.hpp>
@@ -22,5 +21,4 @@
 #include <core/include/objects.hpp>
 #include <core/include/threads.hpp>
 #include <core/include/sleep.hpp>
-
 #endif //CORELIB_HPP
