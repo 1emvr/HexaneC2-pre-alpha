@@ -769,7 +769,7 @@ namespace Modules {
 	BOOL ProcessLateLoadModules(VECTOR<LATE_LOAD_ENTRY>& mods) {
 
 		UINT32 processed_mods[MAX_PROCESSED_MODULES] = { };
-		UINT32 processed_count = 0;
+		UINT32 processed_count = 0; /*do not overflow the stack*/
 		BOOL success = false;
 
 		for (auto entry = 0; mods[entry]; entry++) {
