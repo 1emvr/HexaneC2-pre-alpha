@@ -436,7 +436,11 @@ namespace Modules {
 				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
 				PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
 
-				for (; org_first->u1.Function; first_thunk++, org_first++) {
+				for (; org_first && org_first->u1.Function; first_thunk++, org_first++) {
+					if (first_thunk->u1.Function != org_first->u1.AddressOfData) { 
+						continue; /* already loaded */
+					}
+
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
 						if (!LocalLdrFindExportAddress((HMODULE)lib, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
 							return false;
@@ -479,6 +483,10 @@ namespace Modules {
 				PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportNameTableRVA);
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
+					if (first_thunk->u1.Function != org_first->u1.AddressOfData) {
+						continue; /* already loaded */
+					}
+
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
 						if (!LocalLdrFindExportAddress((HMODULE)lib, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
 							return false;
@@ -873,8 +881,13 @@ namespace Modules {
 
 		__debugbreak();
 		init_vector(late_loads);
-		if (!MapModule(mod) || !ResolveImports(mod, late_loads) || !ProcessLateLoadModules(late_loads)) {
+		if (!MapModule(mod) || !ResolveImports(mod, late_loads)) {
 			goto defer;
+		}
+		if (late_loads.length) {
+			if (!ResolveLateLoadModlues(late_loads) || !ResolveImports(mod, late_loads)) {
+				goto defer;
+			}
 		}
 
 		free_vector(late_loads);
