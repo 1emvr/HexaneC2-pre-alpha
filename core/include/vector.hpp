@@ -1,9 +1,7 @@
-#include <iostream>
-#include <stdlib.hpp>
-
+#include <core/corelib.hpp>
 // Define the structure for our vector
 template <typename T>
-struct SimpleVector {
+struct VECTOR {
     T* data;           // Pointer to the dynamically allocated array
     size_t capacity;   // Current capacity of the array
     size_t length;     // Number of elements in the array
@@ -11,14 +9,14 @@ struct SimpleVector {
 
 // Initialize the vector
 template <typename T>
-void init_vector(SimpleVector<T>& vec) {
+void init_vector(VECTOR<T>& vec) {
     vec.data = nullptr;
     vec.capacity = 0;
     vec.length = 0;
 }
 
 template <typename T>
-void push_back(SimpleVector<T>& vec, const T& value) {
+void push_back(VECTOR<T>& vec, const T& value) {
 	HEXANE;
 
     if (vec.length == vec.capacity) {
@@ -39,7 +37,7 @@ void push_back(SimpleVector<T>& vec, const T& value) {
 }
 
 template <typename T>
-T& at(SimpleVector<T>& vec, size_t index) {
+T& at(VECTOR<T>& vec, size_t index) {
     if (index >= vec.length) {
         /* throw std::out_of_range("Index out of range"); */
     }
@@ -47,7 +45,7 @@ T& at(SimpleVector<T>& vec, size_t index) {
 }
 
 template <typename T>
-const T& at(const SimpleVector<T>& vec, size_t index) {
+const T& at(const VECTOR<T>& vec, size_t index) {
     if (index >= vec.length) {
         /* throw std::out_of_range("Index out of range"); */
     }
@@ -56,19 +54,19 @@ const T& at(const SimpleVector<T>& vec, size_t index) {
 
 // Return the current number of elements
 template <typename T>
-size_t size(const SimpleVector<T>& vec) {
+size_t size(const VECTOR<T>& vec) {
     return vec.length;
 }
 
 // Return true if the vector is empty
 template <typename T>
-bool empty(const SimpleVector<T>& vec) {
+bool empty(const VECTOR<T>& vec) {
     return vec.length == 0;
 }
 
 // Remove the last element
 template <typename T>
-void pop_back(SimpleVector<T>& vec) {
+void pop_back(VECTOR<T>& vec) {
     if (vec.length > 0) {
         --vec.length;
     }
@@ -76,14 +74,15 @@ void pop_back(SimpleVector<T>& vec) {
 
 // Clear all elements
 template <typename T>
-void clear(SimpleVector<T>& vec) {
+void clear(VECTOR<T>& vec) {
     vec.length = 0;
 }
 
 // Destructor-like function to free the memory
 template <typename T>
-void free_vector(SimpleVector<T>& vec) {
+void free_vector(VECTOR<T>& vec) {
+	HEXANE;
     if (vec.data) {
-        delete[] vec.data;
+        Free(vec.data);
     }
 }
