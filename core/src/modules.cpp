@@ -769,7 +769,7 @@ namespace Modules {
 	BOOL ProcessLateLoadModules(VECTOR<LATE_LOAD_ENTRY>& mods) {
 
 		UINT32 processed_mods[MAX_PROCESSED_MODULES] = { };
-		UINT32 processed_count = 0; /*do not overflow the stack*/
+		UINT32 processed_count = 0; /* do not overflow the stack */
 		BOOL success = false;
 
 		for (auto entry = 0; entry < vec_size(mods); entry++) {
@@ -801,7 +801,6 @@ namespace Modules {
 			}
 		}
 
-		vec_clear(mods);
 		success = true;
 
 	defer:
@@ -811,6 +810,7 @@ namespace Modules {
 			}
 		}
 
+		vec_clear(mods);
 		return success;
 	}
 
