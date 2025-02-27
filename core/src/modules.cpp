@@ -841,11 +841,20 @@ namespace Modules {
         }
 
         // map the sections into memory
+		SimpleVector<LATE_LOAD_ENTRY> late_loads = nullptr;
+		init_vector(late_loads);
+
         if (!MapModule(mod) || !ResolveImports(mod)) {
             goto defer;
         }
 
-        if (mod->link) {
+		/*
+		if (!ProcessLateLoadModules()) {
+			goto defer;
+		}
+		*/
+
+		if (mod->link) {
             if (!LinkModule(mod)) {
                 goto defer;
             }

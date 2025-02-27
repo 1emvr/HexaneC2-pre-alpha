@@ -295,7 +295,6 @@ enum DX_MEMORY {
 	DX_MEM_SYSCALL,
 };
 
-
 typedef struct _hash_map {
 	DWORD   name;
 	LPVOID  address;
