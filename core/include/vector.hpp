@@ -37,7 +37,7 @@ void push_back(VECTOR<T>& vec, const T& value) {
 }
 
 template <typename T>
-T& at(VECTOR<T>& vec, size_t index) {
+T& vec_at(VECTOR<T>& vec, size_t index) {
     if (index >= vec.length) {
         /* throw std::out_of_range("Index out of range"); */
     }
@@ -45,7 +45,7 @@ T& at(VECTOR<T>& vec, size_t index) {
 }
 
 template <typename T>
-const T& at(const VECTOR<T>& vec, size_t index) {
+const T& vec_at(const VECTOR<T>& vec, size_t index) {
     if (index >= vec.length) {
         /* throw std::out_of_range("Index out of range"); */
     }
@@ -54,13 +54,13 @@ const T& at(const VECTOR<T>& vec, size_t index) {
 
 // Return the current number of elements
 template <typename T>
-size_t size(const VECTOR<T>& vec) {
+size_t vec_size(const VECTOR<T>& vec) {
     return vec.length;
 }
 
 // Return true if the vector is empty
 template <typename T>
-bool empty(const VECTOR<T>& vec) {
+bool vec_empty(const VECTOR<T>& vec) {
     return vec.length == 0;
 }
 
@@ -74,7 +74,7 @@ void pop_back(VECTOR<T>& vec) {
 
 // Clear all elements
 template <typename T>
-void clear(VECTOR<T>& vec) {
+void vec_clear(VECTOR<T>& vec) {
     vec.length = 0;
 }
 

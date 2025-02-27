@@ -772,7 +772,7 @@ namespace Modules {
 		UINT32 processed_count = 0; /*do not overflow the stack*/
 		BOOL success = false;
 
-		for (auto entry = 0; mods[entry]; entry++) {
+		for (auto entry = 0; entry < vec_size(mods); entry++) {
 			BOOL processed = false;
 
 			for (auto i = 0; i < processed_count; i++) {
@@ -795,17 +795,17 @@ namespace Modules {
 			}
 		}
 
-		for (auto entry = 0; mods[entry]; entry++) {
+		for (auto entry = 0; entry < vec_size(mods); entry++) {
 			if (mods[entry].mod && !ResolveImports(mods[entry].mod, mods)) {
 				goto defer;
 			}
 		}
 
-		mods.clear();
+		vec_clear(mods);
 		success = true;
 
 	defer:
-		for (auto entry = 0; mods[entry]; mods++) {
+		for (auto entry = 0; entry < vec_size(mods); entry++) {
 			if (mods[entry].mod) {
 				CleanupModule(&mods[entry].mod, !success);
 			}
