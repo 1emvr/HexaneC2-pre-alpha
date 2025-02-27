@@ -423,7 +423,13 @@ namespace Modules {
 					!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
 					return false;
 				}
-				// look for dependencies already loaded in memory
+
+				/*
+				  TODO: add unloaded modules to a list of "LateLoad" modules instead of calling ImportModule recursively
+				  Debugging recursive calls is an absolute fucking nightmare and I hate it.
+				  Would be much better to add them to a late loading process and calling importmod with a depth of 1.
+				 */
+				/* looking for msvcrt.dll, both of these calls failed for unknown reason */
 				if (PLDR_DATA_TABLE_ENTRY dep = FindModuleEntry(hash)) {
 					volatile auto temp = dep->DllBase;
 					lib = temp;
@@ -441,14 +447,13 @@ namespace Modules {
 				PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
+					__debugbreak();
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
-						__debugbreak();
 						if (!LocalLdrFindExportAddress((HMODULE)lib, nullptr, (UINT16)org_first->u1.Ordinal, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
 					} else {
 						PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
-						__debugbreak();
 						if (!LocalLdrFindExportAddress((HMODULE)lib, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
