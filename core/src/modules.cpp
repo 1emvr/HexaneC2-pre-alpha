@@ -445,9 +445,10 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR<LATE_LOAD_ENTRY>& late_loads) 
         PIMAGE_DELAYLOAD_DESCRIPTOR delay_desc = nullptr;
 
         if (directory->Size) {
+			BOOL delayed = import_sections[sec_index].delayed;
             VOID *descriptor = nullptr;
 
-            if (import_sections[sec_index].delayed) {
+            if (delayed) {
                 delay_desc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->base, directory->VirtualAddress);
                 descriptor = delay_desc;
             } else {
@@ -460,8 +461,11 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR<LATE_LOAD_ENTRY>& late_loads) 
                 CHAR *name = nullptr;
                 UINT32 hash = 0;
 
+				PIMAGE_THUNK_DATA thunk_a = nullptr;
+				PIMAGE_THUNK_DATA thunk_b = nullptr;
+
                 MemSet(buffer, 0, MAX_PATH);
-                const auto rva = import_sections[sec_index].delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->DllNameRVA : ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->Name;
+                const auto rva = delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->DllNameRVA : ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->Name;
 
                 if (!(name = RVA(CHAR*, mod->base, rva)) || 
                     !(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
@@ -473,18 +477,18 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR<LATE_LOAD_ENTRY>& late_loads) 
                     lib = temp;
                 } else {
                     push_back(late_loads, { hash, nullptr });
-                    descriptor = import_sections[sec_index].delayed ? (VOID*)((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor + 1) : (VOID*)((PIMAGE_IMPORT_DESCRIPTOR)descriptor + 1);
-                    continue;
+					goto next;
                 }
 
-                PIMAGE_THUNK_DATA thunk_a = RVA(PIMAGE_THUNK_DATA, mod->base, import_sections[sec_index].delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->ImportAddressTableRVA : ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->FirstThunk);
-                PIMAGE_THUNK_DATA thunk_b = RVA(PIMAGE_THUNK_DATA, mod->base, import_sections[sec_index].delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->ImportNameTableRVA : ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->OriginalFirstThunk);
+                thunk_a = RVA(PIMAGE_THUNK_DATA, mod->base, delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->ImportAddressTableRVA : ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->FirstThunk);
+                thunk_b = RVA(PIMAGE_THUNK_DATA, mod->base, delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->ImportNameTableRVA : ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->OriginalFirstThunk);
 
                 if (!ResolveEntries(mod, thunk_a, thunk_b, lib)) {
                     return false;
                 }
 
-                descriptor = import_sections[sec_index].delayed ? (VOID*)((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor + 1) : (VOID*)((PIMAGE_IMPORT_DESCRIPTOR)descriptor + 1);
+			next:
+                descriptor = delayed ? (VOID*)((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor + 1) : (VOID*)((PIMAGE_IMPORT_DESCRIPTOR)descriptor + 1);
             }
         }
     }
