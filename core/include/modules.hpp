@@ -59,6 +59,10 @@ namespace Modules {
 
 	BOOL
 	FUNCTION __stdcall
+	ResolveEntries(CONST EXECUTABLE *mod, PIMAGE_THUNK_DATA thunk_a, PIMAGE_THUNK_DATA thunk_b, VOID *lib);
+
+	BOOL
+	FUNCTION __stdcall
 	ResolveImports(CONST EXECUTABLE *mod, VECTOR<LATE_LOAD_ENTRY>& late_loads);
 
 	BOOL
