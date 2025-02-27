@@ -482,6 +482,55 @@ namespace Modules {
 		return true;
 	}
 
+#define MAX_PROCESSED_MODULES 32
+	BOOL ProcessLateLoadModules(VECTOR<LATE_LOAD_ENTRY>& mods) {
+
+		UINT32 processed_mods[MAX_PROCESSED_MODULES] = { };
+		UINT32 processed_count = 0; /* do not overflow the stack */
+		BOOL success = false;
+
+		for (auto entry = 0; entry < vec_size(mods); entry++) {
+			BOOL processed = false;
+
+			for (auto i = 0; i < processed_count; i++) {
+				if (processed_mods[i] == mods[entry].hash) {
+					processed = true;
+					break;
+				}
+			}
+			if (processed) {
+				continue;
+			}
+
+			mods[entry].mod = ImportModule(LoadLocalFile, mods[entry].hash, nullptr, 0, nullptr, false);
+			if (!mods[entry].mod || !mods[entry].mod->success) {
+				goto defer;  
+			}
+
+			if (processed_count < MAX_PROCESSED_MODULES) {
+				processed_mods[processed_count++] = mods[entry].hash;
+			}
+		}
+
+		for (auto entry = 0; entry < vec_size(mods); entry++) {
+			if (mods[entry].mod && !ResolveImports(mods[entry].mod, mods)) {
+				goto defer;
+			}
+		}
+
+		success = true;
+
+	defer:
+		for (auto entry = 0; entry < vec_size(mods); entry++) {
+			if (mods[entry].mod) {
+				CleanupModule(&mods[entry].mod, !success);
+			}
+		}
+
+		vec_clear(mods);
+		return success;
+	}
+
 	PRTL_RB_TREE FindModuleIndex() {
         PRTL_BALANCED_NODE node = nullptr;
         PRTL_RB_TREE index      = nullptr;
@@ -670,7 +719,7 @@ namespace Modules {
             return false;
         }
 
-        if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, mod->buf_size, &mod->buf_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
+        if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, mod->buf_size, &mod->buf_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
             ctx->win32.NtClose(handle);
             return false;
         }
@@ -746,55 +795,6 @@ namespace Modules {
 
         return true;
     }
-
-#define MAX_PROCESSED_MODULES 32
-	BOOL ProcessLateLoadModules(VECTOR<LATE_LOAD_ENTRY>& mods) {
-
-		UINT32 processed_mods[MAX_PROCESSED_MODULES] = { };
-		UINT32 processed_count = 0; /* do not overflow the stack */
-		BOOL success = false;
-
-		for (auto entry = 0; entry < vec_size(mods); entry++) {
-			BOOL processed = false;
-
-			for (auto i = 0; i < processed_count; i++) {
-				if (processed_mods[i] == mods[entry].hash) {
-					processed = true;
-					break;
-				}
-			}
-			if (processed) {
-				continue;
-			}
-
-			mods[entry].mod = ImportModule(LoadLocalFile, mods[entry].hash, nullptr, 0, nullptr, false);
-			if (!mods[entry].mod || !mods[entry].mod->success) {
-				goto defer;  
-			}
-
-			if (processed_count < MAX_PROCESSED_MODULES) {
-				processed_mods[processed_count++] = mods[entry].hash;
-			}
-		}
-
-		for (auto entry = 0; entry < vec_size(mods); entry++) {
-			if (mods[entry].mod && !ResolveImports(mods[entry].mod, mods)) {
-				goto defer;
-			}
-		}
-
-		success = true;
-
-	defer:
-		for (auto entry = 0; entry < vec_size(mods); entry++) {
-			if (mods[entry].mod) {
-				CleanupModule(&mods[entry].mod, !success);
-			}
-		}
-
-		vec_clear(mods);
-		return success;
-	}
 
 	PEXECUTABLE ImportModule(CONST UINT32 load_type, CONST UINT32 name_hash, UINT8 *memory, CONST UINT32 mem_size, WCHAR *name, BOOL cache) {
         HEXANE;
