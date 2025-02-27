@@ -52,12 +52,14 @@
     	FUNCTION __stdcall
     	LocalLdrFindExportAddress(HMODULE mod, CONST CHAR *fn_name, UINT16 ordinal, VOID **function);
 
-#pragma GCC push_options
-#pragma GCC optimize("O0")
 	    BOOL
     	FUNCTION __stdcall
     	ResolveImports(CONST EXECUTABLE *mod);
+		/*
+#pragma GCC push_options
+#pragma GCC optimize("O0")
 #pragma GCC pop_options
+		*/
 
 		PEXECUTABLE
     	FUNCTION __stdcall

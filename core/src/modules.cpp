@@ -105,7 +105,6 @@ namespace Modules {
         }
 
 		// Locate .text section
-		__debugbreak();
         for (INT sec_index = 0; sec_index < nt_head->FileHeader.NumberOfSections; sec_index++) {
             CONST IMAGE_SECTION_HEADER *section = RVA(IMAGE_SECTION_HEADER*, &nt_head->OptionalHeader, nt_head->FileHeader.SizeOfOptionalHeader + (sec_index * sizeof(IMAGE_SECTION_HEADER)));
 
@@ -125,8 +124,6 @@ namespace Modules {
         IMAGE_DATA_DIRECTORY *data_dire = &nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 
         if (data_dire->Size) {
-			__debugbreak();
-
             CONST IMAGE_EXPORT_DIRECTORY *exports = RVA(IMAGE_EXPORT_DIRECTORY*, mod, data_dire->VirtualAddress);
             CONST UINT32 n_entries = !export_name ? exports->NumberOfFunctions : exports->NumberOfNames;
 
@@ -440,8 +437,8 @@ namespace Modules {
 					CLEANUP_MODULE(next_load);
 				}
 
-				volatile PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
-				volatile PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
+				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
+				PIMAGE_THUNK_DATA org_first = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->OriginalFirstThunk);
 
 				for (; org_first->u1.Function; first_thunk++, org_first++) {
 					if (IMAGE_SNAP_BY_ORDINAL(org_first->u1.Ordinal)) {
@@ -449,7 +446,7 @@ namespace Modules {
 							return false;
 						}
 					} else {
-						volatile PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
+						PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, org_first->u1.AddressOfData);
 						if (!LocalLdrFindExportAddress((HMODULE)lib, import_name->Name, 0, (VOID**)&first_thunk->u1.Function)) {
 							return false;
 						}
@@ -505,6 +502,7 @@ namespace Modules {
 			}
 		}
 
+		__xdbg();
 		return true;
 	}
 
@@ -856,10 +854,10 @@ namespace Modules {
         defer:
 		if (mod) {
 			if (!mod->success) {
-				DESTROY_MODULE(mod);
+				CleanupModule(&mod, true);
 			} else {
 				if (!cache) {
-					CLEANUP_MODULE(mod);
+					CleanupModule(&mod, false);
 				}
 			}
 		}
@@ -867,22 +865,32 @@ namespace Modules {
         return mod;
     }
 
-	VOID CleanupModule(EXECUTABLE *mod) {
+	VOID CleanupModule(EXECUTABLE **mod, BOOL destroy) {
 		HEXANE;
 
-		// NOTE: the module object and base will remain allocated until manually freed (mod* and mod->base).
-		if (mod) {
-			if (mod->buffer) {
-				MemSet(mod->buffer, 0, mod->buf_size);
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, &mod->buf_size, MEM_RELEASE);
+		if (mod && *mod) {
+			if ((*mod)->buffer) {
+				MemSet((*mod)->buffer, 0, (*mod)->buf_size);
+				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &(*mod)->buffer, &(*mod)->buf_size, MEM_RELEASE);
+				(*mod)->buffer = nullptr;
 			}
-			if (mod->local_name) {
-				MemSet(mod->local_name, 0, MAX_PATH);
-				Free(mod->local_name);
+			if ((*mod)->local_name) {
+				MemSet((*mod)->local_name, 0, MAX_PATH);
+				Free((*mod)->local_name);
+				(*mod)->local_name = nullptr;
 			}
-			if (mod->cracked_name) {
-				MemSet(mod->cracked_name, 0, MAX_PATH);
-				Free(mod->cracked_name);
+			if ((*mod)->cracked_name) {
+				MemSet((*mod)->cracked_name, 0, MAX_PATH);
+				Free((*mod)->cracked_name);
+				(*mod)->cracked_name = nullptr;
+			}
+			if (destroy) {
+				if ((*mod)->base) {													
+					ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &(*mod)->base, &(*mod)->base_size, MEM_RELEASE); 
+					(*mod)->base = nullptr;											
+				}																
+				Free(*mod);													
+				*mod = nullptr;												
 			}
 		}
 	}

