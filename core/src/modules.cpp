@@ -434,7 +434,7 @@ namespace Modules {
 			BOOL delayed;
 		};
 
-		ImportSections import_sections[] = { /* encapsulate the two for ease of use */
+		ImportSections import_sections[] = { 
 			{ IMAGE_DIRECTORY_ENTRY_IMPORT, false },
 			{ IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT, true },
 		};
