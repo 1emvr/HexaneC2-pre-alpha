@@ -434,7 +434,7 @@ namespace Modules {
 					}
 
 					lib = next_load->base;
-					CLEANUP_MODULE(next_load);
+					CleanupModule(next_load, false);
 				}
 
 				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, import_desc->FirstThunk);
@@ -481,7 +481,7 @@ namespace Modules {
 					}
 
 					lib = next_load->base;
-					CLEANUP_MODULE(next_load);
+					CleanupModule(next_load, false);
 				}
 
 				PIMAGE_THUNK_DATA first_thunk = RVA(PIMAGE_THUNK_DATA, mod->base, delay_desc->ImportAddressTableRVA);
