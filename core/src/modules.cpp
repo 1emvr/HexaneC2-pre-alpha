@@ -426,7 +426,6 @@ namespace Modules {
 
 BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
 
-	__debugbreak();
     UINT8 buffer[MAX_PATH] = { };
 
     struct ImportSections {
@@ -476,6 +475,7 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
                     volatile auto temp = dep->DllBase;  /* Prevent compiler optimizations */
                     lib = temp;
                 } else {
+					__debugbreak();
                     push_back(late_loads, { hash, nullptr });
 					goto next;
                 }

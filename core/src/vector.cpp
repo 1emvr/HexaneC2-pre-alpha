@@ -11,7 +11,7 @@ VOID FUNCTION push_back(VECTOR& vec, CONST LATE_LOAD_ENTRY& value) {
 
     if (vec.length == vec.capacity) {
         SIZE_T new_capacity = (vec.capacity == 0) ? 1 : vec.capacity * 2;
-        LATE_LOAD_ENTRY* new_data = (LATE_LOAD_ENTRY*) Malloc(new_capacity);
+        LATE_LOAD_ENTRY* new_data = (LATE_LOAD_ENTRY*) Malloc(new_capacity * sizeof(LATE_LOAD_ENTRY));
 
         if (vec.data) {
             MemCopy((VOID*)new_data, (VOID*)vec.data, vec.length * sizeof(LATE_LOAD_ENTRY));
