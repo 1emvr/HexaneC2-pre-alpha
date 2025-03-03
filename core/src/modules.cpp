@@ -880,6 +880,7 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
 		if (!MapModule(mod) || !ResolveImports(mod, late_loads)) {
 			goto defer;
 		}
+		// NOTE: might need updated for delayed loads beyond depth of 1
 		if (late_loads.length) { /* prevent recursive calls to ResolveImports */
 			if (!ResolveLateLoadModules(late_loads) || !ResolveImports(mod, late_loads)) {
 				goto defer;
