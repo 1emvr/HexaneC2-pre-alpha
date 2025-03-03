@@ -407,6 +407,7 @@ typedef struct _executable {
 	PBYTE                   buffer;
 	PBYTE                   base;
 	LPVOID                  text;
+	SIZE_T                  size;
 
 	LPWSTR                  local_name;
 	LPWSTR                  cracked_name;

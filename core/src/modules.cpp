@@ -461,21 +461,22 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
 
             while (descriptor) {
                 VOID *lib = nullptr;
-                CHAR *name = nullptr;
                 UINT32 hash = 0;
 
 				PIMAGE_THUNK_DATA thunk_a = nullptr;
 				PIMAGE_THUNK_DATA thunk_b = nullptr;
 
                 MemSet(buffer, 0, MAX_PATH);
-                const auto rva = delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->DllNameRVA : ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->Name;
 
-				__debugbreak();
-				// NOTE: One of these fails. Might be accessing past the end of import table, needs tested.
-                if (!(name = RVA(CHAR*, mod->base, rva)) || 
-                    !(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
-                    return false;
-                }
+                const auto rva = delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->DllNameRVA : ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->Name;
+				const auto name = RVA(CHAR*, mod->base, rva);
+
+				if (U_PTR(name) == U_PTR(mod->base)) {
+					return true;  // Invalid name pointer, exit the loop.
+				}
+				if (!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
+					return false;
+				}
 
                 if (PLDR_DATA_TABLE_ENTRY dep = FindModuleEntry(hash)) {
                     volatile auto temp = dep->DllBase;  /* Prevent compiler optimizations */
@@ -521,6 +522,7 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
 				continue;
 			}
 
+			__debugbreak();
 			vec_at(mods, entry).mod = ImportModule(LoadLocalFile, vec_at(mods, entry).hash, nullptr, 0, nullptr, false);
 			if (!vec_at(mods, entry).mod || !vec_at(mods, entry).mod->success) {
 				goto defer;  
@@ -727,30 +729,34 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
     BOOL ReadModule(EXECUTABLE *mod) {
         HEXANE;
 
+		BOOL success = false;
         HANDLE handle = ctx->win32.CreateFileW(mod->local_name, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
         if (handle == INVALID_HANDLE_VALUE) {
-            return false;
+			goto defer;
         }
 
         mod->buf_size = ctx->win32.GetFileSize(handle, nullptr);
         if (mod->buf_size == INVALID_FILE_SIZE) {
-            ctx->win32.NtClose(handle);
-            return false;
+			goto defer;
         }
 
-        if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, mod->buf_size, &mod->buf_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
-            ctx->win32.NtClose(handle);
-            return false;
+		// NO MEMORY
+        if (!(mod->buffer = (PBYTE)Malloc(mod->buf_size)) ||
+			!ctx->win32.ReadFile(handle, mod->buffer, mod->buf_size, (DWORD*) &mod->buf_size, nullptr)) {
+            goto defer;
         }
 
-        if (!ctx->win32.ReadFile(handle, mod->buffer, mod->buf_size, (DWORD*) &mod->buf_size, nullptr)) {
-            ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->buffer, &mod->buf_size, 0);
-            ctx->win32.NtClose(handle);
-            return false;
-        }
+		success = true;
 
-        ctx->win32.NtClose(handle);
-        return true;
+	defer:
+		if (!success && mod->buffer) {
+            Free(mod->buffer);
+		}
+		if (handle && handle != INVALID_HANDLE_VALUE) {
+			ctx->win32.NtClose(handle);
+		}
+
+        return success;
     }
 
     BOOL LinkModule(EXECUTABLE *mod) {
@@ -923,7 +929,7 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
 		if (mod && *mod) {
 			if ((*mod)->buffer) {
 				MemSet((*mod)->buffer, 0, (*mod)->buf_size);
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &(*mod)->buffer, &(*mod)->buf_size, MEM_RELEASE);
+				Free(&(*mod)->buffer);
 				(*mod)->buffer = nullptr;
 			}
 			if ((*mod)->local_name) {

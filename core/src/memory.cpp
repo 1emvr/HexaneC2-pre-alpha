@@ -33,6 +33,7 @@ namespace Memory {
             exe->nt_head = (PIMAGE_NT_HEADERS) (B_PTR(exe->buffer) + ((PIMAGE_DOS_HEADER)exe->buffer)->e_lfanew);
             exe->symbols = (PCOFF_SYMBOL) (B_PTR(exe->buffer) + exe->nt_head->FileHeader.PointerToSymbolTable);
             exe->exports = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(exe->buffer) + exe->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
+			exe->size = (SIZE_T) (B_PTR(exe->buffer) + exe->nt_head->OptionalHeader.SizeOfImage);
         }
     }
 
