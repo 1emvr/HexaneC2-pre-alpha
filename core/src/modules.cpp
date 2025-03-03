@@ -472,7 +472,7 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
 
                 if (!(name = RVA(CHAR*, mod->base, rva)) || 
                     !(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
-					// NOTE: one of these fails. Needs tested.
+					// NOTE: One of these fails. Might be accessing past the end of import table, needs tested.
 					__debugbreak();
                     return false;
                 }
