@@ -470,10 +470,10 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
                 MemSet(buffer, 0, MAX_PATH);
                 const auto rva = delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->DllNameRVA : ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->Name;
 
+				__debugbreak();
+				// NOTE: One of these fails. Might be accessing past the end of import table, needs tested.
                 if (!(name = RVA(CHAR*, mod->base, rva)) || 
                     !(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
-					// NOTE: One of these fails. Might be accessing past the end of import table, needs tested.
-					__debugbreak();
                     return false;
                 }
 
