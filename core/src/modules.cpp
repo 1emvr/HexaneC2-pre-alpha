@@ -510,10 +510,11 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
 		BOOL success = false;
 
 		for (auto entry = 0; entry < vec_size(mods); entry++) {
+			LATE_LOAD_ENTRY mod = vec_at(mods, entry);
 			BOOL processed = false;
 
 			for (auto i = 0; i < processed_count; i++) {
-				if (processed_mods[i] == vec_at(mods, entry).hash) {
+				if (processed_mods[i] == mod.hash) {
 					processed = true;
 					break;
 				}
@@ -522,19 +523,20 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
 				continue;
 			}
 
-			__debugbreak();
-			vec_at(mods, entry).mod = ImportModule(LoadLocalFile, vec_at(mods, entry).hash, nullptr, 0, nullptr, false);
-			if (!vec_at(mods, entry).mod || !vec_at(mods, entry).mod->success) {
+			mod.mod = ImportModule(LoadLocalFile, mod.hash, nullptr, 0, nullptr, false);
+			if (!mod.mod || !mod.mod->success) {
 				goto defer;  
 			}
 
 			if (processed_count < MAX_PROCESSED_MODULES) {
-				processed_mods[processed_count++] = vec_at(mods, entry).hash;
+				processed_mods[processed_count++] = mod.hash;
 			}
 		}
 
 		for (auto entry = 0; entry < vec_size(mods); entry++) {
-			if (vec_at(mods, entry).mod && !ResolveImports(vec_at(mods, entry).mod, mods)) {
+			PEXECUTABLE resolve = vec_at(mods, entry).mod;
+			// NOTE: resolving new imports. do not clear mods in case of deeper dependencies
+			if (resolve && !ResolveImports(resolve, mods)) {
 				goto defer;
 			}
 		}
@@ -543,12 +545,13 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
 
 	defer:
 		for (auto entry = 0; entry < vec_size(mods); entry++) {
-			if (vec_at(mods, entry).mod) {
-				CleanupModule(&vec_at(mods, entry).mod, !success);
+			PEXECUTABLE cleanup = vec_at(mods, entry).mod;
+			if (cleanup) {
+				CleanupModule(&cleanup, !success);
 			}
 		}
 
-		vec_clear(mods);
+		//vec_clear(mods);
 		return success;
 	}
 
@@ -679,12 +682,6 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
 		success = true;
 
 	defer:
-		if (!success) {
-			if (mod->base) {
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &mod->base, &mod->base_size, MEM_RELEASE);
-			}
-		}
-
         return success;
     }
 
@@ -740,9 +737,9 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
 			goto defer;
         }
 
-		// NO MEMORY
+		// HEAP CORRUPTION
         if (!(mod->buffer = (PBYTE)Malloc(mod->buf_size)) ||
-			!ctx->win32.ReadFile(handle, mod->buffer, mod->buf_size, (DWORD*) &mod->buf_size, nullptr)) {
+			!ctx->win32.ReadFile(handle, mod->buffer, mod->buf_size, (DWORD*)&mod->buf_size, nullptr)) {
             goto defer;
         }
 
@@ -887,7 +884,9 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
 			goto defer;
 		}
 		// NOTE: might need updated for delayed loads beyond depth of 1
-		if (late_loads.length) { /* prevent recursive calls to ResolveImports */
+		__debugbreak();
+		if (late_loads.length) { 
+			// TODO: late loads failed to ImportModule
 			if (!ResolveLateLoadModules(late_loads) || !ResolveImports(mod, late_loads)) {
 				goto defer;
 			}
@@ -929,7 +928,7 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
 		if (mod && *mod) {
 			if ((*mod)->buffer) {
 				MemSet((*mod)->buffer, 0, (*mod)->buf_size);
-				Free(&(*mod)->buffer);
+				Free((*mod)->buffer);
 				(*mod)->buffer = nullptr;
 			}
 			if ((*mod)->local_name) {
