@@ -404,7 +404,8 @@ namespace Modules {
     }
 
 	BOOL ResolveEntries(CONST EXECUTABLE *mod, PIMAGE_THUNK_DATA thunk_a, PIMAGE_THUNK_DATA thunk_b, VOID *lib) {
-		
+		BOOL success = false;
+
 		for (; thunk_b && thunk_b->u1.Function; thunk_a++, thunk_b++) {
 			if (thunk_a->u1.Function != thunk_b->u1.AddressOfData) { /* already resolved */
 				continue;
@@ -412,16 +413,19 @@ namespace Modules {
 
 			if (IMAGE_SNAP_BY_ORDINAL(thunk_b->u1.Ordinal)) {
 				if (!LocalLdrFindExportAddress((HMODULE)lib, nullptr, (UINT16)thunk_b->u1.Ordinal, (VOID**)&thunk_a->u1.Function)) {
-					return false;
+					goto defer;
 				}
 			} else {
 				PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, thunk_b->u1.AddressOfData);
 				if (!LocalLdrFindExportAddress((HMODULE)lib, import_name->Name, 0, (VOID**)&thunk_a->u1.Function)) {
-					return false;
+					goto defer;
 				}
 			}
 		}
-		return true;
+		success = true;
+
+	defer:
+		return success;
 	}
 
 BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
@@ -468,6 +472,8 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
 
                 if (!(name = RVA(CHAR*, mod->base, rva)) || 
                     !(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
+					// NOTE: one of these fails. Needs tested.
+					__debugbreak();
                     return false;
                 }
 
@@ -475,7 +481,6 @@ BOOL ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads) {
                     volatile auto temp = dep->DllBase;  /* Prevent compiler optimizations */
                     lib = temp;
                 } else {
-					__debugbreak();
                     push_back(late_loads, { hash, nullptr });
 					goto next;
                 }
