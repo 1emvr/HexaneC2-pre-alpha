@@ -682,11 +682,11 @@ namespace Modules {
     BOOL ReadModule(EXECUTABLE *mod) {
         HEXANE;
 
-		__debugbreak();
 		// TODO: INVALID_FILE_HANDLE on one of the dependencies
 		BOOL success = false;
         HANDLE handle = ctx->win32.CreateFileW(mod->local_name, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
         if (handle == INVALID_HANDLE_VALUE) {
+			__debugbreak();
 			goto defer;
         }
 
