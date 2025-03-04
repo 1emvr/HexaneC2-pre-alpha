@@ -533,16 +533,6 @@ typedef struct _stream {
     _stream  *next;
 } STREAM, *PSTREAM;
 
-struct LATE_LOAD_ENTRY {
-	UINT32 hash;
-	PEXECUTABLE mod;
-};
-
-struct VECTOR {
-    LATE_LOAD_ENTRY* data;           
-    SIZE_T capacity;   
-    SIZE_T length;     
-};
 
 struct _hexane {
 	PTEB          teb;

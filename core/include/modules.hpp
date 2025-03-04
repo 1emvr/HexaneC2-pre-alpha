@@ -58,11 +58,7 @@ namespace Modules {
 
 	BOOL
 	FUNCTION __stdcall
-	ResolveImports(CONST EXECUTABLE *mod, VECTOR& late_loads);
-
-	BOOL
-	FUNCTION __stdcall
-	ResolveLateLoadModules(VECTOR& mods);
+	ResolveImports(CONST EXECUTABLE *mod);
 
 	PEXECUTABLE
 	FUNCTION __stdcall
