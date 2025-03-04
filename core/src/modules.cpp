@@ -695,7 +695,6 @@ namespace Modules {
 			goto defer;
         }
 
-		// HEAP CORRUPTION
         if (!(mod->buffer = (PBYTE)Malloc(mod->buf_size)) ||
 			!ctx->win32.ReadFile(handle, mod->buffer, mod->buf_size, (DWORD*)&mod->buf_size, nullptr)) {
             goto defer;
