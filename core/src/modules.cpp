@@ -806,11 +806,10 @@ namespace Modules {
 			break;
 		}
 		case LoadMemory: {
-			// TODO: this conflicts with the MapModule function (mod->buf or mod->base)
-			mod->buf_size     = mem_size;
-			mod->buffer       = memory;
+			mod->buf_size = mem_size;
+			mod->buffer = memory;
 			mod->cracked_name = name;
-			mod->local_name   = name;
+			mod->local_name = name;
 
 			if (name == nullptr) {
 				goto defer;
@@ -834,23 +833,22 @@ namespace Modules {
             goto defer;
         }
 
+		// NOTE: might need updated for delayed loads beyond depth of 1
 		if (!MapModule(mod) || !ResolveImports(mod)) {
 			goto defer;
 		}
-		// NOTE: might need updated for delayed loads beyond depth of 1
 		if (mod->link) {
             if (!LinkModule(mod)) {
                 goto defer;
             }
         }
+		if (!(load_type & LoadLocalFile)) {
+			if (!BeginExecution(mod)) {
+				goto defer;
+			}
+		}
 
-		/* TODO: trigger tls callbacks, set permissions and call the entry point
-		   if (!BeginExecution(mod)) {
-		   goto defer;
-		   }
-		*/
-
-        mod->success = true;
+		mod->success = true;
 
 	defer:
 		if (mod) {
@@ -863,6 +861,7 @@ namespace Modules {
 			}
 		}
 
+		__debugbreak();
         return mod;
     }
 
