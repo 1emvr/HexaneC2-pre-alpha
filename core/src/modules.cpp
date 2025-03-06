@@ -306,18 +306,17 @@ namespace Modules {
 			goto defer;
 		}
 
-		MemSet(filename, 0, MAX_PATH);
 		do {
+			MemSet(filename, 0, MAX_PATH);
 			if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 				continue;
 			} else {
-				if (HashStringW(data.cFileName, WcsLength(data.cFileName)) - name_hash == 0) {
+				if (HashStringW(WcsToLower(filename, data.cFileName), WcsLength(data.cFileName)) - name_hash == 0) {
 					MemCopy(filename, data.cFileName, WcsLength(data.cFileName) * sizeof(WCHAR));
 				}
 			}
 		} while (ctx->win32.FindNextFileW(handle, &data) != 0);
 
-		__debugbreak();
 		if (!filename[0]) {
 			goto defer;
 		}
