@@ -838,7 +838,6 @@ namespace Modules {
             goto defer;
         }
 
-		// NOTE: might need updated for delayed loads beyond depth of 1
 		if (!MapModule(mod) || !ResolveImports(mod)) {
 			goto defer;
 		}
