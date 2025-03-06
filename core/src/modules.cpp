@@ -774,11 +774,15 @@ namespace Modules {
         return true;
     }
 
+	BOOL BeginExecution(PEXECUTABLE mod) {
+		
+	}
+
 	PEXECUTABLE ImportModule(CONST UINT32 load_type, CONST UINT32 name_hash, UINT8 *memory, CONST UINT32 mem_size, WCHAR *name, BOOL cache) {
         HEXANE;
         // Code based off of https://github.com/bats3c/DarkLoadLibrary
 
-        EXECUTABLE *mod = (EXECUTABLE*)ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
+        PEXECUTABLE mod = (PEXECUTABLE)ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
         if (!mod) {
             return nullptr;
         }
@@ -816,9 +820,8 @@ namespace Modules {
 			}
 			break;
 		}
-
 		default:
-			break;
+			goto defer;
         }
 
         if (load_type & NoLink)
@@ -842,10 +845,8 @@ namespace Modules {
                 goto defer;
             }
         }
-		if (!(load_type & LoadLocalFile)) {
-			if (!BeginExecution(mod)) {
-				goto defer;
-			}
+		if (!BeginExecution(mod)) {
+			goto defer;
 		}
 
 		mod->success = true;
