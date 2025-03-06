@@ -294,29 +294,30 @@ namespace Modules {
             goto defer;
         }
 
-        if (!(mod->local_name = (WCHAR*) Malloc(MAX_PATH))) {
+        if (!(mod->local_name = (WCHAR*)Malloc(MAX_PATH))) {
             goto defer;
         }
 
 		MemCopy(B_PTR(filename), B_PTR(sys32), sizeof(sys32));
-		WcsConcat(filename, (WCHAR*)dot_dll);
+		WcsConcat(filename, (WCHAR*)dot_dll); // NOTE: sould not do this until we've found the dll
 
 		handle = ctx->win32.FindFirstFileW(filename, &data);
 		if (INVALID_HANDLE_VALUE == handle) {
 			goto defer;
 		}
 
+		MemSet(filename, 0, MAX_PATH);
 		do {
 			if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 				continue;
 			} else {
 				if (HashStringW(data.cFileName, WcsLength(data.cFileName)) - name_hash == 0) {
-					MemSet(filename, 0, MAX_PATH);
 					MemCopy(filename, data.cFileName, WcsLength(data.cFileName) * sizeof(WCHAR));
 				}
 			}
 		} while (ctx->win32.FindNextFileW(handle, &data) != 0);
 
+		__debugbreak();
 		if (!filename[0]) {
 			goto defer;
 		}
@@ -686,7 +687,6 @@ namespace Modules {
 		BOOL success = false;
         HANDLE handle = ctx->win32.CreateFileW(mod->local_name, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
         if (handle == INVALID_HANDLE_VALUE) {
-			__debugbreak();
 			goto defer;
         }
 
