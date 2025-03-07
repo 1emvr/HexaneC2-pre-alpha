@@ -487,7 +487,9 @@ namespace Modules {
 						lib = temp;
 					} else {
 						__debugbreak();
-						// NOTE: keeps trying to import the same module (??)
+						/*
+						  TODO: Find the first module import and follow control flow. Find out why the same module is repeatedly queried.
+						 */
 						PEXECUTABLE next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
 						if (!next_load) {
 							goto defer;
