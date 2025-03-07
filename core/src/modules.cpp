@@ -486,10 +486,13 @@ namespace Modules {
 						volatile auto temp = dep->DllBase;  /* Prevent compiler optimizations */
 						lib = temp;
 					} else {
+						__debugbreak();
+						// NOTE: keeps trying to import the same module (??)
 						PEXECUTABLE next_load = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
 						if (!next_load) {
 							goto defer;
 						}
+						__debugbreak();
 						lib = next_load->base;
 					}
 
@@ -782,8 +785,8 @@ namespace Modules {
 		PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(mod->nt_head);
 
 		for (int i = 0; i < mod->nt_head->FileHeader.NumberOfSections; i++) {
-			if (section->SizeOfRawData) {
 
+			if (section->SizeOfRawData) {
                 switch (section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)) {
                     case PAGE_NOACCESS:         protect = PAGE_NOACCESS; break;
                     case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE; break;
@@ -808,7 +811,7 @@ namespace Modules {
 					goto defer;
 				}
 #else
-				// ?? //
+				/* ?? */
 #endif
 			}
 			if (!ctx->win32.FlushInstructionCache(NtCurrentProcess(), nullptr, 0)) {
@@ -900,11 +903,9 @@ namespace Modules {
             goto defer;
         }
 
-		__debugbreak();
 		if (!MapModule(mod) || !ResolveImports(mod)) {
 			goto defer;
 		}
-		__debugbreak();
 		if (mod->link) {
             if (!LinkModule(mod)) {
                 goto defer;
