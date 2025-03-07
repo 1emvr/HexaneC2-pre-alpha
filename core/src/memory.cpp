@@ -44,7 +44,7 @@ namespace Memory {
             // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
 
             _hexane instance = { };
-			SIZE_T size = sizeof(void*);
+			SIZE_T size = sizeof(LPVOID);
 			ULONG protect = 0;
 
             instance.teb = NtCurrentTeb();
@@ -54,7 +54,8 @@ namespace Memory {
             instance.base.address = U_PTR(InstStart());
             instance.base.size = U_PTR(InstEnd()) - instance.base.address;
 
-            if (!(instance.modules.ntdll = (HMODULE) FindModuleEntry(NTDLL)->DllBase)) {
+            if (!(instance.modules.kernel32 = (HMODULE)FindModuleEntry(KERNEL32)->DllBase) ||
+				!(instance.modules.ntdll = (HMODULE)FindModuleEntry(NTDLL)->DllBase)) {
                 return false;
             }
 

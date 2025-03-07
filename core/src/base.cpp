@@ -12,7 +12,6 @@ using namespace Main;
 // TODO: consider hash-tables for API struct
 
 VOID Entrypoint() {
-
     if (!ContextInit() || !ResolveApi() || !ReadConfig()) {
         return;
     }
