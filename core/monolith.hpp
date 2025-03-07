@@ -100,7 +100,7 @@ typedef uint64_t uint64;
 #define PAGE_ALIGN(x)           (B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
 #define ARRAY_LEN(p)            sizeof(p) / sizeof(p[0])
 #define DYN_ARRAY_LEN(i, p)     while (p[i]) { i++; }
-#define IN-RANGE(b, e, x)       (x >= b && x < e)
+#define IN_RANGE(b, e, x)       (x >= b && x < e)
 
 #define FILL_MBS(s, b)							\
 	s.length = (USHORT) MbsLength(b);			\
@@ -730,6 +730,7 @@ struct _hexane {
         DTYPE(LockResource);
         DTYPE(SizeofResource);
         DTYPE(FreeResource);
+        DTYPE(FlushInstructionCache);
         RtlInitUnicodeString_t RtlInitUnicodeString;
         RtlHashUnicodeString_t RtlHashUnicodeString;
         RtlRandomEx_t RtlRandomEx;

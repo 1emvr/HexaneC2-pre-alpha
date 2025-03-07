@@ -22,6 +22,7 @@ FindFirstFileW
 FindNextFileA
 FindNextFileW
 FindClose
+FlushInstructionCache
 GetFileSize
 IsBadReadPtr
 ReadFile

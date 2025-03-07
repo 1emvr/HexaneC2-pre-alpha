@@ -60,6 +60,7 @@ namespace Memory {
 
             F_PTR_HMOD(instance.win32.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP);
             F_PTR_HMOD(instance.win32.NtProtectVirtualMemory, instance.modules.ntdll, NTPROTECTVIRTUALMEMORY);
+            F_PTR_HMOD(instance.win32.FlushInstructionCache, instance.modules.kernel32, FLUSHINSTRUCTIONCACHE);
 
             if (!instance.win32.RtlAllocateHeap || !instance.win32.NtProtectVirtualMemory) {
                 return false;

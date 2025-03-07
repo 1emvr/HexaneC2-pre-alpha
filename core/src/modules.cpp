@@ -5,6 +5,8 @@ using namespace Opsec;
 using namespace Utils;
 using namespace Memory::Methods;
 
+typedef BOOL(WINAPI * DLLMAIN)(HINSTANCE, DWORD, LPVOID);
+
 __attribute__((used, section(".rdata"))) uint8_t dot_dll[] = { 0x2a,0x00,0x2e,0x00,0x64,0x00,0x6c,0x00,0x6c,0x00,0x00 };
 __attribute__((used, section(".rdata"))) uint8_t sys32[] = {
 	0x43,0x00,0x3a,0x00,0x2f,0x00,0x57,0x00,0x69,0x00,0x6e,0x00,0x64,0x00,0x6f,0x00,
@@ -775,7 +777,70 @@ namespace Modules {
 	BOOL BeginExecution(PEXECUTABLE mod) {
 		HEXANE;
 		
+		DWORD protect = 0;
 		BOOL success = false;
+		DLLMAIN dll_main = nullptr;
+		PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(mod->nt_head);
+
+		for (int i = 0; i < mod->nt_head->FileHeader.NumberOfSections; i++) {
+			if (section->SizeOfRawData) {
+
+                switch (section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)) {
+                    case PAGE_NOACCESS:         protect = PAGE_NOACCESS; break;
+                    case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE; break;
+                    case IMAGE_SCN_MEM_READ:    protect = PAGE_READONLY; break;
+                    case IMAGE_SCN_MEM_WRITE:   protect = PAGE_WRITECOPY; break;
+                    case IMAGE_SCN_MEM_RX:      protect = PAGE_EXECUTE_READ; break;
+                    case IMAGE_SCN_MEM_WX:      protect = PAGE_EXECUTE_WRITECOPY; break;
+                    case IMAGE_SCN_MEM_RW:      protect = PAGE_READWRITE; break;
+                    case IMAGE_SCN_MEM_RWX:     protect = PAGE_EXECUTE_READWRITE; break;
+                    default:
+						goto defer;
+                }
+
+                if ((section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED) == IMAGE_SCN_MEM_NOT_CACHED) {
+                    protect |= PAGE_NOCACHE;
+                }
+#if _M_X64
+				LPVOID base = RVA(LPVOID, mod->base, section->VirtualAddress);
+				SIZE_T region_size = section->SizeOfRawData;
+
+				if (!ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), &base, &region_size, protect, &protect)) {
+					goto defer;
+				}
+#else
+				if (!ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), &RVA(LPVOID, mod->base, section->VirtualAddress), &base, &region_size, protect, &protect)) {
+					goto defer;
+				}
+#endif
+			}
+			if (!ctx->win32.FlushInstructionCache(NtCurrentProcess(), nullptr, 0)) {
+				goto defer;
+			}
+
+			PIMAGE_DATA_DIRECTORY data_dire = &mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS];
+
+			if (data_dire->Size) {
+				PIMAGE_TLS_DIRECTORY tls = RVA(PIMAGE_TLS_DIRECTORY, mod->base, data_dire->VirtualAddress);
+				PIMAGE_TLS_CALLBACK *callback = (PIMAGE_TLS_CALLBACK*)tls->AddressOfCallBacks;
+
+				for (; *callback; callback++) {
+					(*callback)((LPVOID)mod->base, DLL_PROCESS_ATTACH, nullptr);
+				}
+			}
+			if (!mod->nt_head->OptionalHeader.AddressOfEntryPoint) {
+				success = true;
+				goto defer;
+			}
+
+			dll_main = RVA(DLLMAIN, mod->base, mod->nt_head->OptionalHeader.AddressOfEntryPoint);
+			if (!dll_main((HINSTANCE)mod->base, DLL_PROCESS_ATTACH, nullptr)) {
+				goto defer;
+			}
+		}
+		success = true;
+
+	defer:
 		return success;
 	}
 
@@ -846,6 +911,7 @@ namespace Modules {
                 goto defer;
             }
         }
+		__debugbreak();
 		if (!BeginExecution(mod)) {
 			goto defer;
 		}
