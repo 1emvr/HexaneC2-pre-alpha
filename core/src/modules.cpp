@@ -800,17 +800,15 @@ namespace Modules {
                 if ((section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED) == IMAGE_SCN_MEM_NOT_CACHED) {
                     protect |= PAGE_NOCACHE;
                 }
-#if _M_X64
+
 				LPVOID base = RVA(LPVOID, mod->base, section->VirtualAddress);
 				SIZE_T region_size = section->SizeOfRawData;
-
+#if _M_X64
 				if (!ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), &base, &region_size, protect, &protect)) {
 					goto defer;
 				}
 #else
-				if (!ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), &RVA(LPVOID, mod->base, section->VirtualAddress), &base, &region_size, protect, &protect)) {
-					goto defer;
-				}
+				// ?? //
 #endif
 			}
 			if (!ctx->win32.FlushInstructionCache(NtCurrentProcess(), nullptr, 0)) {
@@ -902,15 +900,16 @@ namespace Modules {
             goto defer;
         }
 
+		__debugbreak();
 		if (!MapModule(mod) || !ResolveImports(mod)) {
 			goto defer;
 		}
+		__debugbreak();
 		if (mod->link) {
             if (!LinkModule(mod)) {
                 goto defer;
             }
         }
-		__debugbreak();
 		if (!BeginExecution(mod)) {
 			goto defer;
 		}
@@ -928,7 +927,6 @@ namespace Modules {
 			}
 		}
 
-		__debugbreak();
         return mod;
     }
 
