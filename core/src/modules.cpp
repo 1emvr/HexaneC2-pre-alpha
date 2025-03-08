@@ -209,7 +209,6 @@ namespace Modules {
 				continue;
 			} else {
 				if (HashStringW(WcsToLower(filename, data.cFileName), WcsLength(data.cFileName)) - name_hash == 0) {
-					__debugbreak();
 					MemCopy(filename, data.cFileName, WcsLength(data.cFileName) * sizeof(WCHAR));
 				}
 			}
@@ -755,20 +754,18 @@ namespace Modules {
         mod->success = false;
         mod->link = true;
 
-		// check if this shit is already loaded instead of wasting time/resources/access violations
-		LDR_DATA_TABLE_ENTRY *check_mod = nullptr;
-
-		if (name_hash && (load_type & LoadBof) != LoadBof) { 
-			if (check_mod = FindModuleEntry(name_hash)) {
-                mod->base = B_PTR(check_mod->DllBase);
-                mod->success = true;
+		if (name_hash) {
+			if (LDR_DATA_TABLE_ENTRY *check_mod = FindModuleEntry(name_hash)) {
+				mod->base = B_PTR(check_mod->DllBase);
+				mod->success = true;
 
 				goto defer;
 			}
 		}
 
-        switch (LOWORD(load_type)) {
+		switch (LOWORD(load_type)) {
 		case LoadLocalFile: {
+			__debugbreak();
 			if (!FindModulePath(mod, name_hash) || !ReadModule(mod)) {
 				goto defer;
 			}
@@ -787,17 +784,17 @@ namespace Modules {
 		}
 		default:
 			goto defer;
-        }
+		}
 
         if (load_type & NoLink) {
             mod->link = false;
 		}
 
-        if (name == nullptr) {
+        if (!name) {
             name = mod->cracked_name;
         }
 
-        FindHeaders(mod);
+		FindHeaders(mod);
         if (!ImageCheckArch(mod)) {
             goto defer;
         }
