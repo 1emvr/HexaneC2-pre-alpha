@@ -178,111 +178,7 @@ namespace Modules {
 		return false;
 	}
 
-	UINT_PTR FindKernelModule(CHAR *module_name) {
-		HEXANE;
-
-		VOID *buffer = nullptr;
-		SIZE_T buf_size = 0;
-
-		if (!NT_SUCCESS(ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS) SystemModuleInformation, buffer, buf_size, (PULONG)&buf_size))) {
-			return 0;
-		}
-
-		while (ntstatus == STATUS_INFO_LENGTH_MISMATCH) {
-			if (buffer) {
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buf_size, MEM_RELEASE);
-			}
-			if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), &buffer, 0, &buf_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE)) ||
-				!NT_SUCCESS(ctx->win32.NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemModuleInformation, buffer, buf_size, (ULONG*)&buf_size))) {
-				return 0;
-			}
-		}
-
-		if (!NT_SUCCESS(ntstatus)) {
-			if (buffer) {
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buf_size, MEM_RELEASE);
-			}
-			return 0;
-		}
-
-		CONST PRTL_PROCESS_MODULES modules = (PRTL_PROCESS_MODULES) buffer;
-		if (!modules){
-			return 0;
-		}
-
-		for (auto i = 0; i < modules->NumberOfModules; ++i) {
-			const char *current_module_name = (CHAR*) modules->Modules[i].FullPathName + modules->Modules[i].OffsetToFileName;
-
-			if (!MbsCompare(current_module_name, module_name)) {
-				CONST UINT_PTR result = (UINT_PTR) modules->Modules[i].ImageBase;
-
-				ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buf_size, MEM_RELEASE);
-				return result;
-			}
-		}
-
-		ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &buffer, &buf_size, MEM_RELEASE);
-		return 0;
-	}
-
 	// TODO: string hash function name 
-	FARPROC FindKernelExport(HANDLE handle, UINT_PTR base, CONST CHAR *function) {
-		HEXANE;
-
-		UINT_PTR address = 0;
-		SIZE_T size = 0;
-		PIMAGE_EXPORT_DIRECTORY data = nullptr;
-		PIMAGE_EXPORT_DIRECTORY exports = nullptr;
-
-		if (!base) {
-			return nullptr;
-		}
-
-        IMAGE_NT_HEADERS nt_head = { };
-		if (!ReadMemory(handle, &nt_head, RVA(VOID*, base, ((PIMAGE_DOS_HEADER)base)->e_lfanew), sizeof(nt_head)) ||
-			nt_head.Signature != IMAGE_NT_SIGNATURE) {
-			goto defer;
-		}
-
-		exports = (PIMAGE_EXPORT_DIRECTORY) nt_head.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
-		size = nt_head.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size;
-
-		if (!exports || !size) {
-			goto defer;
-		}
-
-		if (!NT_SUCCESS(ntstatus = ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), (VOID**)&data, 0, (PSIZE_T)&size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE)) || 
-			!ReadMemory(handle, data, RVA(LPVOID, base, exports), size)) {
-			goto defer;
-		}
-		
-		for (auto index = 0; index < data->NumberOfNames; index++) {
-            CONST CHAR *name = RVA(CHAR*, base, ((UINT32*)(base + exports->AddressOfNames))[index - 1]);
-
-			if (MbsCompare(name, function) == 0) {
-				CONST UINT16 *ord = RVA(UINT16*, base, ((UINT16*) (base + exports->AddressOfNameOrdinals))[index]);
-				if (*ord <= 0x1000) {
-					break;
-				}
-
-                address = (base + ((UINT32*) (base + exports->AddressOfFunctions))[index]);
-				if (address >= base + U_PTR(exports) && address <= base + U_PTR(exports) + size) {
-					address = 0; // function address is out of range, somehow (?)
-				}
-
-				break;
-			}
-		}
-
-	defer:
-		if (data) {
-			ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**)&data, &size, MEM_RELEASE);
-			data = nullptr;
-		}
-
-		return (FARPROC)address;
-	} 
-
     BOOL FindModulePath(EXECUTABLE *mod, const uint32 name_hash) {
         HEXANE;
 
@@ -313,6 +209,7 @@ namespace Modules {
 				continue;
 			} else {
 				if (HashStringW(WcsToLower(filename, data.cFileName), WcsLength(data.cFileName)) - name_hash == 0) {
+					__debugbreak();
 					MemCopy(filename, data.cFileName, WcsLength(data.cFileName) * sizeof(WCHAR));
 				}
 			}
@@ -470,8 +367,8 @@ namespace Modules {
 
 					MemSet(buffer, 0, MAX_PATH);
 
-					const auto rva = delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->DllNameRVA : ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->Name;
-					const auto name = RVA(CHAR*, mod->base, rva);
+					CONST DWORD rva = delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->DllNameRVA : ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->Name;
+					CONST CHAR *name = RVA(CHAR*, mod->base, rva);
 
 					if (U_PTR(name) == U_PTR(mod->base)) {
 						success = true;  // Return to start of image. Likely end of descriptor.
@@ -486,7 +383,6 @@ namespace Modules {
 						volatile auto temp = dep->DllBase;  /* Prevent compiler optimizations */
 						lib = temp;
 					} else {
-						__debugbreak();
 						/*
 						  TODO: Find the first module import and follow control flow. Find out why the same module is repeatedly queried.
 						  TODO: Start using github issues to create TODO.
@@ -495,7 +391,7 @@ namespace Modules {
 						if (!next_load) {
 							goto defer;
 						}
-						__debugbreak();
+
 						lib = next_load->base;
 					}
 

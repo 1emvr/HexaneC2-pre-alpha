@@ -19,14 +19,6 @@ namespace Modules {
 	FUNCTION __stdcall
 	LocalLdrFindExportAddress(HMODULE mod, CONST CHAR *export_name, CONST UINT16 ordinal, VOID **function);
 
-	UINT_PTR
-	FUNCTION __stdcall
-	FindKernelModule(CHAR *module_name);
-
-	FARPROC
-	FUNCTION __stdcall
-	FindKernelExport(HANDLE handle, UINT_PTR base, CONST CHAR *function);
-
     BOOL
 	FUNCTION __stdcall
 	FindModulePath(EXECUTABLE *mod, const UINT32 name_hash);
