@@ -12,17 +12,17 @@ There are plenty of IOCs that are intrinsic to the methods applied (if you know 
 - testing implant P2P communication/ fixing protocol
 - testing COFF loader
 - re-implement generic thread stack spoofing/ sleepobf
-- redirector rotation 
-- client request header configuration and metadata 
-- implement COFF data cache
+- redirector rotation (maybe)
+- client request header configuration and metadata (definitely)
+- implement COFF data cache (needs tested)
 - write documentation
 
 ### C2 infrastructure:
 - re-implement http listener
-- automation of infraC2
-- access control/ filtering
-- forwarding through reverse proxy (nginx)
-- user database
+- automation of infraC2 (maybe)
+- access control/ filtering (not sure yet)
+- forwarding through reverse proxy (maybe)
+- user database (definitely)
 
 ### Wish-List:
 - hot-swap configs (sleep/redirectors)
