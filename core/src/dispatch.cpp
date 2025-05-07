@@ -9,6 +9,7 @@ using namespace Network::Http;
 using namespace Memory::Execute;
 using namespace Dispatcher;
 
+// TODO: new design for send/receive buffers over SMB
 namespace Dispatcher {
 
     VOID AddMessage(_stream *out) {
