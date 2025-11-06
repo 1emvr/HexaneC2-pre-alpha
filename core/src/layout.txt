@@ -1,0 +1,8 @@
+Initial Code:
+- shellcode bootstrap
+- partial mod/api init with config parsing
+- vm/debugger detection (failed detection dies w/ no message)
+- full mod/api init + network/message cache init
+- host verification (cached message data. failed verification soft-kill.)
+
+Main Code:
