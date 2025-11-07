@@ -7,7 +7,7 @@
 #include <core/include/inject.hpp>
 #include <core/include/memory.hpp>
 #include <core/include/opsec.hpp>
-#include <core/include/stream.hpp>
+#include <core/include/packet.hpp>
 #include <core/include/utils.hpp>
 #include <core/include/process.hpp>
 #include <core/include/parser.hpp>
