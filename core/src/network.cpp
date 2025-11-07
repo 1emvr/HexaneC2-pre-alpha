@@ -1,6 +1,3 @@
-#ifndef HEXANE_NETWORK_HPP
-#define HEXANE_NETWORK_HPP
-
 namespace Network {
     namespace Http {
         BOOL HttpSendRequest(HINTERNET hInternet, PACKET** packet) {
@@ -440,4 +437,3 @@ defer:
         }
     }
 }
-#define HEXANE_NETWORK_HPP
