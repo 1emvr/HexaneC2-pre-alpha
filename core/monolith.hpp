@@ -30,7 +30,7 @@ typedef uint64_t uint64;
 #define WIN_VERSION_2016_X      		11
 
 
-#define ntstatus                        Ctx->Teb->LastErrorValue
+#define Ntstatus                        Ctx->Teb->LastErrorValue
 #define RVA(T, b, r)                    (T) ((UINT_PTR)(b) + (UINT_PTR)(r))
 
 #define DTYPE(x)						decltype(x) *x
@@ -49,8 +49,8 @@ typedef uint64_t uint64;
 #define ITER_SECTION_HEADER(data, i)	((PIMAGE_SECTION_HEADER) (PBYTE)(data) + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * i))
 #define SYMBOL_TABLE(data, nt_head) 	RVA(COFF_SYMBOL*, data, nt_head->FileHeader.PointerToSymbolTable)
 #define RELOC_SECTION(data, section)	RVA(RELOC*, data, section->PointerToRelocations)
-#define SEC_START(map, index)           U_PTR((PBYTE)(map[index].address))
-#define SEC_END(map, index)             U_PTR((PBYTE)(map[index].address) + map[index].size)
+#define SEC_START(map, index)           (UINT_PTR)((PBYTE)(map[index].address))
+#define SEC_END(map, index)             (UINT_PTR)((PBYTE)(map[index].address) + map[index].size)
 
 #define NtCurrentProcess()              ((HANDLE) (LONG_PTR) -1)
 #define NtCurrentThread()               ((HANDLE) (LONG_PTR) -2)
