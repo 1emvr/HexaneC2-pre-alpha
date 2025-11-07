@@ -1,5 +1,3 @@
-#ifndef HEXANE_PACKET_HPP
-#define HEXANE_PACKET_HPP
 namespace Packet {
     VOID PackInt64 (UINT8 *buffer, UINT64 value) {
         buffer[7] = value & 0xFF; value >>= 8;
@@ -132,4 +130,3 @@ defer:
         PackBytes(packet, (UINT8*) data, WcsLength(data));
     }
 }
-#endif // HEXANE_PACKET_HPP

@@ -1,5 +1,3 @@
-#ifndef HEXANE_PARSER_HPP
-#define HEXANE_PARSER_HPP
 namespace Parser {
     VOID ParserBytecpy(PARSER* CONST parser, UINT8* CONST dst) {
         const auto byte = UnpackByte(parser);
@@ -175,4 +173,3 @@ namespace Parser {
         return (WCHAR*) UnpackBytes(parser, nOut);
     }
 }
-#endif // HEXANE_PARSER_HPP
