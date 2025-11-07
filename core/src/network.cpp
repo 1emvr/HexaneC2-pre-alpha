@@ -275,11 +275,11 @@ defer:
 			PSECURITY_DESCRIPTOR SecDesc;
 		} SMB_PIPE_SEC_ATTR, *PSMB_PIPE_SEC_ATTR;
 
-        VOID SmbContextDestroy(PSMB_PIPE_SEC_ATTR SmbSecAttr) {
-            if (SmbSecAttr->sid)        { ctx->win32.FreeSid(SmbSecAttr->sid); 		SmbSecAttr->sid = nullptr; }
-            if (SmbSecAttr->sid_low)    { ctx->win32.FreeSid(SmbSecAttr->sid_low); 	SmbSecAttr->sid_low = nullptr; }
-            if (SmbSecAttr->p_acl)      { Free(SmbSecAttr->p_acl); }
-            if (SmbSecAttr->sec_desc)   { Free(SmbSecAttr->sec_desc); }
+        VOID SmbContextDestroy(PSMB_PIPE_SEC_ATTR smbSecAttr) {
+            if (smbSecAttr->Sid) 		{ Ctx->Win32.FreeSid(smbSecAttr->Sid); 		smbSecAttr->Sid = nullptr; }
+            if (smbSecAttr->SidLow)    	{ Ctx->Win32.FreeSid(smbSecAttr->SidLow); 	smbSecAttr->SidLow = nullptr; }
+            if (smbSecAttr->pAcl)      	{ Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, smbSecAttr->pAcl); }
+            if (smbSecAttr->SecDesc)   	{ Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, smbSecAttr->SecDesc); }
         }
 
 		VOID SmbInitContext(SMB_PIPE_SEC_ATTR *smbSecAttr, PSECURITY_ATTRIBUTES secAttr) {
@@ -337,71 +337,67 @@ defer:
 			return true;
 		}
 
-        BOOL PipeRead(void *handle, PACKET *in) {
-            uint32_t read   = 0;
-            uint32_t total  = 0;
+        BOOL PipeRead(HANDLE handle, PACKET *inPack) {
+            DWORD read   = 0;
+            DWORD total  = 0;
 
             do {
-                const auto length = __min((in->length - total), PIPE_BUFFER_MAX);
-
-                if (!ctx->win32.ReadFile(handle, B_PTR(in->buffer) + total, length, (DWORD*) &read, nullptr)) {
-                    if (ntstatus == ERROR_NO_DATA) {
+                const auto length = __min((inPack->MsgLength - total), PIPE_BUFFER_MAX);
+                if (!Ctx->Win32.ReadFile(handle, (PBYTE) inPack->MsgData + total, length, &read, nullptr)) {
+                    if (Ctx->Teb->LastErrorValue == ERROR_NO_DATA) {
                         return false;
                     }
                 }
-
                 total += read;
             }
-            while (total < in->length);
+            while (total < inPack->MsgLength);
             return true;
         }
 
-        BOOL PipeWrite(void *handle, PACKET *out) {
-            uint32_t total = 0;
-            uint32_t write = 0;
+        BOOL PipeWrite(HANDLE handle, PACKET *outPack) {
+            DWORD total = 0;
+            DWORD write = 0;
 
             do {
                 const auto length = __min((out->length - total), PIPE_BUFFER_MAX);
-
-                if (!ctx->win32.WriteFile(handle, B_PTR(out->buffer) + total, length, (DWORD*) &write, nullptr)) {
+                if (!Ctx->Win32.WriteFile(handle, (PBYTE) outPack->MsgData + total, length, &write, nullptr)) {
                     return false;
                 }
-
                 total += write;
             }
-            while (total < out->length);
+            while (total < outPack->MsgLength);
             return true;
         }
 
-        BOOL PipeSend (PACKET *out) {
-            SMB_PIPE_SEC_ATTR smb_sec_attr  = { };
-            SECURITY_ATTRIBUTES sec_attr    = { };
+        BOOL PipeSend (PACKET *outPack) {
+            SMB_PIPE_SEC_ATTR smbSecAttr  = { };
+            SECURITY_ATTRIBUTES secAttr    = { };
 
-			if (!ctx->transport.egress_handle) {
-				SmbInitContext(&smb_sec_attr, &sec_attr);
+			if (!Ctx->Transport.EgressHandle) {
+				SmbInitContext(&smbSecAttr, &secAttr);
 
-				ctx->transport.egress_handle = ctx->win32.CreateNamedPipeW(
-						ctx->transport.egress_name, 
+				Ctx->Transport.EgressHandle = Ctx->Win32.CreateNamedPipeW(
+						Ctx->Transport.EgressName, 
 						PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, 
-						PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &sec_attr);
+						PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &secAttr);
 
-				if (!ctx->transport.egress_handle || ctx->transport.egress_handle == INVALID_HANDLE_VALUE) {
+				if (!Ctx->Transport.EgressHandle || Ctx->Transport.EgressHandle == INVALID_HANDLE_VALUE) {
 					return false;
 				}
 
-				SmbDestroyContext(&smb_sec_attr);
+				SmbDestroyContext(&smbSecAttr);
 
-				if (!ctx->win32.ConnectNamedPipe(ctx->transport.egress_handle, nullptr)) {
-					ctx->win32.NtClose(ctx->transport.egress_handle);
+				if (!Ctx->Win32.ConnectNamedPipe(Ctx->Transport.EgressHandle, nullptr)) {
+					Ctx->Win32.NtClose(Ctx->Transport.EgressHandle);
 					return false;
 				}
 			}
 
-            if (!PipeWrite(ctx->transport.egress_handle, out)) {
-                if (ntstatus == ERROR_NO_DATA) {
+            if (!PipeWrite(Ctx->Transport.EgressHandle, outPack)) {
+                if (Ctx->Teb->LastErrorValue == ERROR_NO_DATA) {
 
-                    if (ctx->transport.egress_handle) {
-                        ctx->win32.NtClose(ctx->transport.egress_handle);
+                    if (Ctx->Transport.EgressHandle) {
+                        Ctx->Win32.NtClose(Ctx->Transport.EgressHandle);
                     }
                     return false;
                 }
@@ -409,23 +405,23 @@ defer:
             return true;
         }
 
-        BOOL PipeReceive(PACKET** in) {
-            uint32_t peer_id    = 0;
-            uint32_t msg_size   = 0;
+		// NOTE: Change to pull packets regardless of peer id. Check for TransportType instead.
+        BOOL PipeReceive(PACKET** inPack) {
+            DWORD peerId    = 0;
+            DWORD msgSize   = 0;
+            DWORD total 	= 0;
 
-            DWORD total = 0;
-            *in = CreatePacket();
-
-            if (ctx->win32.PeekNamedPipe(ctx->transport.egress_handle, nullptr, 0, nullptr, &total, nullptr)) {
+            *inPack = CreatePacket();
+            if (Ctx->Win32.PeekNamedPipe(Ctx->Transport.EgressHandle, nullptr, 0, nullptr, &total, nullptr)) {
                 if (total > sizeof(uint32_t) * 2) {
 
-                    if (!ctx->win32.ReadFile(ctx->transport.egress_handle, &peer_id, sizeof(uint32_t), &total, nullptr)) {
+                    if (!Ctx->Win32.ReadFile(Ctx->Transport.EgressHandle, &peerId, sizeof(DWORD), &total, nullptr)) {
                         return false;
                     }
-                    if (ctx->session.peer_id != peer_id) {
+                    if (Ctx->Config.PeerId != peerId) {
                         return false;
                     }
-                    if (!ctx->win32.ReadFile(ctx->transport.egress_handle, &msg_size, sizeof(uint32_t), &total, nullptr)) {
+                    if (!Ctx->win32.ReadFile(ctx->transport.egress_handle, &msgSize, sizeof(uint32_t), &total, nullptr)) {
                         if (ntstatus != ERROR_MORE_DATA) {
                             return false;
                         }
