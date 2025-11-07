@@ -342,6 +342,7 @@ typedef struct _executable {
 	PBYTE                   Data;
 	LPVOID                  Text;
 	SIZE_T                  Size;
+	UINT_PTR				Base;
 
 	LPWSTR                  LocalName;
 	LPWSTR                  CrackedName;
