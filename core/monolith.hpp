@@ -72,7 +72,6 @@ typedef uint64_t uint64;
 #define __bswap64 __bswapq
 #endif
 
-#define RANDOM(n)               (Utils::Random::RandomNumber32() % (n))
 #define PAGE_ALIGN(x)           ((PBYTE)(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
 #define ARRAY_LEN(p)            sizeof(p) / sizeof(p[0])
 #define DYN_ARRAY_LEN(i, p)     while (p[i]) { i++; }
@@ -329,9 +328,9 @@ typedef struct _coff_params {
 	UINT32   	BofId;
     BOOL     	bCache;
 	_coff_params *Next;
-}COFF_PARAMS, *PCOFF_PARAMS;
+} COFF_PARAMS, *PCOFF_PARAMS;
 
-typedef struct _inject_context {
+typedef struct _inject {
 	HANDLE  Process;
 	DWORD   Tid;
 	DWORD   Pid;
@@ -342,7 +341,7 @@ typedef struct _inject_context {
 	LPVOID  Parameter;
 	UINT32  nParameter;
 	SHORT   Technique;
-} INJECT_CONTEXT, *PINJECT_CONTEXT;
+} INJECT, *PINJECT;
 
 typedef struct _reloc {
 	UINT32  VirtualAddress;
@@ -430,7 +429,7 @@ typedef struct _pipe {
 	DWORD    PeerId;
 	HANDLE   PipeHandle;
 	LPWSTR   PipeName;
-	_pipe  *Next;
+	_pipe  	*Next;
 } PIPE, *PPIPE;
 
 typedef void (*OBJ_ENTRY)(char* args, uint32_t size);
@@ -438,8 +437,8 @@ typedef void (*OBJ_ENTRY)(char* args, uint32_t size);
 struct LdrpVectorHandlerEntry {
     LdrpVectorHandlerEntry *Flink;
     LdrpVectorHandlerEntry *Blink;
-    uint64_t               Unknown1;
-    uint64_t               Unknown2;
+    UINT64               	Unknown1;
+    UINT64               	Unknown2;
     PVECTORED_EXCEPTION_HANDLER Handler;
 };
 
@@ -507,7 +506,7 @@ struct _hexane {
 		BOOL    bSSL;
 		BOOL    bProxy;
 		BOOL    bEnvProxy;
-		BOOL    bCheck;
+		BOOL    bCheckProxy;
 	} Transport;
 
 	struct {
