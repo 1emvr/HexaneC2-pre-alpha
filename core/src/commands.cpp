@@ -12,7 +12,7 @@ namespace Commands {
     };
 
     VOID DirectoryList (PARSER *parser) {
-        PACKET *out = CreateTaskResponse(DIRECTORYLIST);
+        PACKET *outPack = CreateTaskResponse(DIRECTORYLIST);
 
         ULONG size = 0;
         HANDLE handle = nullptr;
@@ -51,22 +51,22 @@ namespace Commands {
                 }
 
                 if (head.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-                    PackUint32(out, TRUE);
+                    PackUint32(outPack, TRUE);
                 } else {
                     fileSize.HighPart   = head.nFileSizeHigh;
                     fileSize.LowPart    = head.nFileSizeLow;
 
-                    PackUint32(out, FALSE);
-                    PackUint64(out, fileSize.QuadPart);
+                    PackUint32(outPack, FALSE);
+                    PackUint64(outPack, fileSize.QuadPart);
                 }
 
-                PackUint32(out, accessTime.wMonth);
-                PackUint32(out, accessTime.wDay);
-                PackUint32(out, accessTime.wYear);
-                PackUint32(out, sysTime.wHour);
-                PackUint32(out, sysTime.wMinute);
-                PackUint32(out, sysTime.wSecond);
-                PackString(out, head.cFileName);
+                PackUint32(outPack, accessTime.wMonth);
+                PackUint32(outPack, accessTime.wDay);
+                PackUint32(outPack, accessTime.wYear);
+                PackUint32(outPack, sysTime.wHour);
+                PackUint32(outPack, sysTime.wMinute);
+                PackUint32(outPack, sysTime.wSecond);
+                PackString(outPack, head.cFileName);
             }
             while (Ctx->Win32.FindNextFileA(handle, &head) != 0);
         }
@@ -75,7 +75,7 @@ namespace Commands {
             goto defer;
         }
 
-        MessageQueue(out);
+        MessageQueue(outPack);
 defer:
         if (handle) {
             ctx->win32.FindClose(handle);
@@ -86,7 +86,7 @@ defer:
     }
 
     VOID ProcessModules (PARSER *parser) {
-        PACKET *out = CreateTaskResponse(PROCESSMODULES);
+        PACKET *outPack = CreateTaskResponse(PROCESSMODULES);
 		NTSTATUS ntstatus = 0;
 
         LDR_DATA_TABLE_ENTRY mod = { };
@@ -103,35 +103,37 @@ defer:
         UINT32 pid = 0;
         UINT32 count = 0;
         SIZE_T size = 0;
+		NTSTATUS ntstatus = 0;
 
         pid = GetProcessIdByName(UnpackString(parser, nullptr));
 		if (!pid) {
 			// log error
 			return;
 		}
-        if (!NT_SUCCESS(NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, pid))) {
+		// NOTE: capture ntstatus for dbg
+        if (!NT_SUCCESS(ntstatus = NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, pid))) {
 			// log error
 			return;
 		}
-        if (!NT_SUCCESS(Ctx->Win32.NtQueryInformationProcess(process, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), nullptr))) {
+        if (!NT_SUCCESS(ntstatus = Ctx->Win32.NtQueryInformationProcess(process, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), nullptr))) {
 			// log error
 			return;
 		}
-        if (!NT_SUCCESS(Ctx->Win32.NtReadVirtualMemory(process, &pbi.PebBaseAddress->Ldr, &loads, sizeof(PLDR_DATA_TABLE_ENTRY), &size))) {
+        if (!NT_SUCCESS(ntstatus = Ctx->Win32.NtReadVirtualMemory(process, &pbi.PebBaseAddress->Ldr, &loads, sizeof(PLDR_DATA_TABLE_ENTRY), &size))) {
 			// log error
 			return;
 		}
-        if (!NT_SUCCESS(Ctx->Win32.NtReadVirtualMemory(process, &loads->InMemoryOrderModuleList.Flink, &entry, sizeof(PLIST_ENTRY), nullptr))) {
+        if (!NT_SUCCESS(ntstatus = Ctx->Win32.NtReadVirtualMemory(process, &loads->InMemoryOrderModuleList.Flink, &entry, sizeof(PLIST_ENTRY), nullptr))) {
 			// log error
 			return;
 		}
 
         for (head = &loads->InMemoryOrderModuleList; entry != head; entry = mod.InMemoryOrderLinks.Flink) {
-            if (!NT_SUCCESS(Ctx->win32.NtReadVirtualMemory(process, CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &mod, sizeof(LDR_DATA_TABLE_ENTRY), nullptr))) {
+            if (!NT_SUCCESS(ntstatus = Ctx->win32.NtReadVirtualMemory(process, CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &mod, sizeof(LDR_DATA_TABLE_ENTRY), nullptr))) {
 				// log error
 				return;
 			}
-            if (!NT_SUCCESS(Ctx->Win32.NtReadVirtualMemory(process, mod.FullDllName.Buffer, &modNameW, mod.FullDllName.Length, &size))) {
+            if (!NT_SUCCESS(ntstatus = Ctx->Win32.NtReadVirtualMemory(process, mod.FullDllName.Buffer, &modNameW, mod.FullDllName.Length, &size))) {
 				// log error
 				return;
 			}
@@ -143,8 +145,8 @@ defer:
             if (mod.FullDllName.Length > 0) {
                 size = WcsToMbs(modNameA, modNameW, mod.FullDllName.Length);
 
-                PackString(out, modNameA);
-                PackPointer(out, mod.DllBase);
+                PackString(outPack, modNameA);
+                PackPointer(outPack, mod.DllBase);
                 count++;
             }
 
@@ -152,11 +154,11 @@ defer:
             MemSet(modNameA, 0, MAX_PATH);
         }
 
-        MessageQueue(out);
+        MessageQueue(outPack);
     }
 
     VOID ProcessList() {
-        PACKET *out = CreateTaskResponse(PROCESSLIST);
+        PACKET *outPack = CreateTaskResponse(PROCESSLIST);
         PROCESSENTRY32 entries = { };
 
         HANDLE snapshot = nullptr;
@@ -188,19 +190,20 @@ defer:
 
             BOOL is_managed = false;
             BOOL is_loaded = false;
+			NTSTATUS ntstatus = 0;
 
             OBJECT_ATTRIBUTES attr = { };
             InitializeObjectAttributes(&attr, nullptr, 0, nullptr, nullptr);
 
-            if (!NT_SUCCESS(Ctx->Win32.NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, &attr, &cid))) {
+            if (!NT_SUCCESS(ntstatus = Ctx->Win32.NtOpenProcess(&process, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, &attr, &cid))) {
 				// log error
 				return;
 			}
-            if (!NT_SUCCESS(Ctx->Win32.CLRCreateInstance(X_GUID_CLSID_CLRMetaHost, X_GUID_IID_ICLRMetaHost, (void**) &meta))) {
+            if (!NT_SUCCESS(ntstatus = Ctx->Win32.CLRCreateInstance(X_GUID_CLSID_CLRMetaHost, X_GUID_IID_ICLRMetaHost, (void**) &meta))) {
 				// log error
 				return;
 			}
-            if (!NT_SUCCESS(meta->lpVtbl->EnumerateInstalledRuntimes(meta, &enums))) {
+            if (!NT_SUCCESS(ntstatus = meta->lpVtbl->EnumerateInstalledRuntimes(meta, &enums))) {
 				// log error
 				return;
 			}
@@ -210,18 +213,18 @@ defer:
 
                     is_managed = true;
                     if (SUCCEEDED(runtime->lpVtbl->GetVersionString(runtime, buffer, &size))) {
-                        PackUint32(out, entries.th32ProcessID);
-                        PackString(out, entries.szExeFile);
-                        PackWString(out, buffer);
+                        PackUint32(outPack, entries.th32ProcessID);
+                        PackString(outPack, entries.szExeFile);
+                        PackWString(outPack, buffer);
                     }
                 }
                 runtime->lpVtbl->Release(runtime);
             }
 
             if (!is_managed) {
-                PackUint32(out, entries.th32ProcessID);
-                PackString(out, entries.szExeFile);
-                PackWString(out, nullptr);
+                PackUint32(outPack, entries.th32ProcessID);
+                PackString(outPack, entries.szExeFile);
+                PackWString(outPack, nullptr);
             }
 
             if (process) {
@@ -238,7 +241,7 @@ defer:
             }
         }
         while (Ctx->Win32.Process32Next(snapshot, &entries));
-        MessageQueue(out);
+        MessageQueue(outPack);
 
 defer:
         if (snapshot) {
