@@ -51,6 +51,9 @@ constexpr auto STATUS_INFO_LENGTH_MISMATCH = 0xC0000004;
 #define MAX_WOW64_SHARED_ENTRIES	16
 #define NT_SUCCESS(status)			((status) >= 0)
 
+EXTERN_C LPVOID InstStart();
+EXTERN_C LPVOID InstEnd();
+
 #if defined(_MSC_VER) && (_MSC_VER < 1300)
 #define XSTATE_LEGACY_FLOATING_POINT        0
 #define XSTATE_LEGACY_SSE                   1
@@ -327,6 +330,11 @@ typedef enum _ALTERNATIVE_ARCHITECTURE_TYPE {
 } ALTERNATIVE_ARCHITECTURE_TYPE;
 
 
+#if !defined(TARGET_WIN10) && !defined(TARGET_WIN11)
+#error "You must define either TARGET_WIN10 or TARGET_WIN11 before including this header."
+#endif
+
+#ifdef TARGET_WIN10
 typedef struct _KUSER_SHARED_DATA {
 	ULONG TickCountLowDeprecated;
 	ULONG TickCountMultiplier;
@@ -441,8 +449,6 @@ typedef struct _KUSER_SHARED_DATA {
 	XSTATE_CONFIGURATION XState;
 } KUSER_SHARED_DATA, * PKUSER_SHARED_DATA;
 
-
-
 C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA, TickCountMultiplier) == 0x4);
 C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA, InterruptTime) == 0x8);
 C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA, SystemTime) == 0x14);
@@ -502,6 +508,302 @@ C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA, AppCompatFlag) == 0x3cc);
 C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA, SystemDllNativeRelocation) == 0x3d0);
 C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA, SystemDllWowRelocation) == 0x3d8);
 C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA, XState) == 0x3e0);
+#endif
+
+#ifdef TARGET_WIN11
+typedef enum _NT_PRODUCT_TYPE
+{
+	NtProductWinNt = 1,
+	NtProductLanManNt,
+	NtProductServer
+} NT_PRODUCT_TYPE, * PNT_PRODUCT_TYPE;
+
+
+typedef struct _KUSER_SHARED_DATA
+{
+	ULONG TickCountLowDeprecated;
+	ULONG TickCountMultiplier;
+
+	volatile KSYSTEM_TIME InterruptTime;
+	volatile KSYSTEM_TIME SystemTime;
+	volatile KSYSTEM_TIME TimeZoneBias;
+
+	USHORT ImageNumberLow;
+	USHORT ImageNumberHigh;
+	WCHAR NtSystemRoot[260];
+	ULONG MaxStackTraceDepth;
+	ULONG CryptoExponent;
+
+	ULONG TimeZoneId;
+	ULONG LargePageMinimum;
+
+	ULONG AitSamplingValue;
+	ULONG AppCompatFlag;
+	ULONGLONG RNGSeedVersion;
+	ULONG GlobalValidationRunlevel;
+
+	volatile LONG TimeZoneBiasStamp;
+
+	ULONG NtBuildNumber;
+	NT_PRODUCT_TYPE NtProductType;
+	BOOLEAN ProductTypeIsValid;
+	BOOLEAN Reserved0[1];
+
+	USHORT NativeProcessorArchitecture;
+	ULONG NtMajorVersion;
+	ULONG NtMinorVersion;
+
+	BOOLEAN ProcessorFeatures[PROCESSOR_FEATURE_MAX];
+
+	ULONG MaximumUserModeAddressDeprecated; // Deprecated, use SystemBasicInformation instead.
+	ULONG SystemRangeStartDeprecated; // Deprecated, use SystemRangeStartInformation instead.
+
+	volatile ULONG TimeSlip;
+
+	ALTERNATIVE_ARCHITECTURE_TYPE AlternativeArchitecture;
+	ULONG BootId;
+
+	LARGE_INTEGER SystemExpirationDate;
+	ULONG SuiteMask;
+	BOOLEAN KdDebuggerEnabled;
+
+	union
+	{
+		UCHAR MitigationPolicies;
+		struct
+		{
+			UCHAR NXSupportPolicy : 2;
+			UCHAR SEHValidationPolicy : 2;
+			UCHAR CurDirDevicesSkippedForDlls : 2;
+			UCHAR Reserved : 2;
+		};
+	};
+
+	USHORT CyclesPerYield;
+
+	volatile ULONG ActiveConsoleId;
+	volatile ULONG DismountCount;
+
+	ULONG ComPlusPackage;
+	ULONG LastSystemRITEventTickCount;
+	ULONG NumberOfPhysicalPages;
+	BOOLEAN SafeBootMode;
+
+	union
+	{
+		UCHAR VirtualizationFlags;
+#if defined(_ARM64_)
+
+		struct
+		{
+			UCHAR ArchStartedInEl2 : 1;
+			UCHAR QcSlIsSupported : 1;
+			UCHAR : 6;
+		};
+
+#endif
+	};
+
+	UCHAR Reserved12[2];
+	union
+	{
+		ULONG SharedDataFlags;
+		struct
+		{
+			ULONG DbgErrorPortPresent : 1;
+			ULONG DbgElevationEnabled : 1;
+			ULONG DbgVirtEnabled : 1;
+			ULONG DbgInstallerDetectEnabled : 1;
+			ULONG DbgLkgEnabled : 1;
+			ULONG DbgDynProcessorEnabled : 1;
+			ULONG DbgConsoleBrokerEnabled : 1;
+			ULONG DbgSecureBootEnabled : 1;
+			ULONG DbgMultiSessionSku : 1;
+			ULONG DbgMultiUsersInSessionSku : 1;
+			ULONG DbgStateSeparationEnabled : 1;
+			ULONG DbgSplitTokenEnabled : 1;
+			ULONG DbgShadowAdminEnabled : 1;
+			ULONG SpareBits : 19;
+		} DUMMYSTRUCTNAME2;
+	} DUMMYUNIONNAME2;
+
+	ULONG DataFlagsPad[1];
+	ULONGLONG TestRetInstruction;
+
+	LONGLONG QpcFrequency;
+	ULONG SystemCall;
+	ULONG Reserved2;
+
+	ULONGLONG FullNumberOfPhysicalPages;
+	ULONGLONG SystemCallPad[1];
+	union
+	{
+		volatile KSYSTEM_TIME TickCount;
+		volatile ULONG64 TickCountQuad;
+		struct
+		{
+			ULONG ReservedTickCountOverlay[3];
+			ULONG TickCountPad[1];
+		} DUMMYSTRUCTNAME;
+	} DUMMYUNIONNAME3;
+
+	ULONG Cookie;
+	ULONG CookiePad[1];
+
+	LONGLONG ConsoleSessionForegroundProcessId;
+	ULONGLONG TimeUpdateLock;
+	ULONGLONG BaselineSystemTimeQpc;
+	ULONGLONG BaselineInterruptTimeQpc;
+	ULONGLONG QpcSystemTimeIncrement;
+	ULONGLONG QpcInterruptTimeIncrement;
+	UCHAR QpcSystemTimeIncrementShift;
+	UCHAR QpcInterruptTimeIncrementShift;
+
+	USHORT UnparkedProcessorCount;
+	ULONG EnclaveFeatureMask[4];
+	ULONG TelemetryCoverageRound;
+	USHORT UserModeGlobalLogger[16];
+	ULONG ImageFileExecutionOptions;
+	ULONG LangGenerationCount;
+	ULONGLONG Reserved4;
+
+	volatile ULONGLONG InterruptTimeBias;
+	volatile ULONGLONG QpcBias;
+
+	ULONG ActiveProcessorCount;
+	volatile UCHAR ActiveGroupCount;
+
+	UCHAR Reserved9;
+	union
+	{
+		USHORT QpcData;
+		struct
+		{
+			volatile UCHAR QpcBypassEnabled;
+			UCHAR QpcReserved;
+		};
+	};
+
+	LARGE_INTEGER TimeZoneBiasEffectiveStart;
+	LARGE_INTEGER TimeZoneBiasEffectiveEnd;
+
+	XSTATE_CONFIGURATION XState;
+	KSYSTEM_TIME FeatureConfigurationChangeStamp;
+
+	ULONG Spare;
+	ULONG64 UserPointerAuthMask;
+
+#if defined(_ARM64_)
+	XSTATE_CONFIGURATION XStateArm64;
+#else
+	ULONG Reserved10[210];
+#endif
+} KUSER_SHARED_DATA, * PKUSER_SHARED_DATA;
+
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   TickCountLowDeprecated) == 0x000);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   TickCountMultiplier) == 0x004);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   InterruptTime) == 0x008);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   SystemTime) == 0x014);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   TimeZoneBias) == 0x020);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   ImageNumberLow) == 0x02c);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   ImageNumberHigh) == 0x02e);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   NtSystemRoot) == 0x030);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   MaxStackTraceDepth) == 0x238);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   CryptoExponent) == 0x23c);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   TimeZoneId) == 0x240);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   LargePageMinimum) == 0x244);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   AitSamplingValue) == 0x248);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   AppCompatFlag) == 0x24c);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   RNGSeedVersion) == 0x250);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   GlobalValidationRunlevel) == 0x258);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   TimeZoneBiasStamp) == 0x25c);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   NtBuildNumber) == 0x260);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   NtProductType) == 0x264);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   ProductTypeIsValid) == 0x268);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   Reserved0) == 0x269);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   NativeProcessorArchitecture) == 0x26a);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   NtMajorVersion) == 0x26c);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   NtMinorVersion) == 0x270);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   ProcessorFeatures) == 0x274);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   Reserved1) == 0x2b4);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   Reserved3) == 0x2b8);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   TimeSlip) == 0x2bc);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   AlternativeArchitecture) == 0x2c0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   BootId) == 0x2c4);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   SystemExpirationDate) == 0x2c8);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   SuiteMask) == 0x2d0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   KdDebuggerEnabled) == 0x2d4);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   MitigationPolicies) == 0x2d5);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   NXSupportPolicy) == 0x2d5);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   SEHValidationPolicy) == 0x2d5);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   CurDirDevicesSkippedForDlls) == 0x2d5);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   Reserved) == 0x2d5);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   CyclesPerYield) == 0x2d6);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   ActiveConsoleId) == 0x2d8);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   DismountCount) == 0x2dc);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   ComPlusPackage) == 0x2e0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   LastSystemRITEventTickCount) == 0x2e4);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   NumberOfPhysicalPages) == 0x2e8);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   SafeBootMode) == 0x2ec);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   VirtualizationFlags) == 0x2ed);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   Reserved12) == 0x2ee);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   SharedDataFlags) == 0x2f0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   DbgErrorPortPresent) == 0x2f0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   DbgElevationEnabled) == 0x2f0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   DbgVirtEnabled) == 0x2f0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   DbgInstallerDetectEnabled) == 0x2f0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   DbgLkgEnabled) == 0x2f0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   DbgDynProcessorEnabled) == 0x2f0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   DbgConsoleBrokerEnabled) == 0x2f0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   DbgSecureBootEnabled) == 0x2f0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   DbgMultiSessionSku) == 0x2f0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   DbgMultiUsersInSessionSku) == 0x2f0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   DbgStateSeparationEnabled) == 0x2f0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   SpareBits) == 0x2f0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   DataFlagsPad) == 0x2f4);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   TestRetInstruction) == 0x2f8);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   QpcFrequency) == 0x300);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   SystemCall) == 0x308);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   Reserved2) == 0x30c);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   FullNumberOfPhysicalPages) == 0x310);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   SystemCallPad) == 0x318);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   TickCount) == 0x320);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   TickCountQuad) == 0x320);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   ReservedTickCountOverlay) == 0x320);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   TickCountPad) == 0x32c);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   Cookie) == 0x330);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   CookiePad) == 0x334);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   ConsoleSessionForegroundProcessId ) == 0x338);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   TimeUpdateLock) == 0x340);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   BaselineSystemTimeQpc) == 0x348);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   BaselineInterruptTimeQpc) == 0x350);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   QpcSystemTimeIncrement) == 0x358);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   QpcInterruptTimeIncrement) == 0x360);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   QpcSystemTimeIncrementShift) == 0x368);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   QpcInterruptTimeIncrementShift) == 0x369);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   UnparkedProcessorCount) == 0x36a);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   EnclaveFeatureMask) == 0x36c);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   TelemetryCoverageRound) == 0x37c);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   UserModeGlobalLogger) == 0x380);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   ImageFileExecutionOptions) == 0x3a0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   LangGenerationCount) == 0x3a4);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   Reserved4) == 0x3a8);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   InterruptTimeBias) == 0x3b0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   QpcBias) == 0x3b8);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   ActiveProcessorCount) == 0x3c0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   ActiveGroupCount) == 0x3c4);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   Reserved9) == 0x3c5);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   QpcData) == 0x3c6);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   QpcBypassEnabled) == 0x3c6);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   QpcReserved) == 0x3c7);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   TimeZoneBiasEffectiveStart) == 0x3c8);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   TimeZoneBiasEffectiveEnd) == 0x3d0);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   XState) == 0x3d8);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   FeatureConfigurationChangeStamp) == 0x720);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   Spare) == 0x72c);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   UserPointerAuthMask) == 0x730);
+C_ASSERT(FIELD_OFFSET(KUSER_SHARED_DATA,   Reserved10) == 0x738);
+#endif
 
 #define SHARED_USER_DATA_VA 0x7FFE0000
 #define USER_SHARED_DATA ((KUSER_SHARED_DATA * const)SHARED_USER_DATA_VA)
@@ -515,7 +817,7 @@ __forceinline ULONG NtGetTickCount() {
 }
 
 typedef struct _IO_STATUS_BLOCK {
-    union     {
+    union {
         NTSTATUS Status;
         PVOID Pointer;
     };

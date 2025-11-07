@@ -2,20 +2,6 @@
 #define HEXANE_MONOLITH_HPP
 #include <core/ntimports.hpp>
 
-EXTERN_C ULONG __global;
-EXTERN_C LPVOID InstStart();
-EXTERN_C LPVOID InstEnd();
-
-typedef int8_t int8;
-typedef int16_t int16;
-typedef int32_t int32;
-typedef int64_t int64;
-
-typedef uint8_t uint8;
-typedef uint16_t uint16;
-typedef uint32_t uint32;
-typedef uint64_t uint64;
-
 #define WIN_VERSION_UNKNOWN     		0
 #define WIN_VERSION_XP          		1
 #define WIN_VERSION_VISTA       		2
@@ -34,8 +20,8 @@ typedef uint64_t uint64;
 #define RVA(T, b, r)                    (T) ((UINT_PTR)(b) + (UINT_PTR)(r))
 
 #define DTYPE(x)						decltype(x) *x
-#define DATA_SECTION(x)                 __attribute__((used, section(".data")))
-#define TEXT_SECTION(x)                 __attribute__((used, section(".text")))
+#define DATA_SXN                		__attribute__((used, section(".data")))
+#define TEXT_SXN                 		__attribute__((used, section(".text")))
 #define DLL_EXPORT                      __declspec(dllexport)
 
 #define PS_ATTR_LIST_SIZE(n)            (sizeof(PS_ATTRIBUTE_LIST) + (sizeof(PS_ATTRIBUTE) * (n - 1)))

