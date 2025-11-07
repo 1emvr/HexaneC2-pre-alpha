@@ -19,7 +19,7 @@ namespace Packet {
         buffer[3] = (value) & 0xFF;
     }
 
-    UINT32 ExtractU32 (UINT8 CONST *buffer) {
+    UINT32 ExtractU32 (UINT8 const *buffer) {
         return buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] <<24);
     }
 

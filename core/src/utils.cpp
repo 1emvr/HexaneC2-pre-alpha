@@ -5,7 +5,7 @@ using namespace Modules;
 using namespace Utils::Random;
 
 namespace Utils {
-	BOOL WriteToDisk(CONST WCHAR *path, CONST UINT8* data, SIZE_T size) {
+	BOOL WriteToDisk(const WCHAR *path, const UINT8* data, SIZE_T size) {
 		HANDLE handle = Ctx->Win32.CreateFileW(path, GENERIC_WRITE, NULL, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (handle == INVALID_HANDLE_VALUE) {
 			return false;
@@ -18,7 +18,7 @@ namespace Utils {
 		return (result && write == size);
 	}
 
-	BOOL ReadFromDisk(CONST WCHAR* path, UINT8* data, SIZE_T size) {
+	BOOL ReadFromDisk(const WCHAR* path, UINT8* data, SIZE_T size) {
 		HANDLE handle = Ctx->Win32.CreateFileW(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (handle == INVALID_HANDLE_VALUE) {
 			return false;
@@ -31,7 +31,7 @@ namespace Utils {
 		return (result && read == size);
 	}
 
-	BOOL DestroyFileData(CONST WCHAR* path, SIZE_T size) {
+	BOOL DestroyFileData(const WCHAR* path, SIZE_T size) {
 		BOOL success    = false;
 		UINT8 *rndData 	= nullptr;
 		INT newLength   = 0;
@@ -82,7 +82,7 @@ defer:
 		return (LPVOID) (instr + nOffset + ripOffset);
 	}
 
-	VOID AppendBuffer(UINT8** buffer, CONST UINT8 *CONST target, UINT32 *capacity, CONST UINT32 length) {
+	VOID AppendBuffer(UINT8** buffer, const UINT8 *const target, UINT32 *capacity, const UINT32 length) {
         const auto newBuffer = (PBYTE) Ctx->Win32.RtlReAllocateHeap(Ctx->Heap, 0, *buffer, *capacity + length);
         if (!newBuffer) {
             return;
@@ -134,7 +134,7 @@ defer:
         }
 
 
-		UINT_PTR RelocateExport(VOID* CONST process, CONST VOID* CONST target, SIZE_T size) {
+		UINT_PTR RelocateExport(VOID* const process, const VOID* const target, SIZE_T size) {
 			UINT_PTR ret       = 0;
 			const auto address  = (UINT_PTR) target;
 
@@ -148,7 +148,7 @@ defer:
 			return ret;
 		}
 
-        BOOL SigCompare(CONST UINT8* data, CONST CHAR* signature, CONST CHAR* mask) {
+        BOOL SigCompare(const UINT8* data, const CHAR* signature, const CHAR* mask) {
             while (*mask && ++mask, ++data, ++signature) {
                 if (*mask == 0x78 && *data != *signature) {
                     return false;
@@ -157,7 +157,7 @@ defer:
             return (*mask == 0x00);
         }
 
-        UINT_PTR SignatureScan(HANDLE handle, CONST UINT_PTR base, CONST UINT32 size, CONST CHAR* signature, CONST CHAR* mask) {
+        UINT_PTR SignatureScan(HANDLE handle, const UINT_PTR base, const UINT32 size, const CHAR* signature, const CHAR* mask) {
             SIZE_T read   		= 0;
             UINT_PTR address   	= 0;
 
@@ -183,7 +183,7 @@ defer:
             return address;
         }
 
-		UINT_PTR SignatureScanSection(HANDLE handle, CONST CHAR *sxnName, UINT_PTR base, CONST CHAR *signature, CONST CHAR *mask) {
+		UINT_PTR SignatureScanSection(HANDLE handle, const CHAR *sxnName, UINT_PTR base, const CHAR *signature, const CHAR *mask) {
 			UINT32 size = 0;
 			UINT_PTR section = FindSection(sxnName, base, &size);
 
