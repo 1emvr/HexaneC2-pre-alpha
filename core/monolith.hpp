@@ -20,8 +20,9 @@
 #define RVA(T, b, r)                    (T) ((UINT_PTR)(b) + (UINT_PTR)(r))
 
 #define DTYPE(x)						decltype(x) *x
-#define DATA_SXN                		__attribute__((used, section(".data")))
-#define TEXT_SXN                 		__attribute__((used, section(".text")))
+#define DATA_SX                			__attribute__((used, section(".data")))
+#define RDATA_SX						__attribute__((used, section(".rdata")))
+#define TEXT_SX                 		__attribute__((used, section(".text")))
 #define DLL_EXPORT                      __declspec(dllexport)
 
 #define PS_ATTR_LIST_SIZE(n)            (sizeof(PS_ATTRIBUTE_LIST) + (sizeof(PS_ATTRIBUTE) * (n - 1)))
