@@ -10,7 +10,7 @@
 
 namespace Xtea {
     typedef struct _CIPHERTEXT {
-        DWORD table[64];
+        DWORD Table[64];
     } CIPHERTEXT, *PCIPHERTEXT;
 
     typedef struct _U32_BLOCK {

@@ -14,8 +14,8 @@ namespace Xtea {
         };
 
         for (auto i = 0; i < NROUNDS;) {
-            block.v0 += (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ cipher->table[i]; i++;
-            block.v1 += (block.v0 << 4 ^ block.v0 >> 5) + block.v0 ^ cipher->table[i]; i++;
+            block.v0 += (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ cipher->Table[i]; i++;
+            block.v1 += (block.v0 << 4 ^ block.v0 >> 5) + block.v0 ^ cipher->Table[i]; i++;
         }
 
         Uint32ToBlock(block.v0, block.v1, dst);
@@ -28,14 +28,14 @@ namespace Xtea {
         };
 
         for (auto i = NROUNDS; i > 0;) {
-            i--; block.v1 -= (block.v0 << 4 ^ block.v0 >> 5) + block.v0 ^ cipher->table[i];
-            i--; block.v0 -= (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ cipher->table[i];
+            i--; block.v1 -= (block.v0 << 4 ^ block.v0 >> 5) + block.v0 ^ cipher->Table[i];
+            i--; block.v0 -= (block.v1 << 4 ^ block.v1 >> 5) + block.v1 ^ cipher->Table[i];
         }
 
         Uint32ToBlock(block.v0, block.v1, dst);
     }
 
-    PBYTE *XteaDivide (const UINT8 *const data, const SIZE_T nData, SIZE_T* const nOut) {
+    PBYTE* XteaDivide (const UINT8 *const data, const SIZE_T nData, SIZE_T* const nOut) {
         const auto nSections = (nData + 8) -1 / 8;
         const auto sections = (PBYTE*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, nSections * sizeof(PBYTE));
 
@@ -77,11 +77,11 @@ defer:
         }
 
         for (uint32 idx = 0; idx < NROUNDS;) {
-            cipher->table[idx] = sum + key[sum & 3];
+            cipher->Table[idx] = sum + key[sum & 3];
             idx++;
 
             sum += delta;
-            cipher->table[idx] = sum + key[sum >> 11 & 3];
+            cipher->Table[idx] = sum + key[sum >> 11 & 3];
             idx++;
         }
     }
