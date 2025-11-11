@@ -136,7 +136,7 @@ namespace Main {
         MemSet(buffer, 0, MAX_PATH);
         nameLen = sizeof(IP_ADAPTER_INFO);
 
-        if (Ctx->Win32.GetAdaptersInfo(&adapter, &name_len) == NO_ERROR) {
+        if (Ctx->Win32.GetAdaptersInfo(&adapter, &nameLen) == NO_ERROR) {
             PackString(outPack, adapter.IpAddressList.IpAddress.String);
         } else {
             PackUint32(outPack, 0);
