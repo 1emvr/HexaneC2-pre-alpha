@@ -1,8 +1,10 @@
 #include <core/include/base.hpp>
 
 VOID Entrypoint() {
-	// EnumSystem()
-	// ParseConfig()
+	if (!CheckSystem() || !EnumSystem()) {
+		return;
+	}
+	ParseConfig();
     MainRoutine();
 }
 
