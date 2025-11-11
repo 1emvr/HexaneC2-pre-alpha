@@ -463,6 +463,13 @@ struct _hexane {
 	PPACKET 		MessageCache;
 
 	struct {
+		HMODULE Kernel32;
+		HMODULE Ntdll;
+		HMODULE Iphlpapi;
+		HMODULE Kernbase;
+	} Module;
+
+	struct {
 		PBYTE   SessionKey;
 		UINT32  WorkingHours;
 		UINT64  Killdate;

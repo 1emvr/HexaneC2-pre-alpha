@@ -13,7 +13,7 @@ __attribute__((used, section(".rdata"))) uint8_t sys32[] = {
 	0x6d,0x00,0x33,0x00,0x32,0x00,0x2f,0x00,0x00 };
 
 namespace Modules {
-	UINT_PTR FindSection(CONST CHAR* secName, UINT_PTR base, UINT32 *size) {
+	UINT_PTR FindSection(const CHAR* secName, UINT_PTR base, UINT32 *size) {
 		UINT_PTR secAddress = 0;
 		SIZE_T nameLength = MbsLength(secName);
 
@@ -38,7 +38,7 @@ namespace Modules {
 		return secAddress;
 	}
 
-    PLDR_DATA_TABLE_ENTRY FindModuleEntry(CONST UINT32 hash) {
+    HMODULE FindModuleAddress(const UINT32 hash) {
         const LIST_ENTRY *head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
         for (auto next = head->Flink; next != head; next = next->Flink) {
@@ -48,7 +48,7 @@ namespace Modules {
             WCHAR buffer[MAX_PATH] = { };
 
             if (hash - HashStringW(WcsToLower(buffer, name.Buffer), WcsLength(name.Buffer)) == 0) {
-                return mod;
+                return (HMODULE) mod->DllBase;
             }
         }
 

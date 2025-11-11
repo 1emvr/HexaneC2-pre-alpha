@@ -1,9 +1,7 @@
 global Start
-global InstStart
-global InstEnd
 extern Entrypoint
 
-section .text$A
+section .text
     Start:
         push 	rsi
         mov 	rsi, rsp
@@ -12,23 +10,4 @@ section .text$A
         call 	Entrypoint
         mov 	rsp, rsi
         pop 	rsi
-        ret
-
-    InstStart:
-        call 	RetStartPtr
-        ret
-
-    RetStartPtr:
-        mov 	rax, [rsp]
-        sub 	rax, 0x1B
-        ret
-
-section .text$E
-    InstEnd:
-        call 	RetEndPtr
-        ret
-
-    RetEndPtr:
-        mov 	rax, [rsp]
-        add 	rax, 0x0A
         ret

