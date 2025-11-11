@@ -120,7 +120,7 @@ namespace Main {
         MemSet(buffer, 0, MAX_PATH);
         nameLen = MAX_PATH;
 
-		Ctx->Module.Iphlpapi = LoadLibrary("iphlpapi.dll");
+		Ctx->Module.Iphlpapi = LoadLibrary("iphlpapi.dll"); // NOTE: READY TO START COLLECTING DATA
 		Ctx->Win32.GetAdaptersInfo = FindExportAddress((LPVOID)Ctx->Module.Iphlpapi, GETADAPTERSINFO);
 
 		if (!Ctx->Win32.GetAdaptersInfo) {
