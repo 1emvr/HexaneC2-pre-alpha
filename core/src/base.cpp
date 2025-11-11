@@ -10,6 +10,7 @@ VOID Entrypoint() {
 
 namespace Main {
     UINT8 DATA_SXN Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
+
     VOID MainRoutine() {
         static int retry = 0;
         do {
