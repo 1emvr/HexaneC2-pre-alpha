@@ -464,9 +464,13 @@ struct _hexane {
 
 	struct {
 		HMODULE Kernel32;
-		HMODULE Ntdll;
-		HMODULE Iphlpapi;
 		HMODULE Kernbase;
+		HMODULE Ntdll;
+		HMODULE Advapi;
+		HMODULE Crypt32;
+		HMODULE Iphlpapi;
+		HMODULE Winhttp;
+		HMODULE Mscoree;
 	} Module;
 
 	struct {

