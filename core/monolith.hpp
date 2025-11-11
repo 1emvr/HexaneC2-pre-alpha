@@ -30,10 +30,10 @@
 
 #define PEB_POINTER64                   ((PPEB) __readgsqword(0x60))
 #define PEB_POINTER32                   ((PPEB) __readfsdword(0x30))
-#define REG_PEB32(thr)                  ((LPVOID) (ULONG_PTR) thr.Ebx + 0x8)
-#define REG_PEB64(thr)                  ((LPVOID) (ULONG_PTR) thr.Rdx + 0x10)
+#define REG_PEB32(thr)                  ((LPVOID)(ULONG_PTR) thr.Ebx + 0x8)
+#define REG_PEB64(thr)                  ((LPVOID)(ULONG_PTR) thr.Rdx + 0x10)
 
-#define ITER_SECTION_HEADER(data, i)	((PIMAGE_SECTION_HEADER) (PBYTE)(data) + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * i))
+#define ITER_SECTION_HEADER(data, i)	((PIMAGE_SECTION_HEADER)(PBYTE)(data) + sizeof(IMAGE_FILE_HEADER) + (sizeof(IMAGE_SECTION_HEADER) * i))
 #define SYMBOL_TABLE(data, nt_head) 	RVA(COFF_SYMBOL*, data, nt_head->FileHeader.PointerToSymbolTable)
 #define RELOC_SECTION(data, section)	RVA(RELOC*, data, section->PointerToRelocations)
 #define SEC_START(map, index)           (UINT_PTR)((PBYTE)(map[index].address))
@@ -691,5 +691,5 @@ struct _hexane {
 	} Win32;
 };
 
-DATA_SXN HEXANE *Ctx = nullptr;
+DATA_SX HEXANE *Ctx = nullptr;
 #endif
