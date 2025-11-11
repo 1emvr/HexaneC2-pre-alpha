@@ -11,7 +11,7 @@ namespace Commands {
         { .name = 0,				.address = nullptr		                        	},
     };
 
-    VOID DirectoryList (PARSER *parser) {
+    VOID DirectoryList (PARSER* parser) {
         PACKET *outPack = CreateTaskResponse(DIRECTORYLIST);
 
         ULONG size = 0;

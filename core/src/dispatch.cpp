@@ -10,46 +10,44 @@ using namespace Memory::Execute;
 using namespace Dispatcher;
 
 namespace Dispatcher {
-
-	// NOTE: I feel like the architecture should just be "label inbound/outbound" then simply check all messages.
-	// Named pipes are FIFO anyway, so, why not just check? Unless they're blocking, which in that case, we wouldn't need flags.
     VOID QueueSegments(UINT8* buffer, UINT32 length) {
-        PACKET *queue = { };
+        PACKET *qPacket = { };
 
         UINT32 offset = 0;
         UINT32 peerId = 0;
         UINT32 taskId = 0;
         UINT32 cbSeg  = 0;
-        UINT32 index  = 1;
+        UINT32 seqIndex = 1;
 
-        const auto nSeg 	= (length + MESSAGE_MAX - 1) / MESSAGE_MAX;
         constexpr auto mMax = MESSAGE_MAX - SEGMENT_HEADER_SIZE;
+        const auto seqTotal = (length + MESSAGE_MAX - 1) / MESSAGE_MAX;
 
         while (length > 0) {
             cbSeg = length > mMax ? mMax : length;
-            queue = (PACKET*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, cbSeg + SEGMENT_HEADER_SIZE);
+            qPacket = (PACKET*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, cbSeg + SEGMENT_HEADER_SIZE);
 
             MemCopy(&peerId, buffer, sizeof(peerId));
             MemCopy(&taskId, buffer + 4, sizeof(taskId));
 
-            queue->PeerId = peerId;
-            queue->TaskId = taskId;
-            queue->MsgType = TypeSegment;
+            qPacket->PeerId = peerId;
+            qPacket->TaskId = taskId;
+            qPacket->MsgType = TypeSegment;
 
-            PackUint32(queue, index);
-            PackUint32(queue, nSeg);
-            PackUint32(queue, cbSeg);
-            PackBytes(queue, (PBYTE)buffer + offset, cbSeg);
+            PackUint32(qPacket, seqIndex);
+            PackUint32(qPacket, seqTotal);
+            PackUint32(qPacket, cbSeg);
+            PackBytes(qPacket, (PBYTE)buffer + offset, cbSeg);
 
             length -= cbSeg;
             offset += cbSeg;
-            index++;
+            seqIndex++;
 
-            AddMessage(queue);
+            AddMessage(qPacket);
         }
     }
 
     BOOL DispatchRoutine() {
+		// TODO:
     }
 
     VOID CommandDispatch (PACKET* inPack) {
