@@ -13,7 +13,7 @@ RDATA_SX UINT8 sys32[] = {
 	0x6d,0x00,0x33,0x00,0x32,0x00,0x2f,0x00,0x00 };
 
 namespace Modules {
-	UINT_PTR FindSection(const CHAR* secName, UINT_PTR base, UINT32 *size) {
+	UINT_PTR FindSection(const CHAR* secName, const UINT_PTR base, UINT32 const* size) {
 		UINT_PTR secAddress = 0;
 		SIZE_T nameLength = MbsLength(secName);
 
@@ -42,27 +42,27 @@ namespace Modules {
         const LIST_ENTRY *head = &(PEB_POINTER)->Ldr->InMemoryOrderModuleList;
 
         for (auto next = head->Flink; next != head; next = next->Flink) {
+            WCHAR buffer[MAX_PATH];
+
             LDR_DATA_TABLE_ENTRY *mod = CONTAINING_RECORD(next, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
             const UNICODE_STRING name = mod->BaseDllName;
-
-            WCHAR buffer[MAX_PATH] = { };
 
             if (hash - HashStringW(WcsToLower(buffer, name.Buffer), WcsLength(name.Buffer)) == 0) {
                 return (HMODULE) mod->DllBase;
             }
         }
 
-        return nullptr;
+        return (HMODULE) nullptr;
     }
 
-    FARPROC FindExportAddress(const VOID *base, const UINT32 hash) {
+    FARPROC FindExportAddress(const LPVOID base, const UINT32 hash) {
         FARPROC address = 0;
 
-        CONST PIMAGE_NT_HEADERS ntHead = RVA(PIMAGE_NT_HEADERS, base, ((PIMAGE_DOS_HEADER) base)->e_lfanew);
+        CONST PIMAGE_NT_HEADERS ntHead = RVA(PIMAGE_NT_HEADERS, base, ((PIMAGE_DOS_HEADER)base)->e_lfanew);
         CONST PIMAGE_EXPORT_DIRECTORY exports = RVA(PIMAGE_EXPORT_DIRECTORY, base, ntHead->OptionalHeader.DataDirectory[0].VirtualAddress);
 
         if (ntHead->Signature != IMAGE_NT_SIGNATURE) {
-            return address;
+            return (FARPROC) 0;
         }
 
 		const UINT16 *ordinals = RVA(UINT16*, base, exports->AddressOfNameOrdinals);
@@ -82,12 +82,12 @@ namespace Modules {
         return address;
     }
 
-    BOOL LocalLdrFindExportAddress(HMODULE mod, const CHAR *expName, const UINT16 ordinal, VOID **function) {
+    BOOL LocalLdrFindExportAddress(const HMODULE mod, const CHAR* expName, const UINT16 ordinal, VOID** function) {
         PIMAGE_SECTION_HEADER section = nullptr;
-        UINT8 buffer[MAX_PATH] = { };
+        UINT8 buffer[MAX_PATH];
 
-        LPVOID textStart = nullptr;
-        LPVOID textEnd = nullptr;
+        UINT_PTR textStart = nullptr;
+        UINT_PTR textEnd = nullptr;
 		UINT32 secHash = 0;
 
 		if (!mod) {
@@ -110,8 +110,8 @@ namespace Modules {
 				return false;
 			}
             if (TEXT == secHash) {
-                textStart = RVA(VOID*, mod, section->VirtualAddress);
-                textEnd = RVA(VOID*, textStart, section->SizeOfRawData);
+                textStart = RVA(UINT_PTR, mod, section->VirtualAddress);
+                textEnd = RVA(UINT_PTR, textStart, section->SizeOfRawData);
                 break;
             }
         }
@@ -152,14 +152,14 @@ namespace Modules {
                     UINT32 *fnRva = RVA(UINT32*, mod, exports->AddressOfFunctions + sizeof(UINT32) * (ord - exports->Base));
                     LPVOID fnPtr = RVA(LPVOID, mod, *fnRva);
 
-                    if (textStart > fnPtr || textEnd < fnPtr) { /* NOTE: this is another module... */
-                        SIZE_T length = MbsLength((CHAR*)fnPtr);
-						const CHAR *foundName = (CHAR*)fnPtr + length + 1; /* TODO: check that this is correct. */
+                    if (textStart > fnPtr || textEnd < fnPtr) { /*  NOTE: this is another module... */
+                        const SIZE_T length = MbsLength((CHAR*)fnPtr);
+						const CHAR *foundName = (CHAR*)fnPtr + length + 1; /*  TODO: check that this is correct. */
 
 						MemSet(buffer, 0, MAX_PATH);
 
-						LDR_DATA_TABLE_ENTRY *libEntry = FindModuleEntry(HashStringA(MbsToLower((CHAR*)buffer, foundName), length));
-						if (!libEntry || libEntry->DllBase == mod) {
+						const LDR_DATA_TABLE_ENTRY *libEntry = FindModuleEntry(HashStringA(MbsToLower((CHAR*)buffer, foundName), length));
+						if (!libEntry) {
 							return false;
 						}
 						if (!LocalLdrFindExportAddress((HMODULE)libEntry->DllBase, foundName, 0, &fnPtr)) {
@@ -177,9 +177,10 @@ namespace Modules {
 
 	// TODO: string hash function name 
     BOOL FindModulePath(EXECUTABLE *mod, const UINT32 nameHash) {
-		WCHAR filename[MAX_PATH] = { };
 		WIN32_FIND_DATAW data = { };
-		HANDLE handle = { };
+		WCHAR filename[MAX_PATH];
+
+		HANDLE handle = nullptr;
 		BOOL success = false;
 
         if (!nameHash) {
@@ -190,27 +191,22 @@ namespace Modules {
         }
 
 		MemCopy((PBYTE)filename, (PBYTE)sys32, sizeof(sys32));
-		WcsConcat(filename, (WCHAR*)dotDll); // NOTE: sould not do this until we've found the dll
+		WcsConcat(filename, (WCHAR*)dotDll); // NOTE: should not do this until we've found the dll
 
 		handle = Ctx->Win32.FindFirstFileW(filename, &data);
 		if (INVALID_HANDLE_VALUE == handle) {
 			goto defer;
 		}
-
 		do {
 			MemSet(filename, 0, MAX_PATH);
 			if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 				continue;
 			} else {
-				if (HashStringW(WcsToLower(filename, data.cFileName), WcsLength(data.cFileName)) - nameHash == 0) {
+				if (nameHash - HashStringW(WcsToLower(filename, data.cFileName), WcsLength(data.cFileName)) == 0) {
 					MemCopy(filename, data.cFileName, WcsLength(data.cFileName) * sizeof(WCHAR));
 				}
 			}
 		} while (Ctx->Win32.FindNextFileW(handle, &data) != 0);
-
-		if (!filename[0]) {
-			goto defer;
-		}
 
 		MemCopy((PBYTE)mod->LocalName, (CHAR*)sys32, sizeof(sys32));
 		WcsConcat(mod->LocalName, (WCHAR*)filename);
@@ -226,6 +222,7 @@ defer:
 		if (handle) {
 			Ctx->Win32.FindClose(handle);
 		}
+
         return success;
     }
 
@@ -244,9 +241,7 @@ defer:
         PLIST_ENTRY entry = nullptr;
         PLDR_DATA_TABLE_ENTRY current = nullptr;
 
-        PPEB peb = PEB_POINTER;
-
-        head = &peb->Ldr->InInitializationOrderModuleList;
+        head = &(PEB_POINTER)->Ldr->InInitializationOrderModuleList;
         entry = head->Flink;
 
         do {
@@ -256,13 +251,12 @@ defer:
             if (current->HashLinks.Flink == &current->HashLinks) {
                 continue;
             }
-
             list = current->HashLinks.Flink;
 
             if (list->Flink == &current->HashLinks) {
-                ULONG hash = LdrHashEntry(current->BaseDllName, true);
+                const ULONG hash = LdrHashEntry(current->BaseDllName, true);
 
-                list = (PLIST_ENTRY) ((SIZE_T) current->HashLinks.Flink - hash * sizeof(LIST_ENTRY));
+                list = (PLIST_ENTRY) ((SIZE_T)current->HashLinks.Flink - hash * sizeof(LIST_ENTRY));
                 break;
             }
 
@@ -291,7 +285,7 @@ defer:
         return true;
     }
 
-	BOOL ResolveEntries(const EXECUTABLE *mod, PIMAGE_THUNK_DATA thunkA, PIMAGE_THUNK_DATA thunkB, VOID *lib) {
+	BOOL ResolveEntries(const EXECUTABLE *mod, PIMAGE_THUNK_DATA thunkA, PIMAGE_THUNK_DATA thunkB, LPVOID lib) {
 		BOOL success = false;
 
 		for (; thunkB && thunkB->u1.Function; thunkA++, thunkB++) {
@@ -301,23 +295,20 @@ defer:
 
 			if (IMAGE_SNAP_BY_ORDINAL(thunkB->u1.Ordinal)) {
 				if (!LocalLdrFindExportAddress((HMODULE)lib, nullptr, (UINT16)thunkB->u1.Ordinal, (VOID**)&thunkA->u1.Function)) {
-					goto defer;
+					return false;
 				}
 			} else {
-				PIMAGE_IMPORT_BY_NAME import_name = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, thunkB->u1.AddressOfData);
-				if (!LocalLdrFindExportAddress((HMODULE)lib, import_name->Name, 0, (VOID**)&thunkA->u1.Function)) {
-					goto defer;
+				PIMAGE_IMPORT_BY_NAME importName = RVA(PIMAGE_IMPORT_BY_NAME, mod->base, thunkB->u1.AddressOfData);
+				if (!LocalLdrFindExportAddress((HMODULE)lib, importName->Name, 0, (VOID**)&thunkA->u1.Function)) {
+					return false;
 				}
 			}
 		}
-		success = true;
-defer:
-		return success;
+		return true;
 	}
 
-	BOOL ResolveImports(const EXECUTABLE *mod) {
-		UINT8 buffer[MAX_PATH] = { };
-		BOOL success = false;
+	BOOL ResolveImports(const EXECUTABLE* mod) {
+		UINT8 buffer[MAX_PATH];
 
 		struct ImportSections {
 			UINT32 directory;
@@ -335,7 +326,7 @@ defer:
 
 			if (directory->Size) {
 				BOOL delayed = importSecs[idx].delayed;
-				VOID *descriptor = nullptr;
+				LPVOID descriptor = nullptr;
 
 				if (delayed) {
 					delayDesc = RVA(PIMAGE_DELAYLOAD_DESCRIPTOR, mod->Base, directory->VirtualAddress);
@@ -346,7 +337,7 @@ defer:
 				}
 
 				while (descriptor) {
-					VOID *lib = nullptr;
+					LPVOID lib = nullptr;
 					UINT32 hash = 0;
 
 					PIMAGE_THUNK_DATA thunkA = nullptr;
@@ -358,44 +349,44 @@ defer:
 					const CHAR *name = RVA(CHAR*, mod->base, rva);
 
 					if ((UINT_PTR)name == (UINT_PTR)mod->base) {
-						success = true;  // Return to start of image. Likely end of descriptor.
-						goto defer;
+						return true;  // Return to start of image. Likely end of descriptor.
 					}
 					if (!(hash = HashStringA(MbsToLower((CHAR*)buffer, name), MbsLength(name)))) {
-						goto defer;
+						return false;
 					}
 
-					/* one must succeed */
+					// one must succeed 
 					if (PLDR_DATA_TABLE_ENTRY dep = FindModuleEntry(hash)) {
-						volatile auto temp = dep->DllBase;  /* Prevent compiler optimizations */
+						volatile auto temp = dep->DllBase;  
 						lib = temp;
 					} else {
-						/*
-						  TODO: Find the first module import and follow control flow. Find out why the same module is repeatedly queried.
-						  TODO: Start using github issues to create TODO.
-						 */
-						PEXECUTABLE nextLoad = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
+						EXECUTABLE *nextLoad = ImportModule(LoadLocalFile, hash, nullptr, 0, nullptr, false);
 						if (!nextLoad) {
-							goto defer;
+							return false;
 						}
 
 						lib = nextLoad->base;
 					}
-
-					thunkA = RVA(PIMAGE_THUNK_DATA, mod->base, delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->ImportAddressTableRVA : ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->FirstThunk);
-					thunkB = RVA(PIMAGE_THUNK_DATA, mod->base, delayed ? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->ImportNameTableRVA : ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->OriginalFirstThunk);
+					thunkA = RVA(
+							PIMAGE_THUNK_DATA, mod->base, delayed 
+								? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->ImportAddressTableRVA 
+								: ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->FirstThunk);
+					thunkB = RVA(
+							PIMAGE_THUNK_DATA, mod->base, delayed 
+								? ((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor)->ImportNameTableRVA 
+								: ((PIMAGE_IMPORT_DESCRIPTOR)descriptor)->OriginalFirstThunk);
 
 					if (!ResolveEntries(mod, thunkA, thunkB, lib)) {
-						goto defer;
+						return false
 					}
 
-					descriptor = delayed ? (VOID*)((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor + 1) : (VOID*)((PIMAGE_IMPORT_DESCRIPTOR)descriptor + 1);
+					descriptor = delayed 
+						? (LPVOID)((PIMAGE_DELAYLOAD_DESCRIPTOR)descriptor + 1) 
+						: (LPVOID)((PIMAGE_IMPORT_DESCRIPTOR)descriptor + 1);
 				}
 			}
 		}
-		success = true;
-defer:
-		return success;
+		return true;
 	}
 
 	PRTL_RB_TREE FindModuleIndex() {
@@ -431,14 +422,13 @@ defer:
             }
 
             for (INT index = 0; index < length - sizeof(SIZE_T); ++begin, ++index) {
-                SIZE_T stRet = MemCompare((LPVOID)begin, &node, sizeof(SIZE_T));
+                const SIZE_T stRet = MemCompare((LPVOID)begin, &node, sizeof(SIZE_T));
 
                 if (stRet == sizeof(SIZE_T)) {
                     end = begin;
                     break;
                 }
             }
-
             if (!end) {
                 return nullptr;
             }
@@ -452,7 +442,7 @@ defer:
         return index;
     }
 
-    BOOL MapModule(EXECUTABLE *mod) {
+    BOOL MapModule(EXECUTABLE* mod) {
 		PIMAGE_DATA_DIRECTORY relocDir = nullptr;
 		UINT_PTR baseRva  = 0;
 		BOOL success = false;
@@ -473,12 +463,11 @@ defer:
 			// NOTE: test non-prefered image base
             if (!NT_SUCCESS(Ctx->Win32.NtAllocateVirtualMemory(NtCurrentProcess(), (VOID**) &mod->Base, 0, &mod->Size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) ||
 				mod->Size != mod->NtHead->OptionalHeader.SizeOfImage) {
-                goto defer;
+				return false;
             }
         }
-
 		if (!mod->base) {
-			goto defer;
+			return false;
 		}
 
 		// copy headers to allocated buffer
@@ -521,15 +510,10 @@ defer:
         }
 
         mod->nt_head->OptionalHeader.ImageBase = U_PTR(mod->base); // set the prefered base to the real base
-		success = true;
-
-	defer:
-        return success;
+        return true;
     }
 
     BOOL AddModuleEntry(PLDR_DATA_TABLE_ENTRY entry, CONST VOID *base) {
-        HEXANE;
-
         PRTL_RB_TREE index = nullptr;
 		if (!(index = FindModuleIndex())) {
             return false;
@@ -566,8 +550,6 @@ defer:
     }
 
     BOOL ReadModule(EXECUTABLE *mod) {
-        HEXANE;
-
 		// TODO: INVALID_FILE_HANDLE on one of the dependencies
 		BOOL success = false;
         HANDLE handle = ctx->win32.CreateFileW(mod->local_name, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
@@ -586,28 +568,25 @@ defer:
         }
 
 		success = true;
-
-	defer:
-		if (!success && mod->buffer) {
-            Free(mod->buffer);
+defer:
+		if (!success && mod->Data) {
+            Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, mod->Data);
 		}
 		if (handle && handle != INVALID_HANDLE_VALUE) {
-			ctx->win32.NtClose(handle);
+			Ctx->Win32.NtClose(handle);
 		}
 
         return success;
     }
 
-    BOOL LinkModule(EXECUTABLE *mod) {
-        HEXANE;
+    BOOL LinkModule(EXECUTABLE* mod) {
+		PIMAGE_NT_HEADERS ntHead = RVA(PIMAGE_NT_HEADERS, mod->Data, ((PIMAGE_DOS_HEADER)mod->Data)->e_lfanew);
 
-		PIMAGE_NT_HEADERS nt_head = RVA(PIMAGE_NT_HEADERS, mod->buffer, ((PIMAGE_DOS_HEADER)mod->buffer)->e_lfanew);
+        UNICODE_STRING fullName = { };
+		UNICODE_STRING baseName = { };
 
-        UNICODE_STRING full_name = { };
-		UNICODE_STRING base_name = { };
-
-        ctx->win32.RtlInitUnicodeString(&full_name, mod->local_name);
-        ctx->win32.RtlInitUnicodeString(&base_name, mod->cracked_name);
+        ctx->win32.RtlInitUnicodeString(&fullName, mod->LocalName);
+        ctx->win32.RtlInitUnicodeString(&baseName, mod->CrackedName);
 
         PLDR_DATA_TABLE_ENTRY entry = (PLDR_DATA_TABLE_ENTRY) Malloc(sizeof(LDR_DATA_TABLE_ENTRY));
         if (!entry) {
@@ -615,15 +594,15 @@ defer:
         }
 
         // start setting the values in the entry
-        ctx->win32.NtQuerySystemTime(&entry->LoadTime);
+        Ctx->Win32.NtQuerySystemTime(&entry->LoadTime);
 
         entry->ReferenceCount    = 1;
         entry->LoadReason        = LoadReasonDynamicLoad;
-        entry->OriginalBase      = mod->nt_head->OptionalHeader.ImageBase;
+        entry->OriginalBase      = mod->NtHead->OptionalHeader.ImageBase;
         entry->BaseNameHashValue = LdrHashEntry(entry->BaseDllName, false);
 
         // correctly add the base address to the entry
-        AddModuleEntry(entry, (LPVOID) mod->base);
+        AddModuleEntry(entry, (LPVOID) mod->Base);
 
         entry->ImageDll = true;
         entry->LoadNotificationsSent = true; 
@@ -635,8 +614,8 @@ defer:
         entry->DllBase       = (LPVOID)mod->base;
         entry->SizeOfImage   = mod->nt_head->OptionalHeader.SizeOfImage;
         entry->TimeDateStamp = mod->nt_head->FileHeader.TimeDateStamp;
-        entry->BaseDllName   = base_name;
-        entry->FullDllName   = full_name;
+        entry->BaseDllName   = baseName;
+        entry->FullDllName   = fullName;
         entry->ObsoleteLoadCount = 1;
 
         entry->Flags = LDRP_IMAGE_DLL | LDRP_ENTRY_INSERTED | LDRP_ENTRY_PROCESSED | LDRP_PROCESS_ATTACH_CALLED;
@@ -655,23 +634,23 @@ defer:
         entry->DdagNode->LoadCount = 1;
 
         AddHashTableEntry(entry);
-        entry->EntryPoint = (PLDR_INIT_ROUTINE) RVA(LPVOID, mod->base, mod->nt_head->OptionalHeader.AddressOfEntryPoint);
+        entry->EntryPoint = (PLDR_INIT_ROUTINE) RVA(LPVOID, mod->Base, mod->NtHead->OptionalHeader.AddressOfEntryPoint);
 
         return true;
     }
 
 	BOOL BeginExecution(PEXECUTABLE mod) {
-		HEXANE;
-		
 		DWORD protect = 0;
 		BOOL success = false;
-		DLLMAIN dll_main = nullptr;
+
+		DLLMAIN dllMain = nullptr;
 		PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(mod->nt_head);
 
 		for (int i = 0; i < mod->nt_head->FileHeader.NumberOfSections; i++) {
-
 			if (section->SizeOfRawData) {
-                switch (section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)) {
+
+                switch (section->Characteristics & (IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE)) 
+				{
                     case PAGE_NOACCESS:         protect = PAGE_NOACCESS; break;
                     case IMAGE_SCN_MEM_EXECUTE: protect = PAGE_EXECUTE; break;
                     case IMAGE_SCN_MEM_READ:    protect = PAGE_READONLY; break;
@@ -680,18 +659,17 @@ defer:
                     case IMAGE_SCN_MEM_WX:      protect = PAGE_EXECUTE_WRITECOPY; break;
                     case IMAGE_SCN_MEM_RW:      protect = PAGE_READWRITE; break;
                     case IMAGE_SCN_MEM_RWX:     protect = PAGE_EXECUTE_READWRITE; break;
-                    default:
-						goto defer;
+                    default: goto defer;
                 }
 
                 if ((section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED) == IMAGE_SCN_MEM_NOT_CACHED) {
                     protect |= PAGE_NOCACHE;
                 }
 
-				LPVOID base = RVA(LPVOID, mod->base, section->VirtualAddress);
-				SIZE_T region_size = section->SizeOfRawData;
+				LPVOID base = RVA(LPVOID, mod->Base, section->VirtualAddress);
+				SIZE_T regionSize = section->SizeOfRawData;
 #if _M_X64
-				if (!ctx->win32.NtProtectVirtualMemory(NtCurrentProcess(), &base, &region_size, protect, &protect)) {
+				if (!Ctx->Win32.NtProtectVirtualMemory(NtCurrentProcess(), &base, &regionSize, protect, &protect)) {
 					goto defer;
 				}
 #else
@@ -702,14 +680,14 @@ defer:
 				goto defer;
 			}
 
-			PIMAGE_DATA_DIRECTORY data_dire = &mod->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS];
+			PIMAGE_DATA_DIRECTORY dataDir = &mod->NtHead->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS];
 
-			if (data_dire->Size) {
-				PIMAGE_TLS_DIRECTORY tls = RVA(PIMAGE_TLS_DIRECTORY, mod->base, data_dire->VirtualAddress);
+			if (dataDir->Size) {
+				PIMAGE_TLS_DIRECTORY tls = RVA(PIMAGE_TLS_DIRECTORY, mod->Base, dataDir->VirtualAddress);
 				PIMAGE_TLS_CALLBACK *callback = (PIMAGE_TLS_CALLBACK*)tls->AddressOfCallBacks;
 
 				for (; *callback; callback++) {
-					(*callback)((LPVOID)mod->base, DLL_PROCESS_ATTACH, nullptr);
+					(*callback)((LPVOID)mod->Base, DLL_PROCESS_ATTACH, nullptr);
 				}
 			}
 			if (!mod->nt_head->OptionalHeader.AddressOfEntryPoint) {
@@ -717,8 +695,8 @@ defer:
 				goto defer;
 			}
 
-			dll_main = RVA(DLLMAIN, mod->base, mod->nt_head->OptionalHeader.AddressOfEntryPoint);
-			if (!dll_main((HINSTANCE)mod->base, DLL_PROCESS_ATTACH, nullptr)) {
+			dllMain = RVA(DLLMAIN, mod->base, mod->nt_head->OptionalHeader.AddressOfEntryPoint);
+			if (!dllMain((HINSTANCE)mod->base, DLL_PROCESS_ATTACH, nullptr)) {
 				goto defer;
 			}
 		}
@@ -728,11 +706,9 @@ defer:
 		return success;
 	}
 
-	PEXECUTABLE ImportModule(CONST UINT32 load_type, CONST UINT32 name_hash, UINT8 *memory, CONST UINT32 mem_size, WCHAR *name, BOOL cache) {
-        HEXANE;
-
+	PEXECUTABLE ImportModule(const UINT32 loadType, const UINT32 nameHash, UINT8* memory, const UINT32 memSize, WCHAR* name, BOOL cache) {
         // Code based off of https://github.com/bats3c/DarkLoadLibrary
-        PEXECUTABLE mod = (PEXECUTABLE)Malloc(sizeof(EXECUTABLE));
+        PEXECUTABLE mod = (PEXECUTABLE) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(EXECUTABLE));
         if (!mod) {
             return nullptr;
         }
@@ -740,28 +716,27 @@ defer:
         mod->success = false;
         mod->link = true;
 
-		if (name_hash) {
-			if (LDR_DATA_TABLE_ENTRY *check_mod = FindModuleEntry(name_hash)) {
-				mod->base = B_PTR(check_mod->DllBase);
+		if (nameHash) {
+			if (LDR_DATA_TABLE_ENTRY *check = FindModuleEntry(nameHash)) {
+				mod->base = (PBYTE)(check->DllBase);
 				mod->success = true;
 
 				goto defer;
 			}
 		}
 
-		switch (LOWORD(load_type)) {
+		switch (LOWORD(loadType)) {
 		case LoadLocalFile: {
-			__debugbreak();
-			if (!FindModulePath(mod, name_hash) || !ReadModule(mod)) {
+			if (!FindModulePath(mod, nameHash) || !ReadModule(mod)) {
 				goto defer;
 			}
 			break;
 		}
 		case LoadMemory: {
-			mod->buf_size = mem_size;
-			mod->buffer = memory;
-			mod->cracked_name = name;
-			mod->local_name = name;
+			mod->Size 			= memSize;
+			mod->Data 			= memory;
+			mod->CrackedName 	= name;
+			mod->LocalName 		= name;
 
 			if (name == nullptr) {
 				goto defer;
@@ -772,12 +747,11 @@ defer:
 			goto defer;
 		}
 
-        if (load_type & NoLink) {
-            mod->link = false;
+        if (loadType & NoLink) {
+            mod->Link = false;
 		}
-
         if (!name) {
-            name = mod->cracked_name;
+            name = mod->CrackedName;
         }
 
 		FindHeaders(mod);
@@ -788,7 +762,7 @@ defer:
 		if (!MapModule(mod) || !ResolveImports(mod)) {
 			goto defer;
 		}
-		if (mod->link) {
+		if (mod->Link) {
             if (!LinkModule(mod)) {
                 goto defer;
             }
@@ -797,11 +771,11 @@ defer:
 			goto defer;
 		}
 
-		mod->success = true;
+		mod->Success = true;
 
 	defer:
 		if (mod) {
-			if (!mod->success) {
+			if (!mod->Success) {
 				CleanupModule(&mod, true);
 			} else {
 				if (!cache) {
@@ -813,31 +787,29 @@ defer:
         return mod;
     }
 
-	VOID CleanupModule(EXECUTABLE **mod, BOOL destroy) {
-		HEXANE;
-
+	VOID CleanupModule(EXECUTABLE** mod, BOOL destroy) {
 		if (mod && *mod) {
-			if ((*mod)->buffer) {
-				MemSet((*mod)->buffer, 0, (*mod)->buf_size);
-				Free((*mod)->buffer);
-				(*mod)->buffer = nullptr;
+			if ((*mod)->Data) {
+				MemSet((*mod)->Data, 0, (*mod)->Size);
+				Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, (*mod)->Data);
+				(*mod)->Data = nullptr;
 			}
-			if ((*mod)->local_name) {
-				MemSet((*mod)->local_name, 0, MAX_PATH);
-				Free((*mod)->local_name);
-				(*mod)->local_name = nullptr;
+			if ((*mod)->LocalName) {
+				MemSet((*mod)->LocalName, 0, MAX_PATH);
+				Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, (*mod)->LocalName);
+				(*mod)->LocalName = nullptr;
 			}
-			if ((*mod)->cracked_name) {
-				MemSet((*mod)->cracked_name, 0, MAX_PATH);
-				Free((*mod)->cracked_name);
-				(*mod)->cracked_name = nullptr;
+			if ((*mod)->CrackedName) {
+				MemSet((*mod)->CrackedName, 0, MAX_PATH);
+				Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, (*mod)->CrackedName);
+				(*mod)->CrackedName = nullptr;
 			}
 			if (destroy) {
-				if ((*mod)->base) {													
-					ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &(*mod)->base, &(*mod)->base_size, MEM_RELEASE); 
+				if ((*mod)->Base) {													
+					Ctx->Win32.NtFreeVirtualMemory(NtCurrentProcess(), (VOID**) &(*mod)->Base, &(*mod)->Size, MEM_RELEASE); 
 					(*mod)->base = nullptr;											
 				}																
-				Free(*mod);													
+				Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, *mod);													
 				*mod = nullptr;												
 			}
 		}
