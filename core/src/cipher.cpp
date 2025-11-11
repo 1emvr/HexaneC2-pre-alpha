@@ -37,20 +37,20 @@ namespace Xtea {
 
     PBYTE *XteaDivide (const UINT8 *const data, const SIZE_T nData, SIZE_T* const nOut) {
         const auto nSections = (nData + 8) -1 / 8;
-        const auto sections = (UINT8**) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, nSections * sizeof(UINT8*));
+        const auto sections = (PBYTE*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, nSections * sizeof(PBYTE));
 
         for (auto index = 0; index < nSections; index++) {
-            if (!(sections[index] = (PBYTE) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(uint8) * 8))) {
+            if (!(sections[index] = (PBYTE) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(BYTE) * 8))) {
 
                 for (auto i = 0; i < index; i++) {
-                    MemSet(sections[i], 0, sizeof(uint64));
+                    MemSet(sections[i], 0, sizeof(UINT64));
                     Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, sections[i]);
                 }
                 Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, sections);
                 goto defer;
             }
 
-            const auto end          = (index + 1) * 8;
+            const auto end         = (index + 1) * 8;
             const auto copySize    = (end > nData) ? nData - index * 8 : 8;
 
             MemCopy(sections[index], data + index * 8, copySize);
