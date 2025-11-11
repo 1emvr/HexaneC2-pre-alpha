@@ -1,10 +1,10 @@
 namespace Parser {
-    VOID ParserBytecpy(PARSER* CONST parser, UINT8* CONST dst) {
+    VOID ParserBytecpy(PARSER* const parser, UINT8* const dst) {
         const auto byte = UnpackByte(parser);
         MemCopy(dst, (LPVOID) &byte, 1);
     }
 
-    VOID ParserStrcpy(PARSER* CONST parser, CHAR** CONST dst, UINT32 *CONST nOut) {
+    VOID ParserStrcpy(PARSER* const parser, CHAR** const dst, UINT32 *const nOut) {
         UINT32 length    	= 0;
         const auto buffer   = UnpackString(parser, &length);
 
@@ -18,7 +18,7 @@ namespace Parser {
         }
     }
 
-    VOID ParserWcscpy(PARSER* CONST parser, WCHAR** CONST dst, UINT32* CONST nOut) {
+    VOID ParserWcscpy(PARSER* const parser, WCHAR** const dst, UINT32* const nOut) {
         UINT32 length     = 0;
         const auto buffer = UnpackWString(parser, &length);
 
@@ -26,7 +26,6 @@ namespace Parser {
             if (nOut) {
                 *nOut = length;
             }
-
             length *= sizeof(WCHAR);
 
             *dst = (WCHAR*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, length);
@@ -34,7 +33,7 @@ namespace Parser {
         }
     }
 
-    VOID ParserMemcpy(PARSER* CONST parser, UINT8** CONST dst, UINT32* CONST nOut) {
+    VOID ParserMemcpy(PARSER* const parser, UINT8** const dst, UINT32* const nOut) {
         UINT32 length     = 0;
         const auto buffer = UnpackBytes(parser, &length);
 
@@ -42,7 +41,6 @@ namespace Parser {
             if (nOut) {
                 *nOut = length;
             }
-
             *dst = (PBYTE) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, length);
             MemCopy(*dst, buffer, length);
         }
@@ -59,14 +57,15 @@ namespace Parser {
     VOID DestroyParser (PARSER** parser) {
         if (*parser) {
             if ((*parser)->Handle) {
+				// NOTE: the "handle" is actually the base address of our data, and "buffer" is indexed.
                 MemSet(*(parser)->Handle, 0, *(parser)->Length);
                 Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, *(parser)->Handle);
 
                 *(parser)->Buffer = nullptr;
                 *(parser)->Handle = nullptr;
             }
-			Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, *packet);
-			*packet = nullptr;
+			Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, *parser);
+			*parser = nullptr;
         }
     }
 
