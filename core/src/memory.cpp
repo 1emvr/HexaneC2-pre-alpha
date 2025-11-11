@@ -11,25 +11,24 @@ using namespace Commands;
 
 namespace Memory {
     namespace Methods {
+		PRESOURCE FindIntResource(HMODULE base, const INT rsrcId) {
+            HRSRC rsrcInfo	= { };
+            PRESOURCE object = (RESOURCE*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(RESOURCE));
 
-		PRESOURCE FindIntResource(HMODULE base, CONST INT rsrc_id) {
-            HEXANE;
+            rsrcInfo  = ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrcId), RT_RCDATA);
+			if (!rsrcInfo) {
+				return nullptr;
+			}
 
-            HRSRC rsrc_info	= { };
-            PRESOURCE object = (RESOURCE*)Malloc(sizeof(_resource));
-
-            x_assert(rsrc_info          = ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrc_id), RT_RCDATA));
-            x_assert(object->h_global   = ctx->win32.LoadResource(base, rsrc_info));
-            x_assert(object->size       = ctx->win32.SizeofResource(base, rsrc_info));
-            x_assert(object->rsrc_lock  = ctx->win32.LockResource(object->h_global));
+            object->GLobal  = Ctx->Win32.LoadResource(base, rsrcInfo);
+            object->Size  	= Ctx->Win32.SizeofResource(base, rsrcInfo);
+            object->Lock  	= Ctx->Win32.LockResource(object->Global);
 
 			defer:
             return object;
         }
 
         VOID FindHeaders(EXECUTABLE *exe) {
-            HEXANE;
-
             exe->nt_head = (PIMAGE_NT_HEADERS) (B_PTR(exe->buffer) + ((PIMAGE_DOS_HEADER)exe->buffer)->e_lfanew);
             exe->symbols = (PCOFF_SYMBOL) (B_PTR(exe->buffer) + exe->nt_head->FileHeader.PointerToSymbolTable);
             exe->exports = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(exe->buffer) + exe->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
