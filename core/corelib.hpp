@@ -13,7 +13,7 @@
 #include <core/include/parser.hpp>
 #include <core/include/network.hpp>
 #include <core/include/commands.hpp>
-#include <core/include/peers.hpp>
+#include <core/include/nodes.hpp>
 #include <core/include/dispatch.hpp>
 #include <core/include/modules.hpp>
 #include <core/include/base.hpp>
