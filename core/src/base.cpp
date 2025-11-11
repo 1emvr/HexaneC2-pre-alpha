@@ -62,25 +62,25 @@ namespace Main {
         if (osVersion.dwMajorVersion >= 5) {
             if (osVersion.dwMajorVersion == 5) {
                 if (osVersion.dwMinorVersion == 1) {
-                    ctx->session.version = WIN_VERSION_XP;
+                    Ctx->Session.Version = WIN_VERSION_XP;
                 }
             }
             else if (osVersion.dwMajorVersion == 6) {
                 if (osVersion.dwMinorVersion == 0) {
-                    ctx->session.version = WIN_VERSION_2008;
+                    Ctx->Session.Version = WIN_VERSION_2008;
                 }
                 else if (osVersion.dwMinorVersion == 1) {
-                    ctx->session.version = WIN_VERSION_2008_R2;
+                    Ctx->Session.Version = WIN_VERSION_2008_R2;
                 }
                 else if (osVersion.dwMinorVersion == 2) {
-                    ctx->session.version = WIN_VERSION_2012;
+                    Ctx->Session.Version = WIN_VERSION_2012;
                 }
                 else if (osVersion.dwMinorVersion == 3) {
-                    ctx->session.version = WIN_VERSION_2012_R2;
+                    Ctx->Session.Version = WIN_VERSION_2012_R2;
                 }
             } else if (osVersion.dwMajorVersion == 10) {
                 if (osVersion.dwMinorVersion == 0) {
-                    ctx->session.version = WIN_VERSION_2016_X;
+                    Ctx->Session.Version = WIN_VERSION_2016_X;
                 }
             }
         }
