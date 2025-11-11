@@ -1,5 +1,6 @@
 #include <core/include/objects.hpp>
 
+// NOTE: BOFs will now be purely RVM. RVNI will include APIs that are not attainable through normal ELF execution.
 using namespace Hash;
 using namespace Xtea;
 using namespace Utils;
