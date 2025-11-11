@@ -44,9 +44,10 @@ namespace Modules {
         for (auto next = head->Flink; next != head; next = next->Flink) {
             WCHAR buffer[MAX_PATH];
 
-            LDR_DATA_TABLE_ENTRY *mod = CONTAINING_RECORD(next, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
-            const UNICODE_STRING name = mod->BaseDllName;
+            LDR_DATA_TABLE_ENTRY *mod = CONTAINING_RECORD(
+					next, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
 
+            const UNICODE_STRING name = mod->BaseDllName;
             if (hash - HashStringW(WcsToLower(buffer, name.Buffer), WcsLength(name.Buffer)) == 0) {
                 return (HMODULE) mod->DllBase;
             }

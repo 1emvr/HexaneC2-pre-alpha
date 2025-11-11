@@ -1,12 +1,10 @@
 #include <loader/include/injectlib.hpp>
 /*
 namespace Rsrc {
-
     VOID RsrcLoader(HMODULE Base) {
-
-            PRSRC Rsrc              = { };
-            PARSER Parser           = { };
             THREADLESS Threadless   = { };
+            PARSER Parser           = { };
+            PRSRC Rsrc              = { };
 
             Memory::ResolveApi();
             Parser::CreateParser(&Parser, Config, sizeof(Config));
