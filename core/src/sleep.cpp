@@ -3,26 +3,29 @@ using namespace Utils::Time;
 using namespace Utils::Random;
 
 BOOL AddValidCallTarget(LPVOID pointer) {
-    CFG_CALL_TARGET_INFO target_info = { };
-    EXTENDED_PROCESS_INFORMATION ex_procinfo = { };
+    CFG_CALL_TARGET_INFO targetInfo = { };
+    EXTENDED_PROCESS_INFORMATION exProcInfo = { };
 
-    auto base       = Ctx->Base.Address;
-    auto nt_head    = (PIMAGE_NT_HEADERS) base + ((PIMAGE_DOS_HEADER)base)->e_lfanew;
+    auto base 	= Ctx->Base.Address;
+    auto NtHead = (PIMAGE_NT_HEADERS)base + ((PIMAGE_DOS_HEADER)base)->e_lfanew;
 
-    ex_procinfo.ExtendedProcessInfo = ProcessControlFlowGuardPolicy;
-    ex_procinfo.ExtendedProcessInfoBuffer = 0;
+    exProcInfo.ExtendedProcessInfo = ProcessControlFlowGuardPolicy;
+    exProcInfo.ExtendedProcessInfoBuffer = 0;
 
-    if (!NT_SUCCESS(ntstatus = ctx->win32.NtQueryInformationProcess(NtCurrentProcess(), (PROCESSINFOCLASS) (ProcessCookie | ProcessUserModeIOPL), &ex_procinfo, sizeof(ex_procinfo), nullptr))) {
-        return false;
-    }
+    if (!NT_SUCCESS(Ctx->Win32.NtQueryInformationProcess(
+					NtCurrentProcess(), 
+					(PROCESSINFOCLASS) (ProcessCookie | ProcessUserModeIOPL), 
+					&ex_procinfo, sizeof(exProcInfo), nullptr))) {
+		return false;
+	}
 
-    target_info.Flags  = CFG_CALL_TARGET_VALID;
-    target_info.Offset = U_PTR(pointer) - U_PTR(ctx->base.address);
+    targetInfo.Flags  = CFG_CALL_TARGET_VALID;
+    targetInfo.Offset = (UINT_PTR)pointer - (UINT_PTR)Ctx->Base.Address;
 
-    size_t length = nt_head->OptionalHeader.SizeOfImage;
+    size_t length = NtHead->OptionalHeader.SizeOfImage;
     length = (length + 0x1000 - 1) &~ (0x1000 - 1);
 
-    if (ctx->win32.SetProcessValidCallTargets(NtCurrentProcess(), &base, length, 1, &target_info)) {
+    if (Ctx->Win32.SetProcessValidCallTargets(NtCurrentProcess(), &base, length, 1, &target_info)) {
         return true;
     }
 
