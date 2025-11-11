@@ -92,7 +92,7 @@ defer:
         INT32 offset      	= 0;
 
         auto cipher     = (CIPHERTEXT*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(CIPHERTEXT));
-        const auto key  = mKey ? mKey : ctx->config.session_key;
+        const auto key  = mKey ? mKey : Ctx->Config.SessionKey;
 
         InitCipher(cipher, key);
 
@@ -115,7 +115,7 @@ defer:
         for (UINT64 idx = 0; idx < nSecs; idx++) {
             if (sections[idx]) {
                 MemSet(sections[idx], 0, sizeof(UINT64));
-                Free(sections[idx]);
+                Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, sections[idx]);
             } else {
                 break;
             }
@@ -123,8 +123,8 @@ defer:
 
         MemSet(cipher, 0, sizeof(cipher));
 
-        Free(sections);
-        Free(cipher);
+        Ctx->Win32.RtlFreeHeap(Ctx->heap, 0, sections);
+        Ctx->Win32.RtlFreeHeap(Ctx->heap, 0, cipher);
     }
 }
 
@@ -132,8 +132,7 @@ namespace Hash {
     ULONG LdrHashEntry(UNICODE_STRING uniName, BOOL xorHash) {
         ULONG hash = 0;
 
-        ctx->win32.RtlHashUnicodeString(&uni_name, TRUE, 0, &hash); 
-		if (!NT_SUCCESS(Ctx->Teb->LastErrorValue)) {
+        if (!NT_SUCCESS(Ctx->Win32.RtlHashUnicodeString(&uniName, true, 0, &hash))) {
             return 0;
         }
         if (xorHash) {
@@ -142,7 +141,7 @@ namespace Hash {
         return hash;
     }
 
-    UINT32 HashStringA(CHAR const *string, SIZE_T length) {
+    UINT32 HashStringA(CHAR const* string, SIZE_T length) {
         auto hash = FNV_OFFSET;
 
 		if (!length) {
@@ -157,7 +156,7 @@ namespace Hash {
         return hash;
     }
 
-    UINT32 HashStringW(wchar_t const *string, size_t length) {
+    UINT32 HashStringW(WCHAR const* string, SIZE_T length) {
         auto hash = FNV_OFFSET;
 		if (!length) {
 			return 0;
