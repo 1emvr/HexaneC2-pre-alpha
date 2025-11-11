@@ -1,6 +1,13 @@
 #include <core/include/base.hpp>
 
 VOID Entrypoint() {
+	HEXANE instance = { };
+	Ctx = &instance;
+
+	Ctx->Teb = NtCurrentTeb();
+	Ctx->Teb->LastErrorValue = ERROR_SUCCESS;
+	Ctx->Heap = instance.Teb->ProcessEnvironmentBlock->ProcessHeap;
+
 	if (!CheckSystem() || !EnumSystem()) {
 		return;
 	}
@@ -13,33 +20,7 @@ namespace Main {
     UINT8 DATA_SXN Config[CONFIG_SIZE] = { 0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa,0xaa, };
 
     VOID MainRoutine() {
-        static int retry = 0;
-        do {
-            if (!ObfuscateSleep(nullptr, nullptr) || !RuntimeChecks()) {
-                break;
-            }
-            if (!CheckTime()) {
-                continue;
-            }
-            if (!Ctx->Session.CheckIn && !ctx->transport.message_queue) {
-                if (!EnumSystem()) {
-                    break;
-                }
-            }
-
-            if (!DispatchRoutine()) {
-                retry++;
-
-                if (retry == ctx->session.retries) {
-                    break;
-                }
-                continue;
-            }
-
-            retry = 0;
-        }
-        while (ntstatus != ERROR_EXIT);
-        ContextDestroy();
+		// TODO
     }
 
 	BOOL CheckSystem() {
