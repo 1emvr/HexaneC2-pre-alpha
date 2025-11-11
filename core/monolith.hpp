@@ -386,7 +386,7 @@ typedef struct _proxy {
 } PROXY, *PPROXY;
 
 typedef struct _http {
-	HINTERNET    Handle;
+	HINTERNET    hInternet;
 	LPWSTR       Useragent;
 	LPWSTR       Method;
 	LPWSTR       Address;

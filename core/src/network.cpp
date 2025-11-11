@@ -16,7 +16,6 @@ namespace Network {
                 if (!Ctx->Win32.WinHttpQueryDataAvailable(hInternet, &inLength)) {
 					goto defer;
                 }
-
                 lastRead = inLength;
 
                 if (inLength > defLength) {
@@ -32,6 +31,7 @@ namespace Network {
                 if (!Ctx->Win32.WinHttpReadData(request, buffer, inLength, &read)) {
                     goto defer;
                 }
+
                 if (total + read > defLength) {
                     void *rResponse = Ctx->Win32.RtlReAllocateHeap(Ctx->Heap, 0, response, (total + read) * 2);
                     if (!rResponse) {
@@ -40,21 +40,20 @@ namespace Network {
 
                     response = rResponse;
                 }
-
                 MemCopy((PBYTE) response + total, buffer, read);
                 total += read;
             } 
 			while (inLength > 0);
 
             *packet = (PACKET*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(PACKET));
-            (*packet)->Buffer = (PBYTE)response;
-            (*packet)->Length = total;
+            (*packet)->MsgData = (PBYTE)response;
+            (*packet)->MsgLength = total;
 
 			success = true;
 defer:
             if (!success) {
                 MemSet(response, 0, total);
-                Free(response);
+                Ctx->Win32.RtlFreeHeap(Ctx->Heap, 0, response);
             }
 
             MemSet(buffer, 0, lastRead);
@@ -97,7 +96,7 @@ defer:
                 }
             }
 
-            request->ConnHandle = ctx->win32.WinHttpConnect(internet, address, port, 0);
+            request->ConnHandle = Ctx->Win32.WinHttpConnect(Ctx->Transport.Http->hInternet, address, port, 0);
 			if (!request->ConnHandle) {
                 Ctx->Win32.NtClose(internet);
                 return false;
