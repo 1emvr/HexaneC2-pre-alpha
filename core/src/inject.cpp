@@ -13,8 +13,6 @@ using namespace Utils;
 //namespace Injection {
 //
 //    VOID Threadless(const _threadless &writer, void *const shellcode, size_t n_shellcode, size_t total) {
-//        HEXANE;
-//
 //        HANDLE process      = { };
 //        UINT_PTR loader_rva = 0;
 //        UINT_PTR exp_addr    = 0;
