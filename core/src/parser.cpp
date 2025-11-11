@@ -5,8 +5,8 @@ namespace Parser {
     }
 
     VOID ParserStrcpy(PARSER* const parser, CHAR** const dst, UINT32 *const nOut) {
-        UINT32 length    	= 0;
-        const auto buffer   = UnpackString(parser, &length);
+        UINT32 length = 0;
+        const auto buffer = UnpackString(parser, &length);
 
         if (length) {
             if (nOut) {
@@ -26,9 +26,10 @@ namespace Parser {
             if (nOut) {
                 *nOut = length;
             }
-            length *= sizeof(WCHAR);
 
+            length *= sizeof(WCHAR);
             *dst = (WCHAR*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, length);
+
             MemCopy(*dst, buffer, length);
         }
     }
@@ -50,8 +51,8 @@ namespace Parser {
         parser->Handle = Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, length);
         MemCopy(parser->Handle, buffer, length);
 
-        parser->MsgLength  	= length;
-        parser->MsgData  	= parser->Handle;
+        parser->MsgLength = length;
+        parser->MsgData = parser->Handle;
     }
 
     VOID DestroyParser (PARSER** parser) {

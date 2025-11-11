@@ -22,26 +22,24 @@ namespace Packet {
     }
 
     PACKET* CreateTaskResponse(UINT32 cmdId) {
-        auto stream = CreateStreamWithHeaders(TypeResponse);
-        PackUint32(stream, cmdId);
+        auto packet = CreatePacketWithHeaders(TypeResponse);
+        PackUint32(packet, cmdId);
 
-        return stream;
+        return packet;
     }
 
-    PACKET* CreateStreamWithHeaders(UINT32 type) {
-        PACKET *stream = CreateStream();
+    PACKET* CreatePacketWithHeaders(UINT32 type) {
+        PACKET *packet = CreatePacket();
 
-        PackUint32(stream, Ctx->Config.PeerId);
-        PackUint32(stream, Ctx->Session.CurrentTaskId);
-        PackUint32(stream, type);
+        PackUint32(packet, Ctx->Config.PeerId);
+        PackUint32(packet, Ctx->Session.CurrentTaskId);
+        PackUint32(packet, type);
 
-        return stream;
+        return packet;
     }
 
     PACKET* CreatePacket () {
-        PACKET *packet = nullptr;
-
-        packet = (PACKET*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(PACKET));
+        PACKET *packet = (PACKET*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(PACKET));
 		if (!packet) {
 			return nullptr;
 		}
@@ -49,7 +47,6 @@ namespace Packet {
         packet->MsgData 	= (PBYTE) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, sizeof(UINT8));
         packet->MsgLength 	= 0;
         packet->Next 		= nullptr;
-
 defer:
         return packet;
     }
@@ -129,4 +126,39 @@ defer:
     VOID PackWString (PACKET* packet, WCHAR* data) {
         PackBytes(packet, (UINT8*) data, WcsLength(data));
     }
+
+	VOID AddPacket(PACKET* packet) {
+		auto head = Ctx->PacketCache;
+
+		if (!Ctx->PacketCache) {
+			Ctx->PacketCache = packet;
+		} else {
+			while (head->Next) {
+				head = head->Next;
+			}
+			head->Next = packet;
+		}
+	}
+
+	VOID RemovePacket(PACKET* target) {
+		PACKET *prev = nullptr;
+
+		if (!Ctx->PacketCache || !target) {
+			return;
+		}
+		for (auto head = Ctx->PacketCache; head; head = head->Next) {
+			if (head == target) {
+				if (prev) {
+					prev->Next = head->Next;
+				} else {
+					Ctx->PacketCache = head->Next;
+				}
+
+				DestroyPacket(head);
+				return;
+
+			}
+			prev = head;
+		}
+	}
 }

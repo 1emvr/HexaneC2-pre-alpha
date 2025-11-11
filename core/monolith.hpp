@@ -443,10 +443,12 @@ typedef struct _parser {
 
 typedef struct _packet {
     BYTE    	TransportType;
-    ULONG   	NodeId;
-    ULONG   	TaskId;
-    ULONG   	MsgType;
-    ULONG   	MsgLength;
+    UINT32   	NodeId;
+    UINT32   	TaskId;
+	UINT32		SeqIdx;
+	UINT32 		SeqTotal;
+    UINT32   	MsgType;
+    UINT32   	MsgLength;
     PBYTE   	MsgData;
     BOOL    	Ready;
 	BOOL 		Remove;
@@ -459,7 +461,7 @@ struct _hexane {
 	DWORD         	nThreads;
 	PCOFF_PARAMS  	DataCache;
 	PNODE    		NodeCache;
-	PPACKET 		MessageCache;
+	PPACKET 		PacketCache;
 
 	struct {
 		HMODULE Kernel32;

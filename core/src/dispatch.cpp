@@ -10,40 +10,6 @@ using namespace Memory::Execute;
 using namespace Dispatcher;
 
 namespace Dispatcher {
-    VOID AddMessage(PACKET *packet) {
-        auto head = Ctx->MessageCache;
-
-        if (!Ctx->MessageCache) {
-            Ctx->MessageCache = packet;
-        } else {
-            while (head->Next) {
-                head = head->Next;
-            }
-            head->Next = packet;
-        }
-    }
-
-    VOID RemoveMessage(PACKET *target) {
-        PACKET *prev = { };
-
-        if (!Ctx->MessageCache || !target) {
-            return;
-        }
-        for (auto head = Ctx->MessageCache; head; head = head->Next) {
-            if (head == target) {
-                if (prev) {
-                    prev->Next = head->Next;
-                } else {
-                    Ctx->MessageCache = head->Next;
-                }
-
-                DestroyPacket(head);
-                return;
-
-            }
-            prev = head;
-        }
-    }
 
 	// NOTE: I feel like the architecture should just be "label inbound/outbound" then simply check all messages.
 	// Named pipes are FIFO anyway, so, why not just check? Unless they're blocking, which in that case, we wouldn't need flags.
