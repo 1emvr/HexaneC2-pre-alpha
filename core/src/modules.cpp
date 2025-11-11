@@ -43,7 +43,7 @@ namespace Modules {
 
         for (auto next = head->Flink; next != head; next = next->Flink) {
             LDR_DATA_TABLE_ENTRY *mod = CONTAINING_RECORD(next, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
-            CONST UNICODE_STRING name = mod->BaseDllName;
+            const UNICODE_STRING name = mod->BaseDllName;
 
             WCHAR buffer[MAX_PATH] = { };
 
@@ -56,7 +56,7 @@ namespace Modules {
     }
 
     FARPROC FindExportAddress(const VOID *base, const UINT32 hash) {
-        FARPROC address = nullptr;
+        FARPROC address = 0;
 
         CONST PIMAGE_NT_HEADERS ntHead = RVA(PIMAGE_NT_HEADERS, base, ((PIMAGE_DOS_HEADER) base)->e_lfanew);
         CONST PIMAGE_EXPORT_DIRECTORY exports = RVA(PIMAGE_EXPORT_DIRECTORY, base, ntHead->OptionalHeader.DataDirectory[0].VirtualAddress);
@@ -125,43 +125,43 @@ namespace Modules {
             CONST IMAGE_EXPORT_DIRECTORY *exports = RVA(IMAGE_EXPORT_DIRECTORY*, mod, dataDir->VirtualAddress);
             CONST UINT32 nEntries = !expName ? exports->NumberOfFunctions : exports->NumberOfNames;
 
-            for (auto entry_index = 0; entry_index < nEntries; entry_index++) {
-                UINT32 _ordinal = 0;
+            for (auto entryIdx = 0; entryIdx < nEntries; entryIdx++) {
+                UINT32 ord = 0;
                 BOOL found = false;
 
                 if (expName) {
-                    const UINT32 *_name_rva = RVA(UINT32*, mod, exports->AddressOfNames + entry_index * sizeof(UINT32));
-                    const CHAR *name = RVA(CHAR*, mod, *_name_rva);
+                    const UINT32 *nameRva = RVA(UINT32*, mod, exports->AddressOfNames + entryIdx * sizeof(UINT32));
+                    const CHAR *name = RVA(CHAR*, mod, *nameRva);
 
                     if (MbsCompare(name, expName)) {
-                        const INT16 *_ord_rva = RVA(INT16*, mod, exports->AddressOfNameOrdinals + entry_index * sizeof(UINT16));
+                        const INT16 *ordRva = RVA(INT16*, mod, exports->AddressOfNameOrdinals + entryIdx * sizeof(UINT16));
 
-                        _ordinal = exports->Base + *_ord_rva;
+                        ord = exports->Base + *ordRva;
                         found = true;
                     }
                 } else {
-                    CONST INT16 *_ord_rva = RVA(INT16*, mod, exports->AddressOfNameOrdinals + entry_index * sizeof(INT16));
-                    _ordinal = exports->Base + *_ord_rva;
+                    CONST INT16 *ordRva = RVA(INT16*, mod, exports->AddressOfNameOrdinals + entryIdx * sizeof(INT16));
+                    ord = exports->Base + *ordRva;
 
-                    if (_ordinal == ordinal) {
+                    if (ord == ordinal) {
                         found = true;
                     }
                 }
 
                 if (found) {
-                    UINT32 *fnRva = RVA(UINT32*, mod, exports->AddressOfFunctions + sizeof(UINT32) * (_ordinal - exports->Base));
-                    VOID *fnPtr = RVA(VOID*, mod, *fnRva);
+                    UINT32 *fnRva = RVA(UINT32*, mod, exports->AddressOfFunctions + sizeof(UINT32) * (ord - exports->Base));
+                    LPVOID fnPtr = RVA(LPVOID, mod, *fnRva);
 
                     if (textStart > fnPtr || textEnd < fnPtr) { /* NOTE: this is another module... */
                         SIZE_T length = MbsLength((CHAR*)fnPtr);
 						const CHAR *foundName = (CHAR*)fnPtr + length + 1; /* TODO: check that this is correct. */
 
 						MemSet(buffer, 0, MAX_PATH);
+
 						LDR_DATA_TABLE_ENTRY *libEntry = FindModuleEntry(HashStringA(MbsToLower((CHAR*)buffer, foundName), length));
 						if (!libEntry || libEntry->DllBase == mod) {
 							return false;
 						}
-
 						if (!LocalLdrFindExportAddress((HMODULE)libEntry->DllBase, foundName, 0, &fnPtr)) {
 							return false;
 						}
@@ -185,8 +185,7 @@ namespace Modules {
         if (!nameHash) {
             goto defer;
         }
-
-        if (!(mod->local_name = (WCHAR*)Malloc(MAX_PATH))) {
+        if (!(mod->LocalName = (WCHAR*) Ctx->Win32.RtlAllocateHeap(Ctx->Heap, 0, MAX_PATH))) {
             goto defer;
         }
 
